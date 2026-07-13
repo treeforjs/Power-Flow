@@ -1,0 +1,140 @@
+source_pdf: C:\Users\tsmit\Documents\Papers\PhysRevAccelBeams.26.040401.pdf
+paper_context: "Neutral ionization is mostly the result of electron and ion impact,\
+  \ with electron-neutral and ion-neutral elastic and inelastic scattering modeled\
+  \ in Monte Carlo fashion [51,53] using measured cross sections. These cross sections\
+  \ are tabulated as functions of the incident particle \u2019s energy. Momentum transfer\
+  \ and charge exchange are similarly modeled using the PIC-Monte Carlo technique\
+  \ [72\u201374]. The ionization cross sections for the following reactions are included\
+  \ in the simulations and plotted in Figs. 2 and 3 for N. BENNETT et al. PHYS. REV\
+  \ . ACCEL. BEAMS 26, 040401 (2023) 040401-4 reference: e \xFE H \u2192 2e \xFE H\xFE\
+  \ [75], e \xFE H2 \u2192 2e \xFE H\xFE 2 [75], e \xFE H\xFE 2 \u2192 e \xFE H\xFE\
+  \ \xFE H [76],H \xFE \xFE H \u2192 e \xFE 2H\xFE [77], H \xFE H \u2192 e \xFE H\xFE\
+  \ \xFE H [78],H \xFE H2 \u2192 e \xFE H\xFE \xFE H2 [78], H \xFE H2 \u2192 e \xFE\
+  \ H \xFE H\xFE 2 [78],H \xFE \xFE H2 \u2192 e \xFE H\xFE \xFE H\xFE 2 [78], H\xFE\
+  \ 2 \xFE H \u2192 e \xFE H\xFE \xFE H\xFE 2 [79],H \xFE \xFE H \u2192 H \xFE H\xFE\
+  \ [80], H\xFE \xFE H2 \u2192 H \xFE H\xFE 2 [80],H \xFE 2 \xFE H \u2192 H\xFE \xFE\
+  \ H2 [80], e \xFE H\xFE 2 \u2192 2H [81]."
+references:
+  75: Y.-K. Kim and M. E. Rudd, Phys. Rev. A 50, 3954 (1994).
+  76: G. H. Dunn and B. Van Zyl, Phys. Rev. 154, 40 (1967).
+  77: M. B. Shah and H. B. Gilbody, J. Phys. B 14, 2361 (1981).
+  78: W. Ott, E. Speth, and the W7-AS Team, Nucl. Fusion 42, 796 (2002).
+  79: C. McGrath, M. B. Shah, P. C. E. McCartney, and J. W. McConkey, Phys. Rev. A
+    64, 062712 (2001).
+  80: W. L. Fite, R. T. Brackmann, and W. R. Snow, Phys. Rev. 112, 1161 (1958).
+reactions:
+- name: e_H_ionization_ref75
+  reaction: e + H -> 2e + H+
+  incident: e
+  target: H
+  products:
+    e: 2
+    H+: 1
+  process: electron_impact_ionization
+  reference_id: 75
+- name: e_H2_ionization_ref75
+  reaction: e + H2 -> 2e + H2+
+  incident: e
+  target: H2
+  products:
+    e: 2
+    H2+: 1
+  process: electron_impact_ionization
+  reference_id: 75
+  nist_species: H2
+- name: e_H2plus_dissociative_ionization_ref76
+  reaction: e + H2+ -> e + H+ + H
+  incident: e
+  target: H2+
+  products:
+    e: 1
+    H+: 1
+    H: 1
+  process: electron_impact_dissociative_ionization
+  reference_id: 76
+- name: Hplus_H_ionization_ref77
+  reaction: H+ + H -> e + 2H+
+  incident: H+
+  target: H
+  products:
+    e: 1
+    H+: 2
+  process: ion_impact_ionization
+  reference_id: 77
+- name: H_H_ionization_ref78
+  reaction: H + H -> e + H+ + H
+  incident: H
+  target: H
+  products:
+    e: 1
+    H+: 1
+    H: 1
+  process: neutral_impact_ionization
+  reference_id: 78
+- name: H_H2_target_ionization_ref78
+  reaction: H + H2 -> e + H+ + H2
+  incident: H
+  target: H2
+  products:
+    e: 1
+    H+: 1
+    H2: 1
+  process: neutral_impact_ionization
+  reference_id: 78
+- name: H_H2_projectile_ionization_ref78
+  reaction: H + H2 -> e + H + H2+
+  incident: H
+  target: H2
+  products:
+    e: 1
+    H: 1
+    H2+: 1
+  process: neutral_impact_ionization
+  reference_id: 78
+- name: Hplus_H2_ionization_ref78
+  reaction: H+ + H2 -> e + H+ + H2+
+  incident: H+
+  target: H2
+  products:
+    e: 1
+    H+: 1
+    H2+: 1
+  process: ion_impact_ionization
+  reference_id: 78
+- name: H2plus_H_ionization_ref79
+  reaction: H2+ + H -> e + H+ + H2+
+  incident: H2+
+  target: H
+  products:
+    e: 1
+    H+: 1
+    H2+: 1
+  process: ion_impact_ionization
+  reference_id: 79
+- name: Hplus_H_charge_exchange_ref80
+  reaction: H+ + H -> H + H+
+  incident: H+
+  target: H
+  products:
+    H: 1
+    H+: 1
+  process: charge_exchange
+  reference_id: 80
+- name: Hplus_H2_charge_exchange_ref80
+  reaction: H+ + H2 -> H + H2+
+  incident: H+
+  target: H2
+  products:
+    H: 1
+    H2+: 1
+  process: charge_exchange
+  reference_id: 80
+- name: H2plus_H_charge_exchange_ref80
+  reaction: H2+ + H -> H+ + H2
+  incident: H2+
+  target: H
+  products:
+    H+: 1
+    H2: 1
+  process: charge_exchange
+  reference_id: 80

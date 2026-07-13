@@ -1,0 +1,106 @@
+species:
+  - H2O
+  - H
+  - H2
+  - O
+  - O2
+  - OH
+  - H+
+  - H2+
+  - H3+
+  - O+
+  - O2+
+  - OH+
+  - H2O+
+  - H3O+
+  - H-
+  - O-
+  - OH-
+  - O2-
+
+reactions:
+  - name: H2O_dissociation
+    reactants: {H2O: 1, e: 1}
+    products: {H: 2, O: 1, e: 1}
+    bolsig_rate: H2O_dissociation_s
+    provisional: true
+    reference: "Placeholder until curated H2O electron-impact cross sections are imported."
+  - name: impact_ionization
+    reactants: {H2O: 1, e: 1}
+    products: {H2O+: 1, e: 2}
+    bolsig_rate: impact_ionization_s
+    provisional: true
+    reference: "Placeholder until species-resolved BOLSIG/CR rates are imported."
+  - name: H_state_resolved_excitation
+    reactants: {H: 1, e: 1}
+    products: {H: 1, e: 1}
+    provisional: true
+    reference: "Yacora H(q)+e -> H(p>q)+e; Wünderlich/Fantz and Janev/Reiter/Samm data required."
+  - name: H_state_resolved_deexcitation
+    reactants: {H: 1, e: 1}
+    products: {H: 1, e: 1}
+    provisional: true
+    reference: "Yacora H(q)+e -> H(p<q)+e via detailed balance."
+  - name: Hplus_radiative_recombination
+    reactants: {H+: 1, e: 1}
+    products: {H: 1}
+    provisional: true
+    reference: "Sawada/Fujimoto H+ + e -> H(p) + hv."
+  - name: Hplus_three_body_recombination
+    reactants: {H+: 1, e: 2}
+    products: {H: 1, e: 1}
+    provisional: true
+    reference: "Sawada/Fujimoto H+ + 2e -> H(p) + e."
+  - name: H2_state_resolved_dissociation
+    reactants: {H2: 1, e: 1}
+    products: {H: 2, e: 1}
+    provisional: true
+    reference: "Sawada/Fujimoto H2 + e -> H(p) + H(1) + e; rovibrationally resolved tables required."
+  - name: H2plus_state_resolved_dissociation
+    reactants: {H2+: 1, e: 1}
+    products: {H: 1, H+: 1, e: 1}
+    provisional: true
+    reference: "Sawada/Fujimoto H2+ + e -> H(p) + H+ + e."
+  - name: H2plus_dissociative_recombination
+    reactants: {H2+: 1, e: 1}
+    products: {H: 2}
+    provisional: true
+    reference: "Janev/Reiter/Samm H2+ + e -> H(p) + H(1)."
+  - name: H3plus_dissociative_recombination
+    reactants: {H3+: 1, e: 1}
+    products: {H: 1, H2: 1}
+    provisional: true
+    reference: "Janev/Reiter/Samm and Datz/Sundstrom H3+ dissociative recombination branching."
+  - name: Hplus_Hminus_mutual_neutralization
+    reactants: {H+: 1, H-: 1}
+    products: {H: 2}
+    provisional: true
+    reference: "Stenrup/Larson H+ + H- mutual neutralization."
+  - name: H2plus_Hminus_mutual_neutralization
+    reactants: {H2+: 1, H-: 1}
+    products: {H: 1, H2: 1}
+    provisional: true
+    reference: "Janev/Reiter/Samm and Eerden/van de Sanden H2+ + H- mutual neutralization."
+
+spectral_lines:
+  - name: H_Lyman_alpha
+    species: H
+    wavelength_nm: 121.567
+    upper: "2p"
+    lower: "1s"
+    a_s: 6.265e8
+    energy_ev: 10.2
+  - name: H_Balmer_alpha
+    species: H
+    wavelength_nm: 656.281
+    upper: "3"
+    lower: "2"
+    a_s: 4.410e7
+    energy_ev: 1.89
+  - name: H_Balmer_beta
+    species: H
+    wavelength_nm: 486.135
+    upper: "4"
+    lower: "2"
+    a_s: 8.419e6
+    energy_ev: 2.55

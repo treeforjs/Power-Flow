@@ -1,0 +1,54 @@
+schema: mhdlab.yacora_hydrogen_reactions.v1
+source: Yacora help-page reaction overview supplied by Trevor Smith
+hydrogen_atom_reactions:
+  - process: electron_collision_excitation
+    reaction: H(q) + e- -> H(p>q) + e-
+    reference_ids: [3, 5]
+    data_kind: state_resolved_rate_or_cross_section
+  - process: electron_collision_deexcitation
+    reaction: H(q) + e- -> H(p<q) + e-
+    reference_ids: [3, 5]
+    closure: detailed_balance
+    data_kind: state_resolved_rate_or_cross_section
+  - process: spontaneous_emission
+    reaction: H(q) -> H(p<q) + hv
+    reference_ids: [6, 7]
+    data_kind: transition_probability
+  - process: electron_impact_ionization
+    reaction: H(q) + e- -> H+ + e-
+    reference_ids: [5]
+    data_kind: state_resolved_rate_or_cross_section
+  - process: radiative_recombination
+    reaction: H+ + e- -> H(p) + hv
+    reference_ids: [8]
+    data_kind: rate_coefficient
+  - process: three_body_recombination
+    reaction: H+ + 2e- -> H(p) + e-
+    reference_ids: [8]
+    data_kind: rate_coefficient
+  - process: h2_dissociation
+    reaction: H2 + e- -> H(p) + H(1) + e-
+    reference_ids: [8]
+    data_kind: rate_coefficient
+    can_feed_bolsig: true
+  - process: h2plus_dissociation
+    reaction: H2+ + e- -> H(p) + H+ + e-
+    reference_ids: [8]
+    data_kind: rate_coefficient
+    can_feed_bolsig: true
+  - process: h2plus_dissociative_recombination
+    reaction: H2+ + e- -> H(p) + H(1)
+    reference_ids: [5]
+    data_kind: rate_coefficient
+  - process: h3plus_dissociative_recombination
+    reaction: H3+ + e- -> H(p) + H2
+    reference_ids: [5, 9]
+    data_kind: branching_rate_coefficient
+  - process: hplus_hminus_mutual_neutralization
+    reaction: H+ + H- -> H(p) + H
+    reference_ids: [10]
+    data_kind: cross_section_or_rate_coefficient
+  - process: h2plus_hminus_mutual_neutralization
+    reaction: H2+ + H- -> H(p) + H2
+    reference_ids: [5, 11]
+    data_kind: cross_section_or_rate_coefficient

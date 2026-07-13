@@ -1,0 +1,96 @@
+project_root: ..
+output_root: ../runs
+
+geometry:
+  file: ../examples/geometry/parallel_plate_gap.json
+
+grid:
+  nx: 48
+  ny: 36
+
+time:
+  dt_s: 5.0e-10
+  end_s: 2.0e-8
+  sample_every: 4
+
+drive:
+  trace_csv: ../examples/traces/mykonos_synthetic.csv
+  voltage_column: voltage_v
+  current_column: feed_current_a
+  mode: measured_current
+
+material:
+  preset: SS304
+
+mhd:
+  backend: auto
+  out_of_plane_depth_m: 0.01
+  poisson_iterations: 120
+  electrostatic_iterations: 160
+
+desorption:
+  species: H2O
+  attempt_frequency_s: 1.0e13
+  activation_energy_ev: 0.95
+  coverage_interaction_ev: 0.15
+  initial_coverage_m2: 3.0e18
+
+velocity_grid:
+  max_speed_m_s: 9000.0
+  n_speed: 4
+  n_angle: 12
+
+neutrals:
+  bgk_frequency_s: 1.0e7
+  wall_sticking: 0.25
+  initial_electron_density_m3: 1.0e10
+
+bolsig:
+  enabled: true
+  path: ../third_party/bolsigplus
+  species: [H2, O2]
+  fractions: [0.67, 0.33]
+  en_min_td: 0.1
+  en_max_td: 1000.0
+  count: 12
+  timeout_s: 20.0
+  gas_temperature_k: 300.0
+  gas_density_m3: 3.295e22
+
+chemistry:
+  mechanism: water_fragment_mechanism.yaml
+  allow_provisional_rates: true
+
+cr_model:
+  enabled: true
+  references: ../data/cr_model/references.yaml
+  reaction_overview: ../data/cr_model/yacora_hydrogen_reactions.yaml
+  rovibrational_manifest: ../data/cr_model/rovibrational_manifest.yaml
+
+cross_sections:
+  enabled: true
+  manifest: ../data/cross_sections/cross_section_manifest.yaml
+  incident_energies_ev:
+    e: 30.0
+    H: 1000.0
+    H+: 1000.0
+    H2+: 1000.0
+
+spectra:
+  enabled: true
+  n_pixels: 1024
+  excitation_scale: 1.0e-31
+  los:
+    - name: center_chord
+      start: [-0.0045, 0.0]
+      end: [0.0045, 0.0]
+      samples: 200
+  calibration:
+    wavelength_poly_nm: [100.0, 0.65]
+    gate_s: 5.0e-9
+    radiometric_response: 1.0
+    background: 0.0
+    instrument_fwhm_nm: 0.4
+
+tools:
+  cmake_path: C:/Users/tsmit/Downloads/cmake-4.4.0-windows-x86_64/cmake-4.4.0-windows-x86_64/bin/cmake.exe

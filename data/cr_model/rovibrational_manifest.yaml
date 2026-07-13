@@ -1,0 +1,51 @@
+schema: mhdlab.rovibrational_cross_sections.v1
+description: Roto-vibrational H2/H2+ data manifest for CR and BOLSIG-compatible electron collision tables.
+rovibrational_cross_sections:
+  - name: h2_electron_vibrational_excitation
+    collider: e
+    target: H2(X1Sigma_g+)
+    transition: v,J -> v_prime,J_prime
+    process: electron_impact_ro_vibrational_excitation
+    reference_ids: [3, 5, 8]
+    table_format: energy_ev,cross_section_m2,v_initial,J_initial,v_final,J_final
+    file: null
+    can_feed_bolsig: true
+    note: Add state-resolved cross sections or rate coefficients before enabling physical H2 band populations.
+  - name: h2_electron_vibrational_deexcitation
+    collider: e
+    target: H2(X1Sigma_g+)
+    transition: v,J -> v_lower,J_lower
+    process: electron_impact_ro_vibrational_deexcitation
+    reference_ids: [3, 5]
+    closure: detailed_balance
+    table_format: energy_ev,cross_section_m2,v_initial,J_initial,v_final,J_final
+    file: null
+    can_feed_bolsig: true
+  - name: h2_electron_dissociation_state_resolved
+    collider: e
+    target: H2(v,J)
+    transition: H2(v,J) -> H(n) + H(1)
+    process: electron_impact_dissociation
+    reference_ids: [8]
+    table_format: electron_temperature_ev,rate_m3_s,v_initial,J_initial,H_product_level
+    file: null
+    can_feed_bolsig: false
+  - name: h2plus_dissociative_recombination_state_resolved
+    collider: e
+    target: H2+(v,J)
+    transition: H2+(v,J) -> H(n) + H(1)
+    process: dissociative_recombination
+    reference_ids: [5]
+    table_format: electron_temperature_ev,rate_m3_s,v_initial,J_initial,H_product_level
+    file: null
+    can_feed_bolsig: false
+  - name: h2_fulcher_emission_rovibrational
+    collider: photon
+    target: H2(d3Pi_u)
+    transition: d3Pi_u(v_prime,J_prime) -> a3Sigma_g+(v_double_prime,J_double_prime)
+    process: spontaneous_emission
+    reference_ids: [7, 12]
+    table_format: wavelength_nm,A_s,v_upper,J_upper,v_lower,J_lower,branch
+    file: null
+    can_feed_bolsig: false
+    note: Used by synthetic spectra, not by BOLSIG.

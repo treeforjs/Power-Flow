@@ -1,0 +1,218 @@
+schema: mhdlab.cross_sections.v1
+source_paper: N. Bennett et al., Phys. Rev. Accel. Beams 26, 040401 (2023).
+cross_sections:
+- name: e_H_ionization_ref75
+  reaction: e + H -> 2e + H+
+  incident: e
+  target: H
+  products:
+    e: 2
+    H+: 1
+  process: electron_impact_ionization
+  reference: Y.-K. Kim and M. E. Rudd, Phys. Rev. A 50, 3954 (1994).
+  reference_id: 75
+  file: null
+  source_note: numeric table required from cited measured reference
+  units:
+    energy: eV
+    cross_section: m2
+- name: e_H2_ionization_ref75
+  reaction: e + H2 -> 2e + H2+
+  incident: e
+  target: H2
+  products:
+    e: 2
+    H2+: 1
+  process: electron_impact_ionization
+  reference: Y.-K. Kim and M. E. Rudd, Phys. Rev. A 50, 3954 (1994).
+  reference_id: 75
+  file: nist/e_H2_ionization_ref75_nist_beb.csv
+  source_note: NIST BEB starter table; PRAB cites Kim and Rudd for this channel
+  units:
+    energy: eV
+    cross_section: m2
+- name: e_H2plus_dissociative_ionization_ref76
+  reaction: e + H2+ -> e + H+ + H
+  incident: e
+  target: H2+
+  products:
+    e: 1
+    H+: 1
+    H: 1
+  process: electron_impact_dissociative_ionization
+  reference: G. H. Dunn and B. Van Zyl, Phys. Rev. 154, 40 (1967).
+  reference_id: 76
+  file: null
+  source_note: numeric table required from cited measured reference
+  units:
+    energy: eV
+    cross_section: m2
+- name: Hplus_H_ionization_ref77
+  reaction: H+ + H -> e + 2H+
+  incident: H+
+  target: H
+  products:
+    e: 1
+    H+: 2
+  process: ion_impact_ionization
+  reference: M. B. Shah and H. B. Gilbody, J. Phys. B 14, 2361 (1981).
+  reference_id: 77
+  file: null
+  source_note: numeric table required from cited measured reference
+  units:
+    energy: eV
+    cross_section: m2
+- name: H_H_ionization_ref78
+  reaction: H + H -> e + H+ + H
+  incident: H
+  target: H
+  products:
+    e: 1
+    H+: 1
+    H: 1
+  process: neutral_impact_ionization
+  reference: W. Ott, E. Speth, and the W7-AS Team, Nucl. Fusion 42, 796 (2002).
+  reference_id: 78
+  file: null
+  source_note: numeric table required from cited measured reference
+  units:
+    energy: eV
+    cross_section: m2
+- name: H_H2_target_ionization_ref78
+  reaction: H + H2 -> e + H+ + H2
+  incident: H
+  target: H2
+  products:
+    e: 1
+    H+: 1
+    H2: 1
+  process: neutral_impact_ionization
+  reference: W. Ott, E. Speth, and the W7-AS Team, Nucl. Fusion 42, 796 (2002).
+  reference_id: 78
+  file: null
+  source_note: numeric table required from cited measured reference
+  units:
+    energy: eV
+    cross_section: m2
+- name: H_H2_projectile_ionization_ref78
+  reaction: H + H2 -> e + H + H2+
+  incident: H
+  target: H2
+  products:
+    e: 1
+    H: 1
+    H2+: 1
+  process: neutral_impact_ionization
+  reference: W. Ott, E. Speth, and the W7-AS Team, Nucl. Fusion 42, 796 (2002).
+  reference_id: 78
+  file: null
+  source_note: numeric table required from cited measured reference
+  units:
+    energy: eV
+    cross_section: m2
+- name: Hplus_H2_ionization_ref78
+  reaction: H+ + H2 -> e + H+ + H2+
+  incident: H+
+  target: H2
+  products:
+    e: 1
+    H+: 1
+    H2+: 1
+  process: ion_impact_ionization
+  reference: W. Ott, E. Speth, and the W7-AS Team, Nucl. Fusion 42, 796 (2002).
+  reference_id: 78
+  file: null
+  source_note: numeric table required from cited measured reference
+  units:
+    energy: eV
+    cross_section: m2
+- name: H2plus_H_ionization_ref79
+  reaction: H2+ + H -> e + H+ + H2+
+  incident: H2+
+  target: H
+  products:
+    e: 1
+    H+: 1
+    H2+: 1
+  process: ion_impact_ionization
+  reference: C. McGrath, M. B. Shah, P. C. E. McCartney, and J. W. McConkey, Phys.
+    Rev. A 64, 062712 (2001).
+  reference_id: 79
+  file: null
+  source_note: numeric table required from cited measured reference
+  units:
+    energy: eV
+    cross_section: m2
+- name: Hplus_H_charge_exchange_ref80
+  reaction: H+ + H -> H + H+
+  incident: H+
+  target: H
+  products:
+    H: 1
+    H+: 1
+  process: charge_exchange
+  reference: W. L. Fite, R. T. Brackmann, and W. R. Snow, Phys. Rev. 112, 1161 (1958).
+  reference_id: 80
+  file: null
+  source_note: numeric table required from cited measured reference
+  units:
+    energy: eV
+    cross_section: m2
+- name: Hplus_H2_charge_exchange_ref80
+  reaction: H+ + H2 -> H + H2+
+  incident: H+
+  target: H2
+  products:
+    H: 1
+    H2+: 1
+  process: charge_exchange
+  reference: W. L. Fite, R. T. Brackmann, and W. R. Snow, Phys. Rev. 112, 1161 (1958).
+  reference_id: 80
+  file: null
+  source_note: numeric table required from cited measured reference
+  units:
+    energy: eV
+    cross_section: m2
+- name: H2plus_H_charge_exchange_ref80
+  reaction: H2+ + H -> H+ + H2
+  incident: H2+
+  target: H
+  products:
+    H+: 1
+    H2: 1
+  process: charge_exchange
+  reference: W. L. Fite, R. T. Brackmann, and W. R. Snow, Phys. Rev. 112, 1161 (1958).
+  reference_id: 80
+  file: null
+  source_note: numeric table required from cited measured reference
+  units:
+    energy: eV
+    cross_section: m2
+- name: nist_H2O_total_ionization
+  reaction: e + H2O total ionization
+  incident: e
+  target: H2O
+  products: {}
+  process: electron_impact_total_ionization
+  reference: NIST Electron-Impact Cross Sections for Ionization and Excitation Database.
+  reference_id: NIST
+  file: nist/e_H2O_total_ionization_nist_beb.csv
+  source_note: supporting BEB/BEQ table, not one of the PRAB refs. 75-80 plotted ion-impact
+    channels
+  units:
+    energy: eV
+    cross_section: m2
+- name: nist_H2plus_total_ionization
+  reaction: e + H2+ total ionization
+  incident: e
+  target: H2+
+  products: {}
+  process: electron_impact_total_ionization
+  reference: NIST Electron-Impact Cross Sections for Ionization and Excitation Database.
+  reference_id: NIST
+  file: nist/e_H2plus_total_ionization_nist_beq.csv
+  source_note: supporting BEB/BEQ table, not one of the PRAB refs. 75-80 plotted ion-impact
+    channels
+  units:
+    energy: eV
+    cross_section: m2
