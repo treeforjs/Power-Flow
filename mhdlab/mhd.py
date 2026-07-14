@@ -8,6 +8,7 @@ import numpy as np
 
 from .backend import ArrayBackend
 from .constants import MU0
+from .conductivity_tables import ConductivityTable
 from .geometry import Raster, boundary_mask
 from .materials import Material
 
@@ -15,6 +16,7 @@ from .materials import Material
 @dataclass
 class MHDState:
     temperature_k: np.ndarray
+    specific_enthalpy_j_kg: np.ndarray
     density_kg_m3: np.ndarray
     pressure_pa: np.ndarray
     magnetic_pressure_pa: np.ndarray
@@ -22,6 +24,8 @@ class MHDState:
     bx_t: np.ndarray
     by_t: np.ndarray
     jz_a_m2: np.ndarray
+    conductivity_s_m: np.ndarray
+    joule_heating_w_m3: np.ndarray
     phi_v: np.ndarray
     ex_v_m: np.ndarray
     ey_v_m: np.ndarray
@@ -38,8 +42,11 @@ class ReducedMHDSolver:
         self.electrostatic_iterations = int(config.get("electrostatic_iterations", 350))
         self.induction_iterations = int(config.get("induction_iterations", 4))
         self.induction_relaxation = float(config.get("induction_relaxation", 0.7))
+        self.enforce_unidirectional_region_current = bool(config.get("enforce_unidirectional_region_current", True))
+        self.current_density_limit_factor = float(config.get("current_density_limit_factor", 25.0))
         self.temperature_floor_k = float(config.get("temperature_floor_k", 1.0))
         self.conductivity_config = dict(config.get("conductivity", {"model": "temperature"}))
+        self.conductivity_table = self._load_conductivity_table(self.conductivity_config)
         self.material_mask = (
             raster.mask_by_kind("cathode")
             | raster.mask_by_kind("anode")
@@ -53,10 +60,12 @@ class ReducedMHDSolver:
     def initial_state(self) -> MHDState:
         shape = self.raster.shape
         temp = np.full(shape, self.material.initial_temperature_k, dtype=float)
+        enthalpy = self.material.specific_enthalpy_from_temperature(temp)
         density = np.where(self.material_mask, self.material.density_kg_m3, 0.0)
         zero = np.zeros(shape, dtype=float)
         return MHDState(
             temperature_k=temp,
+            specific_enthalpy_j_kg=enthalpy,
             density_kg_m3=density,
             pressure_pa=zero.copy(),
             magnetic_pressure_pa=zero.copy(),
@@ -64,6 +73,8 @@ class ReducedMHDSolver:
             bx_t=zero.copy(),
             by_t=zero.copy(),
             jz_a_m2=zero.copy(),
+            conductivity_s_m=zero.copy(),
+            joule_heating_w_m3=zero.copy(),
             phi_v=zero.copy(),
             ex_v_m=zero.copy(),
             ey_v_m=zero.copy(),
@@ -82,11 +93,14 @@ class ReducedMHDSolver:
         conductivity = self._electrical_conductivity(state.temperature_k, state.density_kg_m3, jz)
         heat = jz * jz / np.maximum(conductivity, 1.0e-30)
         lap_t = laplacian(state.temperature_k, self.raster.dx, self.raster.dy)
-        temp = state.temperature_k + dt_s * (
-            heat / (self.material.density_kg_m3 * self.material.heat_capacity_j_kg_k)
-            + self.material.thermal_diffusivity_m2_s * lap_t
+        density_for_energy = np.maximum(state.density_kg_m3, 1.0)
+        enthalpy = state.specific_enthalpy_j_kg + dt_s * (
+            heat / density_for_energy
+            + self.material.thermal_conductivity_w_m_k * lap_t / density_for_energy
         )
+        temp = self.material.temperature_from_specific_enthalpy(enthalpy)
         temp = np.where(self.material_mask, np.maximum(temp, self.temperature_floor_k), state.temperature_k)
+        enthalpy = np.where(self.material_mask, enthalpy, state.specific_enthalpy_j_kg)
 
         delta_t = temp - self.material.initial_temperature_k
         volume_factor = np.maximum(1.0 + 3.0 * self.material.thermal_expansion_1_k * delta_t, 0.05)
@@ -118,6 +132,7 @@ class ReducedMHDSolver:
 
         return MHDState(
             temperature_k=temp,
+            specific_enthalpy_j_kg=enthalpy,
             density_kg_m3=density,
             pressure_pa=pressure,
             magnetic_pressure_pa=mag_pressure,
@@ -125,6 +140,8 @@ class ReducedMHDSolver:
             bx_t=bx,
             by_t=by,
             jz_a_m2=jz,
+            conductivity_s_m=conductivity,
+            joule_heating_w_m3=heat,
             phi_v=phi,
             ex_v_m=ex,
             ey_v_m=ey,
@@ -140,6 +157,7 @@ class ReducedMHDSolver:
         jz = xp.asarray(jz_np)
         conductivity = xp.asarray(conductivity_np)
         temp0 = xp.asarray(state.temperature_k)
+        enthalpy0 = xp.asarray(state.specific_enthalpy_j_kg)
         density0 = xp.asarray(state.density_kg_m3)
         displacement0 = xp.asarray(state.surface_displacement_m)
 
@@ -151,11 +169,15 @@ class ReducedMHDSolver:
 
         heat = jz * jz / xp.maximum(conductivity, 1.0e-30)
         lap_t = laplacian_xp(temp0, self.raster.dx, self.raster.dy, xp)
-        temp = temp0 + dt_s * (
-            heat / (self.material.density_kg_m3 * self.material.heat_capacity_j_kg_k)
-            + self.material.thermal_diffusivity_m2_s * lap_t
+        density_for_energy = xp.maximum(density0, 1.0)
+        enthalpy = enthalpy0 + dt_s * (
+            heat / density_for_energy
+            + self.material.thermal_conductivity_w_m_k * lap_t / density_for_energy
         )
+        temp_np = self.material.temperature_from_specific_enthalpy(self.backend.asnumpy(enthalpy))
+        temp = xp.asarray(temp_np)
         temp = xp.where(material_mask, xp.maximum(temp, self.temperature_floor_k), temp0)
+        enthalpy = xp.where(material_mask, enthalpy, enthalpy0)
 
         delta_t = temp - self.material.initial_temperature_k
         volume_factor = xp.maximum(1.0 + 3.0 * self.material.thermal_expansion_1_k * delta_t, 0.05)
@@ -187,6 +209,7 @@ class ReducedMHDSolver:
 
         return MHDState(
             temperature_k=self.backend.asnumpy(temp),
+            specific_enthalpy_j_kg=self.backend.asnumpy(enthalpy),
             density_kg_m3=self.backend.asnumpy(density),
             pressure_pa=self.backend.asnumpy(pressure),
             magnetic_pressure_pa=self.backend.asnumpy(mag_pressure),
@@ -194,6 +217,8 @@ class ReducedMHDSolver:
             bx_t=self.backend.asnumpy(bx),
             by_t=self.backend.asnumpy(by),
             jz_a_m2=self.backend.asnumpy(jz),
+            conductivity_s_m=self.backend.asnumpy(conductivity),
+            joule_heating_w_m3=self.backend.asnumpy(heat),
             phi_v=self.backend.asnumpy(phi),
             ex_v_m=self.backend.asnumpy(ex),
             ey_v_m=self.backend.asnumpy(ey),
@@ -246,6 +271,8 @@ class ReducedMHDSolver:
                 cell_area=cell_area,
                 dt_s=dt_s,
             )
+            self._enforce_region_current_constraints(jz, self.cathode_mask, float(current_a), cell_area)
+            self._enforce_region_current_constraints(jz, self.anode_mask, -float(current_a), cell_area)
             next_az = solve_poisson(
                 source=-MU0 * jz,
                 dx=self.raster.dx,
@@ -253,6 +280,30 @@ class ReducedMHDSolver:
                 iterations=self.poisson_iterations,
             )
             az = relaxation * next_az + (1.0 - relaxation) * az
+        conductivity = self._electrical_conductivity(state.temperature_k, state.density_kg_m3, jz)
+        jz.fill(0.0)
+        self._fill_region_inductive_current(
+            jz,
+            az,
+            previous_az,
+            self.cathode_mask,
+            target_current_a=float(current_a),
+            conductivity=conductivity,
+            cell_area=cell_area,
+            dt_s=dt_s,
+        )
+        self._fill_region_inductive_current(
+            jz,
+            az,
+            previous_az,
+            self.anode_mask,
+            target_current_a=-float(current_a),
+            conductivity=conductivity,
+            cell_area=cell_area,
+            dt_s=dt_s,
+        )
+        self._enforce_region_current_constraints(jz, self.cathode_mask, float(current_a), cell_area)
+        self._enforce_region_current_constraints(jz, self.anode_mask, -float(current_a), cell_area)
         return jz, az
 
     def _electrical_conductivity(
@@ -273,11 +324,13 @@ class ReducedMHDSolver:
 
         if model in {"constant", "uniform"}:
             sigma = np.full_like(temperature_k, sigma0, dtype=float)
-        elif model in {"temperature", "knoepfel_like"}:
-            alpha = float(cfg.get("temperature_coefficient_1_k", 9.4e-4))
+        elif model in {"temperature", "knoepfel", "knoepfel_like", "ec_knoepfel"}:
+            beta_cv = float(cfg.get("betacv_1_k", cfg.get("temperature_coefficient_1_k", 9.4e-4)))
             t0 = float(cfg.get("reference_temperature_k", self.material.initial_temperature_k))
-            density_exponent = float(cfg.get("density_exponent", 0.0))
-            denom = 1.0 + alpha * np.maximum(temperature_k - t0, 0.0)
+            temperature_cutoff_k = float(cfg.get("temperature_cutoff_k", 100.0))
+            density_exponent = float(cfg.get("density_exponent", cfg.get("alpha", 0.0)))
+            effective_temperature = np.maximum(temperature_k, temperature_cutoff_k)
+            denom = 1.0 + beta_cv * np.maximum(effective_temperature - t0, 0.0)
             sigma = sigma0 * np.power(np.maximum(rho_ratio, 0.0), density_exponent) / np.maximum(denom, 1.0e-30)
         elif model in {"current_dependent_resistivity", "anomalous_resistivity"}:
             eta0 = float(cfg.get("base_resistivity_ohm_m", self.material.electrical_resistivity_ohm_m))
@@ -285,12 +338,33 @@ class ReducedMHDSolver:
             exponent = float(cfg.get("exponent", 2.0))
             eta = eta0 * (1.0 + np.power(np.abs(jz_a_m2) / j0, exponent))
             sigma = 1.0 / np.maximum(eta, 1.0e-30)
+        elif model in {"table", "tabular", "ethos_table", "conductivity_table"}:
+            if self.conductivity_table is None:
+                raise ValueError("conductivity model 'table' requires conductivity.file")
+            sigma = self.conductivity_table.interpolate(
+                density_kg_m3,
+                temperature_k,
+                ensemble_index=cfg.get("ensemble_index"),
+                statistic=cfg.get("ensemble_statistic"),
+                log_interpolation=bool(cfg.get("log_interpolation", True)),
+            )
+            sigma *= float(cfg.get("multiplier", 1.0))
         else:
             raise ValueError(f"unsupported conductivity model: {model}")
 
         minimum = float(cfg.get("minimum_s_m", 1.0e3))
         sigma = np.where(self.material_mask, np.maximum(sigma, minimum), 0.0)
         return sigma
+
+    @staticmethod
+    def _load_conductivity_table(cfg: dict) -> ConductivityTable | None:
+        model = str(cfg.get("model", "constant")).lower()
+        if model not in {"table", "tabular", "ethos_table", "conductivity_table"}:
+            return None
+        path = cfg.get("file") or cfg.get("table") or cfg.get("path")
+        if not path:
+            raise ValueError("conductivity table model requires a file/table/path entry")
+        return ConductivityTable.from_file(path)
 
     @staticmethod
     def _fill_region_inductive_current(
@@ -311,6 +385,28 @@ class ReducedMHDSolver:
         induction_term = float((sigma_region * dadt).sum()) * cell_area
         ez_drive = (target_current_a + induction_term) / max(sigma_area, 1.0e-30)
         jz[mask] = sigma_region * (ez_drive - dadt)
+
+    def _enforce_region_current_constraints(
+        self,
+        jz: np.ndarray,
+        mask: np.ndarray,
+        target_current_a: float,
+        cell_area: float,
+    ) -> None:
+        if not self.enforce_unidirectional_region_current or not mask.any():
+            return
+        sign = 1.0 if target_current_a >= 0.0 else -1.0
+        local = sign * jz[mask]
+        local = np.maximum(local, 0.0)
+        mean_abs = abs(target_current_a) / max(float(mask.sum()) * cell_area, 1.0e-30)
+        limit_factor = max(self.current_density_limit_factor, 1.0)
+        local = np.minimum(local, limit_factor * mean_abs)
+        total = float(local.sum()) * cell_area
+        if total <= 0.0:
+            local = np.full(mask.sum(), mean_abs, dtype=float)
+            total = float(local.sum()) * cell_area
+        local *= abs(target_current_a) / max(total, 1.0e-30)
+        jz[mask] = sign * local
 
 
 def laplacian(values: np.ndarray, dx: float, dy: float) -> np.ndarray:

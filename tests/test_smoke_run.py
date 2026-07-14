@@ -14,7 +14,8 @@ def test_small_end_to_end_run(tmp_path):
     cfg["mhd"]["electrostatic_iterations"] = 10
     result = run_from_config(cfg)
     run_dir = Path(result["run_dir"])
-    assert (run_dir / "fields.npz").exists()
+    assert (run_dir / "fields.h5").exists()
+    assert (run_dir / "diagnostics_manifest.json").exists()
     assert (run_dir / "summary.json").exists()
     assert (run_dir / "synthetic_spectrum.csv").exists()
     assert result["rl_fit"]["mode"] == "parametric_current"

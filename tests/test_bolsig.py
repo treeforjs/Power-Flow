@@ -1,8 +1,14 @@
 from pathlib import Path
+import sys
 
 import numpy as np
 
-from mhdlab.bolsig import approximate_bolsig_table, parse_bolsig_output, supplement_missing_rate_coefficients
+from mhdlab.bolsig import (
+    _run_bolsig_process,
+    approximate_bolsig_table,
+    parse_bolsig_output,
+    supplement_missing_rate_coefficients,
+)
 
 
 def test_parse_bolsig_mean_energy_block(tmp_path):
@@ -53,3 +59,26 @@ def test_supplement_missing_rate_coefficients_adds_prototype_rates(tmp_path):
     assert "H2O_dissociation_s" in table.rate_coefficients
     assert "impact_ionization_s" in table.rate_coefficients
     assert "supplemented missing provisional rates" in table.warning
+
+
+def test_bolsig_process_accepts_finished_output_before_process_exit(tmp_path):
+    output = tmp_path / "fake_out.dat"
+    log = tmp_path / "bolsiglog.txt"
+    script = (
+        "from pathlib import Path\n"
+        "import time\n"
+        "Path('fake_out.dat').write_text('E/N (Td)\\tMean energy (eV)\\n0.1\\t0.05\\n1.0\\t0.2\\n', encoding='utf-8')\n"
+        "Path('bolsiglog.txt').write_text('FINISHED\\n', encoding='utf-8')\n"
+        "time.sleep(10)\n"
+    )
+    result = _run_bolsig_process(
+        [sys.executable, "-c", script],
+        cwd=tmp_path,
+        output_path=output,
+        log_path=log,
+        timeout_s=5.0,
+    )
+    table = parse_bolsig_output(output)
+    assert table.reduced_field_td.tolist() == [0.1, 1.0]
+    assert result.warning is not None
+    assert "FINISHED" in result.warning

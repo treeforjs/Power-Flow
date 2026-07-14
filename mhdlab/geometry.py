@@ -27,8 +27,32 @@ class Raster:
     kinds: dict[str, str]
 
     @property
+    def nx(self) -> int:
+        return int(self.x.size)
+
+    @property
+    def ny(self) -> int:
+        return int(self.y.size)
+
+    @property
     def shape(self) -> tuple[int, int]:
         return self.y.size, self.x.size
+
+    @property
+    def x_min(self) -> float:
+        return float(self.x[0] - 0.5 * self.dx)
+
+    @property
+    def x_max(self) -> float:
+        return float(self.x[-1] + 0.5 * self.dx)
+
+    @property
+    def y_min(self) -> float:
+        return float(self.y[0] - 0.5 * self.dy)
+
+    @property
+    def y_max(self) -> float:
+        return float(self.y[-1] + 0.5 * self.dy)
 
     @property
     def xx(self) -> np.ndarray:
@@ -75,6 +99,18 @@ class Geometry:
         masks = {r.name: points_in_poly(xx, yy, r.points) for r in self.regions}
         kinds = {r.name: r.kind for r in self.regions}
         return Raster(x=x, y=y, dx=dx, dy=dy, masks=masks, kinds=kinds)
+
+    def material_length_scales(self) -> list[float]:
+        """Return bounding-box material scales useful for mesh resolution checks."""
+        scales: list[float] = []
+        for region in self.regions:
+            if region.kind not in {"cathode", "anode", "material"}:
+                continue
+            span = np.ptp(region.points, axis=0)
+            positive = span[span > 0.0]
+            if positive.size:
+                scales.append(float(np.min(positive)))
+        return scales
 
 
 def points_in_poly(xx: np.ndarray, yy: np.ndarray, poly: np.ndarray) -> np.ndarray:

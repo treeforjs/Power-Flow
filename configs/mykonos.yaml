@@ -5,8 +5,9 @@ geometry:
   file: ../examples/geometry/mykonos_foil_gap_5mm.json
 
 grid:
-  nx: 280
-  ny: 300
+  target_cell_size_um: 12.5
+  min_cells_per_material_thickness: 16
+  max_cells: 260000
 
 time:
   dt_s: 5.0e-10
@@ -30,12 +31,15 @@ mhd:
   electrostatic_iterations: 350
   induction_iterations: 6
   induction_relaxation: 0.6
+  enforce_unidirectional_region_current: true
+  current_density_limit_factor: 25.0
   conductivity:
-    model: temperature
+    model: knoepfel
     reference_temperature_k: 300.0
-    temperature_coefficient_1_k: 9.4e-4
+    betacv_1_k: 9.4e-4
     density_exponent: 0.0
-    minimum_s_m: 1.0e3
+    temperature_cutoff_k: 100.0
+    minimum_s_m: 1.0e5
 
 desorption:
   species: H2O
@@ -56,16 +60,22 @@ neutrals:
 
 diagnostics:
   output_dtype: float32
+  hdf5_file: fields.h5
+  hdf5_compression: gzip
+  hdf5_compression_level: 4
+  progress_every_samples: 10
+  write_npz_compat: false
 
 bolsig:
   enabled: true
   path: ../third_party/bolsigplus
+  cache_dir: ../.cache/bolsigplus
   species: [H2, O2]
   fractions: [0.67, 0.33]
   en_min_td: 0.1
   en_max_td: 1000.0
   count: 12
-  timeout_s: 20.0
+  timeout_s: 60.0
   supplement_missing_provisional_rates: true
   gas_temperature_k: 300.0
   gas_density_m3: 3.295e22

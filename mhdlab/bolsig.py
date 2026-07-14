@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import subprocess
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -22,6 +23,14 @@ class BolsigTable:
 
     def interp_mean_energy(self, en_td: np.ndarray | float) -> np.ndarray:
         return np.interp(en_td, self.reduced_field_td, self.mean_energy_ev)
+
+
+@dataclass
+class _BolsigProcessResult:
+    return_code: int | None
+    stdout: str
+    stderr: str
+    warning: str | None = None
 
 
 class BolsigRunner:
@@ -62,19 +71,21 @@ class BolsigRunner:
             cache_database = self.cache_dir / self.database.name
             if not cache_database.exists():
                 cache_database.write_bytes(self.database.read_bytes())
+            if log_path.exists():
+                log_path.unlink()
             input_path.write_text(
                 self._input_deck(species, fractions, en_min_td, en_max_td, count, gas_temperature_k, gas_density_m3, output_path.name),
                 encoding="utf-8",
             )
-            completed = subprocess.run(
+            completed = _run_bolsig_process(
                 [str(self.exe), str(input_path.name)],
                 cwd=self.cache_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                timeout=timeout_s,
+                output_path=output_path,
+                log_path=log_path,
+                timeout_s=timeout_s,
             )
-            return_code = int(completed.returncode)
+            return_code = completed.return_code
+            warning = completed.warning
             stdout_path.write_text(completed.stdout or "", encoding="utf-8")
             stderr_path.write_text(completed.stderr or "", encoding="utf-8")
             if not output_path.exists():
@@ -83,9 +94,10 @@ class BolsigRunner:
                     f"see {stdout_path.name}, {stderr_path.name}, and bolsiglog.txt"
                 )
             if return_code not in (0, None):
-                warning = (
+                warning = _join_warning(
+                    warning,
                     f"BOLSIG+ exited with {return_code} after writing {output_path.name}; "
-                    "accepting output because it parsed successfully"
+                    "accepting output because it parsed successfully",
                 )
         table = parse_bolsig_output(output_path)
         table.log_file = str(log_path) if log_path.exists() else None
@@ -273,6 +285,80 @@ def _sanitize_rate_label(label: str) -> str:
     label = label.replace("+", "plus")
     label = re.sub(r"[^a-z0-9]+", "_", label)
     return label.strip("_")
+
+
+def _run_bolsig_process(
+    command: list[str],
+    cwd: Path,
+    output_path: Path,
+    log_path: Path,
+    timeout_s: float,
+) -> _BolsigProcessResult:
+    proc = subprocess.Popen(
+        command,
+        cwd=cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    deadline = time.monotonic() + float(timeout_s)
+    while True:
+        return_code = proc.poll()
+        if return_code is not None:
+            stdout, stderr = proc.communicate()
+            return _BolsigProcessResult(int(return_code), stdout or "", stderr or "")
+        if output_path.exists() and _bolsig_log_finished(log_path):
+            stdout, stderr = _stop_process(proc)
+            return _BolsigProcessResult(
+                proc.returncode,
+                stdout,
+                stderr,
+                f"BOLSIG+ wrote {output_path.name} and reported FINISHED before process exit; "
+                "stopped the wrapper process and accepted parsed output",
+            )
+        if time.monotonic() >= deadline:
+            stdout, stderr = _stop_process(proc)
+            if not output_path.exists():
+                raise TimeoutError(
+                    f"BOLSIG+ timed out after {timeout_s:g} s and did not create {output_path.name}; "
+                    "see stdout, stderr, and bolsiglog.txt"
+                )
+            finished_note = " after bolsiglog.txt reported FINISHED" if _bolsig_log_finished(log_path) else ""
+            return _BolsigProcessResult(
+                proc.returncode,
+                stdout,
+                stderr,
+                f"BOLSIG+ timed out after {timeout_s:g} s{finished_note}; "
+                f"accepting {output_path.name} because it parsed successfully",
+            )
+        time.sleep(0.25)
+
+
+def _stop_process(proc: subprocess.Popen) -> tuple[str, str]:
+    if proc.poll() is None:
+        proc.terminate()
+    try:
+        stdout, stderr = proc.communicate(timeout=2.0)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        stdout, stderr = proc.communicate()
+    return _timeout_payload_to_text(stdout), _timeout_payload_to_text(stderr)
+
+
+def _bolsig_log_finished(log_path: Path) -> bool:
+    return log_path.exists() and "FINISHED" in log_path.read_text(encoding="utf-8", errors="ignore")
+
+
+def _join_warning(first: str | None, second: str) -> str:
+    return f"{first}; {second}" if first else second
+
+
+def _timeout_payload_to_text(payload) -> str:
+    if payload is None:
+        return ""
+    if isinstance(payload, bytes):
+        return payload.decode("utf-8", errors="replace")
+    return str(payload)
 
 
 def approximate_bolsig_table() -> BolsigTable:
