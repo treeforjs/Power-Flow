@@ -6,6 +6,7 @@ from mhdlab.cross_sections import CrossSectionLibrary, collision_probability
 def test_cross_section_manifest_loads_saved_nist_tables():
     library = CrossSectionLibrary.from_manifest("data/cross_sections/cross_section_manifest.yaml")
     assert "e_H2_ionization_ref75" in library.tables
+    assert library.summary()["missing_count"] > 0
     table = library.tables["e_H2_ionization_ref75"]
     assert table.sigma(15.43) == 0.0
     assert table.sigma(30.0) > 0.0

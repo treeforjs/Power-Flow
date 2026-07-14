@@ -35,8 +35,9 @@ class CrossSectionTable:
 
 
 class CrossSectionLibrary:
-    def __init__(self, tables: list[CrossSectionTable]):
+    def __init__(self, tables: list[CrossSectionTable], missing_entries: list[dict[str, Any]] | None = None):
         self.tables = {table.name: table for table in tables}
+        self.missing_entries = missing_entries or []
 
     @classmethod
     def from_manifest(cls, manifest_path: str | Path) -> "CrossSectionLibrary":
@@ -45,12 +46,30 @@ class CrossSectionLibrary:
         manifest_path = Path(manifest_path).resolve()
         data = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
         tables = []
+        missing_entries = []
         for item in data.get("cross_sections", []):
             file_name = item.get("file")
             if not file_name:
+                missing_entries.append(
+                    {
+                        "name": item.get("name"),
+                        "reaction": item.get("reaction"),
+                        "reference": item.get("reference"),
+                        "reason": "manifest entry has no file",
+                    }
+                )
                 continue
             table_path = (manifest_path.parent / file_name).resolve()
             if not table_path.exists():
+                missing_entries.append(
+                    {
+                        "name": item.get("name"),
+                        "reaction": item.get("reaction"),
+                        "reference": item.get("reference"),
+                        "file": str(table_path),
+                        "reason": "file does not exist",
+                    }
+                )
                 continue
             energy, sigma = load_cross_section_csv(table_path)
             tables.append(
@@ -66,7 +85,7 @@ class CrossSectionLibrary:
                     source_file=str(table_path),
                 )
             )
-        return cls(tables)
+        return cls(tables, missing_entries)
 
     def reaction_rates(self, incident_energies_ev: dict[str, float], target_densities_m3: dict[str, float]) -> dict[str, float]:
         """Return collision frequencies in s^-1 for available tables.
@@ -84,6 +103,14 @@ class CrossSectionLibrary:
             speed = incident_speed_from_energy_ev(energy, table.incident)
             rates[f"{table.name}_s"] = density * sigma * speed
         return rates
+
+    def summary(self) -> dict[str, Any]:
+        return {
+            "loaded_tables": sorted(self.tables),
+            "loaded_count": len(self.tables),
+            "missing_count": len(self.missing_entries),
+            "missing_tables": self.missing_entries,
+        }
 
 
 def load_cross_section_csv(path: str | Path) -> tuple[np.ndarray, np.ndarray]:

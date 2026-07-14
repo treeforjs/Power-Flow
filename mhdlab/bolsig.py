@@ -16,6 +16,9 @@ class BolsigTable:
     mean_energy_ev: np.ndarray
     rate_coefficients: dict[str, np.ndarray] = field(default_factory=dict)
     source_file: str | None = None
+    log_file: str | None = None
+    return_code: int | None = None
+    warning: str | None = None
 
     def interp_mean_energy(self, en_td: np.ndarray | float) -> np.ndarray:
         return np.interp(en_td, self.reduced_field_td, self.mean_energy_ev)
@@ -50,6 +53,11 @@ class BolsigRunner:
         key = self._hash_inputs(species, fractions, en_min_td, en_max_td, count, gas_temperature_k, gas_density_m3)
         input_path = self.cache_dir / f"bolsig_{key}.dat"
         output_path = self.cache_dir / f"bolsig_{key}_out.dat"
+        stdout_path = self.cache_dir / f"bolsig_{key}_stdout.txt"
+        stderr_path = self.cache_dir / f"bolsig_{key}_stderr.txt"
+        log_path = self.cache_dir / "bolsiglog.txt"
+        return_code: int | None = None
+        warning: str | None = None
         if not output_path.exists():
             cache_database = self.cache_dir / self.database.name
             if not cache_database.exists():
@@ -58,18 +66,32 @@ class BolsigRunner:
                 self._input_deck(species, fractions, en_min_td, en_max_td, count, gas_temperature_k, gas_density_m3, output_path.name),
                 encoding="utf-8",
             )
-            subprocess.run(
+            completed = subprocess.run(
                 [str(self.exe), str(input_path.name)],
                 cwd=self.cache_dir,
-                check=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
                 timeout=timeout_s,
             )
+            return_code = int(completed.returncode)
+            stdout_path.write_text(completed.stdout or "", encoding="utf-8")
+            stderr_path.write_text(completed.stderr or "", encoding="utf-8")
             if not output_path.exists():
-                raise RuntimeError(f"BOLSIG+ completed but did not create {output_path.name}")
-        return parse_bolsig_output(output_path)
+                raise RuntimeError(
+                    f"BOLSIG+ exited with {return_code} and did not create {output_path.name}; "
+                    f"see {stdout_path.name}, {stderr_path.name}, and bolsiglog.txt"
+                )
+            if return_code not in (0, None):
+                warning = (
+                    f"BOLSIG+ exited with {return_code} after writing {output_path.name}; "
+                    "accepting output because it parsed successfully"
+                )
+        table = parse_bolsig_output(output_path)
+        table.log_file = str(log_path) if log_path.exists() else None
+        table.return_code = return_code
+        table.warning = warning
+        return table
 
     @staticmethod
     def _hash_inputs(*items) -> str:
@@ -157,28 +179,100 @@ def parse_bolsig_output(path: str | Path) -> BolsigTable:
     curated decks.
     """
     path = Path(path)
-    rows = []
-    for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+    lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    en, mean = _parse_named_two_column_block(lines, "Mean energy (eV)")
+    if en.size == 0:
+        raise ValueError(f"could not find an E/N vs mean-energy block in {path}")
+    rate_coefficients = _parse_rate_coefficient_blocks(lines)
+    order = np.argsort(en)
+    return BolsigTable(
+        reduced_field_td=en[order],
+        mean_energy_ev=mean[order],
+        rate_coefficients=rate_coefficients,
+        source_file=str(path),
+    )
+
+
+def _parse_named_two_column_block(lines: list[str], title: str) -> tuple[np.ndarray, np.ndarray]:
+    rows: list[tuple[float, float]] = []
+    in_block = False
+    for raw in lines:
+        line = raw.strip()
+        if not in_block:
+            if "E/N" in line and title in line:
+                in_block = True
+            continue
+        if not line:
+            if rows:
+                break
+            continue
         parts = line.replace(",", " ").split()
-        nums = []
-        for part in parts:
-            try:
-                nums.append(float(part))
-            except ValueError:
-                pass
-        if len(nums) >= 2:
-            rows.append(nums)
+        if len(parts) < 2:
+            if rows:
+                break
+            continue
+        try:
+            rows.append((float(parts[0]), float(parts[1])))
+        except ValueError:
+            if rows:
+                break
     if not rows:
-        raise ValueError(f"no numeric BOLSIG rows found in {path}")
-    width = max(len(r) for r in rows)
-    table = np.full((len(rows), width), np.nan)
-    for i, row in enumerate(rows):
-        table[i, : len(row)] = row
-    en = table[:, 0]
-    mean = table[:, 1]
-    valid = np.isfinite(en) & np.isfinite(mean) & (en >= 0)
-    order = np.argsort(en[valid])
-    return BolsigTable(reduced_field_td=en[valid][order], mean_energy_ev=mean[valid][order], source_file=str(path))
+        return np.asarray([]), np.asarray([])
+    data = np.asarray(rows, dtype=float)
+    valid = np.isfinite(data[:, 0]) & np.isfinite(data[:, 1]) & (data[:, 0] >= 0.0)
+    return data[valid, 0], data[valid, 1]
+
+
+def _parse_rate_coefficient_blocks(lines: list[str]) -> dict[str, np.ndarray]:
+    rates: dict[str, np.ndarray] = {}
+    previous_nonempty = ""
+    for index, raw in enumerate(lines):
+        line = raw.strip()
+        if "E/N" not in line or "Rate coefficient (m3/s)" not in line:
+            if line:
+                previous_nonempty = line
+            continue
+        if not previous_nonempty.startswith("C"):
+            continue
+        label = _sanitize_rate_label(previous_nonempty)
+        _, values = _parse_numeric_rows_after(lines, index + 1)
+        if values.size:
+            rates[f"{label}_m3_s"] = values
+        previous_nonempty = line
+    return rates
+
+
+def _parse_numeric_rows_after(lines: list[str], start: int) -> tuple[np.ndarray, np.ndarray]:
+    rows: list[tuple[float, float]] = []
+    for raw in lines[start:]:
+        line = raw.strip()
+        if not line:
+            if rows:
+                break
+            continue
+        parts = line.replace(",", " ").split()
+        if len(parts) < 2:
+            if rows:
+                break
+            continue
+        try:
+            rows.append((float(parts[0]), float(parts[1])))
+        except ValueError:
+            if rows:
+                break
+    if not rows:
+        return np.asarray([]), np.asarray([])
+    data = np.asarray(rows, dtype=float)
+    return data[:, 0], data[:, 1]
+
+
+def _sanitize_rate_label(label: str) -> str:
+    import re
+
+    label = label.strip().lower()
+    label = label.replace("+", "plus")
+    label = re.sub(r"[^a-z0-9]+", "_", label)
+    return label.strip("_")
 
 
 def approximate_bolsig_table() -> BolsigTable:
@@ -189,3 +283,20 @@ def approximate_bolsig_table() -> BolsigTable:
         "impact_ionization_s": 1.0e4 * np.exp(-13.6 / np.maximum(mean, 1e-6)),
     }
     return BolsigTable(reduced_field_td=en, mean_energy_ev=mean, rate_coefficients=rates, source_file="approximate")
+
+
+def supplement_missing_rate_coefficients(table: BolsigTable, fallback: BolsigTable) -> BolsigTable:
+    added = []
+    for name, values in fallback.rate_coefficients.items():
+        if name in table.rate_coefficients:
+            continue
+        table.rate_coefficients[name] = np.interp(
+            table.reduced_field_td,
+            fallback.reduced_field_td,
+            np.asarray(values, dtype=float),
+        )
+        added.append(name)
+    if added:
+        suffix = f"supplemented missing provisional rates: {', '.join(sorted(added))}"
+        table.warning = f"{table.warning}; {suffix}" if table.warning else suffix
+    return table

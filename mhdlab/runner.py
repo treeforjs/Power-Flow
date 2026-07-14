@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .bolsig import BolsigRunner, approximate_bolsig_table
+from .bolsig import BolsigRunner, approximate_bolsig_table, supplement_missing_rate_coefficients
 from .chemistry import Mechanism, line_emissivity, local_reaction_rates
 from .config import resolve_path
 from .cr_data import CRDataLibrary
@@ -147,7 +147,7 @@ def _load_bolsig_table(config: dict, run_dir: Path):
     bolsig_dir = resolve_path(config, bcfg.get("path", "third_party/bolsigplus"))
     runner = BolsigRunner(bolsig_dir, run_dir / "bolsig_cache")
     try:
-        return runner.run_table(
+        table = runner.run_table(
             species=list(bcfg.get("species", ["H2", "O2"])),
             fractions=list(bcfg.get("fractions", [0.5, 0.5])),
             en_min_td=float(bcfg.get("en_min_td", 0.1)),
@@ -157,6 +157,9 @@ def _load_bolsig_table(config: dict, run_dir: Path):
             gas_density_m3=float(bcfg.get("gas_density_m3", 3.295e22)),
             timeout_s=float(bcfg.get("timeout_s", 20.0)),
         )
+        if bcfg.get("supplement_missing_provisional_rates", True):
+            table = supplement_missing_rate_coefficients(table, approximate_bolsig_table())
+        return table
     except Exception as exc:
         (run_dir / "bolsig_warning.txt").write_text(f"Falling back to approximate table: {exc}\n", encoding="utf-8")
         return approximate_bolsig_table()
@@ -230,11 +233,19 @@ def _write_summary(
     summary = {
         "rl_fit": rl_fit,
         "bolsig_source": bolsig_table.source_file,
-        "reaction_rates": {k: float(v) for k, v in rates.items()},
-        "cross_sections": {
-            "loaded_tables": sorted(cross_section_library.tables) if cross_section_library else [],
-            "loaded_count": len(cross_section_library.tables) if cross_section_library else 0,
+        "bolsig": {
+            "source": bolsig_table.source_file,
+            "log_file": bolsig_table.log_file,
+            "return_code": bolsig_table.return_code,
+            "warning": bolsig_table.warning,
+            "points": int(bolsig_table.reduced_field_td.size),
+            "rate_coefficient_count": len(bolsig_table.rate_coefficients),
+            "rate_coefficient_names": sorted(bolsig_table.rate_coefficients),
+            "mean_energy_ev_min": float(np.nanmin(bolsig_table.mean_energy_ev)),
+            "mean_energy_ev_max": float(np.nanmax(bolsig_table.mean_energy_ev)),
         },
+        "reaction_rates": {k: float(v) for k, v in rates.items()},
+        "cross_sections": cross_section_library.summary() if cross_section_library else {},
         "cr_model": cr_data_library.summary() if cr_data_library else {},
         "spectra": spectra_summary,
     }

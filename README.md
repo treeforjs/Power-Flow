@@ -25,9 +25,12 @@ python -m pip install -e . --no-build-isolation
 
 The bundled BOLSIG+ executable has been copied into `third_party/bolsigplus`.
 The current wrapper prefers `bolsigminus.exe` and has a timeout/fallback path.
-The included Siglo database does not contain the full H2O/OH/H/O electron
-collision set, and the starter H2/O2 deck currently falls back to approximate
-rates until the BOLSIG deck/data are refined.
+The wrapper accepts BOLSIG's Windows/Fortran EOF exit code when a parseable
+output table was written, records stdout/stderr/log paths, and parses mean
+energy plus per-collision rate-coefficient blocks. The included Siglo database
+does not contain the full H2O/OH/H/O electron collision set, so the example can
+optionally supplement missing provisional H2O rates until curated tables are
+added.
 
 Data provenance is saved under `data/`:
 
