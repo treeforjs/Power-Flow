@@ -20,7 +20,7 @@ from .materials import material_from_config
 from .mhd import ReducedMHDSolver
 from .neutrals import KineticNeutralSolver, VelocityGrid
 from .spectra import CCDCalibration, integrate_los, synthesize_spectrum
-from .traces import fit_effective_rl, load_trace_csv, synthesize_current_from_rl
+from .traces import drive_from_parametric_current, drive_from_trace, load_trace_csv
 
 
 def run_from_config(config: dict) -> dict:
@@ -39,19 +39,6 @@ def run_from_config(config: dict) -> dict:
     material = material_from_config(config.get("material"))
     mhd_solver = ReducedMHDSolver(raster, material, config.get("mhd", {}))
     mhd_state = mhd_solver.initial_state()
-
-    trace = load_trace_csv(resolve_path(config, config["drive"]["trace_csv"]))
-    voltage_name = config["drive"].get("voltage_column", "voltage_v")
-    current_name = config["drive"].get("current_column", "feed_current_a")
-    rl_fit = fit_effective_rl(trace.time_s, trace.values[voltage_name], trace.values[current_name])
-    drive_current = trace.values[current_name]
-    if config["drive"].get("mode", "fit_rl") == "fit_rl":
-        drive_current = synthesize_current_from_rl(
-            trace.time_s,
-            trace.values[voltage_name],
-            rl_fit["resistance_ohm"],
-            rl_fit["inductance_h"],
-        )
 
     mechanism = Mechanism.from_yaml(resolve_path(config, config["chemistry"]["mechanism"]))
     species = mechanism.species or ["H2O", "H", "H2", "O", "O2", "OH"]
@@ -79,13 +66,19 @@ def run_from_config(config: dict) -> dict:
 
     t_end = float(config["time"]["end_s"])
     dt = float(config["time"]["dt_s"])
-    sample_every = int(config["time"].get("sample_every", 1))
+    if "sample_interval_s" in config["time"]:
+        sample_every = max(1, int(round(float(config["time"]["sample_interval_s"]) / dt)))
+    else:
+        sample_every = int(config["time"].get("sample_every", 1))
     times = np.arange(0.0, t_end + 0.5 * dt, dt)
+    drive = _load_drive_profile(config, times)
+    rl_fit = drive.metadata
+    output_dtype = np.dtype(config.get("diagnostics", {}).get("output_dtype", "float32"))
     samples = []
 
     for step, t in enumerate(times):
-        voltage = trace.sample(voltage_name, t)
-        current = float(np.interp(t, trace.time_s, drive_current))
+        voltage = drive.sample_voltage(t)
+        current = drive.sample_current(t)
         mhd_state = mhd_solver.step(mhd_state, current_a=current, voltage_v=voltage, dt_s=dt)
         source_rate, coverage = desorption.step(
             mhd_state.temperature_k,
@@ -111,16 +104,19 @@ def run_from_config(config: dict) -> dict:
             samples.append(
                 {
                     "time_s": t,
-                    "temperature_k": mhd_state.temperature_k.copy(),
-                    "pressure_pa": mhd_state.pressure_pa.copy(),
-                    "bx_t": mhd_state.bx_t.copy(),
-                    "by_t": mhd_state.by_t.copy(),
-                    "jz_a_m2": mhd_state.jz_a_m2.copy(),
-                    "surface_displacement_m": mhd_state.surface_displacement_m.copy(),
-                    "electron_density_m3": neutral_state.electron_density_m3.copy(),
-                    "total_neutral_density_m3": total_neutral.copy(),
-                    "en_td": en_td.copy(),
-                    "species_density_m3": {sp: data["density_m3"].copy() for sp, data in moments.items()},
+                    "temperature_k": _sample_array(mhd_state.temperature_k, output_dtype),
+                    "pressure_pa": _sample_array(mhd_state.pressure_pa, output_dtype),
+                    "bx_t": _sample_array(mhd_state.bx_t, output_dtype),
+                    "by_t": _sample_array(mhd_state.by_t, output_dtype),
+                    "jz_a_m2": _sample_array(mhd_state.jz_a_m2, output_dtype),
+                    "surface_displacement_m": _sample_array(mhd_state.surface_displacement_m, output_dtype),
+                    "electron_density_m3": _sample_array(neutral_state.electron_density_m3, output_dtype),
+                    "total_neutral_density_m3": _sample_array(total_neutral, output_dtype),
+                    "en_td": _sample_array(en_td, output_dtype),
+                    "species_density_m3": {
+                        sp: _sample_array(data["density_m3"], output_dtype)
+                        for sp, data in moments.items()
+                    },
                 }
             )
 
@@ -138,6 +134,25 @@ def run_from_config(config: dict) -> dict:
     )
     _write_plots(run_dir, samples[-1])
     return {"run_dir": str(run_dir), "samples": samples, "rl_fit": rl_fit, "spectra": spectra_summary}
+
+
+def _load_drive_profile(config: dict, times: np.ndarray):
+    dcfg = config.get("drive", {})
+    mode = str(dcfg.get("mode", "fit_rl")).lower()
+    if mode == "parametric_current":
+        return drive_from_parametric_current(times, dcfg)
+    trace_path = resolve_path(config, dcfg["trace_csv"])
+    trace = load_trace_csv(trace_path)
+    return drive_from_trace(
+        trace,
+        voltage_column=dcfg.get("voltage_column", "voltage_v"),
+        current_column=dcfg.get("current_column", "feed_current_a"),
+        mode=mode,
+    )
+
+
+def _sample_array(values: np.ndarray, dtype: np.dtype) -> np.ndarray:
+    return np.asarray(values, dtype=dtype).copy()
 
 
 def _load_bolsig_table(config: dict, run_dir: Path):

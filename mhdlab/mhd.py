@@ -36,7 +36,10 @@ class ReducedMHDSolver:
         self.backend = ArrayBackend.from_preference(config.get("backend", "numpy"))
         self.poisson_iterations = int(config.get("poisson_iterations", 250))
         self.electrostatic_iterations = int(config.get("electrostatic_iterations", 350))
+        self.induction_iterations = int(config.get("induction_iterations", 4))
+        self.induction_relaxation = float(config.get("induction_relaxation", 0.7))
         self.temperature_floor_k = float(config.get("temperature_floor_k", 1.0))
+        self.conductivity_config = dict(config.get("conductivity", {"model": "temperature"}))
         self.material_mask = (
             raster.mask_by_kind("cathode")
             | raster.mask_by_kind("anode")
@@ -70,19 +73,14 @@ class ReducedMHDSolver:
     def step(self, state: MHDState, current_a: float, voltage_v: float, dt_s: float) -> MHDState:
         if self.backend.is_gpu:
             return self._step_gpu(state, current_a=current_a, voltage_v=voltage_v, dt_s=dt_s)
-        jz = self._current_density(current_a)
-        az = solve_poisson(
-            source=-MU0 * jz,
-            dx=self.raster.dx,
-            dy=self.raster.dy,
-            iterations=self.poisson_iterations,
-        )
+        jz, az = self._solve_inductive_current(state, current_a, dt_s)
         bx = np.gradient(az, self.raster.dy, axis=0)
         by = -np.gradient(az, self.raster.dx, axis=1)
         b2 = bx * bx + by * by
         mag_pressure = b2 / (2.0 * MU0)
 
-        heat = self.material.electrical_resistivity_ohm_m * jz * jz
+        conductivity = self._electrical_conductivity(state.temperature_k, state.density_kg_m3, jz)
+        heat = jz * jz / np.maximum(conductivity, 1.0e-30)
         lap_t = laplacian(state.temperature_k, self.raster.dx, self.raster.dy)
         temp = state.temperature_k + dt_s * (
             heat / (self.material.density_kg_m3 * self.material.heat_capacity_j_kg_k)
@@ -137,24 +135,21 @@ class ReducedMHDSolver:
         xp = self.backend.xp
         material_mask = xp.asarray(self.material_mask)
         surface_mask = xp.asarray(self.surface_mask)
-        jz = xp.asarray(self._current_density(current_a))
+        jz_np, az_np = self._solve_inductive_current(state, current_a, dt_s)
+        conductivity_np = self._electrical_conductivity(state.temperature_k, state.density_kg_m3, jz_np)
+        jz = xp.asarray(jz_np)
+        conductivity = xp.asarray(conductivity_np)
         temp0 = xp.asarray(state.temperature_k)
         density0 = xp.asarray(state.density_kg_m3)
         displacement0 = xp.asarray(state.surface_displacement_m)
 
-        az = solve_poisson_xp(
-            source=-MU0 * jz,
-            dx=self.raster.dx,
-            dy=self.raster.dy,
-            iterations=self.poisson_iterations,
-            xp=xp,
-        )
+        az = xp.asarray(az_np)
         bx = xp.gradient(az, self.raster.dy, axis=0)
         by = -xp.gradient(az, self.raster.dx, axis=1)
         b2 = bx * bx + by * by
         mag_pressure = b2 / (2.0 * MU0)
 
-        heat = self.material.electrical_resistivity_ohm_m * jz * jz
+        heat = jz * jz / xp.maximum(conductivity, 1.0e-30)
         lap_t = laplacian_xp(temp0, self.raster.dx, self.raster.dy, xp)
         temp = temp0 + dt_s * (
             heat / (self.material.density_kg_m3 * self.material.heat_capacity_j_kg_k)
@@ -205,14 +200,117 @@ class ReducedMHDSolver:
             surface_displacement_m=self.backend.asnumpy(surface_displacement),
         )
 
-    def _current_density(self, current_a: float) -> np.ndarray:
-        jz = np.zeros(self.raster.shape, dtype=float)
+    def _solve_inductive_current(
+        self,
+        state: MHDState,
+        current_a: float,
+        dt_s: float,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Solve a reduced resistive-induction update for out-of-plane current.
+
+        In each conductor, Ohm's law is approximated as
+        Jz = sigma * (Ez_drive - dAz/dt).  The scalar Ez_drive is solved
+        separately for the cathode and anode so each region carries the
+        requested total current.  Az is then updated from Ampere's law.  This
+        is still reduced/quasi-static, but current crowding is now produced by
+        the coupled magnetic diffusion problem rather than by a prescribed
+        spatial profile.
+        """
+        previous_az = np.asarray(state.az_wb_m, dtype=float)
+        dt_s = max(float(dt_s), 1.0e-30)
         cell_area = self.raster.dx * self.raster.dy
-        cathode_area = max(float(self.cathode_mask.sum()) * cell_area * self.depth_m, 1e-30)
-        anode_area = max(float(self.anode_mask.sum()) * cell_area * self.depth_m, 1e-30)
-        jz[self.cathode_mask] = current_a / cathode_area
-        jz[self.anode_mask] = -current_a / anode_area
-        return jz
+        az = previous_az.copy()
+        jz = np.asarray(state.jz_a_m2, dtype=float).copy()
+        relaxation = min(max(self.induction_relaxation, 0.0), 1.0)
+
+        for _ in range(max(self.induction_iterations, 1)):
+            conductivity = self._electrical_conductivity(state.temperature_k, state.density_kg_m3, jz)
+            jz.fill(0.0)
+            self._fill_region_inductive_current(
+                jz,
+                az,
+                previous_az,
+                self.cathode_mask,
+                target_current_a=float(current_a),
+                conductivity=conductivity,
+                cell_area=cell_area,
+                dt_s=dt_s,
+            )
+            self._fill_region_inductive_current(
+                jz,
+                az,
+                previous_az,
+                self.anode_mask,
+                target_current_a=-float(current_a),
+                conductivity=conductivity,
+                cell_area=cell_area,
+                dt_s=dt_s,
+            )
+            next_az = solve_poisson(
+                source=-MU0 * jz,
+                dx=self.raster.dx,
+                dy=self.raster.dy,
+                iterations=self.poisson_iterations,
+            )
+            az = relaxation * next_az + (1.0 - relaxation) * az
+        return jz, az
+
+    def _electrical_conductivity(
+        self,
+        temperature_k: np.ndarray,
+        density_kg_m3: np.ndarray,
+        jz_a_m2: np.ndarray,
+    ) -> np.ndarray:
+        cfg = self.conductivity_config
+        model = str(cfg.get("model", "constant")).lower()
+        sigma0 = 1.0 / max(self.material.electrical_resistivity_ohm_m, 1.0e-30)
+        rho_ratio = np.divide(
+            density_kg_m3,
+            max(self.material.density_kg_m3, 1.0e-30),
+            out=np.zeros_like(density_kg_m3, dtype=float),
+            where=density_kg_m3 > 0.0,
+        )
+
+        if model in {"constant", "uniform"}:
+            sigma = np.full_like(temperature_k, sigma0, dtype=float)
+        elif model in {"temperature", "knoepfel_like"}:
+            alpha = float(cfg.get("temperature_coefficient_1_k", 9.4e-4))
+            t0 = float(cfg.get("reference_temperature_k", self.material.initial_temperature_k))
+            density_exponent = float(cfg.get("density_exponent", 0.0))
+            denom = 1.0 + alpha * np.maximum(temperature_k - t0, 0.0)
+            sigma = sigma0 * np.power(np.maximum(rho_ratio, 0.0), density_exponent) / np.maximum(denom, 1.0e-30)
+        elif model in {"current_dependent_resistivity", "anomalous_resistivity"}:
+            eta0 = float(cfg.get("base_resistivity_ohm_m", self.material.electrical_resistivity_ohm_m))
+            j0 = max(float(cfg.get("current_density_scale_a_m2", 1.0e12)), 1.0e-30)
+            exponent = float(cfg.get("exponent", 2.0))
+            eta = eta0 * (1.0 + np.power(np.abs(jz_a_m2) / j0, exponent))
+            sigma = 1.0 / np.maximum(eta, 1.0e-30)
+        else:
+            raise ValueError(f"unsupported conductivity model: {model}")
+
+        minimum = float(cfg.get("minimum_s_m", 1.0e3))
+        sigma = np.where(self.material_mask, np.maximum(sigma, minimum), 0.0)
+        return sigma
+
+    @staticmethod
+    def _fill_region_inductive_current(
+        jz: np.ndarray,
+        az: np.ndarray,
+        previous_az: np.ndarray,
+        mask: np.ndarray,
+        target_current_a: float,
+        conductivity: np.ndarray,
+        cell_area: float,
+        dt_s: float,
+    ) -> None:
+        if not mask.any():
+            return
+        sigma_region = conductivity[mask]
+        dadt = (az[mask] - previous_az[mask]) / dt_s
+        sigma_area = float(sigma_region.sum()) * cell_area
+        induction_term = float((sigma_region * dadt).sum()) * cell_area
+        ez_drive = (target_current_a + induction_term) / max(sigma_area, 1.0e-30)
+        jz[mask] = sigma_region * (ez_drive - dadt)
 
 
 def laplacian(values: np.ndarray, dx: float, dy: float) -> np.ndarray:

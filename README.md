@@ -4,12 +4,43 @@ This project is a research scaffold for 2D reduced MHD electrode heating, Temkin
 desorption, kinetic neutral expansion, BOLSIG electron kinetics, collisional
 radiative populations, and CCD-based synthetic spectra.
 
+The physics direction is intentionally ALEGRA-MHD inspired: transient
+magnetics, conductivity-dependent current diffusion, Joule heating, thermal
+conduction, material response, and circuit/drive coupling. AGATE is used only as
+a framework-shape reference for modular Python/GPU ergonomics.
+
 Run the example:
 
 ```powershell
 python -m pip install -r requirements.txt
 python MHD_heating.py --config configs/mykonos.yaml
 ```
+
+The default `configs/mykonos.yaml` case is a user-initialized starter problem,
+not a measured-shot reconstruction yet. It uses two 200 um thick, 5 mm wide
+SS304 foils separated by a 5 mm face-to-face A-K gap, driven by a zero-voltage
+parametric current pulse with an 850 kA peak and a 125 ns quarter-period rise
+time. Field histories are sampled every 1 ns. The main config uses a refined
+uniform mesh of roughly 20 um cells, giving about ten cells through each foil.
+Use `configs/mykonos_preview.yaml` for fast coarse checks.
+
+Measured voltage/current CSV traces can still be used later by setting
+`drive.mode` back to `measured_current` or `fit_rl` and providing `trace_csv`.
+
+The MHD package is still a reduced research model. It now solves a
+resistive-induction update for `A_z` and `J_z`, enforcing the total current as a
+constraint instead of assigning a prescribed current-density profile. That is a
+better basis for current crowding and nonuniform Joule heating, but it is not a
+full production compressible/resistive MHD model.
+
+Create quick-look result plots after a run:
+
+```powershell
+python tools/visualize_run.py runs\run_YYYYMMDD_HHMMSS --all-gifs
+```
+
+This writes `overview_last.png`, `time_traces.png`, and optional GIFs under the
+run directory's `visualization/` folder.
 
 The reduced MHD solver uses NumPy by default and will use CuPy when
 `mhd.backend: auto` or `cuda` finds a working CUDA/CuPy install. This machine

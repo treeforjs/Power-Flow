@@ -5,8 +5,8 @@ geometry:
   file: ../examples/geometry/mykonos_foil_gap_5mm.json
 
 grid:
-  nx: 280
-  ny: 300
+  nx: 80
+  ny: 96
 
 time:
   dt_s: 5.0e-10
@@ -26,9 +26,9 @@ material:
 mhd:
   backend: auto
   out_of_plane_depth_m: 0.01
-  poisson_iterations: 350
-  electrostatic_iterations: 350
-  induction_iterations: 6
+  poisson_iterations: 120
+  electrostatic_iterations: 160
+  induction_iterations: 4
   induction_relaxation: 0.6
   conductivity:
     model: temperature
@@ -95,8 +95,8 @@ spectra:
   excitation_scale: 1.0e-31
   los:
     - name: center_chord
-      start: [-0.0045, 0.0]
-      end: [0.0045, 0.0]
+      start: [-0.0025, 0.0]
+      end: [0.0025, 0.0]
       samples: 200
   calibration:
     wavelength_poly_nm: [100.0, 0.65]

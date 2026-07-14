@@ -120,9 +120,9 @@ class KineticNeutralSolver:
     def _advect_species(self, arr: np.ndarray, dt_s: float) -> np.ndarray:
         out = np.zeros_like(arr)
         for k, (vx, vy) in enumerate(zip(self.velocity_grid.vx, self.velocity_grid.vy)):
-            sx = int(np.round(vx * dt_s / self.raster.dx))
-            sy = int(np.round(vy * dt_s / self.raster.dy))
-            out[k] = shift_no_wrap(arr[k], sx=sx, sy=sy)
+            sx = vx * dt_s / self.raster.dx
+            sy = vy * dt_s / self.raster.dy
+            out[k] = shift_fractional_no_wrap(arr[k], sx=sx, sy=sy)
         out[:, ~self.vacuum_mask] = 0.0
         return out
 
@@ -150,8 +150,8 @@ class KineticNeutralSolver:
         if not targets.any():
             return
         local_source = np.zeros_like(source_m2_s)
-        for shifted in neighbors4(surface_mask):
-            local_source += np.where(targets & shifted, source_m2_s, 0.0)
+        for shifted_mask, shifted_source in zip(neighbors4(surface_mask), neighbor_values(source_m2_s)):
+            local_source += np.where(targets & shifted_mask, shifted_source, 0.0)
         local_temp = np.where(targets, neighbor_average(surface_temperature_k, surface_mask), 300.0)
         for j, i in zip(*np.nonzero(targets)):
             temp = max(float(local_temp[j, i]), 1.0)
@@ -285,10 +285,46 @@ def emission_targets(surface_mask: np.ndarray, vacuum_mask: np.ndarray) -> np.nd
 def neighbor_average(values: np.ndarray, mask: np.ndarray) -> np.ndarray:
     total = np.zeros_like(values, dtype=float)
     count = np.zeros_like(values, dtype=float)
-    for shifted in neighbors4(mask):
-        total += np.where(shifted, values, 0.0)
+    for shifted, shifted_values in zip(neighbors4(mask), neighbor_values(values)):
+        total += np.where(shifted, shifted_values, 0.0)
         count += shifted.astype(float)
     return np.divide(total, count, out=np.zeros_like(total), where=count > 0)
+
+
+def neighbor_values(values: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    up = np.zeros_like(values)
+    up[:-1, :] = values[1:, :]
+    down = np.zeros_like(values)
+    down[1:, :] = values[:-1, :]
+    left = np.zeros_like(values)
+    left[:, :-1] = values[:, 1:]
+    right = np.zeros_like(values)
+    right[:, 1:] = values[:, :-1]
+    return up, down, left, right
+
+
+def shift_fractional_no_wrap(arr: np.ndarray, sx: float, sy: float) -> np.ndarray:
+    ny, nx = arr.shape
+    yy, xx = np.indices(arr.shape, dtype=float)
+    src_x = xx - sx
+    src_y = yy - sy
+    x0 = np.floor(src_x).astype(int)
+    y0 = np.floor(src_y).astype(int)
+    x1 = x0 + 1
+    y1 = y0 + 1
+    wx = src_x - x0
+    wy = src_y - y0
+
+    out = np.zeros_like(arr, dtype=float)
+    for ix, iy, weight in (
+        (x0, y0, (1.0 - wx) * (1.0 - wy)),
+        (x1, y0, wx * (1.0 - wy)),
+        (x0, y1, (1.0 - wx) * wy),
+        (x1, y1, wx * wy),
+    ):
+        valid = (ix >= 0) & (ix < nx) & (iy >= 0) & (iy < ny)
+        out[valid] += arr[iy[valid], ix[valid]] * weight[valid]
+    return out
 
 
 def shift_no_wrap(arr: np.ndarray, sx: int, sy: int) -> np.ndarray:
