@@ -17,6 +17,7 @@ FIELD_LABELS = {
     "specific_enthalpy_j_kg": "Specific enthalpy (J/kg)",
     "total_neutral_density_m3": "Total neutral density (m^-3)",
     "electron_density_m3": "Electron density (m^-3)",
+    "electron_mean_energy_ev": "Mean electron energy (eV)",
     "surface_displacement_m": "Surface displacement (m)",
     "pressure_pa": "Pressure (Pa)",
     "bx_t": "Bx (T)",
@@ -119,6 +120,8 @@ def write_overview(arrays: dict[str, np.ndarray], path: Path, index: int) -> Non
         cbar = fig.colorbar(im, ax=ax)
         if key in LOG_FIELDS:
             cbar.set_label("log10")
+    for ax in axes.ravel()[len(keys):]:
+        ax.axis("off")
     fig.savefig(path, dpi=180)
     plt.close(fig)
 
@@ -130,7 +133,7 @@ def write_mhd_overview(arrays: dict[str, np.ndarray], path: Path, index: int) ->
     if any(key not in arrays for key in keys):
         return
     time_ns = float(arrays["time_s"][index] * 1.0e9)
-    fig, axes = plt.subplots(3, 2, figsize=(10, 9), constrained_layout=True)
+    fig, axes = plt.subplots(4, 2, figsize=(10, 11), constrained_layout=True)
     extent = arrays.get("__extent_mm__")
     for ax, key in zip(axes.ravel(), keys):
         image = display_array(arrays[key][index], key)
@@ -153,11 +156,12 @@ def write_time_traces(arrays: dict[str, np.ndarray], path: Path) -> None:
         ("temperature_k", "max", "Max temperature (K)", 1.0),
         ("total_neutral_density_m3", "sum", "Total neutral inventory (cell-weighted)", 1.0),
         ("electron_density_m3", "max", "Max electron density (m^-3)", 1.0),
+        ("electron_mean_energy_ev", "max", "Max mean electron energy (eV)", 1.0),
         ("surface_displacement_m", "max", "Max surface displacement (um)", 1.0e6),
         ("jz_a_m2", "absmax", "Peak |Jz| (A/m^2)", 1.0),
         ("bmag_t", "max", "Peak |B| (T)", 1.0),
     ]
-    fig, axes = plt.subplots(3, 2, figsize=(10, 9), constrained_layout=True)
+    fig, axes = plt.subplots(4, 2, figsize=(10, 11), constrained_layout=True)
     for ax, (key, reducer, label, scale) in zip(axes.ravel(), traces):
         if key not in arrays:
             ax.axis("off")
@@ -173,6 +177,8 @@ def write_time_traces(arrays: dict[str, np.ndarray], path: Path) -> None:
         ax.set_xlabel("time (ns)")
         ax.set_ylabel(label)
         ax.grid(True, alpha=0.25)
+    for ax in axes.ravel()[len(traces):]:
+        ax.axis("off")
     fig.savefig(path, dpi=180)
     plt.close(fig)
 

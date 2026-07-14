@@ -5,12 +5,12 @@ geometry:
   file: ../examples/geometry/mykonos_foil_gap_5mm.json
 
 grid:
-  nx: 80
-  ny: 96
+  nx: 160
+  ny: 192
 
 time:
   dt_s: 5.0e-10
-  end_s: 2.5e-7
+  end_s: 1.25e-7
   sample_interval_s: 1.0e-9
 
 drive:
@@ -45,7 +45,7 @@ desorption:
   attempt_frequency_s: 1.0e13
   activation_energy_ev: 0.95
   coverage_interaction_ev: 0.15
-  initial_coverage_m2: 3.0e18
+  initial_coverage_m2: 8.0e19
 
 velocity_grid:
   max_speed_m_s: 9000.0
@@ -53,9 +53,13 @@ velocity_grid:
   n_angle: 12
 
 neutrals:
+  backend: auto
   bgk_frequency_s: 1.0e7
   wall_sticking: 0.25
   initial_electron_density_m3: 1.0e10
+  state_dtype: float32
+  max_working_set_gb: 8.0
+  max_gpu_memory_fraction: 0.75
 
 diagnostics:
   output_dtype: float32
@@ -92,11 +96,10 @@ cr_model:
 cross_sections:
   enabled: true
   manifest: ../data/cross_sections/cross_section_manifest.yaml
-  incident_energies_ev:
-    e: 30.0
-    H: 1000.0
-    H+: 1000.0
-    H2+: 1000.0
+  electron_energy:
+    source: bolsig_with_thermionic_floor
+    thermionic_flux_mean_factor: 2.0
+    thermionic_min_temperature_k: 300.0
 
 spectra:
   enabled: true

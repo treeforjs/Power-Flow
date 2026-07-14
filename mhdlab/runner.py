@@ -13,6 +13,7 @@ import numpy as np
 from .bolsig import BolsigRunner, approximate_bolsig_table, supplement_missing_rate_coefficients
 from .chemistry import Mechanism, line_emissivity, local_reaction_rates
 from .config import resolve_path
+from .constants import KB, QE
 from .cr_data import CRDataLibrary
 from .cross_sections import CrossSectionLibrary
 from .diagnostics import HDF5DiagnosticWriter, load_hdf5_arrays
@@ -49,6 +50,7 @@ def run_from_config(config: dict, progress: Callable[[str], None] | None = None)
     mhd_config = _resolve_mhd_config(config)
     mhd_solver = ReducedMHDSolver(raster, material, mhd_config)
     mhd_state = mhd_solver.initial_state()
+    _progress(progress, f"MHD array backend: {mhd_solver.backend.name}")
     _progress(progress, _conductivity_status(mhd_config))
 
     mechanism = Mechanism.from_yaml(resolve_path(config, config["chemistry"]["mechanism"]))
@@ -60,6 +62,8 @@ def run_from_config(config: dict, progress: Callable[[str], None] | None = None)
         n_angle=int(vcfg.get("n_angle", 12)),
     )
     neutral_solver = KineticNeutralSolver(raster, species, velocity_grid, config.get("neutrals", {}))
+    _progress(progress, f"neutral kinetics backend: {neutral_solver.backend.name}")
+    _progress(progress, f"estimated neutral velocity-space working set: {neutral_solver.estimated_working_set_gb():.2f} GiB")
     neutral_state = neutral_solver.initial_state()
     _progress(progress, f"initialized {len(species)} neutral species on {velocity_grid.vx.size} velocity ordinates")
 
@@ -127,6 +131,15 @@ def run_from_config(config: dict, progress: Callable[[str], None] | None = None)
             voltage = drive.sample_voltage(t)
             current = drive.sample_current(t)
             mhd_state = mhd_solver.step(mhd_state, current_a=current, voltage_v=voltage, dt_s=dt)
+            pre_collision_neutral = neutral_solver.asnumpy(neutral_state.total_neutral_density())
+            electron_mean_energy_ev = _electron_mean_energy_map(
+                config,
+                bolsig_table,
+                mhd_state,
+                mhd_solver.surface_mask,
+                mhd_solver.vacuum_mask,
+                pre_collision_neutral,
+            )
             source_rate, coverage = desorption.step(
                 mhd_state.temperature_k,
                 coverage,
@@ -143,10 +156,11 @@ def run_from_config(config: dict, progress: Callable[[str], None] | None = None)
                 reaction_rates=base_rates,
                 cross_sections=cross_section_library,
                 incident_energies_ev=incident_energies_ev,
+                electron_energy_ev=electron_mean_energy_ev,
             )
             if step % sample_every == 0 or step == len(times) - 1:
                 moments = neutral_solver.moments(neutral_state)
-                total_neutral = neutral_state.total_neutral_density()
+                total_neutral = neutral_solver.asnumpy(neutral_state.total_neutral_density())
                 en_td = _reduced_field_td(mhd_state.ex_v_m, mhd_state.ey_v_m, total_neutral)
                 sample = {
                     "time_s": t,
@@ -159,11 +173,12 @@ def run_from_config(config: dict, progress: Callable[[str], None] | None = None)
                     "conductivity_s_m": _sample_array(mhd_state.conductivity_s_m, output_dtype),
                     "joule_heating_w_m3": _sample_array(mhd_state.joule_heating_w_m3, output_dtype),
                     "surface_displacement_m": _sample_array(mhd_state.surface_displacement_m, output_dtype),
-                    "electron_density_m3": _sample_array(neutral_state.electron_density_m3, output_dtype),
+                    "electron_density_m3": _sample_array(neutral_solver.asnumpy(neutral_state.electron_density_m3), output_dtype),
+                    "electron_mean_energy_ev": _sample_array(electron_mean_energy_ev, output_dtype),
                     "total_neutral_density_m3": _sample_array(total_neutral, output_dtype),
                     "en_td": _sample_array(en_td, output_dtype),
                     "species_density_m3": {
-                        sp: _sample_array(data["density_m3"], output_dtype)
+                        sp: _sample_array(neutral_solver.asnumpy(data["density_m3"]), output_dtype)
                         for sp, data in moments.items()
                     },
                 }
@@ -349,6 +364,58 @@ def _reduced_field_td(ex: np.ndarray, ey: np.ndarray, neutral_density: np.ndarra
     return e_mag / n / 1.0e-21
 
 
+def _electron_mean_energy_map(
+    config: dict,
+    bolsig_table,
+    mhd_state,
+    surface_mask: np.ndarray,
+    vacuum_mask: np.ndarray,
+    neutral_density: np.ndarray,
+) -> np.ndarray:
+    xcfg = config.get("cross_sections", {})
+    ecfg = xcfg.get("electron_energy", {})
+    mode = str(ecfg.get("source", "bolsig_with_thermionic_floor")).lower()
+    en_td = _reduced_field_td(mhd_state.ex_v_m, mhd_state.ey_v_m, neutral_density)
+    bolsig_energy = bolsig_table.interp_mean_energy(en_td)
+    if mode in {"bolsig", "eedf"}:
+        return bolsig_energy
+    thermionic = _thermionic_electron_energy_ev(
+        mhd_state.temperature_k,
+        surface_mask,
+        vacuum_mask,
+        flux_mean_factor=float(ecfg.get("thermionic_flux_mean_factor", 2.0)),
+        min_temperature_k=float(ecfg.get("thermionic_min_temperature_k", 0.0)),
+    )
+    if mode in {"thermionic", "thermionic_emission"}:
+        return thermionic
+    if mode in {"bolsig_with_thermionic_floor", "auto", "max"}:
+        return np.maximum(bolsig_energy, thermionic)
+    raise ValueError(f"unsupported cross_sections.electron_energy.source: {mode}")
+
+
+def _thermionic_electron_energy_ev(
+    temperature_k: np.ndarray,
+    surface_mask: np.ndarray,
+    vacuum_mask: np.ndarray,
+    flux_mean_factor: float = 2.0,
+    min_temperature_k: float = 0.0,
+) -> np.ndarray:
+    surface_energy = flux_mean_factor * KB * np.maximum(temperature_k, min_temperature_k) / QE
+    total = np.zeros_like(temperature_k, dtype=float)
+    count = np.zeros_like(temperature_k, dtype=float)
+    shifts = (
+        (slice(0, -1), slice(None), slice(1, None), slice(None)),
+        (slice(1, None), slice(None), slice(0, -1), slice(None)),
+        (slice(None), slice(0, -1), slice(None), slice(1, None)),
+        (slice(None), slice(1, None), slice(None), slice(0, -1)),
+    )
+    for dst_y, dst_x, src_y, src_x in shifts:
+        adjacent = surface_mask[src_y, src_x] & vacuum_mask[dst_y, dst_x]
+        total[dst_y, dst_x] += np.where(adjacent, surface_energy[src_y, src_x], 0.0)
+        count[dst_y, dst_x] += adjacent.astype(float)
+    return np.divide(total, count, out=np.zeros_like(total), where=count > 0.0)
+
+
 def _save_samples(path: Path, samples: list[dict]) -> None:
     arrays = {"time_s": np.asarray([s["time_s"] for s in samples])}
     for key in (
@@ -362,6 +429,7 @@ def _save_samples(path: Path, samples: list[dict]) -> None:
         "joule_heating_w_m3",
         "surface_displacement_m",
         "electron_density_m3",
+        "electron_mean_energy_ev",
         "total_neutral_density_m3",
         "en_td",
     ):

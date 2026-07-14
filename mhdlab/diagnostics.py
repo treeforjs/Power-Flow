@@ -20,6 +20,7 @@ FIELD_KEYS = (
     "joule_heating_w_m3",
     "surface_displacement_m",
     "electron_density_m3",
+    "electron_mean_energy_ev",
     "total_neutral_density_m3",
     "en_td",
 )

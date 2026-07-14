@@ -20,9 +20,9 @@ The default `configs/mykonos.yaml` case is a user-initialized starter problem,
 not a measured-shot reconstruction yet. It uses two 200 um thick, 5 mm wide
 SS304 foils separated by a 5 mm face-to-face A-K gap, driven by a zero-voltage
 parametric current pulse with an 850 kA peak and a 125 ns quarter-period rise
-time. Field histories are sampled every 1 ns. The main config now derives a
-focused uniform mesh from the foil thickness: about 12.5 um cells, giving
-roughly 16 cells through each 200 um foil while respecting a max-cell cap. Use
+time. Field histories are sampled every 1 ns. The main config derives a focused
+uniform mesh from the requested target cell size and foil-thickness refinement,
+then applies `grid.max_cells` as a memory guard. Use
 `configs/mykonos_preview.yaml` for fast coarse checks.
 
 Measured voltage/current CSV traces can still be used later by setting
@@ -73,6 +73,20 @@ in the run folder. The visualizer reads `fields.h5` first, falls back to the old
 The reduced MHD solver uses NumPy by default and will use CuPy when
 `mhd.backend: auto` or `cuda` finds a working CUDA/CuPy install. This machine
 has been tested with `cupy-cuda13x[ctk]`.
+
+The neutral velocity-space solver can also run on CuPy. Use the config keys
+`mhd.backend` and `neutrals.backend`, or override them from the command line:
+
+```powershell
+python MHD_heating.py --config configs/mykonos_preview.yaml --mhd-backend cuda --neutral-backend cuda
+```
+
+The startup log prints both active backends and the estimated neutral
+velocity-space working set before allocation. Electron-impact cross-section
+energies are no longer fixed constants: the code uses the local BOLSIG mean
+electron energy with an optional thermionic floor of about
+`thermionic_flux_mean_factor * kB * T_surface`, while neutral and ion projectile
+energies come from the local velocity distribution.
 
 A C++/pybind11 extension is included under `src/mhd_core`; it builds through
 scikit-build-core. If CMake is not on PATH, prepend:
