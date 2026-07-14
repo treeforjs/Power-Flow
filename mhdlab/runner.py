@@ -51,6 +51,11 @@ def run_from_config(config: dict, progress: Callable[[str], None] | None = None)
     mhd_solver = ReducedMHDSolver(raster, material, mhd_config)
     mhd_state = mhd_solver.initial_state()
     _progress(progress, f"MHD array backend: {mhd_solver.backend.name}")
+    _progress(
+        progress,
+        f"MHD induction solver: {mhd_solver.induction_solver} "
+        f"({mhd_solver.current_cluster_mesh.area_m2.size if mhd_solver.current_cluster_mesh else 0} current clusters)",
+    )
     _progress(progress, _conductivity_status(mhd_config))
 
     mechanism = Mechanism.from_yaml(resolve_path(config, config["chemistry"]["mechanism"]))

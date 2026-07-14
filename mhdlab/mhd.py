@@ -32,6 +32,20 @@ class MHDState:
     surface_displacement_m: np.ndarray
 
 
+@dataclass
+class CurrentClusterMesh:
+    labels: np.ndarray
+    active_mask: np.ndarray
+    counts: np.ndarray
+    area_m2: np.ndarray
+    x_m: np.ndarray
+    y_m: np.ndarray
+    region: np.ndarray
+    green_wb_m_per_a_m2: np.ndarray
+    reference_length_m: float
+    min_distance_m: float
+
+
 class ReducedMHDSolver:
     def __init__(self, raster: Raster, material: Material, config: dict):
         self.raster = raster
@@ -42,6 +56,9 @@ class ReducedMHDSolver:
         self.electrostatic_iterations = int(config.get("electrostatic_iterations", 350))
         self.induction_iterations = int(config.get("induction_iterations", 4))
         self.induction_relaxation = float(config.get("induction_relaxation", 0.7))
+        self.induction_solver = str(config.get("induction_solver", "open_boundary_impedance")).lower()
+        self.induction_max_unknowns = int(config.get("induction_max_unknowns", 640))
+        self.induction_vector_potential_chunk = int(config.get("induction_vector_potential_chunk", 8192))
         self.enforce_unidirectional_region_current = bool(config.get("enforce_unidirectional_region_current", True))
         self.current_density_limit_factor = float(config.get("current_density_limit_factor", 25.0))
         self.temperature_floor_k = float(config.get("temperature_floor_k", 1.0))
@@ -56,6 +73,7 @@ class ReducedMHDSolver:
         self.cathode_mask = raster.mask_by_kind("cathode")
         self.anode_mask = raster.mask_by_kind("anode")
         self.surface_mask = boundary_mask(self.material_mask, self.vacuum_mask)
+        self.current_cluster_mesh = self._build_current_cluster_mesh(config)
 
     def initial_state(self) -> MHDState:
         shape = self.raster.shape
@@ -231,6 +249,16 @@ class ReducedMHDSolver:
         current_a: float,
         dt_s: float,
     ) -> tuple[np.ndarray, np.ndarray]:
+        if self.induction_solver in {"open", "open_boundary", "open_boundary_impedance", "impedance", "impedance_matrix"}:
+            return self._solve_open_boundary_impedance_current(state, current_a, dt_s)
+        return self._solve_local_poisson_inductive_current(state, current_a, dt_s)
+
+    def _solve_local_poisson_inductive_current(
+        self,
+        state: MHDState,
+        current_a: float,
+        dt_s: float,
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Solve a reduced resistive-induction update for out-of-plane current.
 
         In each conductor, Ohm's law is approximated as
@@ -304,6 +332,50 @@ class ReducedMHDSolver:
         )
         self._enforce_region_current_constraints(jz, self.cathode_mask, float(current_a), cell_area)
         self._enforce_region_current_constraints(jz, self.anode_mask, -float(current_a), cell_area)
+        return jz, az
+
+    def _solve_open_boundary_impedance_current(
+        self,
+        state: MHDState,
+        current_a: float,
+        dt_s: float,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Solve the driven conductor current with an open-boundary Green matrix.
+
+        The cluster solve is the discrete form of
+
+            J/sigma + (A^{n+1} - A^n)/dt = E_region
+
+        with one scalar drive field per electrode and integral current
+        constraints.  The Green matrix maps every current cluster to vector
+        potential with the 2D open-boundary logarithmic kernel, so the x-profile
+        comes from mutual/self inductance instead of a nearby box Dirichlet
+        boundary.
+        """
+        mesh = self.current_cluster_mesh
+        if mesh is None or mesh.area_m2.size == 0:
+            zero = np.zeros(self.raster.shape, dtype=float)
+            return zero.copy(), zero.copy()
+
+        dt_s = max(float(dt_s), 1.0e-30)
+        conductivity = self._electrical_conductivity(state.temperature_k, state.density_kg_m3, state.jz_a_m2)
+        sigma_cluster = self._cluster_harmonic_conductivity(conductivity, mesh)
+        previous_az_cluster = self._cluster_average(np.asarray(state.az_wb_m, dtype=float), mesh)
+        j_cluster = self._solve_cluster_currents(
+            mesh,
+            sigma_cluster,
+            previous_az_cluster,
+            cathode_current_a=float(current_a),
+            anode_current_a=-float(current_a),
+            dt_s=dt_s,
+        )
+        self._enforce_cluster_current_constraints(j_cluster, mesh, region=1, target_current_a=float(current_a))
+        self._enforce_cluster_current_constraints(j_cluster, mesh, region=-1, target_current_a=-float(current_a))
+
+        jz = np.zeros(self.raster.shape, dtype=float)
+        active_labels = mesh.labels[mesh.active_mask]
+        jz[mesh.active_mask] = j_cluster[active_labels]
+        az = self._vector_potential_from_clusters(mesh, j_cluster)
         return jz, az
 
     def _electrical_conductivity(
@@ -408,6 +480,167 @@ class ReducedMHDSolver:
         local *= abs(target_current_a) / max(total, 1.0e-30)
         jz[mask] = sign * local
 
+    def _build_current_cluster_mesh(self, config: dict) -> CurrentClusterMesh | None:
+        active = self.cathode_mask | self.anode_mask
+        if not active.any():
+            return None
+        labels = np.full(self.raster.shape, -1, dtype=int)
+        max_unknowns = max(int(config.get("induction_max_unknowns", self.induction_max_unknowns)), 8)
+        region_masks = [(1, self.cathode_mask), (-1, self.anode_mask)]
+        active_regions = [(region, mask) for region, mask in region_masks if mask.any()]
+        target_per_region = max(4, int(np.ceil(max_unknowns / max(len(active_regions), 1))))
+
+        key_blocks = []
+        y_blocks = []
+        x_blocks = []
+        for region, mask in active_regions:
+            yy_region, xx_region = np.nonzero(mask)
+            x_cells = self.raster.x[xx_region]
+            y_cells = self.raster.y[yy_region]
+            xmin = float(x_cells.min() - 0.5 * self.raster.dx)
+            xmax = float(x_cells.max() + 0.5 * self.raster.dx)
+            ymin = float(y_cells.min() - 0.5 * self.raster.dy)
+            ymax = float(y_cells.max() + 0.5 * self.raster.dy)
+            width = max(xmax - xmin, self.raster.dx)
+            height = max(ymax - ymin, self.raster.dy)
+            aspect = max(width / height, 1.0)
+            ny_bins = max(1, int(round(np.sqrt(target_per_region / aspect))))
+            nx_bins = max(1, int(np.ceil(target_per_region / ny_bins)))
+            nx_bins = min(nx_bins, np.unique(xx_region).size)
+            ny_bins = min(ny_bins, np.unique(yy_region).size)
+            bx = np.floor((x_cells - xmin) / width * nx_bins).astype(int)
+            by = np.floor((y_cells - ymin) / height * ny_bins).astype(int)
+            bx = np.clip(bx, 0, nx_bins - 1)
+            by = np.clip(by, 0, ny_bins - 1)
+            key_blocks.append(np.column_stack((np.full(xx_region.size, region), by, bx)))
+            y_blocks.append(yy_region)
+            x_blocks.append(xx_region)
+
+        keys = np.vstack(key_blocks)
+        yy = np.concatenate(y_blocks)
+        xx = np.concatenate(x_blocks)
+        unique, inverse = np.unique(keys, axis=0, return_inverse=True)
+        labels[yy, xx] = inverse
+
+        n = unique.shape[0]
+        counts = np.bincount(inverse, minlength=n).astype(float)
+        cell_area = self.raster.dx * self.raster.dy
+        area = counts * cell_area
+        x_cells = self.raster.x[xx]
+        y_cells = self.raster.y[yy]
+        x = np.bincount(inverse, weights=x_cells, minlength=n) / np.maximum(counts, 1.0)
+        y = np.bincount(inverse, weights=y_cells, minlength=n) / np.maximum(counts, 1.0)
+        region = unique[:, 0].astype(int)
+
+        width = max(self.raster.x_max - self.raster.x_min, self.raster.dx)
+        height = max(self.raster.y_max - self.raster.y_min, self.raster.dy)
+        reference_length = float(config.get("magnetic_reference_length_m", max(width, height)))
+        min_distance = float(config.get("magnetic_min_distance_m", 0.25 * min(self.raster.dx, self.raster.dy)))
+        green = open_boundary_green_matrix(
+            x,
+            y,
+            area,
+            reference_length_m=reference_length,
+            min_distance_m=min_distance,
+        )
+        return CurrentClusterMesh(
+            labels=labels,
+            active_mask=active,
+            counts=counts,
+            area_m2=area,
+            x_m=x,
+            y_m=y,
+            region=region,
+            green_wb_m_per_a_m2=green,
+            reference_length_m=reference_length,
+            min_distance_m=min_distance,
+        )
+
+    @staticmethod
+    def _cluster_average(values: np.ndarray, mesh: CurrentClusterMesh) -> np.ndarray:
+        labels = mesh.labels[mesh.active_mask]
+        sums = np.bincount(labels, weights=values[mesh.active_mask], minlength=mesh.area_m2.size)
+        return sums / np.maximum(mesh.counts, 1.0)
+
+    def _cluster_harmonic_conductivity(self, conductivity: np.ndarray, mesh: CurrentClusterMesh) -> np.ndarray:
+        labels = mesh.labels[mesh.active_mask]
+        sigma = np.maximum(conductivity[mesh.active_mask], 1.0e-30)
+        resistivity_sum = np.bincount(labels, weights=1.0 / sigma, minlength=mesh.area_m2.size)
+        mean_resistivity = resistivity_sum / np.maximum(mesh.counts, 1.0)
+        return 1.0 / np.maximum(mean_resistivity, 1.0e-30)
+
+    @staticmethod
+    def _solve_cluster_currents(
+        mesh: CurrentClusterMesh,
+        sigma_cluster: np.ndarray,
+        previous_az_cluster: np.ndarray,
+        cathode_current_a: float,
+        anode_current_a: float,
+        dt_s: float,
+    ) -> np.ndarray:
+        n = mesh.area_m2.size
+        system = np.zeros((n + 2, n + 2), dtype=float)
+        rhs = np.zeros(n + 2, dtype=float)
+        system[:n, :n] = mesh.green_wb_m_per_a_m2 / dt_s
+        diag = np.diag_indices(n)
+        system[diag] += 1.0 / np.maximum(sigma_cluster, 1.0e-30)
+        system[:n, n] = -((mesh.region == 1).astype(float))
+        system[:n, n + 1] = -((mesh.region == -1).astype(float))
+        rhs[:n] = previous_az_cluster / dt_s
+        cathode = mesh.region == 1
+        anode = mesh.region == -1
+        system[n, :n] = np.where(cathode, mesh.area_m2, 0.0)
+        system[n + 1, :n] = np.where(anode, mesh.area_m2, 0.0)
+        rhs[n] = cathode_current_a
+        rhs[n + 1] = anode_current_a
+        try:
+            solution = np.linalg.solve(system, rhs)
+        except np.linalg.LinAlgError:
+            solution = np.linalg.lstsq(system, rhs, rcond=None)[0]
+        return solution[:n]
+
+    def _enforce_cluster_current_constraints(
+        self,
+        j_cluster: np.ndarray,
+        mesh: CurrentClusterMesh,
+        region: int,
+        target_current_a: float,
+    ) -> None:
+        if not self.enforce_unidirectional_region_current:
+            return
+        mask = mesh.region == region
+        if not mask.any():
+            return
+        sign = 1.0 if target_current_a >= 0.0 else -1.0
+        local = sign * j_cluster[mask]
+        local = np.maximum(local, 0.0)
+        mean_abs = abs(target_current_a) / max(float(mesh.area_m2[mask].sum()), 1.0e-30)
+        local = np.minimum(local, max(self.current_density_limit_factor, 1.0) * mean_abs)
+        total = float((local * mesh.area_m2[mask]).sum())
+        if total <= 0.0:
+            local = np.full(mask.sum(), mean_abs, dtype=float)
+            total = float((local * mesh.area_m2[mask]).sum())
+        local *= abs(target_current_a) / max(total, 1.0e-30)
+        j_cluster[mask] = sign * local
+
+    def _vector_potential_from_clusters(self, mesh: CurrentClusterMesh, j_cluster: np.ndarray) -> np.ndarray:
+        current = j_cluster * mesh.area_m2
+        if not np.any(current):
+            return np.zeros(self.raster.shape, dtype=float)
+        points_x = self.raster.xx.ravel()
+        points_y = self.raster.yy.ravel()
+        out = np.zeros(points_x.size, dtype=float)
+        chunk = max(int(self.induction_vector_potential_chunk), 1)
+        coefficient = -MU0 / (2.0 * np.pi)
+        for start in range(0, points_x.size, chunk):
+            stop = min(start + chunk, points_x.size)
+            dx = points_x[start:stop, None] - mesh.x_m[None, :]
+            dy = points_y[start:stop, None] - mesh.y_m[None, :]
+            r = np.sqrt(dx * dx + dy * dy)
+            r = np.maximum(r, mesh.min_distance_m)
+            out[start:stop] = coefficient * (np.log(r / mesh.reference_length_m) @ current)
+        return out.reshape(self.raster.shape)
+
 
 def laplacian(values: np.ndarray, dx: float, dy: float) -> np.ndarray:
     out = np.zeros_like(values, dtype=float)
@@ -432,6 +665,23 @@ def solve_poisson(source: np.ndarray, dx: float, dy: float, iterations: int) -> 
         ) / denom
         u = u_new
     return u
+
+
+def open_boundary_green_matrix(
+    x_m: np.ndarray,
+    y_m: np.ndarray,
+    area_m2: np.ndarray,
+    reference_length_m: float,
+    min_distance_m: float,
+) -> np.ndarray:
+    dx = x_m[:, None] - x_m[None, :]
+    dy = y_m[:, None] - y_m[None, :]
+    r = np.sqrt(dx * dx + dy * dy)
+    self_radius = np.sqrt(np.maximum(area_m2, 1.0e-300) / np.pi)
+    r = np.where(np.eye(x_m.size, dtype=bool), self_radius[None, :], r)
+    r = np.maximum(r, max(min_distance_m, 1.0e-30))
+    reference = max(float(reference_length_m), max(min_distance_m, 1.0e-30))
+    return (-MU0 / (2.0 * np.pi)) * np.log(r / reference) * area_m2[None, :]
 
 
 def solve_electrostatic(

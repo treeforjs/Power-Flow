@@ -30,9 +30,13 @@ Measured voltage/current CSV traces can still be used later by setting
 
 The MHD package is still a reduced research model. It now solves a
 resistive-induction update for `A_z` and `J_z`, enforcing the total current as a
-constraint instead of assigning a prescribed current-density profile. That is a
-better basis for current crowding and nonuniform Joule heating, but it is not a
-full production compressible/resistive MHD model.
+constraint instead of assigning a prescribed current-density profile. The
+default `mhd.induction_solver: open_boundary_impedance` uses a clustered
+open-boundary Green-matrix solve so lateral edge crowding comes from inductive
+coupling rather than the nearby plot-domain boundary. `mhd.induction_max_unknowns`
+controls that reduced current solve resolution. This is a better basis for
+current crowding and nonuniform Joule heating, but it is not a full production
+compressible/resistive MHD model.
 
 The default conductivity closure is now labeled as an EC-Knoepfel-style model:
 `sigma = max(sigma0 / (1 + betaCv * (T - T0)) * (rho / rho0)^alpha, sigmaMin)`.
