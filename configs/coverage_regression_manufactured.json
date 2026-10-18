@@ -1,0 +1,39 @@
+{
+  "schema": "mhdlab-surface-coverage-fit-config-v1",
+  "grid": {
+    "coverage_ml": [0.0, 0.5, 1.0, 2.0, 4.0],
+    "predictions": [[0.0, 0.0, 0.0, 0.0], [5.0, 9.0, 6.0, 2.0], [10.0, 16.0, 13.0, 4.0], [19.0, 26.0, 30.0, 7.0], [34.0, 36.0, 62.0, 11.0]],
+    "monolayer_areal_density_m2": 1e19,
+    "monolayer_definition": "Manufactured coverage equivalent of 1e19 parent molecules per square metre; not a physical stainless-steel monolayer assignment.",
+    "monolayer_provenance": "Numerical regression fixture only; no water inventory or surface-site measurement.",
+    "signal_units": "ADU per detector bin",
+    "bin_edges": [110.0, 120.0, 130.0, 140.0, 150.0],
+    "bin_axis_units": "nm",
+    "bin_support": "Four manufactured detector bins; values are arbitrary supplied count templates, not a molecular spectrum.",
+    "status": "manufactured",
+    "provenance": "Piecewise-linear numerical response grid supplied for fitting verification; no CR or transport calculation."
+  },
+  "observation": {
+    "values": [18.232, 24.4, 25.176, 6.824],
+    "covariance": [[1.0, 0.3, 0.2, 0.1], [0.3, 2.0, 0.4, 0.1], [0.2, 0.4, 1.5, 0.2], [0.1, 0.1, 0.2, 0.8]],
+    "known_background": [3.0, 2.0, 3.0, 1.0],
+    "signal_units": "ADU per detector bin",
+    "bin_edges": [110.0, 120.0, 130.0, 140.0, 150.0],
+    "bin_axis_units": "nm",
+    "bin_support": "Four manufactured detector bins; values are arbitrary supplied count templates, not a molecular spectrum.",
+    "status": "manufactured",
+    "provenance": "Noise-free numerical mean at coverage1.4 and calibration scale1.12, with explicit manufactured correlated Gaussian weighting covariance."
+  },
+  "calibration": {
+    "mode": "gaussian_prior",
+    "prior_mean": 1.12,
+    "prior_sigma": 0.15,
+    "provenance": "Manufactured linear-scale Gaussian penalty; no measured instrument calibration or uncertainty."
+  },
+  "manufactured_truth": {
+    "coverage_ml": 1.4,
+    "calibration_scale": 1.12,
+    "areal_inventory_m2": 1.4e19,
+    "usage": "Recorded for independent numerical validation only; never supplied to the optimization."
+  }
+}
