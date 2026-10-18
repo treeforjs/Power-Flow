@@ -1,0 +1,632 @@
+{
+  "schema": "mhdlab-surface-literature-audit-v1",
+  "access_checked_utc_date": "2026-10-18",
+  "purpose": "Provenance audit of kinetic release laws and energy roles; not a runtime material-parameter file.",
+  "audit_document": "../../docs/thermal_desorption_law_audit.md",
+  "adoptable_runtime_defaults": false,
+  "parameter_roles": {
+    "kinetic_activation_energy": "Controls a rate; equality to a thermodynamic binding cost requires a separately justified microscopic assumption.",
+    "desorption_internal_energy_cost": "Difference between specified adsorbed and gas-reference internal energies; not inferred from a fitted Arrhenius barrier.",
+    "gas_internal_excitation": "Energy above the selected gas reference, counted once.",
+    "coverage_reference_density": "Must be retained with its definition and units; changing it requires rescaling a linear Temkin coefficient.",
+    "fit_agreement": "Agreement with a cited calculation is not an experimental uncertainty or a universal parameter bound."
+  },
+  "sources": [
+    {
+      "id": "smith_2025_dissertation",
+      "type": "dissertation",
+      "dissertation_reference_number": null,
+      "title": "Characterizing Desorbed Surface Contaminants Leading to Plasma Formation in Power Feeds of Pulsed Power Accelerators",
+      "authors": [
+        "Trevor Johannes Smith"
+      ],
+      "year": 2025,
+      "item_url": "https://deepblue.lib.umich.edu/items/9ccfa886-0b19-4bd8-b3b2-bb685b9ddefc",
+      "fulltext_url": "https://backend.production.deepblue-documents.lib.umich.edu/server/api/core/bitstreams/24e682a8-896a-410d-85bb-ca4654a9db02/content",
+      "access_status": "full_text_inspected",
+      "pdf_pages": 203,
+      "artifact": {
+        "cache_path": "/workspace/research_sources/smtrevor_1.pdf",
+        "kind": "pdf",
+        "bytes": 32298236,
+        "sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+        "redistributed_in_repository": false
+      },
+      "page_map": [
+        {
+          "printed_page": 17,
+          "pdf_page_1based": 42
+        },
+        {
+          "printed_page": 18,
+          "pdf_page_1based": 43
+        },
+        {
+          "printed_page": 174,
+          "pdf_page_1based": 199
+        }
+      ],
+      "evidence": [
+        {
+          "location": {
+            "source_id": "smith_2025_dissertation",
+            "pdf_pages_1based": [
+              42
+            ]
+          },
+          "claim": "Surface barriers depend on contaminant and substrate; text cites dissertation ref. 28."
+        },
+        {
+          "location": {
+            "source_id": "smith_2025_dissertation",
+            "pdf_pages_1based": [
+              43
+            ],
+            "equations": [
+              "2.30"
+            ]
+          },
+          "rate_equation_ascii": "dn/dt = -nu_th * n(0) * exp(-Ei/(kB*T))",
+          "population_prefactor": "initial_areal_inventory",
+          "initial_inventory_definition": "n(0) = f * n_ml,0",
+          "numeric_attempt_frequency_reported_here": false
+        },
+        {
+          "location": {
+            "source_id": "smith_2025_dissertation",
+            "pdf_pages_1based": [
+              43
+            ],
+            "equations": [
+              "2.31"
+            ]
+          },
+          "barrier_equation_ascii": "Ei = Ed * (1 - alpha * n(t)/(f*n_ml,0))",
+          "coverage_denominator": "initial_inventory",
+          "species_material_statement": "approximately 1 eV for H2O on stainless steel 304",
+          "alpha_status": "fit factor from current-loss simulations versus experiments; no numerical alpha given here",
+          "joint_citations": [
+            30,
+            32
+          ]
+        },
+        {
+          "location": {
+            "source_id": "smith_2025_dissertation",
+            "pdf_pages_1based": [
+              43
+            ],
+            "equations": [
+              "2.33"
+            ]
+          },
+          "claim": "Boundary source uses n(0,t); this does not settle whether Eq. 2.30 intended remaining rather than initial population."
+        }
+      ],
+      "adoptable_runtime_defaults": false,
+      "alternate_pdf_url_unverified": "https://plasmabay.engin.umich.edu/wp-content/uploads/sites/281/2025/04/2025-Trevor-Smith.pdf",
+      "source_retrieval_note": "Validated cache and hash correspond to the DeepBlue backend bitstream URL; alternate university-hosted PDF was not independently fetched or hashed in this audit."
+    },
+    {
+      "id": "lane_2018",
+      "type": "journal_accepted_manuscript",
+      "dissertation_reference_number": 28,
+      "title": "Water desorption from rapidly-heated metal oxide surfaces—first principles, molecular dynamics, and the Temkin isotherm",
+      "authors": [
+        "J. Matthew D. Lane",
+        "Kevin Leung",
+        "Aidan P. Thompson",
+        "Michael E. Cuneo"
+      ],
+      "year": 2018,
+      "journal": "Journal of Physics: Condensed Matter",
+      "volume": "30",
+      "issue": "46",
+      "article": "465002",
+      "doi": "10.1088/1361-648X/aae4af",
+      "doi_url": "https://doi.org/10.1088/1361-648X/aae4af",
+      "fulltext_url": "https://www.osti.gov/servlets/purl/1595030",
+      "official_record_url": "https://www.osti.gov/biblio/1595030",
+      "official_metadata_url": "https://www.osti.gov/api/v1/records/1595030",
+      "sandia_record_url": "https://www.sandia.gov/research/publications/details/water-desorption-from-rapidly-heated-metal-oxide-surfaces-first-principles-2018-10-26/",
+      "access_status": "full_text_inspected",
+      "pdf_pages": 32,
+      "page_convention": "Numbered accepted-manuscript pages equal PDF page indices; journal article has a different 15-page layout, not mapped here.",
+      "manuscript_date": "2018-10-11",
+      "publication_date": "2018-10-26",
+      "report_number": "SAND2019-14427J",
+      "artifacts": [
+        {
+          "cache_path": "/workspace/research_sources/surface_desorption/lane_2018_osti.pdf",
+          "kind": "pdf",
+          "bytes": 13164950,
+          "sha256": "af8706a7c8d556b5564b45dd46b7bb83dfe7a36c5bd9e0a1a83e3882690c5010",
+          "redistributed_in_repository": false
+        },
+        {
+          "cache_path": "/workspace/research_sources/surface_desorption/lane_2018_osti.txt",
+          "kind": "locally_extracted_text",
+          "bytes": 80092,
+          "sha256": "1655bfe8b656e983d7001364d8c589a1b130e471d05c4299ca7e9b1589a90f89",
+          "redistributed_in_repository": false
+        },
+        {
+          "cache_path": "/workspace/research_sources/surface_desorption/lane_2018_osti.json",
+          "kind": "official_metadata_json",
+          "bytes": 3204,
+          "sha256": "78365722486bc91c9c78806e3c4a6d0032cd802cb152235bc6c1c4e9317ede14",
+          "redistributed_in_repository": false
+        },
+        {
+          "cache_path": "/workspace/research_sources/surface_desorption/lane_2018_crossref.json",
+          "kind": "crossref_metadata_json",
+          "bytes": 21201,
+          "sha256": "8c2287c6f4399ad29c6539092e43d3263ce5f8fe4742c01130f3aa9ded7fd19c",
+          "redistributed_in_repository": false
+        }
+      ],
+      "access_attempts": [
+        {
+          "url": "https://iopscience.iop.org/article/10.1088/1361-648X/aae4af/pdf",
+          "http_status": 200,
+          "reported_content_type": "text/html;charset=UTF-8",
+          "result": "HTML response, not a PDF",
+          "artifact": {
+            "cache_path": "/workspace/research_sources/surface_desorption/lane_2018_iop_response",
+            "kind": "html_response",
+            "bytes": 188080,
+            "sha256": "528a6832f940e3de35b4f86ee5e643f89f4d57770de567121c0c3328baf174d3",
+            "redistributed_in_repository": false
+          }
+        },
+        {
+          "url": "https://www.osti.gov/servlets/purl/1595030",
+          "http_status": 200,
+          "reported_content_type": "application/pdf",
+          "result": "Validated PDF; equations and parameter discussion inspected."
+        }
+      ],
+      "evidence": [
+        {
+          "location": {
+            "source_id": "lane_2018",
+            "pdf_pages_1based": [
+              3
+            ],
+            "equations": [
+              "1"
+            ]
+          },
+          "barrier_equation_ascii": "Eprime(theta) = Ed * (1 - alpha * theta)",
+          "coverage_definition": "instantaneous removable-water inventory divided by defined monolayer areal density",
+          "alpha": {
+            "value": 0.5,
+            "unit": "dimensionless",
+            "status": "adopted from prior use, not fitted to dissertation data"
+          }
+        },
+        {
+          "location": {
+            "source_id": "lane_2018",
+            "pdf_pages_1based": [
+              4
+            ],
+            "equations": [
+              "2"
+            ]
+          },
+          "rate_equation_ascii": "dtheta/dt = -k0(T) * theta(t)**x * exp(-Eprime(theta)/(kB*T(t)))",
+          "population_prefactor": "remaining_coverage_to_power_x",
+          "listed_orders": [
+            0,
+            1,
+            2
+          ],
+          "eyring_prefactor_equation_ascii": "k0(T) = kappa * kB*T/h",
+          "quoted_eyring_prefactor": {
+            "value": 6200000000000.0,
+            "unit": "s^-1",
+            "temperature_k": 300,
+            "transmission_coefficient": 1
+          },
+          "adopted_prefactor_reference": {
+            "value": 10000000000000.0,
+            "unit": "s^-1",
+            "temperature_k": 300
+          },
+          "temperature_dependence_caveat": "The text gives Eyring temperature dependence and an adopted reference value at 300 K; do not infer a uniquely specified constant-versus-scaled implementation solely from the latter sentence."
+        },
+        {
+          "location": {
+            "source_id": "lane_2018",
+            "pdf_pages_1based": [
+              22
+            ]
+          },
+          "used_order": 1,
+          "reason": "Molecular water treated as desorbing as a single entity. Separated surface H/OH recombination kinetics cannot be tested by this nonreactive force field."
+        },
+        {
+          "location": {
+            "source_id": "lane_2018",
+            "pdf_pages_1based": [
+              4,
+              26
+            ]
+          },
+          "claim": "Barrier and apparent binding energy are distinguished; equality is an assumption for monotonic water desorption profiles. Finite-temperature effective kinetic refits do not establish a surface internal-energy function."
+        },
+        {
+          "location": {
+            "source_id": "lane_2018",
+            "pdf_pages_1based": [
+              5,
+              25
+            ]
+          },
+          "monolayer_reference": {
+            "approximate_value": 13,
+            "unit": "molecules/nm^2",
+            "converted_approximate_value_m2": 1.3e+19,
+            "definition": "Three water molecules per exposed metal ion on (0001); same areal density imposed on (1-102), whose site geometry differs."
+          }
+        },
+        {
+          "location": {
+            "source_id": "lane_2018",
+            "pdf_pages_1based": [
+              7,
+              18
+            ]
+          },
+          "md_domain": {
+            "initial_fractional_coverage_range": [
+              0.06,
+              1.0
+            ],
+            "substrate_temperature_range_k": [
+              300,
+              1300
+            ],
+            "ramp_rate_range_K_per_ns": [
+              20,
+              2000
+            ],
+            "ramp_duration_range_ns": [
+              0.5,
+              50
+            ],
+            "heating": "Oxide substrate thermostatted; water heated through thermal contact.",
+            "materials": [
+              "Fe2O3 (0001)",
+              "Fe2O3 hydroxylated C4 (1-102)"
+            ]
+          },
+          "transfer_limit": "Ideal oxide facets; not a calibrated bare-SS304 or actual-foil surface law."
+        },
+        {
+          "location": {
+            "source_id": "lane_2018",
+            "pdf_pages_1based": [
+              15,
+              16,
+              28
+            ]
+          },
+          "gcmc_context": {
+            "temperature_k": 300,
+            "water_pressure_torr": 1e-05,
+            "Fe2O3_0001_approximate_fractional_coverage": 0.37,
+            "Fe2O3_C4_1bar102_inventory": "removable water tends to zero; strongly bound surface OH is distinct"
+          },
+          "transfer_limit": "Not a recovered shot inventory."
+        },
+        {
+          "location": {
+            "source_id": "lane_2018",
+            "pdf_pages_1based": [
+              22,
+              26
+            ]
+          },
+          "facet_parameters": [
+            {
+              "facet": "Fe2O3 (0001)",
+              "zero_temperature_ClayFF_dilute_binding_energy_ev": 0.87,
+              "effective_MD_refitted_Ed_ev": 0.695
+            },
+            {
+              "facet": "Fe2O3 C4 (1-102)",
+              "zero_temperature_ClayFF_dilute_binding_energy_ev": 0.69,
+              "effective_MD_refitted_Ed_ev": 0.42
+            }
+          ],
+          "fit_target": "Dilute single-water MD desorption times, fitted to rate-peak times in the low-coverage Temkin limit.",
+          "fit_heating_rate_K_per_ns": 200,
+          "fit_is_effective_and_rate_dependent": true,
+          "not_wall_energy_parameters": true
+        },
+        {
+          "location": {
+            "source_id": "lane_2018",
+            "pdf_pages_1based": [
+              26
+            ]
+          },
+          "fit_agreement": "Within 10% for compared (0001) trajectories at initial theta=0.33 and 0.67 for 200 and 2000 K/ns. Shape failures remain for C4 and full-coverage (0001), including early time at 20 K/ns.",
+          "not_physical_error_bars": true
+        },
+        {
+          "location": {
+            "source_id": "lane_2018",
+            "pdf_pages_1based": [
+              11,
+              12,
+              22
+            ]
+          },
+          "excluded_physics": [
+            "Multilayer-water evaporation",
+            "Reactive water dissociation/recombination in ClayFF MD",
+            "Actual mixed oxide composition and defects of the dissertation foils"
+          ]
+        }
+      ],
+      "adoptable_runtime_defaults": false
+    },
+    {
+      "id": "bennett_2023",
+      "type": "journal_published_article",
+      "dissertation_reference_number": 30,
+      "title": "Electrode plasma formation and melt in z-pinch accelerators",
+      "authors": [
+        "N. Bennett",
+        "D. R. Welch",
+        "K. Cochrane",
+        "K. Leung",
+        "C. Thoma",
+        "M. E. Cuneo",
+        "G. Frye-Mason"
+      ],
+      "year": 2023,
+      "journal": "Physical Review Accelerators and Beams",
+      "volume": "26",
+      "article": "040401",
+      "doi": "10.1103/PhysRevAccelBeams.26.040401",
+      "doi_url": "https://doi.org/10.1103/PhysRevAccelBeams.26.040401",
+      "fulltext_url": "https://journals.aps.org/prab/pdf/10.1103/PhysRevAccelBeams.26.040401",
+      "access_status": "full_text_inspected",
+      "pdf_pages": 12,
+      "license": "CC BY 4.0",
+      "artifacts": [
+        {
+          "cache_path": "/workspace/research_sources/surface_desorption/bennett2023_prab.pdf",
+          "kind": "pdf",
+          "bytes": 4770095,
+          "sha256": "b6c1554871c1d27a4a969c81d276ea4e9581e4dc0b0e78fca1a6af736f3c5a2c",
+          "redistributed_in_repository": false
+        },
+        {
+          "cache_path": "/workspace/research_sources/surface_desorption/bennett2023_prab.txt",
+          "kind": "locally_extracted_text",
+          "bytes": 52830,
+          "sha256": "4bdf4685e1d5531f7110ddd2ea9117bebc15a247e2e07959e359dc1d348eb0b4",
+          "redistributed_in_repository": false
+        }
+      ],
+      "evidence": [
+        {
+          "location": {
+            "source_id": "bennett_2023",
+            "pdf_pages_1based": [
+              4
+            ],
+            "equations": [
+              "4"
+            ]
+          },
+          "printed_page": "040401-4",
+          "rate_equation_ascii": "dn/dt = -nu_th * n(t) * exp(-Eprime(n)/(kB*T(t)))",
+          "population_prefactor": "remaining_areal_inventory",
+          "modeled_species": "H2",
+          "attempt_frequency": {
+            "approximate_value": 10000000000000.0,
+            "unit": "s^-1"
+          }
+        },
+        {
+          "location": {
+            "source_id": "bennett_2023",
+            "pdf_pages_1based": [
+              4
+            ],
+            "equations": [
+              "5"
+            ]
+          },
+          "printed_page": "040401-4",
+          "barrier_equation_ascii": "Eprime(n) = Ed * (1 - alpha * n(t)/n_ML)",
+          "Ed_ev": 0.8,
+          "Ed_status": "Described as consistent with MD calculations.",
+          "alpha": 0.17,
+          "alpha_status": "Retained from aggregate simulated-current/data comparisons in its ref. 31; that earlier fit was not independently audited.",
+          "prior_fit_reference": {
+            "authors": "N. Bennett et al.",
+            "journal": "Physical Review Accelerators and Beams",
+            "volume": "22",
+            "article": "120401",
+            "year": 2019
+          }
+        },
+        {
+          "location": {
+            "source_id": "bennett_2023",
+            "pdf_pages_1based": [
+              4
+            ],
+            "equations": [
+              "5"
+            ]
+          },
+          "coverage_normalization": {
+            "n_ML_value_cm2": 8000000000000000.0,
+            "n_ML_converted_value_m2": 8e+19,
+            "status": "Hard-coded CHICAGO reference convention.",
+            "initial_n0_over_n_ML": 2,
+            "paper_description_of_total_conventional_monolayers": 16
+          },
+          "transfer_limit": "Not Lane physical-monolayer normalization or thesis initial-inventory normalization."
+        },
+        {
+          "location": {
+            "source_id": "bennett_2023",
+            "pdf_pages_1based": [
+              2,
+              3,
+              4
+            ]
+          },
+          "transfer_limit": "Introduction discusses H2O and hydrogen outgassing, but modeled release species is H2; the quoted values do not establish a water-specific kinetic or wall-energy calibration."
+        }
+      ],
+      "adoptable_runtime_defaults": false
+    },
+    {
+      "id": "cuneo_1997",
+      "type": "journal_article_metadata_only",
+      "dissertation_reference_number": 32,
+      "title": "Results of vacuum cleaning techniques on the performance of LiF field-threshold ion sources on extraction applied-B ion diodes at 1–10 TW",
+      "authors": "M. E. Cuneo et al.",
+      "year": 1997,
+      "journal": "IEEE Transactions on Plasma Science",
+      "volume": "25",
+      "issue": "2",
+      "pages": "229–251",
+      "doi": "10.1109/27.602495",
+      "doi_url": "https://doi.org/10.1109/27.602495",
+      "official_record_url": "https://www.osti.gov/biblio/522412",
+      "access_status": "primary_full_text_unavailable",
+      "verified_scope": "Bibliographic identity and official abstract only; no actual article pages recovered.",
+      "artifacts": [
+        {
+          "cache_path": "/workspace/research_sources/surface_desorption/cuneo1997_crossref.json",
+          "kind": "crossref_metadata_json",
+          "bytes": 35571,
+          "sha256": "7ccfa0a6aeeb17e6d81b490bb09e97d6e72c94092cb790f6c9ed4bb7d81a96d5",
+          "redistributed_in_repository": false
+        },
+        {
+          "cache_path": "/workspace/research_sources/surface_desorption/cuneo1997_osti_record.xml",
+          "kind": "official_metadata_xml",
+          "bytes": 3750,
+          "sha256": "051999455ee86664fbfa74e2ce30226368a203e6b86b0c77183cb2bf65613404",
+          "redistributed_in_repository": false
+        },
+        {
+          "cache_path": "/workspace/research_sources/surface_desorption/cuneo1997_osti_record.html",
+          "kind": "official_record_html",
+          "bytes": 49343,
+          "sha256": "026a03f354dd9005690972ac6fae7f3cdbfdb4eb69b05f7e66b61651be53f5d7",
+          "redistributed_in_repository": false
+        }
+      ],
+      "access_attempts": [
+        {
+          "url": "https://www.osti.gov/biblio/522412",
+          "http_status": 200,
+          "result": "Metadata and abstract; official record has no full-text link."
+        },
+        {
+          "url": "https://ieeexplore.ieee.org/document/602495/",
+          "http_status": 200,
+          "response_bytes": 0,
+          "result": "Empty response; not full text."
+        },
+        {
+          "url": "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=602495",
+          "http_status": 418,
+          "result": "No usable PDF recovered."
+        },
+        {
+          "url": "https://xplorestaging.ieee.org/ielx1/27/13232/00602495.pdf?arnumber=602495",
+          "http_status": 418,
+          "result": "No usable PDF recovered; URL supplied by Crossref metadata."
+        }
+      ],
+      "unverified_claims": [
+        "Approximately 1 eV H2O/SS304 binding value",
+        "Thermal-release prefactor",
+        "Temkin kinetic order",
+        "Numerical alpha and its fitting basis"
+      ],
+      "adoptable_runtime_defaults": false
+    }
+  ],
+  "cross_source_findings": [
+    {
+      "id": "population_prefactor_conflict",
+      "status": "verified_source_difference",
+      "sources": [
+        "smith_2025_dissertation",
+        "lane_2018",
+        "bennett_2023"
+      ],
+      "finding": "Thesis Eq. 2.30 prints initial n(0); Lane Eq. 2 with x=1 and Bennett Eq. 4 use remaining population. Do not silently repair or claim verbatim agreement."
+    },
+    {
+      "id": "coverage_normalization_conflict",
+      "status": "verified_source_difference",
+      "sources": [
+        "smith_2025_dissertation",
+        "lane_2018",
+        "bennett_2023"
+      ],
+      "finding": "Thesis denominator is initial N0; Lane denominator is a facet-defined monolayer; Bennett uses a hard-coded n_ML distinct from its initial inventory.",
+      "algebra_only": "For identical linear barriers alpha_new/Nref_new = alpha_old/Nref_old. This does not establish species/surface transferability."
+    },
+    {
+      "id": "one_ev_water_ss304",
+      "status": "unverified_primary_attribution",
+      "sources": [
+        "smith_2025_dissertation",
+        "bennett_2023",
+        "cuneo_1997"
+      ],
+      "finding": "The thesis jointly cites refs. 30 and 32 for approximately 1 eV H2O/SS304. Ref. 30 accessible equations instead supply 0.8 eV in H2 release; ref. 32 full text unavailable. Exact origin remains unresolved."
+    },
+    {
+      "id": "rate_energy_is_not_wall_binding_default",
+      "status": "modeling_distinction",
+      "sources": [
+        "lane_2018",
+        "bennett_2023"
+      ],
+      "finding": "A fitted kinetic barrier does not specify a surface internal-energy change or an emitted gas state energy. Equality requires independent microscopic and reference-state assumptions."
+    }
+  ],
+  "implementation_audit": {
+    "reference_module": "../../mhdlab/thermal_release.py",
+    "rate": "Exact frozen-temperature finite-inventory first-order release, with caller-supplied constant barrier and frequency per reservoir.",
+    "literature_relation": "Scoped x=1 molecular kinetic baseline, not full coverage-dependent Temkin replication and not literal thesis Eq. 2.30.",
+    "energy_inputs_separate": [
+      "activation_energy_ev",
+      "desorption_energy_ev",
+      "internal_energy_ev"
+    ],
+    "water_defaults": false,
+    "wall_temperature_feedback": "Prescribed temperature; reported energy debit is diagnostic.",
+    "legacy_module": "../../mhdlab/desorption.py",
+    "legacy_parameter_provenance_status": "Water-labeled provisional defaults not verified by this audit.",
+    "manufactured_config": "../../configs/surface_release_manufactured.json",
+    "manufactured_config_is_physical_water_model": false
+  },
+  "optional_energy_hypothesis": {
+    "status": "mathematical_hypothesis_only_not_source_result_not_implemented",
+    "premise": "Independent thermodynamic evidence establishes b(N)=Ed*(1-alpha*N/Nref) as a differential internal-energy binding cost in eV per particle.",
+    "adsorbed_energy_j_m2_ascii": "Uads(N) = -e*Ed*(N - alpha*N**2/(2*Nref))",
+    "finite_release_binding_debit_j_m2_ascii": "Uads(Nb)-Uads(Na) = e*Ed*((Na-Nb)-alpha*(Na**2-Nb**2)/(2*Nref))",
+    "bounds": "Na >= Nb >= 0; binding cost nonnegative in the declared domain; N and Nref are m^-2; e converts eV to J.",
+    "source_parameters_do_not_establish_premise": true,
+    "water_parameter_values_assigned": false
+  }
+}

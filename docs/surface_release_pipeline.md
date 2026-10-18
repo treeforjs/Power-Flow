@@ -80,6 +80,12 @@ also resolve the nonlinear source. A sum of independent first-order reservoirs
 is the current source model; coverage-dependent barriers, re-adsorption, bulk
 diffusion and surface chemistry require additional supplied models.
 
+The [primary-source law audit](thermal_desorption_law_audit.md) records support
+for the remaining-population first-order choice and its difference from the
+dissertation's printed initial-population prefactor. It also distinguishes
+monolayer reference coverage from initial coverage. Oxide simulation refits and
+H₂ current-loss parameters are not calibrated H₂O/SS304 defaults.
+
 All inventories use float64. Releases smaller than one spacing of a large
 remaining coverage can be represented even when its stored decrement rounds
 away. The compensated `inventory_balance_residual_m2` records that limitation.
