@@ -162,3 +162,60 @@ def test_cli_emits_explicitly_labeled_json(tmp_path):
     assert report["source_kind"] == "synthetic"
     assert report["metrics"]["time_s"] == 1.0
     assert report["metrics"]["left_edge_mean_temperature_k"] == pytest.approx(150.0)
+
+
+def test_v2_preserves_sampling_and_averaging_association(tmp_path):
+    from dataclasses import replace
+    from mhdlab.flash_surface import as_boundary_temperature_proxy, as_current_uniform_temperature_proxy
+
+    plane = replace(history(), temperature_location="material_sample_plane", material_sample_depth_m=12.5e-6,
+                    current_averaging_interval_m=(0, 0.025))
+    target = tmp_path / "plane.h5"
+    write_surface_history(target, plane)
+    restored = load_surface_history(target)
+    assert restored.temperature_location == "material_sample_plane"
+    assert restored.material_sample_depth_m == 12.5e-6
+    assert restored.current_averaging_interval_m == (0, 0.025)
+    proxy = as_boundary_temperature_proxy(restored, reference="manufactured normal-gradient benchmark")
+    proxy = as_current_uniform_temperature_proxy(proxy, reference="manufactured current-uniform fixture")
+    write_surface_history(target, proxy)
+    final = load_surface_history(target)
+    assert final.temperature_location == "boundary_temperature_proxy"
+    assert final.material_sample_depth_m == 12.5e-6
+    assert final.boundary_temperature_reference == proxy.boundary_temperature_reference
+    assert final.current_uniformity_reference == proxy.current_uniformity_reference
+    np.testing.assert_array_equal(final.temperature_k, plane.temperature_k)
+
+
+@pytest.mark.parametrize("overrides", [
+    {"temperature_location": "unknown"},
+    {"temperature_location": "surface_boundary", "material_sample_depth_m": 1e-6},
+    {"temperature_location": "material_sample_plane", "material_sample_depth_m": 0},
+    {"temperature_location": "material_sample_plane", "material_sample_depth_m": 1e-6, "boundary_temperature_reference": "silently converted"},
+    {"temperature_location": "boundary_temperature_proxy", "material_sample_depth_m": 1e-6},
+    {"material_sample_depth_m": True},
+    {"current_averaging_interval_m": [0, 0]},
+    {"current_averaging_interval_m": [0, True]},
+    {"current_averaging_interval_m": [0, np.inf]},
+])
+def test_ambiguous_temperature_association_is_rejected(overrides):
+    from dataclasses import replace
+    with pytest.raises(ValueError):
+        replace(history(), **overrides)
+
+
+def test_v1_file_without_temperature_association_is_rejected(tmp_path):
+    target = tmp_path / "legacy.h5"
+    write_surface_history(target, history())
+    with h5py.File(target, "a") as f:
+        f.attrs["schema"] = "mhdlab-flash-surface-v1"
+        del f.attrs["material_sample_depth_m"]
+    with pytest.raises(ValueError):
+        load_surface_history(target)
+
+
+@pytest.mark.parametrize("bad", [np.full((2, 5), 300 + 2j), [[True] * 5, [300] * 5],
+                               [["300"] * 5] * 2, np.ma.array(np.full((2, 5), 300), mask=False)])
+def test_surface_temperature_is_not_silently_coerced(bad):
+    with pytest.raises(ValueError):
+        history(temperature_k=bad)

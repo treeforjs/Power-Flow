@@ -8,6 +8,14 @@ The FLASH-based dissertation publication work is specified in
 histories; it is not yet connected to the runner below. No FLASH calculation or
 full H2O/rovibrational CR result has been produced on this branch.
 
+The independent [heating-to-release workflow](docs/surface_release_pipeline.md)
+now provides configured FLASH leaf-output extraction, finite-inventory thermal
+desorption, explicit launch-energy budgets and a matched uniform-source control.
+Run `python tools/export_flash_surface.py --demo` or
+`python tools/run_surface_release.py --demo --plot` for labeled manufactured
+verification cases. The Boltzmann and collisional-radiative solvers have a separate
+owner; this workstream supplies heating, boundary sources and recovered evidence.
+
 The preparation includes [recovered thesis profiles](data/dissertation/figure_4_20_profiles.csv),
 [evaluated electron-water ionic yields](data/cross_sections/song2021/README.md),
 and [resolved H2 radiative transitions](data/cr_model/molat_h2/README.md).
