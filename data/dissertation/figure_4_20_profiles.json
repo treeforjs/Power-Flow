@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "artifact": "figure_4_20_profiles.csv",
+  "generated_by": "tools/recover_dissertation_profiles.py",
+  "source": {
+    "author": "Trevor Smith",
+    "publication_year": 2025,
+    "title": "Characterizing Desorbed Surface Contaminants Leading to Plasma Formation in Power Feeds of Pulsed Power Accelerators",
+    "repository_item_url": "https://deepblue.lib.umich.edu/items/9ccfa886-0b19-4bd8-b3b2-bb685b9ddefc",
+    "pdf_url": "https://backend.production.deepblue-documents.lib.umich.edu/server/api/core/bitstreams/24e682a8-896a-410d-85bb-ca4654a9db02/content",
+    "pdf_filename": "smtrevor_1.pdf",
+    "pdf_sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+    "pdf_page_count": 203,
+    "printed_page": 84,
+    "pdf_page_1_based": 109,
+    "pdf_page_index_0_based": 108,
+    "figure": "4.20",
+    "embedded_image_xref": 2707,
+    "reference_extraction_png_sha256": "55d3d42a310319769d6d231fafed42f925bbb8c22620f965a5bd015239c35d25",
+    "embedded_rgb_pixels_sha256": "1abbc44c3138785c31690a0732378e8fb7c8e14114cf0d85ea7ca4e3c0337f04",
+    "embedded_image_size_pixels": [
+      1040,
+      692
+    ],
+    "embedded_image_mode": "RGB"
+  },
+  "experiment": {
+    "facility": "Mykonos",
+    "shot": 15750,
+    "foil_material": "SS304",
+    "foil_thickness_um": 200,
+    "relative_breakdown_timing": "before"
+  },
+  "observable": {
+    "quantity": "plotted_transition_density",
+    "units": "emitters/cm^3",
+    "spatial_coordinate": "distance_from_cathode_mm",
+    "physical_interpretation": "Published H Lyman-alpha and H2 161 nm Lyman-band central transition-density profiles across the anode-cathode gap",
+    "is_total_ground_state_neutral_density": false,
+    "is_raw_detector_data": false,
+    "points_are_independent_observations": false,
+    "physical_uncertainty_bands_recovered": false,
+    "limitations": [
+      "Samples from the same raster curve are correlated digitized constraints, not independent raw observations.",
+      "The spatial coordinate spans the electrode gap, not the foil width.",
+      "Digitization bounds cover estimated pixel reading precision only; no statistical confidence interpretation.",
+      "Published shaded uncertainty bands and dashed density bounds are deliberately not extracted.",
+      "Conversion to ground-state species density requires a separately validated population/emission model and experimental diagnostic normalization."
+    ]
+  },
+  "calibration": {
+    "density_axis": {
+      "type": "log10",
+      "tick_pixels_x": [
+        154.0,
+        269.0,
+        383.0
+      ],
+      "tick_log10_density_cm3": [
+        10.0,
+        11.0,
+        12.0
+      ],
+      "method": "least_squares_linear_fit",
+      "log10_density_per_pixel": 0.008733568940530375,
+      "log10_density_intercept": 8.653581144644178,
+      "tick_fit_residual_log10": [
+        0.0014492385141444686,
+        -0.0029111896468485554,
+        0.0014619511326880996
+      ]
+    },
+    "gap_axis": {
+      "type": "linear",
+      "tick_pixels_y": [
+        356.0,
+        82.0
+      ],
+      "tick_gap_mm": [
+        0.0,
+        5.0
+      ],
+      "gap_mm_per_pixel": -0.01824817518248175,
+      "gap_mm_intercept": 6.496350364963504
+    },
+    "profiles": [
+      {
+        "species": "H",
+        "transition": "Lyman-alpha",
+        "wavelength_nm": 121.6,
+        "rgb": [
+          255,
+          127,
+          14
+        ],
+        "x_roi_inclusive": [
+          210,
+          261
+        ]
+      },
+      {
+        "species": "H2",
+        "transition": "Lyman_band",
+        "wavelength_nm": 161.0,
+        "rgb": [
+          0,
+          191,
+          255
+        ],
+        "x_roi_inclusive": [
+          305,
+          361
+        ]
+      }
+    ],
+    "row_sampling": {
+      "first_pixel_y": 87,
+      "last_allowed_pixel_y": 351,
+      "stride_pixels": 5,
+      "last_sampled_pixel_y": 347
+    },
+    "accepted_exact_color_run_length_pixels": [
+      3,
+      8
+    ],
+    "accepted_run_requirement": "single contiguous run strictly inside specified ROI",
+    "digitization_estimates": {
+      "horizontal_pixels_plus_minus": 3.0,
+      "vertical_pixels_plus_minus": 1.0,
+      "log10_density_plus_minus": 0.026200706821591126,
+      "gap_mm_plus_minus": 0.01824817518248175,
+      "meaning": "conservative digitization estimates; not physical uncertainty or confidence intervals"
+    },
+    "skipped_rows": []
+  },
+  "row_count": 106,
+  "row_count_per_species": {
+    "H": 53,
+    "H2": 53
+  },
+  "csv_columns": {
+    "pixel_x_median": "Median exact-color x coordinate in the native embedded image.",
+    "pixel_y": "Sampled y coordinate, increasing downwards in the native embedded image.",
+    "matched_exact_color_pixels": "Number of pixels in the accepted contiguous central-line run.",
+    "gap_mm": "Distance from cathode, from the linear image y-axis calibration.",
+    "log10_transition_density_cm3": "Base-10 logarithm of the numerical transition density expressed in emitters/cm^3.",
+    "nominal_transition_density_cm3": "Central plotted transition density obtained from the logarithmic image x axis.",
+    "digitization_lower_upper_columns": "Bounds from +/-3 x pixels or +/-1 y pixel; estimates only, not physical errors.",
+    "wavelength_nm": "Approximate displayed transition wavelength; 121.6 nm for H Lyman-alpha, 161 nm for H2 Lyman band."
+  }
+}
