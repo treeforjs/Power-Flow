@@ -253,7 +253,7 @@ def test_inconsistent_nonrelativistic_mass_convention_is_rejected():
               jacobi_directions=[[1, 0, 0], [0, 1, 0]])
 
 
-@pytest.mark.parametrize("cap", [0, -0.1, 1, np.nan, True, "not-a-speed"])
+@pytest.mark.parametrize("cap", [0, -0.1, 0.051, 0.1, 1, np.nan, True, "not-a-speed"])
 def test_invalid_nonrelativistic_caps_are_rejected(cap):
     with pytest.raises(ValueError, match="max_nonrel_beta"):
         react(channel(), reference_catalog(), np.zeros((2, 3)),
@@ -267,3 +267,35 @@ def test_only_two_reactants_and_multiple_massive_products_are_supported():
         with pytest.raises(ValueError, match="exactly two reactants"):
             react(reaction, catalog, np.zeros((2, 3)),
                   jacobi_energy_fractions=[1], jacobi_directions=[[1, 0, 0]])
+
+
+@pytest.mark.parametrize("sign", [-1, 1])
+def test_accepted_mass_roundoff_is_conservative_with_large_moving_com(sign):
+    catalog = reference_catalog()
+    rounded = Species("A_roundoff", catalog.mass_kg("A:g") * (1 + sign * 5e-13), 0, {"A": 1})
+    state = InternalState("A:roundoff", "A_roundoff", 0, {"term": "ground"})
+    augmented = StateCatalog([*catalog.species.values(), rounded], [*catalog.states.values(), state])
+    reaction = channel(("A:g", "B:g"), ("A:roundoff", "B:g"))
+    incoming = incoming_com_momenta(augmented, reaction.reactants, 4, (8e6, -3e6, 2e6))
+    outcome = react(reaction, augmented, incoming,
+                    jacobi_energy_fractions=[1], jacobi_directions=[[0, 1, 0]])
+    correction = outcome.metadata["bulk_mass_roundoff_correction_j"]
+    assert np.sign(correction) == sign
+    assert outcome.available_energy_j - outcome.incoming_com_kinetic_energy_j == pytest.approx(correction, rel=3e-8)
+    assert abs(outcome.energy_residual_j) < abs(correction) * 0.01
+    assert_conservative(outcome)
+
+
+def test_tiny_absolute_threshold_has_no_absolute_joule_floor():
+    catalog = reference_catalog()
+    state = InternalState("A:tiny", "A", 1e-100, {"term": "tiny reference excitation"})
+    augmented = StateCatalog(catalog.species, [*catalog.states.values(), state])
+    reaction = channel(("A:g", "B:g"), ("A:tiny", "B:g"))
+    outcome = react(reaction, augmented, incoming_com_momenta(augmented, reaction.reactants, 2e-100),
+                    jacobi_energy_fractions=[1], jacobi_directions=[[0, 1, 0]])
+    assert outcome.available_energy_j / EV_J == pytest.approx(1e-100, rel=3e-13, abs=0)
+    assert outcome.available_energy_j > 0
+    assert_conservative(outcome)
+    with pytest.raises(InaccessibleReactionError):
+        react(reaction, augmented, incoming_com_momenta(augmented, reaction.reactants, 0.5e-100),
+              jacobi_energy_fractions=[1], jacobi_directions=[[0, 1, 0]])

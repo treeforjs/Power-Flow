@@ -16,7 +16,8 @@ Masses use the catalog's mass-conserving nonrelativistic convention; state
 energies include chemical formation and internal excitation on a common
 reference. Photons, surface recoil, relativistic reactions and nuclear mass
 defects are unsupported. A caller-controlled speed cap enforces the declared
-nonrelativistic regime. A relativistic orbit pusher does not relax this cap.
+nonrelativistic regime, qualified only through beta <= 0.05. Callers may tighten
+the cap but cannot raise it. A relativistic orbit pusher does not relax this cap.
 """
 
 from __future__ import annotations
@@ -40,6 +41,7 @@ from .state_kinetics import (
 SPEED_OF_LIGHT_M_S = 299_792_458.0
 SUPPORTED_KINEMATICS_MODEL = "jacobi_energy_partition"
 _NORMALIZATION_TOLERANCE = 1e-12
+_MAXIMUM_QUALIFIED_NONREL_BETA = 0.05
 _ROUNDOFF_FACTOR = 64.0 * np.finfo(float).eps
 
 
@@ -145,6 +147,9 @@ def react(
     and normalized before construction. There is no random or equipartition
     default. The outgoing tuple retains ``channel.products`` order.
 
+    ``max_nonrel_beta`` may tighten the supported speed limit, but must not
+    exceed 0.05. Relativistic reaction kinematics require a different kernel.
+
     ``channel.validate(production=True)`` checks nuclei, charge, masses and
     provenance. The caller must separately select a physically possible event
     from ``channel.sigma_at`` and a supported differential kernel. This function
@@ -162,13 +167,13 @@ def react(
         raise ValueError("this constructor requires exactly two reactants and at least two massive products")
     if (isinstance(max_nonrel_beta, (bool, np.bool_))
             or not np.isscalar(max_nonrel_beta)):
-        raise ValueError("max_nonrel_beta must be finite and strictly between zero and one")
+        raise ValueError("max_nonrel_beta must be finite with 0 < max_nonrel_beta <= 0.05")
     try:
         maximum_beta = float(max_nonrel_beta)
     except (TypeError, ValueError, OverflowError) as exc:
-        raise ValueError("max_nonrel_beta must be finite and strictly between zero and one") from exc
-    if not math.isfinite(maximum_beta) or not 0.0 < maximum_beta < 1.0:
-        raise ValueError("max_nonrel_beta must be finite and strictly between zero and one")
+        raise ValueError("max_nonrel_beta must be finite with 0 < max_nonrel_beta <= 0.05") from exc
+    if not math.isfinite(maximum_beta) or not 0.0 < maximum_beta <= _MAXIMUM_QUALIFIED_NONREL_BETA:
+        raise ValueError("max_nonrel_beta must be finite with 0 < max_nonrel_beta <= 0.05")
 
     incoming = _real_array(incoming_momenta_kg_m_s, (2, 3), "incoming_momenta_kg_m_s")
     mode_count = len(products) - 1
