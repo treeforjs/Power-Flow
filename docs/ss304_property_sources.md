@@ -4,6 +4,12 @@ The acquired evidence supports bounded comparisons for solid 304 and separately 
 
 The companion [`ss304_source_manifest.json`](../data/materials/ss304_source_manifest.json) records source identity, cached-file hashes, access outcomes, evidence locations and material limits. PDFs and inspection images remain outside Git in `/workspace/research_sources/ss304_properties/`. This acquisition was checked on 2026-10-18.
 
+The subsequent [bounded transport-input interface](material_transport_inputs.md)
+uses a separately [recovered ten-row Flynn table](../data/materials/flynn_1968_304_transport.csv)
+with [source guards and provenance](../data/materials/flynn_1968_304_transport.json).
+That interface stops at 423.15 K and supplies no heat capacity, phase transition
+or high-temperature continuation. It is not an adopted foil material model.
+
 ## Acquired evidence and its bounds
 
 | Source | Material and property evidence | Verified domain and limits |
