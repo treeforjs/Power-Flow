@@ -1,0 +1,984 @@
+{
+  "schema": "mhdlab-ss304-property-source-acquisition-v1",
+  "access_checked_utc_date": "2026-10-18",
+  "purpose": "Bounded source acquisition for dissertation pulsed-heating material properties; no constitutive model, numeric property curve or runtime defaults installed.",
+  "audit_document": "../../docs/ss304_property_sources.md",
+  "cache_root": "/workspace/research_sources/ss304_properties",
+  "sources": [
+    {
+      "id": "flynn_1968_nbs9869",
+      "title": "Thermal conductivity and electrical resistivity of a sample of AISI type 304 stainless steel",
+      "authors": [
+        "D. R. Flynn"
+      ],
+      "year": 1968,
+      "report_date": "1968-06-25",
+      "report_number": "NBS Report 9869",
+      "doi": "10.6028/NBS.RPT.9869",
+      "doi_url": "https://doi.org/10.6028/NBS.RPT.9869",
+      "source_url": "https://nvlpubs.nist.gov/nistpubs/Legacy/RPT/nbsreport9869.pdf",
+      "record_url": "https://www.nist.gov/publications/thermal-conductivity-and-electrical-resistivity-sample-aisi-type-304-stainless-steel",
+      "source_class": "primary_measurement_report",
+      "access_status": "full_pdf_inspected",
+      "artifact": {
+        "cache_path": "/workspace/research_sources/ss304_properties/flynn_1968_nbs9869.pdf",
+        "kind": "pdf",
+        "bytes": 908832,
+        "sha256": "ff6afb078d512aba2a07b40228a3997857f8bb5448eba465dca9c3d06c74edfa",
+        "redistributed_in_repository": false,
+        "pdf_pages": 20
+      },
+      "acquisition": {
+        "command": "curl --max-time 50 -Ls -o /workspace/research_sources/ss304_properties/flynn_1968_nbs9869.pdf -w '%{http_code} %{content_type} %{size_download}\\n' https://nvlpubs.nist.gov/nistpubs/Legacy/RPT/nbsreport9869.pdf",
+        "result": "200 application/pdf 908832"
+      },
+      "permissions": {
+        "public_access": "Official NIST archive PDF.",
+        "release_notice": {
+          "location": {
+            "pdf_pages_1based": [
+              3
+            ]
+          },
+          "statement": "Public release approved October 9, 2015 over historical report notice."
+        },
+        "explicit_cc_license_verified": false,
+        "source_text_or_figures_redistributed": false
+      },
+      "material": {
+        "reported_grade": "AISI 304",
+        "sample_form": "Supplied 3/4-inch plate; machined cylindrical measurement specimen.",
+        "composition": "Not supplied.",
+        "thermal_history": "Not supplied.",
+        "state": "Solid",
+        "actual_dissertation_foil_match": "Unknown",
+        "evidence": {
+          "pdf_pages_1based": [
+            5
+          ],
+          "printed_pages": [
+            1
+          ]
+        }
+      },
+      "properties": [
+        {
+          "name": "electrical_resistivity",
+          "source_unit": "ohm m",
+          "temperature_range_source": [
+            -20,
+            150
+          ],
+          "temperature_unit_source": "degC",
+          "converted_range_k": [
+            253.15,
+            423.15
+          ],
+          "temperature_conversion": "T_K = T_degC + 273.15",
+          "value_status": "Smoothed primary measurement values; not original acquisition samples.",
+          "evidence": {
+            "pdf_pages_1based": [
+              5,
+              16
+            ],
+            "printed_pages": [
+              1,
+              12
+            ]
+          },
+          "reported_uncertainty": {
+            "value_percent": 0.5,
+            "description": "Author believes error no greater than plus/minus this value; confidence level/coverage factor not stated."
+          },
+          "bounded_checks": [
+            {
+              "temperature_degC": 20,
+              "value_ohm_m": 7.17e-07
+            },
+            {
+              "temperature_degC": 150,
+              "value_ohm_m": 8.19e-07
+            }
+          ],
+          "check_purpose": "Source identity/unit checks, not adopted material defaults."
+        },
+        {
+          "name": "thermal_conductivity",
+          "source_unit": "W m^-1 degC^-1",
+          "si_gradient_unit": "W m^-1 K^-1",
+          "temperature_range_source": [
+            -20,
+            150
+          ],
+          "temperature_unit_source": "degC",
+          "converted_range_k": [
+            253.15,
+            423.15
+          ],
+          "value_status": "Smoothed primary measurement values.",
+          "evidence": {
+            "pdf_pages_1based": [
+              5,
+              16
+            ],
+            "printed_pages": [
+              1,
+              12
+            ]
+          },
+          "reported_uncertainty": {
+            "range_percent": [
+              2,
+              3
+            ],
+            "description": "Author estimates uncertainty no greater than this range; uncorrected insulation heat loss dominates; coverage factor not stated."
+          },
+          "bounded_checks": [
+            {
+              "temperature_degC": 20,
+              "value_W_m_K": 14.8
+            },
+            {
+              "temperature_degC": 150,
+              "value_W_m_K": 17.9
+            }
+          ],
+          "check_purpose": "Source identity/unit checks, not adopted material defaults."
+        }
+      ],
+      "visual_checks": [
+        {
+          "pdf_pages_1based": [
+            3
+          ],
+          "label": "Public release stamp"
+        },
+        {
+          "pdf_pages_1based": [
+            16
+          ],
+          "printed_pages": [
+            12
+          ],
+          "label": "Smoothed table, units and error statements"
+        }
+      ],
+      "limits": [
+        "No measured chemistry or thermal history.",
+        "Single supplied sample; no between-heat variability bound.",
+        "No extrapolation above 150 degC.",
+        "No heat capacity or phase/latent-energy calibration from this report."
+      ],
+      "adopted_as_runtime_defaults": false
+    },
+    {
+      "id": "wilkes_1997_ornl_cp96813",
+      "title": "Thermophysical properties of stainless steel foils",
+      "authors": [
+        "Kenneth E. Wilkes",
+        "Joseph P. Strizak",
+        "Fred J. Weaver",
+        "John E. Besser",
+        "David L. Smith"
+      ],
+      "year": 1997,
+      "report_number": "ORNL/CP-96813",
+      "doi": "10.2172/658177",
+      "doi_url": "https://doi.org/10.2172/658177",
+      "source_url": "https://www.osti.gov/servlets/purl/658177",
+      "record_url": "https://www.osti.gov/biblio/658177",
+      "source_class": "primary_measurement_conference_manuscript",
+      "access_status": "full_pdf_scan_inspected",
+      "artifact": {
+        "cache_path": "/workspace/research_sources/ss304_properties/wilkes_1997_ornl_cp96813.pdf",
+        "kind": "pdf",
+        "bytes": 950045,
+        "sha256": "5738cdc4407bf6d09da8a8f2379105ff7a32c6d77c6fbb495d5391be67d154e7",
+        "redistributed_in_repository": false,
+        "pdf_pages": 15
+      },
+      "acquisition": {
+        "command": "curl --max-time 50 -Ls -o /workspace/research_sources/ss304_properties/wilkes_1997_ornl_cp96813.pdf -w '%{http_code} %{content_type} %{size_download}\\n' https://www.osti.gov/servlets/purl/658177",
+        "result": "200 application/pdf 950045"
+      },
+      "text_extraction": "No usable embedded text. Source page images inspected; OCR of selected pages used only for navigation.",
+      "page_convention": "Unnumbered manuscript pages cited by one-based PDF page.",
+      "permissions": {
+        "public_access": "Official OSTI PDF.",
+        "release_notice": {
+          "location": {
+            "pdf_pages_1based": [
+              1
+            ]
+          },
+          "statement": "Distribution unlimited and retained US Government license printed."
+        },
+        "explicit_cc_license_verified": false,
+        "source_text_or_figures_redistributed": false
+      },
+      "material": {
+        "reported_grades_in_report": [
+          "304",
+          "201L",
+          "201",
+          "321"
+        ],
+        "selected_specimens": [
+          {
+            "id": 1,
+            "reported_grade": "304",
+            "nominal_thickness_mm": 0.305
+          },
+          {
+            "id": 2,
+            "reported_grade": "304",
+            "nominal_thickness_mm": 0.203
+          }
+        ],
+        "evidence": {
+          "pdf_pages_1based": [
+            4
+          ],
+          "label": "Table I"
+        },
+        "composition": "No batch chemical analysis supplied with specimen table.",
+        "stock_condition": "Authors say rolled foil most likely cold worked; condition not independently established.",
+        "stock_condition_evidence": {
+          "pdf_pages_1based": [
+            7,
+            10
+          ]
+        },
+        "state": "Solid foil",
+        "actual_dissertation_foil_match": "Unknown"
+      },
+      "properties": [
+        {
+          "name": "electrical_resistivity",
+          "source_unit": "microohm cm as figure axis",
+          "domain": "Room temperature to about 500 degC on heating, followed by cooling.",
+          "evidence": {
+            "pdf_pages_1based": [
+              6,
+              7
+            ],
+            "label": "Figures 1-2 and discussion"
+          },
+          "numeric_curve_recovered": false,
+          "comparison": "304 specimens about 1.5-2 percent above CINDAS solution-annealed reference.",
+          "comparison_is_uncertainty": false,
+          "reported_uncertainty": "Thickness resolution and roughness effects discussed; no complete grade-specific coverage-factor uncertainty budget adopted here."
+        },
+        {
+          "name": "thermal_conductivity",
+          "source_unit": "W m^-1 K^-1",
+          "domain": "Narrower than resistivity. Below about 50 degC excluded by source; high-temperature gradients become insufficiently resolved. Figure 5 axis 0-400 degC does not define a full supported data interval.",
+          "evidence": {
+            "pdf_pages_1based": [
+              9,
+              10,
+              11
+            ],
+            "label": "Figure 5, Table II and discussion"
+          },
+          "numeric_curve_recovered": false,
+          "comparison": "304 values about 10-15 percent below CINDAS at lower end of measured interval; offset decreases toward upper end.",
+          "comparison_is_uncertainty": false,
+          "uncertainty_scope": "Table II arbitrary perturbation sensitivities are for Type 201 specimen 4 at 137 degC, not a 304 uncertainty distribution.",
+          "illustrative_sensitivities": {
+            "specimen_grade": "201",
+            "resistivity_perturbation_percent": 1,
+            "conductivity_response_percent": 12,
+            "emittance_perturbation_percent": 1,
+            "conductivity_response_to_emittance_percent": 11
+          },
+          "application_assumption_not_measurement_error": "Later refrigerator simulation varies cladding conductivity by about 15 percent; not treated as a measured SS304 error bar."
+        }
+      ],
+      "visual_checks": [
+        {
+          "pdf_pages_1based": [
+            4
+          ],
+          "label": "304 specimen identities and thicknesses"
+        },
+        {
+          "pdf_pages_1based": [
+            9,
+            10,
+            11
+          ],
+          "label": "Conductivity domain, figure and sensitivity qualifications"
+        }
+      ],
+      "limits": [
+        "No foil chemistry certificate or established cold-work fraction.",
+        "Coupled geometry/emittance/resistivity errors affect inferred conductivity.",
+        "No graph digitization or automatic thickness correction.",
+        "No cp, phase or melt data.",
+        "Steady direct heating in vacuum is not a nanosecond validation."
+      ],
+      "adopted_as_runtime_defaults": false
+    },
+    {
+      "id": "kim_1975_anl7555",
+      "title": "Thermophysical properties of stainless steels",
+      "authors": [
+        "C. S. Kim"
+      ],
+      "year": 1975,
+      "report_date": "1975-09",
+      "report_number": "ANL-75-55",
+      "doi": "10.2172/4152287",
+      "doi_url": "https://doi.org/10.2172/4152287",
+      "source_url": "https://www.osti.gov/servlets/purl/4152287",
+      "record_url": "https://www.osti.gov/biblio/4152287",
+      "source_class": "evaluated_compilation_and_estimation",
+      "access_status": "full_pdf_inspected",
+      "artifact": {
+        "cache_path": "/workspace/research_sources/ss304_properties/kim1975.pdf",
+        "kind": "pdf",
+        "bytes": 1549388,
+        "sha256": "5a5566a64a1843379507c39ac90b7aafc8522519698f4dd11e5148e1e7e6ad29",
+        "redistributed_in_repository": false,
+        "pdf_pages": 33
+      },
+      "acquisition": {
+        "executed_python_request": "urllib.request.urlopen(\"https://www.osti.gov/servlets/purl/4152287\", timeout=25)",
+        "write_method": "raw = response.read(); bytes written directly to cached file.",
+        "numeric_http_status": "not explicitly logged",
+        "final_url": "https://www.osti.gov/servlets/purl/4152287",
+        "reported_content_type": "application/pdf",
+        "response_bytes": 1549388
+      },
+      "permissions": {
+        "public_access": "Official OSTI PDF.",
+        "release_notice": {
+          "location": {
+            "pdf_pages_1based": [
+              5
+            ]
+          },
+          "statement": "Distribution unlimited."
+        },
+        "explicit_cc_license_verified": false,
+        "source_text_or_figures_redistributed": false
+      },
+      "material": {
+        "reported_grades": [
+          "304L",
+          "316L"
+        ],
+        "selected_grade": "304L",
+        "composition_surrogate_mass_percent": {
+          "Fe": 72,
+          "Cr": 19,
+          "Ni": 9
+        },
+        "composition_status": "Constituent-additivity surrogate for estimates, not a measured foil composition.",
+        "source_treatment_of_grade": "Report sometimes substitutes regular-grade data where low-carbon data are unavailable; that assumption is retained as a limit, not a grade equivalence adopted here.",
+        "actual_dissertation_foil_match": "Unknown"
+      },
+      "properties": [
+        {
+          "name": "solid_specific_enthalpy",
+          "reference_temperature_k": 298.15,
+          "source_unit": "cal/g",
+          "equation_ascii": "H(T)-H(298.15) = -34.885 + 0.1122*T + 1.611e-5*T**2",
+          "evidence": {
+            "pdf_pages_1based": [
+              11
+            ],
+            "printed_pages": [
+              2
+            ],
+            "label": "Eq. 1"
+          },
+          "status": "Correlation to cited data, extrapolated toward melting.",
+          "cited_experimental_upper_temperature_k": 1620,
+          "uncertainty": "Not quantified in inspected discussion."
+        },
+        {
+          "name": "solid_cp",
+          "source_unit": "cal/(g K)",
+          "equation_ascii": "cp(T) = 0.1122 + 3.222e-5*T",
+          "evidence": {
+            "pdf_pages_1based": [
+              12
+            ],
+            "printed_pages": [
+              3
+            ],
+            "label": "Eq. 5"
+          },
+          "status": "Derivative of smoothed solid enthalpy, with extrapolated high-temperature part.",
+          "uncertainty": "Not quantified in inspected discussion."
+        },
+        {
+          "name": "melting_context",
+          "reported_range_k": [
+            1670,
+            1730
+          ],
+          "representative_temperature_used_k": 1700,
+          "evidence": {
+            "pdf_pages_1based": [
+              11,
+              12
+            ],
+            "printed_pages": [
+              2,
+              3
+            ]
+          },
+          "status": "Compilation range and calculation choice, not an independently verified equilibrium solidus/liquidus pair for the actual foil."
+        },
+        {
+          "name": "liquid_cp",
+          "value": 0.19,
+          "source_unit": "cal/(g K)",
+          "evidence": {
+            "pdf_pages_1based": [
+              12
+            ],
+            "printed_pages": [
+              3
+            ]
+          },
+          "status": "Estimated by constituent additivity.",
+          "uncertainty": "Not quantified in inspected discussion."
+        },
+        {
+          "name": "fusion_enthalpy",
+          "value": 64.0,
+          "source_unit": "cal/g",
+          "evidence": {
+            "pdf_pages_1based": [
+              12
+            ],
+            "printed_pages": [
+              3
+            ]
+          },
+          "status": "Estimated by constituent additivity at representative melting temperature.",
+          "uncertainty": "Not quantified in inspected discussion."
+        },
+        {
+          "name": "liquid_specific_enthalpy",
+          "reference_temperature_k": 298.15,
+          "source_unit": "cal/g",
+          "equation_ascii": "H(T)-H(298.15) = 0.1900*T - 56.588",
+          "evidence": {
+            "pdf_pages_1based": [
+              13
+            ],
+            "printed_pages": [
+              4
+            ],
+            "label": "Eq. 9"
+          },
+          "status": "Estimated liquid correlation; conflicting 1700 K table entry quarantined."
+        }
+      ],
+      "source_conflicts": [
+        {
+          "id": "kim_304L_1700K_liquid_enthalpy",
+          "status": "visually_verified_unresolved_source_conflict",
+          "table_evidence": {
+            "pdf_pages_1based": [
+              14
+            ],
+            "printed_pages": [
+              5
+            ],
+            "label": "Table 2"
+          },
+          "table_value_cal_g": 226.41,
+          "equation_evidence": {
+            "pdf_pages_1based": [
+              13
+            ],
+            "printed_pages": [
+              4
+            ],
+            "label": "Eq. 9"
+          },
+          "equation_implied_rounded_value_cal_g": 266.41,
+          "table_solid_value_cal_g": 202.41,
+          "stated_fusion_increment_cal_g": 64.0,
+          "next_liquid_row_temperature_k": 1800,
+          "next_liquid_row_value_cal_g": 285.41,
+          "handling": "Preserved without silent correction or ingestion; full table not numerically audited."
+        }
+      ],
+      "visual_checks": [
+        {
+          "pdf_pages_1based": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "printed_pages": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "label": "Equations, additivity statements and Table 2 conflict"
+        }
+      ],
+      "limits": [
+        "Overall 300-3000 K report range includes estimated and extrapolated intervals.",
+        "304L and 316L kept separate; regular-grade substitutions are source assumptions.",
+        "No measured specimen chemistry for the dissertation foil.",
+        "No adopted latent heat, phase endpoints or full enthalpy table."
+      ],
+      "adopted_as_runtime_defaults": false
+    },
+    {
+      "id": "cezairliyan_miiller_1980",
+      "title": "Thermophysical measurements on low carbon 304 stainless steel above 1400 K by a transient (subsecond) technique",
+      "authors": [
+        "A. Cezairliyan",
+        "A. P. Miiller"
+      ],
+      "year": 1980,
+      "journal": "International Journal of Thermophysics",
+      "volume": "1",
+      "pages": "83-95",
+      "doi": "10.1007/BF00506274",
+      "doi_url": "https://doi.org/10.1007/BF00506274",
+      "source_url": "https://link.springer.com/article/10.1007/BF00506274",
+      "source_class": "primary_publisher_abstract_only",
+      "access_status": "abstract_verified_full_text_unavailable",
+      "artifact": {
+        "cache_path": "/workspace/research_sources/ss304_properties/cezairliyan_publisher.html",
+        "kind": "html_subscription_preview",
+        "bytes": 256103,
+        "sha256": "afdafd9ee97b431d35a63c3e015b3cd26430fde2f0437bd788b412fafde3bcf9",
+        "redistributed_in_repository": false
+      },
+      "acquisition": {
+        "executed_python_request": "urllib.request.urlopen(urllib.request.Request(\"https://link.springer.com/content/pdf/10.1007/BF00506274.pdf\", headers={\"User-Agent\": \"Mozilla/5.0\"}), timeout=25)",
+        "write_method": "raw = response.read(); bytes written directly to cached file.",
+        "numeric_http_status": "not explicitly logged",
+        "reported_content_type": "text/html; charset=utf-8",
+        "response_bytes": 256103,
+        "result": "Redirected to article HTML preview with cookies-not-supported query; no PDF recovered.",
+        "focused_NIST_followup": "Publication/title queries returned HTTP 403 or no matching result; no usable NIST full-text link recovered."
+      },
+      "permissions": {
+        "public_access": "Publisher abstract is public; full article subscription access not obtained.",
+        "copyright_metadata": "1980 Plenum Publishing Corporation",
+        "rights_link_present": true,
+        "explicit_cc_license_verified": false,
+        "source_text_or_figures_redistributed": false
+      },
+      "material": {
+        "reported_grade": "AISI 304L",
+        "composition": "Not verified; full text unavailable.",
+        "technique": "Subsecond duration transient measurements.",
+        "actual_dissertation_foil_match": "Unknown"
+      },
+      "properties": [
+        {
+          "name": "cp",
+          "source_unit": "J kg^-1 K^-1",
+          "equation_ascii": "cp = 1127 - 0.7265*T + 2.884e-4*T**2",
+          "temperature_range_k": [
+            1400,
+            1700
+          ],
+          "evidence": {
+            "section": "Primary publisher abstract",
+            "article_page_not_verified": true
+          },
+          "reported_inaccuracy_percent": 3,
+          "value_status": "Abstract-reported measurement correlation; not ingested."
+        },
+        {
+          "name": "electrical_resistivity",
+          "source_unit_literal": "Μ Ω · cm",
+          "unit_confirmation_needed": "Publisher HTML displays a Mu-like symbol; full-text unit typography not checked. No SI-normalized curve is supplied here.",
+          "equation_ascii": "rho = 75.59 + 4.695e-2*T - 9.592e-6*T**2",
+          "temperature_range_k": [
+            1400,
+            1700
+          ],
+          "evidence": {
+            "section": "Primary publisher abstract",
+            "article_page_not_verified": true
+          },
+          "reported_inaccuracy_percent": 2,
+          "value_status": "Abstract-reported correlation; no conversion or runtime adoption."
+        },
+        {
+          "name": "melting_observation",
+          "temperature_k": 1707,
+          "reported_inaccuracy_k": 8,
+          "evidence": {
+            "section": "Primary publisher abstract",
+            "article_page_not_verified": true
+          },
+          "status": "Reported melting point, not a solidus/liquidus pair or latent-heat measurement."
+        }
+      ],
+      "limits": [
+        "Full experimental composition, conditions and uncertainty definitions not verified.",
+        "No latent heat established.",
+        "304L kept distinct from SS304.",
+        "Subsecond technique does not validate nanosecond non-equilibrium heating."
+      ],
+      "adopted_as_runtime_defaults": false
+    },
+    {
+      "id": "ho_chu_1977_cindas45",
+      "title": "Electrical resistivity and thermal conductivity of nine selected AISI stainless steels",
+      "authors": [
+        "C. Y. Ho",
+        "T. K. Chu"
+      ],
+      "year": 1977,
+      "report_date": "1977-09",
+      "report_number": "CINDAS Report 45",
+      "accession": "DTIC ADA129160",
+      "source_url": "https://www.inductor-jmag.ru/files/content/a129160.pdf",
+      "official_attempt_url": "https://apps.dtic.mil/sti/tr/pdf/ADA129160.pdf",
+      "source_class": "evaluated_compilation_original_report_scan",
+      "access_status": "full_original_report_scan_from_public_mirror",
+      "artifact": {
+        "cache_path": "/workspace/research_sources/ss304_properties/ho_chu_1977_mirror.pdf",
+        "kind": "pdf",
+        "bytes": 2304408,
+        "sha256": "673829d489356e2b8f4891a08c0cce10c69ad1628954f5f08f918d52bfd6209a",
+        "redistributed_in_repository": false,
+        "pdf_pages": 53
+      },
+      "acquisition": {
+        "mirror_command": "curl --max-time 45 -Ls -o /workspace/research_sources/ss304_properties/ho_chu_1977_mirror.pdf -w '%{http_code} %{content_type} %{size_download}\\n' https://www.inductor-jmag.ru/files/content/a129160.pdf",
+        "mirror_result": "200 application/pdf 2304408",
+        "official_command": "curl --max-time 45 -Ls -o /workspace/research_sources/ss304_properties/ho_chu_1977_dtic_response -w '%{http_code} %{content_type} %{size_download}\\n' https://apps.dtic.mil/sti/tr/pdf/ADA129160.pdf",
+        "official_result": "curl exit 56; reported status 000 and zero downloaded bytes; no usable response file."
+      },
+      "permissions": {
+        "public_access": "Original unclassified report scan on a public mirror; official-host download not obtained.",
+        "release_notice": {
+          "location": {
+            "pdf_pages_1based": [
+              2
+            ]
+          },
+          "statement": "Unclassified; distribution unlimited."
+        },
+        "explicit_cc_license_verified": false,
+        "source_text_or_figures_redistributed": false
+      },
+      "material": {
+        "selected_label": "AISI 304",
+        "measurement_pool": "304 and 304L measurements explicitly combined by source.",
+        "state": "300-series recommendations apply to quench-annealed condition.",
+        "evidence": {
+          "pdf_pages_1based": [
+            9,
+            20
+          ],
+          "printed_pages": [
+            2,
+            13
+          ]
+        },
+        "actual_dissertation_foil_match": "Unknown"
+      },
+      "properties": [
+        {
+          "name": "electrical_resistivity_and_thermal_conductivity",
+          "evidence": {
+            "pdf_pages_1based": [
+              22
+            ],
+            "printed_pages": [
+              15
+            ],
+            "label": "Table 2"
+          },
+          "table_domain_k": [
+            1,
+            1800
+          ],
+          "source_resistivity_unit": "10^-8 ohm m",
+          "source_conductivity_unit": "W m^-1 K^-1",
+          "status": "Recommended/synthesized values, not a single primary measurement curve.",
+          "explicit_extrapolation_threshold_k": 1500,
+          "extrapolation_evidence": {
+            "pdf_pages_1based": [
+              9
+            ],
+            "printed_pages": [
+              2
+            ]
+          },
+          "reported_uncertainty": {
+            "ordinary_approximate_percent": 5,
+            "at_or_above_melting_approximate_percent": 15,
+            "coverage_factor_not_stated": true
+          },
+          "full_table_ingested": false
+        },
+        {
+          "name": "melting_context",
+          "range_k": [
+            1672,
+            1727
+          ],
+          "evidence": {
+            "pdf_pages_1based": [
+              22
+            ],
+            "printed_pages": [
+              15
+            ],
+            "label": "Table 2 starred melting-range entries"
+          },
+          "status": "Compilation markers; above the explicit extrapolation threshold, not independently verified foil solidus/liquidus."
+        }
+      ],
+      "visual_checks": [
+        {
+          "pdf_pages_1based": [
+            9
+          ],
+          "printed_pages": [
+            2
+          ],
+          "label": "Extrapolation and condition limits"
+        },
+        {
+          "pdf_pages_1based": [
+            22
+          ],
+          "printed_pages": [
+            15
+          ],
+          "label": "Units, table markers and stated uncertainties"
+        }
+      ],
+      "limits": [
+        "Source pools 304/304L; do not treat separate tables as independent grade datasets.",
+        "Above 1500 K explicitly extrapolated.",
+        "Mirror identity verified from report scan; no official copy hash comparison.",
+        "No model defaults or table interpolation installed."
+      ],
+      "adopted_as_runtime_defaults": false
+    },
+    {
+      "id": "graves_1991",
+      "title": "The thermal conductivity of AISI 304L stainless steel",
+      "authors": [
+        "R. S. Graves",
+        "T. G. Kollie",
+        "D. L. McElroy",
+        "K. E. Gilchrist"
+      ],
+      "year": 1991,
+      "journal": "International Journal of Thermophysics",
+      "volume": "12",
+      "pages": "409-415",
+      "doi": "10.1007/BF00500761",
+      "doi_url": "https://doi.org/10.1007/BF00500761",
+      "source_url": "https://link.springer.com/article/10.1007/BF00500761",
+      "source_class": "primary_publisher_abstract_only",
+      "access_status": "abstract_verified_full_text_unavailable",
+      "artifact": {
+        "cache_path": "/workspace/research_sources/ss304_properties/graves_1991_springer_response",
+        "kind": "html_subscription_preview",
+        "bytes": 258860,
+        "sha256": "2828e0d6f8767d40a47a48b8aa1223055091eaa59c21679887bf14c6e46de1f4",
+        "redistributed_in_repository": false
+      },
+      "acquisition": {
+        "command": "curl --max-time 50 -Ls -o /workspace/research_sources/ss304_properties/graves_1991_springer_response -w '%{http_code} %{content_type} %{size_download}\\n' https://link.springer.com/content/pdf/10.1007/BF00500761.pdf",
+        "result": "200 text/html; charset=utf-8 258860",
+        "interpretation": "HTML subscription preview, not a PDF."
+      },
+      "material": {
+        "reported_grade": "304L",
+        "composition": "Not verified from full text.",
+        "actual_dissertation_foil_match": "Unknown"
+      },
+      "available_scope": "Abstract: conductivity, electrical resistivity and Seebeck coefficient 300-1000 K; diffusivity 297-423 K.",
+      "numeric_property_values_ingested": false,
+      "uncertainty_budget_verified": false,
+      "permissions": {
+        "public_access": "Publisher abstract only; subscription full text not obtained.",
+        "explicit_cc_license_verified": false,
+        "source_text_or_figures_redistributed": false
+      },
+      "limits": [
+        "Metadata/abstract is not a verified numerical dataset.",
+        "Full paper conditions, composition and uncertainty remain unavailable."
+      ],
+      "adopted_as_runtime_defaults": false,
+      "official_metadata_url": "https://www.osti.gov/api/v1/records/7253632",
+      "metadata_artifact": {
+        "cache_path": "/workspace/research_sources/ss304_properties/osti_graves_query.json",
+        "kind": "official_metadata_json",
+        "bytes": 3274,
+        "sha256": "b1cad9b607291c9185241855d372bc7fe387671dbf95cb900883d2d17df979fc",
+        "redistributed_in_repository": false
+      },
+      "fulltext_followup": {
+        "url": "https://www.osti.gov/servlets/purl/7253632",
+        "result": "404 text/html;charset=UTF-8 266477; official metadata has citation link only."
+      }
+    },
+    {
+      "id": "sweet_1987",
+      "title": "Thermal conductivity of Inconel 718 and 304 stainless steel",
+      "authors": [
+        "J. N. Sweet",
+        "E. P. Roth",
+        "M. Moss"
+      ],
+      "year": 1987,
+      "journal": "International Journal of Thermophysics",
+      "volume": "8",
+      "pages": "593-606",
+      "doi": "10.1007/BF00503645",
+      "doi_url": "https://doi.org/10.1007/BF00503645",
+      "source_url": "https://link.springer.com/article/10.1007/BF00503645",
+      "source_class": "primary_publisher_abstract_only",
+      "access_status": "abstract_verified_full_text_unavailable",
+      "artifact": {
+        "cache_path": "/workspace/research_sources/ss304_properties/sweet_1987_springer_response",
+        "kind": "html_subscription_preview",
+        "bytes": 263935,
+        "sha256": "a463de53ec895368b7c9beaa825109c4453a80da3f2a289df9c9cb5b7071c75c",
+        "redistributed_in_repository": false
+      },
+      "acquisition": {
+        "command": "curl --max-time 50 -Ls -o /workspace/research_sources/ss304_properties/sweet_1987_springer_response -w '%{http_code} %{content_type} %{size_download}\\n' https://link.springer.com/content/pdf/10.1007/BF00503645.pdf",
+        "result": "200 text/html; charset=utf-8 263935",
+        "interpretation": "HTML subscription preview, not a PDF."
+      },
+      "material": {
+        "reported_grade": "304",
+        "composition": "Not verified from full text.",
+        "actual_dissertation_foil_match": "Unknown"
+      },
+      "available_scope": "Abstract: comparative/flash measurements 0-700 degC; 304 distinguished from Inconel 718.",
+      "numeric_property_values_ingested": false,
+      "uncertainty_budget_verified": false,
+      "permissions": {
+        "public_access": "Publisher abstract only; subscription full text not obtained.",
+        "explicit_cc_license_verified": false,
+        "source_text_or_figures_redistributed": false
+      },
+      "limits": [
+        "Metadata/abstract is not a verified numerical dataset.",
+        "Full paper conditions, composition and uncertainty remain unavailable."
+      ],
+      "adopted_as_runtime_defaults": false,
+      "related_report_lead": {
+        "report": "SAND86-0840",
+        "title": "Comparative thermal conductivity measurements at Sandia National Laboratories",
+        "official_record": "https://www.osti.gov/biblio/5565228",
+        "metadata_artifact": {
+          "cache_path": "/workspace/research_sources/ss304_properties/osti_sweet_query.json",
+          "kind": "official_metadata_xml_despite_filename",
+          "bytes": 3874,
+          "sha256": "7e9ffb149e4db816882b6d3295e5182c3c1a0a4de7a905c4c0af8c625dd4e4a3",
+          "redistributed_in_repository": false
+        },
+        "attempt_url": "https://www.osti.gov/servlets/purl/5565228",
+        "result": "404 text/html;charset=UTF-8 266477; no full text recovered."
+      }
+    },
+    {
+      "id": "hust_giarratano_1975_sp26046",
+      "title": "Thermal conductivity and electrical resistivity standard reference materials: austenitic stainless steel, SRM's 735 and 798, from 4 to 1200 K",
+      "authors": [
+        "J. G. Hust",
+        "P. J. Giarratano"
+      ],
+      "year": 1975,
+      "report_number": "NBS SP 260-46",
+      "doi": "10.6028/NBS.SP.260-46",
+      "doi_url": "https://doi.org/10.6028/NBS.SP.260-46",
+      "source_url": "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nbsspecialpublication260-46.pdf",
+      "source_class": "primary_srm_characterization_excluded_wrong_material",
+      "access_status": "full_pdf_inspected_for_identity_exclusion",
+      "artifact": {
+        "cache_path": "/workspace/research_sources/ss304_properties/nbs_sp260_46.pdf",
+        "kind": "pdf",
+        "bytes": 2071718,
+        "sha256": "38c38f9cca05299a92f0afced20ac3e734701dc64eae2b6f51763aa7b2f03d41",
+        "redistributed_in_repository": false,
+        "pdf_pages": 48
+      },
+      "acquisition": {
+        "command": "curl --max-time 50 -Ls -o /workspace/research_sources/ss304_properties/nbs_sp260_46.pdf -w '%{http_code} %{content_type} %{size_download}\\n' https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nbsspecialpublication260-46.pdf",
+        "result": "200 application/pdf 2071718"
+      },
+      "material": {
+        "reported_label": "Austenitic stainless steel, SRMs 735 and 798",
+        "is_SS304": false,
+        "measured_melts_mass_percent": {
+          "A": {
+            "Ni": 19.9,
+            "Cr": 16.41
+          },
+          "B": {
+            "Ni": 20.48,
+            "Cr": 15.98
+          }
+        },
+        "evidence": {
+          "pdf_pages_1based": [
+            20
+          ],
+          "printed_pages": [
+            8
+          ],
+          "label": "Table 1"
+        },
+        "condition": "Own niobium-containing composition and specified heat treatment."
+      },
+      "exclusion": "Not SS304; its 4-1200 K recommended values and SRM uncertainties are not substituted for grade 304.",
+      "permissions": {
+        "public_access": "Official NIST PDF.",
+        "explicit_cc_license_verified": false,
+        "source_text_or_figures_redistributed": false
+      },
+      "adopted_as_runtime_defaults": false
+    }
+  ],
+  "status_definitions": {
+    "primary_measurement_report": "Accessible original measurement report with inspected evidence pages.",
+    "evaluated_compilation_and_estimation": "Original source of the evaluated correlation, not necessarily original measurement of every property.",
+    "abstract_verified_full_text_unavailable": "Primary publisher abstract verified; full numerical pages and experimental details unavailable.",
+    "excluded_wrong_material": "Source identity checked and rejected as a substitution for SS304."
+  },
+  "cross_source_limits": [
+    "No continuous validated actual-foil SS304 table from room temperature through melting is established.",
+    "304, 304L and 316/316L are not interchangeable; source-side pooling/substitution is recorded as a limitation.",
+    "Reported temperature ranges do not authorize extrapolation, phase mixing or stitching between different sample histories.",
+    "Author estimated errors, arbitrary sensitivity perturbations and between-source offsets are separate quantities.",
+    "Mass-specific isobaric cp is not automatically volumetric cv or an EOS internal-energy derivative.",
+    "Enthalpy reference temperature, density/geometry convention, phase fraction and latent energy must be made consistent before a solver model.",
+    "No measured high-field magnetoresistance, pressure dependence, superheating or nanosecond non-equilibrium correction is established here."
+  ],
+  "artifact_scope": {
+    "raw_documents_committed": false,
+    "full_tables_ingested": false,
+    "graph_points_digitized": false,
+    "numeric_defaults_installed": false,
+    "solver_or_private_sources_changed": false
+  },
+  "unresolved_acquisition_targets": [
+    "Legitimate full Cezairliyan/Miiller1980 pages for composition, resistivity unit and complete experimental qualifications.",
+    "Full Graves1991/Sweet1987 grade-specific transport/cp data and uncertainty budgets.",
+    "Original Feith et al. low-carbon304 measurement report GEMP-643 and/or its1969 proceedings paper cited by Kim/CINDAS; not recovered in this pass.",
+    "Actual dissertation foil heat composition/condition and a defensible grade-specific phase/enthalpy reference."
+  ]
+}
