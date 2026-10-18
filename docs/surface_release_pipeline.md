@@ -154,6 +154,13 @@ The export reports sampled versus expected thermal energy; it does not rescale
 velocities to hide sampling error. The paired spatial hypotheses use exactly
 the same velocity samples and therefore the same realized thermal energy.
 
+For a coupled finite-packet calculation, the applied wall counterpart must use
+the actual weighted launch energy, or a separately verified moment-conserving
+emission representation. The analytic `2 kB T` budget remains the expected source
+moment. Retain their sampling difference as a numerical diagnostic; do not add
+it again as an independent physical heating mechanism. This implementation
+reports both quantities and applies no wall-temperature feedback.
+
 The matched source is a controlled spatial-redistribution hypothesis, not an
 independent local desorption/thermal solution. Its assigned uniform launch
 locations do not establish a locally balanced wall-energy history. Spectral
