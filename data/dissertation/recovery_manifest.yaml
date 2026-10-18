@@ -1,6 +1,6 @@
 schema_version: 1
-purpose: Published dissertation evidence and reconstruction targets, with separately labeled partial digitization;
-  no raw experimental data are supplied.
+purpose: Published dissertation evidence and partial recovery of spectral profiles, legacy simulation temperatures
+  and an encoded current polyline; no raw experimental data or original simulation arrays are supplied.
 source:
   source_id: smith_dissertation_2025
   title: Characterizing Desorbed Surface Contaminants Leading to Plasma Formation in Power Feeds of Pulsed Power
@@ -23,10 +23,14 @@ status_definitions:
   published_only: Evidence exists only as a published figure, table or passage; original raw diagnostic data and
     metadata have not been recovered.
   not_digitized: No curve/image numerical extraction has been performed.
-  partially_digitized: Some specified curves have been recovered from the published raster; other panels and original
-    data remain unavailable.
+  partially_digitized: Only explicitly listed curves or vector paths have been recovered from the publication; all
+    other quantities retain their stated pending status.
   table_transcribed: Numbers copied from the published table; these remain author-derived estimates, not independent
     measurements or raw data.
+  digitized_published_simulation: Correlated samples digitized from a published legacy simulation raster; not original
+    simulation arrays, experimental temperatures or FLASH output.
+  vector_recovered: Encoded published vector geometry recovered from the PDF; not original acquisition samples or
+    a measured waveform file.
 geometry_and_instrument:
 - id: mykonos_geometry
   value:
@@ -352,7 +356,7 @@ reconstruction_targets:
   pdf_page: 119
   kind: mhd_profiles
   availability: published_only
-  digitization_status: not_digitized
+  digitization_status: partially_digitized
   quantities:
   - drive current
   - B
@@ -361,13 +365,40 @@ reconstruction_targets:
   drive_shot: 17133
   foil_thickness_um: 200
   support_included: false
+  recovered_artifacts:
+  - file: figure_4_28_temperature.csv
+    metadata: figure_4_28_temperature.json
+    generator: tools/recover_dissertation_depth_heating.py
+    status: digitized_published_simulation
+    csv_sha256: b55cb983898c7310e51a7953a890281f01595a4ee77eb0d4c074da5159bfa994
+    content: 76 correlated interior temperature samples, 38 each for foil-edge and foil-middle labels; actual panel
+      temperature units are K
+    time_s: 4.0e-08
+    temperature_units: K
+    coordinate: absolute distance from gap centre [mm], plus nominal depth from initial +2.5 mm gap face [um]
+    nominal_depth_extent_um:
+    - 7.132879797587144
+    - 194.44209256199318
+    digitization_estimates:
+      temperature_K_plus_minus: 22.418968727441523
+      nominal_depth_um_plus_minus: 2.485701398422836
+      meaning: Pixel readout estimate plus maximum tick-fit residual; not physical uncertainty or confidence intervals.
+  still_pending:
+  - drive-current, magnetic-field and current-density panels
+  - boundary ramps, exterior segments and exact surface values
+  - original simulation mesh, material fractions, evolving material boundaries, EOS and arrays
+  unresolved_metadata:
+  - Nominal initial gap face is +2.5 mm and back face +2.7 mm from reported initial geometry; actual time-dependent
+    material boundaries are not recovered.
+  - Precise transverse position of the foil-edge lineout is only schematically indicated in Figure 4.27.
+  - No relationship to shot 15210 current is established; these legacy simulations used shot 17133.
 - id: fig_4_29
   source: Fig. 4.29
   printed_page: 96
   pdf_page: 121
   kind: mhd_profiles
   availability: published_only
-  digitization_status: not_digitized
+  digitization_status: partially_digitized
   quantities:
   - drive current
   - B
@@ -376,13 +407,40 @@ reconstruction_targets:
   drive_shot: 17133
   foil_thickness_um: 200
   support_included: false
+  recovered_artifacts:
+  - file: figure_4_29_temperature.csv
+    metadata: figure_4_29_temperature.json
+    generator: tools/recover_dissertation_depth_heating.py
+    status: digitized_published_simulation
+    csv_sha256: d6e5a1c6f1065316f4d5b177e33afc0162256a53c1efe35566836d5d0fafb400
+    content: 76 correlated interior temperature samples, 38 each for foil-edge and foil-middle labels; actual panel
+      temperature units are K
+    time_s: 6.0e-08
+    temperature_units: K
+    coordinate: absolute distance from gap centre [mm], plus nominal depth from initial +2.5 mm gap face [um]
+    nominal_depth_extent_um:
+    - 7.132879797587144
+    - 194.44209256199318
+    digitization_estimates:
+      temperature_K_plus_minus: 22.418968727441523
+      nominal_depth_um_plus_minus: 2.485701398422836
+      meaning: Pixel readout estimate plus maximum tick-fit residual; not physical uncertainty or confidence intervals.
+  still_pending:
+  - drive-current, magnetic-field and current-density panels
+  - boundary ramps, exterior segments and exact surface values
+  - original simulation mesh, material fractions, evolving material boundaries, EOS and arrays
+  unresolved_metadata:
+  - Nominal initial gap face is +2.5 mm and back face +2.7 mm from reported initial geometry; actual time-dependent
+    material boundaries are not recovered.
+  - Precise transverse position of the foil-edge lineout is only schematically indicated in Figure 4.27.
+  - No relationship to shot 15210 current is established; these legacy simulations used shot 17133.
 - id: fig_4_30
   source: Fig. 4.30
   printed_page: 98
   pdf_page: 123
   kind: mhd_width_profiles
   availability: published_only
-  digitization_status: not_digitized
+  digitization_status: partially_digitized
   quantities:
   - B
   - J
@@ -390,6 +448,84 @@ reconstruction_targets:
   drive_shot: 17133
   foil_thickness_um: 200
   support_included: false
+  recovered_artifacts:
+  - file: figure_4_30_heating.csv
+    metadata: figure_4_30_heating.json
+    generator: tools/recover_dissertation_heating.py
+    status: digitized_published_simulation
+    csv_sha256: f3652be052c89afe7b13760b8b61479331415aadcb44c459ced69e4ae0ae211f
+    content: 137 correlated samples of the nonzero temperature curve across foil width; exact edge jumps and exterior
+      zeros excluded
+    time_s: 4.0e-08
+    depth_from_AK_gap_m: 1.25e-05
+    original_temperature_units: eV
+    output_temperature_units:
+    - eV
+    - K
+    conversion: T_K = temperature_eV * elementary_charge_J_per_eV / Boltzmann_J_per_K
+    K_per_eV: 11604.518121550082
+    coordinate: distance from foil-middle location [mm], across foil width
+    width_offset_extent_mm:
+    - -2.4746185846145785
+    - 2.4704322981529727
+    digitization_estimates:
+      temperature_K_plus_minus: 29.79880656190802
+      width_offset_mm_plus_minus: 0.014652002615607557
+      meaning: Estimated +/-2 native pixels; not physical uncertainty or confidence intervals.
+    temperature_unit_interpretation: Literal Temperature [eV] is treated as k_B*T expressed in electronvolts; the
+      original simulator temperature-variable definition and unit export have not been independently recovered.
+  - file: figure_4_30_electromagnetic.csv
+    metadata: figure_4_30_electromagnetic.json
+    generator: tools/recover_dissertation_em_profiles.py
+    status: digitized_published_simulation
+    csv_sha256: 85fd97a9706d151fa84736bb83fcba51f44a0a28696152368ffbb8785f785b5b
+    content: 262 correlated signed samples, 131 each for B_x and J_z; sharp boundary jumps, inspected crossings,
+      outermost edge regions and legend glyphs excluded
+    time_s: 4.0e-08
+    depth_from_AK_gap_m: 1.25e-05
+    primary_quantity: signed plotted Signal Height; source legends retained without repair
+    source_legends:
+    - B_x [100 Tesla]
+    - J_z [MA/cm²]
+    literal_legend_conversions:
+      B_x:
+        assumption: one ordinate unit denotes 100 tesla
+        scale_to_SI: 100.0
+        SI_unit: T
+      J_z:
+        assumption: one ordinate unit denotes one megaampere per square centimetre
+        scale_to_SI: 10000000000.0
+        SI_unit: A/m2
+    original_simulation_units_or_normalization_confirmed: false
+    unit_repair_applied: false
+    coordinate: distance from foil-middle location [mm], across foil width
+    width_offset_extent_mm:
+    - -2.4379885780755592
+    - 2.433802291613953
+    digitization_estimates:
+      width_offset_mm_plus_minus: 0.016746788815979068
+      ordinate_rule: convert full exact-colour run extent expanded by +/-2 pixels; add maximum absolute tick-fit
+        residual
+      meaning: Display readout envelopes only, not physical uncertainty or confidence intervals.
+    dimensional_limits:
+    - Literal-legend SI columns are conditional conversions, not a validated dimensional benchmark.
+    - No quantitative J²/sigma heating benchmark is supported until the original current-density units and normalization
+      are confirmed.
+    - A single-depth width profile cannot supply the full cross-sectional current integral, Ampere-law agreement
+      or a complete vector-field check.
+  still_pending:
+  - exact foil-edge peaks, boundary values, crossing regions and exterior segments
+  - confirmation of original electromagnetic units and normalization
+  - original simulation arrays and a recovered 17133 drive history
+  unresolved_metadata:
+  - This is the 40 ns temperature at 12.5 um depth, not a surface-temperature boundary condition or time history.
+  - No relationship to shot 15210 current is established; the legacy simulation used shot 17133.
+  - The shared ordinate is Signal Height. Section 4.5 and the Figure 4.30 caption give no explicit normalization
+    recipe; literal printed B_x [100 Tesla] and J_z [MA/cm²] conversions remain unverified.
+  - The temperature legend is interpreted literally as k_B*T in eV; the original simulation temperature variable
+    and its energy-mode ownership are not independently recovered.
+  - No unit correction, sign flip, host-frame rotation, drive normalization, current integral or Joule-heating closure
+    is applied.
 - id: fig_2_3
   source: Fig. 2.3
   printed_page: 19
@@ -995,6 +1131,68 @@ reconstruction_targets:
   - Exact electron inputs and Yacora state model
   - Fit uncertainty
   - 15778 thickness caption conflict
+- id: fig_C_11
+  source: Fig. C.11
+  printed_page: 157
+  pdf_page: 182
+  kind: electrical_trace
+  availability: published_only
+  digitization_status: partially_digitized
+  quantities:
+  - Average Current [MA]
+  - resistive voltage
+  - VUV gate rectangle
+  - ICCD 334 and 340 gate rectangles
+  - normalized SVS intensity
+  shot: 15210
+  reported_material: SS304
+  plot_title_thickness_um: 200
+  caption_thickness_um: 500
+  recovered_artifacts:
+  - file: shot_15210_current.csv
+    metadata: shot_15210_current.json
+    generator: tools/recover_dissertation_drive.py
+    status: vector_recovered
+    csv_sha256: 7e330390e4c678008e1fae0eed983a0283a04c87cd01d3b6118bda99ee1e8cd8
+    content: 118 original encoded vector vertices inside displayed axes; 20 vertices behind the later legend are
+      explicitly flagged
+    original_units:
+      time: ns
+      current: MA
+    SI_columns:
+      time: time_s
+      current: current_A
+    time_extent_ns:
+    - 2.2497741415680466
+    - 198.2496266277255
+    negative_early_current_preserved: true
+    time_origin_reference: null
+    gate_rectangle_time_bounds_ns:
+    - 52.054573735404944
+    - 55.05456123390783
+    breakdown_time_ns: null
+    digitization_estimates:
+      time_plus_minus_ns: 0.3271963206128953
+      current_plus_minus_A: 2000.102748601604
+      meaning: Half published stroke width plus maximum axis-fit residual; display envelope only, not diagnostic
+        or physical uncertainty.
+  still_pending:
+  - resistive-voltage and SVS curves; ICCD gate coordinates
+  - original current waveform, diagnostic calibration, filtering and time alignment
+  - independently established breakdown time
+  paired_reference:
+    source: Fig. A.10
+    printed_page: 111
+    pdf_page: 136
+    status: not_digitized
+    note: Same-shot raster current ramp clips near 0.24 MA; no A.10 current curve was recovered. Its native pixel
+      identity is retained in the C.11 recovery metadata.
+  unresolved_metadata:
+  - Table 4.1, Figure 4.23, Figure A.10 and the C.11 plot title report 200 um; B.9 and C.11 captions report 500
+    um.
+  - The 52.05–55.05 ns VUV rectangle is not a recovered breakdown time or an established electronic trigger reference.
+  - No zero or 200 ns endpoint, pre-pulse zero, extrapolation, baseline subtraction or smoothing is supplied.
+  - The current is from shot 15210; it is not the 17133 drive used for Figures 4.28–4.30.
 source_conflicts:
 - id: shot_15778_thickness
   sources:
@@ -1038,8 +1236,9 @@ source_conflicts:
   - source: section 4.5
     printed_page: 95
     claim: At 60 ns foil-middle remains well under melt temperature.
-  resolution: Do not assign a numerical benchmark from these inconsistent sentences; inspect/digitize Fig. 4.29
-    profiles with their positions and units.
+  resolution: Unresolved surface wording. The interior temperature curves in Figures 4.28 and 4.29 are now partially
+    digitized using their explicit Kelvin axes and nominal initial-face depth coordinates. They do not recover actual
+    evolving surfaces or justify assigning either narrative temperature as a boundary value.
 - id: atomic_n2_interpretation
   sources:
   - source: section 4.4
@@ -1063,6 +1262,22 @@ source_conflicts:
     value_um: 500
   resolution: Appendix B has repeated 500 um SS304 captions for many unlike shots; verify material/thickness against
     shot-specific main-text and Appendix A records before fitting.
+- id: shot_15210_thickness
+  sources:
+  - source: Table 4.1, Figure 4.23 caption, Figure A.10 caption and Figure C.11 plot title
+    printed_pages:
+    - 87
+    - 89
+    - 111
+    - 157
+    value_um: 200
+  - source: Figure B.9 and Figure C.11 captions
+    printed_pages:
+    - 128
+    - 157
+    value_um: 500
+  resolution: Unresolved caption conflict. The recovered current sidecar records the 200 um main-text/table/title
+    report and retains both 500 um captions; current-vector extraction does not independently determine foil thickness.
 recoverability:
   recoverable_from_publication:
   - Published plot images, captions, axes and displayed uncertainty bands
@@ -1082,3 +1297,9 @@ recoverability:
     transformations may be irreversible.
   - Multiple shots at different gates do not form a single-shot time history without a repeatability model.
   - Line-of-sight integrated spectra alone do not uniquely identify transverse desorption structure.
+  - Figures 4.28–4.30 are legacy simulation temperature profiles driven by shot 17133; the separately recovered
+    current polyline is shot 15210. They do not constitute a same-shot thermal/current reconstruction.
+  - Partial temperature recovery does not recover gap-facing surface values, time-dependent material boundaries
+    or temperature time histories.
+  - Current vector vertices behind the later legend are encoded source geometry and are flagged; plotting/filtering
+    and physical measurement uncertainty remain unknown.
