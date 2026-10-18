@@ -74,6 +74,25 @@ the associated warnings. These values characterize this explicit fixture and
 finite refinement paths. They are not accuracy bounds for recovered foil
 temperatures or a convergence claim for a coupled experiment model.
 
+A separately recorded follow-up reused five existing cases and integrated only
+six new cases. Width levels 32/64/128 gave release-number order 2.0003;
+current levels 8/16/32 gave 1.9933. The smaller current-direction correction to
+the width second moment gave 1.8794, so that correction remains less settled.
+The snapshot follow-up represented each original piecewise-linear history on
+one exactly shared 512-interval grid, then used one frozen midpoint per common
+interval. Snapshot levels 16/32/64 gave release-number order 1.9893. These
+three-level calculations use the finest solution as an ordinary third level,
+separately from comparisons against it as a finite reference.
+
+New follow-up cases retain compressed numeric input/source arrays with hashes
+verified after reopening. The first study stored array digests without array
+bytes; its historical reused source digests therefore cannot be recomputed
+independently. Reuse checks match the report, artifacts, configuration and code,
+and regenerate the input-temperature hashes without repeating depletion.
+The work-only follow-up script and all records are in the dated source/heating
+handoff; its replay paths refer to the recorded workspace. This distinction
+preserves the evidence limit instead of claiming verification of absent bytes.
+
 All example rates, populations, energy costs and masses are manufactured.
 These studies verify prescribed-temperature source calculations. They do not
 calibrate water desorption, integrate kinetic gap particles, predict spectra,
