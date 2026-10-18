@@ -160,7 +160,7 @@ def main():
                 "Manufactured examples establish numerical behavior, not H2O/SS304 calibration.",
                 "All reservoirs here use constant supplied attempt frequencies; no Eyring prefactor is inferred.",
                 "Rate barriers and constant wall-energy costs have independent provenance.",
-                "This version has no law-specific packet-time adapter; the first-order packet sampler refuses its schema.",
+                "Use the separate Temkin-specific boundary sampler for conditional event times; the ordinary first-order sampler refuses this schema.",
                 "This width-only source requires current-uniform temperature or an explicit justification of the current average.",
                 "Varying temperature uses midpoint freezing; refine integration, input snapshot cadence and surface bins separately.",
             ],

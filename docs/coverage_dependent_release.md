@@ -49,9 +49,11 @@ come from the molecular owner without duplicating the removable inventory.
 files declare a separate schema, kinetic-law identity and interval model. The
 ordinary first-order history loader and packet sampler reject them. A truncated
 exponential conditional event-time distribution is generally incorrect for this
-coverage-dependent source. This version supplies integrated number/energy
-moments and **no packet-time adapter**. Do not relabel its file as an ordinary
-first-order release or pass its moments through a fabricated baseline history.
+coverage-dependent source. The separate
+[`temkin_boundary.py`](../mhdlab/temkin_boundary.py) sampler uses a law-specific
+conditional emitted-population distribution. Do not relabel a Temkin source as
+an ordinary first-order release or pass its moments through a fabricated
+baseline history. See the [boundary-interface guide](temkin_boundary_interface.md).
 
 For a frozen temperature, the numerical kernel solves a separated, monotone
 integral in log depletion \(s=\log(N_a/N_b)\):
@@ -127,9 +129,10 @@ For a separately prepared canonical surface history:
 Positive-depth material samples require an explicit `--boundary-proxy-reference`;
 whole-current-averaged temperatures additionally require
 `--current-uniformity-reference`. These references preserve a stated modelling
-assumption; they do not validate it. Resolving temperature in the current
-direction requires a separate planar extension. Do not average those
-temperatures before applying this nonlinear law.
+assumption; they do not validate it. The separate
+[`run_temkin_planar.py`](../tools/run_temkin_planar.py) workflow applies the law
+on local width/current patches. Do not average those temperatures before
+applying this nonlinear law.
 
 The output directory contains the canonical surface input, a distinct Temkin
 release HDF5 file, extensive interval source CSV, and a JSON summary with input,
