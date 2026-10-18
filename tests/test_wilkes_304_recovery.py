@@ -81,7 +81,8 @@ def test_invalid_or_rank_deficient_axis_anchors_are_rejected(anchors):
 
 def test_published_subset_units_source_identity_and_nonphysical_envelopes():
     metadata = json.loads(METADATA.read_text())
-    rows = list(csv.DictReader(CSV.open(newline="")))
+    with CSV.open(newline="") as stream:
+        rows = list(csv.DictReader(stream))
     assert len(rows) == metadata["output"]["rows"] == 10
     assert metadata["output"]["csv_sha256"] == hashlib.sha256(CSV.read_bytes()).hexdigest()
     assert sum(r["branch"] == "heating" for r in rows) == 6
