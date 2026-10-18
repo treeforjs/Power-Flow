@@ -1,0 +1,54 @@
+{
+  "schema": "mhdlab-coverage-source-config-v1",
+  "parameter_status": "manufactured",
+  "parameter_provenance": "Numerical parent-inventory allocation and nonlinear source-sweep fixture; no measured water or foil parameters.",
+  "geometry": {
+    "width_bins": 6, "current_bins": 2, "snapshot_intervals": 4,
+    "duration_s": 1.2e-7, "width_m": 0.005, "current_length_m": 0.025
+  },
+  "subdivisions_per_interval": 2,
+  "parent": {
+    "parent_id": "M:manufactured-parent",
+    "monolayer": {
+      "areal_density_m2": 1e18,
+      "definition": "Manufactured one-parent-layer convention: 1e18 parent molecules per square metre.",
+      "provenance": "Numerical fixture only; no physical water monolayer density selected.",
+      "status": "manufactured"
+    },
+    "patch_multiplier": 1.0,
+    "profile_provenance": "Manufactured spatially uniform initial parent inventory; no normalization applied.",
+    "status": "manufactured",
+    "provenance": "One manufactured parent split between two independent binding/state populations, with no duplicated parent inventory."
+  },
+  "coverage_ml": [0.0, 0.25, 0.5, 1.0, 1.5, 2.0],
+  "allocations": [
+    {
+      "reservoir": {
+        "name": "manufactured_pool_a", "state_id": "M:manufactured-state-a",
+        "attempt_frequency_s": 1e12, "activation_energy_ev": 0.8,
+        "desorption_energy_ev": 0.6, "internal_energy_ev": 0.0,
+        "coverage_coefficient": 0.35, "reference_coverage_m2": 2e18,
+        "max_coverage_m2": 2e18,
+        "kinetic_provenance": "Manufactured independently depleted pool, fixed kinetic reference density across every coverage knot.",
+        "energy_provenance": "Manufactured constant wall removal cost distinct from activation barrier."
+      },
+      "fraction": 0.75,
+      "provenance": "Manufactured initial parent allocation to independent pool/state A; not a reaction branching fraction.",
+      "status": "manufactured"
+    },
+    {
+      "reservoir": {
+        "name": "manufactured_pool_b", "state_id": "M:manufactured-state-b",
+        "attempt_frequency_s": 8e11, "activation_energy_ev": 0.95,
+        "desorption_energy_ev": 0.7, "internal_energy_ev": 0.05,
+        "coverage_coefficient": 0.2, "reference_coverage_m2": 1e18,
+        "max_coverage_m2": 1e18,
+        "kinetic_provenance": "Manufactured independent pool B, fixed reference convention and finite supported domain.",
+        "energy_provenance": "Manufactured independent wall/internal energy references; no rovibrational level assignment."
+      },
+      "fraction": 0.25,
+      "provenance": "Manufactured remaining parent allocation to independent pool/state B; no extra layer is created.",
+      "status": "manufactured"
+    }
+  ]
+}
