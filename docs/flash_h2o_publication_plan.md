@@ -11,9 +11,11 @@ structure is one diagnostic consequence of this network-wide requirement.
 
 This branch provides a dissertation recovery inventory, an initial recovery of
 published profiles, evaluated water collision data where available, and a validated
-SI surface-history interface for external FLASH calculations. These are preparation
-and data products. There has been no FLASH run, no full water-chemistry solve, no
-rovibrational population solve, and no demonstration that the spectra distinguish
+SI surface-history interface for external FLASH calculations. An independent
+[kinetic reference](kinetic_gap_reference.md) now couples prescribed-field particle
+motion to state-changing collisions and conservative product recoil. There has
+been no FLASH run, no physical full-water rovibrational calculation, and no
+demonstration that the spectra distinguish
 the hypotheses. The old `MHD_heating.py` path still executes the legacy prototype;
 the new surface interface is not connected to that runner.
 

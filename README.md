@@ -19,6 +19,12 @@ The [energy and charged-transport plan](docs/energy_and_magnetized_transport.md)
 specifies reaction energy partition, species velocity distributions, and Hall
 coupling for magnetized electrons and ions. These remain planning requirements.
 
+The first [executable gap reference](docs/kinetic_gap_reference.md) now couples
+prescribed-field particle motion to explicit state-changing collisions with
+conservative reaction recoil. Run `python tools/run_gap_reference.py --plot`.
+Its inputs are manufactured verification data; physical water kinetics and
+self-consistent field/Hall coupling remain unimplemented.
+
 This project is a research scaffold for 2D reduced MHD electrode heating, Temkin
 desorption, kinetic neutral expansion, BOLSIG electron kinetics, collisional
 radiative populations, and CCD-based synthetic spectra.
