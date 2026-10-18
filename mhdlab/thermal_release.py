@@ -62,6 +62,8 @@ def _real(value: Real, name: str, *, positive: bool = False) -> float:
 def _array(value, name: str, ndim: int) -> np.ndarray:
     # The object representation preserves bool/string types in mixed lists;
     # coercing to float first would silently turn True into 1 and '2' into 2.
+    if np.ma.isMaskedArray(value):
+        raise ValueError(f"{name} must not contain masked values")
     try:
         raw = np.asarray(value, dtype=object)
     except (TypeError, ValueError) as exc:

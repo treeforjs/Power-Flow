@@ -11,6 +11,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, fields
 import json
+import math
 from types import MappingProxyType
 from typing import Any
 
@@ -161,6 +162,8 @@ class TemkinReleaseHistory:
             raise ValueError("Temkin inversion diagnostics exceed their declared numerical qualification")
         if np.any((self.inversion_regime == 0) != (self.coverage_m2[:-1] == 0)):
             raise ValueError("empty-inventory diagnostic regime disagrees with initial coverage")
+        if np.any((self.inversion_regime == 4) & (self.coverage_m2[1:] != 0)):
+            raise ValueError("survivor-underflow regime requires zero stored survivor")
         for pool_index, pool in enumerate(pools):
             positive = self.coverage_m2[:-1, pool_index] > 0
             regime = self.inversion_regime[:, pool_index]
@@ -170,16 +173,24 @@ class TemkinReleaseHistory:
         tolerance = 128 * np.finfo(float).eps
         if np.any(self.coverage_m2[1:] > self.coverage_m2[:-1]):
             raise ValueError("Temkin desorption cannot increase inventory")
-        with np.errstate(over="ignore", invalid="ignore"):
-            residual = self.coverage_m2[1:] + self.released_m2 - self.coverage_m2[:-1]
+        residual = np.array([
+            math.fsum((float(after), -float(before), float(released)))
+            for after, before, released in zip(self.coverage_m2[1:].flat,
+                                              self.coverage_m2[:-1].flat,
+                                              self.released_m2.flat)
+        ]).reshape(self.released_m2.shape)
         if (not np.all(np.isfinite(residual)) or np.any(np.abs(residual) > tolerance * self.coverage_m2[:-1])
                 or np.any(np.abs(self.inventory_balance_residual_m2) > tolerance * self.coverage_m2[:-1])):
             raise ValueError("Temkin coverage and release do not balance")
+        if not np.array_equal(residual, self.inventory_balance_residual_m2):
+            raise ValueError("reported inventory residual disagrees with the compensated balance")
         for interval, dt in enumerate(np.diff(self.time_edges_s)):
             trial = temkin_release_step(SurfaceInventory(self.coverage_m2[interval]), pools,
                                         self.temperature_k[interval], float(dt))
             if trial.law_identity != self.law_identity:
                 raise ValueError("core trial law disagrees with Temkin history")
+            if not np.array_equal(self.inversion_regime[interval], trial.inversion_regime):
+                raise ValueError("stored inversion regime disagrees with the qualified Temkin interval")
             # For monotone I(s), dlog(I)/dlog(s)>=1. Release has logarithmic
             # sensitivity <=1 to s; survivor absolute sensitivity is bounded
             # on the initial-inventory scale. This permits equivalent qualified
