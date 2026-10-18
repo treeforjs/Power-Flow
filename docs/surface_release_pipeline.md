@@ -235,3 +235,12 @@ Actual z-bin lengths determine areas; a separately configured foil length must
 agree and is never applied as an extra multiplier. The planar source output
 preserves local patch geometry and all interval/reservoir number and energy
 budgets. Refinement in x, z and time remains required for physical predictions.
+
+`mhdlab.planar_boundary.sample_planar_emission_packets` extends the paired
+boundary contract to these sources. It supplies physical three-component launch
+positions and preserves z while randomizing only x. Provide the physical face
+coordinate and outward sign explicitly; when raw extraction geometry is present,
+the sampler checks those values against it. Seven supplied open-unit variates
+per packet cover the six existing source/velocity draws and the z position.
+Per-patch particle budgets and expected-versus-sampled thermal energy remain
+explicit. It does not evolve particles or connect to a downstream solver.

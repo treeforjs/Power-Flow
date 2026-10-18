@@ -1,5 +1,18 @@
 # Current-drive inputs for FLASH heating
 
+Inspect the recovered shot with an explicit choice of time coordinate:
+
+```bash
+python tools/inspect_current_drive.py --preserve-source-axis \
+  --json-out runs/current_inspection/summary.json \
+  --plot runs/current_inspection/current.png
+```
+
+Alternatively, `--time-offset-s` records a chosen translation. The inspection
+checks the CSV against its source hash and reports the finite support, signed
+values, legend-covered vertices and independent VUV gate geometry. It never
+identifies breakdown or establishes trigger alignment from that rectangle.
+
 `mhdlab.drive_trace` supplies a bounded, explicitly sourced SI current history.
 It is independent of the legacy trace loader and does not fit a circuit or infer
 missing voltage. Interpolation outside the published or measured support raises

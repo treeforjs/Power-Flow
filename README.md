@@ -16,6 +16,12 @@ Run `python tools/export_flash_surface.py --demo` or
 verification cases. The Boltzmann and collisional-radiative solvers have a separate
 owner; this workstream supplies heating, boundary sources and recovered evidence.
 
+[Analytic heating verification](docs/flash_heating_verification.md) now supplies
+constant-property magnetic-diffusion references, finite-volume B/J/Joule
+comparisons and separate magnetic/Joule/Poynting energy budgets. Run
+`python tools/run_heating_benchmark.py --plot` for the manufactured reference.
+This is verification preparation; no FLASH simulation has been run here.
+
 The preparation includes [recovered thesis profiles](data/dissertation/figure_4_20_profiles.csv),
 [evaluated electron-water ionic yields](data/cross_sections/song2021/README.md),
 and [resolved H2 radiative transitions](data/cr_model/molat_h2/README.md).
