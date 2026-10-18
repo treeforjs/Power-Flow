@@ -4,6 +4,15 @@ The acquired evidence supports bounded comparisons for solid 304 and separately 
 
 The companion [`ss304_source_manifest.json`](../data/materials/ss304_source_manifest.json) records source identity, cached-file hashes, access outcomes, evidence locations and material limits. PDFs and inspection images remain outside Git in `/workspace/research_sources/ss304_properties/`. This acquisition was checked on 2026-10-18.
 
+Subsequent evidence is recorded separately: the [partial Wilkes recovery](wilkes_304_recovery.md)
+retains ten identifiable absolute-resistivity markers for the 0.203 mm foil,
+with branches and readout bounds; the [Mills 2004 assessment](mills_2004_source_assessment.md)
+examines newly acquired official full text for evaluated stainless-steel
+thermophysical correlations. Initial acquisition statuses below remain a
+historical record. The separate recovery/assessment records state the current
+numerical evidence and its narrower limits; no high-temperature runtime
+property model is adopted by this catalog.
+
 The subsequent [bounded transport-input interface](material_transport_inputs.md)
 uses a separately [recovered ten-row Flynn table](../data/materials/flynn_1968_304_transport.csv)
 with [source guards and provenance](../data/materials/flynn_1968_304_transport.json).
@@ -70,7 +79,7 @@ curl --max-time 45 -Ls -o /workspace/research_sources/ss304_properties/ho_chu_19
 pdftotext -layout /workspace/research_sources/ss304_properties/flynn_1968_nbs9869.pdf /workspace/research_sources/ss304_properties/flynn_1968_nbs9869.txt
 ```
 
-The Wilkes scan has no usable embedded text; selected pages were rendered and read visually, with local OCR used only for navigation. Numerical applicability claims above were checked against the source page images or explicitly labeled as publisher-abstract evidence. No graph points were inferred or digitized.
+The Wilkes scan has no usable embedded text; selected pages were rendered and read visually, with local OCR used only for navigation. Numerical applicability claims above were checked against the source page images or explicitly labeled as publisher-abstract evidence. The initial acquisition did not digitize graph points; the later partial recovery is linked above.
 
 ## Requirements before a material model is selected
 
