@@ -12,6 +12,12 @@ The preparation includes [recovered thesis profiles](data/dissertation/figure_4_
 [evaluated electron-water ionic yields](data/cross_sections/song2021/README.md),
 and [resolved H2 radiative transitions](data/cr_model/molat_h2/README.md).
 These data are kept separate from the legacy provisional-rate loader.
+The target model resolves rovibrational populations for every retained molecule,
+including molecular ions and anions; see the
+[species coverage requirements](data/cr_model/molecular_state_requirements.yaml).
+The [energy and charged-transport plan](docs/energy_and_magnetized_transport.md)
+specifies reaction energy partition, species velocity distributions, and Hall
+coupling for magnetized electrons and ions. These remain planning requirements.
 
 This project is a research scaffold for 2D reduced MHD electrode heating, Temkin
 desorption, kinetic neutral expansion, BOLSIG electron kinetics, collisional

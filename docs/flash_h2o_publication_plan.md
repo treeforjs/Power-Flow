@@ -3,8 +3,9 @@
 Working research specification, 18 October 2026. The agreed goal is to test whether
 finite-width electrode heating changes water release and fragment transport enough
 to produce distinguishable recorded spectra relative to a uniform-desorption model.
-The new spectroscopy model must resolve the H2 rovibrational structure that the
-previous CR analysis did not resolve.
+The chemistry and spectroscopy model must resolve rovibrational populations for
+every retained molecular species, including molecular ions and anions. H2 band
+structure is one diagnostic consequence of this network-wide requirement.
 
 ## What exists and what remains
 
@@ -169,6 +170,15 @@ are adequate for the magnetized, transient, nonlocal MITL gap. Surface temperatu
 electron temperature, translational temperature, and rotational/vibrational population
 parameters are distinct quantities.
 
+Velocity distributions must follow conservative energy pathways, including internal
+rovibrational excitation, reaction recoil and electron energy sharing. Electron and
+ion motion must include magnetic orbits, electric work and Hall current/field
+feedback with appropriate region-specific closures. See the detailed
+[energy and magnetized-transport requirements](energy_and_magnetized_transport.md).
+Neutrals remain force-free with respect to the Lorentz force, but can exchange
+energy and momentum through collisions. A mesh frontend alone does not supply
+these transport dynamics or the current/field solve.
+
 For chemistry conditional on measured or prescribed electrons/fields, label that
 assumption and do not claim prediction of electrical breakdown. To predict discharge
 onset, current loss, or voltage collapse, add a validated kinetic electron/ion model,
@@ -180,7 +190,38 @@ fragmentation/CR package. If used, rotate coordinates and vectors explicitly: it
 
 ## Rovibrationally resolved collisional-radiative model
 
-Resolve the H2 X-state populations N(v,J), and the B and C excited electronic-state
+Apply explicit rovibrational population resolution to **all molecules in the retained
+reaction network**, whether or not they emit within the recorded VUV band. This
+includes H2O, OH, H2 and O2; molecular cations H2O+, OH+, H2+, H3+, O2+ and H3O+;
+and molecular anions OH- and O2- if they remain in the mechanism. Adding another
+molecular intermediate also adds a state-coverage requirement. Atomic species
+retain atomic electronic/fine-structure populations; rovibrational labels do not
+apply to atoms or electrons.
+
+Do not force every molecule into the diatomic (v,J) notation. Water needs a
+multimode vibrational basis and asymmetric-rotor labels; polyatomic ions need
+their own symmetry-appropriate nuclear-motion states. Preserve spin, parity,
+nuclear-spin species and inversion/fine structure wherever they affect the
+retained states and transitions. Use canonical source state IDs to connect data
+sets, since approximate quantum labels may become ambiguous at high excitation.
+For dissociative surfaces and temporary intermediates, represent the relevant
+resonances/continua explicitly rather than inventing bound vibrational levels.
+
+Each molecule requires initial/desorbed and nascent product-state distributions,
+state-to-state electron and relevant heavy-particle transfer, formation and
+destruction branching, radiative processes, and state-dependent boundary losses.
+The joint reaction/CR solve evolves those populations in time and space and
+accounts for their internal energy. Converge each retained species' state basis
+against both reaction pathways and recorded signals. A single rotational or
+vibrational temperature, or bulk rates applied to a frozen Boltzmann distribution,
+does not satisfy this requirement. Coarse closures may be diagnostic benchmarks;
+they cannot silently replace the requested population resolution in the final model.
+
+The [molecular state-coverage manifest](../data/cr_model/molecular_state_requirements.yaml)
+records every molecular species in the current mechanism and the missing inputs.
+It is a research requirements inventory, not an implemented or complete rate model.
+
+Within that network, resolve the H2 X-state populations N(v,J), and the B and C excited electronic-state
 rovibrational populations/transitions required for the measured Lyman and Werner
 bands. Respect rotational branches, degeneracies, ortho/para nuclear-spin weights,
 predissociation where relevant, and radiative cascades. Include electron excitation,
@@ -252,6 +293,7 @@ Then advance through the following evidence gates:
 | Electrode | current/energy conservation; analytic diffusion comparison; material and mesh convergence |
 | Surface | finite inventory, face-area flux balance, timestep convergence |
 | Transport | ballistic flight-time/angular tests, wall loss and particle-number accounting |
+| Charged transport | gyro-orbits, crossed-field drift, species magnetization, Hall/current feedback and finite-length losses |
 | Chemistry | H/O nuclei, charge and energy budgets; benchmark rates; channel/state completeness |
 | CR | known line/band benchmarks; state-cutoff and time-dependent convergence |
 | Instrument | photon/energy normalization, gate and LOS integration, calibration uncertainty |
