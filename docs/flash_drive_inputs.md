@@ -1,6 +1,6 @@
 # Current-drive inputs for FLASH heating
 
-Inspect the recovered shot with an explicit choice of time coordinate:
+Inspect the default shot 15210 input with an explicit choice of time coordinate:
 
 ```bash
 python tools/inspect_current_drive.py --preserve-source-axis \
@@ -62,7 +62,10 @@ and propagation timing corrections. A derivative of the recovered plotted
 current is not that original measurement. Do not use it to claim a recovered
 resistive voltage or measured circuit inductance.
 
-Shot 15210 belongs to the VUV campaign. The legacy heating profiles in
-Figs. 4.28–4.30 used drive shot 17133. These inputs cannot be combined and labeled
-a same-shot reproduction. Their role is separate source/thermal benchmarking
-until a consistent heating drive and material setup are available.
+The separately recovered [shot 17133 current](../data/dissertation/shot_17133_current.csv) supplies the same-shot published drive context for legacy heating Figs. 4.28–4.30. Its [provenance](../data/dissertation/shot_17133_current.json) and [recovery guide](shot_17133_current_recovery.md) retain the finite support and timing limits. Select it explicitly; the command defaults above remain shot 15210.
+
+```sh
+python tools/inspect_current_drive.py --csv data/dissertation/shot_17133_current.csv --provenance data/dissertation/shot_17133_current.json --preserve-source-axis --json-out runs/current_17133/summary.json --plot runs/current_17133/current.png
+```
+
+The two shots remain distinct. Same-shot display recovery does not restore the original simulation drive, register the current and simulation clocks, validate the published current-density normalization or establish a same-shot thermal reproduction. Material, geometry and timing evidence are still required before an actual FLASH comparison.

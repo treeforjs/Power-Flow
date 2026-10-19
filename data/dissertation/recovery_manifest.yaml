@@ -1,6 +1,6 @@
 schema_version: 1
 purpose: Published dissertation evidence and partial recovery of spectral profiles, legacy simulation temperatures
-  and an encoded current polyline; no raw experimental data or original simulation arrays are supplied.
+  and encoded current polylines; no raw experimental data or original simulation arrays are supplied.
 source:
   source_id: smith_dissertation_2025
   title: Characterizing Desorbed Surface Contaminants Leading to Plasma Formation in Power Feeds of Pulsed Power
@@ -516,7 +516,7 @@ reconstruction_targets:
   still_pending:
   - exact foil-edge peaks, boundary values, crossing regions and exterior segments
   - confirmation of original electromagnetic units and normalization
-  - original simulation arrays and a recovered 17133 drive history
+  - original simulation arrays and original simulation drive input/timing registration (published 17133 current recovered from Fig. C.19)
   unresolved_metadata:
   - This is the 40 ns temperature at 12.5 um depth, not a surface-temperature boundary condition or time history.
   - No relationship to shot 15210 current is established; the legacy simulation used shot 17133.
@@ -1193,6 +1193,61 @@ reconstruction_targets:
   - The 52.05–55.05 ns VUV rectangle is not a recovered breakdown time or an established electronic trigger reference.
   - No zero or 200 ns endpoint, pre-pulse zero, extrapolation, baseline subtraction or smoothing is supplied.
   - The current is from shot 15210; it is not the 17133 drive used for Figures 4.28–4.30.
+- id: fig_c_19
+  source: Fig. C.19
+  printed_page: 165
+  pdf_page: 190
+  kind: electrical_trace
+  availability: published_only
+  digitization_status: partially_digitized
+  quantities:
+  - Average Current [MA]
+  - V_bank - L_0 dI/dt [MV]
+  - VUV gate rectangle
+  - normalized APD 2
+  shot: 17133
+  reported_material: SS304
+  plot_title_thickness_um: 200
+  caption_thickness_um: 200
+  recovered_artifacts:
+  - file: shot_17133_current.csv
+    metadata: shot_17133_current.json
+    generator: tools/recover_dissertation_drive_17133.py
+    status: vector_recovered
+    csv_sha256: 2c54d2dbaec6b6c8fcf2e45b5abd837aa72999f5fd14217f530277ffd5949076
+    content: 132 native vector vertices inside the displayed axes; no inserted endpoints or resampling
+    original_units:
+      time: ns
+      current: MA
+    SI_columns:
+      time: time_s
+      current: current_A
+    time_extent_ns:
+    - 0.7497880554918481
+    - 196.74963671006165
+    current_extent_A:
+    - 6012.0713604687735
+    - 820547.1145611181
+    legend_covered_vertices: 0
+    time_origin_reference: null
+    gate_rectangle_time_bounds_ns:
+    - 26.039342959313593
+    - 29.039399426393466
+    breakdown_time_ns: null
+    digitization_estimates:
+      time_plus_minus_ns: 0.3271963206128668
+      current_plus_minus_A: 2738.323481449829
+      meaning: Half published stroke width plus maximum tick-fit residual; correlated display readout bounds,
+        not physical uncertainty.
+  still_pending:
+  - Original current waveform, filtering and diagnostic calibration
+  - Original simulation drive input and current-to-simulation clock registration
+  - Voltage/APD curves and an independently established breakdown time
+  unresolved_metadata:
+  - The shared ordinate is Signal Height; current units are taken from its separate MA legend.
+  - The gate rectangle is not breakdown, a trigger or a simulation timing reference.
+  - Same shot as legacy heating Figs. 4.28–4.30; no complete thermal reproduction, electromagnetic normalization
+    or Joule closure.
 source_conflicts:
 - id: shot_15778_thickness
   sources:
@@ -1297,8 +1352,7 @@ recoverability:
     transformations may be irreversible.
   - Multiple shots at different gates do not form a single-shot time history without a repeatability model.
   - Line-of-sight integrated spectra alone do not uniquely identify transverse desorption structure.
-  - Figures 4.28–4.30 are legacy simulation temperature profiles driven by shot 17133; the separately recovered
-    current polyline is shot 15210. They do not constitute a same-shot thermal/current reconstruction.
+  - Figures 4.28–4.30 and recovered Fig. C.19 current share shot 17133, but original drive inputs and clock registration remain missing; no same-shot thermal reproduction is established. Shot 15210 remains separate.
   - Partial temperature recovery does not recover gap-facing surface values, time-dependent material boundaries
     or temperature time histories.
   - Current vector vertices behind the later legend are encoded source geometry and are flagged; plotting/filtering

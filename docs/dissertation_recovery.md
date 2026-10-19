@@ -63,7 +63,7 @@ python tools/recover_dissertation_heating.py --pdf /path/to/smtrevor_1.pdf \
   --qa-plot runs/recovery/figure_4_30_heating_qa.png
 ```
 
-Both tools check the source PDF and decoded native image hashes before applying fixed inspected calibrations. The sidecars retain pixel coordinates, units, exclusions, source pages and generator identity. No smoothing, interpolation or extrapolation is performed. The magnetic-field/current-density depth panels in Figs. 4.28 and 4.29, and the 17133 drive, remain unrecovered. The separate partial Fig. 4.30 electromagnetic recovery is described below.
+Both tools check the source PDF and decoded native image hashes before applying fixed inspected calibrations. The sidecars retain pixel coordinates, units, exclusions, source pages and generator identity. No smoothing, interpolation or extrapolation is performed. The magnetic-field/current-density depth panels in Figs. 4.28 and 4.29 remain unrecovered. The shot 17133 current display has since been recovered from Fig. C.19, as described below. The separate partial Fig. 4.30 electromagnetic recovery is described below.
 
 ## Recovered electromagnetic width profiles
 
@@ -114,7 +114,15 @@ trace = load_current_csv(
 )
 ```
 
-The explicit zero offset preserves the published coordinate; it does not establish alignment to a physical trigger. `DriveTrace` preserves signed current, records the CSV hash, interpolates linearly only within the supplied support and rejects extrapolation. Its slopes describe that interpolation, not an independently measured `dI/dt`. The loader reads only the selected columns; consumers must separately inspect the sidecar's display bounds, legend flags and unresolved timing. Loading a trace does not install a FLASH boundary condition, infer a circuit voltage or restore the missing 17133 drive.
+The explicit zero offset preserves the published coordinate; it does not establish alignment to a physical trigger. `DriveTrace` preserves signed current, records the CSV hash, interpolates linearly only within the supplied support and rejects extrapolation. Its slopes describe that interpolation, not an independently measured `dI/dt`. The loader reads only the selected columns; consumers must separately inspect the sidecar's display bounds, legend flags and unresolved timing. Loading a trace does not install a FLASH boundary condition, infer a circuit voltage or establish a missing physical timing reference.
+
+## Recovered shot 17133 current
+
+The [shot 17133 CSV](../data/dissertation/shot_17133_current.csv) and [provenance](../data/dissertation/shot_17133_current.json) recover the red current curve from **Fig. C.19, printed p. 165 / PDF p. 190**. The title and caption both identify a 200 um SS304 foil. This supplies same-shot current context for the legacy Figs. 4.28–4.30. It does not recover the original simulation drive file or register their separate clocks.
+
+The recovery retains 132 vertices over approximately 0.749788–196.75 ns. The largest retained current is 0.820547 MA at 119.25 ns; 0 vertices lie inside the later legend's bounding rectangle. The display bounds are approximately +/-0.327196 ns and +/-2738.32 A. The independent gate rectangle spans approximately 26.0393–29.0394 ns. These are published display quantities, with physical trigger and simulation-clock alignment unresolved.
+
+See the [recovery guide](shot_17133_current_recovery.md) for reproduction, bounded SI queries and the distinction between source geometry, readout bounds and physical uncertainty. Shot 15210 remains a separate input.
 
 ## Published estimates from Table 4.1
 
