@@ -1,0 +1,207 @@
+{
+  "schema": "mhdlab-thermal-power-manufactured-config-v1",
+  "parameter_status": "manufactured",
+  "provenance": "Four purposeful manufactured prescribed-power numerical fixtures and one per-segment temporal-refinement family fixed before production; no physical calibration.",
+  "scope": "One stationary patch, supplied constant areal heat capacity and zero activation energy; finite prescribed nonnegative power only; no conduction, radiation, phase transition, mechanical work, MHD, host transaction, plasma, chemistry or spectra.",
+  "schedule_time_convention": "Raw JSON decimal endpoints must exactly tile [0,duration_s] before projection. Explicitly checked finite binary64 endpoints then define the library schedule. Logical internal step times are exact rational divisions of those represented endpoints; saved time_s is their rounded display stamp.",
+  "refinement_case_id": "scheduled_power",
+  "cases": [
+    {
+      "case_id": "empty_constant",
+      "purpose": "Exactly empty inventory under finite constant input; all release/debit channels remain zero and thermal increase follows input.",
+      "duration_s": 2e-07,
+      "segments": [
+        {
+          "start_s": 0,
+          "stop_s": 2e-07,
+          "power_w_m2": 20000000.0,
+          "power_provenance": "Manufactured externally prescribed finite constant areal power; not inferred from a current trace, material model or MHD output."
+        }
+      ],
+      "step_grids": [
+        [
+          32
+        ]
+      ],
+      "problem": {
+        "reservoir": {
+          "name": "manufactured_power_parent",
+          "state_id": "M:manufactured-power-parent",
+          "attempt_frequency_s": 5000000.0,
+          "activation_energy_ev": 0,
+          "desorption_energy_ev": 0.12,
+          "internal_energy_ev": 0.03,
+          "coverage_coefficient": 0.6,
+          "reference_coverage_m2": 4e+20,
+          "max_coverage_m2": 4e+20,
+          "kinetic_provenance": "Manufactured zero-activation-energy first-order numerical verification parameters; fixed Nref and explicit constant attempt frequency; no physical surface rate inference.",
+          "energy_provenance": "Manufactured independent removal D and gas internal I costs; neither is inferred from a kinetic activation barrier."
+        },
+        "initial_coverage_m2": 0,
+        "initial_temperature_k": 900,
+        "areal_heat_capacity_j_m2_k": 0.05,
+        "patch_area_m2": 0.0002,
+        "temperature_min_k": 600,
+        "temperature_max_k": 1300,
+        "parameter_status": "manufactured",
+        "parameter_provenance": "Arbitrary constant-capacity stationary-patch coefficients for numerical verification, with an explicit externally imposed power schedule.",
+        "energy_reference": "Manufactured common gas reference: adsorbate U_ads=-D*N; gas I and expected translation 2*kB*T are separate; thermal change C_A*(T-T0); prescribed input is a separate positive energy source."
+      }
+    },
+    {
+      "case_id": "constant_cooling",
+      "purpose": "Nonempty patch whose gross removal/internal/translation debit exceeds finite input, giving net cooling.",
+      "duration_s": 2e-07,
+      "segments": [
+        {
+          "start_s": 0,
+          "stop_s": 2e-07,
+          "power_w_m2": 10000000.0,
+          "power_provenance": "Manufactured externally prescribed finite constant areal power; not inferred from a current trace, material model or MHD output."
+        }
+      ],
+      "step_grids": [
+        [
+          32
+        ]
+      ],
+      "problem": {
+        "reservoir": {
+          "name": "manufactured_power_parent",
+          "state_id": "M:manufactured-power-parent",
+          "attempt_frequency_s": 5000000.0,
+          "activation_energy_ev": 0,
+          "desorption_energy_ev": 0.12,
+          "internal_energy_ev": 0.03,
+          "coverage_coefficient": 0.6,
+          "reference_coverage_m2": 4e+20,
+          "max_coverage_m2": 4e+20,
+          "kinetic_provenance": "Manufactured zero-activation-energy first-order numerical verification parameters; fixed Nref and explicit constant attempt frequency; no physical surface rate inference.",
+          "energy_provenance": "Manufactured independent removal D and gas internal I costs; neither is inferred from a kinetic activation barrier."
+        },
+        "initial_coverage_m2": 2e+20,
+        "initial_temperature_k": 900,
+        "areal_heat_capacity_j_m2_k": 0.05,
+        "patch_area_m2": 0.0002,
+        "temperature_min_k": 600,
+        "temperature_max_k": 1300,
+        "parameter_status": "manufactured",
+        "parameter_provenance": "Arbitrary constant-capacity stationary-patch coefficients for numerical verification, with an explicit externally imposed power schedule.",
+        "energy_reference": "Manufactured common gas reference: adsorbate U_ads=-D*N; gas I and expected translation 2*kB*T are separate; thermal change C_A*(T-T0); prescribed input is a separate positive energy source."
+      }
+    },
+    {
+      "case_id": "constant_heating",
+      "purpose": "Nonempty patch whose stronger finite input exceeds gross debit, giving net heating.",
+      "duration_s": 2e-07,
+      "segments": [
+        {
+          "start_s": 0,
+          "stop_s": 2e-07,
+          "power_w_m2": 60000000.0,
+          "power_provenance": "Manufactured externally prescribed finite constant areal power; not inferred from a current trace, material model or MHD output."
+        }
+      ],
+      "step_grids": [
+        [
+          32
+        ]
+      ],
+      "problem": {
+        "reservoir": {
+          "name": "manufactured_power_parent",
+          "state_id": "M:manufactured-power-parent",
+          "attempt_frequency_s": 5000000.0,
+          "activation_energy_ev": 0,
+          "desorption_energy_ev": 0.12,
+          "internal_energy_ev": 0.03,
+          "coverage_coefficient": 0.6,
+          "reference_coverage_m2": 4e+20,
+          "max_coverage_m2": 4e+20,
+          "kinetic_provenance": "Manufactured zero-activation-energy first-order numerical verification parameters; fixed Nref and explicit constant attempt frequency; no physical surface rate inference.",
+          "energy_provenance": "Manufactured independent removal D and gas internal I costs; neither is inferred from a kinetic activation barrier."
+        },
+        "initial_coverage_m2": 2e+20,
+        "initial_temperature_k": 900,
+        "areal_heat_capacity_j_m2_k": 0.05,
+        "patch_area_m2": 0.0002,
+        "temperature_min_k": 600,
+        "temperature_max_k": 1300,
+        "parameter_status": "manufactured",
+        "parameter_provenance": "Arbitrary constant-capacity stationary-patch coefficients for numerical verification, with an explicit externally imposed power schedule.",
+        "energy_reference": "Manufactured common gas reference: adsorbate U_ads=-D*N; gas I and expected translation 2*kB*T are separate; thermal change C_A*(T-T0); prescribed input is a separate positive energy source."
+      }
+    },
+    {
+      "case_id": "scheduled_power",
+      "purpose": "Finite on/off/changed-power schedule with separate gross input, gross debit and signed net thermal change; one shared state at every declared boundary.",
+      "duration_s": 2e-07,
+      "segments": [
+        {
+          "start_s": 0,
+          "stop_s": 5e-08,
+          "power_w_m2": 60000000.0,
+          "power_provenance": "Manufactured externally prescribed finite constant areal power; not inferred from a current trace, material model or MHD output."
+        },
+        {
+          "start_s": 5e-08,
+          "stop_s": 1e-07,
+          "power_w_m2": 0,
+          "power_provenance": "Manufactured externally prescribed finite constant areal power; not inferred from a current trace, material model or MHD output."
+        },
+        {
+          "start_s": 1e-07,
+          "stop_s": 2e-07,
+          "power_w_m2": 30000000.0,
+          "power_provenance": "Manufactured externally prescribed finite constant areal power; not inferred from a current trace, material model or MHD output."
+        }
+      ],
+      "step_grids": [
+        [
+          8,
+          8,
+          8
+        ],
+        [
+          16,
+          16,
+          16
+        ],
+        [
+          32,
+          32,
+          32
+        ],
+        [
+          64,
+          64,
+          64
+        ]
+      ],
+      "problem": {
+        "reservoir": {
+          "name": "manufactured_power_parent",
+          "state_id": "M:manufactured-power-parent",
+          "attempt_frequency_s": 5000000.0,
+          "activation_energy_ev": 0,
+          "desorption_energy_ev": 0.12,
+          "internal_energy_ev": 0.03,
+          "coverage_coefficient": 0.6,
+          "reference_coverage_m2": 4e+20,
+          "max_coverage_m2": 4e+20,
+          "kinetic_provenance": "Manufactured zero-activation-energy first-order numerical verification parameters; fixed Nref and explicit constant attempt frequency; no physical surface rate inference.",
+          "energy_provenance": "Manufactured independent removal D and gas internal I costs; neither is inferred from a kinetic activation barrier."
+        },
+        "initial_coverage_m2": 2e+20,
+        "initial_temperature_k": 900,
+        "areal_heat_capacity_j_m2_k": 0.05,
+        "patch_area_m2": 0.0002,
+        "temperature_min_k": 600,
+        "temperature_max_k": 1300,
+        "parameter_status": "manufactured",
+        "parameter_provenance": "Arbitrary constant-capacity stationary-patch coefficients for numerical verification, with an explicit externally imposed power schedule.",
+        "energy_reference": "Manufactured common gas reference: adsorbate U_ads=-D*N; gas I and expected translation 2*kB*T are separate; thermal change C_A*(T-T0); prescribed input is a separate positive energy source."
+      }
+    }
+  ]
+}
