@@ -66,6 +66,21 @@ def _bounds(value, name):
     return result
 
 
+def _canonical_history(value):
+    if not isinstance(value, TemkinPlanarReleaseHistory):
+        raise ValueError("history must be a canonical TemkinPlanarReleaseHistory")
+    # A canonical record stores a finite immutable tuple. Revalidate its nested
+    # declarations too: record replay alone assumes each supplied pool remains
+    # a valid frozen TemkinReservoir, which a forged object could violate.
+    if not isinstance(value.reservoirs, tuple) or not value.reservoirs:
+        raise ValueError("canonical source reservoirs must retain their immutable tuple")
+    for pool in value.reservoirs:
+        if not isinstance(pool, TemkinReservoir):
+            raise ValueError("canonical source pools must be TemkinReservoir records")
+        TemkinReservoir(**{item.name: getattr(pool, item.name) for item in fields(TemkinReservoir)})
+    return TemkinPlanarReleaseHistory(**{item.name: getattr(value, item.name) for item in fields(TemkinPlanarReleaseHistory)})
+
+
 @dataclass(frozen=True, slots=True)
 class SourceWindowSelection:
     interval_index: int
@@ -164,7 +179,7 @@ class TemkinPlanarSourceWindows:
             raise ValueError("conditioned sources require their authoritative canonical source history")
         original = self._source_history
         if _factory_validation_token is not _JUST_VALIDATED:
-            original = TemkinPlanarReleaseHistory(**{item.name: getattr(original, item.name) for item in fields(TemkinPlanarReleaseHistory)})
+            original = _canonical_history(original)
         object.__setattr__(self, "_source_history", original)
         for name in ("x_edges_m", "z_edges_m", "time_edges_s"):
             object.__setattr__(self, name, _edges(getattr(self, name), name, time=name == "time_edges_s"))
@@ -278,11 +293,9 @@ class TemkinPlanarSourceWindows:
 
 def condition_temkin_planar_source(history, selections, *, log_mass_tolerance, status, provenance):
     """Validate a canonical history and condition its original local components."""
-    if not isinstance(history, TemkinPlanarReleaseHistory):
-        raise ValueError("history must be a canonical TemkinPlanarReleaseHistory")
     # Replay only the established immutable record validation, not the evolution
     # driver. In particular, forged source moments/diagnostics are not accepted.
-    history = TemkinPlanarReleaseHistory(**{item.name: getattr(history, item.name) for item in fields(TemkinPlanarReleaseHistory)})
+    history = _canonical_history(history)
     selections = _selections(selections, history.time_edges_s)
     if len(selections)*len(history.reservoirs)*(len(history.z_edges_m)-1)*(len(history.x_edges_m)-1) > MAX_SELECTED_COMPONENTS:
         raise ValueError("conditioned source exceeds the selected-component memory/work limit")

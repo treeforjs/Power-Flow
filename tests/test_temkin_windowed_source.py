@@ -357,3 +357,14 @@ def test_finite_sequence_materialization_uses_bounded_indexing_without_arbitrary
     checked = replace(result, components=IndexedOnly(result.components), source_reservoirs=IndexedOnly(result.source_reservoirs),
                       skipped_zero_initials=IndexedOnly(result.skipped_zero_initials))
     assert checked.manifest() == result.manifest()
+
+
+@pytest.mark.parametrize("name,value", [("reference_coverage_m2", 0.), ("attempt_frequency_s", -1.), ("kinetic_provenance", "")])
+def test_forged_nested_pool_declarations_are_rejected_before_source_replay(name, value):
+    sample = history()
+    forged_pool = copy(sample.reservoirs[0])
+    object.__setattr__(forged_pool, name, value)
+    forged = copy(sample)
+    object.__setattr__(forged, "reservoirs", (forged_pool, sample.reservoirs[1]))
+    with pytest.raises(ValueError):
+        condition(forged)
