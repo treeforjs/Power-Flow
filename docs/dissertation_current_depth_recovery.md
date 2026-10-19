@@ -55,4 +55,9 @@ The recovered shot 17133 current display supplies same-shot context, while
 current-to-simulation clock registration remains unresolved. These partial
 depth profiles supply no whole-depth or full cross-section current integral,
 Ampere-law closure, thermal history, conductivity or deposited energy. The
-magnetic gap panels remain pending. The [finite simulation-drive insets](legacy_simulation_drive_recovery.md) are separately recovered; original inputs and physical clock registration remain unresolved.
+coarse [magnetic gap profiles](dissertation_gap_magnetic_recovery.md) are
+separately recovered. Their unverified normalization and limited native
+resolution do not establish derivatives or Ampere-law closure. The
+[finite simulation-drive insets](legacy_simulation_drive_recovery.md) are
+separately recovered; original inputs and physical clock registration remain
+unresolved.

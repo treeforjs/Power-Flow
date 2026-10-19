@@ -22,7 +22,7 @@ The directly identified VUV features are atomic H Lyman-alpha and molecular H2 L
 | Table 4.1 | 89 | Published by-eye Yacora estimates, transcribed below and in the manifest |
 | Figs. A.1–A.17 | 102–118 | Seventeen VUV shots, associated current/resistive-voltage traces and gate markers |
 | Figs. 4.10–4.12, 4.14–4.16 | 66, 68, 70, 73, 75, 77 | Visible spectral/timing context with campaign-specific collection regions |
-| Figs. 4.27–4.30 | 93–98 | Existing simulation geometry; temperatures, J_z depth profiles, finite drive insets and Fig. 4.30 EM width profiles partially recovered; magnetic gap panels pending |
+| Figs. 4.27–4.30 | 93–98 | Existing simulation geometry; temperatures, J_z depth profiles, finite drive insets, coarse B_x gap profiles and Fig. 4.30 EM width profiles partially recovered |
 | Fig. C.11 | 157 | Shot 15210 encoded current polyline and VUV gate geometry recovered; voltage/SVS curves pending |
 
 Most published spectral figures are embedded raster images. Digitization can recover displayed curves with finite plot resolution, but the pseudocolor image cannot be treated as original detector counts. Saturation, clipping, interpolation, averaging and plotting transformations may be irreversible. The first partial recovery is [Fig. 4.20's central gap profiles](../data/dissertation/figure_4_20_profiles.csv): 106 correlated raster samples, 53 each for H Lyman-alpha and the H2 161 nm Lyman band. The [provenance record](../data/dissertation/figure_4_20_profiles.json) includes source hashes, pixel coordinates, axis calibration, and pixel-reading uncertainty. These are plotted transition densities, not total ground-state neutral densities. Physical error bands and wavelength lineouts remain pending. The heating and current recoveries below are separately labeled. All other specified quantities retain their pending status; numerical table transcription is marked separately.
@@ -63,7 +63,7 @@ python tools/recover_dissertation_heating.py --pdf /path/to/smtrevor_1.pdf \
   --qa-plot runs/recovery/figure_4_30_heating_qa.png
 ```
 
-Both tools check the source PDF and decoded native image hashes before applying fixed inspected calibrations. The sidecars retain pixel coordinates, units, exclusions, source pages and generator identity. No smoothing, interpolation or extrapolation is performed. The conservative current-density interiors in Figs. 4.28 and 4.29 are recovered below; their magnetic gap panels remain pending. The finite simulation-drive insets are recovered below. The shot 17133 current display has since been recovered from Fig. C.19, as described below. The separate partial Fig. 4.30 electromagnetic recovery is described below.
+Both tools check the source PDF and decoded native image hashes before applying fixed inspected calibrations. The sidecars retain pixel coordinates, units, exclusions, source pages and generator identity. No smoothing, interpolation or extrapolation is performed. The conservative current-density interiors and coarse magnetic-gap profiles in Figs. 4.28 and 4.29 are separately recovered below. The finite simulation-drive insets are recovered below. The shot 17133 current display has since been recovered from Fig. C.19, as described below. The separate partial Fig. 4.30 electromagnetic recovery is described below.
 
 ## Recovered current-density depth profiles
 
@@ -72,6 +72,22 @@ The lower-left panels of Figs. 4.28 and 4.29 now provide four signed J_z curves:
 The [Fig. 4.28 CSV](../data/dissertation/figure_4_28_current_depth.csv) and [metadata](../data/dissertation/figure_4_28_current_depth.json), and [Fig. 4.29 CSV](../data/dissertation/figure_4_29_current_depth.csv) and [metadata](../data/dissertation/figure_4_29_current_depth.json), preserve exact-color runs, signed values, readout bounds and every excluded row. The mask avoids legends, exterior/zero branches and visible corners/boundary ramps. Raster rows and readout bounds remain correlated.
 
 The horizontal axis is J_z [MA/cm²]; the vertical axis is distance from the middle of the A–K gap. Separate SI columns apply only the literal 10¹⁰ A/m² conversion. Original normalization remains unverified, so neither these profiles nor the width lineouts establish J²/sigma heating, a full current integral or Ampere-law closure. These are published legacy simulation profiles, with no physical current-density measurement or FLASH result asserted. See the [recovery guide](dissertation_current_depth_recovery.md) for reproduction and limitations.
+
+## Recovered magnetic-field gap profiles
+
+The upper-right panels of Figs. 4.28 and 4.29 provide four separately retained
+foil-edge and foil-middle B_x profiles at nominal 40 and 60 ns. The
+[recovery guide](dissertation_gap_magnetic_recovery.md) links their CSVs and
+metadata, inspected native axes, finite selection and correlated readout
+bounds. The spatial coordinate is distance from the middle of the A–K gap;
+its sign does not determine the sign of the field component.
+
+The primary field remains the signed literal B_x [100 Tesla] ordinate.
+Conditional tesla columns apply only the printed factor of 100, with original
+normalization unverified. Native support excludes ambiguous branches and
+boundary neighborhoods; no exact surface value, skin derivative, full vector
+field, magnetic-energy closure, Hall transport or registered experimental
+clock is recovered. These remain partial published legacy simulation shapes.
 
 ## Recovered legacy simulation-current insets
 
