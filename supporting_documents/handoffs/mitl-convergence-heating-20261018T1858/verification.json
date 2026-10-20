@@ -1,0 +1,721 @@
+{
+  "schema": "mitl-convergence-heating-verification-v1",
+  "created_utc": "2026-10-18T19:28:51.028241+00:00",
+  "source_commit": "8eae133fe48baae40511bc1e89cf33e29a69fb96",
+  "branch": "research/flash-publication-foundation",
+  "commits": [
+    "cd61ed2147b533e25a331f2b7471ffbdc9ab1c5e Integrate conditional emission-time moments with retained logarithmic changes",
+    "708f3945f8caa6560aa1dac82eb987f4898b80db Measure planar source convergence across space, snapshots and integration",
+    "10fc250ba24b28dae2b9a5de85522554b48a193a Recover identifiable 304 foil resistivity markers with branch and readout limits",
+    "9d90a6143ddf5bdfc3c577b83691c3425d066416 Add finite-ramp magnetic heating reference and qualified cell exports",
+    "edccb97db1ccd03bfe74fa069117af98065958b9 Specify conservative wall-source acceptance and moving-frame accounting",
+    "be938691ac20110caa8799276cd7d81aa8135c10 Record finer source orders and fixed-integration snapshot evidence",
+    "0c7da809f3ffae042c7d38864424fcd694d9b58e Qualify new stainless enthalpy evidence and link recovered material records",
+    "8eae133fe48baae40511bc1e89cf33e29a69fb96 Close the recovered-table test stream under strict resource warnings"
+  ],
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+    "packages": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "h5py": "3.16.0",
+      "matplotlib": "3.11.2",
+      "pytest": "9.1.1",
+      "PyMuPDF": "1.28.2"
+    }
+  },
+  "results": {
+    "new_scope_total_passed": 194,
+    "source_observables_passed": 75,
+    "conditional_time_moments_passed": 18,
+    "source_cli_passed": 16,
+    "source_report_regressions_passed": 3,
+    "ramp_reference_passed": 58,
+    "ramp_cli_passed": 14,
+    "wilkes_recovery_passed": 10,
+    "isolated_passed": 193,
+    "isolated_skipped": 1,
+    "isolated_execution": "Initial extracted run:192 passed,1 resource-warning failure,1 skipped. Only the failed test was corrected and rerun:1 passed. Unique final coverage193 passed/1 skipped; no unchanged passing suite repeated.",
+    "isolated_skip_reason": "External source PDF intentionally unavailable; optional Wilkes recovery integration only.",
+    "isolation_purpose": "New extracted import/dependency/data boundaries, frozen final code and deliberately absent PDF; unchanged full project not rerun.",
+    "whole_project_suite_rerun": false,
+    "public_files_byte_identical": 41
+  },
+  "commands": [
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/verify_temkin_planar_convergence.py",
+        "--families",
+        "event_time",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T1858/event-time-smoke"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:10:03.095677+00:00",
+      "end_utc": "2026-10-18T19:10:04.314744+00:00",
+      "elapsed_s": 1.2190705009998055,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/convergence-smoke.log",
+      "log_sha256": "5e00b46e6c0d970080611504b03af58bc5d1de07b678930a138c8d3d63592f64"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_temkin_planar_convergence_cli.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:11:12.140926+00:00",
+      "end_utc": "2026-10-18T19:11:16.652045+00:00",
+      "elapsed_s": 4.511128465001093,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/convergence-cli-tests.log",
+      "log_sha256": "2805746ddf20f15f8091af34b2222cda6053dc11dd0fdadeafdeb222df4845f7"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/verify_temkin_planar_convergence.py",
+        "--config",
+        "/workspace/research_work/mitl-upstream-20261018T1858/review_event_underflow_config.json",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T1858/review_event_underflow_output",
+        "--families",
+        "event_time"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:11:28.032887+00:00",
+      "end_utc": "2026-10-18T19:11:28.640582+00:00",
+      "elapsed_s": 0.6077033190013026,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/review-event-underflow.log",
+      "log_sha256": "9e84e85283d6178ee6110ca1510da584647f8d4f12319843fec6607e4db8d73e"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_emission_time_moments.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:12:50.605903+00:00",
+      "end_utc": "2026-10-18T19:12:51.424502+00:00",
+      "elapsed_s": 0.8186074349978298,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/emission-time-moments-tests.log",
+      "log_sha256": "6fe4fe9af90e069d9cf71a7e9434b41ea519ec5da2824cf41ae8ae0fa9681df1"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_temkin_convergence_report_review.py",
+        "--basetemp",
+        "/workspace/research_work/mitl-upstream-20261018T1858/review_convergence_pytest"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:13:37.583078+00:00",
+      "end_utc": "2026-10-18T19:13:40.928674+00:00",
+      "elapsed_s": 3.3456045029997767,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/review-convergence-report-regressions.log",
+      "log_sha256": "e205d6a45ab5d5d0c60f9525d4dd6b56399d62193d1512ead907e4dadfc0c94d"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/verify_temkin_planar_convergence.py",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T1858/manufactured-convergence",
+        "--plot"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:13:07.927419+00:00",
+      "end_utc": "2026-10-18T19:13:45.331125+00:00",
+      "elapsed_s": 37.40371101100027,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/manufactured-convergence-study.log",
+      "log_sha256": "69c2f6613ffb30fae695fa0eb23082e3cbb041c9f97ecfc7c2300af395cc95ce"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/emission_time_moments.py",
+        "tests/test_emission_time_moments.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:15:59.074821+00:00",
+      "end_utc": "2026-10-18T19:15:59.079645+00:00",
+      "elapsed_s": 0.004823726001632167,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/stage-time-moments.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Integrate conditional emission-time moments with retained logarithmic changes"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:15:59.222793+00:00",
+      "end_utc": "2026-10-18T19:15:59.233078+00:00",
+      "elapsed_s": 0.010285574000590714,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/commit-time-moments.log",
+      "log_sha256": "cedb91515b18079d36aaf49bcfedfef0fb768bb9d54dfa928106201c9153a7ae"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/source_convergence.py",
+        "tests/test_source_convergence.py",
+        "tests/test_temkin_planar_convergence_cli.py",
+        "tests/test_temkin_convergence_report_review.py",
+        "tools/verify_temkin_planar_convergence.py",
+        "configs/temkin_convergence_manufactured.json",
+        "docs/temkin_convergence.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:16:07.397080+00:00",
+      "end_utc": "2026-10-18T19:16:07.404275+00:00",
+      "elapsed_s": 0.007195361999038141,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/stage-source-convergence.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Measure planar source convergence across space, snapshots and integration"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:16:07.555004+00:00",
+      "end_utc": "2026-10-18T19:16:07.569268+00:00",
+      "elapsed_s": 0.014263829001720296,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/commit-source-convergence.log",
+      "log_sha256": "f4b892f4ce8f258bf509233dc8c75c040bdb7b074362c42df4e53633b32575d3"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1858/boundary_transaction_arithmetic.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:16:59.330772+00:00",
+      "end_utc": "2026-10-18T19:16:59.364069+00:00",
+      "elapsed_s": 0.0332967850008572,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/boundary-transaction-arithmetic.log",
+      "log_sha256": "e344e55239441b8f39561e06667c044a2ceb014f4aaa3c747210ca67c52bb27d"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1858/smooth_heating_global_coefficients.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:17:24.666707+00:00",
+      "end_utc": "2026-10-18T19:17:25.148482+00:00",
+      "elapsed_s": 0.48178180099785095,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/smooth_heating_global_coefficients.log",
+      "log_sha256": "1a7af8476df65db98167b8003f4f8c6597ddb78ddc8dbc17feb265addf289378"
+    },
+    {
+      "command": [
+        "curl",
+        "--max-time",
+        "50",
+        "-L",
+        "-sS",
+        "-D",
+        "/workspace/research_sources/ss304_properties/new_mills2004/official_landing_headers.txt",
+        "-o",
+        "/workspace/research_sources/ss304_properties/new_mills2004/mills_2004_official_landing.html",
+        "-w",
+        "%{http_code}\\t%{content_type}\\t%{size_download}\\t%{url_effective}\\n",
+        "https://www.jstage.jst.go.jp/article/isijinternational1989/44/10/44_10_1661/_article"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:18:21.802124+00:00",
+      "end_utc": "2026-10-18T19:18:23.524160+00:00",
+      "elapsed_s": 1.7220481730000756,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/mills2004_official_landing.log",
+      "log_sha256": "fc050ee04c11273993bfe4d1127f0fb0ef7e050812710391e56d40d7bc4cd352"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "tools/recover_wilkes_304_resistivity.py",
+        "data/materials/wilkes_1997_304_resistivity.csv",
+        "data/materials/wilkes_1997_304_resistivity.json",
+        "docs/wilkes_304_recovery.md",
+        "tests/test_wilkes_304_recovery.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:18:24.901217+00:00",
+      "end_utc": "2026-10-18T19:18:24.907117+00:00",
+      "elapsed_s": 0.0059008419993915595,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/stage-wilkes-markers.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Recover identifiable 304 foil resistivity markers with branch and readout limits"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:18:25.040209+00:00",
+      "end_utc": "2026-10-18T19:18:25.049666+00:00",
+      "elapsed_s": 0.009458435997657944,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/commit-wilkes-markers.log",
+      "log_sha256": "685315766b585de3b53225b260687f9adf70d7970060b24c107422a0c97ebe43"
+    },
+    {
+      "command": [
+        "curl",
+        "--max-time",
+        "50",
+        "-L",
+        "-sS",
+        "-D",
+        "/workspace/research_sources/ss304_properties/new_mills2004/official_pdf_headers.txt",
+        "-o",
+        "/workspace/research_sources/ss304_properties/new_mills2004/mills_2004_official_pdf_response",
+        "-w",
+        "%{http_code}\\t%{content_type}\\t%{size_download}\\t%{url_effective}\\n",
+        "https://www.jstage.jst.go.jp/article/isijinternational1989/44/10/44_10_1661/_pdf"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:18:21.807516+00:00",
+      "end_utc": "2026-10-18T19:18:26.206657+00:00",
+      "elapsed_s": 4.3991585789990495,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/mills2004_official_pdf.log",
+      "log_sha256": "8c0d4b1f1acb8b94c105548a7ec4926f33c694456c76ca42441ac0aab7e9a704"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/smooth_heating_benchmark.py",
+        "tests/test_smooth_heating_benchmark.py",
+        "tools/run_smooth_heating_benchmark.py",
+        "tests/test_smooth_heating_cli.py",
+        "configs/smooth_heating_manufactured.json",
+        "docs/smooth_drive_verification.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:18:55.880436+00:00",
+      "end_utc": "2026-10-18T19:18:55.885892+00:00",
+      "elapsed_s": 0.005421738998848014,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/stage-ramp-reference.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Add finite-ramp magnetic heating reference and qualified cell exports"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:18:56.021383+00:00",
+      "end_utc": "2026-10-18T19:18:56.030486+00:00",
+      "elapsed_s": 0.009103697000682587,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/commit-ramp-reference.log",
+      "log_sha256": "9ec9066a056db3268829d97057ad4f5c26fdf7a273172e8c129915d2058e0131"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "docs/boundary_transaction_requirements.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:19:42.466644+00:00",
+      "end_utc": "2026-10-18T19:19:42.470636+00:00",
+      "elapsed_s": 0.00399121699956595,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/stage-transaction-requirements.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Specify conservative wall-source acceptance and moving-frame accounting"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:19:42.604234+00:00",
+      "end_utc": "2026-10-18T19:19:42.612508+00:00",
+      "elapsed_s": 0.008275889998913044,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/commit-transaction-requirements.log",
+      "log_sha256": "cdc18984f5f1690542defbb1bc5cb1f0e99441fe326fa46af2c42282f5d37cc0"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1858/refine_source_uncertainties.py",
+        "--initial-report-sha256",
+        "a9a4e0bcceb4b5b8a282c5533414f1bce3262dca83eb3a97ebdd9fd14205bfb5",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T1858/source-refinement-followup",
+        "--plan-only"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:20:28.193248+00:00",
+      "end_utc": "2026-10-18T19:20:28.823974+00:00",
+      "elapsed_s": 0.6307352249968972,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/followup-source-plan.log",
+      "log_sha256": "e93ae9af6415698c6ff77224a57b3fa1d89be91b9a433c6f2beb27e104ae3823"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import json,platform,sys,numpy,scipy,matplotlib; print(json.dumps({\"python\":sys.version,\"implementation\":platform.python_implementation(),\"platform\":platform.platform(),\"numpy\":numpy.__version__,\"scipy\":scipy.__version__,\"matplotlib\":matplotlib.__version__},indent=2))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:21:02.702221+00:00",
+      "end_utc": "2026-10-18T19:21:03.045760+00:00",
+      "elapsed_s": 0.34354712200001813,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/followup-runtime-versions.log",
+      "log_sha256": "1054a78141482679dea3fecbf78395e08802537a106e3cb3cd1e6493d1164503"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1858/refine_source_uncertainties.py",
+        "--initial-report-sha256",
+        "a9a4e0bcceb4b5b8a282c5533414f1bce3262dca83eb3a97ebdd9fd14205bfb5",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T1858/source-refinement-followup",
+        "--plot"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:20:33.861929+00:00",
+      "end_utc": "2026-10-18T19:22:11.932523+00:00",
+      "elapsed_s": 98.0706097910006,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/followup-source-run.log",
+      "log_sha256": "4a7166316b3fc554de56221de433df3dcec76cd4708c7fa453f2933ef6f09a4e"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import json; from pathlib import Path; r=json.loads(Path(\"/workspace/research_work/mitl-upstream-20261018T1858/source-refinement-followup/report.json\").read_text()); out={\"counts\":{\"historical_reused\":len(r[\"historical_reused_cases\"]),\"new_integrations\":r[\"new_integrations_this_run\"]},\"common_grid\":r[\"common512_time_edges_record\"],\"studies\":{}}; [(out[\"studies\"].update({name:{\"orders\":[{\"resolutions\":v[\"resolutions\"],\"orders\":{k:m[\"observed_order\"] for k,m in v[\"metrics\"].items()},\"warnings\":{k:m[\"warnings\"] for k,m in v[\"metrics\"].items() if m[\"warnings\"]}} for v in s[\"self_orders\"]],\"highest_study_relative_to_finite_reference\":{k:m[\"relative_l2\"] for k,m in s[\"comparisons\"][s[\"case_ids\"][-2]][\"metrics\"].items()}}})) for name,s in r[\"studies\"].items()]; print(json.dumps(out,indent=2,allow_nan=False))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:22:35.096588+00:00",
+      "end_utc": "2026-10-18T19:22:35.124622+00:00",
+      "elapsed_s": 0.02803395099908812,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/followup-source-summary.log",
+      "log_sha256": "b253baf6789c5f58831391653affbc8b5802e06661bd0932ba495a7878b7fce5"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "docs/temkin_convergence.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:23:43.332802+00:00",
+      "end_utc": "2026-10-18T19:23:43.336576+00:00",
+      "elapsed_s": 0.003773221000301419,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/stage-refined-source-evidence.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Record finer source orders and fixed-integration snapshot evidence"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:23:43.469135+00:00",
+      "end_utc": "2026-10-18T19:23:43.478426+00:00",
+      "elapsed_s": 0.009291493002820062,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/commit-refined-source-evidence.log",
+      "log_sha256": "fdc1fcbc40333962271a98ed5457e6bafd1823cef413283c7f67994f093ab732"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "docs/mills_2004_source_assessment.md",
+        "data/materials/mills_2004_source_manifest.json",
+        "docs/ss304_property_sources.md",
+        "data/materials/ss304_source_manifest.json"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:27:22.927719+00:00",
+      "end_utc": "2026-10-18T19:27:22.933281+00:00",
+      "elapsed_s": 0.005561932001000969,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/stage-property-assessment.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Qualify new stainless enthalpy evidence and link recovered material records"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:27:23.059891+00:00",
+      "end_utc": "2026-10-18T19:27:23.070360+00:00",
+      "elapsed_s": 0.01047061699864571,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/commit-property-assessment.log",
+      "log_sha256": "dbaa2ea9f73b76a4af6835620ed2451be6f594d432dddeb8d3ded64a76a7b69a"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1858/prepare_convergence_handoff.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:27:23.193688+00:00",
+      "end_utc": "2026-10-18T19:27:23.439198+00:00",
+      "elapsed_s": 0.24551633399823913,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/prepare-convergence-handoff.log",
+      "log_sha256": "b7be52016ce8b97bcec69a22e2050b688f78b9477475a8d609333c66a69710e8"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1858/write_handoff_note.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:27:35.845131+00:00",
+      "end_utc": "2026-10-18T19:27:35.883179+00:00",
+      "elapsed_s": 0.038053134998335736,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/write-handoff-note.log",
+      "log_sha256": "d0dad4006dea0431bea3de71aed6cb064705501984c4218a271dcc12ec4b27e2"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import json,pathlib; p=pathlib.Path(\"data/materials/ss304_source_manifest.json\"); d=json.loads(p.read_text()); refs=[p.parent/e[k] for e in d[\"subsequent_evidence\"] for k in (\"dataset\",\"record\",\"document\") if k in e]; assert all(r.is_file() for r in refs); print(json.dumps({\"linked_records\":len(refs),\"links_exist\":True,\"historical_stage_explicit\":bool(d[\"assessment_stage\"])}))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:27:53.778061+00:00",
+      "end_utc": "2026-10-18T19:27:53.809929+00:00",
+      "elapsed_s": 0.03186965699933353,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/property-catalog-link-check.log",
+      "log_sha256": "c57e0f6392591d6d8aad31a8b04a2c5b9f9949840b8c54768a9c9fa84aac4fdf"
+    },
+    {
+      "command": [
+        "env",
+        "WILKES_304_SOURCE_PDF=/workspace/research_work/mitl-upstream-20261018T1858/source-intentionally-unavailable.pdf",
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "--basetemp",
+        "/workspace/research_work/mitl-upstream-20261018T1858/isolated_pytest"
+      ],
+      "cwd": "/workspace/handoffs/mitl-convergence-heating-20261018T1858/source",
+      "start_utc": "2026-10-18T19:27:34.621883+00:00",
+      "end_utc": "2026-10-18T19:27:54.054427+00:00",
+      "elapsed_s": 19.43259477799802,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/isolated-source-tests.log",
+      "log_sha256": "de035bbd5c211666a73ef38e05d4f514a885f21e9a8a15575dc5532915a751a3"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "tests/test_wilkes_304_recovery.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:28:21.690705+00:00",
+      "end_utc": "2026-10-18T19:28:21.696262+00:00",
+      "elapsed_s": 0.005556667001656024,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/stage-recovery-resource-fix.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Close the recovered-table test stream under strict resource warnings"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:28:21.833698+00:00",
+      "end_utc": "2026-10-18T19:28:21.844603+00:00",
+      "elapsed_s": 0.010906092000368517,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/commit-recovery-resource-fix.log",
+      "log_sha256": "599e2bb40d8b962471e8f3810da57d69f271b450f211af003619396d0348c51a"
+    },
+    {
+      "command": [
+        "env",
+        "WILKES_304_SOURCE_PDF=/workspace/research_work/mitl-upstream-20261018T1858/source-intentionally-unavailable.pdf",
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_wilkes_304_recovery.py::test_published_subset_units_source_identity_and_nonphysical_envelopes",
+        "--basetemp",
+        "/workspace/research_work/mitl-upstream-20261018T1858/isolated_resource_fix"
+      ],
+      "cwd": "/workspace/handoffs/mitl-convergence-heating-20261018T1858/source",
+      "start_utc": "2026-10-18T19:28:22.071534+00:00",
+      "end_utc": "2026-10-18T19:28:22.733240+00:00",
+      "elapsed_s": 0.6617160659989167,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/isolated-resource-regression.log",
+      "log_sha256": "59b9466559aeabf218a54ec041fd83cd357cf9bf1d80a17c47aab62ed0c205bf"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1858/refresh_convergence_packet.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:28:50.546636+00:00",
+      "end_utc": "2026-10-18T19:28:50.655053+00:00",
+      "elapsed_s": 0.10841827900003409,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/refresh-isolated-packet.log",
+      "log_sha256": "fe0d6bd207e8fa7eff910da86d965ff11316fd606d090b1cc4dea5d5301d80fb"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1858/write_handoff_note.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:28:50.761350+00:00",
+      "end_utc": "2026-10-18T19:28:50.795160+00:00",
+      "elapsed_s": 0.03381276399886701,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1858/write-final-handoff-note.log",
+      "log_sha256": "d0dad4006dea0431bea3de71aed6cb064705501984c4218a271dcc12ec4b27e2"
+    }
+  ],
+  "reported_command_evidence": [
+    "evidence/source-and-smooth-reported-commands.jsonl",
+    "evidence/smooth_heating_unit_reported_run.json",
+    "evidence/wilkes_304_recovery_commands.json"
+  ],
+  "command_capture_limits": "Some original targeted runs have reported execution outcomes without original persisted process logs. Those records explicitly identify this. Saved combined-stream captures are not represented as separate stderr logs.",
+  "artifacts": {
+    "initial_refinement": {
+      "record_sha256": "a9a4e0bcceb4b5b8a282c5533414f1bce3262dca83eb3a97ebdd9fd14205bfb5",
+      "record_file": "evidence/initial_refinement/report.json"
+    },
+    "ramp_reference": {
+      "record_sha256": "b34603b13f2284566876df81cc2946b2e3cebf01dcf9e71ef3c3e53f05b481f2",
+      "record_file": "evidence/ramp_reference/summary.json"
+    },
+    "followup_refinement": {
+      "record_sha256": "8ce413986f8e7826da408b3e385824311670c931fda1f91281c908da1128f486",
+      "record_file": "evidence/followup_refinement/report.json"
+    }
+  },
+  "resolved_findings": [
+    "An initial illustrative test required too large a separation from an initial-rate approximation; independent ODE equality held. The threshold was corrected and an independent fully emitted nonlinear mean added.",
+    "Review exposed thermal-speed intermediate underflow and nonfinite relative-error handling; source observables now use scaled operations and explicit qualifications.",
+    "Raw SI moment zeros hid positive quadrature changes. Public log-moment comparisons and plots now retain those changes and their underflow flags.",
+    "The normalized outer-field diagnostic formerly used rate*time, which can overflow/underflow for finite reference outputs. It now uses the dimensionless reference kernel; independent regressions pass.",
+    "Strict isolated verification caught an unclosed CSV handle in one recovery test. A context manager fixed it; only that failed test was rerun and passed. Initial failure and corrected command evidence are preserved.",
+    "Coarse spatial corrections warned nonasymptotic. Six new integrations refine those cases and isolate snapshot interpolation on one exact512-step grid; five historical cases reused without integration."
+  ],
+  "limitations": [
+    "Rates, energies, temperatures and state masses in source/heating examples are manufactured; no physical water/foil calibration.",
+    "Finite references and observed orders are not certified error bounds, continuum solutions or experimental uncertainty.",
+    "Historical source-array digests lack stored array bytes; only report/config/code/artifact and regenerated input hashes qualify reuse. New-case arrays are preserved.",
+    "Wilkes recovery retains ten distinct0.203mm specimen markers only. Merged clusters, original raw data and0.305mm absolute resistivity remain unresolved.",
+    "New Mills full text is an evaluated-correlation lead with composition,phase,enthalpy-reference andCp-versus-Cv limits; no runtime adoption.",
+    "The owner transaction document specifies missing live-host acceptance and moving-wall requirements; it implements neither.",
+    "No installed licensed FLASH/workstation run, Quark edit/build/runner, kinetic-gap/Boltzmann/radiative development, remote push/merge/publication or external message."
+  ],
+  "next_task": "Add joint source time/width/energy observables, especially Cov(time,x\u00b2) for symmetric edge heating, then qualify explicit composition/enthalpy inputs from the newly acquired material evidence. Keep host transactions owner-only."
+}

@@ -1,0 +1,1247 @@
+{
+  "schema": "mitl-source-window-resolution-verification-v1",
+  "created_utc": "2026-10-19T02:11:24.564147+00:00",
+  "source_commit": "4b083dea073c01c833f8da6844e048dda4be6990",
+  "base_commit": "313d4bb128c39a6996c06ce2dc1527f35f7f044e",
+  "branch": "research/flash-publication-foundation",
+  "commits": [
+    "404719bc32dd6c62d84a76e4e735c1bce40d2c31 Map physical source windows to qualified original interval offsets",
+    "4b083dea073c01c833f8da6844e048dda4be6990 Compare fixed source windows in preserved release histories"
+  ],
+  "results": {
+    "targeted_unique_passed": 105,
+    "planner_passed": 65,
+    "cli_passed": 40,
+    "portable_unique_passed": 105,
+    "portable_execution": "Initial104 passed; one dynamic-import packaging failure retained. Added the missing public dependency closure and reran only that affected guard, which passed. No unchanged104 replay.",
+    "portable_skipped": 0,
+    "public_files_byte_identical": 28,
+    "packaging_wrappers": 4,
+    "recovered_preserved_histories": 6,
+    "compared_snapshot_histories": 4,
+    "source_windows": 2,
+    "quadrature_orders": [
+      8,
+      16,
+      32
+    ],
+    "independent_new_planner_cases": 13,
+    "unchanged_project_suites_repeated": false,
+    "source_evolution_repeated": false,
+    "saved_reference_oracles_repeated": false
+  },
+  "planner_review": {
+    "schema": "mhdlab-source-window-plan-independent-review-v1",
+    "completed_utc": "2026-10-19T01:58:39.134558+00:00",
+    "reviewed_source_sha256": {
+      "mhdlab/source_window_plan.py": "fa9169160a87de666a9add85f991935af59d8ffd2c56c35ca5a18a166e181688"
+    },
+    "artifact_sha256": {
+      "review_notes.md": "5011b43f926320bf70376e8dacaecfd47cd0e0bb70ea47233ea2946d4524e171",
+      "planner_fraction_oracle.py": "7910f4d2129ef442cc2d48cc9b695d2b244fadf54e2c9a79d931a361ec059851",
+      "planner_fraction_oracle.json": "bfc29f6a5f396c546eea454ca6766123caab5ea9adf885ccc4a53bc71757524c",
+      "planner_gap_projection_probe.py": "cfdfd678488b3e67bcf55e58af2696aecb9f821abee77de3919c1764b8f13b15",
+      "planner_gap_projection_probe.json": "a6a00be750cfac6bc60035db55da7b9187a2e66dcd0d842cbb2ae76a31fa3851",
+      "planner_fraction_oracle.log": "bfc29f6a5f396c546eea454ca6766123caab5ea9adf885ccc4a53bc71757524c",
+      "planner_gap_projection_probe.log": "a6a00be750cfac6bc60035db55da7b9187a2e66dcd0d842cbb2ae76a31fa3851"
+    },
+    "focused_commands": [
+      {
+        "command": [
+          "/workspace/Power-Flow/.venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261019T0150/window-review/planner_fraction_oracle.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-19T01:55:45.752572+00:00",
+        "end_utc": "2026-10-19T01:55:46.527533+00:00",
+        "elapsed_s": 0.7749692170036724,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261019T0150/planner_fraction_oracle.log",
+        "log_sha256": "bfc29f6a5f396c546eea454ca6766123caab5ea9adf885ccc4a53bc71757524c"
+      },
+      {
+        "command": [
+          "/workspace/Power-Flow/.venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261019T0150/window-review/planner_gap_projection_probe.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-19T01:57:21.608412+00:00",
+        "end_utc": "2026-10-19T01:57:22.500386+00:00",
+        "elapsed_s": 0.8919805900004576,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261019T0150/planner_gap_projection_probe.log",
+        "log_sha256": "a6a00be750cfac6bc60035db55da7b9187a2e66dcd0d842cbb2ae76a31fa3851"
+      }
+    ],
+    "new_fraction_oracle": {
+      "cases": 12,
+      "accepted": 7,
+      "explicit_rejections": 5,
+      "all_comparisons_passed": true,
+      "executed_source_sha256": "37a7635e88ff0c5c2a378a35c0044e04bf83ef05a6f8d2ba7b71e5c0a5a18bed"
+    },
+    "new_gap_semantics_probe": {
+      "cases": 1,
+      "exact_requested_gap_s": "2",
+      "projected_local_gap_s": "0",
+      "executed_source_sha256": "fa9169160a87de666a9add85f991935af59d8ffd2c56c35ca5a18a166e181688"
+    },
+    "closed_substantive_findings": [
+      {
+        "id": "qualified_endpoint_motion_and_tiny_gap_semantics",
+        "finding": "Nearest local endpoint projections may expand a cut and close a smaller positive exact gap while passing selected-span-relative tolerance. Earlier never-expanded wording did not describe the projected support correctly.",
+        "resolution": "Module description and manifest now explicitly disclose endpoint movement/tiny-gap closure, prohibit projected overlap and manual repair, and distinguish geometric tolerance from a source-mass or physical-timing bound.",
+        "algorithm_changed": false,
+        "verification": "One new coordinate probe and read-only final wording inspection; author added a focused regression. The twelve already-passing oracle cases were not rerun for a doc/metadata change."
+      }
+    ],
+    "open_substantive_findings": [],
+    "review_conclusions": [
+      "Exact rational intersections cover every positive part of supported disjoint source windows without truncation or dropping.",
+      "Output preserves caller window identity/order and chronological original interval association within each window.",
+      "Local endpoint/duration errors are relative to positive intersection support, not a large absolute epoch or parent duration.",
+      "Rounded canonical parent-duration error is always reported and qualified against the selected span only when its boundary is selected.",
+      "Shared exact cuts within one original interval project consistently; collapsed or unsupported positive spans reject without repair.",
+      "Exact rational and underflow diagnostics retain nonzero errors smaller than float64 projections.",
+      "Accepted geometric projection may erase a tiny gap; it is not exact support preservation or a release-law mass qualification."
+    ],
+    "old_suites_or_oracles_repeated": false,
+    "source_evolution_or_law_or_sampler_called": false,
+    "public_files_edited": false,
+    "host_budget_accepted": false,
+    "limits": [
+      "Coordinate-only independent review and thirteen new bounded cases; no physical source, gap, collision, radiation, spectra or experimental validation.",
+      "Global inputs denote supplied binary64 endpoints; no unrecoverable higher-precision experimental timestamp is inferred.",
+      "Source-emission restrictions are distinct from photon observation gates.",
+      "The exact reviewed code pin is authoritative; any later code change needs a scoped review update."
+    ]
+  },
+  "cli_review": {
+    "scope": "Independent read-only review of the preserved-history source-window comparison command, its documentation, and source-window-plan associations. No public edits, source evolution, older suites, or earlier oracle replay.",
+    "reviewed_code_sha256": {
+      "tools/compare_windowed_source_resolution.py": "4e2191044e45c3f4995e4a54eefc737c1c4339d7f98f7150a391415128eb6366",
+      "mhdlab/source_window_plan.py": "fa9169160a87de666a9add85f991935af59d8ffd2c56c35ca5a18a166e181688"
+    },
+    "reviewed_documentation_sha256": {
+      "docs/source_window_resolution.md": "16cfc970a4e4aadcd737115b61bada41e2898646ff1f9370c28cb3b0cae200a2"
+    },
+    "blocking_findings": [],
+    "qualified_findings": [
+      {
+        "severity": "provenance limitation",
+        "subject": "Eager package initialization is outside CODE_PATHS",
+        "finding": "The direct numerical import closure is covered, but importing the mhdlab package also executes mhdlab/__init__.py and its legacy import closure, which are not hashed by this command. The exact list is retained in review_probe.json. These eager legacy imports do not participate in the reviewed moment formulas, so this is not evidence of a numerical error in the current results.",
+        "recommendation": "Treat CODE_PATHS as selected numerical implementation pins, rather than the whole executed import environment. Retain the separately labelled portable empty-initializer wrapper or whole-repository association with study evidence. This accepted limitation does not require mutation of the running study."
+      }
+    ],
+    "assessments": {
+      "state_status_hash_associations": "Case source and evidence bytes are independently SHA256-bound; evidence must match source hash, status, exact parameter provenance, resolution and the explicit no-re-evolution flag. Canonical pool records retain state identities. Compared pools and provenance must be equal. Surface metadata must be equal except the two separately validated original/equivalent counts in the snapshot_common_intervals family or the canonical geometry-derived current_patch_intervals_m list in the current family. Status and ancestral-drive declarations remain supplied provenance rather than independently established physical facts, as documented.",
+      "fixed_order_comparisons": "Source differences pair the same requested quadrature order for each source and window. Quadrature changes are reported separately as refined minus coarse within a single conditioned source. Source comparisons are estimate minus finer reference. No convergence order or uncertainty bound is inferred.",
+      "time_anchors": "The comparison reconstructs each represented mean from its retained interval origin, window-start offset and conditional local mean using Fraction arithmetic before subtraction. It skips raw mean offsets with unlike anchors. Focused probes retained a -0.25 difference when both displayed absolute means rounded to 1e16, and obtained exact zero for equal physical means carried by unequal local anchors.",
+      "common512_snapshot_family": "The family requires an increased snapshot count, identical width/current counts, equal snapshot-times-subdivision products, and identical actual source time edges. The current preserved configuration has four totals of512, with subdivisions64/32/16/8 compensating snapshots8/16/32/64. Optional followup_common_grid_resampling records require exactly seven keys; the original/equivalent counts match each case, actual integration matches source interval count with one subdivision, transformation flags must both beFalse, and original snapshot attributes remain a Mapping. Only the two separately checked original/equivalent counts are removed before cross-case metadata equality. Counts and shared domains do not independently certify the common physical drive, and the documentation states this limitation.",
+      "positive_population_retention": "Every positive canonical initial component is conditioned; exact-zero initial inventory is explicitly recorded as a skip. Joint moments reject unqualified, missing, nonpositive, or exact-zero extensive released_number records for positive components. The command does not introduce a count floor or discard unrepresentable positive populations. An entirely empty source reports zero count and unavailable normalized moments.",
+      "energy_pathways": "Thermal launch statistics use the outward-flux Maxwellian mean2kBT, variance2(kBT)^2, and associated second moments. The source-window record retains separate translation, supplied internal excitation, and desorption costs, excluding the activation barrier from wall debit. The CLI does not require every extensive wall-energy diagnostic to be qualified before reporting normalized source moments; qualification flags remain in each retained conditioned-source manifest, and host_budget_accepted is false. Thus the output is not an accepted wall-energy transaction or complete molecular-energy model.",
+      "source_window_plan": "The reviewed API requires disjoint fully supported global windows, records exact represented-Fraction intersections and rounded local selections, rejects unsupported positive slivers and projected overlaps, and replays immutable associations. The documentation appropriately distinguishes coordinate tolerance from physical source-mass or timing uncertainty.",
+      "final_current_metadata_exception": "The final four-line change removes only top-level current_patch_intervals_m from equality for the current family. Canonical TemkinPlanarReleaseHistory validation independently checks this list exactly against each history's z_edges_m, so this exception admits legitimate changed partitions without weakening unrelated physical metadata. Nested physical extraction/remapping associations remain strictly compared and require their own qualified transformation for comparisons that change them; no blanket nested exception was introduced.",
+      "final_documentation": "The final documentation discloses accepted endpoint motion and tiny-gap closure, strict common-grid count/flag checks, the narrow current-derived-field exception, and selected numerical CODE_PATHS versus eager legacy imports and the labelled empty-initializer portable subset. These statements agree with the reviewed implementation."
+    },
+    "focused_probe": "review_probe.py",
+    "focused_probe_results": "review_probe.json",
+    "recorded_command_log": "../commands.jsonl",
+    "probe_execution": "cli-review-focused-probe.log completed successfully against703710db before the subsequent four-line current-metadata-only change; unchanged passing probes were not rerun. The final current exception and documentation were independently inspected in cli-review-current-derived-diff.log, cli-review-derived-canonical-validation.log and cli-review-final-doc.log.",
+    "public_mutations": false,
+    "source_evolution_repeated": false
+  },
+  "profile_review": {
+    "schema": "mhdlab-source-profile-independent-review-completion-v1",
+    "status": "passed",
+    "reviewed_profile_script_sha256": "52a978bb7c1f6d49829c79019845a8289845c342b11b9aed704c6b4ae49f9f55",
+    "reviewed_profile_report_sha256": "133d8a5972a341e5764403616677eed87eb09c03fe3c465bc36591aeacd03e32",
+    "artifact_sha256": {
+      "profile-reduction/artifacts/report.json": "133d8a5972a341e5764403616677eed87eb09c03fe3c465bc36591aeacd03e32",
+      "profile-reduction/reduce_saved_profiles.py": "52a978bb7c1f6d49829c79019845a8289845c342b11b9aed704c6b4ae49f9f55",
+      "profile-reduction/artifacts-initial/report.json": "9e3f90a195840bf66c0da41c7c71506d6468392a429defad7806cae9e99daf73",
+      "profile-reduction/reduce_saved_profiles.initial.py": "ebf9f7c1c9f9cbc0b30a222f09d1631896d8f6c17784b141db7c31086f4212a2",
+      "profile-reduction/artifacts/source_width_profiles.png": "8196457dd39820bd67c725a2e0f72fd127182c697b26831ab23210d2995bcdc6",
+      "profile-reduction/artifacts/source_width_profiles.pdf": "9cc5c3695c8a62fa69c44bf2bd7289a0041c0bc97d391e4cf2d380f18ee18e55",
+      "profile-reduction/artifacts/quadrature_changes.csv": "2743403632c53f4b81579b8ee3db279d20d5d9f2995a3625d53d9e7c8c8806e1",
+      "profile-reduction/artifacts/paired_width_controls.csv": "92bf8136f163304423e01520533346db7f885f1ef744c320436d09d9ea99b67c",
+      "profile-reduction/artifacts/source_resolution_differences.csv": "5251234386888300e4d65374cb9ab409bb2f275d62d2d8e286ee632cc5fc3a80",
+      "profile-reduction/artifacts/width_profiles.csv": "16d48475d66b4a44ac4243ea9babda9970d63b2c61a49b1d263e8ab3e34dba44",
+      "profile-reduction/artifacts-initial/source_width_profiles.png": "8196457dd39820bd67c725a2e0f72fd127182c697b26831ab23210d2995bcdc6",
+      "profile-reduction/artifacts-initial/source_width_profiles.pdf": "9cc5c3695c8a62fa69c44bf2bd7289a0041c0bc97d391e4cf2d380f18ee18e55",
+      "profile-reduction/artifacts-initial/quadrature_changes.csv": "3237e3d565aba1519a835068fb24730759b6942b5310afc8cdf629119318b8e8",
+      "profile-reduction/artifacts-initial/paired_width_controls.csv": "92bf8136f163304423e01520533346db7f885f1ef744c320436d09d9ea99b67c",
+      "profile-reduction/artifacts-initial/source_resolution_differences.csv": "9739cbfadfdc8b1c3cb0a17e854b945f63470bd0af1d29a64280b71e73d6a734",
+      "profile-reduction/artifacts-initial/width_profiles.csv": "16d48475d66b4a44ac4243ea9babda9970d63b2c61a49b1d263e8ab3e34dba44",
+      "window-review/profile_readback.py": "d70e16dffc2bd09b0b1d73e25f1aee73bffafd053c01e9b477cdb1f0a9244a87",
+      "window-review/profile_readback.json": "56b087acaa023d27b764fa8dcb2a3f664ada1e58e62b9f246b0d55c48db2f293",
+      "window-review/profile_review_notes.md": "2ac43dfcf0c414daca6c8df6515cd5f304746554c2762fe02b80b04cb32ea3ac",
+      "window-review/profile_write_completion.py": "890cb951cc3ed478ae02064f3c889fd2a198c42896687efa60388a617c620459",
+      "profile_independent_readback.log": "56b087acaa023d27b764fa8dcb2a3f664ada1e58e62b9f246b0d55c48db2f293"
+    },
+    "artifact_path_root": "/workspace/research_work/mitl-upstream-20261019T0150",
+    "checking_counts": {
+      "checked_case_windows": 8,
+      "checked_width_rows": 128,
+      "checked_original_components": 1792,
+      "checked_paired_controls": 168,
+      "paired_invariants": 104,
+      "paired_width_descriptors": 64,
+      "change_csv_rows": {
+        "source_resolution_differences.csv": 756,
+        "quadrature_changes.csv": 672
+      },
+      "exact_or_projected_equalities_passed": 13823
+    },
+    "readback_command": {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0150/window-review/profile_readback.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:09:57.126381+00:00",
+      "end_utc": "2026-10-19T02:09:57.923516+00:00",
+      "elapsed_s": 0.7971438890017453,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/profile_independent_readback.log",
+      "log_sha256": "56b087acaa023d27b764fa8dcb2a3f664ada1e58e62b9f246b0d55c48db2f293"
+    },
+    "closed_substantive_findings": [
+      {
+        "id": "owner_identified_nested_change_csv_serialization",
+        "finding": "Initial resolution/quadrature CSVs contained dictionary strings for nested numerical projections.",
+        "resolution": "Numeric projections and explicit flags/reasons now occupy CSV cells; exact records remain JSON. Initial bytes are preserved. Width profiles, paired controls and figures are unchanged.",
+        "reviewer_executed_reducer": false
+      }
+    ],
+    "open_substantive_findings": [],
+    "review_conclusions": [
+      "Represented individually qualified parent counts and translational energies are reduced as extensive amounts, then divided once by exact actual dx times full original current length.",
+      "Declared original float scalar patch area is distinct from exact endpoint geometry; signed declared-minus-geometry and extensive-minus-density-times-declared-area residuals are retained.",
+      "Matched uniform-width profiles are the linear marginal of redistributing each original conditioned component count and source translation by dx/fullwidth, preserving the other mixture coordinates.",
+      "Conditional expected translation is summed qualified source translation divided by summed represented count, with its source2kBT rounding residual retained.",
+      "Displayed density integral residuals match the represented extensive targets; matched count and translation sums close exactly without repair.",
+      "All highest-order stored paired controls match the original JSON; non-width invariants are exact and width descriptors are numerical source controls only.",
+      "Source-resolution changes, moment quadrature changes, and CSV display projections remain distinct evidence families."
+    ],
+    "ledger_scope": "Released parent count and expected translational source energy only. Internal-state/removal/full-wall ledgers remain in the conditioned source manifests and are not reduced or claimed as full profile closure.",
+    "superseded_initial_artifacts": "Formatting-only first export is retained under artifacts-initial; use artifacts for final numeric CSVs.",
+    "old_cases_or_oracles_rerun": false,
+    "reduction_executed_by_reviewer": false,
+    "source_law_or_history_or_sampler_or_moment_called": false,
+    "public_files_edited": false,
+    "host_budget_accepted": false,
+    "limits": [
+      "Saved manufactured source artifact arithmetic/readback, not a new physical source or solver run.",
+      "No spectral, transport, chemistry, trajectory, statistical significance, material calibration or experimental claim follows from the profile differences.",
+      "Expected translation is neither a velocity realization nor an internal rovibrational energy partition.",
+      "Figures are hashed in this review; visual inspection belongs to root.",
+      "Completion applies to exact reviewed code/artifact hashes."
+    ]
+  },
+  "inventory_sha256": "2b16213c377d5a4fdf06287c183e2c874187573f2e4a43347cc1826eb3a87708",
+  "study_report_sha256": "1f3ffc5d0289a9c8fa728a988092778e8eb6e78e8fb11dd14a405a6df64c8c04",
+  "profile_report_sha256": "133d8a5972a341e5764403616677eed87eb09c03fe3c465bc36591aeacd03e32",
+  "commands": [
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import json,pathlib; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261018T1858/manufactured-convergence/report.json\"); j=json.loads(p.read_text()); print(json.dumps(j,indent=2)[:24000]); h=pathlib.Path(\"/workspace/handoffs/mitl-windowed-moments-20261019T0045/systems-mitl-windowed-moments-10192026.md\"); print(\"HANDOFF\",h,h.exists()); print(h.read_text() if h.exists() else \"missing\")"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:52:23.272984+00:00",
+      "end_utc": "2026-10-19T01:52:23.307018+00:00",
+      "elapsed_s": 0.03403350999724353,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-first-read.log",
+      "log_sha256": "9953452bc0ac01eb2e348c19c782b410d42a483426e637d906780b26701110b0"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import json,pathlib; r=pathlib.Path(\"/workspace/research_work\"); p=r/\"mitl-upstream-20261018T1858/manufactured-convergence/report.json\"; j=json.loads(p.read_text()); print(\"REPORT_KEYS\",list(j)); print(\"ROOT_METADATA\",json.dumps({k:v for k,v in j.items() if k not in (\"cases\",\"comparisons\")},indent=2)[:18000]); print(\"CASE_KEYS\",{k:list(v) for k,v in j.get(\"cases\",{}).items()}); print(\"HDF_CANDIDATES\"); print(\"\\n\".join(str(p) for p in r.glob(\"mitl-upstream-*/*/*.h5\"))); print(\"NPZ_CANDIDATES\"); print(\"\\n\".join(str(p) for p in r.glob(\"mitl-upstream-*/*/*.npz\")))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:52:31.523617+00:00",
+      "end_utc": "2026-10-19T01:52:31.556960+00:00",
+      "elapsed_s": 0.033342683003866114,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-candidate-paths.log",
+      "log_sha256": "3aa0c093c5ff562b08d917cff70d4d0d91bf9f35c72c64983e5bb9e3b0ec1f11"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import json,pathlib; base=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261018T1858/manufactured-convergence\"); j=json.loads((base/\"report.json\").read_text()); print(\"REPORT_KEYS\",list(j)); print(\"META\",{k:v for k,v in j.items() if not isinstance(v,(dict,list))}); print(\"SIBLINGS\",[p.name for p in base.iterdir()]); print(\"ARRAY_FILES\",[str(p) for p in pathlib.Path(\"/workspace/research_work\").rglob(\"*\") if p.is_file() and p.suffix in (\".npy\",\".h5\",\".npz\") and any(s in str(p).lower() for s in (\"convergence\",\"refinement\",\"source-resolution\"))]); print(\"FAMILY_KEYS\",{k:list(v) for k,v in j.get(\"families\",{}).items()}); print(\"FIRSTCASE\",json.dumps(next(iter(j[\"cases\"].values())),indent=2)[-6000:])"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:52:38.378127+00:00",
+      "end_utc": "2026-10-19T01:52:38.426925+00:00",
+      "elapsed_s": 0.0488005669976701,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-refinement-layout.log",
+      "log_sha256": "eb5a35b1845aba8565061e56fd855091565a1d7c5c6b95ed2e6bbf158a7bfca7"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import json,pathlib,numpy as np; b=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261018T1858/source-refinement-followup\"); print(\"FILES\",[p.name for p in b.iterdir()]); print(\"REPORTS\"); [print(p.name,list(json.loads(p.read_text()))) for p in b.glob(\"*.json\")]; print(\"NPZ\"); [print(p.name,{k:list(v.shape) for k,v in np.load(p,allow_pickle=False).items()}) for p in sorted((b/\"cases\").glob(\"*.npz\"))]; print(\"MORE_REFERENCES\"); [print(p) for p in pathlib.Path(\"/workspace/handoffs\").rglob(\"*\") if p.is_file() and p.suffix in (\".npz\",\".h5\") and any(s in str(p).lower() for s in (\"refinement\",\"convergence\"))]"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:52:45.141062+00:00",
+      "end_utc": "2026-10-19T01:52:45.377538+00:00",
+      "elapsed_s": 0.2364776019967394,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-saved-arrays.log",
+      "log_sha256": "96a8458c2be1d23896b4ebc4ed155ae35e0e3a445e50fbb3d25ba314910dbfad"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import json,pathlib; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261018T1858/source-refinement-followup/report.json\"); j=json.loads(p.read_text()); print(\"META\",json.dumps({k:v for k,v in j.items() if k not in (\"cases\",\"studies\")},indent=2)); print(\"CASE_KEYS\",{k:list(v) for k,v in j[\"cases\"].items()}); print(\"NEW_CASE\",json.dumps(j[\"cases\"][j[\"new_case_ids\"][0]],indent=2)[:18000]); print(\"SCRIPTS\",[str(p) for p in p.parent.parent.glob(\"*.py\")])"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:52:52.294367+00:00",
+      "end_utc": "2026-10-19T01:52:52.323263+00:00",
+      "elapsed_s": 0.028896459996758495,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-followup-association.log",
+      "log_sha256": "ad43fcf8e51bb478eec20e80fbe703a72f866479c14f25e5a36e405ef3bfa99b"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import json,pathlib; j=json.loads(pathlib.Path(\"/workspace/research_work/mitl-upstream-20261018T1858/source-refinement-followup/report.json\").read_text()); print(\"CONFIG\",json.dumps(j[\"config\"],indent=2)); print(\"CASE_KEYS\",{k:list(v) for k,v in j[\"cases\"].items()}); print(\"STUDIES\",json.dumps({k:{a:b for a,b in v.items() if a not in (\"comparisons\",\"self_order\",\"observed_orders\",\"metrics\",\"adjacent_self_orders\")} for k,v in j[\"studies\"].items()},indent=2)); print(\"ARTIFACTS\",json.dumps(j[\"new_case_artifacts\"],indent=2)); print(\"COMMON\",j[\"common512_time_edges_record\"]); print(\"SOURCE_SHA\",j[\"source_sha256\"])"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:53:09.469785+00:00",
+      "end_utc": "2026-10-19T01:53:09.498504+00:00",
+      "elapsed_s": 0.0287197970028501,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-followup-contract.log",
+      "log_sha256": "1c2db3fd974026ef3ba6258b8f5e087d300e49217d77b150fc24a43177258b32"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import json,pathlib; b=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261018T1858/source-refinement-followup\"); j=json.loads((b/\"report.json\").read_text()); c=json.loads((b/\"cases/x16-z4-s8-i64-common512.json\").read_text()); print(\"CONFIG\",json.dumps(j[\"config\"],indent=2)); print(\"CASE_SCALARS\",json.dumps({k:v for k,v in c.items() if k not in (\"arrays\",\"observables\")},indent=2)[:17000]); print(\"CASE_KEYS\",list(c))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:53:23.189459+00:00",
+      "end_utc": "2026-10-19T01:53:23.218436+00:00",
+      "elapsed_s": 0.028942253004061058,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-materialization-contract.log",
+      "log_sha256": "3756dad33d878c08e9abb4ba4e07dae4ecaf6a6d0ac25afea86b4e26c51c94a8"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import json,pathlib; j=json.loads(pathlib.Path(\"/workspace/research_work/mitl-upstream-20261018T1858/source-refinement-followup/report.json\").read_text()); print(json.dumps(j[\"config\"],indent=2)); print(\"STUDIES\",{k:{a:v[a] for a in (\"varied\",\"levels\",\"reference\",\"case_ids\",\"fixed_resolution\") if a in v} for k,v in j[\"studies\"].items()}); c=j[\"cases\"][\"x16-z4-s8-i64-common512\"]; print(\"PLAN\",c[\"plan\"]); print(\"RESOLUTION\",c[\"resolution\"]); print(\"ARRAY_HASH_SCHEME\",j[\"array_hash_scheme\"])"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:53:32.052785+00:00",
+      "end_utc": "2026-10-19T01:53:32.080251+00:00",
+      "elapsed_s": 0.02747012300096685,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-config-exact.log",
+      "log_sha256": "46aadd1f1b0d44b3e8f025f70448852acae333c1136e6eb42b048aa8048cc6c6"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import pathlib; print(pathlib.Path(\"mhdlab/temkin_planar_io.py\").read_text()[2500:7600]); print(pathlib.Path(\"mhdlab/temkin_planar.py\").read_text()[4500:7700])"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:53:36.486944+00:00",
+      "end_utc": "2026-10-19T01:53:36.515681+00:00",
+      "elapsed_s": 0.028737271000863984,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-reader-contract.log",
+      "log_sha256": "8ed9d3d34b189be26254d71e1a3152b5b9c5386d51072d6dd26f89db70e3d3fc"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import pathlib; s=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261018T1858/refine_source_uncertainties.py\").read_text(); p=s.index(\"evolve_temkin_planar_release(\"); print(s[p-1000:p+1900]); s=pathlib.Path(\"mhdlab/temkin_planar.py\").read_text(); print(s[s.index(\"def evolve_temkin_planar_release\"):][-2200:]); s=pathlib.Path(\"tools/verify_temkin_planar_convergence.py\").read_text(); print(\"CLI_DEFAULT\",[line for line in s.splitlines() if \"default=\" in line or \"configs/\" in line])"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:53:50.927826+00:00",
+      "end_utc": "2026-10-19T01:53:50.952028+00:00",
+      "elapsed_s": 0.024202913999033626,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-provenance-recipe.log",
+      "log_sha256": "8c2bdf3843dc0821188c7990046548575d91fc7e6e88ce7846664affc1af70f3"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0150/inventory/materialize_preserved.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:54:42.626858+00:00",
+      "end_utc": "2026-10-19T01:54:42.828616+00:00",
+      "elapsed_s": 0.2017661220015725,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-materialize-canonical.log",
+      "log_sha256": "bd5dfb8aad6d64bb050868cfb4ec3fab5929ec02fd686d2bb4c37bcfb2bc1cb4"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import pathlib; print(pathlib.Path(\"mhdlab/temkin_planar_io.py\").read_text()[:1700])"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:54:46.379564+00:00",
+      "end_utc": "2026-10-19T01:54:46.404902+00:00",
+      "elapsed_s": 0.025338753999676555,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-helper-location.log",
+      "log_sha256": "6ba195d41fd07f8026c18fe470f82ce5c3f8314d391b34798d21bbd7b04346a2"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import pathlib; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261019T0150/inventory\"); print([(str(f.relative_to(p)),f.stat().st_size) for f in p.rglob(\"*\") if f.is_file()]); q=p.parent/\"inventory-materialize-canonical-corrected-import.log\"; print(q.read_text() if q.exists() else \"no log\")"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:55:28.043360+00:00",
+      "end_utc": "2026-10-19T01:55:28.067740+00:00",
+      "elapsed_s": 0.02437911999732023,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-materialization-progress.log",
+      "log_sha256": "d854f3e2d12c9f7df6174dccea351cf29db9b8cde7e0f23e2e86ddf681cbec0f"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0150/window-review/planner_fraction_oracle.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:55:45.752572+00:00",
+      "end_utc": "2026-10-19T01:55:46.527533+00:00",
+      "elapsed_s": 0.7749692170036724,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/planner_fraction_oracle.log",
+      "log_sha256": "bfc29f6a5f396c546eea454ca6766123caab5ea9adf885ccc4a53bc71757524c"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import pathlib,numpy as np,h5py; root=pathlib.Path(\"/workspace/research_work\"); output=[]; current=root/\"mitl-upstream-20261019T0150\"; paths=sorted(p for p in root.rglob(\"*\") if p.is_file() and p.suffix in (\".h5\",\".hdf5\",\".npz\",\".npy\") and not p.is_relative_to(current)); print(\"PRESERVED_ARRAY_FILE_COUNT\",len(paths)); print(\"CANONICAL_CANDIDATES\");\nfor p in paths:\n if p.suffix in (\".h5\",\".hdf5\"):\n  with h5py.File(p,\"r\") as f:\n   if \"coverage_m2\" in f: print(str(p),f.attrs.get(\"schema\"),list(f[\"coverage_m2\"].shape),list(f[\"temperature_k\"].shape))\n elif p.suffix==\".npz\":\n  with np.load(p,allow_pickle=False) as f:\n   if \"source__coverage_m2\" in f or \"coverage_m2\" in f: print(str(p),\"saved-source-arrays\",list(f[\"source__coverage_m2\"].shape) if \"source__coverage_m2\" in f else list(f[\"coverage_m2\"].shape))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:55:50.893095+00:00",
+      "end_utc": "2026-10-19T01:55:51.227476+00:00",
+      "elapsed_s": 0.33438705599837704,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-other-source-files.log",
+      "log_sha256": "18265fa70e31cd351d28c21fc27eeaafcb9474ef3109cc03e159df7bf9942406"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0150/inventory/materialize_preserved.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:54:51.052798+00:00",
+      "end_utc": "2026-10-19T01:56:05.648760+00:00",
+      "elapsed_s": 74.59596997900371,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-materialize-canonical-corrected-import.log",
+      "log_sha256": "5fe937a67c8e8b7c56b00572904da0273d1d205f840ab565ea739db1e4e1c334"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import pathlib; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261019T0150/inventory/canonical\"); print(\"completed sidecars\",[f.name for f in p.glob(\"*.json\")]); print((p.parent.parent/\"inventory-materialize-canonical-corrected-import.log\").read_text())"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:56:13.844961+00:00",
+      "end_utc": "2026-10-19T01:56:13.870524+00:00",
+      "elapsed_s": 0.02556343600008404,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/inventory-canonical-ready-count.log",
+      "log_sha256": "7ae23e2dfa54a5fd103741efdaf485df4ac28d664a5feba8490a39c5d5e92d95"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_source_window_plan.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:56:55.164644+00:00",
+      "end_utc": "2026-10-19T01:56:56.118139+00:00",
+      "elapsed_s": 0.9535031979976338,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/source-window-plan-initial.log",
+      "log_sha256": "f5726e87b6521a585069d0e25c4bfc2ebb48e3e6c13bf90c8874d8564aeaf112"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_source_window_plan.py",
+        "-k",
+        "qualified_endpoint_motion"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:57:19.885836+00:00",
+      "end_utc": "2026-10-19T01:57:20.793675+00:00",
+      "elapsed_s": 0.9077944820019184,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/source-window-plan-gap-qualification.log",
+      "log_sha256": "1ea1314f842093362bd19970475fa0ba5854dd25d4071eedbbc60ab7af01da87"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0150/window-review/planner_gap_projection_probe.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:57:21.608412+00:00",
+      "end_utc": "2026-10-19T01:57:22.500386+00:00",
+      "elapsed_s": 0.8919805900004576,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/planner_gap_projection_probe.log",
+      "log_sha256": "a6a00be750cfac6bc60035db55da7b9187a2e66dcd0d842cbb2ae76a31fa3851"
+    },
+    {
+      "command": [
+        "sha256sum",
+        "mhdlab/source_window_plan.py",
+        "tests/test_source_window_plan.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:57:37.764828+00:00",
+      "end_utc": "2026-10-19T01:57:37.772689+00:00",
+      "elapsed_s": 0.00786046700523002,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/source-window-plan-final-pins.log",
+      "log_sha256": "04c72b0a10dd3d4c5580a2c2bb99ac6a79d87b4ecb8b91a7b76b6d4ca4624172"
+    },
+    {
+      "command": [
+        "python",
+        "-c",
+        "from pathlib import Path; import hashlib; paths=['tools/compare_windowed_source_resolution.py','docs/source_window_resolution.md','mhdlab/source_window_plan.py','mhdlab/windowed_joint_source_moments.py','mhdlab/window_time_moments.py','mhdlab/temkin_windowed_source.py']; [(print(p,hashlib.sha256(Path(p).read_bytes()).hexdigest()), print(Path(p).read_text() if p.endswith('windowed_joint_source_moments.py') else '')) for p in paths]"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:57:42.001009+00:00",
+      "end_utc": "2026-10-19T01:57:42.029199+00:00",
+      "elapsed_s": 0.02819087899842998,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/cli-review-interface-inspection.log",
+      "log_sha256": "ee989c875c30696abd296ff056d1bd723377a3db13032b09630345317b5a9234"
+    },
+    {
+      "command": [
+        "python",
+        "-c",
+        "from pathlib import Path; targets={'mhdlab/windowed_joint_source_moments.py':(1,180),'mhdlab/temkin_windowed_source.py':(1,350),'mhdlab/temkin_source_window.py':(1,180)}; [(print(path),print(''.join(Path(path).read_text().splitlines(keepends=True)[start-1:stop]))) for path,(start,stop) in targets.items()]"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:57:47.357985+00:00",
+      "end_utc": "2026-10-19T01:57:47.383025+00:00",
+      "elapsed_s": 0.025042314002348576,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/cli-review-contract-read.log",
+      "log_sha256": "8c7108682bec630c664fa884798e6623be0889b64a7c8afa27327da59da874d9"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/compare_windowed_source_resolution.py",
+        "--config",
+        "/workspace/research_work/mitl-upstream-20261019T0150/snapshot-window-config.json",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261019T0150/snapshot-window-study"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:57:17.615488+00:00",
+      "end_utc": "2026-10-19T01:57:47.978846+00:00",
+      "elapsed_s": 30.363367765996372,
+      "exit_code": 2,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/preserved-snapshot-window-study.log",
+      "log_sha256": "ff05e9c2e0f83db38914787b487a9f4671aaef163cf191852664adc96e1b1bb5"
+    },
+    {
+      "command": [
+        "rg",
+        "-n",
+        "status|released_number|all_budget|budget|initial|class TemkinPlanar|surface_attributes|parameter_provenance|def _summarize|def _validated_source|def condition_temkin",
+        "mhdlab/temkin_windowed_source.py",
+        "mhdlab/temkin_planar.py",
+        "mhdlab/windowed_joint_source_moments.py",
+        "mhdlab/temkin_planar_io.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:57:57.751879+00:00",
+      "end_utc": "2026-10-19T01:57:57.762599+00:00",
+      "elapsed_s": 0.010720386002503801,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/cli-review-symbols.log",
+      "log_sha256": "5b66cd507cc1fc44ee7bb7f1e979c27d75bcf77745b54443bb4590ee7f6717a7"
+    },
+    {
+      "command": [
+        "python",
+        "-c",
+        "from pathlib import Path; paths={'mhdlab/windowed_joint_source_moments.py':[(1,95),(129,187)],'mhdlab/temkin_windowed_source.py':[(270,330)],'mhdlab/temkin_planar.py':[(135,215)]}; [(print(path,start,stop),print(''.join(Path(path).read_text().splitlines(keepends=True)[start-1:stop]))) for path,sections in paths.items() for start,stop in sections]"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:58:11.023647+00:00",
+      "end_utc": "2026-10-19T01:58:11.059951+00:00",
+      "elapsed_s": 0.03630459800479002,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/cli-review-anchor-energy-read.log",
+      "log_sha256": "dcd8bfd986b0599874fd29cabe3334aba8dbc73cebf3517850d0aa5d4b9a9911"
+    },
+    {
+      "command": [
+        "python",
+        "-c",
+        "import ast, pathlib; paths=['tools/compare_windowed_source_resolution.py']; text=pathlib.Path(paths[0]).read_text(); tree=ast.parse(text); code=next(ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='CODE_PATHS' for t in n.targets)); paths=list(code); seen=set(); imports=[]; missing=set(); todo=list(paths)+['mhdlab/__init__.py'];\\nwhile todo:\\n p=todo.pop();\\n if p in seen: continue\\n seen.add(p); tr=ast.parse(pathlib.Path(p).read_text());\\n for n in ast.walk(tr):\\n  if isinstance(n,ast.ImportFrom) and (n.level or (n.module or '').startswith('mhdlab.')):\\n   module=(('mhdlab.'+(n.module or '')) if n.level else n.module); target=module.replace('.','/')+'.py';\\n   if pathlib.Path(target).is_file():\\n    imports.append([p,target]); todo.append(target);\\n    if target not in code: missing.add(target)\\nprint('CODE_PATHS',len(code)); print('UNPINNED_IMPORT_CLOSURE',sorted(missing)); print('IMPORTS',imports); print('INIT',pathlib.Path('mhdlab/__init__.py').read_text())"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:58:22.311183+00:00",
+      "end_utc": "2026-10-19T01:58:22.331023+00:00",
+      "elapsed_s": 0.019841854002152104,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/cli-review-import-closure.log",
+      "log_sha256": "eac05a3c72c0b581ab5349361afb9ab0442b7092d506f52f23b9bc60d489f1bb"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-c",
+        "import hashlib,json,pathlib; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261019T0150/source-window-plan-notes.json\"); d=json.loads(p.read_text()); assert d[\"verification\"][\"unique_new_tests_passed\"]==65; assert d[\"source_sha256\"]==hashlib.sha256(pathlib.Path(\"mhdlab/source_window_plan.py\").read_bytes()).hexdigest(); assert d[\"test_sha256\"]==hashlib.sha256(pathlib.Path(\"tests/test_source_window_plan.py\").read_bytes()).hexdigest(); print(hashlib.sha256(p.read_bytes()).hexdigest(),p)"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:58:29.527033+00:00",
+      "end_utc": "2026-10-19T01:58:29.556064+00:00",
+      "elapsed_s": 0.02903155400417745,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/source-window-plan-notes-validation.log",
+      "log_sha256": "33c15ad329ed38ab71eb93bb88140f666da1e8bdf3c2651ec05eb0301cdcd305"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_windowed_source_resolution_cli.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:58:11.106538+00:00",
+      "end_utc": "2026-10-19T01:58:29.633662+00:00",
+      "elapsed_s": 18.527131546994497,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/windowed-source-resolution-cli-initial.log",
+      "log_sha256": "9d9ceeb62382dd009509725cd229e50860be15bc3416335b1b957d5703f2c64a"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0150/window-review/write_review_completion.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:58:39.107325+00:00",
+      "end_utc": "2026-10-19T01:58:39.138888+00:00",
+      "elapsed_s": 0.03156405999470735,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/planner_review_completion.log",
+      "log_sha256": "e5d5944dc1096d956b17ae15724473dc572a70389f100725e0f8618a9f814fb1"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261019T0150/cli-review/review_probe.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:59:01.915361+00:00",
+      "end_utc": "2026-10-19T01:59:03.084564+00:00",
+      "elapsed_s": 1.1692106319969753,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/cli-review-focused-probe.log",
+      "log_sha256": "214956311cab0dc356b3b3bca2515418eb9ca563e3660731dfd53ebd0f0d3066"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "add",
+        "mhdlab/source_window_plan.py",
+        "tests/test_source_window_plan.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:59:37.141263+00:00",
+      "end_utc": "2026-10-19T01:59:37.149407+00:00",
+      "elapsed_s": 0.008145037005306222,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/commit-global-source-window-plan.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Map physical source windows to qualified original interval offsets"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:59:40.301877+00:00",
+      "end_utc": "2026-10-19T01:59:40.317366+00:00",
+      "elapsed_s": 0.015487643002416007,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/commit-global-source-window-plan-final.log",
+      "log_sha256": "7026dd0c1d65b6938602b12a350c55c176473c2b1b95e7a8af33a1f1cef59af6"
+    },
+    {
+      "command": [
+        "python",
+        "-c",
+        "import hashlib,json,pathlib; base=pathlib.Path('/workspace/research_work/mitl-upstream-20261019T0150/cli-review'); findings=json.loads((base/'findings.json').read_text()); actual={p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest() for p in findings['reviewed_code_sha256']}; assert actual==findings['reviewed_code_sha256']; print(json.dumps({'reviewed_code_sha256':actual,'blocking_findings':findings['blocking_findings'],'qualified_findings':len(findings['qualified_findings']),'findings_sha256':hashlib.sha256((base/'findings.json').read_bytes()).hexdigest()},indent=2))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:59:45.771519+00:00",
+      "end_utc": "2026-10-19T01:59:45.815246+00:00",
+      "elapsed_s": 0.04373933199531166,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/cli-review-final-pins.log",
+      "log_sha256": "b1a70baeffa424a41a20b7c4ffc6d712bab3c9d05f194051d9e3af1cdeea46e1"
+    },
+    {
+      "command": [
+        "python",
+        "-c",
+        "from pathlib import Path; import hashlib; p=Path('tools/compare_windowed_source_resolution.py'); print('CLI_SHA256',hashlib.sha256(p.read_bytes()).hexdigest()); lines=p.read_text().splitlines(); start=next(i for i,s in enumerate(lines) if s.startswith('def load_case(')); stop=next(i for i,s in enumerate(lines) if s.startswith('def rational_record(')); print('\\n'.join(str(i+1)+': '+lines[i] for i in range(start,stop)))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:59:55.613333+00:00",
+      "end_utc": "2026-10-19T01:59:55.656387+00:00",
+      "elapsed_s": 0.043056605994934216,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/cli-review-final-contract-diff.log",
+      "log_sha256": "d3ad36e8d029bb9e7c6d21c9364462d85cea2d18074be89cb2937685253d48a2"
+    },
+    {
+      "command": [
+        "python",
+        "-c",
+        "import hashlib,json,pathlib; base=pathlib.Path('/workspace/research_work/mitl-upstream-20261019T0150/cli-review'); findings=json.loads((base/'findings.json').read_text()); print(json.dumps({'code_pins':findings['reviewed_code_sha256'],'blocking_findings':findings['blocking_findings'],'qualified_findings':[f['subject'] for f in findings['qualified_findings']],'findings_sha256':hashlib.sha256((base/'findings.json').read_bytes()).hexdigest()},indent=2))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:00:29.766586+00:00",
+      "end_utc": "2026-10-19T02:00:29.800419+00:00",
+      "elapsed_s": 0.033833549001428764,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/cli-review-report-qualification.log",
+      "log_sha256": "4a8dc535e6469f84cd4d9e3c0c14b148f3fcabc776b16ac04b6d7ee77f733bfd"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_windowed_source_resolution_cli.py::test_common_grid_metadata_qualifies_only_declared_count_changes",
+        "tests/test_windowed_source_resolution_cli.py::test_current_partition_metadata_changes_only_for_current_family"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:00:44.058078+00:00",
+      "end_utc": "2026-10-19T02:00:47.919373+00:00",
+      "elapsed_s": 3.861296322000271,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/windowed-source-resolution-cli-metadata.log",
+      "log_sha256": "15de1e23b73c25abf705bed62dfb94b506fba7b67b2c9925556f21ef4afa125a"
+    },
+    {
+      "command": [
+        "python",
+        "-c",
+        "from pathlib import Path; import hashlib; p=Path('tools/compare_windowed_source_resolution.py'); print('CLI_SHA256',hashlib.sha256(p.read_bytes()).hexdigest()); lines=p.read_text().splitlines(); start=next(i for i,s in enumerate(lines) if s.startswith('def shared_inputs(')); stop=next(i for i,s in enumerate(lines) if s.startswith('def rational_record(')); print('\\n'.join(str(i+1)+': '+lines[i] for i in range(start,stop)))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:00:47.901406+00:00",
+      "end_utc": "2026-10-19T02:00:47.929008+00:00",
+      "elapsed_s": 0.027599859997280873,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/cli-review-current-derived-diff.log",
+      "log_sha256": "1ca75b5a5152a84fa92b59c382b197a6e27423a057e8e5f76c7eb84408378dea"
+    },
+    {
+      "command": [
+        "rg",
+        "-n",
+        "-A",
+        "18",
+        "-B",
+        "12",
+        "current_patch_intervals_m",
+        "mhdlab/temkin_planar.py",
+        "mhdlab/planar_release.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:00:52.639879+00:00",
+      "end_utc": "2026-10-19T02:00:52.645993+00:00",
+      "elapsed_s": 0.006113981995440554,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/cli-review-derived-canonical-validation.log",
+      "log_sha256": "eaebd63f0447f0e4e26f90e841738a81c76f37a83bffa765acbf030e5456c312"
+    },
+    {
+      "command": [
+        "python",
+        "-c",
+        "from pathlib import Path; import hashlib; p=Path('docs/source_window_resolution.md'); print('DOC_SHA256',hashlib.sha256(p.read_bytes()).hexdigest()); print(p.read_text())"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:01:04.153308+00:00",
+      "end_utc": "2026-10-19T02:01:04.183799+00:00",
+      "elapsed_s": 0.030497733001539018,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/cli-review-final-doc.log",
+      "log_sha256": "5db47c3b5e13c24ef73554539fb044d0ac80b85567edf52c4a2ad7228a1833a6"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import hashlib,json,pathlib; paths=[\"tests/test_windowed_source_resolution_cli.py\",\"tools/compare_windowed_source_resolution.py\",\"mhdlab/source_window_plan.py\"]; print(json.dumps({p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest() for p in paths},indent=2))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:01:05.496583+00:00",
+      "end_utc": "2026-10-19T02:01:05.525526+00:00",
+      "elapsed_s": 0.028943650002474897,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/windowed-source-resolution-cli-pins.log",
+      "log_sha256": "5b9a19b8d20d033a53755b37051d34e28bd54c8418780e334353bc0b2cfcdd57"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import pathlib; p=pathlib.Path(\"tools/compare_windowed_source_resolution.py\"); print(p.read_text()[-26000:] if p.exists() else \"CLI not yet on disk\")"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:01:35.943143+00:00",
+      "end_utc": "2026-10-19T02:01:35.969417+00:00",
+      "elapsed_s": 0.026275058000464924,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/profile-cli-shape-read.log",
+      "log_sha256": "8fffed175c6de0c7a3a68a760dba80bfdc84f9a97120ce0b077b04a1461a3d5e"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "tools/compare_windowed_source_resolution.py",
+        "tests/test_windowed_source_resolution_cli.py",
+        "docs/source_window_resolution.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:01:39.977902+00:00",
+      "end_utc": "2026-10-19T02:01:39.985607+00:00",
+      "elapsed_s": 0.007703802999458276,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/stage-window-resolution-cli.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Compare fixed source windows in preserved release histories"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:01:42.851934+00:00",
+      "end_utc": "2026-10-19T02:01:42.876800+00:00",
+      "elapsed_s": 0.02486509200389264,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/commit-window-resolution-cli.log",
+      "log_sha256": "efd878c512ac4f9988e7470e343cc7e08ce441c436193bab7c515f5e4706e68e"
+    },
+    {
+      "command": [
+        "python",
+        "-c",
+        "import hashlib,json,pathlib; base=pathlib.Path('/workspace/research_work/mitl-upstream-20261019T0150/cli-review'); f=json.loads((base/'findings.json').read_text()); pins={**f['reviewed_code_sha256'],**f['reviewed_documentation_sha256']}; actual={p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest() for p in pins}; assert actual==pins; print(json.dumps({'final_sha256':actual,'blocking_findings':f['blocking_findings'],'qualified_findings':len(f['qualified_findings']),'findings_sha256':hashlib.sha256((base/'findings.json').read_bytes()).hexdigest(),'passing_probes_rerun':False},indent=2))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:01:55.837683+00:00",
+      "end_utc": "2026-10-19T02:01:55.869128+00:00",
+      "elapsed_s": 0.031443305997527204,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/cli-review-final-freeze.log",
+      "log_sha256": "bb22cca8f8319f4f1e44917820fc76ebc39f49c4d8eb149cebc34b064896b122"
+    },
+    {
+      "command": [
+        "python",
+        "-c",
+        "import os,signal; os.kill(26569,signal.SIGINT)"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:02:02.313531+00:00",
+      "end_utc": "2026-10-19T02:02:02.340603+00:00",
+      "elapsed_s": 0.02707298399764113,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/stop-obsolete-study-codepin.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/compare_windowed_source_resolution.py",
+        "--config",
+        "/workspace/research_work/mitl-upstream-20261019T0150/snapshot-window-config.json",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261019T0150/snapshot-window-study"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:58:52.237998+00:00",
+      "end_utc": "2026-10-19T02:02:02.445731+00:00",
+      "elapsed_s": 190.2079824849934,
+      "exit_code": -2,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/preserved-snapshot-window-study-qualified-metadata.log",
+      "log_sha256": "b651ba94b16244a04707e978a4a767b35eea404becf1e8ae3a305871586aab83"
+    },
+    {
+      "command": [
+        "python",
+        "/workspace/research_work/mitl-upstream-20261019T0150/prepare_handoff.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:02:34.341146+00:00",
+      "end_utc": "2026-10-19T02:02:34.511711+00:00",
+      "elapsed_s": 0.1705657060010708,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/prepare-window-resolution-handoff.log",
+      "log_sha256": "cc362b727fb4e555dba90e2046c39f75c174a1e5a3c92d458e7a3364631fcb29"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_source_window_plan.py",
+        "tests/test_windowed_source_resolution_cli.py",
+        "--junitxml=/workspace/research_work/mitl-upstream-20261019T0150/isolated-results.xml",
+        "--basetemp=/workspace/research_work/mitl-upstream-20261019T0150/isolated_pytest"
+      ],
+      "cwd": "/workspace/handoffs/mitl-source-window-resolution-20261019T0150/source",
+      "start_utc": "2026-10-19T02:02:41.162023+00:00",
+      "end_utc": "2026-10-19T02:03:03.154385+00:00",
+      "elapsed_s": 21.992368646002433,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/isolated-window-resolution.log",
+      "log_sha256": "709df605b59eb093c08ef1948bff0d756a1e763cd37c51e718f5e96aff9775bb"
+    },
+    {
+      "command": [
+        "python",
+        "/workspace/research_work/mitl-upstream-20261019T0150/expand_dynamic_closure.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:03:36.505661+00:00",
+      "end_utc": "2026-10-19T02:03:36.541685+00:00",
+      "elapsed_s": 0.03602292199502699,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/expand-portable-dynamic-import-closure.log",
+      "log_sha256": "09ee5a0b4bc7d1197b174d5821dd1e9c0110a5a5900251b3131656fdccf08cbf"
+    },
+    {
+      "command": [
+        "python",
+        "/workspace/research_work/mitl-upstream-20261019T0150/expand_dynamic_closure.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:03:41.977543+00:00",
+      "end_utc": "2026-10-19T02:03:42.160701+00:00",
+      "elapsed_s": 0.18316167699958896,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/expand-portable-dynamic-import-closure-corrected.log",
+      "log_sha256": "f40cb743df8fe891dc8f20f8d0898dbbcffcb0848a69c452f83bec4ce0c889a3"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_windowed_source_resolution_cli.py::test_cli_does_not_advance_sources_or_sample_packets",
+        "--junitxml=/workspace/research_work/mitl-upstream-20261019T0150/isolated-repair-results.xml",
+        "--basetemp=/workspace/research_work/mitl-upstream-20261019T0150/isolated_repair_pytest"
+      ],
+      "cwd": "/workspace/handoffs/mitl-source-window-resolution-20261019T0150/source",
+      "start_utc": "2026-10-19T02:03:47.474337+00:00",
+      "end_utc": "2026-10-19T02:03:48.581382+00:00",
+      "elapsed_s": 1.1070525600007386,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/isolated-window-resolution-dynamic-guard.log",
+      "log_sha256": "f110ea65f6d33cdc6322b155f056abd01a7abd63e18b0f61e05569402024ad9d"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import ast,pathlib,hashlib; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction/reduce_saved_profiles.py\"); ast.parse(p.read_text()); print(\"syntax_passed\",hashlib.sha256(p.read_bytes()).hexdigest())"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:03:55.860695+00:00",
+      "end_utc": "2026-10-19T02:03:55.912776+00:00",
+      "elapsed_s": 0.0520808310029679,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction-syntax.log",
+      "log_sha256": "7e0f7da59a0110ee6d1e705a4109a92dc3cef85fd34e74769d42be76c3a1a0ef"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import ast,pathlib,hashlib; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction/reduce_saved_profiles.py\"); ast.parse(p.read_text()); print(\"syntax_passed\",hashlib.sha256(p.read_bytes()).hexdigest())"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:04:35.654392+00:00",
+      "end_utc": "2026-10-19T02:04:35.697495+00:00",
+      "elapsed_s": 0.04310261399950832,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction-associated-syntax.log",
+      "log_sha256": "04ab10b340a611c737ae52a780a94f0f72b53db1c10216cd2eb7c202f911ee7c"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/compare_windowed_source_resolution.py",
+        "--config",
+        "/workspace/research_work/mitl-upstream-20261019T0150/snapshot-window-config.json",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261019T0150/snapshot-window-study"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:02:24.135741+00:00",
+      "end_utc": "2026-10-19T02:06:47.170076+00:00",
+      "elapsed_s": 263.03435262900166,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/preserved-snapshot-window-study-final.log",
+      "log_sha256": "951e2e513acfb5f043c4e443adf021260db12ad8da1e592e3f24484321e3b63a"
+    },
+    {
+      "command": [
+        "python",
+        "-c",
+        "import ast,pathlib; w=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261019T0150\"); names=(\"freeze_handoff.py\",\"verify_delivery.py\",\"complete_pass.py\"); [ast.parse((w/n).read_text()) for n in names]; print(\"Parsed\",len(names),\"new handoff scripts\")"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:07:03.385807+00:00",
+      "end_utc": "2026-10-19T02:07:03.421733+00:00",
+      "elapsed_s": 0.03592882199882297,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/handoff-script-syntax.log",
+      "log_sha256": "14e518ebb01f7ef2555bf9ccc1f33aef67ab65324b115b77a2a7959624f1bfce"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import ast,pathlib,hashlib; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction/reduce_saved_profiles.py\"); ast.parse(p.read_text()); print(\"syntax_passed\",hashlib.sha256(p.read_bytes()).hexdigest())"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:07:50.636718+00:00",
+      "end_utc": "2026-10-19T02:07:50.673475+00:00",
+      "elapsed_s": 0.03675733999989461,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction-paired-controls-syntax.log",
+      "log_sha256": "32af2f1b64f4b9cbf9f9ce26b7e98bd64f9961685a79138b0d257f46e19743b7"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction/reduce_saved_profiles.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:07:53.562658+00:00",
+      "end_utc": "2026-10-19T02:07:55.616623+00:00",
+      "elapsed_s": 2.0539737130020512,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction-initial.log",
+      "log_sha256": "b924e4b383d9d4110b4c77f51efb709cab38be56a6f56d22632484d7e80e5dee"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import pathlib,json,hashlib; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction/artifacts\"); j=json.loads((p/\"report.json\").read_text()); print(\"SHA256\",json.dumps({f.name:hashlib.sha256(f.read_bytes()).hexdigest() for f in p.iterdir() if f.is_file()},indent=2)); print(\"PROFILE_SUMMARIES\",json.dumps([{k:v for k,v in r.items() if k not in (\"components\",\"closure\")} for r in j[\"profiles\"]],indent=2)); print(\"RELEASE_REFINEMENT\",json.dumps(j[\"release_refinement_summary\"],indent=2)); print(\"WIDTH_CONTROLS\",json.dumps([{k:v for k,v in r.items() if k not in (\"resolved_value\",\"matched_uniform_width_value\")} for r in j[\"highest_order_paired_width_controls\"] if r[\"observable\"] in (\"mean_width_centered_square_m2\",\"cov_time_width_centered_square_s_m2\",\"cov_expected_translational_energy_width_centered_square_j_m2\") and \"s64-\" in r[\"case_id\"]],indent=2)); print(\"ALL_INVARIANT_DIFFERENCES_ZERO\",all(r[\"resolved_minus_matched_uniform_width\"][\"value\"]==0 for r in j[\"highest_order_paired_width_controls\"] if r[\"category\"]==\"width_independent_invariant\")); print(\"CLOSURE\",json.dumps([{k:v for k,v in r[\"closure\"].items() if k not in (\"moment_order_count_associations\",\"scalar_density_unavailable_components\")} for r in j[\"profiles\"]][-2:],indent=2))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:08:20.802657+00:00",
+      "end_utc": "2026-10-19T02:08:20.871005+00:00",
+      "elapsed_s": 0.06834831200103508,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction-highlights-pins.log",
+      "log_sha256": "247ef516e03e08be9b8ae77e662eed9447df0cf602aa489311cfaac09a78196c"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import pathlib; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction\"); original=p/\"artifacts\"; destination=p/\"artifacts-initial\"; assert original.is_dir() and not destination.exists(); original.rename(destination); print(str(original),\"preserved as\",str(destination))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:08:52.840494+00:00",
+      "end_utc": "2026-10-19T02:08:52.865094+00:00",
+      "elapsed_s": 0.024600693002867047,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/profile-preserve-initial-artifacts.log",
+      "log_sha256": "5723c3b164e4f69c6b81c24a260f8df9ba6729fde45da6f7bb82c1f3d857df5b"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction/reduce_saved_profiles.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:08:52.999161+00:00",
+      "end_utc": "2026-10-19T02:08:55.039823+00:00",
+      "elapsed_s": 2.040688165994652,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction-numeric-csv.log",
+      "log_sha256": "baad46f9632a64370c84a009bc8870d439b57d6ba3ebed786c090bbc8ef521b4"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import pathlib,json,hashlib; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction\"); s=(p/\"reduce_saved_profiles.py\").read_text(); start=s.index(\"\\ndef numeric_change_rows(\"); stop=s.index(\"\\ndef paired_width_controls(\",start); initial=s[:start]+s[stop:]; initial=initial.replace(\"            data=numeric_change_rows(data)\\n\",\"\"); digest=hashlib.sha256(initial.encode()).hexdigest(); expected=json.loads((p/\"artifacts-initial/report.json\").read_text())[\"profile_script_sha256\"]; assert digest==expected,(digest,expected); target=p/\"reduce_saved_profiles.initial.py\"; assert not target.exists(); target.write_text(initial); print(\"preserved_byte_identical_initial_script\",target,digest)"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:09:14.305556+00:00",
+      "end_utc": "2026-10-19T02:09:14.376146+00:00",
+      "elapsed_s": 0.07059307600138709,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/profile-preserve-initial-script.log",
+      "log_sha256": "719ad98c9b38f96f84d57121c701eb5a5d29be3cd1e61bbacfc5346e38b8511e"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import pathlib,json,hashlib,csv; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261019T0150/profile-reduction\"); a=p/\"artifacts\"; j=json.loads((a/\"report.json\").read_text()); print(\"PINS\",json.dumps({f.name:hashlib.sha256(f.read_bytes()).hexdigest() for f in a.iterdir() if f.is_file()},indent=2)); print(\"SCRIPT_SHA\",j[\"profile_script_sha256\"]); print(\"IMAGE_IDENTICAL_TO_INITIAL\",{name:hashlib.sha256((a/name).read_bytes()).digest()==hashlib.sha256((p/\"artifacts-initial\"/name).read_bytes()).digest() for name in (\"source_width_profiles.png\",\"source_width_profiles.pdf\")}); print(\"RELEASE_REFINEMENT\",[{\"snapshot\":r[\"estimate_snapshot_intervals\"],\"reference\":r[\"reference_snapshot_intervals\"],\"window\":r[\"window_index\"],\"relative\":r[\"relative_to_reference\"][\"value\"]} for r in j[\"release_refinement_summary\"]]); print(\"REFINED_PROFILES\",[{k:r[k] for k in (\"window_index\",\"window\",\"released_number\",\"resolved_max_to_min_density_ratio\",\"resolved_vs_uniform_count_l1_fraction\",\"resolved_min_expected_translation_ev\",\"resolved_max_expected_translation_ev\",\"matched_uniform_width_expected_translation_ev\")} for r in j[\"profiles\"] if r[\"snapshot_intervals\"]==64]); print(\"ALL_INVARIANTS_ZERO\",all(r[\"resolved_minus_matched_uniform_width\"][\"value\"]==0 for r in j[\"highest_order_paired_width_controls\"] if r[\"category\"]==\"width_independent_invariant\"));\nfor filename in (\"source_resolution_differences.csv\",\"quadrature_changes.csv\"):\n rows=list(csv.DictReader((a/filename).open())); print(filename,\"rows\",len(rows),\"numeric_scalar\",all(not v.startswith(\"{\") for r in rows for v in r.values()))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:09:32.025604+00:00",
+      "end_utc": "2026-10-19T02:09:32.110881+00:00",
+      "elapsed_s": 0.08528208800271386,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/profile-final-highlights-pins.log",
+      "log_sha256": "10b72ff4062ea23fb7ef420c6e147599405091eb59f0f8dfeb0eb9ee8cf74a11"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0150/window-review/profile_readback.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:09:57.126381+00:00",
+      "end_utc": "2026-10-19T02:09:57.923516+00:00",
+      "elapsed_s": 0.7971438890017453,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/profile_independent_readback.log",
+      "log_sha256": "56b087acaa023d27b764fa8dcb2a3f664ada1e58e62b9f246b0d55c48db2f293"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0150/window-review/profile_write_completion.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T02:11:05.761836+00:00",
+      "end_utc": "2026-10-19T02:11:05.904559+00:00",
+      "elapsed_s": 0.1426944509948953,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0150/profile_review_completion.log",
+      "log_sha256": "155c1f179f49756659212c6a8e8ccafa0d26cd188c834186288a1e2d71f23bc3"
+    }
+  ],
+  "limits": [
+    "Manufactured generic pool and polynomial temperatures; no physical water coverage, calibration or spectral discrimination claim.",
+    "Original arrays are reused; constructor/readback validation replays the declared frozen release law without evolving replacement source histories.",
+    "Width/current references survive, but matching spatial/integration family arrays are absent; hashes cannot reconstruct those missing histories.",
+    "Finite quadrature changes and fixed-order source differences remain separate estimates, not certified bounds or experimental uncertainty.",
+    "Coordinate tolerance does not bound kinetic source-mass sensitivity; qualified endpoint rounding may close an exact tiny gap.",
+    "Selected numerical code pins exclude eager legacy imports; the portable empty initializer is explicitly identified.",
+    "No separately owned solver/state-data edits, Quark source/build/runner/jobs, actual FLASH execution, external messages or remote publication."
+  ],
+  "attempts": "Initial saved study rejected resolution-dependent metadata; that strict association was qualified. One retry was interrupted after an unrelated current-grid metadata correction changed its code pin, before any result publication. Final run uses frozen code. Inventory import typo, portable dynamic-import failure and profile CSV numeric-column formatting correction are retained with their corrected artifacts."
+}

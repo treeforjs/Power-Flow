@@ -1,0 +1,602 @@
+{
+  "schema": "mitl-shot17133-drive-recovery-verification-v1",
+  "created_utc": "2026-10-19T04:18:15.457487+00:00",
+  "source_commit": "bea74a0e08bb531cf790a73bc67f97eb1d6de97b",
+  "base_commit": "079bddf9f81021ee4f3d79c42011185511d53747",
+  "dataset": {
+    "csv_path": "data/dissertation/shot_17133_current.csv",
+    "metadata_path": "data/dissertation/shot_17133_current.json",
+    "producer_path": "tools/recover_dissertation_drive_17133.py",
+    "csv_sha256": "2c54d2dbaec6b6c8fcf2e45b5abd837aa72999f5fd14217f530277ffd5949076",
+    "metadata_sha256": "3e278a763cb95890f01580528857bda13c2d1ddb2fa9e9c9f7b32ce715fdc3e3",
+    "producer_sha256": "07c0426ea28e91d09d48d683c55cdc96c3444396fce74ae78518e1f8dc4fae96",
+    "retained_rows": 132,
+    "columns": [
+      "source_vertex_index",
+      "page_x_pt",
+      "page_y_pt",
+      "time_ns",
+      "time_s",
+      "time_digitization_lower_ns",
+      "time_digitization_upper_ns",
+      "current_MA",
+      "current_A",
+      "current_digitization_lower_A",
+      "current_digitization_upper_A",
+      "occluded_by_legend"
+    ],
+    "source": {
+      "author": "Trevor Johannes Smith",
+      "year": 2025,
+      "title": "Characterizing Desorbed Surface Contaminants Leading to Plasma Formation in Power Feeds of Pulsed Power Accelerators",
+      "item_url": "https://deepblue.lib.umich.edu/items/9ccfa886-0b19-4bd8-b3b2-bb685b9ddefc",
+      "pdf_filename": "smtrevor_1.pdf",
+      "pdf_sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+      "figure": "C.19",
+      "printed_page": 165,
+      "pdf_page": 190,
+      "pdf_page_index_zero_based": 189,
+      "page_content_stream_xrefs": [
+        4991
+      ],
+      "decoded_page_content_stream_sha256": "0a6619c5541d64d19d1534e738268c6d7868eca658152967a2f8c8dfe9c57edb",
+      "native_image_pixel_hash": null,
+      "native_image_pixel_hash_applicability": "not applicable: C.19 contains vector paths and no embedded raster",
+      "parser_reference_version": "PyMuPDF 1.28.2",
+      "parser_used_version": "1.28.2",
+      "identity_guards": "Exact PDF, page content, connected vector geometry, native tick coordinates, axes, gate and later legend are checked"
+    },
+    "experiment": {
+      "facility": "Mykonos",
+      "shot": 17133,
+      "foil_material": "SS304",
+      "foil_thickness_um": 200,
+      "thickness_evidence": [
+        "Figure C.19 in-plot title",
+        "Figure C.19 caption"
+      ],
+      "unresolved_caption_conflicts": []
+    },
+    "observable": {
+      "quantity": "published_average_current",
+      "original_units": "MA",
+      "output_units": "A",
+      "time_coordinate": "unshifted source plotted time in ns",
+      "time_origin_reference": null,
+      "trigger_or_current_start_offset_recovered": false,
+      "raw_oscilloscope_data": false,
+      "independent_samples": false,
+      "source_plot_simplification_or_filtering": "unknown",
+      "signed_current_vertices_preserved": true,
+      "negative_early_current_vertices_preserved": true,
+      "retained_negative_vertex_count": 0,
+      "negative_current_handling": "no sign floor is applied; the inspected retained C.19 current vertices are all positive"
+    },
+    "vector_path": {
+      "drawing_index_zero_based": 20,
+      "drawing_sequence": 55,
+      "RGB": [
+        0.6972659826278687,
+        0.13305699825286865,
+        0.13305699825286865
+      ],
+      "stroke_width_pt": 1.2999999523162842,
+      "segments": 133,
+      "encoded_vertices": 134,
+      "retained_vertices": 132,
+      "canonical_geometry_sha256": "cebaa12de7cf1187cf0a8f2766f773ba165408d4d548e96ab8ebe3709d85117a",
+      "canonical_geometry_hash_format": "sorted compact JSON with color, width, points keys; native float coordinates",
+      "excluded_vertices": [
+        {
+          "source_vertex_index": 0,
+          "page_point": [
+            110.10234832763672,
+            476.4044189453125
+          ],
+          "reason": "outside_displayed_axes"
+        },
+        {
+          "source_vertex_index": 133,
+          "page_point": [
+            509.33624267578125,
+            372.32122802734375
+          ],
+          "reason": "outside_displayed_axes"
+        }
+      ],
+      "axes_rectangle_pt": [
+        110.60025024414062,
+        240.18499755859375,
+        508.8389892578125,
+        501.3420104980469
+      ],
+      "later_legend_drawing_index_zero_based": 27,
+      "later_legend_drawing_sequence": 63,
+      "later_legend_bounding_rectangle_pt": [
+        411.8297424316406,
+        243.43499755859375,
+        505.5889892578125,
+        286.68536376953125
+      ],
+      "legend_current_sample_drawing_index_zero_based": 28,
+      "legend_current_sample_drawing_sequence": 65,
+      "occlusion_test": "vertex inside later white legend bounding rectangle; conservative for rounded corners",
+      "vertices_behind_legend": 0
+    },
+    "status": "reconstructed_published_vector_polyline",
+    "schema_version": 1,
+    "limits": [
+      "Encoded display vertices are recovered from the published PDF, not original acquisition samples or a fitted drive waveform.",
+      "Later white legend overlap is explicitly tested and flagged, including when no current vertices lie behind it.",
+      "The two original vertices outside the displayed axes are excluded; no boundary intersections or points at zero or 200 ns are inserted.",
+      "No physical time origin, pre-pulse zero, tail, symmetry, smoothing, resampling or extrapolation is imposed.",
+      "Signed values are preserved without flooring; zero negative retained vertices is a property of this source trace, not a clipping rule.",
+      "The plotted vertices are correlated display geometry; original filtering, simplification, calibration uncertainty and shot variability are unknown.",
+      "Display bounds quantify stroke width and tick-fit residuals only, not physical uncertainty or confidence intervals.",
+      "The VUV gate is an independent published rectangle. Breakdown, trigger reference and Table 4.1 context are not inferred from this page.",
+      "Decimal precision preserves coordinate conversion and does not establish physical measurement accuracy."
+    ]
+  },
+  "results": {
+    "new_dataset_rows": 132,
+    "csv_column_count": 12,
+    "independent_readback_passed": true,
+    "portable_executions_performed": false,
+    "new_dataset_loader_and_extrapolation_controls_passed": true,
+    "native_vertices": 134,
+    "retained_vertices": 132,
+    "numeric_csv_cells_checked": 1320,
+    "tick_anchors_checked": 17,
+    "loader_knot_queries_checked": 132,
+    "loader_interior_queries_checked": 131,
+    "inspector_cli_runs": 1,
+    "outside_support_rejections": 4,
+    "source_guard_rejections": 3,
+    "successful_recovery_replays": 0,
+    "packaging_source_recovery_repeated": false,
+    "old_recoveries_repeated": false,
+    "old_test_suites_repeated": false,
+    "full_source_pdf_included": false,
+    "raw_page_pdf_included": false,
+    "prospective_source_local_panels_included": false
+  },
+  "commits": [
+    "97d4e95f951c8959b03b3987267560cab2f604af Recover shot 17133 published current with native-vector provenance",
+    "bea74a0e08bb531cf790a73bc67f97eb1d6de97b Associate recovered drive with same-shot heating evidence and timing limits"
+  ],
+  "independent_completion": {
+    "schema": "mitl-independent-shot17133-recovery-completion-v1",
+    "status": "passed",
+    "all_checks_passed": true,
+    "completed_utc": "2026-10-19T04:16:51.947324+00:00",
+    "public_source_sha256": {
+      "tools/recover_dissertation_drive_17133.py": "07c0426ea28e91d09d48d683c55cdc96c3444396fce74ae78518e1f8dc4fae96",
+      "data/dissertation/shot_17133_current.csv": "2c54d2dbaec6b6c8fcf2e45b5abd837aa72999f5fd14217f530277ffd5949076",
+      "data/dissertation/shot_17133_current.json": "3e278a763cb95890f01580528857bda13c2d1ddb2fa9e9c9f7b32ce715fdc3e3"
+    },
+    "artifact_sha256": {
+      "independent-verification/inspect_native.py": "389e7d6656d7160f2fdfe3c8ee41d76f382806dfe08d3ea9e07926121ca8b7cd",
+      "independent-verification/native-source.json": "930fca123fe39db62319b34e4c332701b7b8403059235c043e99cc08bed28879",
+      "independent-verification/native-page190.png": "5b1b20478a0ad2a6658c18de1f59395d3826c01777fa904af02ee8b1e673fd3a",
+      "independent-verification/coordinate_reference.py": "4ed7d5146c9b419e62d63ad19c6532f77fc151cecd71c5aa3b08a7b0162ce96f",
+      "independent-verification/coordinate-reference.json": "532742892491d202fca1db68b1ed751ca80e9ccab415d1885fe6c2bd9af36717",
+      "independent-verification/readback.py": "f5a22350bc6c8b94e387f9287bf20c3acd631a1519822d173cbc3661edfbcd4d",
+      "independent-verification/readback.json": "073286d30a3bf966678a00aec8a3c6b650bed9ef7e114911dd36b3571b1e97bb",
+      "independent-verification/drive_inspection.json": "7fd45be4a5a11ea60b2466fb7fdee5c30b42c4de5854f0a92a4dcf0e03400b02",
+      "independent-verification/drive_inspection.png": "f37f910d9969f478ea18197c04500cce17eb148f4e2a429ccf03505a6e6bd25b",
+      "independent-verification/drive_and_guards.py": "08f66b4be452a34b7b2f824b3d09961d1899ed6db49802c5ab22592a637d2fae",
+      "independent-verification/drive-and-guards.json": "56359610ef30715dad8ce555256972ecc2600a48f25cb5714ce4ffef35f530a6",
+      "independent-verification/wrong-source-control.pdf": "582135af040d2e978f3a217c2f7bc2c49e5711cad2fa1b802c20c7bfaf1d52e0",
+      "independent-verification/write_completion.py": "dbdc665fa9c22499b4275375a8bc8fabf9b7a09e0a81e656d150c8839478c229",
+      "independent-verification/write_completion.initial.py": "b6b7164f7adb79567d824ea438bb7bfc287742aa070b4a0d56b7ae165b313011",
+      "c19-independent-native-inspection.log": "e88ee2f71774296b6d803f6963e6f00b4aec2d409ef1d622990315f5d974a622",
+      "c19-independent-coordinate-reference.log": "4f8fe2f8e8db4fdbb721e02cef6d8a3ac85ecf3a700f9194ba2eebc5aa9a1f2c",
+      "c19-independent-final-readback.log": "013d3dbb7b0021a2770e5709acca81d6d8507465b1227008dfe6f9fde84e1b84",
+      "c19-new-drive-inspector.log": "7fd45be4a5a11ea60b2466fb7fdee5c30b42c4de5854f0a92a4dcf0e03400b02",
+      "c19-drive-api-and-source-negative-controls.log": "6715d6a77e7746c2db03b0b4b77493d5501d4b804802663445e6f2a2cf869d0e",
+      "c19-independent-completion.log": "efaa947912a7bfbcab028dd9cc4f1a930f5a2bbd62ebaf51eb138bd956a2a6b5"
+    },
+    "source_pdf_sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+    "source_content_stream_sha256": "0a6619c5541d64d19d1534e738268c6d7868eca658152967a2f8c8dfe9c57edb",
+    "native_geometry_sha256": "cebaa12de7cf1187cf0a8f2766f773ba165408d4d548e96ab8ebe3709d85117a",
+    "source": {
+      "figure": "C.19",
+      "printed_page": 165,
+      "pdf_page": 190,
+      "pdf_page_index": 189,
+      "shot": 17133,
+      "facility": "Mykonos"
+    },
+    "input_status": "reconstructed_published_vector_polyline",
+    "source_kind": "reconstructed",
+    "raw_oscilloscope_data": false,
+    "independent_acquisition_samples": false,
+    "native_vertices": 134,
+    "retained_vertices": 132,
+    "excluded_original_vertices": [
+      0,
+      133
+    ],
+    "numeric_csv_cells_checked": 1320,
+    "tick_anchors_checked": 17,
+    "loader_knot_queries_checked": 132,
+    "loader_interior_queries_checked": 131,
+    "inspector_cli_runs": 1,
+    "outside_support_rejections": 4,
+    "source_guard_rejections": 3,
+    "successful_recovery_replays": 0,
+    "old_suites_repeated": false,
+    "portable_test_execution_claimed": false,
+    "source_evolution_or_solver_calls": 0,
+    "support_csv_s": [
+      7.49788055492e-10,
+      1.9674963671e-07
+    ],
+    "retained_peak": {
+      "interpretation": "largest_retained_vertex_of_piecewise_linear_display_curve",
+      "current_A": 820547.114561,
+      "source_time_s": 1.192499073e-07,
+      "selected_time_s": 1.192499073e-07,
+      "source_vertex_index": 96,
+      "occluded_by_legend": false
+    },
+    "outside_support_controls": [
+      {
+        "case": "one_ulp_before_support",
+        "query_s": 7.497880554919999e-10,
+        "rejected": true,
+        "reason": "query lies outside trace support; extrapolation is forbidden"
+      },
+      {
+        "case": "one_ulp_after_support",
+        "query_s": 1.9674963671000002e-07,
+        "rejected": true,
+        "reason": "query lies outside trace support; extrapolation is forbidden"
+      },
+      {
+        "case": "unrepresented_zero_ns_endpoint",
+        "query_s": 0.0,
+        "rejected": true,
+        "reason": "query lies outside trace support; extrapolation is forbidden"
+      },
+      {
+        "case": "unrepresented_two_hundred_ns_endpoint",
+        "query_s": 2e-07,
+        "rejected": true,
+        "reason": "query lies outside trace support; extrapolation is forbidden"
+      }
+    ],
+    "new_source_guard_controls": [
+      {
+        "case": "wrong_pdf_pin",
+        "rejected_before_calibration": true,
+        "reason": "PDF differs from the inspected dissertation"
+      },
+      {
+        "case": "wrong_native_path_pin",
+        "rejected_before_calibration": true,
+        "reason": "Current vector geometry changed; inspect before recalibrating"
+      },
+      {
+        "case": "wrong_native_tick_anchor",
+        "rejected_before_calibration": true,
+        "reason": "Inspected tick coordinates changed"
+      }
+    ],
+    "physical_trigger_alignment_established": false,
+    "physical_uncertainty_established": false,
+    "independent_interpolation_integrals": {
+      "integral_I_A_s": {
+        "value": 0.1077538357482341,
+        "numerator": "2291670642076195921192051636616752929",
+        "denominator": "21267647932558653966460912964485513216"
+      },
+      "integral_I_squared_A2_s": {
+        "value": 71294.94906207337,
+        "numerator": "2500744434903445129053827805668009090613008621348795341",
+        "denominator": "35076039295941670036888435985190792471742381031424"
+      },
+      "is_heat": false
+    },
+    "commands": [
+      {
+        "command": [
+          "/workspace/Power-Flow/.venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261019T0405/independent-verification/inspect_native.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-19T04:06:56.627178+00:00",
+        "end_utc": "2026-10-19T04:06:56.932978+00:00",
+        "elapsed_s": 0.30580841600021813,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261019T0405/c19-independent-native-inspection.log",
+        "log_sha256": "e88ee2f71774296b6d803f6963e6f00b4aec2d409ef1d622990315f5d974a622"
+      },
+      {
+        "command": [
+          "/workspace/Power-Flow/.venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261019T0405/independent-verification/coordinate_reference.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-19T04:09:44.137814+00:00",
+        "end_utc": "2026-10-19T04:09:44.186585+00:00",
+        "elapsed_s": 0.048771180998301134,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261019T0405/c19-independent-coordinate-reference.log",
+        "log_sha256": "4f8fe2f8e8db4fdbb721e02cef6d8a3ac85ecf3a700f9194ba2eebc5aa9a1f2c"
+      },
+      {
+        "command": [
+          "/workspace/Power-Flow/.venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261019T0405/independent-verification/readback.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-19T04:12:40.531528+00:00",
+        "end_utc": "2026-10-19T04:12:40.597104+00:00",
+        "elapsed_s": 0.06557723799778614,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261019T0405/c19-independent-final-readback.log",
+        "log_sha256": "013d3dbb7b0021a2770e5709acca81d6d8507465b1227008dfe6f9fde84e1b84"
+      },
+      {
+        "command": [
+          "/workspace/Power-Flow/.venv/bin/python",
+          "-W",
+          "error",
+          "tools/inspect_current_drive.py",
+          "--csv",
+          "data/dissertation/shot_17133_current.csv",
+          "--provenance",
+          "data/dissertation/shot_17133_current.json",
+          "--preserve-source-axis",
+          "--integrate",
+          "7.49788055492e-10",
+          "1.9674963671e-07",
+          "--json-out",
+          "/workspace/research_work/mitl-upstream-20261019T0405/independent-verification/drive_inspection.json",
+          "--plot",
+          "/workspace/research_work/mitl-upstream-20261019T0405/independent-verification/drive_inspection.png"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-19T04:12:46.261669+00:00",
+        "end_utc": "2026-10-19T04:12:47.856053+00:00",
+        "elapsed_s": 1.594391683996946,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261019T0405/c19-new-drive-inspector.log",
+        "log_sha256": "7fd45be4a5a11ea60b2466fb7fdee5c30b42c4de5854f0a92a4dcf0e03400b02"
+      },
+      {
+        "command": [
+          "/workspace/Power-Flow/.venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261019T0405/independent-verification/drive_and_guards.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-19T04:13:51.546484+00:00",
+        "end_utc": "2026-10-19T04:13:52.026647+00:00",
+        "elapsed_s": 0.480169444999774,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261019T0405/c19-drive-api-and-source-negative-controls.log",
+        "log_sha256": "6715d6a77e7746c2db03b0b4b77493d5501d4b804802663445e6f2a2cf869d0e"
+      }
+    ],
+    "completion_aggregation_correction": {
+      "initial_command": {
+        "command": [
+          "/workspace/Power-Flow/.venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261019T0405/independent-verification/write_completion.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-19T04:16:33.198406+00:00",
+        "end_utc": "2026-10-19T04:16:33.282899+00:00",
+        "elapsed_s": 0.08449379599915119,
+        "exit_code": 1,
+        "log": "/workspace/research_work/mitl-upstream-20261019T0405/c19-independent-completion.log",
+        "log_sha256": "efaa947912a7bfbcab028dd9cc4f1a930f5a2bbd62ebaf51eb138bd956a2a6b5"
+      },
+      "cause": "Completion-only draft looked for observable.status; the preserved metadata declares status at the top level.",
+      "correction": "Read metadata.status. No recovery, loader, CSV readback or other completed check was rerun or changed.",
+      "initial_script_sha256": "b6b7164f7adb79567d824ea438bb7bfc287742aa070b4a0d56b7ae165b313011"
+    },
+    "limits": [
+      "The reference checks native published vector geometry using an independent exact-rational tick map; it does not recover raw acquisition samples, diagnostic calibration or physical uncertainty.",
+      "The shared Signal Height axis has a zero-current tick above the frame bottom. The literal MA legend supplies the displayed current unit; a missing closing bracket in extracted text is explicitly recorded and normalized.",
+      "Only original in-frame vertices 1 through 132 are retained. Zero and 200 ns are outside this bounded dataset; no intersections, padding, extrapolation, tail or smoothing were added.",
+      "The VUV gate is independently recovered plot geometry. Trigger, breakdown, acquisition registration and Table 4.1 timing remain unknown.",
+      "All three deliberately invalid source controls reject before calibration and write no recovery output. Their monkeypatches are process-local; original public files retain their frozen hashes.",
+      "Exactly one new-data inspector command ran. Piecewise-linear current and squared-current integrals are diagnostics, not Joule heat, a circuit fit or a FLASH boundary.",
+      "No old recovery, prior passing suite, source evolution, kinetic model, spectrum calculation, external job or actual FLASH execution was repeated or supplied."
+    ]
+  },
+  "recovery_record": {
+    "schema": "mitl-shot17133-vector-recovery-record-v1",
+    "public_sha256": {
+      "tools/recover_dissertation_drive_17133.py": "07c0426ea28e91d09d48d683c55cdc96c3444396fce74ae78518e1f8dc4fae96",
+      "data/dissertation/shot_17133_current.csv": "2c54d2dbaec6b6c8fcf2e45b5abd837aa72999f5fd14217f530277ffd5949076",
+      "data/dissertation/shot_17133_current.json": "3e278a763cb95890f01580528857bda13c2d1ddb2fa9e9c9f7b32ce715fdc3e3"
+    },
+    "input_pdf_sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+    "page_index_zero_based": 189,
+    "printed_page": 165,
+    "figure": "C.19",
+    "decoded_page_content_sha256": "0a6619c5541d64d19d1534e738268c6d7868eca658152967a2f8c8dfe9c57edb",
+    "canonical_current_path_sha256": "cebaa12de7cf1187cf0a8f2766f773ba165408d4d548e96ab8ebe3709d85117a",
+    "retained_source_indices": [
+      1,
+      132
+    ],
+    "retained_vertices": 132,
+    "native_vertices": 134,
+    "excluded_source_indices": [
+      0,
+      133
+    ],
+    "csv_time_support_ns": [
+      0.749788055492,
+      196.74963671
+    ],
+    "native_time_support_ns": [
+      0.7497880554918481,
+      196.74963671006165
+    ],
+    "csv_peak": {
+      "source_vertex_index": 96,
+      "time_ns": 119.2499073,
+      "current_A": 820547.114561
+    },
+    "native_current_extent_A": [
+      6012.0713604687735,
+      820547.1145611181
+    ],
+    "negative_current_vertex_count": 0,
+    "legend_occlusion_count": 0,
+    "display_readout_bounds": {
+      "interpretation": "conservative displayed stroke envelope plus maximum tick-fit residual; not physical uncertainty or confidence intervals",
+      "coordinate_half_stroke_pt": 0.6499999761581421,
+      "time_plus_minus_ns": 0.3271963206128668,
+      "current_plus_minus_A": 2738.323481449829,
+      "native_pixel_readout_uncertainty_applicable": false
+    },
+    "VUV_gate": {
+      "kind": "published_gate_rectangle_not_breakdown",
+      "drawing_index_zero_based": 2,
+      "page_rectangle_pt": [
+        162.44944763183594,
+        240.18499755859375,
+        168.42311096191406,
+        501.3420104980469
+      ],
+      "plotted_time_bounds_ns": [
+        26.039342959313593,
+        29.039399426393466
+      ],
+      "display_coordinate_bound_ns": 0.3271963206128668,
+      "table_4_1_published_acquisition_time_ns": null,
+      "table_4_1_relative_to_breakdown": null,
+      "actual_breakdown_time_ns": null,
+      "exact_trigger_reference": null,
+      "gate_edge_meaning": "geometrical extent of published rectangle; electronics edge definition not recovered"
+    },
+    "metadata_schema_version": 1,
+    "CSV_columns": [
+      "source_vertex_index",
+      "page_x_pt",
+      "page_y_pt",
+      "time_ns",
+      "time_s",
+      "time_digitization_lower_ns",
+      "time_digitization_upper_ns",
+      "current_MA",
+      "current_A",
+      "current_digitization_lower_A",
+      "current_digitization_upper_A",
+      "occluded_by_legend"
+    ],
+    "successful_new_recovery_runs": 1,
+    "old_recovery_or_numerical_history_runs": 0,
+    "public_data_changed_after_recovery": false,
+    "QA_inspection": {
+      "native_page_and_two_panel_plot_viewed": true,
+      "observations": [
+        "Recovered vertices align with the red source current curve.",
+        "The peak is below the later white legend, and no current vertices are legend-occluded.",
+        "The published VUV rectangle is separate from the current trace and any breakdown claim.",
+        "The reconstructed support preserves only native in-frame vertices with no endpoint padding."
+      ]
+    },
+    "work_artifact_sha256": {
+      "source_geometry.json": "9f51c7f42b86c703c27c5b89fc0d45b786276da5b06ecbc6a55961cb93c25110",
+      "page190.png": "56beb62e601394b6a01f4cec1de3db82b63c61848df519aafba35e1b9c9b9f2b",
+      "page190.pdf": "fc3b0e3a72636ba08fc14a88269bc8d7c996796044b2bd4850ef929bf280b628",
+      "shot_17133_current_qa.png": "21eba0392bdee1ae8a2c78255b045f20b2e7a3e72bea81af29a30474faf63f55",
+      "shot_17133_current_qa.pdf": "cae3a3a09d353b4a9e9c42750e49681d6d3c739db81c85840dea7a963fa228d4",
+      "inspect_vector.py": "7df5864dfc637393b2544aa3932ef45a67d1d65b9adb6e3eb1800369b3a56530"
+    },
+    "raw_page_excerpt_delivery": "page190.pdf is retained locally for source inspection and excluded from delivery"
+  },
+  "independent_completion_sha256": "b1f3fe19e8f22cd3a89233c1f037cbf0ff056cb623a0e36d882f1639faa66754",
+  "selection_sha256": "ec7edf56595358a4c44bd4f59c8dd6514d8cf9bf48e5390adf0c26b5e02f247e",
+  "command_snapshot": {
+    "scope": "All completed pass records before freezing; later freeze/verification/completion records remain local.",
+    "copied_root_files": [
+      "associate-recovered-drive-docs.log",
+      "c19-axis-tick-lines.log",
+      "c19-cached-pdf-path.log",
+      "c19-calibration-metadata-fields.log",
+      "c19-completion-draft-notes-validation.log",
+      "c19-completion-draft-syntax.log",
+      "c19-completion-final-draft-notes-validation.log",
+      "c19-completion-final-draft-syntax.log",
+      "c19-drive-api-and-source-negative-controls.log",
+      "c19-drive-consumer-api-read.log",
+      "c19-drive-entrypoints.log",
+      "c19-drive-inspector-path.log",
+      "c19-existing-cache-conventions.log",
+      "c19-final-input-contract.log",
+      "c19-independent-completion-final.log",
+      "c19-independent-completion.log",
+      "c19-independent-context.log",
+      "c19-independent-coordinate-reference.log",
+      "c19-independent-final-readback.log",
+      "c19-independent-native-inspection.log",
+      "c19-inspector-options.log",
+      "c19-inspector-report-contract.log",
+      "c19-new-drive-inspector.log",
+      "c19-preserve-completion-draft-correction.log",
+      "c19-preview-input-command.log",
+      "c19-source-location.log",
+      "c19-ticks-native-geometry.log",
+      "commands.jsonl",
+      "commit-drive-evidence-context.log",
+      "commit-recovered-drive.log",
+      "complete_pass.py",
+      "completion-draft-notes.json",
+      "delivery-scripts-final-syntax.log",
+      "delivery-scripts-syntax.log",
+      "depth-em-native-color-inventory.log",
+      "depth-em-next-selection-completion.log",
+      "depth-em-source-inventory.log",
+      "documentation-association.json",
+      "documentation-verification.json",
+      "freeze_delivery.py",
+      "lease-claim.json",
+      "prepare-current-recovery-delivery.log",
+      "prepare_delivery.py",
+      "record_command.py",
+      "recover-new-C19-shot17133.log",
+      "recovery-C19-calibration-inspection.log",
+      "recovery-c11-identity-pattern.log",
+      "recovery-c11-implementation.log",
+      "recovery-c11-metadata.log",
+      "recovery-existing-contract-read.log",
+      "recovery-freeze-new-C19-artifacts.log",
+      "recovery-inspector-source-fields.log",
+      "recovery-native-C19-inspection.log",
+      "recovery-new-tool-syntax.log",
+      "update_recovery_docs.py",
+      "verify-new-source-documentation.log",
+      "verify_delivery.py",
+      "verify_documented_source.py",
+      "visual-review.json"
+    ]
+  },
+  "public_files_byte_identical": 9,
+  "packaging_wrappers": 3,
+  "limits": [
+    "Published display vertices and source-coordinate current only; original acquisition samples and physical trigger are unavailable.",
+    "Digitization envelopes describe display geometry, not measurement uncertainty or bounds between retained vertices.",
+    "No padding, extrapolation, smoothing, RL fit, derivative or source-zero assumption is supplied.",
+    "No new MHD/source/transport/CR result, absolute calibration or physical thermal/material closure is inferred.",
+    "The compact package is assembled without a new portable environment or an extra inspector/recovery execution."
+  ],
+  "next_task": "Recover four signed J_z depth curves in Figs4.28/4.29; optionally retain four separately qualified coarse B_x gap curves."
+}

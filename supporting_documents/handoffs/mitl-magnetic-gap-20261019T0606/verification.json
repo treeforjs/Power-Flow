@@ -1,0 +1,2174 @@
+{
+  "schema": "mitl-magnetic-gap-recovery-verification-v1",
+  "created_utc": "2026-10-19T06:24:45.634624+00:00",
+  "source_commit": "3be2c9b7cf9fdc587eb422f42ec06b714f897acb",
+  "base_commit": "b50d65198bfe53b46716dd04b6a434bcd9d0d986",
+  "datasets": [
+    {
+      "figure": "4.28",
+      "csv_path": "data/dissertation/figure_4_28_magnetic_gap.csv",
+      "metadata_path": "data/dissertation/figure_4_28_magnetic_gap.json",
+      "csv_sha256": "08307893990f4d25ce9cf9fcd3bf68f6a8070cdc82f508336249d3a7a2db155b",
+      "metadata_sha256": "ac70c17f3303bf500f03e09923a5e7878638aa8f38104e88e1e4decee2a12702",
+      "producer_path": "tools/recover_dissertation_gap_magnetic.py",
+      "producer_sha256": "7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f",
+      "columns": [
+        "figure",
+        "profile",
+        "time_s",
+        "pixel_y",
+        "pixel_x_median",
+        "run_first_pixel_x",
+        "run_last_pixel_x",
+        "matched_color_pixels",
+        "gap_coordinate_mm",
+        "gap_coordinate_readout_lower_mm",
+        "gap_coordinate_readout_upper_mm",
+        "Bx_literal_axis_value",
+        "Bx_literal_readout_lower_axis_value",
+        "Bx_literal_readout_upper_axis_value",
+        "Bx_literal_conditional_T",
+        "Bx_literal_conditional_readout_lower_T",
+        "Bx_literal_conditional_readout_upper_T"
+      ],
+      "samples": 262,
+      "profiles": {
+        "foil_edge": {
+          "samples": 131,
+          "excluded_rows": 262,
+          "catalogued_rows": 393,
+          "catalog_sha256": "2db19fe353df70b45fa63858a31ea8e8263dd498c3777461c7c78ba6b917f0ff",
+          "negative_primary_values": 131,
+          "negative_gap_coordinates": 66,
+          "positive_gap_coordinates": 65
+        },
+        "foil_middle": {
+          "samples": 131,
+          "excluded_rows": 262,
+          "catalogued_rows": 393,
+          "catalog_sha256": "d638f006b9b38e25e9b7315c2c8bbda4925cb9ae158a1ffeda3451021933d896",
+          "negative_primary_values": 131,
+          "negative_gap_coordinates": 66,
+          "positive_gap_coordinates": 65
+        }
+      },
+      "source": {
+        "title": "Characterizing Desorbed Surface Contaminants Leading to Plasma Formation in Power Feeds of Pulsed Power Accelerators",
+        "item_url": "https://deepblue.lib.umich.edu/items/9ccfa886-0b19-4bd8-b3b2-bb685b9ddefc",
+        "pdf_sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+        "figure": "4.28",
+        "printed_page": 94,
+        "pdf_page": 119,
+        "pdf_page_index": 118,
+        "page_content_sha256": "934979de84040dc7970be53747773d2f8c78fedad9ac2b7116757a8052449103",
+        "page_text": "Figure 4.28: Allegra simulations at 40 ns into the current pulse of Mykonos shot 17133. The\nimages show the current, magnetic field across the gap, current density in the cathode, and\ntemperature in the cathode. The lineouts of each of the profiles shown are taken at either\nthe foil-edge location or the foil-middle location, as represented by Fig. 4.27, right panel.\n[Simulation data courtesy of Alex Sarracino, Derek Lamppa, and Kyle Cochrane from Sandia\nNational Laboratories.]\n94\n",
+        "embedded_image_xref": 2847,
+        "native_image_size_pixels": [
+          975,
+          975
+        ],
+        "native_image_mode": "RGB",
+        "reference_extracted_PNG_sha256": "1f9c939c8b72947da2629ccad92c42dda04503719c3cdb89fe0e921bc5ce5488",
+        "extracted_PNG_sha256": "1f9c939c8b72947da2629ccad92c42dda04503719c3cdb89fe0e921bc5ce5488",
+        "decoded_RGB_pixels_sha256": "458b3ced8db4501db3fcbcc90939ce5f336a7ec83eb97ee259c66f7112bf07c8",
+        "hash_validation": "PDF, page content and decoded RGB mandatory; lossless PNG encoding may vary",
+        "parser": "PyMuPDF",
+        "parser_version": "1.28.2"
+      },
+      "simulation_context": {
+        "code_label_in_dissertation": "Allegra",
+        "drive_shot_caption_label": 17133,
+        "caption_snapshot_time_s": 4e-08,
+        "snapshot_time_representation": "Direct decimal-to-float seconds for nominal 40 ns/60 ns caption labels; no experimental clock registration.",
+        "observation_type": "published legacy simulation coarse central-gap B_x lineout",
+        "experimental_measurement": false,
+        "FLASH_result": false,
+        "initial_foil_thickness_m": 0.0002,
+        "initial_AK_gap_m": 0.005,
+        "context_source": "section 4.5 and Figures 4.27\u20134.29, printed pages 93\u201396",
+        "actual_material_boundaries_recovered": false,
+        "edge_width_offset_m": null,
+        "full_vector_field_recovered": false,
+        "experimental_clock_alignment_established": false
+      },
+      "unit_interpretation": {
+        "source_magnetic_axis_label": "B_x [100 Tesla]",
+        "source_gap_axis_label": "Distance from Middle of AK Gap [mm]",
+        "primary_recovered_quantity": "signed literal B_x plotted axis value",
+        "literal_axis_unit": "100 Tesla",
+        "literal_conditional_scale_to_T": 100,
+        "original_electromagnetic_normalization_verified": false,
+        "original_simulation_output_units_confirmed": false,
+        "normalization_or_legend_error_resolved": false,
+        "unit_repair_or_empirical_rescaling_applied": false,
+        "component_signs_preserved": true,
+        "coordinate_frame_rotation_applied": false,
+        "SI_columns_qualification": "conditional literal printed factor 100 only; not a validated physical field input"
+      },
+      "gap_coordinate_extent_mm": [
+        -1.6582278481012658,
+        1.6329113924050633
+      ],
+      "calibration_sha256": "20db7300454def81a1ac86663f1da85a024d6c37296274a7375b39d32e322f6a",
+      "source_geometry_filename": "figure_4_28_magnetic_gap_source_geometry.json",
+      "source_geometry_sha256": "ff7f5327236a676ca37f58391e7df2efea1e088e565496bb9afff40209a83090",
+      "QA_files_sha256": {
+        "figure_4_28_magnetic_gap.png": "6fefb23c22fcee417aa8b32fe4d2ee7cfd94b2c0296fa9f5334438d43274d57d",
+        "figure_4_28_magnetic_gap.pdf": "2638e6bf7876d7917e1c33dde80d51e61baffee41ccf5e5f032c4b87f069dcc8"
+      },
+      "physical_truth_validated": false,
+      "original_normalization_verified": false
+    },
+    {
+      "figure": "4.29",
+      "csv_path": "data/dissertation/figure_4_29_magnetic_gap.csv",
+      "metadata_path": "data/dissertation/figure_4_29_magnetic_gap.json",
+      "csv_sha256": "f928d3783a1fa9ebece1576208ef04890b0fbbcf3ecbfdc9363c5c63b6f1dfa0",
+      "metadata_sha256": "70ae3dd5a7a032a4262d9c321ae2fc893a217b3b8ba30abc6c728061faeac43d",
+      "producer_path": "tools/recover_dissertation_gap_magnetic.py",
+      "producer_sha256": "7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f",
+      "columns": [
+        "figure",
+        "profile",
+        "time_s",
+        "pixel_y",
+        "pixel_x_median",
+        "run_first_pixel_x",
+        "run_last_pixel_x",
+        "matched_color_pixels",
+        "gap_coordinate_mm",
+        "gap_coordinate_readout_lower_mm",
+        "gap_coordinate_readout_upper_mm",
+        "Bx_literal_axis_value",
+        "Bx_literal_readout_lower_axis_value",
+        "Bx_literal_readout_upper_axis_value",
+        "Bx_literal_conditional_T",
+        "Bx_literal_conditional_readout_lower_T",
+        "Bx_literal_conditional_readout_upper_T"
+      ],
+      "samples": 262,
+      "profiles": {
+        "foil_edge": {
+          "samples": 131,
+          "excluded_rows": 262,
+          "catalogued_rows": 393,
+          "catalog_sha256": "5921f0b95864c812474fe7ac0957119e74bdc67965155cfe15d2c49c79f3785f",
+          "negative_primary_values": 131,
+          "negative_gap_coordinates": 66,
+          "positive_gap_coordinates": 65
+        },
+        "foil_middle": {
+          "samples": 131,
+          "excluded_rows": 262,
+          "catalogued_rows": 393,
+          "catalog_sha256": "518c8b138a765c018420ce6bc92815b8ed2db503694ad53958c47fb26086ad3d",
+          "negative_primary_values": 131,
+          "negative_gap_coordinates": 66,
+          "positive_gap_coordinates": 65
+        }
+      },
+      "source": {
+        "title": "Characterizing Desorbed Surface Contaminants Leading to Plasma Formation in Power Feeds of Pulsed Power Accelerators",
+        "item_url": "https://deepblue.lib.umich.edu/items/9ccfa886-0b19-4bd8-b3b2-bb685b9ddefc",
+        "pdf_sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+        "figure": "4.29",
+        "printed_page": 96,
+        "pdf_page": 121,
+        "pdf_page_index": 120,
+        "page_content_sha256": "17080e390125995d993f2fa580e2fcef6cf4cb166a267bf08a9e1a9798a8d43e",
+        "page_text": "Figure 4.29: Allegra simulations at 60 ns into the current pulse of Mykonos shot 17133. The\nimages show the current, magnetic field across the gap, current density in the cathode, and\ntemperature in the cathode. The lineouts of each of the profiles shown are taken at either\nthe foil-edge location or the foil-middle location, as represented by Fig. 4.27, right panel.\n[Simulation data courtesy of Alex Sarracino, Derek Lamppa, and Kyle Cochrane from Sandia\nNational Laboratories.]\nFigures 4.28 and 4.29 show that the foil-edge locations heat preferentially over the foil-\nmiddle locations. When compared to the assumption of a uniform distribution of atomic and\nmolecular hydrogen densities in the AK gap, the densities at the foil-edge location would\n96\n",
+        "embedded_image_xref": 2870,
+        "native_image_size_pixels": [
+          975,
+          975
+        ],
+        "native_image_mode": "RGB",
+        "reference_extracted_PNG_sha256": "5ae90775c30a8fad657f74d5813c150b2a4284d1a0fd8075ebc4fcd21b88e89a",
+        "extracted_PNG_sha256": "5ae90775c30a8fad657f74d5813c150b2a4284d1a0fd8075ebc4fcd21b88e89a",
+        "decoded_RGB_pixels_sha256": "ac25b035329213a8d0a354b8496b1674c2be24ceaeff65d95a48ef2e6376b34f",
+        "hash_validation": "PDF, page content and decoded RGB mandatory; lossless PNG encoding may vary",
+        "parser": "PyMuPDF",
+        "parser_version": "1.28.2"
+      },
+      "simulation_context": {
+        "code_label_in_dissertation": "Allegra",
+        "drive_shot_caption_label": 17133,
+        "caption_snapshot_time_s": 6e-08,
+        "snapshot_time_representation": "Direct decimal-to-float seconds for nominal 40 ns/60 ns caption labels; no experimental clock registration.",
+        "observation_type": "published legacy simulation coarse central-gap B_x lineout",
+        "experimental_measurement": false,
+        "FLASH_result": false,
+        "initial_foil_thickness_m": 0.0002,
+        "initial_AK_gap_m": 0.005,
+        "context_source": "section 4.5 and Figures 4.27\u20134.29, printed pages 93\u201396",
+        "actual_material_boundaries_recovered": false,
+        "edge_width_offset_m": null,
+        "full_vector_field_recovered": false,
+        "experimental_clock_alignment_established": false
+      },
+      "unit_interpretation": {
+        "source_magnetic_axis_label": "B_x [100 Tesla]",
+        "source_gap_axis_label": "Distance from Middle of AK Gap [mm]",
+        "primary_recovered_quantity": "signed literal B_x plotted axis value",
+        "literal_axis_unit": "100 Tesla",
+        "literal_conditional_scale_to_T": 100,
+        "original_electromagnetic_normalization_verified": false,
+        "original_simulation_output_units_confirmed": false,
+        "normalization_or_legend_error_resolved": false,
+        "unit_repair_or_empirical_rescaling_applied": false,
+        "component_signs_preserved": true,
+        "coordinate_frame_rotation_applied": false,
+        "SI_columns_qualification": "conditional literal printed factor 100 only; not a validated physical field input"
+      },
+      "gap_coordinate_extent_mm": [
+        -1.6582278481012658,
+        1.6329113924050633
+      ],
+      "calibration_sha256": "20db7300454def81a1ac86663f1da85a024d6c37296274a7375b39d32e322f6a",
+      "source_geometry_filename": "figure_4_29_magnetic_gap_source_geometry.json",
+      "source_geometry_sha256": "5019b9a658e430f2ebe830eecbd9820ae34ab53b913546f5a14551c13add07c8",
+      "QA_files_sha256": {
+        "figure_4_29_magnetic_gap.png": "5dbbaf932e62c6f07697328b78648729b3592569fd32b23da2d024b4429efa74",
+        "figure_4_29_magnetic_gap.pdf": "79dfee087135a51f94dec0eb1cbbad7705ed38c7bb41ee15fec2f4aac0797ec4"
+      },
+      "physical_truth_validated": false,
+      "original_normalization_verified": false
+    }
+  ],
+  "results": {
+    "figures": 2,
+    "profiles": 4,
+    "retained_rows": 524,
+    "excluded_rows": 1048,
+    "native_rows_catalogued": 1572,
+    "numeric_csv_cells_checked": 7860,
+    "tick_anchors_checked": 18,
+    "positive_source_recovery_runs": 1,
+    "independent_readback_attempts": 2,
+    "completed_independent_readbacks": 1,
+    "initial_pre_cell_declaration_failure_preserved": true,
+    "meaningful_invalid_source_controls": 4,
+    "source_controls_rejected": 4,
+    "all_primary_signed_values_negative": true,
+    "both_signed_gap_coordinate_halves_preserved": true,
+    "literal_conditional_tesla_conversion_only": true,
+    "independent_readback_passed": true,
+    "physical_normalization_verified": false,
+    "physical_truth_validated": false,
+    "field_derivative_current_heating_or_Hall_inferred": false,
+    "actual_FLASH_or_host_result": false,
+    "packaging_source_recovery_repeated": false,
+    "old_recoveries_or_test_suites_repeated": false,
+    "full_source_pdf_included": false,
+    "raw_source_images_or_pages_included": false,
+    "portable_executions_performed": false,
+    "complete_baseline_checkout_required": true
+  },
+  "package_kind": "patch_over_exact_complete_baseline",
+  "required_complete_baseline_checkout": true,
+  "public_files_byte_identical": 9,
+  "packaging_wrappers": 2,
+  "records": {
+    "author_verification": {
+      "schema": "mhdlab-magnetic-gap-author-verification-v1",
+      "complete": true,
+      "public_source": "tools/recover_dissertation_gap_magnetic.py",
+      "public_source_sha256": "7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f",
+      "public_files_sha256": {
+        "tools/recover_dissertation_gap_magnetic.py": "7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f",
+        "data/dissertation/figure_4_28_magnetic_gap.csv": "08307893990f4d25ce9cf9fcd3bf68f6a8070cdc82f508336249d3a7a2db155b",
+        "data/dissertation/figure_4_28_magnetic_gap.json": "ac70c17f3303bf500f03e09923a5e7878638aa8f38104e88e1e4decee2a12702",
+        "data/dissertation/figure_4_29_magnetic_gap.csv": "f928d3783a1fa9ebece1576208ef04890b0fbbcf3ecbfdc9363c5c63b6f1dfa0",
+        "data/dissertation/figure_4_29_magnetic_gap.json": "70ae3dd5a7a032a4262d9c321ae2fc893a217b3b8ba30abc6c728061faeac43d"
+      },
+      "source_PDF_sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+      "selection_freeze": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/selection_freeze.json",
+      "selection_freeze_sha256": "2db0925498ffcf94aa50b94133271d16e2b37d498c3b1fc0ba960bb3e94193d1",
+      "new_positive_producer_run_count": 1,
+      "new_positive_producer_command": {
+        "command": [
+          "/workspace/Power-Flow/.venv/bin/python",
+          "tools/recover_dissertation_gap_magnetic.py",
+          "--pdf",
+          "/workspace/research_sources/smtrevor_1.pdf",
+          "--output-dir",
+          "data/dissertation",
+          "--qa-dir",
+          "/workspace/research_work/mitl-upstream-20261019T0606/recovery"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-19T06:14:28.527087+00:00",
+        "end_utc": "2026-10-19T06:14:31.917840+00:00",
+        "elapsed_s": 3.390795703002368,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261019T0606/magnetic-gap-recovery.log",
+        "log_sha256": "c547637035c25281d14c4e731ad46314357a55165ab700899154fe873debc374"
+      },
+      "visual_QA": {
+        "both_generated_PNGs_viewed": true,
+        "findings": "Retained overlays follow the four visible central magnetic branches and remain clear of crossings, sharp sheets and legend. Signed components remain negative on both gap-coordinate halves; finite asymmetric support and correlated full-run bounds are visible."
+      },
+      "total_retained_samples": 524,
+      "total_excluded_rows": 1048,
+      "total_catalogued_rows": 1572,
+      "samples_per_profile": 131,
+      "excluded_per_profile": 262,
+      "catalogued_per_profile": 393,
+      "exact_gap_support_mm": [
+        [
+          "-131",
+          "79"
+        ],
+        [
+          "129",
+          "79"
+        ]
+      ],
+      "public_metadata_schema": "mhdlab-dissertation-magnetic-gap-recovery-v1",
+      "source_geometry_schema": "mhdlab-magnetic-gap-source-geometry-v1",
+      "figures": [
+        {
+          "figure": "4.28",
+          "caption_snapshot_time_s": 4e-08,
+          "csv": "data/dissertation/figure_4_28_magnetic_gap.csv",
+          "csv_sha256": "08307893990f4d25ce9cf9fcd3bf68f6a8070cdc82f508336249d3a7a2db155b",
+          "metadata": "data/dissertation/figure_4_28_magnetic_gap.json",
+          "metadata_sha256": "ac70c17f3303bf500f03e09923a5e7878638aa8f38104e88e1e4decee2a12702",
+          "profiles": {
+            "foil_edge": {
+              "samples": 131,
+              "excluded_rows": 262,
+              "catalogued_rows": 393,
+              "matched_run_width_pixels": [
+                3,
+                4
+              ],
+              "signed_Bx_literal_axis_value_extent": [
+                -0.3775,
+                -0.3325
+              ],
+              "all_primary_values_negative": true
+            },
+            "foil_middle": {
+              "samples": 131,
+              "excluded_rows": 262,
+              "catalogued_rows": 393,
+              "matched_run_width_pixels": [
+                3,
+                4
+              ],
+              "signed_Bx_literal_axis_value_extent": [
+                -0.4125,
+                -0.3925
+              ],
+              "all_primary_values_negative": true
+            }
+          },
+          "gap_coordinate_extent_mm": [
+            -1.6582278481012658,
+            1.6329113924050633
+          ],
+          "calibration": {
+            "magnetic": {
+              "tick_pixel_centres": [
+                606.5,
+                706.5,
+                806.5,
+                906.5
+              ],
+              "tick_values": [
+                -1.0,
+                -0.5,
+                0.0,
+                0.5
+              ],
+              "slope": 0.005,
+              "intercept": -4.0325,
+              "slope_exact": [
+                "1",
+                "200"
+              ],
+              "intercept_exact": [
+                "-1613",
+                "400"
+              ],
+              "tick_residuals": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "tick_residuals_exact": [
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ]
+              ],
+              "max_abs_tick_residual": 0.0,
+              "max_abs_tick_residual_exact": [
+                "0",
+                "1"
+              ],
+              "fit": "ordinary_least_squares_exact_rational_tick_coordinates"
+            },
+            "gap": {
+              "tick_pixel_centres": [
+                56.5,
+                135.5,
+                214.5,
+                293.5,
+                372.5
+              ],
+              "tick_values": [
+                4.0,
+                2.0,
+                0.0,
+                -2.0,
+                -4.0
+              ],
+              "slope": -0.02531645569620253,
+              "intercept": 5.430379746835443,
+              "slope_exact": [
+                "-2",
+                "79"
+              ],
+              "intercept_exact": [
+                "429",
+                "79"
+              ],
+              "tick_residuals": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "tick_residuals_exact": [
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ]
+              ],
+              "max_abs_tick_residual": 0.0,
+              "max_abs_tick_residual_exact": [
+                "0",
+                "1"
+              ],
+              "fit": "ordinary_least_squares_exact_rational_tick_coordinates"
+            },
+            "magnetic_unit": "literal B_x [100 Tesla]",
+            "gap_unit": "mm",
+            "tick_detection": {
+              "dark_channel_threshold_exclusive": 128,
+              "magnetic_tick_tail_row": 417,
+              "gap_tick_tail_column": 561,
+              "pixel_coordinate_convention": "native zero-based integer pixel centres"
+            },
+            "magnetic_fit_input_sha256": "bb3222f29af4f574364aeea299fdd76ff9171c33fcfb2b0a0aef1794398cb350",
+            "gap_fit_input_sha256": "dfc7133a208be6ac756f3e1b77455747ff886fd5c1f9a7ee0567c0fa3be3b781"
+          },
+          "source_geometry": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/figure_4_28_magnetic_gap_source_geometry.json",
+          "source_geometry_sha256": "ff7f5327236a676ca37f58391e7df2efea1e088e565496bb9afff40209a83090",
+          "QA_files_sha256": {
+            "figure_4_28_magnetic_gap.png": "6fefb23c22fcee417aa8b32fe4d2ee7cfd94b2c0296fa9f5334438d43274d57d",
+            "figure_4_28_magnetic_gap.pdf": "2638e6bf7876d7917e1c33dde80d51e61baffee41ccf5e5f032c4b87f069dcc8"
+          }
+        },
+        {
+          "figure": "4.29",
+          "caption_snapshot_time_s": 6e-08,
+          "csv": "data/dissertation/figure_4_29_magnetic_gap.csv",
+          "csv_sha256": "f928d3783a1fa9ebece1576208ef04890b0fbbcf3ecbfdc9363c5c63b6f1dfa0",
+          "metadata": "data/dissertation/figure_4_29_magnetic_gap.json",
+          "metadata_sha256": "70ae3dd5a7a032a4262d9c321ae2fc893a217b3b8ba30abc6c728061faeac43d",
+          "profiles": {
+            "foil_edge": {
+              "samples": 131,
+              "excluded_rows": 262,
+              "catalogued_rows": 393,
+              "matched_run_width_pixels": [
+                3,
+                4
+              ],
+              "signed_Bx_literal_axis_value_extent": [
+                -0.6175,
+                -0.5475
+              ],
+              "all_primary_values_negative": true
+            },
+            "foil_middle": {
+              "samples": 131,
+              "excluded_rows": 262,
+              "catalogued_rows": 393,
+              "matched_run_width_pixels": [
+                3,
+                4
+              ],
+              "signed_Bx_literal_axis_value_extent": [
+                -0.6925,
+                -0.6525
+              ],
+              "all_primary_values_negative": true
+            }
+          },
+          "gap_coordinate_extent_mm": [
+            -1.6582278481012658,
+            1.6329113924050633
+          ],
+          "calibration": {
+            "magnetic": {
+              "tick_pixel_centres": [
+                606.5,
+                706.5,
+                806.5,
+                906.5
+              ],
+              "tick_values": [
+                -1.0,
+                -0.5,
+                0.0,
+                0.5
+              ],
+              "slope": 0.005,
+              "intercept": -4.0325,
+              "slope_exact": [
+                "1",
+                "200"
+              ],
+              "intercept_exact": [
+                "-1613",
+                "400"
+              ],
+              "tick_residuals": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "tick_residuals_exact": [
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ]
+              ],
+              "max_abs_tick_residual": 0.0,
+              "max_abs_tick_residual_exact": [
+                "0",
+                "1"
+              ],
+              "fit": "ordinary_least_squares_exact_rational_tick_coordinates"
+            },
+            "gap": {
+              "tick_pixel_centres": [
+                56.5,
+                135.5,
+                214.5,
+                293.5,
+                372.5
+              ],
+              "tick_values": [
+                4.0,
+                2.0,
+                0.0,
+                -2.0,
+                -4.0
+              ],
+              "slope": -0.02531645569620253,
+              "intercept": 5.430379746835443,
+              "slope_exact": [
+                "-2",
+                "79"
+              ],
+              "intercept_exact": [
+                "429",
+                "79"
+              ],
+              "tick_residuals": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "tick_residuals_exact": [
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ],
+                [
+                  "0",
+                  "1"
+                ]
+              ],
+              "max_abs_tick_residual": 0.0,
+              "max_abs_tick_residual_exact": [
+                "0",
+                "1"
+              ],
+              "fit": "ordinary_least_squares_exact_rational_tick_coordinates"
+            },
+            "magnetic_unit": "literal B_x [100 Tesla]",
+            "gap_unit": "mm",
+            "tick_detection": {
+              "dark_channel_threshold_exclusive": 128,
+              "magnetic_tick_tail_row": 417,
+              "gap_tick_tail_column": 561,
+              "pixel_coordinate_convention": "native zero-based integer pixel centres"
+            },
+            "magnetic_fit_input_sha256": "bb3222f29af4f574364aeea299fdd76ff9171c33fcfb2b0a0aef1794398cb350",
+            "gap_fit_input_sha256": "dfc7133a208be6ac756f3e1b77455747ff886fd5c1f9a7ee0567c0fa3be3b781"
+          },
+          "source_geometry": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/figure_4_29_magnetic_gap_source_geometry.json",
+          "source_geometry_sha256": "5019b9a658e430f2ebe830eecbd9820ae34ab53b913546f5a14551c13add07c8",
+          "QA_files_sha256": {
+            "figure_4_29_magnetic_gap.png": "5dbbaf932e62c6f07697328b78648729b3592569fd32b23da2d024b4429efa74",
+            "figure_4_29_magnetic_gap.pdf": "79dfee087135a51f94dec0eb1cbbad7705ed38c7bb41ee15fec2f4aac0797ec4"
+          }
+        }
+      ],
+      "verification_scope": "Author output inventory and visual QA only; separate source guards, independent native pixel/calibration readback and scientific review have their own records. No positive producer is replayed.",
+      "limits": [
+        "Published legacy Allegra simulation coarse central-gap lineouts, not measured fields or FLASH data.",
+        "Signed literal B_x [100 Tesla] is primary; factor100 tesla conversion is conditional and normalization unverified.",
+        "No exterior, crossing, sheet, exact surface field, skin derivative, Ampere/Hall, full vector or host acceptance claim.",
+        "No imposed symmetry, sign rotation, gap endpoint insertion, interpolation, smoothing or extrapolation.",
+        "Correlated display readout bounds are not physical uncertainty; nominal40/60ns captions do not establish experimental clock registration."
+      ]
+    },
+    "independent_completion": {
+      "schema": "mitl-independent-magnetic-gap-completion-v1",
+      "status": "passed",
+      "all_checks_passed": true,
+      "completed_utc": "2026-10-19T06:18:34.597572+00:00",
+      "figures": 2,
+      "profiles": 4,
+      "retained_rows": 524,
+      "excluded_rows": 1048,
+      "native_rows_catalogued": 1572,
+      "numeric_csv_cells_checked": 7860,
+      "tick_anchors_checked": 18,
+      "readback": "independent-verification/readback.json",
+      "readback_sha256": "d3b50ea1ffe0ff0306c08dcce5bafe714b8d3db52646a9afd4984aa5bd0b5930",
+      "public_source_sha256": {
+        "tools/recover_dissertation_gap_magnetic.py": "7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f",
+        "data/dissertation/figure_4_28_magnetic_gap.csv": "08307893990f4d25ce9cf9fcd3bf68f6a8070cdc82f508336249d3a7a2db155b",
+        "data/dissertation/figure_4_28_magnetic_gap.json": "ac70c17f3303bf500f03e09923a5e7878638aa8f38104e88e1e4decee2a12702",
+        "data/dissertation/figure_4_29_magnetic_gap.csv": "f928d3783a1fa9ebece1576208ef04890b0fbbcf3ecbfdc9363c5c63b6f1dfa0",
+        "data/dissertation/figure_4_29_magnetic_gap.json": "70ae3dd5a7a032a4262d9c321ae2fc893a217b3b8ba30abc6c728061faeac43d"
+      },
+      "artifact_sha256": {
+        "independent-verification/inspect_native_source.py": "89835933a85e0d390ae22c05c2b3972fd288330912a21cc8ac27b4c95a36a198",
+        "independent-verification/native-source/identity.json": "0443ae2c71c41ad9bb9828c1150a4174cbb4ec2866030ddd32b53bb9f97cfea3",
+        "independent-verification/tick-inspection.json": "6b655665b45c57bb23a79ac35f5347516cc2ed0a04103d510da03b8d8e132891",
+        "independent-verification/source_assessment.json": "2a32f111f395c338b5f04fa938275336cd374e8cfeaedc6365a1633250467211",
+        "independent-verification/readback_plan.json": "13fc75ad029a181f5a3663f08b39ace9f08bdf248e474fbd900a2efe20c3acf6",
+        "independent-verification/method.md": "de451661690d92b7c26048ea6929fad439bc077783caa89b73d5344637220289",
+        "independent-verification/routine-read-notes.json": "ba82a51c10d280ff24d0a88207f88d9d2765cc4d15fec1ff8a1a3fd2f0591836",
+        "independent-verification/verify_saved_magnetic.py": "eb45962143cbf62c06e8e60fb9129fb5e897074d029d2cf601387c7f35ccd54d",
+        "independent-verification/freeze_saved_readback.py": "6c3f04da0939ecd9901655f7f4d75a977c452ce4c12be1683c139efc4753670a",
+        "independent-verification/before_readback_freeze.json": "1f8700764bc5e79abc6ed4cf6c4a4e3650a74c463d460ca7e41406320c0a8dd3",
+        "independent-verification/readback_freeze_amendment.json": "0f0323a03c3f8abf3aa7aacc20c92ab1080b88b709ca64bf322b1700e6ecb55d",
+        "independent-verification/verify_saved_magnetic.initial.py": "18fde22cdb1ffd73bec7aeab8b35427eb12606c94101bd193c01605d07c041ac",
+        "independent-verification/readback_correction.md": "ed6eefd63c1e4573e50cff3bcfb28a78d77ff63cde3b0ae9e5628f15dfa94806",
+        "independent-verification/prepare_readback_correction.py": "b4d3fe9404bc4e96611a2ee69de97717dd68d37c3c8cc493f068acde529851bb",
+        "independent-verification/readback.json": "d3b50ea1ffe0ff0306c08dcce5bafe714b8d3db52646a9afd4984aa5bd0b5930",
+        "independent-verification/finalize_completion.py": "a1b71fc0967c29727a7864ada37ae19fdfbeab8d49aca16af66e24e4b8eda6bb"
+      },
+      "artifact_map_base": "work_directory",
+      "public_map_base": "repository",
+      "independent_saved_output_readback_attempts": 2,
+      "completed_saved_output_readback_passes": 1,
+      "initial_schema_declaration_failure_preserved": true,
+      "producer_imports_or_calls": [],
+      "successful_producer_replays": 0,
+      "old_suites_repeated": false,
+      "old_recoveries_repeated": false,
+      "complete_retained_excluded_catalog_verified": true,
+      "signed_literal_values_preserved": true,
+      "literal_conditional_tesla_conversion_only": true,
+      "both_signed_gap_coordinate_halves_preserved": true,
+      "zero_gap_or_endpoint_inserted": false,
+      "physical_normalization_verified": false,
+      "physical_field_uncertainty_established": false,
+      "field_derivative_current_heating_or_Hall_inferred": false,
+      "actual_FLASH_or_host_result": false,
+      "command_records": [
+        {
+          "command": [
+            ".venv/bin/python",
+            "-W",
+            "error",
+            "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/verify_saved_magnetic.py"
+          ],
+          "cwd": "/workspace/Power-Flow",
+          "start_utc": "2026-10-19T06:16:23.277043+00:00",
+          "end_utc": "2026-10-19T06:16:23.402821+00:00",
+          "elapsed_s": 0.12577987000258872,
+          "exit_code": 1,
+          "log": "/workspace/research_work/mitl-upstream-20261019T0606/independent-magnetic-saved-readback.log",
+          "log_sha256": "1f6dba1dbb656e2d3808d0bb854c4538362ffff1efde848a7d47719bf805727f"
+        },
+        {
+          "command": [
+            ".venv/bin/python",
+            "-W",
+            "error",
+            "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/verify_saved_magnetic.py"
+          ],
+          "cwd": "/workspace/Power-Flow",
+          "start_utc": "2026-10-19T06:18:15.391402+00:00",
+          "end_utc": "2026-10-19T06:18:15.569288+00:00",
+          "elapsed_s": 0.17789069799619028,
+          "exit_code": 0,
+          "log": "/workspace/research_work/mitl-upstream-20261019T0606/independent-magnetic-saved-readback-corrected.log",
+          "log_sha256": "9c92f0cb79044ce99c2774bd28f0ac32905ebfbbc750bb82184588bac6453ccc"
+        }
+      ],
+      "limits": [
+        "Published legacy Allegra simulation raster only; nominal40/60ns snapshots are not experimentally registered times.",
+        "Literal signed B_x and factor100 conditional tesla columns do not verify original normalization.",
+        "Conservative central support only; all outer/crossing/jump/legend rows are explicitly excluded.",
+        "Pixel/readout bounds are correlated display bounds, not physical uncertainty or independent observations.",
+        "No inferred material boundary, derivative, skin depth, current, heating, field energy, Hall transport, FLASH result or host acceptance."
+      ]
+    },
+    "guard_completion": {
+      "schema": "mitl-magnetic-gap-source-guards-v1",
+      "status": "passed",
+      "all_checks_passed": true,
+      "meaningful_invalid_controls": 4,
+      "controls_rejected": 4,
+      "guard_run_count": 1,
+      "source_identity_recover_calls": 2,
+      "tick_mask_validation_calls": 1,
+      "synthetic_selection_calls": 1,
+      "successful_positive_producer_replays": 0,
+      "physical_curve_selection_reached": 0,
+      "old_suites_or_producers_repeated": false,
+      "public_files_edited": false,
+      "status_or_lease_mutated": false,
+      "status_before_sha256": "12b75193fa871f62c60525c677a5edb820b0898737a281778d88bbfd65b6841f",
+      "status_after_sha256": "12b75193fa871f62c60525c677a5edb820b0898737a281778d88bbfd65b6841f",
+      "source_pdf_sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+      "source_sha256": {
+        "tools/recover_dissertation_gap_magnetic.py": "7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f"
+      },
+      "plan_sha256": "30a00e1c55fe6ce9b6ef5f63bbc3a006658553a5c3ff369143bb87692a9cf355",
+      "plan_freeze_sha256": "0a0275eedf9645b829513e44a2646cef9621b54d28d627a8c0b134227734ff55",
+      "first_native_rgb_sha256": "458b3ced8db4501db3fcbcc90939ce5f336a7ec83eb97ee259c66f7112bf07c8",
+      "altered_pdf_sha256": "446693ef8027ae1a7243414e10500780afd50d352d40e45e5b1da8fe0f9209f3",
+      "native_shape": [
+        975,
+        975,
+        3
+      ],
+      "outcomes": [
+        {
+          "id": "altered_pdf_identity",
+          "rejected": true,
+          "exception": "ValueError",
+          "reason": "source PDF SHA256 mismatch"
+        },
+        {
+          "id": "altered_native_image_identity",
+          "rejected": true,
+          "exception": "ValueError",
+          "reason": "native source RGB SHA256 mismatch"
+        },
+        {
+          "id": "corrupted_tick_mask",
+          "rejected": true,
+          "exception": "ValueError",
+          "reason": "magnetic native tick anchors do not match configured calibration"
+        },
+        {
+          "id": "multiple_exact_colour_runs",
+          "rejected": true,
+          "selected": null,
+          "reason": "multiple_exact_colour_runs",
+          "retained_runs_inclusive_x": [
+            [
+              600,
+              602
+            ],
+            [
+              700,
+              702
+            ]
+          ]
+        }
+      ],
+      "artifact_sha256": {
+        "guards/plan.json": "30a00e1c55fe6ce9b6ef5f63bbc3a006658553a5c3ff369143bb87692a9cf355",
+        "guards/freeze.json": "0a0275eedf9645b829513e44a2646cef9621b54d28d627a8c0b134227734ff55",
+        "guards/freeze_plan.py": "8e3e1b689eef724c9506c1942f82e5e97042eeddd2b4679659358f39e666825e",
+        "guards/run_guards.py": "1431b4cb56512611a2b2c9867a728a5cb05e2a8f0bf45c06180ace24a8cc5dd1"
+      },
+      "limits": "Guards verify input rejection only. They do not independently validate the recovered curves, physical normalization, derivatives, Hall transport, heating, source histories, clock alignment or host acceptance.",
+      "source_status": "published legacy simulation; literal signed axis values, unverified electromagnetic normalization",
+      "physical_normalization_verified": false,
+      "host_or_owner_implementation_verified": false
+    },
+    "scientific_review": {
+      "schema": "mitl-magnetic-gap-scientific-review-v1",
+      "status": "review_complete_no_substantive_issue_identified",
+      "completed_utc": "2026-10-19T06:18:41.674568+00:00",
+      "reviewed_source_path": "tools/recover_dissertation_gap_magnetic.py",
+      "reviewed_source_sha256": "7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f",
+      "new_public_output_sha256": {
+        "data/dissertation/figure_4_28_magnetic_gap.csv": "08307893990f4d25ce9cf9fcd3bf68f6a8070cdc82f508336249d3a7a2db155b",
+        "data/dissertation/figure_4_28_magnetic_gap.json": "ac70c17f3303bf500f03e09923a5e7878638aa8f38104e88e1e4decee2a12702",
+        "data/dissertation/figure_4_29_magnetic_gap.csv": "f928d3783a1fa9ebece1576208ef04890b0fbbcf3ecbfdc9363c5c63b6f1dfa0",
+        "data/dissertation/figure_4_29_magnetic_gap.json": "70ae3dd5a7a032a4262d9c321ae2fc893a217b3b8ba30abc6c728061faeac43d"
+      },
+      "native_source_inspection_sha256": "4fd4a0c09883d45459b8a72daabeb85db67f016762e5c302f0dbc74e016b9cff",
+      "source_images_native_identities": [
+        {
+          "figure": "4.28",
+          "pdf_page_index": 118,
+          "pdf_page_one_based": 119,
+          "embedded_image_xref": 2847,
+          "decoded_RGB_sha256": "458b3ced8db4501db3fcbcc90939ce5f336a7ec83eb97ee259c66f7112bf07c8",
+          "page_content_sha256": "934979de84040dc7970be53747773d2f8c78fedad9ac2b7116757a8052449103",
+          "native_size_pixels": [
+            975,
+            975
+          ],
+          "native_image_path": "raw/figure_4_28_native.png",
+          "native_image_sha256": "1f9c939c8b72947da2629ccad92c42dda04503719c3cdb89fe0e921bc5ce5488",
+          "page_text": "Figure 4.28: Allegra simulations at 40 ns into the current pulse of Mykonos shot 17133. The\nimages show the current, magnetic field across the gap, current density in the cathode, and\ntemperature in the cathode. The lineouts of each of the profiles shown are taken at either\nthe foil-edge location or the foil-middle location, as represented by Fig. 4.27, right panel.\n[Simulation data courtesy of Alex Sarracino, Derek Lamppa, and Kyle Cochrane from Sandia\nNational Laboratories.]\n94\n"
+        },
+        {
+          "figure": "4.29",
+          "pdf_page_index": 120,
+          "pdf_page_one_based": 121,
+          "embedded_image_xref": 2870,
+          "decoded_RGB_sha256": "ac25b035329213a8d0a354b8496b1674c2be24ceaeff65d95a48ef2e6376b34f",
+          "page_content_sha256": "17080e390125995d993f2fa580e2fcef6cf4cb166a267bf08a9e1a9798a8d43e",
+          "native_size_pixels": [
+            975,
+            975
+          ],
+          "native_image_path": "raw/figure_4_29_native.png",
+          "native_image_sha256": "5ae90775c30a8fad657f74d5813c150b2a4284d1a0fd8075ebc4fcd21b88e89a",
+          "page_text": "Figure 4.29: Allegra simulations at 60 ns into the current pulse of Mykonos shot 17133. The\nimages show the current, magnetic field across the gap, current density in the cathode, and\ntemperature in the cathode. The lineouts of each of the profiles shown are taken at either\nthe foil-edge location or the foil-middle location, as represented by Fig. 4.27, right panel.\n[Simulation data courtesy of Alex Sarracino, Derek Lamppa, and Kyle Cochrane from Sandia\nNational Laboratories.]\nFigures 4.28 and 4.29 show that the foil-edge locations heat preferentially over the foil-\nmiddle locations. When compared to the assumption of a uniform distribution of atomic and\nmolecular hydrogen densities in the AK gap, the densities at the foil-edge location would\n96\n"
+        }
+      ],
+      "fresh_native_images_visually_inspected": 2,
+      "actual_QA_PNGs_visually_inspected": 2,
+      "actual_metadata_files_read": 2,
+      "QA_artifact_sha256": {
+        "recovery/figure_4_28_magnetic_gap.png": "6fefb23c22fcee417aa8b32fe4d2ee7cfd94b2c0296fa9f5334438d43274d57d",
+        "recovery/figure_4_28_magnetic_gap.pdf": "2638e6bf7876d7917e1c33dde80d51e61baffee41ccf5e5f032c4b87f069dcc8",
+        "recovery/figure_4_29_magnetic_gap.png": "5dbbaf932e62c6f07697328b78648729b3592569fd32b23da2d024b4429efa74",
+        "recovery/figure_4_29_magnetic_gap.pdf": "79dfee087135a51f94dec0eb1cbbad7705ed38c7bb41ee15fec2f4aac0797ec4"
+      },
+      "selection_reviewed_before_positive_recovery": true,
+      "source_coordinate_orientation": "Signed gap distance increases upward; signed B_x axis increases rightward.",
+      "color_roles": {
+        "foil_edge": "pink [255,105,180]",
+        "foil_middle": "purple [186,85,211]"
+      },
+      "partial_central_profiles": 4,
+      "observed_metadata_retained_samples": 524,
+      "observed_metadata_excluded_rows": 1048,
+      "observed_metadata_catalogued_rows": 1572,
+      "figures": [
+        {
+          "figure": "4.28",
+          "metadata_path": "data/dissertation/figure_4_28_magnetic_gap.json",
+          "source": {
+            "title": "Characterizing Desorbed Surface Contaminants Leading to Plasma Formation in Power Feeds of Pulsed Power Accelerators",
+            "item_url": "https://deepblue.lib.umich.edu/items/9ccfa886-0b19-4bd8-b3b2-bb685b9ddefc",
+            "pdf_sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+            "figure": "4.28",
+            "printed_page": 94,
+            "pdf_page": 119,
+            "pdf_page_index": 118,
+            "page_content_sha256": "934979de84040dc7970be53747773d2f8c78fedad9ac2b7116757a8052449103",
+            "page_text": "Figure 4.28: Allegra simulations at 40 ns into the current pulse of Mykonos shot 17133. The\nimages show the current, magnetic field across the gap, current density in the cathode, and\ntemperature in the cathode. The lineouts of each of the profiles shown are taken at either\nthe foil-edge location or the foil-middle location, as represented by Fig. 4.27, right panel.\n[Simulation data courtesy of Alex Sarracino, Derek Lamppa, and Kyle Cochrane from Sandia\nNational Laboratories.]\n94\n",
+            "embedded_image_xref": 2847,
+            "native_image_size_pixels": [
+              975,
+              975
+            ],
+            "native_image_mode": "RGB",
+            "reference_extracted_PNG_sha256": "1f9c939c8b72947da2629ccad92c42dda04503719c3cdb89fe0e921bc5ce5488",
+            "extracted_PNG_sha256": "1f9c939c8b72947da2629ccad92c42dda04503719c3cdb89fe0e921bc5ce5488",
+            "decoded_RGB_pixels_sha256": "458b3ced8db4501db3fcbcc90939ce5f336a7ec83eb97ee259c66f7112bf07c8",
+            "hash_validation": "PDF, page content and decoded RGB mandatory; lossless PNG encoding may vary",
+            "parser": "PyMuPDF",
+            "parser_version": "1.28.2"
+          },
+          "output": {
+            "csv_filename": "figure_4_28_magnetic_gap.csv",
+            "csv_sha256": "08307893990f4d25ce9cf9fcd3bf68f6a8070cdc82f508336249d3a7a2db155b",
+            "columns": [
+              "figure",
+              "profile",
+              "time_s",
+              "pixel_y",
+              "pixel_x_median",
+              "run_first_pixel_x",
+              "run_last_pixel_x",
+              "matched_color_pixels",
+              "gap_coordinate_mm",
+              "gap_coordinate_readout_lower_mm",
+              "gap_coordinate_readout_upper_mm",
+              "Bx_literal_axis_value",
+              "Bx_literal_readout_lower_axis_value",
+              "Bx_literal_readout_upper_axis_value",
+              "Bx_literal_conditional_T",
+              "Bx_literal_conditional_readout_lower_T",
+              "Bx_literal_conditional_readout_upper_T"
+            ],
+            "line_ending": "LF",
+            "numeric_projection": "Exact rational coordinates, bounds and conditional scale converted once to float, then CSV formatted to 12 significant digits.",
+            "samples": 262,
+            "samples_by_profile": {
+              "foil_edge": 131,
+              "foil_middle": 131
+            },
+            "gap_coordinate_extent_mm": [
+              -1.6582278481012658,
+              1.6329113924050633
+            ],
+            "signed_Bx_literal_extent_by_profile": {
+              "foil_edge": [
+                -0.3775,
+                -0.3325
+              ],
+              "foil_middle": [
+                -0.4125,
+                -0.3925
+              ]
+            },
+            "generator": "tools/recover_dissertation_gap_magnetic.py",
+            "generator_sha256": "7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f",
+            "source_geometry_filename": "figure_4_28_magnetic_gap_source_geometry.json",
+            "source_geometry_sha256": "ff7f5327236a676ca37f58391e7df2efea1e088e565496bb9afff40209a83090",
+            "QA_files_sha256": {
+              "figure_4_28_magnetic_gap.png": "6fefb23c22fcee417aa8b32fe4d2ee7cfd94b2c0296fa9f5334438d43274d57d",
+              "figure_4_28_magnetic_gap.pdf": "2638e6bf7876d7917e1c33dde80d51e61baffee41ccf5e5f032c4b87f069dcc8"
+            }
+          },
+          "observed_unit_qualification": {
+            "source_magnetic_axis_label": "B_x [100 Tesla]",
+            "source_gap_axis_label": "Distance from Middle of AK Gap [mm]",
+            "primary_recovered_quantity": "signed literal B_x plotted axis value",
+            "literal_axis_unit": "100 Tesla",
+            "literal_conditional_scale_to_T": 100,
+            "original_electromagnetic_normalization_verified": false,
+            "original_simulation_output_units_confirmed": false,
+            "normalization_or_legend_error_resolved": false,
+            "unit_repair_or_empirical_rescaling_applied": false,
+            "component_signs_preserved": true,
+            "coordinate_frame_rotation_applied": false,
+            "SI_columns_qualification": "conditional literal printed factor 100 only; not a validated physical field input"
+          },
+          "observed_limits": [
+            "Published legacy Allegra simulation raster, not measured electromagnetic data or an actual FLASH result.",
+            "The central B_x component is signed negative on both coordinate halves; no sign flip from gap-coordinate sign is applied.",
+            "Only finite conservative central-gap support is recovered. Exteriors, crossings, sharp sheets, legend regions and exact surface fields remain excluded.",
+            "Nominal 200 \u00b5m foil spans about 7.9 native pixels on this gap axis; no skin-depth profile, derivative, Ampere/current or field-energy closure is supplied.",
+            "Original arrays, mesh, material fractions, moving boundaries, full vector fields and electromagnetic normalization are unavailable.",
+            "Conditional tesla columns do not establish physical magnitude, Hall transport, species magnetization, gap/host field acceptance or a physical coordinate-frame mapping.",
+            "Two nominal snapshots are not a registered field time history; no trigger or current-to-field alignment is inferred.",
+            "Readout bounds and adjacent raster samples are correlated display quantities, not physical uncertainty or independent observations."
+          ]
+        },
+        {
+          "figure": "4.29",
+          "metadata_path": "data/dissertation/figure_4_29_magnetic_gap.json",
+          "source": {
+            "title": "Characterizing Desorbed Surface Contaminants Leading to Plasma Formation in Power Feeds of Pulsed Power Accelerators",
+            "item_url": "https://deepblue.lib.umich.edu/items/9ccfa886-0b19-4bd8-b3b2-bb685b9ddefc",
+            "pdf_sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+            "figure": "4.29",
+            "printed_page": 96,
+            "pdf_page": 121,
+            "pdf_page_index": 120,
+            "page_content_sha256": "17080e390125995d993f2fa580e2fcef6cf4cb166a267bf08a9e1a9798a8d43e",
+            "page_text": "Figure 4.29: Allegra simulations at 60 ns into the current pulse of Mykonos shot 17133. The\nimages show the current, magnetic field across the gap, current density in the cathode, and\ntemperature in the cathode. The lineouts of each of the profiles shown are taken at either\nthe foil-edge location or the foil-middle location, as represented by Fig. 4.27, right panel.\n[Simulation data courtesy of Alex Sarracino, Derek Lamppa, and Kyle Cochrane from Sandia\nNational Laboratories.]\nFigures 4.28 and 4.29 show that the foil-edge locations heat preferentially over the foil-\nmiddle locations. When compared to the assumption of a uniform distribution of atomic and\nmolecular hydrogen densities in the AK gap, the densities at the foil-edge location would\n96\n",
+            "embedded_image_xref": 2870,
+            "native_image_size_pixels": [
+              975,
+              975
+            ],
+            "native_image_mode": "RGB",
+            "reference_extracted_PNG_sha256": "5ae90775c30a8fad657f74d5813c150b2a4284d1a0fd8075ebc4fcd21b88e89a",
+            "extracted_PNG_sha256": "5ae90775c30a8fad657f74d5813c150b2a4284d1a0fd8075ebc4fcd21b88e89a",
+            "decoded_RGB_pixels_sha256": "ac25b035329213a8d0a354b8496b1674c2be24ceaeff65d95a48ef2e6376b34f",
+            "hash_validation": "PDF, page content and decoded RGB mandatory; lossless PNG encoding may vary",
+            "parser": "PyMuPDF",
+            "parser_version": "1.28.2"
+          },
+          "output": {
+            "csv_filename": "figure_4_29_magnetic_gap.csv",
+            "csv_sha256": "f928d3783a1fa9ebece1576208ef04890b0fbbcf3ecbfdc9363c5c63b6f1dfa0",
+            "columns": [
+              "figure",
+              "profile",
+              "time_s",
+              "pixel_y",
+              "pixel_x_median",
+              "run_first_pixel_x",
+              "run_last_pixel_x",
+              "matched_color_pixels",
+              "gap_coordinate_mm",
+              "gap_coordinate_readout_lower_mm",
+              "gap_coordinate_readout_upper_mm",
+              "Bx_literal_axis_value",
+              "Bx_literal_readout_lower_axis_value",
+              "Bx_literal_readout_upper_axis_value",
+              "Bx_literal_conditional_T",
+              "Bx_literal_conditional_readout_lower_T",
+              "Bx_literal_conditional_readout_upper_T"
+            ],
+            "line_ending": "LF",
+            "numeric_projection": "Exact rational coordinates, bounds and conditional scale converted once to float, then CSV formatted to 12 significant digits.",
+            "samples": 262,
+            "samples_by_profile": {
+              "foil_edge": 131,
+              "foil_middle": 131
+            },
+            "gap_coordinate_extent_mm": [
+              -1.6582278481012658,
+              1.6329113924050633
+            ],
+            "signed_Bx_literal_extent_by_profile": {
+              "foil_edge": [
+                -0.6175,
+                -0.5475
+              ],
+              "foil_middle": [
+                -0.6925,
+                -0.6525
+              ]
+            },
+            "generator": "tools/recover_dissertation_gap_magnetic.py",
+            "generator_sha256": "7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f",
+            "source_geometry_filename": "figure_4_29_magnetic_gap_source_geometry.json",
+            "source_geometry_sha256": "5019b9a658e430f2ebe830eecbd9820ae34ab53b913546f5a14551c13add07c8",
+            "QA_files_sha256": {
+              "figure_4_29_magnetic_gap.png": "5dbbaf932e62c6f07697328b78648729b3592569fd32b23da2d024b4429efa74",
+              "figure_4_29_magnetic_gap.pdf": "79dfee087135a51f94dec0eb1cbbad7705ed38c7bb41ee15fec2f4aac0797ec4"
+            }
+          },
+          "observed_unit_qualification": {
+            "source_magnetic_axis_label": "B_x [100 Tesla]",
+            "source_gap_axis_label": "Distance from Middle of AK Gap [mm]",
+            "primary_recovered_quantity": "signed literal B_x plotted axis value",
+            "literal_axis_unit": "100 Tesla",
+            "literal_conditional_scale_to_T": 100,
+            "original_electromagnetic_normalization_verified": false,
+            "original_simulation_output_units_confirmed": false,
+            "normalization_or_legend_error_resolved": false,
+            "unit_repair_or_empirical_rescaling_applied": false,
+            "component_signs_preserved": true,
+            "coordinate_frame_rotation_applied": false,
+            "SI_columns_qualification": "conditional literal printed factor 100 only; not a validated physical field input"
+          },
+          "observed_limits": [
+            "Published legacy Allegra simulation raster, not measured electromagnetic data or an actual FLASH result.",
+            "The central B_x component is signed negative on both coordinate halves; no sign flip from gap-coordinate sign is applied.",
+            "Only finite conservative central-gap support is recovered. Exteriors, crossings, sharp sheets, legend regions and exact surface fields remain excluded.",
+            "Nominal 200 \u00b5m foil spans about 7.9 native pixels on this gap axis; no skin-depth profile, derivative, Ampere/current or field-energy closure is supplied.",
+            "Original arrays, mesh, material fractions, moving boundaries, full vector fields and electromagnetic normalization are unavailable.",
+            "Conditional tesla columns do not establish physical magnitude, Hall transport, species magnetization, gap/host field acceptance or a physical coordinate-frame mapping.",
+            "Two nominal snapshots are not a registered field time history; no trigger or current-to-field alignment is inferred.",
+            "Readout bounds and adjacent raster samples are correlated display quantities, not physical uncertainty or independent observations."
+          ]
+        }
+      ],
+      "author_verification_association": {
+        "path": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/author-verification.json",
+        "sha256": "c38cd664f9f300874bd7f845720b5439b1c967c1248948f82f1ce048d7f1022f",
+        "schema": "mhdlab-magnetic-gap-author-verification-v1",
+        "report_reproduced_by_reviewer": false
+      },
+      "independent_verification_association": {
+        "path": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/readback.json",
+        "sha256": "d3b50ea1ffe0ff0306c08dcce5bafe714b8d3db52646a9afd4984aa5bd0b5930",
+        "schema": "mitl-independent-magnetic-gap-readback-v1",
+        "observed_status": "passed",
+        "report_reproduced_by_reviewer": false
+      },
+      "findings": [],
+      "source_or_data_changes_requested": false,
+      "source_identity_image_extraction_executions": 1,
+      "axis_fit_or_curve_digitization_by_reviewer": false,
+      "positive_producer_or_model_executed": false,
+      "old_producer_suite_or_source_audit_repeated": false,
+      "physical_normalization_or_uncertainty_established": false,
+      "Hall_magnetization_or_host_field_acceptance": false,
+      "archive_excluded_paths": [
+        "raw/"
+      ],
+      "limits": [
+        "Fresh visual source and emitted-output qualifications review only.",
+        "Partial finite central gap branches only; not exterior, crossing, sheet, endpoint or surface recovery.",
+        "Conditional printed 100 T conversion; original normalization and coordinate frame remain unverified.",
+        "Correlated raster readout bounds do not quantify simulation/physical uncertainty.",
+        "No numerical model, positive curve producer, independent readback replay or physical/host acceptance."
+      ],
+      "artifact_sha256": {
+        "complete_review.py": "456356b6800f1047a0a97c31c47fc593aec35e701982428d8ac4e30b7127ef6a",
+        "inspect_native_panels.py": "ffc7d10333fc472edec74131a105d59e7e6a0a94cbcf82fde81e2ce5bf668917",
+        "native_source_inspection.json": "4fd4a0c09883d45459b8a72daabeb85db67f016762e5c302f0dbc74e016b9cff",
+        "review.md": "62a7043d6ab1495b05aeceb8e0a7ef4e7783d3992581301fd3dcc9cb3467dab0"
+      }
+    },
+    "manifest_association": {
+      "schema": "mitl-magnetic-gap-manifest-association-v1",
+      "status": "passed",
+      "manifest_before_sha256": "e58e6ec43e687494f6f0e02f651a41dc96729616a44076a744ca5769092c7bc2",
+      "manifest_after_sha256": "79326bdf21c62730e1c14da9b4211582904c9efa703c007b056c0a025a9b53ee",
+      "only_figure_artifact_and_pending_associations_changed": true,
+      "figure_artifacts": {
+        "fig_4_28": {
+          "file": "figure_4_28_magnetic_gap.csv",
+          "metadata": "figure_4_28_magnetic_gap.json",
+          "generator": "tools/recover_dissertation_gap_magnetic.py",
+          "status": "digitized_published_simulation",
+          "csv_sha256": "08307893990f4d25ce9cf9fcd3bf68f6a8070cdc82f508336249d3a7a2db155b",
+          "metadata_sha256": "ac70c17f3303bf500f03e09923a5e7878638aa8f38104e88e1e4decee2a12702",
+          "generator_sha256": "7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f",
+          "content": "262 signed conservative central-gap B_x samples; 131 each for foil-edge and foil-middle labels",
+          "time_s": 4e-08,
+          "source_magnetic_axis_label": "B_x [100 Tesla]",
+          "source_coordinate_axis_label": "Distance from Middle of AK Gap [mm]",
+          "primary_quantity": "signed literal B_x plotted axis value",
+          "conditional_scale_to_T": 100,
+          "original_electromagnetic_normalization_verified": false,
+          "gap_coordinate_extent_mm": [
+            -1.6582278481012658,
+            1.6329113924050633
+          ],
+          "signed_Bx_literal_extent_by_profile": {
+            "foil_edge": [
+              -0.3775,
+              -0.3325
+            ],
+            "foil_middle": [
+              -0.4125,
+              -0.3925
+            ]
+          },
+          "native_retained_rows_inclusive": [
+            150,
+            280
+          ],
+          "native_candidate_rows_per_profile": 393,
+          "retained_samples_by_profile": {
+            "foil_edge": 131,
+            "foil_middle": 131
+          },
+          "excluded_rows_per_profile": 262,
+          "full_vector_field_recovered": false,
+          "exact_surface_field_recovered": false,
+          "experimental_clock_alignment_established": false,
+          "digitization_estimates": {
+            "magnetic_recipe": "entire matched [first_x,last_x] run extended by +/-2 pixels, exact fitted-axis map, then max absolute magnetic tick-fit residual",
+            "gap_recipe": "native row +/-2 pixels, exact fitted-axis map, then max absolute gap tick-fit residual",
+            "meaning": "Correlated native display readout bounds only; no physical uncertainty, derivative or Hall acceptance."
+          }
+        },
+        "fig_4_29": {
+          "file": "figure_4_29_magnetic_gap.csv",
+          "metadata": "figure_4_29_magnetic_gap.json",
+          "generator": "tools/recover_dissertation_gap_magnetic.py",
+          "status": "digitized_published_simulation",
+          "csv_sha256": "f928d3783a1fa9ebece1576208ef04890b0fbbcf3ecbfdc9363c5c63b6f1dfa0",
+          "metadata_sha256": "70ae3dd5a7a032a4262d9c321ae2fc893a217b3b8ba30abc6c728061faeac43d",
+          "generator_sha256": "7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f",
+          "content": "262 signed conservative central-gap B_x samples; 131 each for foil-edge and foil-middle labels",
+          "time_s": 6e-08,
+          "source_magnetic_axis_label": "B_x [100 Tesla]",
+          "source_coordinate_axis_label": "Distance from Middle of AK Gap [mm]",
+          "primary_quantity": "signed literal B_x plotted axis value",
+          "conditional_scale_to_T": 100,
+          "original_electromagnetic_normalization_verified": false,
+          "gap_coordinate_extent_mm": [
+            -1.6582278481012658,
+            1.6329113924050633
+          ],
+          "signed_Bx_literal_extent_by_profile": {
+            "foil_edge": [
+              -0.6175,
+              -0.5475
+            ],
+            "foil_middle": [
+              -0.6925,
+              -0.6525
+            ]
+          },
+          "native_retained_rows_inclusive": [
+            150,
+            280
+          ],
+          "native_candidate_rows_per_profile": 393,
+          "retained_samples_by_profile": {
+            "foil_edge": 131,
+            "foil_middle": 131
+          },
+          "excluded_rows_per_profile": 262,
+          "full_vector_field_recovered": false,
+          "exact_surface_field_recovered": false,
+          "experimental_clock_alignment_established": false,
+          "digitization_estimates": {
+            "magnetic_recipe": "entire matched [first_x,last_x] run extended by +/-2 pixels, exact fitted-axis map, then max absolute magnetic tick-fit residual",
+            "gap_recipe": "native row +/-2 pixels, exact fitted-axis map, then max absolute gap tick-fit residual",
+            "meaning": "Correlated native display readout bounds only; no physical uncertainty, derivative or Hall acceptance."
+          }
+        }
+      },
+      "old_scientific_producers_or_tests_executed": false
+    },
+    "documentation_association": {
+      "schema": "mitl-magnetic-gap-documentation-association-v1",
+      "status": "passed",
+      "public_sha256": {
+        "tools/recover_dissertation_gap_magnetic.py": "7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f",
+        "data/dissertation/figure_4_28_magnetic_gap.csv": "08307893990f4d25ce9cf9fcd3bf68f6a8070cdc82f508336249d3a7a2db155b",
+        "data/dissertation/figure_4_28_magnetic_gap.json": "ac70c17f3303bf500f03e09923a5e7878638aa8f38104e88e1e4decee2a12702",
+        "data/dissertation/figure_4_29_magnetic_gap.csv": "f928d3783a1fa9ebece1576208ef04890b0fbbcf3ecbfdc9363c5c63b6f1dfa0",
+        "data/dissertation/figure_4_29_magnetic_gap.json": "70ae3dd5a7a032a4262d9c321ae2fc893a217b3b8ba30abc6c728061faeac43d",
+        "docs/dissertation_gap_magnetic_recovery.md": "58261e8085df50f51b41a8a61b6ec8932c862f2cd4b24951073eb280ed4f9ff1",
+        "docs/dissertation_recovery.md": "c46a566cc9f51654c24d11acea65d095153fa2db3ebd1bc586cd51146996cec0",
+        "docs/dissertation_current_depth_recovery.md": "6d41ba36bc90559814431d15ac1006b1cbd5839d6b438957ec550ab623feaf63",
+        "data/dissertation/recovery_manifest.yaml": "79326bdf21c62730e1c14da9b4211582904c9efa703c007b056c0a025a9b53ee"
+      },
+      "record_sha256": {
+        "recovery/author-verification.json": "c38cd664f9f300874bd7f845720b5439b1c967c1248948f82f1ce048d7f1022f",
+        "guards/completion.json": "793f0ef221b25f8b0af6d378018149bd85c635fbfa2fc26bf2a73defd999832b",
+        "independent-verification/completion.json": "c5e1251b8e25a3d0073adececb975d15e287b979e3c081a2c3efad9c11660819",
+        "independent-verification/readback.json": "d3b50ea1ffe0ff0306c08dcce5bafe714b8d3db52646a9afd4984aa5bd0b5930",
+        "scientific-review/completion.json": "e829d50d457d11ac0d5f5ef5398bd73a03529b31487b91c0c20857f8bf11b8bf",
+        "next-upstream-selection/selection.json": "665ca510dc53ee06be1f059dcef4bb039c444f4c4dab0280b3d94fa35c35c2b9",
+        "manifest-association.json": "6565b1a2fc0f6916065400d010ffc81804891fb9fbac472707235d4238716d9f",
+        "root-selection-review.json": "1cfd862e1d2c2e6a8f52bfc93e1874e741464483fc8533586a522cdab331617b",
+        "visual-review.json": "e6ac267e4ea7d7939f81c90f7a6feddba92025ba257514d18fb7e52d7e9c7110"
+      },
+      "verified_counts": {
+        "retained_rows": 524,
+        "excluded_rows": 1048,
+        "native_rows_catalogued": 1572,
+        "numeric_csv_cells_checked": 7860,
+        "tick_anchors_checked": 18,
+        "independent_saved_output_readback_attempts": 2,
+        "completed_saved_output_readback_passes": 1
+      },
+      "guide_local_links": [
+        "../data/dissertation/figure_4_28_magnetic_gap.csv",
+        "../data/dissertation/figure_4_28_magnetic_gap.json",
+        "../data/dissertation/figure_4_29_magnetic_gap.csv",
+        "../data/dissertation/figure_4_29_magnetic_gap.json",
+        "../tools/recover_dissertation_gap_magnetic.py",
+        "dissertation_current_depth_recovery.md",
+        "dissertation_recovery.md"
+      ],
+      "manifest_only_new_artifacts_and_pending_changed": true,
+      "new_source_guard_controls": 4,
+      "new_positive_producer_runs": 1,
+      "independent_complete_readbacks": 1,
+      "initial_readback_failure_and_correction_preserved": true,
+      "next_task": "Implement and independently verify a separate manufactured single-patch prescribed-power reference with strictly positive activation energy and fixed-reference coverage-dependent kinetics.",
+      "scientific_producers_tests_or_oracles_reexecuted": false,
+      "physical_normalization_or_Hall_or_host_acceptance": false
+    },
+    "visual_review": {
+      "schema": "mitl-magnetic-gap-root-visual-review-v1",
+      "status": "passed",
+      "PNG_figures_actually_viewed_by_root": 2,
+      "QA_artifact_sha256": {
+        "recovery/figure_4_28_magnetic_gap.png": "6fefb23c22fcee417aa8b32fe4d2ee7cfd94b2c0296fa9f5334438d43274d57d",
+        "recovery/figure_4_28_magnetic_gap.pdf": "2638e6bf7876d7917e1c33dde80d51e61baffee41ccf5e5f032c4b87f069dcc8",
+        "recovery/figure_4_29_magnetic_gap.png": "5dbbaf932e62c6f07697328b78648729b3592569fd32b23da2d024b4429efa74",
+        "recovery/figure_4_29_magnetic_gap.pdf": "79dfee087135a51f94dec0eb1cbbad7705ed38c7bb41ee15fec2f4aac0797ec4"
+      },
+      "findings": [
+        "Both native overlays restrict retained samples to the central shaded rows.",
+        "Pink edge and purple middle identities, signed negative component values and gap orientation are clear.",
+        "Native staircase structure and full-run display bounds remain visible without hidden branches or endpoint padding.",
+        "Titles and axes identify legacy simulation, nominal snapshots, central-only support and unverified normalization."
+      ],
+      "replot_or_producer_execution_performed": false,
+      "physical_normalization_accepted": false
+    },
+    "selection": {
+      "schema": "mhdlab-next-upstream-selection-v1",
+      "status": "selected_after_current_scientific_acceptance",
+      "utc": "2026-10-19T06:19:40.073209+00:00",
+      "task": "Implement and independently verify a separate manufactured single-patch prescribed-power reference with strictly positive activation energy and fixed-reference coverage-dependent kinetics.",
+      "rationale": "The isolated zero-power reference verifies Arrhenius cooling, while the later prescribed-power reference explicitly rejects nonzero activation energy. Neither verifies temperature-dependent rates coupled to forced heating, power discontinuities and separate gross energy channels.",
+      "bounded_plan": {
+        "path": "/workspace/research_work/mitl-upstream-20261019T0606/next-upstream-selection/forced_arrhenius_power_proposal.json",
+        "sha256": "b1374c57eeeefc5a6189ee81ac4fa1b7aa6fa6bc65193c94ffe4c158b8730ce1",
+        "schema": "mhdlab-next-forced-arrhenius-feedback-proposal-v1",
+        "proposal_status_remains": "conditional_planning_only; this record now binds the prerequisite acceptance, not a future implementation result"
+      },
+      "current_milestone": {
+        "pass": "mitl-upstream-20261019T0606",
+        "task": "Four coarse signed B_x gap profiles in dissertation Figures4.28/4.29",
+        "scientific_acceptance": "Root accepted pinned author verification, independent readback and independent scientific review before this selection was written.",
+        "author_verification": {
+          "path": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/author-verification.json",
+          "sha256": "c38cd664f9f300874bd7f845720b5439b1c967c1248948f82f1ce048d7f1022f",
+          "schema": "mhdlab-magnetic-gap-author-verification-v1"
+        },
+        "independent_verification": {
+          "path": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/completion.json",
+          "sha256": "c5e1251b8e25a3d0073adececb975d15e287b979e3c081a2c3efad9c11660819",
+          "schema": "mitl-independent-magnetic-gap-completion-v1",
+          "status": "passed",
+          "all_check_fields": {
+            "all_checks_passed": true
+          }
+        },
+        "scientific_review": {
+          "path": "/workspace/research_work/mitl-upstream-20261019T0606/scientific-review/completion.json",
+          "sha256": "e829d50d457d11ac0d5f5ef5398bd73a03529b31487b91c0c20857f8bf11b8bf",
+          "schema": "mitl-magnetic-gap-scientific-review-v1",
+          "status": "review_complete_no_substantive_issue_identified"
+        },
+        "accepted_metrics_from_root_association": {
+          "figures": 2,
+          "profiles": 4,
+          "retained_native_rows": 524,
+          "excluded_native_rows": 1048,
+          "catalogued_native_rows": 1572,
+          "author_positive_producer_runs": 1,
+          "independent_attempts": 2,
+          "independent_completed_readbacks": 1
+        },
+        "preserved_attempt_qualification": "First independent attempt stopped before catalog/CSV comparison because a tick-tail anchor was417 rather than418; both fresh native scans were identical. Completed readback and correction evidence are preserved in the pinned completion; no producer was replayed for selection.",
+        "limitations": [
+          "Coarse published legacy Allegra simulation gap profiles; not experimental field measurements or actual FLASH output.",
+          "Signed literal plotted B_x and the printed conditional scale remain distinct from verified original normalization.",
+          "No B derivative, surface-field reconstruction, current/Ampere closure, magnetic-energy closure, J-squared heating, trigger registration, original-mesh recovery or physical source parameter inference."
+        ],
+        "final_public_document_association_or_HEAD_claimed": false
+      },
+      "next_task_controls": {
+        "fresh_lease_required_for_implementation": true,
+        "new_separate_module_and_oracle_only": true,
+        "previous_evolution_or_producer_or_reference_replay_allowed": false,
+        "temperature_dependent_forced_IVP_still_unverified": true,
+        "fixture_values_are_unexecuted_design_proposals": true,
+        "reference_recentered_at_each_segment": true,
+        "fixed_Nref_and_effective_barrier_domain_required": true,
+        "positive_translation_and_wall_quadrature_independent_of_residual": true,
+        "raw_schedule_and_representation_checks_required_on_new_final_code": true,
+        "no_physical_parameters_monolayer_VUV_FLASH_or_host_claim": true
+      },
+      "deferred_queue_gates": [
+        {
+          "task": "Physical water/OH release and monolayer inference",
+          "gate": "Requires actual target-surface parent inventory convention, preparation, independently supported rate/energy parameters and material-transfer assessment. Manufactured constants and alpha/Nref are not calibrated physical values."
+        },
+        {
+          "task": "Absolute VUV/spectrum comparison",
+          "gate": "Requires response quantity, original calibration/gate/gain/throughput and a defensible observation map with actual noise/covariance. Published transition densities are not total ground neutral density."
+        },
+        {
+          "task": "Owner transport/response acceptance",
+          "gate": "Requires owner-declared fields, geometry/collection/loss and response definitions. Preserve full time/state/velocity/current/T mixture; no separately owned solver edits or calls."
+        },
+        {
+          "task": "Actual FLASH/material heating",
+          "gate": "Requires licensed installed code, configured compute, validated material/EOS/transport/units and boundary interfaces. Recovered legacy B/J/display drive units and clocks do not establish heating or actual FLASH validation."
+        },
+        {
+          "task": "Joly/Li-Dylla or other physical source acquisition",
+          "gate": "No new legitimate full-text location or supplied copy is present in this cached selection; do not repeat blocked access routes or old source audits."
+        }
+      ],
+      "planning_activity": {
+        "metadata_and_cached_text_read_only": true,
+        "new_source_parser_or_digitization_called": false,
+        "model_or_oracle_or_producer_called": false,
+        "network_used": false,
+        "public_files_edited": false,
+        "separately_owned_solver_accessed": false
+      }
+    }
+  },
+  "record_paths": {
+    "author_verification": "recovery/author-verification.json",
+    "independent_completion": "independent-verification/completion.json",
+    "guard_completion": "guards/completion.json",
+    "scientific_review": "scientific-review/completion.json",
+    "manifest_association": "manifest-association.json",
+    "documentation_association": "documentation-association.json",
+    "visual_review": "visual-review.json",
+    "selection": "next-upstream-selection/selection.json"
+  },
+  "record_sha256": {
+    "author_verification": "c38cd664f9f300874bd7f845720b5439b1c967c1248948f82f1ce048d7f1022f",
+    "independent_completion": "c5e1251b8e25a3d0073adececb975d15e287b979e3c081a2c3efad9c11660819",
+    "guard_completion": "793f0ef221b25f8b0af6d378018149bd85c635fbfa2fc26bf2a73defd999832b",
+    "scientific_review": "e829d50d457d11ac0d5f5ef5398bd73a03529b31487b91c0c20857f8bf11b8bf",
+    "manifest_association": "6565b1a2fc0f6916065400d010ffc81804891fb9fbac472707235d4238716d9f",
+    "documentation_association": "eb2a58f3d6c76b7a84eee9b73423e2afcd226310feb49dc7fb4acc114379ef92",
+    "visual_review": "e6ac267e4ea7d7939f81c90f7a6feddba92025ba257514d18fb7e52d7e9c7110",
+    "selection": "665ca510dc53ee06be1f059dcef4bb039c444f4c4dab0280b3d94fa35c35c2b9"
+  },
+  "allowed_figure_paths": [
+    "recovery/figure_4_28_magnetic_gap.pdf",
+    "recovery/figure_4_28_magnetic_gap.png",
+    "recovery/figure_4_29_magnetic_gap.pdf",
+    "recovery/figure_4_29_magnetic_gap.png"
+  ],
+  "copied_input_sha256": [
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/magnetic-source-guards-once.log",
+      "archive": "evidence/magnetic-source-guards-once.log",
+      "sha256": "793f0ef221b25f8b0af6d378018149bd85c635fbfa2fc26bf2a73defd999832b"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-draft-guide-link-scope.log",
+      "archive": "evidence/root-draft-guide-link-scope.log",
+      "sha256": "4b81cf3784b873d001c7421479d868510e0bf307dcbe0ad5cbd8ede6d3a610cd"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-record-schema-summary.log",
+      "archive": "evidence/root-record-schema-summary.log",
+      "sha256": "eff4075f1216bfbbe3fb190d6ff2d68c52b7b6efb4fc7ff50d47bc6e3f374e65"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-completion-helper-scope-read.log",
+      "archive": "evidence/root-completion-helper-scope-read.log",
+      "sha256": "f49af55fa7ff9ee777a601cb52097120d4775d8d31cbafd6193095a892938824"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/associate-magnetic-manifest.log",
+      "archive": "evidence/associate-magnetic-manifest.log",
+      "sha256": "6565b1a2fc0f6916065400d010ffc81804891fb9fbac472707235d4238716d9f"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/commit-magnetic-docs.log",
+      "archive": "evidence/commit-magnetic-docs.log",
+      "sha256": "d4fd8fb99a2fcbc20c8568f6715b96393cbcfb60e05d607f5da75bef84914db8"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/commit_magnetic_recovery.py",
+      "archive": "evidence/commit_magnetic_recovery.py",
+      "sha256": "a5f5cb0c1a1b4a8a02b0e41475009e5f8da96d202f057057bf23990fb391c46d"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/magnetic-gap-fresh-native-inspection.log",
+      "archive": "evidence/magnetic-gap-fresh-native-inspection.log",
+      "sha256": "28cc32cb8032d360b53af756eee292efe3a7ef1eeec9ba424835c9b070f2bf6b"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-magnetic-saved-readback.log",
+      "archive": "evidence/independent-magnetic-saved-readback.log",
+      "sha256": "1f6dba1dbb656e2d3808d0bb854c4538362ffff1efde848a7d47719bf805727f"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/magnetic-completion-contract-AST.log",
+      "archive": "evidence/magnetic-completion-contract-AST.log",
+      "sha256": "fee83a1e40d79b2119699487223013edb1d4e275aa43fbbd0f497f4116a92fd4"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/magnetic-gap-fresh-geometry-probe.log",
+      "archive": "evidence/magnetic-gap-fresh-geometry-probe.log",
+      "sha256": "21f4decf47f7f10dfeb6e835e13835ed976bb422bbd31a5224bf9d3a373e6e15"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/magnetic-gap-code-preflight.log",
+      "archive": "evidence/magnetic-gap-code-preflight.log",
+      "sha256": "ed9d88861cf8984b86e1f1d48ca0ecacdec4830a613bb757f829bdd257b97a33"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-final-diff-scope.log",
+      "archive": "evidence/root-final-diff-scope.log",
+      "sha256": "09d41ad07f9da558d8c8252c01879ee763a9469f8c787edc65fc0c411cf4675d"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/next-forced-arrhenius-proposal-energy-units.log",
+      "archive": "evidence/next-forced-arrhenius-proposal-energy-units.log",
+      "sha256": "59280dacc3f4a21d1a2ff175d54d10c701e994088ce5e43dc9120f38d08a24bc"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/documentation-association.json",
+      "archive": "evidence/documentation-association.json",
+      "sha256": "eb2a58f3d6c76b7a84eee9b73423e2afcd226310feb49dc7fb4acc114379ef92"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/status-before-lease.json",
+      "archive": "evidence/status-before-lease.json",
+      "sha256": "9bc0824293685019bcb8918e8fc349f55e05264ba4040940dc5e2468f0d7957f"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/associate-magnetic-docs.log",
+      "archive": "evidence/associate-magnetic-docs.log",
+      "sha256": "c467d0dcd0296f4d974ffc1e623051477e99934f5d7cb601c43f11b58fef7d28"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/verify_delivery.py",
+      "archive": "evidence/verify_delivery.py",
+      "sha256": "9356c29dafdfdc9161ca7553218d5066c96cd393290849502d317a2521d32da3"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/next-upstream-selection-final.log",
+      "archive": "evidence/next-upstream-selection-final.log",
+      "sha256": "c5938b5c097425bd3747e1f4b1da964a6402e3d7f22c3fe368653ed44c3e6d2e"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/visual-review.json",
+      "archive": "evidence/visual-review.json",
+      "sha256": "e6ac267e4ea7d7939f81c90f7a6feddba92025ba257514d18fb7e52d7e9c7110"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-documentation-scope.log",
+      "archive": "evidence/root-documentation-scope.log",
+      "sha256": "cd02312d62c124d8b10329fa76f7a700613a79756436f4a2c39dac3cafc4a82d"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-magnetic-native-extraction.log",
+      "archive": "evidence/independent-magnetic-native-extraction.log",
+      "sha256": "e7dbbab7c63c15af9238b1d49c17dddd3ae69ca462cee43faec0e60f96cfe1a3"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/finalize_magnetic_docs.py",
+      "archive": "evidence/finalize_magnetic_docs.py",
+      "sha256": "1d236097908f0b5b3899e35a19fd7a3c6aef050299768ffff5e1231ca1eda885"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/next-upstream-cached-evidence.log",
+      "archive": "evidence/next-upstream-cached-evidence.log",
+      "sha256": "2f6bafe791fd9208d3a2fdccd6f6b4c14b7e8bc454716192d64ff5ee79b54dd0"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/prepare_delivery.py",
+      "archive": "evidence/prepare_delivery.py",
+      "sha256": "6e96847885337de90f54a9e9be2b244f4adc33fcfd1463d3bf7a5bc373171e5d"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/commands.jsonl",
+      "archive": "evidence/commands.jsonl",
+      "sha256": "df71aa3c3153440ecd84e7d2b9c43aa7b7e11cba562e343141828edbb9f86529"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/magnetic-gap-central-run-statistics.log",
+      "archive": "evidence/magnetic-gap-central-run-statistics.log",
+      "sha256": "a0709bc7a9efc02a43a2e12c6cf647e71feeea7cc452c1c50cc4fa6676f21d14"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-delivery-helper-scope-read.log",
+      "archive": "evidence/root-delivery-helper-scope-read.log",
+      "sha256": "0413d809022e16b6e696bf12c986cd7f2226b7e541eb3c51a7125ac65ffd44e0"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/allocation.json",
+      "archive": "evidence/allocation.json",
+      "sha256": "a7c9eef0849040d4c2ed7d9dfc6a6df4bbe5e7775beafd9115082c862b48ae7b"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-magnetic-tick-inspection.log",
+      "archive": "evidence/independent-magnetic-tick-inspection.log",
+      "sha256": "6b655665b45c57bb23a79ac35f5347516cc2ed0a04103d510da03b8d8e132891"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-qa-paths.log",
+      "archive": "evidence/root-qa-paths.log",
+      "sha256": "1557bed95fa71785fad0ba2761592e0a476164030f82a2e7227d3372d6b8fa3f"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/complete_pass.py",
+      "archive": "evidence/complete_pass.py",
+      "sha256": "e98dda9a61fd239af80f21a8bc4d694b92a83faff59bc27f3cd809e83d2c4601"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-magnetic-saved-readback-corrected.log",
+      "archive": "evidence/independent-magnetic-saved-readback-corrected.log",
+      "sha256": "9c92f0cb79044ce99c2774bd28f0ac32905ebfbbc750bb82184588bac6453ccc"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/magnetic-gap-author-inventory-corrected.log",
+      "archive": "evidence/magnetic-gap-author-inventory-corrected.log",
+      "sha256": "58a4d5fdcd37134c864aae1de7299fd4fe3d62f2eb301a75084e9aef40ccd388"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/record_command.py",
+      "archive": "evidence/record_command.py",
+      "sha256": "91f7a3728988a2b1827674478346382c631593f5f18d4dff70302aa7ad533dc5"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/freeze_delivery.py",
+      "archive": "evidence/freeze_delivery.py",
+      "sha256": "05d45974c603aa82c4c2f3a23a116019148b5eeffaf3b0c21bd38a31380c6d49"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/magnetic-gap-selection-code-freeze.log",
+      "archive": "evidence/magnetic-gap-selection-code-freeze.log",
+      "sha256": "edd4be8325c398b374743b011e0b0cf0b5a7119587fc81a07a9ff32c327fa157"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-selection-review.json",
+      "archive": "evidence/root-selection-review.json",
+      "sha256": "1cfd862e1d2c2e6a8f52bfc93e1874e741464483fc8533586a522cdab331617b"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/prepare-delivery.log",
+      "archive": "evidence/prepare-delivery.log",
+      "sha256": "24e881aad6b4bd579e620e927df02f57c532aadf846ad002a027f6af9b4b53e6"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/lease.json",
+      "archive": "evidence/lease.json",
+      "sha256": "1b34fc9423cddfb7f5f18caa514aeb453ccfa44a4cad78bdf9dd37da2f677287"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/associate_manifest.py",
+      "archive": "evidence/associate_manifest.py",
+      "sha256": "232dcec91beb98731081c554505526e790c7347241d431d084ed9b95486d337e"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-magnetic-before-readback-freeze.log",
+      "archive": "evidence/independent-magnetic-before-readback-freeze.log",
+      "sha256": "5595b87e546b3703bedc9e98913d732a30dc64146a2f59a28b350efd165b4210"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-magnetic-completion-aggregate.log",
+      "archive": "evidence/independent-magnetic-completion-aggregate.log",
+      "sha256": "8e9079a4694c9b612735e4fddbc5a505c66907cfdf608b2a077861561bc6ffdc"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-catalog-shape-read.log",
+      "archive": "evidence/root-catalog-shape-read.log",
+      "sha256": "d56742f0ce3a11d441f4982fc8af93b21e768350382aa1219fe71fd7ab9487d2"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-magnetic-readback-correction-freeze.log",
+      "archive": "evidence/independent-magnetic-readback-correction-freeze.log",
+      "sha256": "f94ac37ecdc390e974fcca8238dfc0ffd13bf36fe2c9646d210c9615f95c2d07"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/inspect-magnetic-gap-native-source.log",
+      "archive": "evidence/inspect-magnetic-gap-native-source.log",
+      "sha256": "0e0cd3a3c514813c706e5abe448862d7d766b618bd02ccd452d01071e68fe1a4"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/read-next-forced-feedback-proposal.log",
+      "archive": "evidence/read-next-forced-feedback-proposal.log",
+      "sha256": "b1374c57eeeefc5a6189ee81ac4fa1b7aa6fa6bc65193c94ffe4c158b8730ce1"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/complete-magnetic-gap-scientific-review.log",
+      "archive": "evidence/complete-magnetic-gap-scientific-review.log",
+      "sha256": "c475f01b200d3dbebb5ddab1e193982dc60d1e5e31faf4c1b7aeb7ebfbeb2d5d"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/magnetic-gap-recovery.log",
+      "archive": "evidence/magnetic-gap-recovery.log",
+      "sha256": "c547637035c25281d14c4e731ad46314357a55165ab700899154fe873debc374"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/freeze-magnetic-guard-plan.log",
+      "archive": "evidence/freeze-magnetic-guard-plan.log",
+      "sha256": "0a0275eedf9645b829513e44a2646cef9621b54d28d627a8c0b134227734ff55"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/commit-magnetic-recovery.log",
+      "archive": "evidence/commit-magnetic-recovery.log",
+      "sha256": "d925aa0912594ff44209cafba88c758106c30bb471568986eadd52dd6ce89ec9"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-final-record-schema-summary.log",
+      "archive": "evidence/root-final-record-schema-summary.log",
+      "sha256": "1afdd21296d3de7081089a431778b992c915a19a5976ab098f0926b1942954e7"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-native-mask-review.log",
+      "archive": "evidence/root-native-mask-review.log",
+      "sha256": "1cfd862e1d2c2e6a8f52bfc93e1874e741464483fc8533586a522cdab331617b"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-recovery-output-contract-read.log",
+      "archive": "evidence/root-recovery-output-contract-read.log",
+      "sha256": "59b659ec7f85fab92cbb80447d702a5142a17c2f69db3031df0b08478721efa0"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-sidecar-contract-read.log",
+      "archive": "evidence/root-sidecar-contract-read.log",
+      "sha256": "3e7f8de4f1aa3a66e568498b7ab5303998942e1793020e94df9cf1a6c10ab6a3"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/magnetic-gap-author-inventory.log",
+      "archive": "evidence/magnetic-gap-author-inventory.log",
+      "sha256": "bc038d175a1721b63471b3146e6bf971d73789a2e2d5dff0c801dbd0cb86c281"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/magnetic-gap-delivery-helper-syntax.log",
+      "archive": "evidence/magnetic-gap-delivery-helper-syntax.log",
+      "sha256": "82f0c4da386e6b47fd362a5d3c6197f8bbd26c94f31419f1d2b694d68034045f"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-selection-schema-read.log",
+      "archive": "evidence/root-selection-schema-read.log",
+      "sha256": "e44cc0d3aba4ccf27d8a5caeb7d10f53d0aa31293ba615c01a3d3fe822e6c065"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/root-author-evidence-read.log",
+      "archive": "evidence/root-author-evidence-read.log",
+      "sha256": "c38cd664f9f300874bd7f845720b5439b1c967c1248948f82f1ce048d7f1022f"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/manifest-association.json",
+      "archive": "evidence/manifest-association.json",
+      "sha256": "6565b1a2fc0f6916065400d010ffc81804891fb9fbac472707235d4238716d9f"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/commit_magnetic_docs.py",
+      "archive": "evidence/commit_magnetic_docs.py",
+      "sha256": "0e19385371e03f2f708e96a42e873df6a90a084540200e4b3af01e77e6255e10"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/next-forced-arrhenius-proposal.log",
+      "archive": "evidence/next-forced-arrhenius-proposal.log",
+      "sha256": "da0fc3894654d6bce61fe5408bd2a00f8c7dd5f1fc9384b6f2ebffd4fe318fe9"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/magnetic_geometry_probe.json",
+      "archive": "evidence/recovery/magnetic_geometry_probe.json",
+      "sha256": "6cc978384a678203aa7f4ebf12964fe9c1e742c9b3ea65cbc2ea9bddd03a971a"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/inspect_native_magnetic.py",
+      "archive": "evidence/recovery/inspect_native_magnetic.py",
+      "sha256": "4393ac1692ef5db69b9d2452f14d379b0f9896309cad0908f9c7b6b0c5e4dd6d"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/probe_magnetic_geometry.py",
+      "archive": "evidence/recovery/probe_magnetic_geometry.py",
+      "sha256": "88e762d520b2fdc1faba97456e084fd527d70616f608b30013718803f96c1fb7"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/figure_4_29_magnetic_gap.png",
+      "archive": "evidence/recovery/figure_4_29_magnetic_gap.png",
+      "sha256": "5dbbaf932e62c6f07697328b78648729b3592569fd32b23da2d024b4429efa74"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/selection_freeze.json",
+      "archive": "evidence/recovery/selection_freeze.json",
+      "sha256": "2db0925498ffcf94aa50b94133271d16e2b37d498c3b1fc0ba960bb3e94193d1"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/figure_4_28_magnetic_gap.png",
+      "archive": "evidence/recovery/figure_4_28_magnetic_gap.png",
+      "sha256": "6fefb23c22fcee417aa8b32fe4d2ee7cfd94b2c0296fa9f5334438d43274d57d"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/author-verification.json",
+      "archive": "evidence/recovery/author-verification.json",
+      "sha256": "c38cd664f9f300874bd7f845720b5439b1c967c1248948f82f1ce048d7f1022f"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/figure_4_29_magnetic_gap_source_geometry.json",
+      "archive": "evidence/recovery/figure_4_29_magnetic_gap_source_geometry.json",
+      "sha256": "5019b9a658e430f2ebe830eecbd9820ae34ab53b913546f5a14551c13add07c8"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/central_run_statistics.json",
+      "archive": "evidence/recovery/central_run_statistics.json",
+      "sha256": "69ae8bceb43712631a85d878cd199e29568db1989ffa391fd0aea3a017c8bcb4"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/figure_4_28_magnetic_gap_source_geometry.json",
+      "archive": "evidence/recovery/figure_4_28_magnetic_gap_source_geometry.json",
+      "sha256": "ff7f5327236a676ca37f58391e7df2efea1e088e565496bb9afff40209a83090"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/native_magnetic_inspection.json",
+      "archive": "evidence/recovery/native_magnetic_inspection.json",
+      "sha256": "54b72a440695d3f6fa8bfdfe745ab6b6b0918a0ae6018f4f3e2a7eceeeed05b2"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/figure_4_28_magnetic_gap.pdf",
+      "archive": "evidence/recovery/figure_4_28_magnetic_gap.pdf",
+      "sha256": "2638e6bf7876d7917e1c33dde80d51e61baffee41ccf5e5f032c4b87f069dcc8"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/freeze_selection.py",
+      "archive": "evidence/recovery/freeze_selection.py",
+      "sha256": "3068931335254f99b24034e7a82b2dbe8ecf6c6e47c42a70a0b5881d667d572d"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/figure_4_29_magnetic_gap.pdf",
+      "archive": "evidence/recovery/figure_4_29_magnetic_gap.pdf",
+      "sha256": "79dfee087135a51f94dec0eb1cbbad7705ed38c7bb41ee15fec2f4aac0797ec4"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/recovery/finalize_author_record.py",
+      "archive": "evidence/recovery/finalize_author_record.py",
+      "sha256": "0bbf568286008f4f33f7584120fe1d75027d8069e8c68df1bca2d1c2bfeecc5b"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/completion.json",
+      "archive": "evidence/independent-verification/completion.json",
+      "sha256": "c5e1251b8e25a3d0073adececb975d15e287b979e3c081a2c3efad9c11660819"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/method.md",
+      "archive": "evidence/independent-verification/method.md",
+      "sha256": "de451661690d92b7c26048ea6929fad439bc077783caa89b73d5344637220289"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/finalize_completion.py",
+      "archive": "evidence/independent-verification/finalize_completion.py",
+      "sha256": "a1b71fc0967c29727a7864ada37ae19fdfbeab8d49aca16af66e24e4b8eda6bb"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/tick-inspection.json",
+      "archive": "evidence/independent-verification/tick-inspection.json",
+      "sha256": "6b655665b45c57bb23a79ac35f5347516cc2ed0a04103d510da03b8d8e132891"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/verify_saved_magnetic.initial.py",
+      "archive": "evidence/independent-verification/verify_saved_magnetic.initial.py",
+      "sha256": "18fde22cdb1ffd73bec7aeab8b35427eb12606c94101bd193c01605d07c041ac"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/freeze_saved_readback.py",
+      "archive": "evidence/independent-verification/freeze_saved_readback.py",
+      "sha256": "6c3f04da0939ecd9901655f7f4d75a977c452ce4c12be1683c139efc4753670a"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/readback.json",
+      "archive": "evidence/independent-verification/readback.json",
+      "sha256": "d3b50ea1ffe0ff0306c08dcce5bafe714b8d3db52646a9afd4984aa5bd0b5930"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/inspect_native_source.py",
+      "archive": "evidence/independent-verification/inspect_native_source.py",
+      "sha256": "89835933a85e0d390ae22c05c2b3972fd288330912a21cc8ac27b4c95a36a198"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/readback_freeze_amendment.json",
+      "archive": "evidence/independent-verification/readback_freeze_amendment.json",
+      "sha256": "0f0323a03c3f8abf3aa7aacc20c92ab1080b88b709ca64bf322b1700e6ecb55d"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/prepare_readback_correction.py",
+      "archive": "evidence/independent-verification/prepare_readback_correction.py",
+      "sha256": "b4d3fe9404bc4e96611a2ee69de97717dd68d37c3c8cc493f068acde529851bb"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/verify_saved_magnetic.py",
+      "archive": "evidence/independent-verification/verify_saved_magnetic.py",
+      "sha256": "eb45962143cbf62c06e8e60fb9129fb5e897074d029d2cf601387c7f35ccd54d"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/readback_plan.json",
+      "archive": "evidence/independent-verification/readback_plan.json",
+      "sha256": "13fc75ad029a181f5a3663f08b39ace9f08bdf248e474fbd900a2efe20c3acf6"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/routine-read-notes.json",
+      "archive": "evidence/independent-verification/routine-read-notes.json",
+      "sha256": "ba82a51c10d280ff24d0a88207f88d9d2765cc4d15fec1ff8a1a3fd2f0591836"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/source_assessment.json",
+      "archive": "evidence/independent-verification/source_assessment.json",
+      "sha256": "2a32f111f395c338b5f04fa938275336cd374e8cfeaedc6365a1633250467211"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/before_readback_freeze.json",
+      "archive": "evidence/independent-verification/before_readback_freeze.json",
+      "sha256": "1f8700764bc5e79abc6ed4cf6c4a4e3650a74c463d460ca7e41406320c0a8dd3"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/readback_correction.md",
+      "archive": "evidence/independent-verification/readback_correction.md",
+      "sha256": "ed6eefd63c1e4573e50cff3bcfb28a78d77ff63cde3b0ae9e5628f15dfa94806"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/native-source/figure_4_29_page_text.txt",
+      "archive": "evidence/independent-verification/native-source/figure_4_29_page_text.txt",
+      "sha256": "4d66171bcddb2b7ad6614fda1fcd9e7ae176243da39bbd8649df8b0faa8187e7"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/native-source/figure_4_28_page_text.txt",
+      "archive": "evidence/independent-verification/native-source/figure_4_28_page_text.txt",
+      "sha256": "4c6c15a9203a2f383528d9cd3cb6b92c6d57c80d6390dc1ee574b688d0774b11"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/independent-verification/native-source/identity.json",
+      "archive": "evidence/independent-verification/native-source/identity.json",
+      "sha256": "0443ae2c71c41ad9bb9828c1150a4174cbb4ec2866030ddd32b53bb9f97cfea3"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/guards/completion.json",
+      "archive": "evidence/guards/completion.json",
+      "sha256": "793f0ef221b25f8b0af6d378018149bd85c635fbfa2fc26bf2a73defd999832b"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/guards/freeze.json",
+      "archive": "evidence/guards/freeze.json",
+      "sha256": "0a0275eedf9645b829513e44a2646cef9621b54d28d627a8c0b134227734ff55"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/guards/plan.json",
+      "archive": "evidence/guards/plan.json",
+      "sha256": "30a00e1c55fe6ce9b6ef5f63bbc3a006658553a5c3ff369143bb87692a9cf355"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/guards/freeze_plan.py",
+      "archive": "evidence/guards/freeze_plan.py",
+      "sha256": "8e3e1b689eef724c9506c1942f82e5e97042eeddd2b4679659358f39e666825e"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/guards/run_guards.py",
+      "archive": "evidence/guards/run_guards.py",
+      "sha256": "1431b4cb56512611a2b2c9867a728a5cb05e2a8f0bf45c06180ace24a8cc5dd1"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/scientific-review/completion.json",
+      "archive": "evidence/scientific-review/completion.json",
+      "sha256": "e829d50d457d11ac0d5f5ef5398bd73a03529b31487b91c0c20857f8bf11b8bf"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/scientific-review/inspect_native_panels.py",
+      "archive": "evidence/scientific-review/inspect_native_panels.py",
+      "sha256": "ffc7d10333fc472edec74131a105d59e7e6a0a94cbcf82fde81e2ce5bf668917"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/scientific-review/review.md",
+      "archive": "evidence/scientific-review/review.md",
+      "sha256": "62a7043d6ab1495b05aeceb8e0a7ef4e7783d3992581301fd3dcc9cb3467dab0"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/scientific-review/complete_review.py",
+      "archive": "evidence/scientific-review/complete_review.py",
+      "sha256": "456356b6800f1047a0a97c31c47fc593aec35e701982428d8ac4e30b7127ef6a"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/scientific-review/native_source_inspection.json",
+      "archive": "evidence/scientific-review/native_source_inspection.json",
+      "sha256": "4fd4a0c09883d45459b8a72daabeb85db67f016762e5c302f0dbc74e016b9cff"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/next-upstream-selection/completion.json",
+      "archive": "evidence/next-upstream-selection/completion.json",
+      "sha256": "0990294a5eff206ed6bc40b69a09621d58644efdc6fd6a24c2efb6579f476894"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/next-upstream-selection/inspected_evidence.json",
+      "archive": "evidence/next-upstream-selection/inspected_evidence.json",
+      "sha256": "2f6bafe791fd9208d3a2fdccd6f6b4c14b7e8bc454716192d64ff5ee79b54dd0"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/next-upstream-selection/inspect_saved_queue.py",
+      "archive": "evidence/next-upstream-selection/inspect_saved_queue.py",
+      "sha256": "4714e39958424ee0f97e3f049dea163b64b9ffc7bf9ac27d471e36f2cedfbcf9"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/next-upstream-selection/forced_arrhenius_power_proposal.initial.json",
+      "archive": "evidence/next-upstream-selection/forced_arrhenius_power_proposal.initial.json",
+      "sha256": "ce3efd45fe1aef8ac4f349549037bf774b70c1a6cb7f928a63302a325975db79"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/next-upstream-selection/write_proposal.py",
+      "archive": "evidence/next-upstream-selection/write_proposal.py",
+      "sha256": "42b94b42cd343aa76994cd4a2160a2c0e198d518b5bb1a00950baf506ed1f070"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/next-upstream-selection/finalize_selection.py",
+      "archive": "evidence/next-upstream-selection/finalize_selection.py",
+      "sha256": "391158275edd85b67a385a173f29ab7f790bccd3fa29a5c5e501829724b2d4ba"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/next-upstream-selection/selection.json",
+      "archive": "evidence/next-upstream-selection/selection.json",
+      "sha256": "665ca510dc53ee06be1f059dcef4bb039c444f4c4dab0280b3d94fa35c35c2b9"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/next-upstream-selection/forced_arrhenius_power_proposal.json",
+      "archive": "evidence/next-upstream-selection/forced_arrhenius_power_proposal.json",
+      "sha256": "b1374c57eeeefc5a6189ee81ac4fa1b7aa6fa6bc65193c94ffe4c158b8730ce1"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/delivery-preparation/readiness.json",
+      "archive": "evidence/delivery-preparation/readiness.json",
+      "sha256": "82f0c4da386e6b47fd362a5d3c6197f8bbd26c94f31419f1d2b694d68034045f"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/delivery-preparation/draft-notes.md",
+      "archive": "evidence/delivery-preparation/draft-notes.md",
+      "sha256": "4a3f7b1836623cd3b235a9208468e295679def8bad6fa28e1b9f5334dea6e05d"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/delivery-preparation/check_readiness.py",
+      "archive": "evidence/delivery-preparation/check_readiness.py",
+      "sha256": "2e324a0cfee13ab0aed7f9b9634bc5f4f99834c70acdd39c4ffd6ddfce75f924"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/completion-preparation/notes.json",
+      "archive": "evidence/completion-preparation/notes.json",
+      "sha256": "f18415f51ca384d4237c59292ae7dad1e0848b157d08ccf92d24373cac0c5c5d"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/completion-preparation/AST-readiness.json",
+      "archive": "evidence/completion-preparation/AST-readiness.json",
+      "sha256": "fee83a1e40d79b2119699487223013edb1d4e275aa43fbbd0f497f4116a92fd4"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/completion-preparation/finalize_contract.py",
+      "archive": "evidence/completion-preparation/finalize_contract.py",
+      "sha256": "5c6bd236c117a59b3688c320c58532661d2863dd41e7dd438029feb3c633cf92"
+    },
+    {
+      "source": "/workspace/research_work/mitl-upstream-20261019T0606/completion-preparation/contract.json",
+      "archive": "evidence/completion-preparation/contract.json",
+      "sha256": "c2c52271e6f25e778233344213e321aa2928f09b4d4966d8cdd21cda8661e0f4"
+    }
+  ],
+  "source_helper_sha256": {
+    "prepare_delivery.py": "6e96847885337de90f54a9e9be2b244f4adc33fcfd1463d3bf7a5bc373171e5d",
+    "freeze_delivery.py": "05d45974c603aa82c4c2f3a23a116019148b5eeffaf3b0c21bd38a31380c6d49",
+    "verify_delivery.py": "9356c29dafdfdc9161ca7553218d5066c96cd393290849502d317a2521d32da3",
+    "complete_pass.py": "e98dda9a61fd239af80f21a8bc4d694b92a83faff59bc27f3cd809e83d2c4601"
+  },
+  "command_snapshot": {
+    "sha256": "df71aa3c3153440ecd84e7d2b9c43aa7b7e11cba562e343141828edbb9f86529",
+    "bytes": 28375,
+    "complete_records": 45,
+    "qualification": "Exact complete-record byte prefix; later verification/completion commands may append to the live log.",
+    "path": "evidence/commands.jsonl",
+    "copied_root_files": [
+      "allocation.json",
+      "associate-magnetic-docs.log",
+      "associate-magnetic-manifest.log",
+      "associate_manifest.py",
+      "commands.jsonl",
+      "commit-magnetic-docs.log",
+      "commit-magnetic-recovery.log",
+      "commit_magnetic_docs.py",
+      "commit_magnetic_recovery.py",
+      "complete-magnetic-gap-scientific-review.log",
+      "complete_pass.py",
+      "documentation-association.json",
+      "finalize_magnetic_docs.py",
+      "freeze-magnetic-guard-plan.log",
+      "freeze_delivery.py",
+      "independent-magnetic-before-readback-freeze.log",
+      "independent-magnetic-completion-aggregate.log",
+      "independent-magnetic-native-extraction.log",
+      "independent-magnetic-readback-correction-freeze.log",
+      "independent-magnetic-saved-readback-corrected.log",
+      "independent-magnetic-saved-readback.log",
+      "independent-magnetic-tick-inspection.log",
+      "inspect-magnetic-gap-native-source.log",
+      "lease.json",
+      "magnetic-completion-contract-AST.log",
+      "magnetic-gap-author-inventory-corrected.log",
+      "magnetic-gap-author-inventory.log",
+      "magnetic-gap-central-run-statistics.log",
+      "magnetic-gap-code-preflight.log",
+      "magnetic-gap-delivery-helper-syntax.log",
+      "magnetic-gap-fresh-geometry-probe.log",
+      "magnetic-gap-fresh-native-inspection.log",
+      "magnetic-gap-recovery.log",
+      "magnetic-gap-selection-code-freeze.log",
+      "magnetic-source-guards-once.log",
+      "manifest-association.json",
+      "next-forced-arrhenius-proposal-energy-units.log",
+      "next-forced-arrhenius-proposal.log",
+      "next-upstream-cached-evidence.log",
+      "next-upstream-selection-final.log",
+      "prepare-delivery.log",
+      "prepare_delivery.py",
+      "read-next-forced-feedback-proposal.log",
+      "record_command.py",
+      "root-author-evidence-read.log",
+      "root-catalog-shape-read.log",
+      "root-completion-helper-scope-read.log",
+      "root-delivery-helper-scope-read.log",
+      "root-documentation-scope.log",
+      "root-draft-guide-link-scope.log",
+      "root-final-diff-scope.log",
+      "root-final-record-schema-summary.log",
+      "root-native-mask-review.log",
+      "root-qa-paths.log",
+      "root-record-schema-summary.log",
+      "root-recovery-output-contract-read.log",
+      "root-selection-review.json",
+      "root-selection-schema-read.log",
+      "root-sidecar-contract-read.log",
+      "status-before-lease.json",
+      "verify_delivery.py",
+      "visual-review.json"
+    ],
+    "later_local_completion_repairs_may_exist": true,
+    "historical_helper_policy": "Archive helper bytes are immutable historical snapshots; any later local repair must explicitly bind them and preserve the original failure."
+  },
+  "commits": [
+    "7141a34158d9fee565df5d617816c7e34ab3cbc8 Recover four signed central magnetic-gap profiles from the dissertation",
+    "3be2c9b7cf9fdc587eb422f42ec06b714f897acb Associate magnetic-gap recovery with source evidence and scientific limits"
+  ],
+  "next_task": "Implement and independently verify a separate manufactured single-patch prescribed-power reference with strictly positive activation energy and fixed-reference coverage-dependent kinetics.",
+  "limits": [
+    "Four coarse signed legacy Allegra gap profiles, with complete native row selection catalogs and finite display support.",
+    "Printed electromagnetic units/normalization remain unverified; tesla conversion is conditional on the literal axis label.",
+    "Display readout bounds are correlated, not physical uncertainty or independent noise.",
+    "No derivative, skin depth, exact surface field, current/heating closure, Hall response, full vector fields or clock registration is inferred.",
+    "The original PDF and native imagery are omitted with hashes; generated QA remains available.",
+    "Nine-file patch requires the exact complete baseline. No recovery, old suite, scientific model or portable environment is replayed by packaging."
+  ]
+}

@@ -1,0 +1,291 @@
+{
+  "schema": "mitl-upstream-extension-verification-v1",
+  "created_utc": "2026-10-18T18:07:28.773219+00:00",
+  "source_commit": "dc33c35a944457eaf685b28268a3fe3192cca3e9",
+  "branch": "research/flash-publication-foundation",
+  "commits": [
+    {
+      "commit": "7b80acd5ebf1a85f05ba1fdc6d9fc3fb0eebdb63",
+      "command": "git -c user.name='Research Development' -c user.email='research@local.invalid' commit -m 'Implement qualified coverage-dependent first-order surface release'",
+      "exit_code": 0
+    },
+    {
+      "commit": "a3ec719b8b7cd58430589c6ed3aa78bb5c4f5b64",
+      "command": "git -c user.name='Research Development' -c user.email='research@local.invalid' commit -m 'Add periodic Hall induction and magnetic energy verification reference'",
+      "exit_code": 0
+    },
+    {
+      "commit": "dc33c35a944457eaf685b28268a3fe3192cca3e9",
+      "command": "git -c user.name='Research Development' -c user.email='research@local.invalid' commit -m 'Acquire bounded grade-specific stainless thermal and electrical evidence'",
+      "exit_code": 0
+    }
+  ],
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+    "packages": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "h5py": "3.16.0",
+      "matplotlib": "3.11.2",
+      "pytest": "9.1.1"
+    }
+  },
+  "verification": {
+    "project_targeted_temkin": {
+      "passed": 141,
+      "log": "evidence/temkin-integrated-tests.log"
+    },
+    "project_targeted_hall": {
+      "passed": 94,
+      "log": "evidence/hall-final-targeted-tests.log"
+    },
+    "isolated_source": {
+      "passed": 235,
+      "log": "evidence/isolated-extension-tests.log"
+    },
+    "material_source_records": 8,
+    "material_artifact_hashes_checked": 10,
+    "byte_identical_public_files": 29,
+    "full_project_suite_rerun": false,
+    "prior_baseline_suite": {
+      "commit": "3b5e7d12a5d993122197330a33053136dbd390d0",
+      "passed": 721,
+      "skipped": 2,
+      "record": "/workspace/handoffs/mitl-heating-source/verification.json"
+    }
+  },
+  "commands": [
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temkin_cli.py",
+        "-W",
+        "error"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T17:55:26.787500+00:00",
+      "end_utc": "2026-10-18T17:55:33.690323+00:00",
+      "elapsed_s": 6.9028298709999945,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1747/temkin-cli-tests.log",
+      "log_sha256": "1f8242e42a672867424ab306828f0cc67e6397529c927ad0535db4af84491962"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "py_compile",
+        "mhdlab/hall_induction_benchmark.py",
+        "tools/run_temkin_release.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T17:55:56.066968+00:00",
+      "end_utc": "2026-10-18T17:55:56.102762+00:00",
+      "elapsed_s": 0.035793921999356826,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1747/hall-module-syntax.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_hall_induction_benchmark.py",
+        "-W",
+        "error"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T17:56:48.046086+00:00",
+      "end_utc": "2026-10-18T17:56:48.865577+00:00",
+      "elapsed_s": 0.8194991670006857,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1747/hall-analytic-tests.log",
+      "log_sha256": "4fd27f2d406e19d64b82c58335aae562e9f32341f3118e56b797d28c38322be9"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temkin_release.py",
+        "tests/test_temkin_release_internal.py",
+        "tests/test_temkin_history.py",
+        "tests/test_temkin_io.py",
+        "tests/test_temkin_cli.py",
+        "-W",
+        "error"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T17:59:17.223748+00:00",
+      "end_utc": "2026-10-18T17:59:25.413809+00:00",
+      "elapsed_s": 8.190129271000842,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1747/temkin-integrated-tests.log",
+      "log_sha256": "57b694875911ffc5d6df84798c3ef7983860d5e78fc079bca2ca2dd7305d52a6"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/run_hall_induction_benchmark.py",
+        "--plot",
+        "--output-dir",
+        "runs/hall_reference_20261018T1747"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T17:59:56.283518+00:00",
+      "end_utc": "2026-10-18T17:59:58.160219+00:00",
+      "elapsed_s": 1.8767138270013675,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1747/hall-manufactured-reference.log",
+      "log_sha256": "36473fc331a67cfa33d82811ffa933e6c260b0c720fbe8d1015afc0bff699706"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/run_temkin_release.py",
+        "--demo",
+        "--constant-barrier-control",
+        "--plot",
+        "--output-dir",
+        "runs/temkin_release_20261018T1747"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T17:59:55.062043+00:00",
+      "end_utc": "2026-10-18T17:59:58.377980+00:00",
+      "elapsed_s": 3.315956038999502,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1747/temkin-manufactured-demo.log",
+      "log_sha256": "0eed7705d2cf6ae3bb832895a98d10ea1639a9b9f56c389fd9d2afc4d98d9663"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1747/check_new_sources.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:01:39.016567+00:00",
+      "end_utc": "2026-10-18T18:01:39.398588+00:00",
+      "elapsed_s": 0.3820288889983203,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1747/new-source-evidence.log",
+      "log_sha256": "16a9f5e57d7c73f86464a7d0012165ee9b0b338fb0994bca57728dd7cd2c56b4"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_hall_induction_benchmark.py",
+        "-W",
+        "error"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:02:05.922789+00:00",
+      "end_utc": "2026-10-18T18:02:07.121342+00:00",
+      "elapsed_s": 1.198560427999837,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1747/hall-final-targeted-tests.log",
+      "log_sha256": "67fe0e383594e6fb188615a3ce4fb34303245c65c4186d407d7d0f6e846dfa61"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/run_hall_induction_benchmark.py",
+        "--plot",
+        "--output-dir",
+        "runs/hall_reference_final_20261018T1747"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:03:11.936980+00:00",
+      "end_utc": "2026-10-18T18:03:12.751902+00:00",
+      "elapsed_s": 0.8149299060023623,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1747/hall-final-manufactured-reference.log",
+      "log_sha256": "80310739ee85ed7e6002f4c13db312a220c9b28283b7bf70a3d62e43e16da1af"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1747/prepare_handoff.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:03:56.469405+00:00",
+      "end_utc": "2026-10-18T18:03:56.593934+00:00",
+      "elapsed_s": 0.12453347599875997,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1747/prepare-handoff.log",
+      "log_sha256": "02dbb87aa3b03dfaab0cc356dd61cbc5f5d17cbd270ccba8c08c53ba5e7af929"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error"
+      ],
+      "cwd": "/workspace/handoffs/mitl-upstream-extension-20261018T1747/source",
+      "start_utc": "2026-10-18T18:03:56.704676+00:00",
+      "end_utc": "2026-10-18T18:04:04.441643+00:00",
+      "elapsed_s": 7.73699827100063,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1747/isolated-extension-tests.log",
+      "log_sha256": "0623ab09ec3668245bc97d93f7fb0485f808d89c576df2d80931fbd4ca3b2036"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1747/check_new_artifacts.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:05:51.276584+00:00",
+      "end_utc": "2026-10-18T18:05:51.306596+00:00",
+      "elapsed_s": 0.030013359999429667,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1747/artifact-source-integrity.log",
+      "log_sha256": "5c3dc87234368a86e6a5fc5564b9d5b4e2d5066a17da1ffa48017251c0a39500"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1747/check_new_artifacts.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:05:58.448121+00:00",
+      "end_utc": "2026-10-18T18:05:59.199198+00:00",
+      "elapsed_s": 0.7510865179974644,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1747/artifact-source-integrity-corrected.log",
+      "log_sha256": "8d835542a0e405e4d60763030b056a3a4f9d3b2ae7f6cfe415b70d1a9cd8c786"
+    }
+  ],
+  "evidence_notes": [
+    "The first standalone artifact-check helper invocation exited1 because its outside-repository script directory omitted the project import path; corrected explicit path invocation passed without implementation changes. Both exits are retained.",
+    "Paper-acquisition HTTP responses and process exits are retained where originally recorded; unknown historical wrapper/exit details remain explicitly unknown.",
+    "The final Hall reference supersedes the earlier manufactured output after a numeric-ledger fix; only the final output is delivered."
+  ],
+  "limits": [
+    "No installed licensed FLASH source or configured workstation; no actual FLASH run.",
+    "Prescribed-temperature source budgets do not apply coupled wall cooling.",
+    "All example parameters are manufactured; no physical H2O/SS304 calibration.",
+    "Temkin nonlinear coupling is qualified through512 and cannot use the baseline packet-time sampler.",
+    "Hall reference prescribes stationary ions; it is not a full Hall-MHD eigenmode or gap closure.",
+    "No new native Temkin candidate, host registration, Quark source/build/runner or production job.",
+    "No Boltzmann, collisional-radiative, kinetic gap or molecular collision/radiative-data changes.",
+    "No remote push, merge, publication or external message."
+  ],
+  "next_tasks": [
+    "Law-specific conditional emission-time interface with independent CDF validation before weighted packet integration.",
+    "Current-resolved planar Temkin extension retaining local coverage/temperature and per-patch uniform controls.",
+    "Bounded material-property ingestion with measured/estimated/extrapolated domains, phase and energy references."
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "verified_at_utc": "2026-10-18T14:38:05.224776+00:00",
+  "scope": "standalone numerical reference components; no integrated Quark execution",
+  "source": {
+    "power_flow_commit": "05a3d2f3ec2c3d536eb47c1522f9b51c2e940f8e",
+    "branch": "research/flash-publication-foundation",
+    "quark_review_commit": "2546ecf54daa4284a96509da6dcda8800e65788b",
+    "electrothermal_review_commit": "ff21224f975bb382fb7a09f4da72409b50f43ebb",
+    "private_implementation_copied": false
+  },
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+    "numpy": "2.5.4",
+    "pytest": "9.1.1",
+    "matplotlib": "3.11.2",
+    "compiler": "c++ (Debian 14.2.0-19) 14.2.0",
+    "cmake": "cmake version 4.4.4"
+  },
+  "checks": [
+    {
+      "working_directory": "Power-Flow",
+      "command": "python -m pytest -q",
+      "passed": 210,
+      "skipped": 2,
+      "log": "evidence/power-flow-tests.log"
+    },
+    {
+      "working_directory": "reference",
+      "command": "python -m pytest -q",
+      "passed": 135,
+      "skipped": 0,
+      "log": "evidence/reference-tests.log"
+    },
+    {
+      "working_directory": "reference",
+      "command": "python tools/run_gap_reference.py --output-dir ../evidence/reference-run --plot",
+      "summary": "evidence/reference-run/summary.json",
+      "reaction_counts": {
+        "excitation": 25,
+        "deexcitation": 25
+      },
+      "maximum_step_balance_residual_ev": 4.658242993556519e-15
+    },
+    {
+      "working_directory": "native",
+      "command": "make check BUILD_DIR=/workspace/handoffs/mitl-gap-build",
+      "passed": true,
+      "orbit_verification_groups": 9,
+      "reaction_verification_groups": 9,
+      "log": "evidence/native-make.log"
+    },
+    {
+      "working_directory": "native",
+      "commands": [
+        "cmake -S . -B /workspace/handoffs/mitl-gap-cmake -DCMAKE_BUILD_TYPE=Release",
+        "cmake --build /workspace/handoffs/mitl-gap-cmake",
+        "ctest --test-dir /workspace/handoffs/mitl-gap-cmake --output-on-failure"
+      ],
+      "passed_targets": 3,
+      "log": "evidence/native-ctest.log"
+    }
+  ],
+  "quark_source_modified": false,
+  "quark_builds_executed": false,
+  "quark_runners_used": false,
+  "qualification_limits": [
+    "Manufactured reaction data and prescribed uniform fields",
+    "No complete physical H2O state-resolved mechanism",
+    "No self-consistent Hall or field feedback",
+    "No spatial collision mesh, wall coupling or detector synthesis",
+    "Nonrelativistic reaction speeds limited to 0.05 c or less"
+  ]
+}

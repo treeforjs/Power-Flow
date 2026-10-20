@@ -1,0 +1,129 @@
+{
+  "verified_at_utc": "2026-10-18T17:05:34.379806+00:00",
+  "source": {
+    "repository": "Power-Flow",
+    "commit": "3b5e7d12a5d993122197330a33053136dbd390d0",
+    "branch": "research/flash-publication-foundation",
+    "byte_identical_project_files": 75,
+    "extraction_specific_wrappers": [
+      "README.md",
+      "examples/paired_planar_packets.py",
+      "mhdlab/__init__.py",
+      "pytest.ini",
+      "requirements.txt"
+    ],
+    "native_candidates_part_of_public_commit": false
+  },
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "h5py": "3.16.0",
+    "pytest": "9.1.1",
+    "matplotlib": "3.11.2",
+    "pymupdf": "1.28.2",
+    "compiler": "c++ (Debian 14.2.0-19) 14.2.0",
+    "cmake": "cmake version 4.4.4"
+  },
+  "checks": [
+    {
+      "scope": "full_project",
+      "command": "python -m pytest -q",
+      "passed": 721,
+      "skipped": 2,
+      "log": "evidence/project-tests.log"
+    },
+    {
+      "scope": "isolated_source_package",
+      "cwd": "source",
+      "command": "python -m pytest -q",
+      "passed": 560,
+      "skipped": 0,
+      "log": "evidence/isolated-tests.log"
+    },
+    {
+      "scope": "native_surface",
+      "cwd": "native",
+      "command": "make check BUILD_DIR=/workspace/handoffs/mitl-heating-source-native-build",
+      "verification_groups_passed": 11,
+      "log": "evidence/native-make.log"
+    },
+    {
+      "scope": "native_surface_cmake",
+      "commands": [
+        "cmake -S native -B /workspace/handoffs/mitl-heating-source-native-cmake -DCMAKE_BUILD_TYPE=Release",
+        "cmake --build /workspace/handoffs/mitl-heating-source-native-cmake",
+        "ctest --test-dir /workspace/handoffs/mitl-heating-source-native-cmake --output-on-failure"
+      ],
+      "passed_targets": 1,
+      "log": "evidence/native-ctest.log"
+    },
+    {
+      "scope": "configured_extraction_and_boundary_proxy",
+      "commands": [
+        "python tools/export_flash_surface.py --demo",
+        "python tools/run_surface_release.py --surface runs/flash_extract_reference/surface.h5 --config configs/surface_release_manufactured.json --boundary-proxy-reference \"Manufactured piecewise-constant upper material cell spans the sample plane to the declared boundary; fixture interior limit only\" --output-dir runs/flash_to_release_reference"
+      ],
+      "evidence": [
+        "evidence/flash_extract",
+        "evidence/flash_to_release"
+      ]
+    },
+    {
+      "scope": "width_release",
+      "command": "python tools/run_surface_release.py --demo --plot",
+      "evidence": "evidence/width_release"
+    },
+    {
+      "scope": "planar_release",
+      "command": "python tools/run_planar_release.py --demo --plot",
+      "evidence": "evidence/planar_release"
+    },
+    {
+      "scope": "boundary_packets",
+      "command": "python tools/sample_surface_boundary.py --source runs/surface_release_reference/surface_release.h5 --masses configs/manufactured_boundary_masses.json --interval 80 --packets 4096 --seed 42",
+      "evidence": "evidence/boundary_packets"
+    },
+    {
+      "scope": "planar_packets",
+      "cwd": "source",
+      "command": "python examples/paired_planar_packets.py --source /workspace/Power-Flow/runs/planar_release_reference/planar_release.h5 --masses configs/manufactured_boundary_masses.json --face-normal-coordinate-m 0 --normal-sign 1 --interval 24 --packets 4096 --seed 42",
+      "packets": 4096,
+      "components": 288,
+      "maximum_component_particle_residual": 2.9802322387695312e-08,
+      "evidence": "evidence/planar_packets"
+    },
+    {
+      "scope": "manufactured_convergence",
+      "command": "python tools/verify_surface_convergence.py --width-bins 160 320 640 --width-reference-bins 1280 --output-dir runs/surface_convergence_refined --plot",
+      "warning_count": 0,
+      "evidence": "evidence/convergence"
+    },
+    {
+      "scope": "analytic_heating_reference",
+      "command": "python tools/run_heating_benchmark.py --plot",
+      "evidence": "evidence/heating_benchmark"
+    },
+    {
+      "scope": "recovered_current_inspection",
+      "command": "python tools/inspect_current_drive.py --preserve-source-axis --json-out runs/current_inspection/summary.json --plot runs/current_inspection/current.png",
+      "evidence": "evidence/current_inspection"
+    }
+  ],
+  "boundaries": {
+    "quark_source_modified": false,
+    "quark_builds_executed": false,
+    "quark_runners_used": false,
+    "boltzmann_or_cr_solver_modified": false,
+    "real_flash_run_executed": false,
+    "remote_repository_mutations": false
+  },
+  "physical_limits": [
+    "Manufactured verification does not calibrate physical water desorption parameters.",
+    "Current sources are prescribed-temperature diagnostic proposals; applied wall feedback remains a native integration responsibility.",
+    "Packet thermal energy is a sampled estimator; mean-versus-realized moments remain explicit.",
+    "Published simulations used drive17133; recovered waveform is15210, with unknown physical time origin.",
+    "The primary source audit does not establish a calibrated H2O/SS304 wall-energy cost."
+  ]
+}

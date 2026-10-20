@@ -1,0 +1,469 @@
+{
+  "schema": "mitl-boundary-extension-verification-v1",
+  "created_utc": "2026-10-18T18:56:16.133494+00:00",
+  "source_commit": "ca986cf4114ff06adf8415feb2fbc0d3f8185daf",
+  "branch": "research/flash-publication-foundation",
+  "commits": [
+    "36d1411029005a5cef299cd8d3c1bd8c1e2ef09f Reject masked surface inputs and enforce source history conservation diagnostics",
+    "022a8021e910b98bc71eb44069ba7f4ef2fc3787 Sample coverage-dependent emission times and weighted paired boundary packets",
+    "fcf4d3c82a7401a2db07bcad2ec8a9db612632fb Preserve resolved planar Temkin sources and paired three-dimensional launches",
+    "b1050029aaa2f869179216f94b2de77a7f2ab512 Recover guarded published 304 transport values with exact units and source limits",
+    "ca986cf4114ff06adf8415feb2fbc0d3f8185daf Add bounded source-qualified solid transport input tables"
+  ],
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+    "packages": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "h5py": "3.16.0",
+      "matplotlib": "3.11.2",
+      "pytest": "9.1.1",
+      "PyMuPDF": "1.28.2"
+    }
+  },
+  "results": {
+    "boundary_recovery_new_scope_passed": 235,
+    "material_new_scope_passed": 128,
+    "new_scope_total": 363,
+    "affected_source_baseline_compatibility_passed": 106,
+    "isolated_passed": 362,
+    "isolated_skipped": 1,
+    "isolated_skip_reason": "External source PDF intentionally unavailable; only optional recovery integration skipped",
+    "public_files_byte_identical": 55,
+    "whole_project_suite_rerun": false
+  },
+  "commands": [
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temkin_history_regressions.py",
+        "-W",
+        "error"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:29:49.371924+00:00",
+      "end_utc": "2026-10-18T18:29:50.420435+00:00",
+      "elapsed_s": 1.0485384540006635,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/history-regressions-before-fix.log",
+      "log_sha256": "c0d5bb4e789b7d2061f73544b84a67e02fb40e67c49eafbeb69e96dee7470fba"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temkin_history_regressions.py",
+        "tests/test_temkin_history.py",
+        "tests/test_temkin_io.py",
+        "-W",
+        "error"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:29:59.938598+00:00",
+      "end_utc": "2026-10-18T18:30:01.448707+00:00",
+      "elapsed_s": 1.5101255370027502,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/history-regressions-fixed.log",
+      "log_sha256": "0703d00e764bd8db269db3fcf931da45d1fdf99a699a3334308d6dae22c3ad36"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_sample_temkin_boundary.py",
+        "tests/test_run_temkin_planar.py",
+        "-W",
+        "error"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:34:05.130818+00:00",
+      "end_utc": "2026-10-18T18:34:12.209893+00:00",
+      "elapsed_s": 7.079084326996963,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/boundary-planar-workflows.log",
+      "log_sha256": "0a41aec5d63c0c890e1aa58bc887c42e4dc5d8442bcedc87aefa6e146df2845d"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_surface_input_masks.py",
+        "tests/test_thermal_release.py",
+        "tests/test_temkin_history_regressions.py",
+        "tests/test_temkin_history.py",
+        "tests/test_temkin_io.py",
+        "-W",
+        "error"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:37:19.348957+00:00",
+      "end_utc": "2026-10-18T18:37:20.830761+00:00",
+      "elapsed_s": 1.481813581998722,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/source-guard-regressions.log",
+      "log_sha256": "9fb8a1618bf82af43d73e35ab33e94c1d7c36efa3b40ee9a090b9a61056ed976"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temkin_emission_time.py",
+        "tests/test_temkin_emission_time_internal.py",
+        "tests/test_temkin_boundary.py",
+        "tests/test_temkin_planar.py",
+        "tests/test_temkin_planar_io.py",
+        "tests/test_temkin_planar_boundary.py",
+        "tests/test_sample_temkin_boundary.py",
+        "tests/test_run_temkin_planar.py",
+        "tests/test_sample_temkin_planar_example.py",
+        "tests/test_surface_input_masks.py",
+        "tests/test_temkin_history_regressions.py",
+        "tests/test_flynn_304_transport.py",
+        "-W",
+        "error"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:42:52.149775+00:00",
+      "end_utc": "2026-10-18T18:43:06.756117+00:00",
+      "elapsed_s": 14.60635207499945,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/final-new-boundary-sources.log",
+      "log_sha256": "25fa12083bb6904dc5793fbf165a00376c335e5ae75e435ca2043a0d58bc2d4c"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/run_temkin_release.py",
+        "--demo",
+        "--constant-barrier-control",
+        "--output-dir",
+        "runs/temkin_source_20261018T1826"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:44:41.137697+00:00",
+      "end_utc": "2026-10-18T18:44:42.244659+00:00",
+      "elapsed_s": 1.1069709820003482,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/manufactured-temkin-source.log",
+      "log_sha256": "0543bf960229e5f9f932b568564f815518b4012a87f4fb165daf46588d419fbe"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/run_temkin_planar.py",
+        "--demo",
+        "--include-full-face-uniform",
+        "--plot",
+        "--output-dir",
+        "runs/temkin_planar_20261018T1826"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:44:42.359370+00:00",
+      "end_utc": "2026-10-18T18:44:45.968160+00:00",
+      "elapsed_s": 3.6088004579978588,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/manufactured-temkin-planar.log",
+      "log_sha256": "2064a1205e0e46ee83b2c9ac709f29547774d5fe6e4ebfdf6e3b59921b701798"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/sample_temkin_boundary.py",
+        "--source",
+        "runs/temkin_source_20261018T1826/temkin_release.h5",
+        "--source-run-summary",
+        "runs/temkin_source_20261018T1826/summary.json",
+        "--masses",
+        "configs/manufactured_boundary_masses.json",
+        "--interval",
+        "20",
+        "--packets",
+        "4096",
+        "--output-dir",
+        "runs/temkin_packets_20261018T1826"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:45:30.273652+00:00",
+      "end_utc": "2026-10-18T18:45:31.191961+00:00",
+      "elapsed_s": 0.918317666000803,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/manufactured-temkin-packets.log",
+      "log_sha256": "432f258ac5123d5dcf4252c20f360a15a44ba9eda6e6b290f32ae25a898f7fee"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1826/illustrate_conditional_time.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:45:31.335718+00:00",
+      "end_utc": "2026-10-18T18:45:32.967123+00:00",
+      "elapsed_s": 1.6314187620009761,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/conditional-time-illustration.log",
+      "log_sha256": "c94acb1adeae43e0e28630005c1d2616d193b4dc60079ff32783d38414c932d7"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "examples/sample_temkin_planar_boundary.py",
+        "--source",
+        "runs/temkin_planar_20261018T1826/temkin_planar_release.h5",
+        "--source-run-summary",
+        "runs/temkin_planar_20261018T1826/summary.json",
+        "--masses",
+        "configs/manufactured_boundary_masses.json",
+        "--interval",
+        "14",
+        "--packets",
+        "4096",
+        "--face-normal-coordinate-m",
+        "0",
+        "--normal-sign",
+        "1",
+        "--output-dir",
+        "runs/temkin_planar_packets_20261018T1826"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:46:04.805931+00:00",
+      "end_utc": "2026-10-18T18:46:06.565797+00:00",
+      "elapsed_s": 1.7598749899989343,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/manufactured-temkin-planar-packets.log",
+      "log_sha256": "f12d7b66e8656b43e4492957d8b47935bb37c45ee257cdd36f792f26f8251658"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Reject masked surface inputs and enforce source history conservation diagnostics"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:47:03.249515+00:00",
+      "end_utc": "2026-10-18T18:47:03.259511+00:00",
+      "elapsed_s": 0.009994954998546746,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/commit-source-guards.log",
+      "log_sha256": "9a510f086b8ed706acf8d093d91e0318b1b106371acbd0a97cef95838aca3cea"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Sample coverage-dependent emission times and weighted paired boundary packets"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:47:03.396131+00:00",
+      "end_utc": "2026-10-18T18:47:03.405525+00:00",
+      "elapsed_s": 0.00939486199786188,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/commit-temkin-emission.log",
+      "log_sha256": "544d9e8b82f7bf438a4939d9dab4b35fac2b4c8174836ddf5df17826a9e74a9e"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Preserve resolved planar Temkin sources and paired three-dimensional launches"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:47:03.576940+00:00",
+      "end_utc": "2026-10-18T18:47:03.586320+00:00",
+      "elapsed_s": 0.009380626997881336,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/commit-planar-source.log",
+      "log_sha256": "e56457fc9c8c05fc118e670049018ca376b0149e51ea43a15eebd4d191860289"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Recover guarded published 304 transport values with exact units and source limits"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:47:03.733225+00:00",
+      "end_utc": "2026-10-18T18:47:03.742409+00:00",
+      "elapsed_s": 0.009183635000226786,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/commit-flynn-recovery.log",
+      "log_sha256": "ac5d455d61e206053c13e75f877708ee3e03371783c5993cee71db193324fba3"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_material_transport.py",
+        "-W",
+        "error"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:49:03.720274+00:00",
+      "end_utc": "2026-10-18T18:49:04.230872+00:00",
+      "elapsed_s": 0.5106058180026594,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/bounded-material-contract.log",
+      "log_sha256": "49320bca20ffac028edb3ed485e44a269edcd4f23d649b69867e3de505f9c020"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_material_transport.py",
+        "-W",
+        "error"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:51:07.887138+00:00",
+      "end_utc": "2026-10-18T18:51:08.386959+00:00",
+      "elapsed_s": 0.4998297519996413,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/bounded-material-contract-corrected.log",
+      "log_sha256": "aa5ee05a564df599a8be5c618ac44ca5ffb0e8b94dd746ffa6f53e2529e90402"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Add bounded source-qualified solid transport input tables"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:51:20.742857+00:00",
+      "end_utc": "2026-10-18T18:51:20.751884+00:00",
+      "elapsed_s": 0.009027642001456115,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/commit-material-input.log",
+      "log_sha256": "4530785dd7675ea85ee7f4dd2a4f425dcccbbc8919d5fd1eaa00c66515580ed9"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1826/inspect_material_inputs.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:52:03.868903+00:00",
+      "end_utc": "2026-10-18T18:52:04.021061+00:00",
+      "elapsed_s": 0.1521623289991112,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/bounded-material-input-example.log",
+      "log_sha256": "9a27f5b758073659e98032a00872680c573d6a69ac801593df10206c7496745a"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1826/prepare_boundary_handoff.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T18:53:36.776001+00:00",
+      "end_utc": "2026-10-18T18:53:37.051805+00:00",
+      "elapsed_s": 0.2758127909983159,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/prepare-boundary-handoff.log",
+      "log_sha256": "78f489cdb42a87def7af44de0ebbdc1389494ea22fc2a06249f380c0fffd1ffa"
+    },
+    {
+      "command": [
+        "env",
+        "FLYNN_304_SOURCE_PDF=/workspace/research_work/intentionally-unavailable-flynn-source.pdf",
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error"
+      ],
+      "cwd": "/workspace/handoffs/mitl-boundary-extension-20261018T1826/source",
+      "start_utc": "2026-10-18T18:53:37.166070+00:00",
+      "end_utc": "2026-10-18T18:53:49.227290+00:00",
+      "elapsed_s": 12.061230930998136,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1826/isolated-boundary-extension.log",
+      "log_sha256": "bc15141542975dd4e3d92e35d3b17f987be8d23933468b2001e94022a038f165"
+    }
+  ],
+  "artifacts": {
+    "temkin_source_20261018T1826": {
+      "source_hashes": "match",
+      "summary_sha256": "bf9ccfb326b2c739b0b4bfa3a94843f2aad7d63dc2f3b88561aea7c2ef21498f"
+    },
+    "temkin_planar_20261018T1826": {
+      "source_hashes": "match",
+      "summary_sha256": "9b039d092e83ee6c66854d717e7f7b584fccda6a6e6d7047a6569f3a90586cd9"
+    },
+    "temkin_packets_20261018T1826": {
+      "source_hashes": "match",
+      "summary_sha256": "3a0918297e5d71969bf6bb5fdcbf464b8f1fcda1951f23a2d1a30a87d15fb369",
+      "packets": 4096,
+      "minimum_components": 24,
+      "thermal_sampling_residual_relative": 0.01341301474907118,
+      "maximum_component_count_residual": 4.4345855712890625e-05
+    },
+    "temkin_planar_packets_20261018T1826": {
+      "source_hashes": "match",
+      "summary_sha256": "af1b9db5b5d8de987c2a1fe183e2b9bca6e2de2dff5db6f5edda620d7686de0a",
+      "packets": 4096,
+      "minimum_components": 144,
+      "thermal_sampling_residual_relative": -0.005434712528502976,
+      "maximum_component_count_residual": 9.059906005859375e-06
+    },
+    "temkin_time_illustration_20261018T1826": {
+      "source_hashes": "match",
+      "summary_sha256": "c94acb1adeae43e0e28630005c1d2616d193b4dc60079ff32783d38414c932d7"
+    }
+  },
+  "resolved_failures": [
+    "History regressions initially exposed accepted erased tinyresidual and inconsistent survivor-underflow metadata; both fixed.",
+    "An independent wide-temperature interpolation check exposed finite-contribution loss through underflowed weights; exact-ratio interpolation now passes.",
+    "Recovery render/mask-cache differences are explicitly version-qualified and recorded in flynn_304_recovery_commands.json.",
+    "One patch call met a transient execution-transport closure; a read-only workspace probe succeeded immediately, and the patch was retried successfully without overlapping edits."
+  ],
+  "limits": [
+    "All example source/launch heating, rate and mass parameters are manufactured.",
+    "The recovered304 data are one smoothed specimen table253.15\u2013423.15K, not a high-temperature foil model.",
+    "No applied wall-energy/momentum feedback, moving wall, kinetic gap, Boltzmann or collisional-radiative solve.",
+    "No actual FLASH run without installed licensed source/workstation.",
+    "No Quark source/build/runner or production job; native integration remains a handoff.",
+    "No push, merge, publication or external message."
+  ],
+  "next_task": "Resolved x/z/time convergence of local Temkin release, paired source moments and event-time statistics; refine original temperature cadence separately from midpoint subdivisions."
+}

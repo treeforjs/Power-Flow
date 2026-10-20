@@ -1,0 +1,707 @@
+{
+  "schema": "mitl-windowed-boundary-verification-v1",
+  "created_utc": "2026-10-19T00:03:47.903598+00:00",
+  "source_commit": "e9cd0425282de254e12b7683a197d40963ecd1eb",
+  "branch": "research/flash-publication-foundation",
+  "base_commit": "5038bcbfaaf5eb8b270353fb2bdfac6d25eb926d",
+  "commits": [
+    "1cefe9a547215433265c4ff01f39d5cba52a74da Retain canonical component associations across partial source selections",
+    "ca5670cfad369dd81598b1647d032bb3563ba3c3 Validate nested reservoir declarations before canonical source replay",
+    "580717d3710b1f0487b5c3693918725b9b60195a Sample paired thermal boundary packets from conditioned source windows",
+    "e9cd0425282de254e12b7683a197d40963ecd1eb Export window-conditioned source packets with provenance and timing precision"
+  ],
+  "results": {
+    "new_unique_tests": 134,
+    "isolated_passed": 134,
+    "isolated_skipped": 0,
+    "isolated_file_pass_counts": {
+      "tests.test_temkin_windowed_source": 67,
+      "tests.test_temkin_windowed_boundary": 37,
+      "tests.test_temkin_windowed_cli": 30
+    },
+    "public_files_byte_identical": 28,
+    "packaging_wrappers": 4,
+    "source_example_conditioned_components": 48,
+    "source_example_packets": 512,
+    "independent_readback_full_width_controls": 10,
+    "unchanged_project_suites_repeated": false,
+    "previous_source_history_evolution_repeated": false,
+    "saved_reference_oracles_repeated": false
+  },
+  "runtime": {
+    "packages": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "h5py": "3.16.0",
+      "pytest": "9.1.1"
+    }
+  },
+  "independent_review": {
+    "schema": "mhdlab-windowed-boundary-independent-review-completion-v1",
+    "reviewed_source_sha256": {
+      "mhdlab/temkin_windowed_source.py": "7dca511618a3d91e55742f96d121dfb1ecf5acdb4dda18a16e6bf45958552736",
+      "mhdlab/temkin_windowed_boundary.py": "0e59a54a8138a92bcbe9121034e17ded8e43e4777486a66c9a690995178e8229"
+    },
+    "artifact_sha256": {
+      "windowed_packet_review.md": "51a244915d929a842c6b38245a5c3423aa63b60b46853e0db082a11cf1ab13d2",
+      "momentum_quantization_probe.py": "c6b80bb20a80bfe57149fcc55b5f11c7e856f54f282fddb56e388f97f1aa4ae1",
+      "momentum_quantization_probe.json": "a940ab2af6b63a0d0792cc4bebf9b7b2e74a4fc0b222783eca64361b9325c779",
+      "momentum_quantization_initial.log": "a940ab2af6b63a0d0792cc4bebf9b7b2e74a4fc0b222783eca64361b9325c779",
+      "velocity_quantization_probe.py": "48b3f2f16925d271d1b1b065d604078d1c29418911aef3b3b9e47b05977af53c",
+      "velocity_quantization_probe.json": "af7721205040436a6108702b476d2bd26c18408c82263c35a724026701011c47",
+      "velocity_quantization_initial.log": "af7721205040436a6108702b476d2bd26c18408c82263c35a724026701011c47",
+      "fixed_projection_review.py": "943ee470a3dff9b9aa8cad04f694ce57e2f104f49eaa2f969db5becc36311da4",
+      "fixed_projection_review.json": "753fb834c061cd6123851d8e2336a96016a258bada40d4d43e22759e39d5fcb5",
+      "fixed_projection_review.log": "753fb834c061cd6123851d8e2336a96016a258bada40d4d43e22759e39d5fcb5",
+      "windowed_packet_review_completion.json": "f88cf53503bec4548f4ed81bb31aa72e5ed2e04c071df970e48a07e840bd50c7",
+      "windowed_boundary_review_completion_projection_only.json": "d26cfacca002449e150164a22212c806cfca4e47a1ce1c86d3fd8901362e6162",
+      "windowed-source-nested-pool-guards.log": "0b4e5a3b49b0f0ed6e35ffd2b64c575775888b1e3fa16879d38cf5b094dea14a",
+      "update_nested_guard_review.py": "46acd521fe2c4547492a89c096ee6ba7aea42a949426a8eef31bf8d7ebba6294"
+    },
+    "new_projection_checks_passed": 12,
+    "open_substantive_findings": [],
+    "closed_substantive_findings": [
+      {
+        "id": "coarse_signed_momentum_projection",
+        "initial_code_sha256": "849e83b452b2669c56b1636c7088e2617fca50d1751bb2651616f579ba2289ab",
+        "initial_behavior": "Finite nonzero products accepted with 33.3\u201388.2 percent relative rounding error.",
+        "resolution": "Stored signed momentum products use the positive magnitude quantization guard."
+      },
+      {
+        "id": "coarse_positive_and_cartesian_speed_projection",
+        "initial_code_sha256": "849e83b452b2669c56b1636c7088e2617fca50d1751bb2651616f579ba2289ab",
+        "initial_behavior": "Positive finite normal speed accepted with 60.7 percent error while its momentum stayed normal-range.",
+        "resolution": "Normal/radius exponentiation checks its log projection; signed Cartesian tangent products are qualified before momentum construction."
+      },
+      {
+        "id": "forged_nested_reservoir_authority",
+        "discovery": "Source owner identified invalid nested reservoir declarations reaching canonical replay arithmetic.",
+        "resolution": "Shared source helper revalidates every nested reservoir constructor before canonical history replay in both factory and record validation.",
+        "verification": "Read-only bounded diff inspection and inspection of owner-recorded three new regression outcomes; reviewer did not rerun tests."
+      }
+    ],
+    "pre_fix_evidence": {
+      "momentum_quantization_probe.py": "c6b80bb20a80bfe57149fcc55b5f11c7e856f54f282fddb56e388f97f1aa4ae1",
+      "momentum_quantization_probe.json": "a940ab2af6b63a0d0792cc4bebf9b7b2e74a4fc0b222783eca64361b9325c779",
+      "momentum_quantization_initial.log": "a940ab2af6b63a0d0792cc4bebf9b7b2e74a4fc0b222783eca64361b9325c779",
+      "velocity_quantization_probe.py": "48b3f2f16925d271d1b1b065d604078d1c29418911aef3b3b9e47b05977af53c",
+      "velocity_quantization_probe.json": "af7721205040436a6108702b476d2bd26c18408c82263c35a724026701011c47",
+      "velocity_quantization_initial.log": "af7721205040436a6108702b476d2bd26c18408c82263c35a724026701011c47"
+    },
+    "old_suites_or_source_evolution_repeated": false,
+    "ordinary_examples_repeated": false,
+    "host_budget_accepted": false,
+    "limits": [
+      "This is independent code review plus new helper probes, not an end-to-end packet test.",
+      "No previous passing suite, source history, saved oracle, or material/calibration audit was rerun.",
+      "No public file was edited; no source evolution, old HDF integration, host transaction, gap/field/chemistry/radiation solver or physical spectrum was run.",
+      "New numerical range probes are manufactured and carry no experimental/material claim.",
+      "Completion applies to the exact reviewed code hashes; later code changes require a scoped review update."
+    ],
+    "contract_conclusions": [
+      "Original canonical history authority, local initial density, temperature, reservoir, patch area, and origin/window offsets remain associated.",
+      "Every selected component is retained or explicitly omitted only for an exact-zero canonical initial density; disjoint original selections preserve distinct labels.",
+      "Packet admission consumes individually qualified extensive count/energy quantities instead of requiring underflowed areal values.",
+      "Mandatory component allocation and exact rational count CDF prevent silent loss of tiny components; displayed probability underflow is explicit.",
+      "Weights and product/energy projections are qualified; signed closure and stochastic energy residuals are retained without inventory or velocity repair.",
+      "Resolved and matched-width records change only width position and share the full original time/state/temperature/current/velocity/momentum/weight mixture.",
+      "Global timestamps are best effort with explicit precision flags; local origin/start/delay fields remain authoritative."
+    ],
+    "reviewed_source_test_sha256": {
+      "tests/test_temkin_windowed_source.py": "2247d64df312bac8f418f229c2e799f834122b5dbed551e664b0afda2ac22a46"
+    },
+    "source_owner_new_regressions": {
+      "passed": 3,
+      "deselected": 64,
+      "owner_recorded_command": {
+        "command": [
+          "/workspace/Power-Flow/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "-W",
+          "error",
+          "tests/test_temkin_windowed_source.py",
+          "-k",
+          "forged_nested_pool"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-18T23:59:36.191106+00:00",
+        "end_utc": "2026-10-18T23:59:37.044590+00:00",
+        "elapsed_s": 0.8534907779976493,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261018T2348/windowed-source-nested-pool-guards.log",
+        "log_sha256": "0b4e5a3b49b0f0ed6e35ffd2b64c575775888b1e3fa16879d38cf5b094dea14a"
+      },
+      "log_sha256": "0b4e5a3b49b0f0ed6e35ffd2b64c575775888b1e3fa16879d38cf5b094dea14a",
+      "reviewer_reran": false
+    },
+    "projection_checks_repeated_after_authority_only_change": false,
+    "metadata_update_scope": "After source-author final notification; source guard only, numerical boundary bytes unchanged."
+  },
+  "independent_readback": {
+    "schema": "mitl-windowed-packet-independent-readback-v1",
+    "status": "passed",
+    "input_report_sha256": "356fdbe9bf788296ff272f846861611a9e6639353fc95fee195d6933301d25b5",
+    "input_packet_sha256": "538d7c84c2f1b7bd01fe20256f03ec7aebbb9b84763ea7a4c8d18788b33692e6",
+    "script_sha256": "714bb6a5d6aa04a13e46de4c2da8e45e23d0c9737cb89be8df1db5ba9f4c598f",
+    "parameter_status": "manufactured",
+    "components": 48,
+    "packets_checked": 512,
+    "full_width_functional_controls": 10,
+    "full_width_equal_exactly": true,
+    "manufactured_aperture_m": [
+      -0.00105,
+      0.00055
+    ],
+    "manufactured_partial_aperture_differs": true,
+    "host_budget_accepted": false,
+    "physical_spectra_calculated": false,
+    "sampled_translation_j": 3.960456235088555e-08,
+    "expected_translation_j": 3.975765369206191e-08,
+    "translation_sampling_residual_j": -1.5309134117636179e-10,
+    "output_sha256": {
+      "responses.csv": "dadbadd78611d2478dcca06b18ed8e19cf1854275d8d5b7711ec3bc5dc5979fc",
+      "components.csv": "c79f5a060271520262104619de1034931c478dd644645626dbe85104a49ec439"
+    },
+    "limits": [
+      "Reads one saved manufactured packet export and original HDF; no history loader, evolution, scalar window or packet sampler is called.",
+      "The response kernels are fixed linear SOURCE launch observables, not physical spectra, photon gates or reconstructed optics.",
+      "The manufactured partial aperture tests sampled paired launch positions only; no gap evolution, collisions, radiation or charged-particle trajectories.",
+      "Signed component weight and sampled-energy residuals remain explicit; neither this readback nor represented packets accept a host transaction."
+    ]
+  },
+  "commands": [
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_temkin_windowed_source.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:54:56.594648+00:00",
+      "end_utc": "2026-10-18T23:54:58.026345+00:00",
+      "elapsed_s": 1.4317072490011924,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/windowed-source-independent-initial.log",
+      "log_sha256": "73aecd18b9ab734cb5ef973009acab1ce07a9a518ff9e7073616ff48002a297f"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2348/momentum_quantization_probe.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:55:31.476041+00:00",
+      "end_utc": "2026-10-18T23:55:32.426879+00:00",
+      "elapsed_s": 0.9508486170016113,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/momentum_quantization_initial.log",
+      "log_sha256": "a940ab2af6b63a0d0792cc4bebf9b7b2e74a4fc0b222783eca64361b9325c779"
+    },
+    {
+      "command": [
+        "sha256sum",
+        "mhdlab/temkin_windowed_source.py",
+        "tests/test_temkin_windowed_source.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:56:15.328306+00:00",
+      "end_utc": "2026-10-18T23:56:15.333019+00:00",
+      "elapsed_s": 0.004712633999588434,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/windowed-source-tested-pins.log",
+      "log_sha256": "7d708c353ea914a0ab7f25660b1f39c1adf0121d4f9c7f193224f33b2eb51b06"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2348/velocity_quantization_probe.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:56:29.865505+00:00",
+      "end_utc": "2026-10-18T23:56:30.438784+00:00",
+      "elapsed_s": 0.5732867960032308,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/velocity_quantization_initial.log",
+      "log_sha256": "af7721205040436a6108702b476d2bd26c18408c82263c35a724026701011c47"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_temkin_windowed_source.py",
+        "-k",
+        "finite_sequence_materialization"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:56:58.142461+00:00",
+      "end_utc": "2026-10-18T23:56:59.059321+00:00",
+      "elapsed_s": 0.9168671170045855,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/windowed-source-bounded-sequence.log",
+      "log_sha256": "3503bd1539856eb53a78258d2bfd835d78a6f6bad37b3fc0463fa62646a784ae"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2348/fixed_projection_review.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:57:34.183559+00:00",
+      "end_utc": "2026-10-18T23:57:34.820654+00:00",
+      "elapsed_s": 0.6371012810050161,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/fixed_projection_review.log",
+      "log_sha256": "753fb834c061cd6123851d8e2336a96016a258bada40d4d43e22759e39d5fcb5"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/temkin_windowed_source.py",
+        "tests/test_temkin_windowed_source.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:58:03.636614+00:00",
+      "end_utc": "2026-10-18T23:58:03.641903+00:00",
+      "elapsed_s": 0.0052889700018567964,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/stage-conditioned-source.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Retain canonical component associations across partial source selections"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:58:03.753084+00:00",
+      "end_utc": "2026-10-18T23:58:03.778084+00:00",
+      "elapsed_s": 0.025002964001032524,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/commit-conditioned-source.log",
+      "log_sha256": "d7279f344b51dedf31e8f83440df5367534b91a0fab97520c8ea18f8173d9231"
+    },
+    {
+      "command": [
+        "sha256sum",
+        "mhdlab/temkin_windowed_source.py",
+        "tests/test_temkin_windowed_source.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:58:07.918427+00:00",
+      "end_utc": "2026-10-18T23:58:07.923209+00:00",
+      "elapsed_s": 0.004781372997967992,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/windowed-source-final-pins.log",
+      "log_sha256": "b192bbd6eedd7085f8053f26728325fd94ad5d4380e0af76a9ee1a9ce9eb679f"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temkin_windowed_boundary.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:58:43.145333+00:00",
+      "end_utc": "2026-10-18T23:58:44.652748+00:00",
+      "elapsed_s": 1.5074225350035704,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/windowed-boundary-independent-initial.log",
+      "log_sha256": "13fb95c167d78274b2371b1938a3e8d67901ad32ec0cc04ceeb35aeee79537c1"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2348/write_review_completion.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:58:52.644121+00:00",
+      "end_utc": "2026-10-18T23:58:52.679242+00:00",
+      "elapsed_s": 0.035121945998980664,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/windowed_packet_review_completion.log",
+      "log_sha256": "c187256f0cdf5fccadf9526d1a43f968ea8ae2df291bc490c07284dfb6da04b0"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2348/finalize_boundary_review.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:59:06.133001+00:00",
+      "end_utc": "2026-10-18T23:59:06.167142+00:00",
+      "elapsed_s": 0.0341413099959027,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/finalize_windowed_boundary_review.log",
+      "log_sha256": "7f3e948cfcefb174a9d535fe3eedb5570f7cc0046e61069b28ed2bd84adf02f6"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_temkin_windowed_cli.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:58:54.027180+00:00",
+      "end_utc": "2026-10-18T23:59:13.386725+00:00",
+      "elapsed_s": 19.35957229500491,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/temkin-windowed-cli-initial.log",
+      "log_sha256": "cfb6aec9c2725b83b3c0b0784b6d46b39228abe659c8c824eb99557594287323"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_temkin_windowed_source.py",
+        "-k",
+        "forged_nested_pool"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:59:36.191106+00:00",
+      "end_utc": "2026-10-18T23:59:37.044590+00:00",
+      "elapsed_s": 0.8534907779976493,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/windowed-source-nested-pool-guards.log",
+      "log_sha256": "0b4e5a3b49b0f0ed6e35ffd2b64c575775888b1e3fa16879d38cf5b094dea14a"
+    },
+    {
+      "command": [
+        "sha256sum",
+        "tools/sample_temkin_source_windows.py",
+        "mhdlab/temkin_windowed_source.py",
+        "mhdlab/temkin_windowed_boundary.py",
+        "tests/test_temkin_windowed_cli.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:59:43.723562+00:00",
+      "end_utc": "2026-10-18T23:59:43.726986+00:00",
+      "elapsed_s": 0.0034244230046169832,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/temkin-windowed-cli-tested-pins.log",
+      "log_sha256": "4aed02156d3a1509fd958209dc3a21c4a4f2a97206836607368ab7ad5bc715d9"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temkin_windowed_boundary.py",
+        "--lf"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:00:09.818338+00:00",
+      "end_utc": "2026-10-19T00:00:10.898064+00:00",
+      "elapsed_s": 1.0797615600022255,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/windowed-boundary-corrected-fixtures.log",
+      "log_sha256": "9bdc30af82c2f2ba5ebaf5c102e5e1ce0797cccb35be0c42006704ca4c4870b1"
+    },
+    {
+      "command": [
+        "sha256sum",
+        "mhdlab/temkin_windowed_source.py",
+        "tests/test_temkin_windowed_source.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:01:00.038250+00:00",
+      "end_utc": "2026-10-19T00:01:00.041732+00:00",
+      "elapsed_s": 0.003478899998299312,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/windowed-source-nested-final-pins.log",
+      "log_sha256": "4ad849396089a2325be8cf721fe83d1c16bffd72304529b1d3b8d2ffe5123614"
+    },
+    {
+      "command": [
+        "sha256sum",
+        "mhdlab/temkin_windowed_boundary.py",
+        "tests/test_temkin_windowed_boundary.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:01:07.146439+00:00",
+      "end_utc": "2026-10-19T00:01:07.149934+00:00",
+      "elapsed_s": 0.0034632489987416193,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/windowed-boundary-final-pins.log",
+      "log_sha256": "3c2821a30091d864dbfa79c6b74ffbf87c6ab962336cb881c418acc027c3a3f0"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-c",
+        "import hashlib,json,pathlib; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261018T2348/windowed-source-notes.json\"); d=json.loads(p.read_text()); assert d[\"verification\"][\"unique_source_tests_passed\"]==67; assert d[\"source_sha256\"]==hashlib.sha256(pathlib.Path(\"mhdlab/temkin_windowed_source.py\").read_bytes()).hexdigest(); assert d[\"test_sha256\"]==hashlib.sha256(pathlib.Path(\"tests/test_temkin_windowed_source.py\").read_bytes()).hexdigest(); print(hashlib.sha256(p.read_bytes()).hexdigest(),str(p)); print(\"notes valid; 67 unique checks, no unchanged test rerun\")"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:01:22.642869+00:00",
+      "end_utc": "2026-10-19T00:01:22.671811+00:00",
+      "elapsed_s": 0.028940993004653137,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/windowed-source-notes-final.log",
+      "log_sha256": "766c63d5ee441eed51dfa7902cdc5a38cd08416be440753788d550cc002428f0"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/temkin_windowed_source.py",
+        "tests/test_temkin_windowed_source.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:01:25.094544+00:00",
+      "end_utc": "2026-10-19T00:01:25.099081+00:00",
+      "elapsed_s": 0.004537207001703791,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/stage-nested-source-validation.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Validate nested reservoir declarations before canonical source replay"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:01:25.242737+00:00",
+      "end_utc": "2026-10-19T00:01:25.255047+00:00",
+      "elapsed_s": 0.012310306003200822,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/commit-nested-source-validation.log",
+      "log_sha256": "2fe9a8bb6cbca2fef21bc63ea0088088de04baf8a656d0edde94c64c6695ec81"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2348/update_nested_guard_review.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:01:48.754381+00:00",
+      "end_utc": "2026-10-19T00:01:48.784059+00:00",
+      "elapsed_s": 0.02967965699644992,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/update_nested_guard_review.log",
+      "log_sha256": "174dc0a6777972832e8c38da894f4923b4a8d2f7705c755db8050839c20f169a"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/temkin_windowed_boundary.py",
+        "tests/test_temkin_windowed_boundary.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:01:53.476478+00:00",
+      "end_utc": "2026-10-19T00:01:53.481271+00:00",
+      "elapsed_s": 0.004792002997419331,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/stage-windowed-packets.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Sample paired thermal boundary packets from conditioned source windows"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:01:53.592709+00:00",
+      "end_utc": "2026-10-19T00:01:53.602403+00:00",
+      "elapsed_s": 0.009696116001578048,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/commit-windowed-packets.log",
+      "log_sha256": "595603b01f7ad9ca579f2bb29722b73ecf900601a466b002b5c7563b76d2868b"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "tools/sample_temkin_source_windows.py",
+        "tests/test_temkin_windowed_cli.py",
+        "configs/temkin_windowed_packets_manufactured.json",
+        "docs/temkin_windowed_boundary.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:01:53.717013+00:00",
+      "end_utc": "2026-10-19T00:01:53.721872+00:00",
+      "elapsed_s": 0.004861956003878731,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/stage-windowed-export.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Export window-conditioned source packets with provenance and timing precision"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:01:53.833431+00:00",
+      "end_utc": "2026-10-19T00:01:53.844508+00:00",
+      "elapsed_s": 0.011078267998527735,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/commit-windowed-export.log",
+      "log_sha256": "8bed4901929586858136e4c1f2b617f99b451f9eab2d3bf35c8ae2dfd2f9eb55"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2348/prepare_windowed_handoff.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:02:10.278643+00:00",
+      "end_utc": "2026-10-19T00:02:10.469276+00:00",
+      "elapsed_s": 0.19064034600160085,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/prepare-windowed-handoff.log",
+      "log_sha256": "74402e09039791f2bad4cb005cd1eaa279631f607ed9c089e52824b0b1ab82f7"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "tools/sample_temkin_source_windows.py",
+        "--source",
+        "/workspace/research_work/mitl-upstream-20261018T2148/coverage-source-example/source_0003.h5",
+        "--config",
+        "configs/temkin_windowed_packets_manufactured.json",
+        "--source-run-summary",
+        "/workspace/research_work/mitl-upstream-20261018T2148/coverage-source-example/report.json",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T2348/windowed-packet-example"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:02:10.284935+00:00",
+      "end_utc": "2026-10-19T00:02:11.371626+00:00",
+      "elapsed_s": 1.0867010099973413,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/windowed-packet-example.log",
+      "log_sha256": "5597075eee51bc2e2a2cf2cdb91084ce46b89567d53cd4343d098782a51d1711"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2348/verify_windowed_packet_example.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:02:19.578809+00:00",
+      "end_utc": "2026-10-19T00:02:20.124349+00:00",
+      "elapsed_s": 0.5455491680040723,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/independent-windowed-packet-readback.log",
+      "log_sha256": "29a5dc4e62c72570f9de7b4610914654f35e67443c6f70eb5c9414ba3d82d343"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temkin_windowed_source.py",
+        "tests/test_temkin_windowed_boundary.py",
+        "tests/test_temkin_windowed_cli.py",
+        "--junitxml=/workspace/research_work/mitl-upstream-20261018T2348/isolated-results.xml"
+      ],
+      "cwd": "/workspace/handoffs/mitl-windowed-boundary-20261018T2348/source",
+      "start_utc": "2026-10-19T00:02:19.570207+00:00",
+      "end_utc": "2026-10-19T00:02:36.094680+00:00",
+      "elapsed_s": 16.52448213900061,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/isolated-windowed-boundary.log",
+      "log_sha256": "ab368161fdfdca82a73e8440e3382b7b65acb03ee11bb26b039a6e2305f3a010"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "5038bcbfaaf5eb8b270353fb2bdfac6d25eb926d",
+        "HEAD"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:03:32.962046+00:00",
+      "end_utc": "2026-10-19T00:03:32.966784+00:00",
+      "elapsed_s": 0.0047375049980473705,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2348/final-windowed-diff-check.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "input_labels": {
+    "tests": "manufactured",
+    "example": "one preserved manufactured source HDF; arbitrary generic-state masses, no physical water inputs",
+    "response_controls": "fixed source-launch functionals and manufactured finite aperture; no physical spectra"
+  },
+  "limitations": [
+    "Numerical/error allowances are estimated and representation-specific, not certified interval bounds or experimental uncertainty.",
+    "Canonical history validation replays its existing contract; the old source evolution driver and saved oracles were not rerun.",
+    "Positive partial density can underflow while its physical count is represented; every positive original component is retained or the packet call fails explicitly.",
+    "Local source delay is required to be represented; best-effort global time has independent precision flags. Source emission and recorded photon gates have separate meanings.",
+    "Velocities and momentum have projection/quantization guards. Sampled energy is reported separately from expected 2*kB*T and is never repaired by rescaling.",
+    "Unequal packet weights, signed number closure and actual launch-energy treatment require an owner ledger. No host transaction or feedback is accepted.",
+    "Physical water parameters, physical monolayer inference, absolute VUV normalization and original diagnostics remain unresolved.",
+    "No separately owned solver/state-data development, Quark source/build/runner, actual FLASH run, remote push/merge/publish or external messages."
+  ],
+  "next_task": "Implement deterministic conditional-window timing/joint moments and use them to qualify weighted windowed-launch sampling; preserve component mixtures and estimated quadrature/range limits. Continue owner-only response acceptance when actual collection/loss/field definitions are supplied."
+}

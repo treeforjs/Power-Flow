@@ -1,0 +1,707 @@
+{
+  "schema": "mitl-windowed-moment-verification-v1",
+  "created_utc": "2026-10-19T01:04:36.686718+00:00",
+  "source_commit": "313d4bb128c39a6996c06ce2dc1527f35f7f044e",
+  "base_commit": "e9cd0425282de254e12b7683a197d40963ecd1eb",
+  "branch": "research/flash-publication-foundation",
+  "commits": [
+    "f6c3600271d29c6135f03d4a4ff18b46ca62920b Compute anchored local timing moments for partial source windows",
+    "c51c5c3238c319d766be3b87307ebdb3ca0c12e5 Preserve conditioned source mixtures in joint time geometry and thermal statistics",
+    "313d4bb128c39a6996c06ce2dc1527f35f7f044e Inspect saved windowed packet sources with provenance and quadrature refinement"
+  ],
+  "results": {
+    "new_unique_tests": 105,
+    "isolated_passed": 105,
+    "isolated_skipped": 0,
+    "isolated_file_pass_counts": {
+      "tests.test_window_time_moments": 48,
+      "tests.test_windowed_joint_source_moments": 27,
+      "tests.test_windowed_moments_cli": 30
+    },
+    "public_files_byte_identical": 30,
+    "packaging_wrappers": 4,
+    "new_exact_allocation_cases": 3,
+    "new_exact_allocation_outcomes": 120,
+    "new_rare_component_helper_checks": 6,
+    "saved_components": 48,
+    "saved_packets": 512,
+    "singleton_components": 35,
+    "qualified_mean_observables": 6,
+    "qualified_independent_cross_covariances": 6,
+    "unchanged_project_suites_repeated": false,
+    "previous_source_evolution_or_sampler_repeated": false,
+    "saved_reference_oracles_repeated": false
+  },
+  "runtime": {
+    "packages": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "h5py": "3.16.0",
+      "matplotlib": "3.11.2",
+      "pytest": "9.1.1"
+    }
+  },
+  "independent_review": {
+    "schema": "mhdlab-window-time-joint-moment-independent-review-v1",
+    "completed_utc": "2026-10-19T00:54:31.239062+00:00",
+    "reviewed_source_sha256": {
+      "mhdlab/window_time_moments.py": "08f36b2de7a482643730718a33d9309702e534eb2feb10f5104a14061452181a",
+      "mhdlab/windowed_joint_source_moments.py": "8fffb8f2adffbcc24dd286f4cb0b6018d3c7d6a90a90a15775b6098747a1cb1f"
+    },
+    "artifact_sha256": {
+      "fixed_component_allocation_uncertainty.md": "e4f8e23952dbb8f4530d911cd569cd5a9cd51a3e16478e85c4170e168886d410",
+      "moment_review_notes.md": "95b8db741b6b00d75363a4ddd532cc7b8ef36e931915b9791ad12b51d52bc16d",
+      "fixed_allocation_exact_check.py": "e18ec8dd8c628a7ecb6959c1456f428ea1cdfc1b5c7754abcdf0a0154cc2d5cb",
+      "fixed_allocation_exact_check.json": "de3c3f9f2b807b61b95dfef0a59254ad330e9f037544cacfb467506a95f873dc",
+      "fixed_allocation_exact_check.log": "de3c3f9f2b807b61b95dfef0a59254ad330e9f037544cacfb467506a95f873dc",
+      "rare_component_joint_probe.py": "0ee791742c24f3ce02712e3f62f1adab48fda5016db2c905007f3795640705e1",
+      "rare_component_joint_probe.json": "8f8ff57eb8eb8579cb3ab97a9ed590599a99ad69bc0428d9e5a983045cd3fb08",
+      "rare_component_joint_probe.log": "8f8ff57eb8eb8579cb3ab97a9ed590599a99ad69bc0428d9e5a983045cd3fb08"
+    },
+    "focused_commands": [
+      {
+        "command": [
+          "/workspace/Power-Flow/.venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261019T0045/fixed_allocation_exact_check.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-19T00:50:02.505039+00:00",
+        "end_utc": "2026-10-19T00:50:02.550541+00:00",
+        "elapsed_s": 0.04550503300561104,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261019T0045/fixed_allocation_exact_check.log",
+        "log_sha256": "de3c3f9f2b807b61b95dfef0a59254ad330e9f037544cacfb467506a95f873dc"
+      },
+      {
+        "command": [
+          "/workspace/Power-Flow/.venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261019T0045/rare_component_joint_probe.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-19T00:52:30.824337+00:00",
+        "end_utc": "2026-10-19T00:52:31.438591+00:00",
+        "elapsed_s": 0.6142620099999476,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261019T0045/rare_component_joint_probe.log",
+        "log_sha256": "8f8ff57eb8eb8579cb3ab97a9ed590599a99ad69bc0428d9e5a983045cd3fb08"
+      }
+    ],
+    "new_focused_evidence": {
+      "fixed_allocation_exact_rational_cases": 3,
+      "fixed_allocation_exact_enumerated_outcomes": 120,
+      "fixed_allocation_formulas_verified": [
+        "Conditional weighted mean covariance",
+        "Direct source-covariance finite sample bias",
+        "Known conditional-covariance correction and exact estimator variance including n_c=1",
+        "Empirical within-component correction and exact estimator variance when n_c>=2",
+        "Failure of a single global weighted Bessel correction for distinct strata"
+      ],
+      "rare_component_aggregate_helper_checks_passed": 6,
+      "rare_helper_executed_module_sha256": "b0a9e4850608ef003b20c99b0e43c9b8e909e29025ea4985edcfb687e2ecea15",
+      "rare_helper_final_revision_qualification": "Final changes add optional fourth-energy log diagnostics and range documentation; mixture helper arithmetic is unchanged and read-only reviewed. The helper was not rerun solely to refresh a pin."
+    },
+    "closed_substantive_findings": [],
+    "open_substantive_findings": [],
+    "scientific_review_conclusions": [
+      "Local log-quantile quadrature uses centered positive-weight variance, retains positive log moments and underflow flags, and separates quadrature changes from scalar query qualification.",
+      "n-versus-2n changes are finite numerical estimates, not certified errors or physical uncertainties.",
+      "Joint moments use qualified extensive source counts and exact rational normalization/centering; no rare-probability cutoff discards components.",
+      "Required primitive local timing projections reject positive underflow before false-zero variance can enter the mixture.",
+      "Original interval origin, local window start and conditional delay remain separate; global mean timing loss is explicitly flagged.",
+      "Exact rectangle moments and matched-width mixture preserve all non-width conditional information.",
+      "Full kinetic-energy population variance includes conditional2(kB*T)^2 as well as variation of2kB*T between components.",
+      "Fixed-allocation uncertainty depends on within-component covariance; between-component population spread is not an extra conditional mean sampling variance term.",
+      "For model-defined conditional independence of time versus position/fullKE, direct cross-covariance bias is zero; finite-n covariance sampling variance still includes the documented pair terms."
+    ],
+    "representation_clarifications": [
+      "Aggregate-only and per-component output requests have different explicit representation domains.",
+      "The extreme helper fixture has unsupported standalone component energy variance/raw2; it verifies aggregate helper algebra only, not full public component admission.",
+      "Optional fourth thermal-energy moments retain log/overflow/underflow diagnostics without restricting required moments.",
+      "Sampling uncertainty, finite quadrature changes, source numerical qualification, physical parameter error and experimental measurement error remain distinct."
+    ],
+    "old_suites_or_source_evolution_repeated": false,
+    "old_oracles_repeated": false,
+    "sampler_or_canonical_history_called_by_reviewer": false,
+    "public_files_edited": false,
+    "host_budget_accepted": false,
+    "limits": [
+      "Read-only scientific/numerical review plus two new bounded work-only probes; not an end-to-end source/export test.",
+      "The owners independently ran their new implementation suites; reviewer did not rerun them.",
+      "No source evolution, old manufactured source replay, packet generation, transport, chemistry, radiation, FLASH/Quark job, or physical spectrum was performed.",
+      "Every numerical range fixture is manufactured and makes no experimental/material claim.",
+      "This completion applies to exact reviewed code hashes; later changes require a scoped update."
+    ]
+  },
+  "saved_qualification_review": {
+    "schema": "mhdlab-saved-windowed-packet-qualification-readonly-review-v1",
+    "status": "review_complete_no_substantive_findings",
+    "reviewed_source_sha256": {
+      "qualify_saved_windowed_packets.py": "ae7fe4bf29b8a74f1b5426089e771ec93b6b5a8d5ce14b1509dfe8b8611d8fee"
+    },
+    "reviewed_report_sha256": "8d23ee7b0157a1f47e3d943919c739e9204e9acfc1e433eb0e77536fb41901fb",
+    "artifact_sha256": {
+      "windowed-packet-qualification/report.json": "8d23ee7b0157a1f47e3d943919c739e9204e9acfc1e433eb0e77536fb41901fb",
+      "windowed-packet-qualification/means.csv": "666bdcb7e53212a706c8fee805801cf60e26e4c805e1780ba4afc49e1408088f",
+      "windowed-packet-qualification/cross_covariances.csv": "60bf3bdeeab19cf34df92cb4f302d8c3ee49cd1a2fb9aea11065038bb7e69396",
+      "fixed_component_allocation_uncertainty.md": "e4f8e23952dbb8f4530d911cd569cd5a9cd51a3e16478e85c4170e168886d410",
+      "fixed_allocation_exact_check.json": "de3c3f9f2b807b61b95dfef0a59254ad330e9f037544cacfb467506a95f873dc"
+    },
+    "existing_input_sha256": {
+      "inspection_report": "34615d1918ad59519d12d9cab1223228b9528b704fb6a6ad076f6c2f3b747b87",
+      "order32_reference": "32c4b239425d231eb2751d78f24de707385ce237f5248585a1635dca641b269e",
+      "packet_npz": "538d7c84c2f1b7bd01fe20256f03ec7aebbb9b84763ea7a4c8d18788b33692e6"
+    },
+    "closed_substantive_findings": [],
+    "open_substantive_findings": [],
+    "review_conclusions": [
+      "Component count n_c and common represented weight w_c give actual component mass n_c*w_c; alpha_c=(n_c*w_c)/sum(n*w) equals the sum of normalized packet weights in that component.",
+      "Model targets and estimator variances use actual alpha; ideal source alpha and their signed rounding shifts are separate. Exact signed packet-number residual remains available even when total float projections coincide.",
+      "Conditional weighted mean variance sum(alpha_c^2*sigma_c^2/n_c) matches the fixed-allocation derivation.",
+      "Direct population variance estimates receive the known within-component mean-estimator variance correction. Component expected kinetic energy is deterministic given allocation and correctly has zero sampling standard error.",
+      "All six reported cross pairs are independent within each frozen component. Their known direct-covariance bias is zero, and the exact finite-n variance includes beta=1-alpha_c/n_c single-observation terms, within-component pair terms and cross-component pair terms.",
+      "Thirty-five singleton components use independently supplied conditional source moments. The script does not construct a false empirical singleton variance.",
+      "Thermal kinetic-energy variance is2(kB*T)^2 within each component. Activation, state-internal, and removal energies are excluded from translational kinetic energy.",
+      "Time and geometry observations reconstruct retained original origins/window starts/local delays and local position offsets before centering, avoiding premature absolute-coordinate rounding.",
+      "CSV corrections, signs, covariance-pair definitions and units inferred from the companion observable-unit table are consistent with the inspected formulas.",
+      "The listed standardized differences are descriptive conditional sampling comparisons. They do not establish a statistical threshold, experimental uncertainty or physical validation."
+    ],
+    "scope_and_qualification": {
+      "components": 48,
+      "packets": 512,
+      "singleton_components": 35,
+      "mean_observables": 6,
+      "conditionally_independent_cross_pairs": 6,
+      "parameter_status": "manufactured",
+      "host_budget_accepted": false,
+      "script_status_passed_interpretation": "artifact and model-consistency assertions completed, not a physics or statistical significance threshold",
+      "order16_to32_change_interpretation": "finite ideal-source quadrature change shown separately; not a certified bound or sampling uncertainty",
+      "sampling_model": "conditional on realized allocation, independent nonallocation variates and the stated frozen-component model; numerical projection and source-law errors remain separate"
+    },
+    "qualification_calculation_recomputed": false,
+    "old_cases_or_oracles_rerun": false,
+    "source_history_or_sampler_called": false,
+    "public_files_edited": false,
+    "review_method": "Read-only inspection of source, existing JSON/CSV outputs and fixed-allocation derivation; metadata hashing only, without evaluating numerical estimates again."
+  },
+  "saved_packet_qualification": {
+    "schema": "mitl-windowed-packet-fixed-allocation-qualification-v1",
+    "status": "passed",
+    "script_sha256": "ae7fe4bf29b8a74f1b5426089e771ec93b6b5a8d5ce14b1509dfe8b8611d8fee",
+    "inspection_report_sha256": "34615d1918ad59519d12d9cab1223228b9528b704fb6a6ad076f6c2f3b747b87",
+    "moment_reference_sha256": "32c4b239425d231eb2751d78f24de707385ce237f5248585a1635dca641b269e",
+    "packet_file_sha256": "538d7c84c2f1b7bd01fe20256f03ec7aebbb9b84763ea7a4c8d18788b33692e6",
+    "parameter_status": "manufactured",
+    "components": 48,
+    "packets": 512,
+    "singleton_components": 35,
+    "mean_observables": 6,
+    "independent_cross_covariances": 6,
+    "max_absolute_standardized_mean_difference": 1.0442463547683423,
+    "max_absolute_standardized_covariance_difference": 1.5919372290011706,
+    "normalized_by_actual_represented_packet_weights": true,
+    "ideal_released_number": 2082580222701.589,
+    "actual_packet_number": 2082580222701.589,
+    "signed_packet_number_residual": 4.1961669921875e-05,
+    "sampler_or_source_history_rerun": false,
+    "host_budget_accepted": false,
+    "output_sha256": {
+      "means.csv": "666bdcb7e53212a706c8fee805801cf60e26e4c805e1780ba4afc49e1408088f",
+      "cross_covariances.csv": "60bf3bdeeab19cf34df92cb4f302d8c3ee49cd1a2fb9aea11065038bb7e69396"
+    },
+    "limits": [
+      "One preserved manufactured packet realization and newly computed finite-order source moments; no source evolution, scalar law or sampler is called by this readback.",
+      "Sampling covariances condition on actual component packet counts and independent nonallocation variates; between-component population spread is not extra random allocation variance.",
+      "Actual represented component weight sums define comparison targets; ideal source targets and their signed rounding shifts remain separate.",
+      "Within-component Gamma(shape2) kinetic-energy scatter is included. Supplied activation/internal/removal energies are not added to translation.",
+      "Known source component variances supply model-based finite-sample corrections, including singleton components; no empirical variance is invented for a singleton.",
+      "Cross-covariance standard errors use exact finite-n conditional-independence formulas. Standardized differences are descriptive; they do not define a statistical pass/fail threshold, experimental uncertainty or physical validation.",
+      "Order16-to32 changes are finite quadrature changes, not certified bounds. Source-law numerical qualification, sampling uncertainty and physical/calibration uncertainty are separate."
+    ]
+  },
+  "figure": {
+    "schema": "mitl-windowed-packet-qualification-figure-v1",
+    "parameter_status": "manufactured",
+    "input_qualification_sha256": "8d23ee7b0157a1f47e3d943919c739e9204e9acfc1e433eb0e77536fb41901fb",
+    "script_sha256": "2e0df5d80f356f272a5a477a61b71f802f41ff36801e3c68e79c017e39f37807",
+    "output_sha256": {
+      "windowed_packet_sampling.png": "2b27cc2031d117b25babccbb212520c6704916bf57c8e71da46b03807d22c3ea",
+      "windowed_packet_sampling.pdf": "70a43f8421e0903b54e587fde54c6451bcd66889250738a3794913d385880124"
+    },
+    "limits": [
+      "Single manufactured packet realization with fixed-allocation model uncertainties; no experimental spectra or physical calibration.",
+      "The bars are standard deviations of source sampling estimators under stated conditional assumptions, not acceptance limits or certified numerical error bounds."
+    ]
+  },
+  "commands": [
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_window_time_moments.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:49:33.483670+00:00",
+      "end_utc": "2026-10-19T00:49:34.297637+00:00",
+      "elapsed_s": 0.8139767340035178,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/window-time-moments-initial.log",
+      "log_sha256": "103f7611bbc492fe671acd9aa83b246c20782ac4a39117dd7c80752ea85cf05c"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0045/fixed_allocation_exact_check.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:50:02.505039+00:00",
+      "end_utc": "2026-10-19T00:50:02.550541+00:00",
+      "elapsed_s": 0.04550503300561104,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/fixed_allocation_exact_check.log",
+      "log_sha256": "de3c3f9f2b807b61b95dfef0a59254ad330e9f037544cacfb467506a95f873dc"
+    },
+    {
+      "command": [
+        "sha256sum",
+        "mhdlab/window_time_moments.py",
+        "tests/test_window_time_moments.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:50:06.534557+00:00",
+      "end_utc": "2026-10-19T00:50:06.538336+00:00",
+      "elapsed_s": 0.003776829005801119,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/window-time-moments-pins.log",
+      "log_sha256": "3de0ab86bc780de941875619c8379e7674170411bfe3e7a07429e34c9286de30"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-c",
+        "import hashlib,json,pathlib; p=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261019T0045/window-time-moments-notes.json\"); d=json.loads(p.read_text()); assert d[\"verification\"][\"unique_new_tests_passed\"]==48; assert d[\"source_sha256\"]==hashlib.sha256(pathlib.Path(\"mhdlab/window_time_moments.py\").read_bytes()).hexdigest(); assert d[\"test_sha256\"]==hashlib.sha256(pathlib.Path(\"tests/test_window_time_moments.py\").read_bytes()).hexdigest(); print(hashlib.sha256(p.read_bytes()).hexdigest(),p)"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:50:30.132733+00:00",
+      "end_utc": "2026-10-19T00:50:30.161685+00:00",
+      "elapsed_s": 0.02895193400036078,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/window-time-moment-notes-validation.log",
+      "log_sha256": "ebd46c140c2ce5d23edcf2e0b741a109b47bd53f49bcb5ef38ec412c1102ba03"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_windowed_joint_source_moments.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:52:08.315370+00:00",
+      "end_utc": "2026-10-19T00:52:09.444317+00:00",
+      "elapsed_s": 1.1289541689984617,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/windowed-joint-initial.log",
+      "log_sha256": "2a90b072fc1b151456cfd4508c6236bcca562ff2fddd7dd2a6a282e817989be2"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0045/rare_component_joint_probe.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:52:30.824337+00:00",
+      "end_utc": "2026-10-19T00:52:31.438591+00:00",
+      "elapsed_s": 0.6142620099999476,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/rare_component_joint_probe.log",
+      "log_sha256": "8f8ff57eb8eb8579cb3ab97a9ed590599a99ad69bc0428d9e5a983045cd3fb08"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_windowed_joint_source_moments.py",
+        "-k",
+        "unrepresented_positive_extensive_release"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:53:06.584164+00:00",
+      "end_utc": "2026-10-19T00:53:07.403704+00:00",
+      "elapsed_s": 0.8195486190015799,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/windowed-joint-extensive-guard.log",
+      "log_sha256": "bfaafbfe24ff38f9fd7ab6d06c410ae3e3551a2b51930554b2a0a5bfc08213f0"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_windowed_joint_source_moments.py",
+        "-k",
+        "aggregate_only_domain"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:53:23.032599+00:00",
+      "end_utc": "2026-10-19T00:53:23.914330+00:00",
+      "elapsed_s": 0.8817389579999144,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/windowed-joint-component-range.log",
+      "log_sha256": "156e5987e6457190f28fbb582521c704196d1f9388a5877e0ec741d331ef5bdc"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import hashlib,json,pathlib; p=[pathlib.Path(\"mhdlab/windowed_joint_source_moments.py\"),pathlib.Path(\"tests/test_windowed_joint_source_moments.py\")]; print(json.dumps({str(f):hashlib.sha256(f.read_bytes()).hexdigest() for f in p},indent=2))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:53:27.815678+00:00",
+      "end_utc": "2026-10-19T00:53:27.847737+00:00",
+      "elapsed_s": 0.032058158998552244,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/windowed-joint-pins.log",
+      "log_sha256": "6489cfd5429dca30e7178d9dcfa780e7324dfae90c47aab34ee8e724f5b84e92"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0045/write_moment_review_completion.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:54:31.211741+00:00",
+      "end_utc": "2026-10-19T00:54:31.243309+00:00",
+      "elapsed_s": 0.03157171699422179,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/moment_review_completion.log",
+      "log_sha256": "682c76f0f604e1d969bef2b41811308778fe80c9ce15dbd4cfd56e7df2642ade"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/window_time_moments.py",
+        "tests/test_window_time_moments.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:54:51.185821+00:00",
+      "end_utc": "2026-10-19T00:54:51.189990+00:00",
+      "elapsed_s": 0.004166852995695081,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/stage-window-time-moments.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Compute anchored local timing moments for partial source windows"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:54:51.332754+00:00",
+      "end_utc": "2026-10-19T00:54:51.342481+00:00",
+      "elapsed_s": 0.00973130000056699,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/commit-window-time-moments.log",
+      "log_sha256": "eb068554ec836ab5b7893b789ec48a8d72d5b52f897690afaef8c8826ab1356c"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/windowed_joint_source_moments.py",
+        "tests/test_windowed_joint_source_moments.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:54:51.474034+00:00",
+      "end_utc": "2026-10-19T00:54:51.478176+00:00",
+      "elapsed_s": 0.004142750003666151,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/stage-windowed-joint-moments.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Preserve conditioned source mixtures in joint time geometry and thermal statistics"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:54:51.607590+00:00",
+      "end_utc": "2026-10-19T00:54:51.615758+00:00",
+      "elapsed_s": 0.008169774002453778,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/commit-windowed-joint-moments.log",
+      "log_sha256": "61a53687f208bd12ba64bcaca50b835b0217805fcf920ec10a77e47e83fed667"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_windowed_moments_cli.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:56:11.346318+00:00",
+      "end_utc": "2026-10-19T00:56:29.056744+00:00",
+      "elapsed_s": 17.710445115000766,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/windowed-moments-cli-initial.log",
+      "log_sha256": "0dc03f4dbda4dcbd5d6db0e398e4b9b4065656e7ebd59d76568a9a3476cf4120"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_windowed_moments_cli.py::test_analytic_mixture_and_finite_quadrature_changes"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:56:54.533402+00:00",
+      "end_utc": "2026-10-19T00:56:58.530058+00:00",
+      "elapsed_s": 3.9964745020042756,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/windowed-moments-cli-joint-covariance.log",
+      "log_sha256": "b67d79cbad68a9691431af6457548339bc77964bf0f4c2c38fbf8b924d2bc10d"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import hashlib,json,pathlib; paths=[\"tests/test_windowed_moments_cli.py\",\"tools/inspect_windowed_source_moments.py\",\"mhdlab/window_time_moments.py\",\"mhdlab/windowed_joint_source_moments.py\"]; print(json.dumps({p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest() for p in paths},indent=2))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:57:11.055899+00:00",
+      "end_utc": "2026-10-19T00:57:11.086423+00:00",
+      "elapsed_s": 0.030525239002599847,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/windowed-moments-cli-pins.log",
+      "log_sha256": "8aba567c818f82069a74abddbede850de105c718f9ad5fb65aad6511506bac24"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "tools/inspect_windowed_source_moments.py",
+        "tests/test_windowed_moments_cli.py",
+        "docs/windowed_source_moments.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:57:50.618791+00:00",
+      "end_utc": "2026-10-19T00:57:50.623561+00:00",
+      "elapsed_s": 0.004770106999785639,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/stage-windowed-moment-inspection.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Inspect saved windowed packet sources with provenance and quadrature refinement"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:57:50.753985+00:00",
+      "end_utc": "2026-10-19T00:57:50.763013+00:00",
+      "elapsed_s": 0.00902724800107535,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/commit-windowed-moment-inspection.log",
+      "log_sha256": "396a18f097b6bfd7691b61a69524e546bd3b982f9428f5f1eeece030f566d932"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "tools/inspect_windowed_source_moments.py",
+        "--packet-export",
+        "/workspace/research_work/mitl-upstream-20261018T2348/windowed-packet-example",
+        "--orders",
+        "8",
+        "16",
+        "32",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261019T0045/windowed-moment-example"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:57:50.901685+00:00",
+      "end_utc": "2026-10-19T00:57:52.367714+00:00",
+      "elapsed_s": 1.4660372650032514,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/windowed-moment-example.log",
+      "log_sha256": "c2882b3864cdfad82382e4474570567b9e97edea111d8daa9ea022c846378b98"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0045/qualify_saved_windowed_packets.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:58:37.609927+00:00",
+      "end_utc": "2026-10-19T00:58:38.055646+00:00",
+      "elapsed_s": 0.4457285309981671,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/qualify-saved-windowed-packets.log",
+      "log_sha256": "8d23ee7b0157a1f47e3d943919c739e9204e9acfc1e433eb0e77536fb41901fb"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0045/plot_windowed_packet_qualification.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T00:59:23.917630+00:00",
+      "end_utc": "2026-10-19T00:59:24.992559+00:00",
+      "elapsed_s": 1.0749396559986053,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/plot-windowed-packet-qualification.log",
+      "log_sha256": "a8f095eeb0eb570704f41aa6b0cc71c84cb9304900bf081cb842be6b314d8208"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0045/write_saved_packet_qualification_review.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:00:08.236813+00:00",
+      "end_utc": "2026-10-19T01:00:08.284229+00:00",
+      "elapsed_s": 0.04741726099746302,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/saved_packet_qualification_review.log",
+      "log_sha256": "4b6a95bbb3d722f9e326d000c2792d8dd99da80bd1da22f2ffe76f69c1cb8067"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261019T0045/plot_windowed_packet_qualification.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:00:07.433737+00:00",
+      "end_utc": "2026-10-19T01:00:08.618044+00:00",
+      "elapsed_s": 1.1843131030036602,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/plot-windowed-packet-qualification-final.log",
+      "log_sha256": "ffa1185eb4182c696bc9dd5dfabb401843c69536ded37a2656b346931b230a38"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261019T0045/prepare_moment_handoff.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:00:40.942292+00:00",
+      "end_utc": "2026-10-19T01:00:41.091899+00:00",
+      "elapsed_s": 0.14961430599942105,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/prepare-moment-handoff.log",
+      "log_sha256": "78c23e2d43c9e58edd4ba05ef47d6b8956cdee23208e51a51942cfad8dfbfd78"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_window_time_moments.py",
+        "tests/test_windowed_joint_source_moments.py",
+        "tests/test_windowed_moments_cli.py",
+        "--junitxml=/workspace/research_work/mitl-upstream-20261019T0045/isolated-results.xml"
+      ],
+      "cwd": "/workspace/handoffs/mitl-windowed-moments-20261019T0045/source",
+      "start_utc": "2026-10-19T01:00:46.944219+00:00",
+      "end_utc": "2026-10-19T01:01:05.562283+00:00",
+      "elapsed_s": 18.618070642995008,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/isolated-windowed-moments.log",
+      "log_sha256": "a2a209ab89c6c1d3afd3eeb3263e5972bec516fe8fed87b4d89b42ca3999a344"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "e9cd0425282de254e12b7683a197d40963ecd1eb",
+        "HEAD"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-19T01:04:36.439989+00:00",
+      "end_utc": "2026-10-19T01:04:36.444486+00:00",
+      "elapsed_s": 0.005067203994258307,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261019T0045/final-moment-diff-check.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "input_labels": {
+    "tests": "manufactured",
+    "example": "preserved manufactured source and packet set; no physical water or foil default",
+    "quadrature": "new finite source-window estimates at orders8,16,32",
+    "sampling_uncertainty": "conditional on actual allocation and stated independent variate/source model; not experimental error"
+  },
+  "limitations": [
+    "Finite quadrature changes and scalar query qualification are separate estimates, not certified interval bounds.",
+    "Primitive log moments retain SI underflow; joint statistics require supported represented local moments and requested normalized outputs.",
+    "Actual represented packet weights define sampling comparison targets. Signed source-number rounding shifts remain separate.",
+    "Thirty-five singleton components require known conditional source variances; no empirical variance is inferred from one packet.",
+    "Standardized deviations are descriptive conditional sampling comparisons, not a statistical acceptance criterion or physical validation.",
+    "Within-component thermal kinetic variance is included; supplied activation/internal/removal energies remain separate references.",
+    "Source-emission windows remain distinct from recorded photon gates. No physical spectra, monolayers or absolute VUV calibration are inferred.",
+    "No separately owned solver/state-data development, Quark source/build/runner, actual FLASH execution, remote push/merge/publish or external message."
+  ],
+  "next_task": "Qualify fixed physical SOURCE-emission window support across preserved refined histories. Build explicit intersection/rounding plans, compare partial release and joint moments across saved spatial/snapshot/integration resolutions, and separate new quadrature changes from source discretization. Reuse stored histories; no repeated evolution, old suites or saved oracles."
+}
