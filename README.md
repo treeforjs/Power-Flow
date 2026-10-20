@@ -1,5 +1,44 @@
 # Power Flow MHD/CR Prototype
 
+The FLASH-based dissertation publication work is specified in
+[the water/rovibrational research plan](docs/flash_h2o_publication_plan.md), with a
+[legacy-model audit](docs/legacy_model_audit.md) and
+[dissertation recovery record](docs/dissertation_recovery.md). The new
+[`mhdlab.flash_surface` interchange format](docs/flash_surface_contract.md) validates external SI surface-temperature
+histories; it is not yet connected to the runner below. No FLASH calculation or
+full H2O/rovibrational CR result has been produced on this branch.
+
+The independent [heating-to-release workflow](docs/surface_release_pipeline.md)
+now provides configured FLASH leaf-output extraction, finite-inventory thermal
+desorption, explicit launch-energy budgets and a matched uniform-source control.
+Run `python tools/export_flash_surface.py --demo` or
+`python tools/run_surface_release.py --demo --plot` for labeled manufactured
+verification cases. The Boltzmann and collisional-radiative solvers have a separate
+owner; this workstream supplies heating, boundary sources and recovered evidence.
+
+[Analytic heating verification](docs/flash_heating_verification.md) now supplies
+constant-property magnetic-diffusion references, finite-volume B/J/Joule
+comparisons and separate magnetic/Joule/Poynting energy budgets. Run
+`python tools/run_heating_benchmark.py --plot` for the manufactured reference.
+This is verification preparation; no FLASH simulation has been run here.
+
+The preparation includes [recovered thesis profiles](data/dissertation/figure_4_20_profiles.csv),
+[evaluated electron-water ionic yields](data/cross_sections/song2021/README.md),
+and [resolved H2 radiative transitions](data/cr_model/molat_h2/README.md).
+These data are kept separate from the legacy provisional-rate loader.
+The target model resolves rovibrational populations for every retained molecule,
+including molecular ions and anions; see the
+[species coverage requirements](data/cr_model/molecular_state_requirements.yaml).
+The [energy and charged-transport plan](docs/energy_and_magnetized_transport.md)
+specifies reaction energy partition, species velocity distributions, and Hall
+coupling for magnetized electrons and ions. These remain planning requirements.
+
+The first [executable gap reference](docs/kinetic_gap_reference.md) now couples
+prescribed-field particle motion to explicit state-changing collisions with
+conservative reaction recoil. Run `python tools/run_gap_reference.py --plot`.
+Its inputs are manufactured verification data; physical water kinetics and
+self-consistent field/Hall coupling remain unimplemented.
+
 This project is a research scaffold for 2D reduced MHD electrode heating, Temkin
 desorption, kinetic neutral expansion, BOLSIG electron kinetics, collisional
 radiative populations, and CCD-based synthetic spectra.

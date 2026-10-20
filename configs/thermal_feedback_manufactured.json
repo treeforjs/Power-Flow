@@ -1,0 +1,206 @@
+{
+  "schema": "mhdlab-thermal-feedback-manufactured-config-v1",
+  "parameter_status": "manufactured",
+  "provenance": "Purposeful zero-power numerical fixtures agreed before reference runs; no physical desorption or material calibration.",
+  "external_power_w_m2": 0,
+  "scope": "Single stationary patch; constant supplied areal heat capacity; no conduction, radiation, phase change, mechanical work, source-history, plasma, host transaction or MHD coupling.",
+  "maintained_temperature_control": "Computed independently by the oracle as an externally maintained-temperature hypothesis; this producer does not call an existing release producer.",
+  "refinement_case_id": "nonlinear_costs",
+  "cases": [
+    {
+      "case_id": "zero_barrier",
+      "purpose": "Inventory has exact exponential decay despite cooling; positive removal and internal channels remain independent of the zero kinetic barrier.",
+      "duration_s": 1e-7,
+      "steps": [
+        32
+      ],
+      "problem": {
+        "reservoir": {
+          "name": "manufactured_zero_barrier",
+          "state_id": "M:manufactured-feedback-parent",
+          "attempt_frequency_s": 10000000,
+          "activation_energy_ev": 0,
+          "desorption_energy_ev": 0.12,
+          "internal_energy_ev": 0.03,
+          "coverage_coefficient": 0,
+          "reference_coverage_m2": 400000000000000000000,
+          "max_coverage_m2": 400000000000000000000,
+          "kinetic_provenance": "Manufactured numerical verification parameters; constant attempt frequency and first-order remaining inventory; no fitted material or species claim.",
+          "energy_provenance": "Manufactured independent removal/internal costs; neither is inferred from the kinetic barrier."
+        },
+        "initial_coverage_m2": 200000000000000000000,
+        "initial_temperature_k": 900,
+        "areal_heat_capacity_j_m2_k": 0.05,
+        "patch_area_m2": 0.0002,
+        "temperature_min_k": 600,
+        "temperature_max_k": 1000,
+        "parameter_status": "manufactured",
+        "parameter_provenance": "Zero-power stationary single-patch numerical reference; arbitrary coefficients, no actual surface or foil inference.",
+        "energy_reference": "Manufactured common gas reference: adsorbate U_ads=-D*N; emitted internal energy I per parent and continuum translation 2*kB*T are separate; wall thermal changes use supplied constant areal heat capacity."
+      }
+    },
+    {
+      "case_id": "constant_barrier",
+      "purpose": "Nonzero constant kinetic barrier with finite thermal reservoir and separate positive removal/internal costs.",
+      "duration_s": 2e-7,
+      "steps": [
+        32
+      ],
+      "problem": {
+        "reservoir": {
+          "name": "manufactured_constant_barrier",
+          "state_id": "M:manufactured-feedback-parent",
+          "attempt_frequency_s": 100000000,
+          "activation_energy_ev": 0.25,
+          "desorption_energy_ev": 0.12,
+          "internal_energy_ev": 0.03,
+          "coverage_coefficient": 0,
+          "reference_coverage_m2": 400000000000000000000,
+          "max_coverage_m2": 400000000000000000000,
+          "kinetic_provenance": "Manufactured numerical verification parameters; constant attempt frequency and first-order remaining inventory; no fitted material or species claim.",
+          "energy_provenance": "Manufactured independent removal/internal costs; neither is inferred from the kinetic barrier."
+        },
+        "initial_coverage_m2": 200000000000000000000,
+        "initial_temperature_k": 900,
+        "areal_heat_capacity_j_m2_k": 0.05,
+        "patch_area_m2": 0.0002,
+        "temperature_min_k": 600,
+        "temperature_max_k": 1000,
+        "parameter_status": "manufactured",
+        "parameter_provenance": "Zero-power stationary single-patch numerical reference; arbitrary coefficients, no actual surface or foil inference.",
+        "energy_reference": "Manufactured common gas reference: adsorbate U_ads=-D*N; emitted internal energy I per parent and continuum translation 2*kB*T are separate; wall thermal changes use supplied constant areal heat capacity."
+      }
+    },
+    {
+      "case_id": "nonlinear_costs",
+      "purpose": "Nonzero coverage-dependent barrier with Nref distinct from N0 and positive independent energy costs; the only temporal-refinement family.",
+      "duration_s": 2e-7,
+      "steps": [
+        8,
+        16,
+        32,
+        64
+      ],
+      "problem": {
+        "reservoir": {
+          "name": "manufactured_nonlinear_costs",
+          "state_id": "M:manufactured-feedback-parent",
+          "attempt_frequency_s": 100000000,
+          "activation_energy_ev": 0.35,
+          "desorption_energy_ev": 0.12,
+          "internal_energy_ev": 0.03,
+          "coverage_coefficient": 0.6,
+          "reference_coverage_m2": 400000000000000000000,
+          "max_coverage_m2": 400000000000000000000,
+          "kinetic_provenance": "Manufactured numerical verification parameters; constant attempt frequency and first-order remaining inventory; no fitted material or species claim.",
+          "energy_provenance": "Manufactured independent removal/internal costs; neither is inferred from the kinetic barrier."
+        },
+        "initial_coverage_m2": 200000000000000000000,
+        "initial_temperature_k": 900,
+        "areal_heat_capacity_j_m2_k": 0.05,
+        "patch_area_m2": 0.0002,
+        "temperature_min_k": 600,
+        "temperature_max_k": 1000,
+        "parameter_status": "manufactured",
+        "parameter_provenance": "Zero-power stationary single-patch numerical reference; arbitrary coefficients, no actual surface or foil inference.",
+        "energy_reference": "Manufactured common gas reference: adsorbate U_ads=-D*N; emitted internal energy I per parent and continuum translation 2*kB*T are separate; wall thermal changes use supplied constant areal heat capacity."
+      }
+    },
+    {
+      "case_id": "translation_only",
+      "purpose": "Positive kinetic barrier with exactly zero removal/internal cost; continuum translation alone cools the finite wall.",
+      "duration_s": 2e-7,
+      "steps": [
+        32
+      ],
+      "problem": {
+        "reservoir": {
+          "name": "manufactured_translation_only",
+          "state_id": "M:manufactured-feedback-parent",
+          "attempt_frequency_s": 20000000,
+          "activation_energy_ev": 0.1,
+          "desorption_energy_ev": 0,
+          "internal_energy_ev": 0,
+          "coverage_coefficient": 0.5,
+          "reference_coverage_m2": 1e+21,
+          "max_coverage_m2": 1e+21,
+          "kinetic_provenance": "Manufactured numerical verification parameters; constant attempt frequency and first-order remaining inventory; no fitted material or species claim.",
+          "energy_provenance": "Manufactured independent removal/internal costs; neither is inferred from the kinetic barrier."
+        },
+        "initial_coverage_m2": 500000000000000000000,
+        "initial_temperature_k": 1100,
+        "areal_heat_capacity_j_m2_k": 0.02,
+        "patch_area_m2": 0.0002,
+        "temperature_min_k": 400,
+        "temperature_max_k": 1200,
+        "parameter_status": "manufactured",
+        "parameter_provenance": "Zero-power stationary single-patch numerical reference; arbitrary coefficients, no actual surface or foil inference.",
+        "energy_reference": "Manufactured common gas reference: adsorbate U_ads=-D*N; emitted internal energy I per parent and continuum translation 2*kB*T are separate; wall thermal changes use supplied constant areal heat capacity."
+      }
+    },
+    {
+      "case_id": "weak_release",
+      "purpose": "Small emitted fraction requires number and channel budget scales rather than initial thermal or inventory scales alone.",
+      "duration_s": 1e-8,
+      "steps": [
+        32
+      ],
+      "problem": {
+        "reservoir": {
+          "name": "manufactured_weak_release",
+          "state_id": "M:manufactured-feedback-parent",
+          "attempt_frequency_s": 100000,
+          "activation_energy_ev": 0.2,
+          "desorption_energy_ev": 0.08,
+          "internal_energy_ev": 0.02,
+          "coverage_coefficient": 0.2,
+          "reference_coverage_m2": 400000000000000000000,
+          "max_coverage_m2": 400000000000000000000,
+          "kinetic_provenance": "Manufactured numerical verification parameters; constant attempt frequency and first-order remaining inventory; no fitted material or species claim.",
+          "energy_provenance": "Manufactured independent removal/internal costs; neither is inferred from the kinetic barrier."
+        },
+        "initial_coverage_m2": 100000000000000000000,
+        "initial_temperature_k": 800,
+        "areal_heat_capacity_j_m2_k": 0.05,
+        "patch_area_m2": 0.0002,
+        "temperature_min_k": 600,
+        "temperature_max_k": 1000,
+        "parameter_status": "manufactured",
+        "parameter_provenance": "Zero-power stationary single-patch numerical reference; arbitrary coefficients, no actual surface or foil inference.",
+        "energy_reference": "Manufactured common gas reference: adsorbate U_ads=-D*N; emitted internal energy I per parent and continuum translation 2*kB*T are separate; wall thermal changes use supplied constant areal heat capacity."
+      }
+    },
+    {
+      "case_id": "empty_control",
+      "purpose": "Exactly empty inventory retains initial temperature and exact-zero emission/energy channels.",
+      "duration_s": 2e-7,
+      "steps": [
+        32
+      ],
+      "problem": {
+        "reservoir": {
+          "name": "manufactured_empty_control",
+          "state_id": "M:manufactured-feedback-parent",
+          "attempt_frequency_s": 100000000,
+          "activation_energy_ev": 0.25,
+          "desorption_energy_ev": 0.12,
+          "internal_energy_ev": 0.03,
+          "coverage_coefficient": 0,
+          "reference_coverage_m2": 400000000000000000000,
+          "max_coverage_m2": 400000000000000000000,
+          "kinetic_provenance": "Manufactured numerical verification parameters; constant attempt frequency and first-order remaining inventory; no fitted material or species claim.",
+          "energy_provenance": "Manufactured independent removal/internal costs; neither is inferred from the kinetic barrier."
+        },
+        "initial_coverage_m2": 0,
+        "initial_temperature_k": 900,
+        "areal_heat_capacity_j_m2_k": 0.05,
+        "patch_area_m2": 0.0002,
+        "temperature_min_k": 600,
+        "temperature_max_k": 1000,
+        "parameter_status": "manufactured",
+        "parameter_provenance": "Zero-power stationary single-patch numerical reference; arbitrary coefficients, no actual surface or foil inference.",
+        "energy_reference": "Manufactured common gas reference: adsorbate U_ads=-D*N; emitted internal energy I per parent and continuum translation 2*kB*T are separate; wall thermal changes use supplied constant areal heat capacity."
+      }
+    }
+  ]
+}

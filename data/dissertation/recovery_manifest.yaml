@@ -1,0 +1,1549 @@
+schema_version: 1
+purpose: Published dissertation evidence and partial recovery of spectral profiles, legacy simulation temperatures
+  and encoded current polylines; no raw experimental data or original simulation arrays are supplied.
+source:
+  source_id: smith_dissertation_2025
+  title: Characterizing Desorbed Surface Contaminants Leading to Plasma Formation in Power Feeds of Pulsed Power
+    Accelerators
+  author: Trevor Johannes Smith
+  year: 2025
+  item_url: https://deepblue.lib.umich.edu/items/9ccfa886-0b19-4bd8-b3b2-bb685b9ddefc
+  handle_url: https://hdl.handle.net/2027.42/199376
+  pdf_url: https://backend.production.deepblue-documents.lib.umich.edu/server/api/core/bitstreams/24e682a8-896a-410d-85bb-ca4654a9db02/content
+  alternate_pdf_url_unverified: https://plasmabay.engin.umich.edu/wp-content/uploads/sites/281/2025/04/2025-Trevor-Smith.pdf
+  sha256: 1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7
+  bytes: 32298236
+  pdf_pages: 203
+  page_mapping:
+    description: For Arabic printed pages in this PDF, PDF page number = printed page + 25. Both use one-based numbering.
+    pdf_page_offset: 25
+  retrieved_utc_date: '2026-10-18'
+  raw_pdf_committed: false
+status_definitions:
+  published_only: Evidence exists only as a published figure, table or passage; original raw diagnostic data and
+    metadata have not been recovered.
+  not_digitized: No curve/image numerical extraction has been performed.
+  partially_digitized: Only explicitly listed curves or vector paths have been recovered from the publication; all
+    other quantities retain their stated pending status.
+  table_transcribed: Numbers copied from the published table; these remain author-derived estimates, not independent
+    measurements or raw data.
+  digitized_published_simulation: Correlated samples digitized from a published legacy simulation raster; not original
+    simulation arrays, experimental temperatures or FLASH output.
+  vector_recovered: Encoded published vector geometry recovered from the PDF; not original acquisition samples or
+    a measured waveform file.
+geometry_and_instrument:
+- id: mykonos_geometry
+  value:
+    gap_m: 0.005
+    electrode_width_m: 0.005
+    height_m: 0.025
+  source: Fig. 4.2 and section 4.2
+  printed_page: 54
+  pdf_page: 79
+  evidence_kind: reported_geometry
+- id: foil_materials
+  value:
+    main_material: SS304
+    also_tested: Al
+  source: section 4.2
+  printed_page: 54
+  pdf_page: 79
+  note: Narrative gives SS304 50–500 um but first-campaign captions explicitly include 25 um; do not infer each
+    shot thickness from the narrative range.
+- id: support
+  value: Ultem 1010 FDM dielectric with high-strength epoxy attachment
+  source: section 4.2
+  printed_page: 55
+  pdf_page: 80
+- id: vuv_diagnostic
+  value:
+    measurement: gated emission
+    spectrometer: McPherson 234/302
+    focal_length_m: 0.2
+    grating_grooves_per_mm: 1200
+    grating_coating: Al+MgF2
+    wavelength_range_nm:
+    - 115
+    - 165
+    camera: Photek iCMOS 160 with S20 intensifier and MgF2 window
+    gate_s: 3.0e-09
+    reported_nm_per_pixel: 0.03
+  source: section 4.3.2
+  printed_pages:
+  - 78
+  - 79
+  pdf_pages:
+  - 103
+  - 104
+  note: The 0.03 nm/pixel value is sampling/dispersion, not a measured instrumental line-spread function. Each shot
+    supplies one gated frame, not a spectral time series.
+- id: vuv_spatial_projection
+  value:
+    resolved_axis: anode-cathode gap
+    assumed_emitting_depth_m: 0.005
+    integrated_axis: foil width
+  source: Figs. 4.20–4.25 and section 4.4 Eq. 4.8
+  printed_pages:
+  - 84
+  - 85
+  - 86
+  - 87
+  - 88
+  - 89
+  - 92
+  pdf_pages:
+  - 109
+  - 110
+  - 111
+  - 112
+  - 113
+  - 114
+  - 117
+  note: Transverse variation across foil width is not directly resolved by the published VUV images; the model must
+    project emissivity along that width.
+- id: vuv_calibration
+  value: D2 lamp calibration, gain-response fit and etendue/optical throughput correction
+  source: Figs. 4.18–4.19 and section 4.3.2
+  printed_pages:
+  - 80
+  - 81
+  - 82
+  pdf_pages:
+  - 105
+  - 106
+  - 107
+  note: Gain measurements cover 20–55 with 3/5/10/100 ns gates and an exponential extrapolation outside that range.
+    Calibration is described as approximate; full per-shot calibration and covariance are not available.
+- id: breakdown_definition
+  value: Resistive voltage collapse, Vres = Vbank - L dI/dt before geometry changes
+  source: section 4.2 and Fig. 4.7
+  printed_pages:
+  - 59
+  - 60
+  - 61
+  pdf_pages:
+  - 84
+  - 85
+  - 86
+  note: Visible onset is supporting evidence. Do not assign one universal breakdown time to all shots from the approximately
+    50 ns conclusion.
+species_evidence:
+- species:
+  - H
+  - H2
+  observable: H Lyman-alpha emission at approximately 121.6 nm and H2 Lyman/Werner molecular emission bands
+  source: section 4.3.2, Figs. 4.20–4.25
+  printed_pages:
+  - 78
+  - 83
+  - 84
+  - 85
+  - 86
+  - 87
+  - 88
+  - 89
+  interpretation: Direct emission features; inferred total neutral densities depend on a CR model and source geometry.
+- species:
+  - H2O
+  - H2
+  - H
+  - OH
+  - O
+  - CO/N2
+  - O2
+  - CO2
+  observable: Background RGA mass spectrum
+  source: Fig. 2.3 and section 2.4
+  printed_page: 19
+  pdf_page: 44
+  interpretation: Background composition and ambiguous mass peaks do not uniquely determine the desorbed parent
+    inventory for an individual discharge.
+- species:
+  - O II
+  - Fe
+  observable: Visible emission; O II near 464 nm early, Fe later
+  source: section 4.3.1 and conclusions
+  printed_pages:
+  - 78
+  - 100
+  interpretation: Supports oxygen-bearing species and later metal participation; H2O parent density and OH kinetics
+    are not directly measured by the VUV H/H2 features.
+- species:
+  - H2O
+  observable: Proposed contaminant parent, including an approximately 1 eV surface binding-energy example
+  source: section 2.4 Eqs. 2.30–2.31
+  printed_page: 18
+  pdf_page: 43
+  interpretation: A water-breakdown network is a modeling hypothesis to constrain; water-only origin is not established.
+    Section 2.4 p17 also discusses hydrogen trapped in SS304 bulk.
+existing_model_evidence:
+- id: yacora_fit_status
+  source: section 4.3.2
+  printed_page: 90
+  pdf_page: 115
+  finding: Fits are estimated by eye; example spectral-shape sensitivity is shown at 4000/5000/6000 K for shot 15802.
+    No likelihood-based uncertainty analysis is supplied.
+- id: yacora_level_resolution
+  source: section 4.4
+  printed_pages:
+  - 91
+  - 92
+  pdf_pages:
+  - 116
+  - 117
+  finding: Public Yacora outputs used by the author lack H l-sublevel populations and resolved H2 rotational populations;
+    the text describes assigning a total population to each transition and limits comparison to general agreement.
+    Do not reproduce this approximation as a complete CR model.
+- id: alegra_edge_heating
+  source: section 4.5 Figs. 4.27–4.30
+  printed_pages:
+  - 93
+  - 94
+  - 95
+  - 96
+  - 97
+  - 98
+  pdf_pages:
+  - 118
+  - 119
+  - 120
+  - 121
+  - 122
+  - 123
+  finding: Existing 2D Allegra-labeled simulations already show stronger edge magnetic field/current density/heating.
+    The model used a 200 um foil, a 5 mm gap and current from separate shot 17133, omitted dielectric supports,
+    and shows profiles at 40 and 60 ns. Edge-heated width is described as hundreds of micrometres.
+published_estimates_table_4_1:
+  availability: published_only
+  digitization_status: table_transcribed
+  source: Table 4.1
+  printed_page: 89
+  pdf_page: 114
+  quantity_status: Author-derived Yacora estimates; not raw measured species densities or verified fit results.
+  rows:
+  - shot: 15750
+    reported_foil_thickness_um: 200
+    breakdown_relation: before
+    reported_time_ns: 30
+    reported_temperature_K: 5000
+    estimated_H2_cm3: 100000000000000.0
+    estimated_H_cm3: 1000000000000000.0
+  - shot: 15210
+    reported_foil_thickness_um: 200
+    breakdown_relation: after
+    reported_time_ns: 55
+    reported_temperature_K: 6600
+    estimated_H2_cm3: 1.0e+16
+    estimated_H_cm3: 1000000000000000.0
+  - shot: 15765
+    reported_foil_thickness_um: 400
+    breakdown_relation: before
+    reported_time_ns: 29
+    reported_temperature_K: 5800
+    estimated_H2_cm3: 25000000000000.0
+    estimated_H_cm3: 2000000000000.0
+  - shot: 15795
+    reported_foil_thickness_um: 400
+    breakdown_relation: after
+    reported_time_ns: 180
+    reported_temperature_K: 8600
+    estimated_H2_cm3: 50000000000000.0
+    estimated_H_cm3: 400000000000000.0
+  - shot: 15778
+    reported_foil_thickness_um: 500
+    breakdown_relation: before
+    reported_time_ns: 24
+    reported_temperature_K: 6000
+    estimated_H2_cm3: 60000000000000.0
+    estimated_H_cm3: 1000000000000.0
+  - shot: 15802
+    reported_foil_thickness_um: 500
+    breakdown_relation: after
+    reported_time_ns: 350
+    reported_temperature_K: 5000
+    estimated_H2_cm3: 50000000000000.0
+    estimated_H_cm3: 600000000000000.0
+reconstruction_targets:
+- id: fig_4_2
+  source: Fig. 4.2
+  printed_page: 54
+  pdf_page: 79
+  kind: geometry
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - geometry dimensions
+- id: fig_4_3
+  source: Fig. 4.3
+  printed_page: 56
+  pdf_page: 81
+  kind: diagnostic_geometry
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - first campaign sight lines
+- id: fig_4_5
+  source: Fig. 4.5
+  printed_page: 58
+  pdf_page: 83
+  kind: diagnostic_geometry
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - second campaign sight lines
+- id: fig_4_7
+  source: Fig. 4.7
+  printed_page: 61
+  pdf_page: 86
+  kind: electrical_trace
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - current
+  - resistive voltage
+  - VUV gate
+  - APD
+  - SVS
+- id: fig_4_17
+  source: Fig. 4.17
+  printed_page: 79
+  pdf_page: 104
+  kind: diagnostic_assembly
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - VUV assembly
+- id: fig_4_18
+  source: Fig. 4.18
+  printed_page: 80
+  pdf_page: 105
+  kind: calibration_curve
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - D2 lamp radiance versus wavelength
+- id: fig_4_19
+  source: Fig. 4.19
+  printed_page: 81
+  pdf_page: 106
+  kind: calibration_curve
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - camera gain response and fit band
+- id: fig_4_26
+  source: Fig. 4.26
+  printed_page: 91
+  pdf_page: 116
+  kind: spectral_comparison
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - 15802 measured lineout
+  - normalized 4000/5000/6000 K synthetic H2 spectra
+- id: fig_4_27
+  source: Fig. 4.27
+  printed_page: 93
+  pdf_page: 118
+  kind: model_geometry
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - 2D Allegra slice locations
+- id: fig_4_28
+  source: Fig. 4.28
+  printed_page: 94
+  pdf_page: 119
+  kind: mhd_profiles
+  availability: published_only
+  digitization_status: partially_digitized
+  quantities:
+  - drive current
+  - B
+  - J
+  - temperature at 40 ns
+  drive_shot: 17133
+  foil_thickness_um: 200
+  support_included: false
+  recovered_artifacts:
+  - file: figure_4_28_temperature.csv
+    metadata: figure_4_28_temperature.json
+    generator: tools/recover_dissertation_depth_heating.py
+    status: digitized_published_simulation
+    csv_sha256: b55cb983898c7310e51a7953a890281f01595a4ee77eb0d4c074da5159bfa994
+    content: 76 correlated interior temperature samples, 38 each for foil-edge and foil-middle labels; actual panel
+      temperature units are K
+    time_s: 4.0e-08
+    temperature_units: K
+    coordinate: absolute distance from gap centre [mm], plus nominal depth from initial +2.5 mm gap face [um]
+    nominal_depth_extent_um:
+    - 7.132879797587144
+    - 194.44209256199318
+    digitization_estimates:
+      temperature_K_plus_minus: 22.418968727441523
+      nominal_depth_um_plus_minus: 2.485701398422836
+      meaning: Pixel readout estimate plus maximum tick-fit residual; not physical uncertainty or confidence intervals.
+  - file: figure_4_28_current_depth.csv
+    metadata: figure_4_28_current_depth.json
+    generator: tools/recover_dissertation_depth_current.py
+    status: digitized_published_simulation
+    csv_sha256: c53365543cbf96b30a7e2e1a1e2e63871dc182bc7e60bd641b93140e6f3726e6
+    content: 282 signed conservative-interior J_z samples; 141 each for foil-edge and foil-middle labels
+    time_s: 4.0e-08
+    source_current_axis_label: J_z [MA/cm²]
+    source_coordinate_axis_label: Distance from Middle of AK Gap [mm]
+    literal_conditional_scale_to_A_per_m2: 10000000000.0
+    original_normalization_verified: false
+    gap_coordinate_extent_mm:
+    - 2.5223201132649713
+    - 2.664067625627225
+    nominal_initial_depth_extent_um:
+    - 22.320113264971297
+    - 164.06762562722488
+    retained_native_rows:
+    - 640
+    - 780
+    candidate_rows_per_profile: 396
+    excluded_rows_per_profile: 255
+    digitization_estimates:
+      recipe: Full exact-color run plus +/-2 pixels and maximum tick-fit residual; position uses +/-2 pixels and
+        its fit residual.
+      meaning: Correlated display readout bounds only; physical or simulation uncertainty remains unquantified.
+  - file: figure_4_28_simulation_drive.csv
+    metadata: figure_4_28_simulation_drive.json
+    generator: tools/recover_dissertation_simulation_drive.py
+    status: digitized_published_simulation
+    csv_sha256: 7d40eeb991f289c18e107c0423cfa366b78af8e9fe943aa823d11a8b23fd6a3c
+    content: 178 correlated native columns of the finite upper-left simulation-current display
+    caption_snapshot_time_s: 4.0e-08
+    time_support_s:
+    - -2.5e-09
+    - 3.964285714285714e-08
+    current_extent_MA:
+    - 0.002609816559246303
+    - 0.29161328705999
+    horizontal_axis_label: Time [ns]
+    vertical_axis_label: Current [MA]
+    original_input_array_recovered: false
+    original_input_normalization_verified: false
+    experimental_clock_alignment_established: false
+    left_display_support_clipped: true
+    negative_display_times_preserved: true
+    candidate_columns: 388
+    excluded_columns: 210
+    digitization_estimates:
+      time_plus_minus_ns: 0.47619047619047616
+      current_recipe: entire matched run [first_y,last_y], extended by +/-2 pixels, mapped by fitted current axis
+        and expanded by maximum absolute current tick-fit residual
+      meaning: Correlated display readout bounds only, not physical uncertainty or observed support.
+  - file: figure_4_28_magnetic_gap.csv
+    metadata: figure_4_28_magnetic_gap.json
+    generator: tools/recover_dissertation_gap_magnetic.py
+    status: digitized_published_simulation
+    csv_sha256: 08307893990f4d25ce9cf9fcd3bf68f6a8070cdc82f508336249d3a7a2db155b
+    metadata_sha256: ac70c17f3303bf500f03e09923a5e7878638aa8f38104e88e1e4decee2a12702
+    generator_sha256: 7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f
+    content: 262 signed conservative central-gap B_x samples; 131 each for foil-edge and foil-middle labels
+    time_s: 4.0e-08
+    source_magnetic_axis_label: B_x [100 Tesla]
+    source_coordinate_axis_label: Distance from Middle of AK Gap [mm]
+    primary_quantity: signed literal B_x plotted axis value
+    conditional_scale_to_T: 100
+    original_electromagnetic_normalization_verified: false
+    gap_coordinate_extent_mm:
+    - -1.6582278481012658
+    - 1.6329113924050633
+    signed_Bx_literal_extent_by_profile:
+      foil_edge:
+      - -0.3775
+      - -0.3325
+      foil_middle:
+      - -0.4125
+      - -0.3925
+    native_retained_rows_inclusive:
+    - 150
+    - 280
+    native_candidate_rows_per_profile: 393
+    retained_samples_by_profile:
+      foil_edge: 131
+      foil_middle: 131
+    excluded_rows_per_profile: 262
+    full_vector_field_recovered: false
+    exact_surface_field_recovered: false
+    experimental_clock_alignment_established: false
+    digitization_estimates:
+      magnetic_recipe: entire matched [first_x,last_x] run extended by +/-2 pixels, exact fitted-axis map, then
+        max absolute magnetic tick-fit residual
+      gap_recipe: native row +/-2 pixels, exact fitted-axis map, then max absolute gap tick-fit residual
+      meaning: Correlated native display readout bounds only; no physical uncertainty, derivative or Hall acceptance.
+  still_pending:
+  - magnetic boundary jumps, crossings, exterior branches and legend-covered regions
+  - original electromagnetic normalization and unit export
+  - original simulation drive input, normalization and experimental clock registration
+  - boundary ramps, exterior segments and exact surface values
+  - original simulation mesh, material fractions, evolving material boundaries, EOS and arrays
+  unresolved_metadata:
+  - Nominal initial gap face is +2.5 mm and back face +2.7 mm from reported initial geometry; actual time-dependent
+    material boundaries are not recovered.
+  - Precise transverse position of the foil-edge lineout is only schematically indicated in Figure 4.27.
+  - No relationship to shot 15210 current is established; these legacy simulations used shot 17133.
+- id: fig_4_29
+  source: Fig. 4.29
+  printed_page: 96
+  pdf_page: 121
+  kind: mhd_profiles
+  availability: published_only
+  digitization_status: partially_digitized
+  quantities:
+  - drive current
+  - B
+  - J
+  - temperature at 60 ns
+  drive_shot: 17133
+  foil_thickness_um: 200
+  support_included: false
+  recovered_artifacts:
+  - file: figure_4_29_temperature.csv
+    metadata: figure_4_29_temperature.json
+    generator: tools/recover_dissertation_depth_heating.py
+    status: digitized_published_simulation
+    csv_sha256: d6e5a1c6f1065316f4d5b177e33afc0162256a53c1efe35566836d5d0fafb400
+    content: 76 correlated interior temperature samples, 38 each for foil-edge and foil-middle labels; actual panel
+      temperature units are K
+    time_s: 6.0e-08
+    temperature_units: K
+    coordinate: absolute distance from gap centre [mm], plus nominal depth from initial +2.5 mm gap face [um]
+    nominal_depth_extent_um:
+    - 7.132879797587144
+    - 194.44209256199318
+    digitization_estimates:
+      temperature_K_plus_minus: 22.418968727441523
+      nominal_depth_um_plus_minus: 2.485701398422836
+      meaning: Pixel readout estimate plus maximum tick-fit residual; not physical uncertainty or confidence intervals.
+  - file: figure_4_29_current_depth.csv
+    metadata: figure_4_29_current_depth.json
+    generator: tools/recover_dissertation_depth_current.py
+    status: digitized_published_simulation
+    csv_sha256: e6009f6f2e578776751805e36367f630bd95127fd4eb0bf183a78938822135c4
+    content: 282 signed conservative-interior J_z samples; 141 each for foil-edge and foil-middle labels
+    time_s: 6.000000000000001e-08
+    source_current_axis_label: J_z [MA/cm²]
+    source_coordinate_axis_label: Distance from Middle of AK Gap [mm]
+    literal_conditional_scale_to_A_per_m2: 10000000000.0
+    original_normalization_verified: false
+    gap_coordinate_extent_mm:
+    - 2.5223201132649713
+    - 2.664067625627225
+    nominal_initial_depth_extent_um:
+    - 22.320113264971297
+    - 164.06762562722488
+    retained_native_rows:
+    - 640
+    - 780
+    candidate_rows_per_profile: 396
+    excluded_rows_per_profile: 255
+    digitization_estimates:
+      recipe: Full exact-color run plus +/-2 pixels and maximum tick-fit residual; position uses +/-2 pixels and
+        its fit residual.
+      meaning: Correlated display readout bounds only; physical or simulation uncertainty remains unquantified.
+  - file: figure_4_29_simulation_drive.csv
+    metadata: figure_4_29_simulation_drive.json
+    generator: tools/recover_dissertation_simulation_drive.py
+    status: digitized_published_simulation
+    csv_sha256: b5b8ffab25d3efd5058a433c1e66aaff85314b5c2d0edffad558c464c74a92ef
+    content: 262 correlated native columns of the finite upper-left simulation-current display
+    caption_snapshot_time_s: 6.000000000000001e-08
+    time_support_s:
+    - -2.5e-09
+    - 5.964285714285715e-08
+    current_extent_MA:
+    - 0.002609816559246303
+    - 0.48326822012890425
+    horizontal_axis_label: Time [ns]
+    vertical_axis_label: Current [MA]
+    original_input_array_recovered: false
+    original_input_normalization_verified: false
+    experimental_clock_alignment_established: false
+    left_display_support_clipped: true
+    negative_display_times_preserved: true
+    candidate_columns: 388
+    excluded_columns: 126
+    digitization_estimates:
+      time_plus_minus_ns: 0.47619047619047616
+      current_recipe: entire matched run [first_y,last_y], extended by +/-2 pixels, mapped by fitted current axis
+        and expanded by maximum absolute current tick-fit residual
+      meaning: Correlated display readout bounds only, not physical uncertainty or observed support.
+  - file: figure_4_29_magnetic_gap.csv
+    metadata: figure_4_29_magnetic_gap.json
+    generator: tools/recover_dissertation_gap_magnetic.py
+    status: digitized_published_simulation
+    csv_sha256: f928d3783a1fa9ebece1576208ef04890b0fbbcf3ecbfdc9363c5c63b6f1dfa0
+    metadata_sha256: 70ae3dd5a7a032a4262d9c321ae2fc893a217b3b8ba30abc6c728061faeac43d
+    generator_sha256: 7b3b52b0e5d4523f74991d2e2f2fc4b3390efdb3376498142ec7ebb2111f568f
+    content: 262 signed conservative central-gap B_x samples; 131 each for foil-edge and foil-middle labels
+    time_s: 6.0e-08
+    source_magnetic_axis_label: B_x [100 Tesla]
+    source_coordinate_axis_label: Distance from Middle of AK Gap [mm]
+    primary_quantity: signed literal B_x plotted axis value
+    conditional_scale_to_T: 100
+    original_electromagnetic_normalization_verified: false
+    gap_coordinate_extent_mm:
+    - -1.6582278481012658
+    - 1.6329113924050633
+    signed_Bx_literal_extent_by_profile:
+      foil_edge:
+      - -0.6175
+      - -0.5475
+      foil_middle:
+      - -0.6925
+      - -0.6525
+    native_retained_rows_inclusive:
+    - 150
+    - 280
+    native_candidate_rows_per_profile: 393
+    retained_samples_by_profile:
+      foil_edge: 131
+      foil_middle: 131
+    excluded_rows_per_profile: 262
+    full_vector_field_recovered: false
+    exact_surface_field_recovered: false
+    experimental_clock_alignment_established: false
+    digitization_estimates:
+      magnetic_recipe: entire matched [first_x,last_x] run extended by +/-2 pixels, exact fitted-axis map, then
+        max absolute magnetic tick-fit residual
+      gap_recipe: native row +/-2 pixels, exact fitted-axis map, then max absolute gap tick-fit residual
+      meaning: Correlated native display readout bounds only; no physical uncertainty, derivative or Hall acceptance.
+  still_pending:
+  - magnetic boundary jumps, crossings, exterior branches and legend-covered regions
+  - original electromagnetic normalization and unit export
+  - original simulation drive input, normalization and experimental clock registration
+  - boundary ramps, exterior segments and exact surface values
+  - original simulation mesh, material fractions, evolving material boundaries, EOS and arrays
+  unresolved_metadata:
+  - Nominal initial gap face is +2.5 mm and back face +2.7 mm from reported initial geometry; actual time-dependent
+    material boundaries are not recovered.
+  - Precise transverse position of the foil-edge lineout is only schematically indicated in Figure 4.27.
+  - No relationship to shot 15210 current is established; these legacy simulations used shot 17133.
+- id: fig_4_30
+  source: Fig. 4.30
+  printed_page: 98
+  pdf_page: 123
+  kind: mhd_width_profiles
+  availability: published_only
+  digitization_status: partially_digitized
+  quantities:
+  - B
+  - J
+  - temperature across foil width at depth 12.5 um at 40 ns
+  drive_shot: 17133
+  foil_thickness_um: 200
+  support_included: false
+  recovered_artifacts:
+  - file: figure_4_30_heating.csv
+    metadata: figure_4_30_heating.json
+    generator: tools/recover_dissertation_heating.py
+    status: digitized_published_simulation
+    csv_sha256: f3652be052c89afe7b13760b8b61479331415aadcb44c459ced69e4ae0ae211f
+    content: 137 correlated samples of the nonzero temperature curve across foil width; exact edge jumps and exterior
+      zeros excluded
+    time_s: 4.0e-08
+    depth_from_AK_gap_m: 1.25e-05
+    original_temperature_units: eV
+    output_temperature_units:
+    - eV
+    - K
+    conversion: T_K = temperature_eV * elementary_charge_J_per_eV / Boltzmann_J_per_K
+    K_per_eV: 11604.518121550082
+    coordinate: distance from foil-middle location [mm], across foil width
+    width_offset_extent_mm:
+    - -2.4746185846145785
+    - 2.4704322981529727
+    digitization_estimates:
+      temperature_K_plus_minus: 29.79880656190802
+      width_offset_mm_plus_minus: 0.014652002615607557
+      meaning: Estimated +/-2 native pixels; not physical uncertainty or confidence intervals.
+    temperature_unit_interpretation: Literal Temperature [eV] is treated as k_B*T expressed in electronvolts; the
+      original simulator temperature-variable definition and unit export have not been independently recovered.
+  - file: figure_4_30_electromagnetic.csv
+    metadata: figure_4_30_electromagnetic.json
+    generator: tools/recover_dissertation_em_profiles.py
+    status: digitized_published_simulation
+    csv_sha256: 85fd97a9706d151fa84736bb83fcba51f44a0a28696152368ffbb8785f785b5b
+    content: 262 correlated signed samples, 131 each for B_x and J_z; sharp boundary jumps, inspected crossings,
+      outermost edge regions and legend glyphs excluded
+    time_s: 4.0e-08
+    depth_from_AK_gap_m: 1.25e-05
+    primary_quantity: signed plotted Signal Height; source legends retained without repair
+    source_legends:
+    - B_x [100 Tesla]
+    - J_z [MA/cm²]
+    literal_legend_conversions:
+      B_x:
+        assumption: one ordinate unit denotes 100 tesla
+        scale_to_SI: 100.0
+        SI_unit: T
+      J_z:
+        assumption: one ordinate unit denotes one megaampere per square centimetre
+        scale_to_SI: 10000000000.0
+        SI_unit: A/m2
+    original_simulation_units_or_normalization_confirmed: false
+    unit_repair_applied: false
+    coordinate: distance from foil-middle location [mm], across foil width
+    width_offset_extent_mm:
+    - -2.4379885780755592
+    - 2.433802291613953
+    digitization_estimates:
+      width_offset_mm_plus_minus: 0.016746788815979068
+      ordinate_rule: convert full exact-colour run extent expanded by +/-2 pixels; add maximum absolute tick-fit
+        residual
+      meaning: Display readout envelopes only, not physical uncertainty or confidence intervals.
+    dimensional_limits:
+    - Literal-legend SI columns are conditional conversions, not a validated dimensional benchmark.
+    - No quantitative J²/sigma heating benchmark is supported until the original current-density units and normalization
+      are confirmed.
+    - A single-depth width profile cannot supply the full cross-sectional current integral, Ampere-law agreement
+      or a complete vector-field check.
+  still_pending:
+  - exact foil-edge peaks, boundary values, crossing regions and exterior segments
+  - confirmation of original electromagnetic units and normalization
+  - original simulation arrays and original simulation drive input/timing registration (published 17133 current recovered from Fig. C.19)
+  unresolved_metadata:
+  - This is the 40 ns temperature at 12.5 um depth, not a surface-temperature boundary condition or time history.
+  - No relationship to shot 15210 current is established; the legacy simulation used shot 17133.
+  - The shared ordinate is Signal Height. Section 4.5 and the Figure 4.30 caption give no explicit normalization
+    recipe; literal printed B_x [100 Tesla] and J_z [MA/cm²] conversions remain unverified.
+  - The temperature legend is interpreted literally as k_B*T in eV; the original simulation temperature variable
+    and its energy-mode ownership are not independently recovered.
+  - No unit correction, sign flip, host-frame rotation, drive normalization, current integral or Joule-heating closure
+    is applied.
+- id: fig_2_3
+  source: Fig. 2.3
+  printed_page: 19
+  pdf_page: 44
+  kind: background_RGA
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - pressure versus molecular mass
+- id: fig_4_20
+  source: Fig. 4.20
+  printed_page: 84
+  pdf_page: 109
+  kind: vuv_spectral_spatial
+  availability: published_only
+  digitization_status: partially_digitized
+  recovered_artifacts:
+  - file: figure_4_20_profiles.csv
+    metadata: figure_4_20_profiles.json
+    generator: tools/recover_dissertation_profiles.py
+    content: 106 correlated samples of the two central transition-density gap profiles, 53 per species
+    uncertainty: Pixel digitization estimates only; published physical uncertainty bands have not been recovered.
+  still_pending:
+  - wavelength lineouts and calibrated spectral image
+  - published physical uncertainty bands
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - displayed uncertainty bands
+  - Yacora overplot
+  shot: 15750
+  reported_material: SS304
+  reported_thickness_um: 200
+  duplicate_of: Fig. A.13
+  unresolved_metadata:
+  - Original pixel/gain/LSF/throughput calibration
+  - Exact lineout averaging regions beyond dashed plot guides
+- id: fig_4_21
+  source: Fig. 4.21
+  printed_page: 85
+  pdf_page: 110
+  kind: vuv_spectral_spatial
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - displayed uncertainty bands
+  - Yacora overplot
+  shot: 15765
+  reported_material: SS304
+  reported_thickness_um: 400
+  duplicate_of: Fig. A.14
+  unresolved_metadata:
+  - Original pixel/gain/LSF/throughput calibration
+  - Exact lineout averaging regions beyond dashed plot guides
+- id: fig_4_22
+  source: Fig. 4.22
+  printed_page: 86
+  pdf_page: 111
+  kind: vuv_spectral_spatial
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - displayed uncertainty bands
+  - Yacora overplot
+  shot: 15778
+  reported_material: SS304
+  reported_thickness_um: 500
+  duplicate_of: Fig. A.15
+  unresolved_metadata:
+  - Original pixel/gain/LSF/throughput calibration
+  - Exact lineout averaging regions beyond dashed plot guides
+- id: fig_4_23
+  source: Fig. 4.23
+  printed_page: 87
+  pdf_page: 112
+  kind: vuv_spectral_spatial
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - displayed uncertainty bands
+  - Yacora overplot
+  shot: 15210
+  reported_material: SS304
+  reported_thickness_um: 200
+  duplicate_of: Fig. A.10
+  unresolved_metadata:
+  - Original pixel/gain/LSF/throughput calibration
+  - Exact lineout averaging regions beyond dashed plot guides
+- id: fig_4_24
+  source: Fig. 4.24
+  printed_page: 88
+  pdf_page: 113
+  kind: vuv_spectral_spatial
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - displayed uncertainty bands
+  - Yacora overplot
+  shot: 15795
+  reported_material: SS304
+  reported_thickness_um: 400
+  duplicate_of: Fig. A.16
+  unresolved_metadata:
+  - Original pixel/gain/LSF/throughput calibration
+  - Exact lineout averaging regions beyond dashed plot guides
+- id: fig_4_25
+  source: Fig. 4.25
+  printed_page: 89
+  pdf_page: 114
+  kind: vuv_spectral_spatial
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - displayed uncertainty bands
+  - Yacora overplot
+  shot: 15802
+  reported_material: SS304
+  reported_thickness_um: 500
+  duplicate_of: Fig. A.17
+  unresolved_metadata:
+  - Original pixel/gain/LSF/throughput calibration
+  - Exact lineout averaging regions beyond dashed plot guides
+- id: fig_A_1
+  source: Fig. A.1
+  printed_page: 102
+  pdf_page: 127
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15156
+  caption_material: SS304
+  caption_thickness_um: 50
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_2
+  source: Fig. A.2
+  printed_page: 103
+  pdf_page: 128
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15166
+  caption_material: SS304
+  caption_thickness_um: 50
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_3
+  source: Fig. A.3
+  printed_page: 104
+  pdf_page: 129
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15169
+  caption_material: SS304
+  caption_thickness_um: 50
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_4
+  source: Fig. A.4
+  printed_page: 105
+  pdf_page: 130
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15174
+  caption_material: SS304
+  caption_thickness_um: 100
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_5
+  source: Fig. A.5
+  printed_page: 106
+  pdf_page: 131
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15179
+  caption_material: SS304
+  caption_thickness_um: 100
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_6
+  source: Fig. A.6
+  printed_page: 107
+  pdf_page: 132
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15182
+  caption_material: SS304
+  caption_thickness_um: 100
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_7
+  source: Fig. A.7
+  printed_page: 108
+  pdf_page: 133
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15187
+  caption_material: SS304
+  caption_thickness_um: 100
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_8
+  source: Fig. A.8
+  printed_page: 109
+  pdf_page: 134
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15191
+  caption_material: SS304
+  caption_thickness_um: 100
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_9
+  source: Fig. A.9
+  printed_page: 110
+  pdf_page: 135
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15194
+  caption_material: SS304
+  caption_thickness_um: 200
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_10
+  source: Fig. A.10
+  printed_page: 111
+  pdf_page: 136
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15210
+  caption_material: SS304
+  caption_thickness_um: 200
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_11
+  source: Fig. A.11
+  printed_page: 112
+  pdf_page: 137
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15215
+  caption_material: Al
+  caption_thickness_um: 300
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_12
+  source: Fig. A.12
+  printed_page: 113
+  pdf_page: 138
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15224
+  caption_material: Al
+  caption_thickness_um: 100
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_13
+  source: Fig. A.13
+  printed_page: 114
+  pdf_page: 139
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15750
+  caption_material: SS304
+  caption_thickness_um: 200
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_14
+  source: Fig. A.14
+  printed_page: 115
+  pdf_page: 140
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15765
+  caption_material: SS304
+  caption_thickness_um: 400
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_15
+  source: Fig. A.15
+  printed_page: 116
+  pdf_page: 141
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15778
+  caption_material: SS304
+  caption_thickness_um: 400
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+  - Foil thickness conflicts with main text/Table 4.1
+- id: fig_A_16
+  source: Fig. A.16
+  printed_page: 117
+  pdf_page: 142
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15795
+  caption_material: SS304
+  caption_thickness_um: 400
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_A_17
+  source: Fig. A.17
+  printed_page: 118
+  pdf_page: 143
+  kind: vuv_spectral_spatial_and_electrical
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - H Lyman-alpha transition-density gap lineout
+  - H2 approximately 161 nm transition-density gap lineout
+  - top/middle/bottom wavelength lineouts
+  - published spectral image
+  - current and resistive-voltage traces
+  - gate marker
+  shot: 15802
+  caption_material: SS304
+  caption_thickness_um: 500
+  unresolved_metadata:
+  - Complete shot settings
+  - Per-shot calibration
+  - Trigger/cable delays and uncertainties
+- id: fig_4_10
+  source: Fig. 4.10
+  printed_page: 66
+  pdf_page: 91
+  kind: visible_streak_spectra
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - visible spectral evolution
+  - lineouts
+  - timing context; full displayed quantities vary by panel
+  shot: 15080
+  unresolved_metadata:
+  - Collection region differs between campaigns
+  - Absolute detector response and raw frames
+- id: fig_4_11
+  source: Fig. 4.11
+  printed_page: 68
+  pdf_page: 93
+  kind: visible_streak_spectra
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - visible spectral evolution
+  - lineouts
+  - timing context; full displayed quantities vary by panel
+  shot: 15166
+  unresolved_metadata:
+  - Collection region differs between campaigns
+  - Absolute detector response and raw frames
+- id: fig_4_12
+  source: Fig. 4.12
+  printed_page: 70
+  pdf_page: 95
+  kind: visible_streak_spectra
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - visible spectral evolution
+  - lineouts
+  - timing context; full displayed quantities vary by panel
+  shot: 15174
+  unresolved_metadata:
+  - Collection region differs between campaigns
+  - Absolute detector response and raw frames
+- id: fig_4_14
+  source: Fig. 4.14
+  printed_page: 73
+  pdf_page: 98
+  kind: visible_streak_spectra
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - visible spectral evolution
+  - lineouts
+  - timing context; full displayed quantities vary by panel
+  shot: 15750
+  unresolved_metadata:
+  - Collection region differs between campaigns
+  - Absolute detector response and raw frames
+- id: fig_4_15
+  source: Fig. 4.15
+  printed_page: 75
+  pdf_page: 100
+  kind: visible_streak_spectra
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - visible spectral evolution
+  - lineouts
+  - timing context; full displayed quantities vary by panel
+  shot: 15765
+  unresolved_metadata:
+  - Collection region differs between campaigns
+  - Absolute detector response and raw frames
+- id: fig_4_16
+  source: Fig. 4.16
+  printed_page: 77
+  pdf_page: 102
+  kind: visible_streak_spectra
+  availability: published_only
+  digitization_status: not_digitized
+  quantities:
+  - visible spectral evolution
+  - lineouts
+  - timing context; full displayed quantities vary by panel
+  shot: 15802
+  unresolved_metadata:
+  - Collection region differs between campaigns
+  - Absolute detector response and raw frames
+- id: table_4_1
+  source: Table 4.1
+  printed_page: 89
+  pdf_page: 114
+  kind: published_CR_estimates_table
+  availability: published_only
+  digitization_status: table_transcribed
+  quantities:
+  - reported foil thickness
+  - before/after breakdown relation
+  - reported gate time
+  - estimated temperature
+  - estimated H2 density
+  - estimated H density
+  values_reference: published_estimates_table_4_1
+  unresolved_metadata:
+  - Exact electron inputs and Yacora state model
+  - Fit uncertainty
+  - 15778 thickness caption conflict
+- id: fig_C_11
+  source: Fig. C.11
+  printed_page: 157
+  pdf_page: 182
+  kind: electrical_trace
+  availability: published_only
+  digitization_status: partially_digitized
+  quantities:
+  - Average Current [MA]
+  - resistive voltage
+  - VUV gate rectangle
+  - ICCD 334 and 340 gate rectangles
+  - normalized SVS intensity
+  shot: 15210
+  reported_material: SS304
+  plot_title_thickness_um: 200
+  caption_thickness_um: 500
+  recovered_artifacts:
+  - file: shot_15210_current.csv
+    metadata: shot_15210_current.json
+    generator: tools/recover_dissertation_drive.py
+    status: vector_recovered
+    csv_sha256: 7e330390e4c678008e1fae0eed983a0283a04c87cd01d3b6118bda99ee1e8cd8
+    content: 118 original encoded vector vertices inside displayed axes; 20 vertices behind the later legend are
+      explicitly flagged
+    original_units:
+      time: ns
+      current: MA
+    SI_columns:
+      time: time_s
+      current: current_A
+    time_extent_ns:
+    - 2.2497741415680466
+    - 198.2496266277255
+    negative_early_current_preserved: true
+    time_origin_reference: null
+    gate_rectangle_time_bounds_ns:
+    - 52.054573735404944
+    - 55.05456123390783
+    breakdown_time_ns: null
+    digitization_estimates:
+      time_plus_minus_ns: 0.3271963206128953
+      current_plus_minus_A: 2000.102748601604
+      meaning: Half published stroke width plus maximum axis-fit residual; display envelope only, not diagnostic
+        or physical uncertainty.
+  still_pending:
+  - resistive-voltage and SVS curves; ICCD gate coordinates
+  - original current waveform, diagnostic calibration, filtering and time alignment
+  - independently established breakdown time
+  paired_reference:
+    source: Fig. A.10
+    printed_page: 111
+    pdf_page: 136
+    status: not_digitized
+    note: Same-shot raster current ramp clips near 0.24 MA; no A.10 current curve was recovered. Its native pixel
+      identity is retained in the C.11 recovery metadata.
+  unresolved_metadata:
+  - Table 4.1, Figure 4.23, Figure A.10 and the C.11 plot title report 200 um; B.9 and C.11 captions report 500
+    um.
+  - The 52.05–55.05 ns VUV rectangle is not a recovered breakdown time or an established electronic trigger reference.
+  - No zero or 200 ns endpoint, pre-pulse zero, extrapolation, baseline subtraction or smoothing is supplied.
+  - The current is from shot 15210; it is not the 17133 drive used for Figures 4.28–4.30.
+- id: fig_c_19
+  source: Fig. C.19
+  printed_page: 165
+  pdf_page: 190
+  kind: electrical_trace
+  availability: published_only
+  digitization_status: partially_digitized
+  quantities:
+  - Average Current [MA]
+  - V_bank - L_0 dI/dt [MV]
+  - VUV gate rectangle
+  - normalized APD 2
+  shot: 17133
+  reported_material: SS304
+  plot_title_thickness_um: 200
+  caption_thickness_um: 200
+  recovered_artifacts:
+  - file: shot_17133_current.csv
+    metadata: shot_17133_current.json
+    generator: tools/recover_dissertation_drive_17133.py
+    status: vector_recovered
+    csv_sha256: 2c54d2dbaec6b6c8fcf2e45b5abd837aa72999f5fd14217f530277ffd5949076
+    content: 132 native vector vertices inside the displayed axes; no inserted endpoints or resampling
+    original_units:
+      time: ns
+      current: MA
+    SI_columns:
+      time: time_s
+      current: current_A
+    time_extent_ns:
+    - 0.7497880554918481
+    - 196.74963671006165
+    current_extent_A:
+    - 6012.0713604687735
+    - 820547.1145611181
+    legend_covered_vertices: 0
+    time_origin_reference: null
+    gate_rectangle_time_bounds_ns:
+    - 26.039342959313593
+    - 29.039399426393466
+    breakdown_time_ns: null
+    digitization_estimates:
+      time_plus_minus_ns: 0.3271963206128668
+      current_plus_minus_A: 2738.323481449829
+      meaning: Half published stroke width plus maximum tick-fit residual; correlated display readout bounds,
+        not physical uncertainty.
+  still_pending:
+  - Original current waveform, filtering and diagnostic calibration
+  - Original simulation drive input and current-to-simulation clock registration
+  - Voltage/APD curves and an independently established breakdown time
+  unresolved_metadata:
+  - The shared ordinate is Signal Height; current units are taken from its separate MA legend.
+  - The gate rectangle is not breakdown, a trigger or a simulation timing reference.
+  - Same shot as legacy heating Figs. 4.28–4.30; no complete thermal reproduction, electromagnetic normalization
+    or Joule closure.
+source_conflicts:
+- id: shot_15778_thickness
+  sources:
+  - source: Fig. 4.22, Fig. 4.7 title and Table 4.1
+    printed_pages:
+    - 61
+    - 86
+    - 89
+    value_um: 500
+  - source: Fig. A.15 caption
+    printed_page: 116
+    value_um: 400
+  resolution: Unresolved; use 500 um only as the main-text/Table 4.1 report, retaining the conflicting appendix
+    caption. The embedded Fig. A.15 plot title also says 500 um.
+- id: density_localization_direction
+  sources:
+  - source: section 4.5
+    printed_page: 97
+    claim: Using a localized rather than 5 mm emission depth would increase local foil-edge density by about an
+      order of magnitude.
+  - source: conclusions
+    printed_page: 99
+    claim: Inferred densities are likely overestimated owing to assumed uniform density and preferential edge heating.
+  resolution: Unresolved; distinguish inferred column density, width-averaged volume density and local edge density.
+    Recompute with a projected forward model.
+- id: abstract_vs_table_density_range
+  sources:
+  - source: abstract
+    printed_page: xxiii
+    pdf_page: 24
+    claim: Pre-breakdown H density 1e12–1e13 cm^-3 and post-breakdown 1e13–1e14 cm^-3.
+  - source: Table 4.1
+    printed_page: 89
+    claim: H density is 1e15 cm^-3 for shots 15750 and 15210.
+  resolution: Preserve table entries verbatim and do not use the abstract range as a per-shot datum.
+- id: mhd_midfoil_temperature
+  sources:
+  - source: section 4.5
+    printed_page: 93
+    claim: Foil-middle surface at 1600 C at 60 ns.
+  - source: section 4.5
+    printed_page: 95
+    claim: At 60 ns foil-middle remains well under melt temperature.
+  resolution: Unresolved surface wording. The interior temperature curves in Figures 4.28 and 4.29 are now partially
+    digitized using their explicit Kelvin axes and nominal initial-face depth coordinates. They do not recover actual
+    evolving surfaces or justify assigning either narrative temperature as a boundary value.
+- id: atomic_n2_interpretation
+  sources:
+  - source: section 4.4
+    printed_pages:
+    - 91
+    - 92
+    claim: All n=2 H will de-excite through 2p->1s because 2s->1s is forbidden.
+  resolution: This statement is not a valid state-resolved closure. A new model must separately handle 2s/2p, collisional
+    mixing, two-photon decay and other depopulation channels with sourced rates.
+- id: svs_appendix_repeated_thickness
+  sources:
+  - source: Fig. 4.12 and Fig. A.4
+    printed_pages:
+    - 70
+    - 105
+    shot: 15174
+    value_um: 100
+  - source: Fig. B.3 caption
+    printed_page: 122
+    shot: 15174
+    value_um: 500
+  resolution: Appendix B has repeated 500 um SS304 captions for many unlike shots; verify material/thickness against
+    shot-specific main-text and Appendix A records before fitting.
+- id: shot_15210_thickness
+  sources:
+  - source: Table 4.1, Figure 4.23 caption, Figure A.10 caption and Figure C.11 plot title
+    printed_pages:
+    - 87
+    - 89
+    - 111
+    - 157
+    value_um: 200
+  - source: Figure B.9 and Figure C.11 captions
+    printed_pages:
+    - 128
+    - 157
+    value_um: 500
+  resolution: Unresolved caption conflict. The recovered current sidecar records the 200 um main-text/table/title
+    report and retains both 500 um captions; current-vector extraction does not independently determine foil thickness.
+recoverability:
+  recoverable_from_publication:
+  - Published plot images, captions, axes and displayed uncertainty bands
+  - Selected digitizable spatial/spectral lineouts and electrical traces, with finite publication resolution
+  - Published Table 4.1 estimates and geometry/diagnostic descriptions
+  - MHD profile figures suitable for qualitative or digitized comparison after metadata checks
+  not_recovered:
+  - Original camera counts and dark/flat/stray-light frames
+  - Per-shot gain, trigger, pixel calibration and full optical-response files
+  - Original voltage/current scope waveforms and their timing/calibration uncertainties
+  - Original Yacora input decks, level-population outputs and fit workflow
+  - Original Allegra simulation decks, mesh/material tables and output fields
+  - Complete shot log and resolution of conflicting captions
+  constraints:
+  - Digitized curves must be labeled reconstructed published data, not original raw data.
+  - Published pseudocolor images are not invertible raw detector frames; color clipping, interpolation and plotting
+    transformations may be irreversible.
+  - Multiple shots at different gates do not form a single-shot time history without a repeatability model.
+  - Line-of-sight integrated spectra alone do not uniquely identify transverse desorption structure.
+  - Figures 4.28–4.30 and recovered Fig. C.19 current share shot 17133, but original drive inputs and clock registration remain missing; no same-shot thermal reproduction is established. Shot 15210 remains separate.
+  - Partial temperature recovery does not recover gap-facing surface values, time-dependent material boundaries
+    or temperature time histories.
+  - Current vector vertices behind the later legend are encoded source geometry and are flagged; plotting/filtering
+    and physical measurement uncertainty remain unknown.

@@ -1,0 +1,117 @@
+{
+  "schema": "mhdlab-boundary-quadrature-manufactured-config-v1",
+  "parameter_status": "manufactured",
+  "provenance": "Two new deterministic boundary quadrature queries over hash-bound accepted manufactured joint source pieces. Finite Decimal80 GL5 nodes are rational approximations, not exact algebraic Gauss nodes.",
+  "scope": "Saved polynomial source measure only; retain time/temperature/state/geometry without velocity or position sampling, transport, photon gate or physical surface inference.",
+  "source_binding": {
+    "path_base": "--source-dir is the accepted0737 pass directory",
+    "files": {
+      "report": {
+        "relative_path": "producer/reference-run/report.json",
+        "sha256": "69907c8ba61545b31e67675a2c71bf8b9453006ea9f705b6f16d02e5b1a233ac"
+      },
+      "windows": {
+        "relative_path": "producer/reference-run/coupled_emission_windows.json",
+        "sha256": "64e0ce6b9cb271ad423109f3e52db02ab6017eb0d2591bbc8bdb30ca50aba731"
+      },
+      "input_config": {
+        "relative_path": "producer/reference-run/source-inputs/producer/reference-run/input_config.json",
+        "sha256": "22f21dae395f31f9a13186821c5364033b50f051aa7296f93839896c2fae4b56"
+      },
+      "window_config": {
+        "relative_path": "producer/reference-run/input_config.json",
+        "sha256": "2e8f1eb938a89957d2453f801321365ac6513fa8154b4dd3b925c1a67df1b18c"
+      },
+      "independent_completion": {
+        "relative_path": "independent-verification/completion.json",
+        "sha256": "7c0715cb1a89b7126c391886ef9a1ea2100f7d9be6f50bb0cd4d07aa64ecfb2a"
+      },
+      "independent_report": {
+        "relative_path": "independent-verification/query-initial/report.json",
+        "sha256": "80f6577f67dacb29ad5d1f53c13a85b89aa10ab160cd79daf000dd43ca48d733"
+      },
+      "scientific_review": {
+        "relative_path": "oracle-review/completion.json",
+        "sha256": "29f5b4e5291eba8e42e46f8f64f41524771f875c6c720898feb1482d7b388de0"
+      }
+    },
+    "accepted_source_report_sha256": "69907c8ba61545b31e67675a2c71bf8b9453006ea9f705b6f16d02e5b1a233ac",
+    "accepted_window_result_sha256": "64e0ce6b9cb271ad423109f3e52db02ab6017eb0d2591bbc8bdb30ca50aba731",
+    "original_width_config_sha256": "22f21dae395f31f9a13186821c5364033b50f051aa7296f93839896c2fae4b56",
+    "original_window_config_sha256": "2e8f1eb938a89957d2453f801321365ac6513fa8154b4dd3b925c1a67df1b18c",
+    "numerical_run_cli_sha256": "57e4717b48920d1657f3e4ad156bad7a72066c96137b971d47552570475ff72b",
+    "plot_only_public_cli_sha256": "67539ae1ad0a43bd4e4d29eeabd2d71f586057e489653d72b49717dea3506a17"
+  },
+  "method": {
+    "rule": "positive_Gauss_Legendre_5_on_unit_interval",
+    "decimal_precision": 80,
+    "nodes_per_positive_support": 5,
+    "polynomial_evaluation": "exact_rational_after_finite_decimal_node_generation",
+    "export_projection": "binary64_fields_once_then_exact_fraction_defects",
+    "weight_repair": "none",
+    "cache_identity": "canonical_source_history_and_exact_restricted_piece_bounds"
+  },
+  "queries": [
+    {
+      "window_id": "shifted_interior",
+      "coordinate": "canonical_duration_fraction",
+      "start_fraction": {
+        "numerator": "3",
+        "denominator": "32"
+      },
+      "stop_fraction": {
+        "numerator": "11",
+        "denominator": "32"
+      },
+      "parameter_provenance": "New SOURCE-emission window in exact fractions of the canonical saved duration; no photon gate or registered experimental clock."
+    },
+    {
+      "window_id": "quarter_cell_interior",
+      "coordinate": "canonical_duration_fraction",
+      "start_fraction": {
+        "numerator": "13",
+        "denominator": "256"
+      },
+      "stop_fraction": {
+        "numerator": "99",
+        "denominator": "256"
+      },
+      "parameter_provenance": "New SOURCE-emission window in exact fractions of the canonical saved duration; no photon gate or registered experimental clock."
+    }
+  ],
+  "quantity_contract": {
+    "local_time_anchor": "exact_query_start",
+    "joint_moments": [
+      "1",
+      "local_time",
+      "local_time_squared",
+      "temperature",
+      "temperature_squared",
+      "local_time_temperature"
+    ],
+    "energy_reference": "exact_SI_constants_and_supplied_D_I_separate_from_activation_barrier",
+    "geometry": "retain_patch_range_and_apply_actual_area_once",
+    "zero_mass_normalization": "unavailable_with_explicit_reason",
+    "new_query_IVP_error": "unavailable_no_new_reference_driver"
+  },
+  "defect_contract": {
+    "layers": [
+      "approximate_rule_minus_exact_polynomial",
+      "exported_binary_fields_minus_approximate_rule",
+      "exported_binary_fields_minus_exact_polynomial"
+    ],
+    "closure": "total_equals_rule_plus_projection_exactly",
+    "inherited_errors": "source_interpolation_and_prior_query_IVP_errors_retained_separately",
+    "normalization": "never_renormalize_weights"
+  },
+  "declared_counts": {
+    "unique_piece_supports": 66,
+    "unique_node_evaluations": 330,
+    "source_query_node_references": 570,
+    "patch_node_references": 1140,
+    "source_queries": 6,
+    "aggregate_queries": 4,
+    "contrasts": 2,
+    "source_evolution_RHS_assembly_window_export_reference_driver_calls": 0
+  }
+}

@@ -1,0 +1,203 @@
+{
+  "schema": "mhdlab-published-smoothed-transport-table-v1",
+  "status": "recovered_published_smoothed_table",
+  "source": {
+    "author": "D. R. Flynn",
+    "report_date": "1968-06-25",
+    "report": "NBS Report 9869",
+    "title": "Thermal conductivity and electrical resistivity of a sample of AISI type 304 stainless steel",
+    "doi": "10.6028/NBS.RPT.9869",
+    "url": "https://nvlpubs.nist.gov/nistpubs/Legacy/RPT/nbsreport9869.pdf",
+    "pdf_sha256": "ff6afb078d512aba2a07b40228a3997857f8bb5448eba465dca9c3d06c74edfa",
+    "pdf_pages": 20,
+    "printed_page": 12,
+    "pdf_page_1based": 16,
+    "page_content_sha256": "a34325dc2bc302f1a841b75b46861cba035d9d05e84750ea861d23a712f4931c",
+    "table_text_sha256": "249300bc3e3ccd2509b2f3c55983f080c3a061aa0bf0f03013952e1e11544167",
+    "table_text_clip_pt": [
+      90,
+      275,
+      545,
+      450
+    ],
+    "table_text_method": "PyMuPDF get_text('text', clip=Rect(...), sort=False), UTF-8 exact bytes",
+    "permission_context": "Official public archive; PDF p. 3 bears public-release approval dated October 9, 2015; no new license assigned."
+  },
+  "recovery": {
+    "method": "Guarded source-text parsing with visually verified cell transcription and an explicit OCR correction whitelist",
+    "visual_inspection_date": "2026-10-18",
+    "rows": 10,
+    "known_OCR_repairs": [
+      {
+        "source_text": "Qm",
+        "visually_verified_print": "ohm m",
+        "role": "Resistivity unit label"
+      },
+      {
+        "source_text": "6.82 x 10* 7",
+        "visually_verified_print": "6.82 x 10^-7",
+        "role": "First row establishes shared column scale; following mantissas retain it"
+      },
+      {
+        "source_text": "17-9",
+        "visually_verified_print": "17.9",
+        "role": "150 degC conductivity cell"
+      },
+      {
+        "source_text": "W m-1 / °C\" 1",
+        "visually_verified_print": "W m^-1 degC^-1",
+        "role": "Conductivity temperature-gradient unit"
+      }
+    ],
+    "missing_rows_invented": false,
+    "graph_digitization": false,
+    "interpolation": false,
+    "extrapolation": false,
+    "fit": false
+  },
+  "observable": {
+    "material": "AISI Type 304, one supplied solid plate sample",
+    "value_kind": "Published smoothed results from measurements, not original acquisition samples",
+    "sample_composition": null,
+    "sample_thermal_history": null,
+    "sample_context_evidence": {
+      "printed_page": 1,
+      "pdf_page_1based": 5
+    },
+    "actual_dissertation_foil_match": "Unknown; source sample is not the dissertation foil",
+    "temperature_source_unit": "degC",
+    "temperature_si_unit": "K",
+    "supported_temperature_range_degC": [
+      -20,
+      150
+    ],
+    "supported_temperature_range_K": [
+      253.15,
+      423.15
+    ],
+    "resistivity_unit": "ohm m",
+    "conductivity_unit": "W m^-1 K^-1"
+  },
+  "conversion": {
+    "temperature": "T_K = T_degC + 273.15, decimal arithmetic",
+    "resistivity": "Printed mantissa x 10^-7 ohm m; shared scale visually established in the first row",
+    "resistivity_scale_ohm_m": "1e-7",
+    "conductivity": "One degree Celsius temperature difference equals one kelvin; numerical conductivity unchanged",
+    "rounding": "Integer source temperatures, two-decimal resistivity mantissas and one-decimal conductivities preserved; converted K has exact .15 offset"
+  },
+  "source_error_statements": {
+    "evidence": {
+      "printed_page": 12,
+      "pdf_page_1based": 16
+    },
+    "resistivity": {
+      "plus_minus_percent": 0.5,
+      "interpretation": "Author believes error no greater than this value"
+    },
+    "conductivity": {
+      "percent_range": [
+        2,
+        3
+      ],
+      "interpretation": "Author estimates uncertainty no greater than two to three percent; chiefly uncorrected insulation heat loss"
+    },
+    "coverage_factor": null,
+    "confidence_level": null,
+    "standard_deviation_interpretation": false,
+    "between_heat_or_foil_variability_quantified": false,
+    "printed_rounding_is_separate_from_source_error": true
+  },
+  "validation_limits": [
+    "No values outside 253.15-423.15 K are supported by this table",
+    "Unknown chemical analysis and thermal history; no 304L/316 substitution",
+    "No high-temperature phase, enthalpy, heat-capacity or pulsed-heating calibration",
+    "Not a runtime property model or a material default; no interpolation function supplied"
+  ],
+  "source_QA": {
+    "native_rasters": [
+      {
+        "xref": 73,
+        "width_px": 1044,
+        "height_px": 1487,
+        "channels": 3,
+        "decoded_samples_sha256": "6e9bd8d0e84f053713d3258d864741cf3cfa44ec874964bce69b99e0fcd92eec"
+      },
+      {
+        "xref": 74,
+        "width_px": 3132,
+        "height_px": 4461,
+        "channels": 3,
+        "decoded_samples_sha256": "603cec50d22dd8257e5896738f33c675985e1b009af41ee236a6cc7e925e871b"
+      },
+      {
+        "xref": 75,
+        "width_px": 3132,
+        "height_px": 4461,
+        "channels": 1,
+        "decoded_samples_sha256": "a3a169a602e3a76daa45aa0cd93464d1ef9025ff8d7536b409c7f0b7afe135f2"
+      }
+    ],
+    "render_recipe": {
+      "matrix_scale": 2,
+      "colorspace": "RGB",
+      "alpha": false,
+      "inspected_PyMuPDF_versions": [
+        "1.26.6",
+        "1.28.2"
+      ],
+      "used_PyMuPDF_version": "1.28.2",
+      "operation_order": "Render source crops before separately decoding native image and mask Pixmaps; avoid mask-cache-dependent compositing",
+      "version_effect": "These inspected renderers differ in composited RGB crop pixels while source PDF, native decoded rasters and extracted table text match; each rendering has a separate visually checked digest"
+    },
+    "source_crops": [
+      {
+        "name": "table_crop",
+        "page_clip_pt": [
+          90,
+          275,
+          545,
+          450
+        ],
+        "pixel_shape_width_height_channels": [
+          910,
+          350,
+          3
+        ],
+        "decoded_RGB_sha256": "e7dac76a1f17f89152b43f7df069590c488ac092f51b24c133c8069a8075d18f",
+        "written_path": "/workspace/research_work/mitl-upstream-20261018T1826/flynn_304_qa/pymupdf_1_28_2/flynn_1968_304_table_crop.png",
+        "encoded_PNG_sha256": "2efb690ec55048314de0d5d14f0b34ded6bd1f837fb121936f7bb5c8615e7715"
+      },
+      {
+        "name": "uncertainty_and_table",
+        "page_clip_pt": [
+          65,
+          95,
+          545,
+          455
+        ],
+        "pixel_shape_width_height_channels": [
+          960,
+          720,
+          3
+        ],
+        "decoded_RGB_sha256": "c01c85ca34088a264e686b11aa7707a45b8b363ba282364ec12cb2928df43b2d",
+        "written_path": "/workspace/research_work/mitl-upstream-20261018T1826/flynn_304_qa/pymupdf_1_28_2/flynn_1968_304_uncertainty_and_table.png",
+        "encoded_PNG_sha256": "f5a2ddd8c2e61b04ea5de98e243ca4974536f5dc1fdd8b944d1ebde9cb8acfc7"
+      }
+    ]
+  },
+  "output": {
+    "csv_filename": "flynn_1968_304_transport.csv",
+    "csv_sha256": "ed63e23758d874f2d149ab04c76d0044f6c3cd9f5203d0da29996bc9fd91dbfb",
+    "rows": 10,
+    "columns": [
+      "source_row",
+      "temperature_source_degC",
+      "temperature_K",
+      "resistivity_source_mantissa",
+      "resistivity_ohm_m",
+      "thermal_conductivity_W_m_K"
+    ],
+    "adopted_as_runtime_defaults": false
+  }
+}

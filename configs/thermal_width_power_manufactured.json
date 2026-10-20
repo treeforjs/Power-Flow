@@ -1,0 +1,92 @@
+{
+  "schema": "mhdlab-thermal-width-power-manufactured-config-v1",
+  "parameter_status": "manufactured",
+  "provenance": "Three new manufactured positive-barrier coupled histories and an exact-area equal-input width comparison fixed before production. No physical source parameter or observation inference.",
+  "scope": "Independent stationary width patches with supplied constant areal heat capacity, positive base barrier and fixed Nref; externally prescribed constant power; no lateral conduction, field-derived heating, phase change, motion, radiation, chemistry, transport or spectral model.",
+  "geometry": {
+    "width_edges_m": [
+      {
+        "numerator": "-1",
+        "denominator": "512",
+        "value": -0.001953125
+      },
+      {
+        "numerator": "-1",
+        "denominator": "1024",
+        "value": -0.0009765625
+      },
+      {
+        "numerator": "1",
+        "denominator": "1024",
+        "value": 0.0009765625
+      },
+      {
+        "numerator": "1",
+        "denominator": "512",
+        "value": 0.001953125
+      }
+    ],
+    "common_length_m": {
+      "numerator": "1",
+      "denominator": "128",
+      "value": 0.0078125
+    }
+  },
+  "duration_s": 2e-07,
+  "steps": 64,
+  "common_scalar_problem": {
+    "reservoir": {
+      "name": "manufactured_width_parent",
+      "state_id": "M:manufactured-width-parent",
+      "attempt_frequency_s": 100000000.0,
+      "activation_energy_ev": 0.35,
+      "desorption_energy_ev": 0.12,
+      "internal_energy_ev": 0.03,
+      "coverage_coefficient": 0.6,
+      "reference_coverage_m2": 4e+20,
+      "max_coverage_m2": 4e+20,
+      "kinetic_provenance": "Manufactured first-order positive-base-barrier parameters with fixed supplied Nref; no physical surface inference.",
+      "energy_provenance": "Manufactured independent removal D and internal I; neither is inferred from kinetic Ea."
+    },
+    "initial_coverage_m2": 2e+20,
+    "initial_temperature_k": 900.0,
+    "areal_heat_capacity_j_m2_k": 0.05,
+    "patch_area_m2": 1.0,
+    "temperature_min_k": 600.0,
+    "temperature_max_k": 1300.0,
+    "parameter_status": "manufactured",
+    "parameter_provenance": "Independent stationary manufactured width patches; unit reference area supplies areal histories only.",
+    "energy_reference": "U_ads=-D*N; gas internal I and expected translation 2*kB*T remain separate; gross input and withdrawal are independently retained."
+  },
+  "scalar_cases": [
+    {
+      "case_id": "uniform_power",
+      "power_w_m2": 60000000,
+      "power_provenance": "Manufactured constant external areal input assigned explicitly; not inferred from drive, current density or magnetic field."
+    },
+    {
+      "case_id": "edge_power",
+      "power_w_m2": 90000000,
+      "power_provenance": "Manufactured constant external areal input assigned explicitly; not inferred from drive, current density or magnetic field."
+    },
+    {
+      "case_id": "middle_power",
+      "power_w_m2": 30000000,
+      "power_provenance": "Manufactured constant external areal input assigned explicitly; not inferred from drive, current density or magnetic field."
+    }
+  ],
+  "hypotheses": {
+    "uniform": [
+      "uniform_power",
+      "uniform_power",
+      "uniform_power"
+    ],
+    "nonuniform": [
+      "edge_power",
+      "middle_power",
+      "edge_power"
+    ]
+  },
+  "time_convention": "Raw Decimal positive duration is checked before explicit binary64 projection; finite canonical [0,duration_s] with64 exact rational substeps of represented endpoints; rounded time_s remains associated with segment_index/segment_step.",
+  "geometry_convention": "Canonical rational numerator/positive denominator and raw numeric value must agree exactly; geometry here is exactly binary64-representable. Patch area is exact width times common length and is applied once to areal scalar histories."
+}

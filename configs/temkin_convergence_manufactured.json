@@ -1,0 +1,42 @@
+{
+  "schema": "mhdlab-temkin-planar-convergence-config-v1",
+  "parameter_status": "manufactured",
+  "parameter_provenance": "Numerical refinement fixture only; generic independent surface pool, not measured H2O or stainless-steel parameters.",
+  "duration_s": 1.2e-7,
+  "width_m": 0.005,
+  "current_length_m": 0.025,
+  "base_resolution": {
+    "width_bins": 16,
+    "current_bins": 4,
+    "snapshot_intervals": 16,
+    "subdivisions_per_interval": 2
+  },
+  "refinements": {
+    "width_bins": {"levels": [8, 16, 32], "reference": 64},
+    "current_bins": {"levels": [2, 4, 8], "reference": 16},
+    "snapshot_intervals": {"levels": [8, 16, 32], "reference": 64},
+    "subdivisions_per_interval": {"levels": [1, 2, 4], "reference": 8}
+  },
+  "selected_metrics": [
+    "released_number", "translation_energy_j", "total_wall_energy_debit_j",
+    "resolved_second_raw_x_m2", "resolved_mean_z_m", "resolved_second_raw_z_m2",
+    "mean_velocity_normal_m_s"
+  ],
+  "reservoirs": [{
+    "name": "manufactured_pool", "state_id": "M:manufactured-ground",
+    "attempt_frequency_s": 1e12, "activation_energy_ev": 0.8,
+    "desorption_energy_ev": 0.6, "internal_energy_ev": 0.0,
+    "coverage_coefficient": 0.35, "reference_coverage_m2": 2e18,
+    "max_coverage_m2": 2e18, "initial_coverage_m2": 1e18,
+    "kinetic_provenance": "Manufactured numerical fixture; no measured water rate.",
+    "energy_provenance": "Independent manufactured adsorbate-to-gas reference cost; not the kinetic barrier."
+  }],
+  "state_masses_kg": {"M:manufactured-ground": 3e-26},
+  "include_time_moments": false,
+  "time_quadrature_order": 16,
+  "event_time_quadrature": {
+    "orders": [4, 8, 16, 32], "reference_order": 64,
+    "component": {"reservoir_index": 0, "initial_coverage_m2": 1e18,
+                  "temperature_k": 700.0, "dt_s": 1e-7}
+  }
+}

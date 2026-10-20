@@ -1,0 +1,147 @@
+schema: powerflow.molecular_state_requirements.v1
+purpose: Explicit rovibrational population requirements for every retained molecular species.
+status: requirements_only_population_solver_not_implemented
+is_executable_mechanism: false
+mechanism_reference: ../../configs/water_fragment_mechanism.yaml
+requirements_document: ../../docs/rovibrational_data_requirements.md
+energy_transport_document: ../../docs/energy_and_magnetized_transport.md
+coverage_policy:
+  applies_to: all retained molecular neutrals, cations and anions, including intermediates
+  newly_added_molecules_require_entries: true
+  bound_states: evolve explicit electronic and rovibrational state populations in time and space
+  unbound_states: represent relevant resonances and continua; do not invent bound vibrational ladders
+  finite_basis: document cutoffs and converge chemistry, internal energy and recorded signals
+  unresolved_boltzmann_closure_satisfies_requirement: false
+  missing_rates_may_be_replaced_by_zero: false
+  quantum_labels: source-state IDs are authoritative; approximate labels need a documented mapping
+  surface_and_reaction_products: require initial, desorbed and nascent product-state distributions
+  rate_coverage: radiative line lists do not supply state-to-state collision or chemical branching data
+common_required_inputs:
+  - bound-state energies, statistical weights, symmetry and dissociation limits
+  - relevant electronic manifolds, rovibrational levels, and resonance/continuum treatment
+  - state-to-state electron excitation, de-excitation and energy transfer
+  - relevant heavy-particle rotational, vibrational and electronic transfer or quenching
+  - state-dependent dissociation, ionization, attachment, detachment and recombination as applicable
+  - chemical formation/destruction branching and product-state/energy distributions
+  - conservative translational recoil, internal-state energy and outgoing-electron energy partition
+  - physically allowed radiative transitions, cascades and continuum emission or absorption
+  - initial and surface-emitted state populations and state-dependent wall events
+  - rate validity ranges, provenance, uncertainties and conservation checks
+atomic_species_not_subject_to_rovibrational_requirement:
+  - H
+  - O
+  - H+
+  - O+
+  - H-
+  - O-
+electron_species: e
+molecular_species:
+  - species: H2O
+    charge: 0
+    basis_family: nonlinear_polyatomic_asymmetric_rotor
+    proposed_labels: [electronic_state, v1, v2, v3, J, Ka, Kc, symmetry, nuclear_spin_species]
+    labeling_note: mode and rotor labels require a source-defined mapping; retain canonical state IDs
+    level_and_radiative_data_file: null
+    state_to_state_collision_data_file: null
+    formation_and_destruction_branching_file: null
+    status: required_not_curated
+  - species: OH
+    charge: 0
+    basis_family: open_shell_diatomic
+    proposed_labels: [electronic_state, v, J, fine_structure, parity]
+    labeling_note: retain spin-orbit and Lambda-doubling components where present in the included manifold
+    level_and_radiative_data_file: null
+    state_to_state_collision_data_file: null
+    formation_and_destruction_branching_file: null
+    status: required_not_curated
+  - species: H2
+    charge: 0
+    basis_family: diatomic
+    proposed_labels: [electronic_state, v, J, applicable_spin_coupling_labels, parity, nuclear_spin_species]
+    available_radiative_subset: molat_h2/transitions.csv
+    available_subset_note: B/C-to-X bound-bound transitions only; full level/collision/cascade coverage remains pending
+    level_and_radiative_data_file: null
+    state_to_state_collision_data_file: null
+    formation_and_destruction_branching_file: null
+    status: partial_radiative_data_population_model_pending
+  - species: O2
+    charge: 0
+    basis_family: open_shell_diatomic
+    proposed_labels: [electronic_state, v, N, J, fine_structure, parity, symmetry]
+    labeling_note: N and fine-structure labels are manifold-dependent; apply physical nuclear-spin statistics
+    level_and_radiative_data_file: null
+    state_to_state_collision_data_file: null
+    formation_and_destruction_branching_file: null
+    status: required_not_curated
+  - species: H2O+
+    charge: 1
+    basis_family: nonlinear_polyatomic_asymmetric_rotor
+    proposed_labels: [electronic_state, v1, v2, v3, N, Ka, Kc, J, parity, symmetry, nuclear_spin_species]
+    labeling_note: source-specific polyatomic ionic state basis; no reuse of neutral-water rates without justification
+    level_and_radiative_data_file: null
+    state_to_state_collision_data_file: null
+    formation_and_destruction_branching_file: null
+    status: required_not_curated
+  - species: OH+
+    charge: 1
+    basis_family: open_shell_diatomic
+    proposed_labels: [electronic_state, v, N, J, fine_structure, parity]
+    labeling_note: resolve applicable spin components and state-dependent dissociative recombination
+    level_and_radiative_data_file: null
+    state_to_state_collision_data_file: null
+    formation_and_destruction_branching_file: null
+    status: required_not_curated
+  - species: H2+
+    charge: 1
+    basis_family: open_shell_diatomic
+    proposed_labels: [electronic_state, v, N, J, parity, nuclear_spin_species]
+    labeling_note: connect parent and fragment state branching to the same ionic level basis
+    level_and_radiative_data_file: null
+    state_to_state_collision_data_file: null
+    formation_and_destruction_branching_file: null
+    status: required_not_curated
+  - species: H3+
+    charge: 1
+    basis_family: nonlinear_polyatomic_symmetry_adapted
+    proposed_labels: [electronic_state, v1, v2, l2, J, K, source_combined_labels, symmetry, nuclear_spin_species]
+    labeling_note: use source-defined degenerate-mode and permutation-symmetry labels; not a diatomic v,J ladder
+    level_and_radiative_data_file: null
+    state_to_state_collision_data_file: null
+    formation_and_destruction_branching_file: null
+    status: required_not_curated
+  - species: O2+
+    charge: 1
+    basis_family: open_shell_diatomic
+    proposed_labels: [electronic_state, v, J, Omega, parity, symmetry]
+    labeling_note: molecular O2+ is distinct from atomic doubly charged oxygen
+    level_and_radiative_data_file: null
+    state_to_state_collision_data_file: null
+    formation_and_destruction_branching_file: null
+    status: required_not_curated
+  - species: H3O+
+    charge: 1
+    basis_family: nonlinear_polyatomic_symmetry_adapted
+    proposed_labels: [electronic_state, n1, n2, n3, l3, n4, l4, J, K, inversion_parity, symmetry, nuclear_spin_species]
+    labeling_note: preserve source mode degeneracy and inversion labels where applicable
+    level_and_radiative_data_file: null
+    state_to_state_collision_data_file: null
+    formation_and_destruction_branching_file: null
+    status: required_not_curated
+  - species: OH-
+    charge: -1
+    basis_family: diatomic_anion
+    proposed_labels: [electronic_state, v, J, parity]
+    labeling_note: separate bound anion populations from detachment and transient resonances
+    level_and_radiative_data_file: null
+    state_to_state_collision_data_file: null
+    formation_and_destruction_branching_file: null
+    status: required_not_curated
+  - species: O2-
+    charge: -1
+    basis_family: open_shell_diatomic_anion
+    proposed_labels: [electronic_state, v, J, Omega, parity, symmetry]
+    labeling_note: coupling labels depend on manifold; separate bound anion levels from detachment and temporary resonances
+    level_and_radiative_data_file: null
+    state_to_state_collision_data_file: null
+    formation_and_destruction_branching_file: null
+    status: required_not_curated
