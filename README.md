@@ -1,156 +1,83 @@
-# Power Flow MHD/CR Prototype
+# Power-Flow
 
-The FLASH-based dissertation publication work is specified in
-[the water/rovibrational research plan](docs/flash_h2o_publication_plan.md), with a
-[legacy-model audit](docs/legacy_model_audit.md) and
-[dissertation recovery record](docs/dissertation_recovery.md). The new
-[`mhdlab.flash_surface` interchange format](docs/flash_surface_contract.md) validates external SI surface-temperature
-histories; it is not yet connected to the runner below. No FLASH calculation or
-full H2O/rovibrational CR result has been produced on this branch.
+FLASH-based preparation for studying electrode heating, water desorption and VUV
+spectroscopy in magnetically insulated transmission lines (MITLs).
 
-The independent [heating-to-release workflow](docs/surface_release_pipeline.md)
-now provides configured FLASH leaf-output extraction, finite-inventory thermal
-desorption, explicit launch-energy budgets and a matched uniform-source control.
-Run `python tools/export_flash_surface.py --demo` or
-`python tools/run_surface_release.py --demo --plot` for labeled manufactured
-verification cases. The Boltzmann and collisional-radiative solvers have a separate
-owner; this workstream supplies heating, boundary sources and recovered evidence.
+The publication question is whether heating across a foil's width changes H₂O
+release and fragment transport enough to distinguish the recorded spectra from
+a uniform-desorption model. The [research specification](docs/flash_h2o_publication_plan.md)
+defines the comparisons and the required energy and rovibrational accounting.
 
-[Analytic heating verification](docs/flash_heating_verification.md) now supplies
-constant-property magnetic-diffusion references, finite-volume B/J/Joule
-comparisons and separate magnetic/Joule/Poynting energy budgets. Run
-`python tools/run_heating_benchmark.py --plot` for the manufactured reference.
-This is verification preparation; no FLASH simulation has been run here.
+## Current workflow
 
-The preparation includes [recovered thesis profiles](data/dissertation/figure_4_20_profiles.csv),
-[evaluated electron-water ionic yields](data/cross_sections/song2021/README.md),
-and [resolved H2 radiative transitions](data/cr_model/molat_h2/README.md).
-These data are kept separate from the legacy provisional-rate loader.
-The target model resolves rovibrational populations for every retained molecule,
-including molecular ions and anions; see the
-[species coverage requirements](data/cr_model/molecular_state_requirements.yaml).
-The [energy and charged-transport plan](docs/energy_and_magnetized_transport.md)
-specifies reaction energy partition, species velocity distributions, and Hall
-coupling for magnetized electrons and ions. These remain planning requirements.
+1. Export explicitly configured FLASH surface-temperature histories in SI units.
+2. Evaluate conservative finite-inventory desorption with separate removal,
+   internal and translational energy channels.
+3. Hand the complete time/temperature/state/number/geometry mixture to the external
+   plasma and kinetic-transport models.
+4. Compare predictions through a common observation model using recovered
+   experimental evidence and justified calibration and uncertainty inputs.
 
-The first [executable gap reference](docs/kinetic_gap_reference.md) now couples
-prescribed-field particle motion to explicit state-changing collisions with
-conservative reaction recoil. Run `python tools/run_gap_reference.py --plot`.
-Its inputs are manufactured verification data; physical water kinetics and
-self-consistent field/Hall coupling remain unimplemented.
+The homegrown production MHD solver, coupled prototype runner and surrogate
+material defaults have been removed. FLASH is the intended heating backend.
+Independent magnetic, conductive-heating and Hall benchmarks remain as
+verification references. Licensed FLASH and its target workstation must be
+configured separately; no FLASH calculation has been run in this workspace.
 
-This project is a research scaffold for 2D reduced MHD electrode heating, Temkin
-desorption, kinetic neutral expansion, BOLSIG electron kinetics, collisional
-radiative populations, and CCD-based synthetic spectra.
+The plasma collisional-radiative model will live in a separate repository.
+Boltzmann, CR and kinetic-gap development remain with their owners. The
+[external-model and Yacora comparison plan](docs/external_plasma_yacora_comparison.md)
+includes staged common-data comparisons and published rotational-band extensions.
+The plan identifies the rotational-band references; the external repository and
+its executable interface are pending.
 
-The physics direction is intentionally ALEGRA-MHD inspired: transient
-magnetics, conductivity-dependent current diffusion, Joule heating, thermal
-conduction, material response, and circuit/drive coupling. AGATE is used only as
-a framework-shape reference for modular Python/GPU ergonomics.
+## Getting started
 
-Run the example:
+Use Python 3.11 or later and a virtual environment:
 
-```powershell
+```sh
 python -m pip install -r requirements.txt
-python MHD_heating.py --config configs/mykonos.yaml
 ```
 
-The default `configs/mykonos.yaml` case is a user-initialized starter problem,
-not a measured-shot reconstruction yet. It uses two 200 um thick, 5 mm wide
-SS304 foils separated by a 5 mm face-to-face A-K gap, driven by a zero-voltage
-parametric current pulse with an 850 kA peak and a 125 ns quarter-period rise
-time. Field histories are sampled every 1 ns. The main config derives a focused
-uniform mesh from the requested target cell size and foil-thickness refinement,
-then applies `grid.max_cells` as a memory guard. Use
-`configs/mykonos_preview.yaml` for fast coarse checks.
+These commands exercise explicitly manufactured inputs:
 
-Measured voltage/current CSV traces can still be used later by setting
-`drive.mode` back to `measured_current` or `fit_rl` and providing `trace_csv`.
-
-The MHD package is still a reduced research model. It now solves a
-resistive-induction update for `A_z` and `J_z`, enforcing the total current as a
-constraint instead of assigning a prescribed current-density profile. The
-default `mhd.induction_solver: open_boundary_impedance` uses a clustered
-open-boundary Green-matrix solve so lateral edge crowding comes from inductive
-coupling rather than the nearby plot-domain boundary. `mhd.induction_max_unknowns`
-controls that reduced current solve resolution. This is a better basis for
-current crowding and nonuniform Joule heating, but it is not a full production
-compressible/resistive MHD model.
-
-The default conductivity closure is now labeled as an EC-Knoepfel-style model:
-`sigma = max(sigma0 / (1 + betaCv * (T - T0)) * (rho / rho0)^alpha, sigmaMin)`.
-The thermal update advances specific enthalpy with approximate SS304
-melting/vaporization plateaus so Joule energy does not become unlimited
-temperature. An ETHOS-inspired tabular conductivity path is also available:
-
-```yaml
-mhd:
-  conductivity:
-    model: table
-    file: ../data/conductivity/ss304_knoepfel_seed.csv
-    ensemble_index: 0
+```sh
+python tools/export_flash_surface.py --demo
+python tools/run_surface_release.py --demo --plot
 ```
 
-Starter table ensembles can be generated with:
+For real saved FLASH outputs, configure field names, units, geometry and snapshot
+paths explicitly, then use:
 
-```powershell
-python tools/build_conductivity_table.py --output data/conductivity/ss304_knoepfel_table.h5 --ensemble-count 16 --uncertainty-fraction 0.2
+```sh
+python tools/export_flash_surface.py --config configs/flash_extract_example.json --output-dir runs/flash_surface
 ```
 
-Create quick-look result plots after a run:
+Read the [FLASH export contract](docs/flash_surface_contract.md) and
+[heating-to-release workflow](docs/surface_release_pipeline.md) before configuring
+an experimental case. The example configuration is a template, not an actual shot.
 
-```powershell
-python tools/visualize_run.py runs\run_YYYYMMDD_HHMMSS --all-gifs
-```
+## Results, supporting documents and handoff
 
-Each run streams samples to `fields.h5` as it goes and updates
-`diagnostics_manifest.json`, so partial runs still contain completed samples.
-The HDF5 file contains `/time_s`, `/fields/<field_name>`, and
-`/species/<species>/density_m3`. Static PNGs for temperature, neutral density,
-electron density, displacement, `Jz`, `Bx`, `By`, and `|B|` are written directly
-in the run folder. The visualizer reads `fields.h5` first, falls back to the old
-`fields.npz` format if present, and writes `overview_last.png`,
-`overview_mhd_last.png`, `time_traces.png`, and optional GIFs under
-`visualization/`.
+- [Start with the project handoff](HANDOFF.md): completed work, ownership,
+  verification evidence, limitations and next steps.
+- [Supporting-document catalog](supporting_documents/README.md): all 25 completed
+  handoff packages, readable reports, checksums and preserved unfinished work.
+- [Heating verification](docs/flash_heating_verification.md),
+  [Hall reference](docs/hall_induction_verification.md),
+  [width-source comparison](docs/thermal_width_power_reference.md) and
+  [joint boundary quadrature](docs/boundary_quadrature.md).
+- [Recovered dissertation evidence](docs/dissertation_recovery.md),
+  [observed-spectrum recovery](docs/observed_spectrum_recovery.md),
+  [absolute calibration](docs/absolute_spectral_calibration.md) and
+  [coverage inference](docs/surface_coverage_inference.md).
 
-The reduced MHD solver uses NumPy by default and will use CuPy when
-`mhd.backend: auto` or `cuda` finds a working CUDA/CuPy install. This machine
-has been tested with `cupy-cuda13x[ctk]`.
+Manufactured examples, reconstructed figure values and sourced measurements keep
+distinct provenance labels. Physical monolayer coverage and an absolute spectral
+correction remain unresolved without the original calibration/reduction records
+and qualified surface inputs. No physical full-water rovibrational spectrum or
+experimental discrimination result is claimed.
 
-The neutral velocity-space solver can also run on CuPy. Use the config keys
-`mhd.backend` and `neutrals.backend`, or override them from the command line:
-
-```powershell
-python MHD_heating.py --config configs/mykonos_preview.yaml --mhd-backend cuda --neutral-backend cuda
-```
-
-The startup log prints both active backends and the estimated neutral
-velocity-space working set before allocation. Electron-impact cross-section
-energies are no longer fixed constants: the code uses the local BOLSIG mean
-electron energy with an optional thermionic floor of about
-`thermionic_flux_mean_factor * kB * T_surface`, while neutral and ion projectile
-energies come from the local velocity distribution.
-
-A C++/pybind11 extension is included under `src/mhd_core`; it builds through
-scikit-build-core. If CMake is not on PATH, prepend:
-
-```powershell
-$env:PATH = 'C:\Users\tsmit\Downloads\cmake-4.4.0-windows-x86_64\cmake-4.4.0-windows-x86_64\bin;' + $env:PATH
-python -m pip install -e . --no-build-isolation
-```
-
-The bundled BOLSIG+ executable has been copied into `third_party/bolsigplus`.
-The current wrapper prefers `bolsigminus.exe`, uses a shared cache under
-`.cache/bolsigplus`, and accepts parseable output when BOLSIG writes a result
-and logs `FINISHED` before the wrapper process exits. This avoids paying the
-timeout penalty on every run for the same gas/E/N table. The wrapper records
-stdout/stderr/log paths and parses mean energy plus per-collision
-rate-coefficient blocks. The included Siglo database does not contain the full
-H2O/OH/H/O electron collision set, so the example can optionally supplement
-missing provisional H2O rates until curated tables are added.
-
-Data provenance is saved under `data/`:
-
-- `data/cross_sections/` stores the PRAB 26, 040401 refs. 75-80 reaction map plus NIST starter electron-impact CSVs.
-- `data/cr_model/` stores the Yacora/Fantz/Janev/NIST/Fujimoto CR references and rovibrational table manifest.
-- Rows with `file: null` are intentional placeholders for measured or digitized tables that still need to be added.
+Historical packages preserve the exact source versions and baseline requirements
+of earlier work. Their prototype instructions are historical records; use the
+current workflow above for new work.

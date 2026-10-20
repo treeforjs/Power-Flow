@@ -16,8 +16,10 @@ SI surface-history interface for external FLASH calculations. An independent
 motion to state-changing collisions and conservative product recoil. There has
 been no FLASH run, no physical full-water rovibrational calculation, and no
 demonstration that the spectra distinguish
-the hypotheses. The old `MHD_heating.py` path still executes the legacy prototype;
-the new surface interface is not connected to that runner.
+the hypotheses. The homegrown MHD solver and `MHD_heating.py` entrypoint have
+been removed. Heating enters through explicitly configured FLASH exports.
+The external plasma model and planned standard/rotational-band Yacora
+comparisons are described in the [comparison plan](external_plasma_yacora_comparison.md).
 
 The user's FLASH source and workstation are available; workstation setup is planned
 for Wednesday, 21 October. Hardware sizing and a version-specific FLASH setup remain
