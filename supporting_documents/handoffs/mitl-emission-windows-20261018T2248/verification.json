@@ -1,0 +1,1101 @@
+{
+  "schema": "mitl-emission-window-verification-v1",
+  "created_utc": "2026-10-18T23:15:51.069541+00:00",
+  "source_commit": "5038bcbfaaf5eb8b270353fb2bdfac6d25eb926d",
+  "branch": "research/flash-publication-foundation",
+  "commits": [
+    "c23bff06ea87c642e626c484c0a34a7e70da43f9 Qualify partial Temkin emission windows with late survival and local timing",
+    "0e8791770ddf21eb25139304fa37de72c75bd2b1 Associate partial source windows with explicit number and diagnostic energy budgets",
+    "5038bcbfaaf5eb8b270353fb2bdfac6d25eb926d Inspect canonical source windows with timing and representation provenance"
+  ],
+  "results": {
+    "targeted_unique_passed": 185,
+    "isolated_passed": 185,
+    "isolated_skipped": 0,
+    "isolated_file_pass_counts": {
+      "tests.test_temkin_emission_window": 95,
+      "tests.test_temkin_source_window": 57,
+      "tests.test_temkin_emission_window_cli": 33
+    },
+    "public_files_byte_identical": 24,
+    "packaging_wrappers": 4,
+    "new_independent_tail_comparisons": 18,
+    "unchanged_project_suites_repeated": false,
+    "saved_8_nonlinear_and_11_constant_reference_integrations_repeated": false
+  },
+  "runtime": {
+    "packages": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "h5py": "3.16.0",
+      "matplotlib": "3.11.2",
+      "pytest": "9.1.1"
+    }
+  },
+  "input_labels": {
+    "demo": "manufactured scalar source",
+    "canonical_example": "hash-associated manufactured source component; previous source integration reused",
+    "source_composition": "one existing manufactured planar history, source-time windows only",
+    "reference_fixtures": "selected manufactured values from preserved high-precision references, no oracle reruns"
+  },
+  "independent_review": {
+    "schema": "mhdlab-source-window-independent-review-v1",
+    "scope": "work-only read-only mathematics/numerics and new issue-specific probes; no public edits or saved-suite reruns",
+    "commands": [
+      {
+        "command": [
+          ".venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261018T2248/window_start_sensitivity.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-18T22:52:25.738398+00:00",
+        "end_utc": "2026-10-18T22:52:26.327969+00:00",
+        "elapsed_s": 0.5895778760022949,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261018T2248/window_start_sensitivity.log",
+        "log_sha256": "a794d2020d7939e8b636da662973f407dfc3abfa7c23adf830777d98b9100c6d"
+      },
+      {
+        "command": [
+          ".venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261018T2248/window_integral_tail_probe.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-18T22:53:41.559169+00:00",
+        "end_utc": "2026-10-18T22:53:42.172293+00:00",
+        "elapsed_s": 0.6131388220019289,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261018T2248/window_integral_tail_probe.log",
+        "log_sha256": "dbbbe513a07fbf1c0f2248a3672f8d2314ab627b37163f7f1c036f048e32d080"
+      },
+      {
+        "command": [
+          ".venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261018T2248/window_new_core_probes.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-18T22:58:08.370129+00:00",
+        "end_utc": "2026-10-18T22:58:09.136476+00:00",
+        "elapsed_s": 0.7663552070007427,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261018T2248/window_new_core_probes_initial.log",
+        "log_sha256": "dfe797cea6dc83b1eb80ebe6f26ba04fecba62a9e5f5ef866600ea09f68e87a6"
+      },
+      {
+        "command": [
+          ".venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261018T2248/window_adapter_precision_probe.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-18T23:00:05.409917+00:00",
+        "end_utc": "2026-10-18T23:00:06.061544+00:00",
+        "elapsed_s": 0.6516355920030037,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261018T2248/window_adapter_precision_probe.log",
+        "log_sha256": "2e913fd88355fde42e26373003e370061067159e283431e348d6681917deb939"
+      },
+      {
+        "command": [
+          ".venv/bin/python",
+          "-W",
+          "error",
+          "/workspace/research_work/mitl-upstream-20261018T2248/window_adapter_precision_probe.py"
+        ],
+        "cwd": "/workspace/Power-Flow",
+        "start_utc": "2026-10-18T23:03:57.545906+00:00",
+        "end_utc": "2026-10-18T23:03:58.117957+00:00",
+        "elapsed_s": 0.5720598209954915,
+        "exit_code": 0,
+        "log": "/workspace/research_work/mitl-upstream-20261018T2248/window_adapter_precision_probe_fixed.log",
+        "log_sha256": "6cdf152cabb98198ef75b6d0938fabf835f198ab2672b464b7f267962f6929e1"
+      }
+    ],
+    "artifact_sha256": {
+      "window_start_sensitivity.py": "0b5397057e4eb046cc5b627b62639e82c5ee955e43946ce35f660f00fe222fd1",
+      "window_start_sensitivity.json": "a794d2020d7939e8b636da662973f407dfc3abfa7c23adf830777d98b9100c6d",
+      "window_integral_tail_probe.py": "e5a32247fb7e2d11cf1e9eff354050b397fcce79901f054bdb85c6a15cccf036",
+      "window_integral_tail_probe.json": "dbbbe513a07fbf1c0f2248a3672f8d2314ab627b37163f7f1c036f048e32d080",
+      "window_new_core_probes.py": "1762f865254e42fa5489451c4a9335ad37747c514975134335a9c8472c6a94ae",
+      "window_new_core_probes.json": "82a03fdfd53739f1af1c0b9ff5b72d70e0977004798f56401e08b93efaefedb2",
+      "window_adapter_precision_probe.py": "c2d21a0658f2dc24e00d39a1902de6ed5902bda81bcf5b32b503f6c85855cbfc",
+      "window_adapter_precision_probe.json": "2e913fd88355fde42e26373003e370061067159e283431e348d6681917deb939",
+      "window_math_review.md": "e1194a4d0274ce50872cd33bec79c513ae3fa36e63487439db8ef39791517a79",
+      "window_adapter_precision_probe_fixed.json": "6cdf152cabb98198ef75b6d0938fabf835f198ab2672b464b7f267962f6929e1"
+    },
+    "reviewed_source_sha256": {
+      "mhdlab/temkin_emission_window.py": "df478dd55d5eb4b366c7d3306a377fc32adac98962db8a68a24550e145a5cce6",
+      "mhdlab/temkin_source_window.py": "ccbafa86f189c8108204694e1105720abc23852302096c14b8ea959d1db1e33c",
+      "mhdlab/temkin_release.py": "998cd8b301492518ebabd89752aac9059145bcb7dc8598831fc821b50b3c5a34"
+    },
+    "new_integral_comparisons_passed": 18,
+    "old_8_and_11_case_suites_rerun": false,
+    "native_current_platform_math_blocker_found": false,
+    "owner_notified_portability_issue": "RESOLVED: positive per-parent energy costs are formed as raw-factor logarithms, with log-sum-exp for the total, before population scaling. Only the issue-specific precision probe was repeated; original pre-fix JSON is retained with its original hash.",
+    "host_budget_or_physical_validation_performed": false,
+    "historical_reviewed_adapter_sha256": "34bad1a1ed1af6bc717e8cf7f6fe7bd43129b2ef69bf08aaea3bfbfa55c1e8e3",
+    "open_substantive_findings": [],
+    "fixed_precision_probe_native_emulated_relative_difference": 8.118121353207299e-15,
+    "owner_independent_regressions": {
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/source-window-positive-energy-range-regressions.log",
+      "sha256": "923e189f1a57feb93b3372e8c1f81e4f5db50e9e9a4dc864fd6517cc1edce9e3",
+      "reported_result": "2 passed, 55 deselected"
+    }
+  },
+  "windowed_source_controls": {
+    "schema": "mhdlab-windowed-source-composition-control-v2",
+    "status": "passed",
+    "parameter_status": "manufactured",
+    "source_window_not_photon_gate": true,
+    "host_budget_accepted": false,
+    "source_report_sha256": "4439f900c103abefd183f2a8f1c4232d2fa78b58359db649e64821ce3b93e2a8",
+    "source_hdf_sha256": "f1818aedf5da71ece7c0fe113029d3090c2dd0a8009cb766c845f927b55cd8dd",
+    "source_file": "/workspace/research_work/mitl-upstream-20261018T2148/coverage-source-example/source_0003.h5",
+    "source_coverage_ml": 1.0,
+    "source_law_identity": "temkin_first_order_constant_attempt_frequency_v1",
+    "source_provenance": "Numerical parent-inventory allocation and nonlinear source-sweep fixture; no measured water or foil parameters.",
+    "original_export_source_sha256": {
+      "tools/build_coverage_sources.py": "a92fcbde2745a82b5840ab3390a850f9092e176976445730da60956c4f68e9db",
+      "mhdlab/coverage_inventory.py": "fc77fabf9e6a99ae3ce85e406d029308ddf3eabdb8aa1165a248f5bfbfa03c71",
+      "mhdlab/temkin_planar.py": "8a7ed4b34d60d2fea25bf6315cc019929491a35d7c5314dd7691acd312e71cb1",
+      "mhdlab/temkin_planar_io.py": "feea9bac86e2a484cca44cb4f5672b599fa3cb1eaf7edfb9e2ad8541a8be9a12",
+      "mhdlab/temkin_release.py": "998cd8b301492518ebabd89752aac9059145bcb7dc8598831fc821b50b3c5a34",
+      "mhdlab/temkin_history.py": "c04f86d7af2338cdf9aa9a0923896ba6085efc87229475d3cca0b03324be8996",
+      "mhdlab/temkin_io.py": "ef8216a2d47353956eccaa4e848dd2166954540754de59f429a5b8578ae8c79d",
+      "mhdlab/thermal_release.py": "86eb57eadef084a279cddb45c3d32bb418acd8f0bfc900da271249b2acba7895",
+      "mhdlab/planar_release.py": "402c4e3e7f2eda352dd9009d86f3499764be27c62d3d068ba9f64deb419dbfc3",
+      "mhdlab/planar_release_io.py": "a965634c86bcbee0f3d66b7ce79e93253b7c32082affc8ff198a5f059dc48ec0",
+      "mhdlab/source_convergence.py": "01fe549ea10bb57030741ecedeb8c49f12ec279fdb4f73b262ae4bb6371e8a2c",
+      "mhdlab/surface_release_history.py": "b87b0055b2ca676cf121b9ef9c0a31c2f7e1be40b8a457b90c69d7ee4d630644",
+      "mhdlab/surface_sources.py": "f0ba54fae4e871e3ff036bde60995cecd2088796679cb6e3ae3209053e10766e",
+      "mhdlab/flash_surface.py": "3a4a296bc0f8f72eb338645ee757a1d1f21c1ed308a0079599cbf772450d7702",
+      "mhdlab/hdf_integrity.py": "467ba99864884d652599a1d5f1cb5f2c75c2802afdf2863c3fbe14af146918fb",
+      "mhdlab/constants.py": "2f9368893dc84d17c83b2053edd32031312e3107c3c3e4f0f261b5f78bb4474b"
+    },
+    "window_implementation_sha256": {
+      "mhdlab/temkin_source_window.py": "ccbafa86f189c8108204694e1105720abc23852302096c14b8ea959d1db1e33c",
+      "mhdlab/temkin_emission_window.py": "df478dd55d5eb4b366c7d3306a377fc32adac98962db8a68a24550e145a5cce6",
+      "mhdlab/temkin_release.py": "998cd8b301492518ebabd89752aac9059145bcb7dc8598831fc821b50b3c5a34",
+      "mhdlab/thermal_release.py": "86eb57eadef084a279cddb45c3d32bb418acd8f0bfc900da271249b2acba7895",
+      "mhdlab/constants.py": "2f9368893dc84d17c83b2053edd32031312e3107c3c3e4f0f261b5f78bb4474b"
+    },
+    "composition_script_sha256": "4cfee73e2c2baf96bb9725a9a210a83c0412cd64261af69b44c9ed57b7853d06",
+    "source_shape_interval_pool_current_width": [
+      8,
+      2,
+      2,
+      6
+    ],
+    "source_gate_global_edges_s": [
+      0.0,
+      2.5e-08,
+      8e-08,
+      1.2e-07
+    ],
+    "log_mass_tolerance": 1e-07,
+    "original_components": 192,
+    "exact_zero_initial_components_skipped": [],
+    "conditioned_positive_components": 240,
+    "rejected_associations": [],
+    "component_partition_checks": 1920,
+    "all_component_partition_checks_passed": true,
+    "quantity_partitions": {
+      "released_m2": {
+        "units": "parent m^-2",
+        "spatial_aggregation": "actual_face_area_weighted_mean",
+        "temporal_aggregation": "cumulative_disjoint_source_windows",
+        "canonical_value": 4.2611446209581843e+17,
+        "whole_scalar_api_value": 4.261144620958299e+17,
+        "source_gate_values": [
+          428539908076.0343,
+          7.600344729825195e+16,
+          3.501105862576708e+17
+        ],
+        "sum_disjoint_value": 4.261144620958308e+17,
+        "partition_minus_canonical_signed": 12315.930395590825,
+        "combined_estimated_absolute_allowance": 81332223.85466291,
+        "max_component_fraction_of_estimated_allowance": 0.0017194432579797849,
+        "aggregate_passed": true
+      },
+      "released_number": {
+        "units": "parent",
+        "spatial_aggregation": "physical_surface_integral",
+        "temporal_aggregation": "cumulative_disjoint_source_windows",
+        "canonical_value": 53264307761977.31,
+        "whole_scalar_api_value": 53264307761978.74,
+        "source_gate_values": [
+          53567488.509504296,
+          9500430912281.494,
+          43763823282208.85
+        ],
+        "sum_disjoint_value": 53264307761978.85,
+        "partition_minus_canonical_signed": 1.5394912994488534,
+        "combined_estimated_absolute_allowance": 10166.527981832865,
+        "max_component_fraction_of_estimated_allowance": 0.0017188024496365961,
+        "aggregate_passed": true
+      },
+      "translational_energy_j_m2": {
+        "units": "J m^-2",
+        "spatial_aggregation": "actual_face_area_weighted_mean",
+        "temporal_aggregation": "cumulative_disjoint_source_windows",
+        "canonical_value": 0.010956060993930428,
+        "whole_scalar_api_value": 0.010956060993930653,
+        "source_gate_values": [
+          4.071492004104206e-09,
+          0.0017124091784666388,
+          0.009243647743972029
+        ],
+        "sum_disjoint_value": 0.010956060993930672,
+        "partition_minus_canonical_signed": 2.4372031025075545e-16,
+        "combined_estimated_absolute_allowance": 2.09409908886338e-12,
+        "max_component_fraction_of_estimated_allowance": 0.0017165004929399926,
+        "aggregate_passed": true
+      },
+      "translational_energy_j": {
+        "units": "J",
+        "spatial_aggregation": "physical_surface_integral",
+        "temporal_aggregation": "cumulative_disjoint_source_windows",
+        "canonical_value": 1.3695076242413037e-06,
+        "whole_scalar_api_value": 1.3695076242413319e-06,
+        "source_gate_values": [
+          5.089365005130258e-13,
+          2.1405114730832989e-07,
+          1.1554559679965038e-06
+        ],
+        "sum_disjoint_value": 1.3695076242413342e-06,
+        "partition_minus_canonical_signed": 3.0465038781344436e-20,
+        "combined_estimated_absolute_allowance": 2.617623861079225e-16,
+        "max_component_fraction_of_estimated_allowance": 0.0017158572721978351,
+        "aggregate_passed": true
+      },
+      "internal_energy_j_m2": {
+        "units": "J m^-2",
+        "spatial_aggregation": "actual_face_area_weighted_mean",
+        "temporal_aggregation": "cumulative_disjoint_source_windows",
+        "canonical_value": 0.0005703493324147693,
+        "whole_scalar_api_value": 0.0005703493324147702,
+        "source_gate_values": [
+          8.761123442286385e-13,
+          1.6211194411806035e-05,
+          0.0005541381371268511
+        ],
+        "sum_disjoint_value": 0.0005703493324147695,
+        "partition_minus_canonical_signed": 2.2931548979923496e-19,
+        "combined_estimated_absolute_allowance": 1.0895245213952233e-13,
+        "max_component_fraction_of_estimated_allowance": 0.0009724218589399288,
+        "aggregate_passed": true
+      },
+      "internal_energy_j": {
+        "units": "J",
+        "spatial_aggregation": "physical_surface_integral",
+        "temporal_aggregation": "cumulative_disjoint_source_windows",
+        "canonical_value": 7.129366655184617e-08,
+        "whole_scalar_api_value": 7.129366655184629e-08,
+        "source_gate_values": [
+          1.0951404302857983e-16,
+          2.0263993014757545e-09,
+          6.92672671408564e-08
+        ],
+        "sum_disjoint_value": 7.12936665518462e-08,
+        "partition_minus_canonical_signed": 2.866443622490437e-23,
+        "combined_estimated_absolute_allowance": 1.3619056517440292e-17,
+        "max_component_fraction_of_estimated_allowance": 0.0009725031474057453,
+        "aggregate_passed": true
+      },
+      "binding_energy_j_m2": {
+        "units": "J m^-2",
+        "spatial_aggregation": "actual_face_area_weighted_mean",
+        "temporal_aggregation": "cumulative_disjoint_source_windows",
+        "canonical_value": 0.042103336739593475,
+        "whole_scalar_api_value": 0.04210333673959458,
+        "source_gate_values": [
+          4.1197549872044256e-08,
+          0.007338679230706193,
+          0.0347646163113386
+        ],
+        "sum_disjoint_value": 0.04210333673959466,
+        "partition_minus_canonical_signed": 1.1860021442438168e-15,
+        "combined_estimated_absolute_allowance": 8.049136323761802e-12,
+        "max_component_fraction_of_estimated_allowance": 0.001717493879521049,
+        "aggregate_passed": true
+      },
+      "binding_energy_j": {
+        "units": "J",
+        "spatial_aggregation": "physical_surface_integral",
+        "temporal_aggregation": "cumulative_disjoint_source_windows",
+        "canonical_value": 5.262917092449185e-06,
+        "whole_scalar_api_value": 5.262917092449323e-06,
+        "source_gate_values": [
+          5.149693734005533e-12,
+          9.173349038382742e-07,
+          4.345577038917325e-06
+        ],
+        "sum_disjoint_value": 5.262917092449333e-06,
+        "partition_minus_canonical_signed": 1.4825026803047711e-19,
+        "combined_estimated_absolute_allowance": 1.0061420404702252e-15,
+        "max_component_fraction_of_estimated_allowance": 0.0017164866441671278,
+        "aggregate_passed": true
+      },
+      "total_wall_energy_debit_j_m2": {
+        "units": "J m^-2",
+        "spatial_aggregation": "actual_face_area_weighted_mean",
+        "temporal_aggregation": "cumulative_disjoint_source_windows",
+        "canonical_value": 0.05362974706593867,
+        "whole_scalar_api_value": 0.05362974706594,
+        "source_gate_values": [
+          4.5269917988492695e-08,
+          0.009067299603584638,
+          0.04456240219243748
+        ],
+        "sum_disjoint_value": 0.0536297470659401,
+        "partition_minus_canonical_signed": 1.4307299177177184e-15,
+        "combined_estimated_absolute_allowance": 1.025198092750401e-11,
+        "max_component_fraction_of_estimated_allowance": 0.001717353285919819,
+        "aggregate_passed": true
+      },
+      "total_wall_energy_debit_j": {
+        "units": "J",
+        "spatial_aggregation": "physical_surface_integral",
+        "temporal_aggregation": "cumulative_disjoint_source_windows",
+        "canonical_value": 6.703718383242335e-06,
+        "whole_scalar_api_value": 6.703718383242501e-06,
+        "source_gate_values": [
+          5.658739748561587e-12,
+          1.1334124504480799e-06,
+          5.570300274054685e-06
+        ],
+        "sum_disjoint_value": 6.703718383242513e-06,
+        "partition_minus_canonical_signed": 1.788412397147148e-19,
+        "combined_estimated_absolute_allowance": 1.2814976159380014e-15,
+        "max_component_fraction_of_estimated_allowance": 0.0017169870430758455,
+        "aggregate_passed": true
+      }
+    },
+    "fixed_width_independent_response_exactly_equal": true,
+    "manufactured_partial_width_response_differs": true,
+    "partial_aperture_m": [
+      -0.00105,
+      0.00055
+    ],
+    "response_kernels": [
+      "number",
+      "source_gate_weight",
+      "current_weight",
+      "state_weight",
+      "mixed_weight"
+    ],
+    "source_only_number_response_per_gate": {
+      "resolved_full_width": [
+        53567488.509504296,
+        9500430912281.494,
+        43763823282208.85
+      ],
+      "matched_full_width": [
+        53567488.509504296,
+        9500430912281.494,
+        43763823282208.85
+      ],
+      "resolved_partial_width": [
+        4063287.900474931,
+        25546041832.218586,
+        1964082039559.4973
+      ],
+      "matched_partial_width": [
+        17141596.323041372,
+        3040137891930.0776,
+        14004423450306.832
+      ]
+    },
+    "canonical_history_replay_relative_tolerance": 1.6e-10,
+    "canonical_inverse_log_residual_tolerance": 2e-11,
+    "canonical_allowance_assumption": "log1p(stored source interchange replay relative tolerance) + stored inverse log-time residual + producer inverse/positive-quadrature qualification + 256eps elementary-log scale; additive 128eps amount rounding. Conditional numerical/interchange allowance, not a rigorous enclosure or experimental error.",
+    "window_allowance_assumption": "each represented amount times expm1(estimated window log-mass error + representation log-rounding error + declared rounding allowance), plus 128eps amount rounding; triangle sums across disjoint windows. Exact Fraction sums are used for represented amounts.",
+    "output_sha256": {
+      "source_only_response_controls.csv": "4a250b42c74c00bf24f5a3fa12f4496dfd392ab1021af2fc549ab10303ed651d",
+      "component_partition_checks.csv": "db02193048886bae5c2109c40cde220050381240dc2f0c0c050c76f29bc5c566",
+      "conditioned_source_components.jsonl": "cc4e00c41cb8eab01c9c9ba7da857cbad990a76d4f435fc37b16947ab80dab8c"
+    },
+    "limits": [
+      "Manufactured source-emission windows only, not photon observation gates. Earlier neutral emission cannot be discarded merely because it precedes a later photon gate.",
+      "This reads one existing source HDF and evaluates scalar windows from its original component inventories and frozen temperatures. No history factory, replay loader or previous source integration is rerun.",
+      "The emitted-number and energy partition tests are conditional on the window estimated numerical envelopes and the stated original-source quadrature/residual/rounding allowance. They are not certified interval bounds or experimental errors.",
+      "Every conditioned component retains its original interval, pool/exact state, current patch, temperature, physical area, local time law and origin. Width redistribution changes only launch x; no averaged temperature or new state yield is introduced.",
+      "The number kernels are arbitrary fixed functions of SOURCE gate, exact state and current patch, constant within each selected window. The finite aperture assumes a uniform launch density inside each width patch and is manufactured, not recovered optics.",
+      "Individually represented fields and partition closure do not accept a conservative host transaction. Signed residuals are retained; no residual repair, packet allocation, random sampling, gap transport, chemistry, radiation or physical spectrum is provided."
+    ],
+    "actual_face_area_m2": 0.000125,
+    "spatial_summary_rule": "Integrated parent and J values use actual patch area once. Areal summaries are corresponding physical extensive values divided by actual total face area, never unweighted sums of patch densities.",
+    "reporting_revision": {
+      "scope": "report-only correction from saved quantities and canonical actual areas; no scalar-window or source integration rerun",
+      "superseded_draft_report": "historical_pre_review_report.json",
+      "superseded_draft_report_sha256": "7efd2fb709a958a0478bf62efa6e59f393fffbe971175c38284407f185a98aab",
+      "superseded_draft_issue": "Unweighted sums of patch densities had been labeled as global density totals. Per-component checks, physical parent/J totals and response controls were correct.",
+      "original_composition_script_sha256": "4cfee73e2c2baf96bb9725a9a210a83c0412cd64261af69b44c9ed57b7853d06",
+      "historical_composition_script_sha256": "4cfee73e2c2baf96bb9725a9a210a83c0412cd64261af69b44c9ed57b7853d06",
+      "revised_composition_reporting_script_sha256": "1516ad08df28c761e85c1dfab9cc5d676b2754272bdb74719f5dfb126c4f175b",
+      "reporting_projection_script_sha256": "96b468763667e8194cd9ab0cbfed697e74fc8c07d6d7e4ea86011c8ee92363f5",
+      "saved_component_cover_check": {
+        "components": 192,
+        "positive_windows": 240,
+        "no_gaps_or_overlaps": true,
+        "retained_associations_unchanged": true
+      },
+      "rounding": "Face-area means divide saved represented extensive summaries by the exact rational sum of actual stored float patch areas and round once to float64; existing numerical allowances remain conditional estimates."
+    }
+  },
+  "composition_review": {
+    "schema": "mhdlab-windowed-source-independent-review-completion-v1",
+    "status": "closed_no_remaining_substantive_findings",
+    "reviewed_detailed_report_sha256": "5df63ce3b51ce05eb7314d2d06b2d2ef4ca7e0661aed811af7f8ec37073f5363",
+    "scope": "read-only source metadata and composition/report algebra; no scalar-window or source integration reruns by reviewer",
+    "finding_closed": "Draft unweighted global patch-density sums were replaced with actual-face-area means of corresponding physical extensive quantities. Component checks and actual parent/J integrals were correct and remain unchanged.",
+    "source_hdf_sha256": "f1818aedf5da71ece7c0fe113029d3090c2dd0a8009cb766c845f927b55cd8dd",
+    "source_report_sha256": "4439f900c103abefd183f2a8f1c4232d2fa78b58359db649e64821ce3b93e2a8",
+    "area_weighting": "actual stored patch areas once; means divide by exact rational sum of those float areas",
+    "local_associations_and_tiling": "192 originals to240 positive conditioned pieces; original coverage_i,T_i,pool/state/current/width associations retained, disjoint local windows tile original parent intervals",
+    "response_control": "Exact Fraction full-width linear number invariance per SOURCE gate; manufactured partial aperture legitimately retains launch-width dependence. No physical spectrum claim.",
+    "numerical_qualification": "Conditional estimated numerical/representation/interchange allowances, not certified bounds or experimental error. Host acceptance remains false.",
+    "public_files_edited": false,
+    "old_suites_or_source_factory_rerun": false
+  },
+  "commands": [
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2248/window_start_sensitivity.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T22:52:25.738398+00:00",
+      "end_utc": "2026-10-18T22:52:26.327969+00:00",
+      "elapsed_s": 0.5895778760022949,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/window_start_sensitivity.log",
+      "log_sha256": "a794d2020d7939e8b636da662973f407dfc3abfa7c23adf830777d98b9100c6d"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2248/window_integral_tail_probe.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T22:53:41.559169+00:00",
+      "end_utc": "2026-10-18T22:53:42.172293+00:00",
+      "elapsed_s": 0.6131388220019289,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/window_integral_tail_probe.log",
+      "log_sha256": "dbbbe513a07fbf1c0f2248a3672f8d2314ab627b37163f7f1c036f048e32d080"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-c",
+        "import math,json; from mhdlab.temkin_emission_window import ReducedTemkinEmissionWindow as W; cases=[(0,2,.1,.7,1),(5,3,.1,.7,1),(512,1e6,.001,.01,.1),(4,1,45000,45001,46000)]; out=[]; [out.append((lambda w: {\"mass\":w.log_source_fraction,\"q\":w.quantile([.1,.5,.9]).tolist(),\"cdf\":w.cdf(w.quantile([.1,.5,.9])).tolist(),\"diag\":w.numerical_diagnostics})(W(c,math.log(r),d,a,b,log_mass_tolerance=1e-7))) for c,r,a,b,d in cases]; print(json.dumps(out,allow_nan=False))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T22:55:45.356770+00:00",
+      "end_utc": "2026-10-18T22:55:45.919491+00:00",
+      "elapsed_s": 0.5627329160051886,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/reduced-window-first-smoke.log",
+      "log_sha256": "c18279b1cfe966be88791e5c89cd8030ca0879aed3e97c5d75106be79bde0265"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_temkin_emission_window.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T22:56:05.310871+00:00",
+      "end_utc": "2026-10-18T22:56:06.164893+00:00",
+      "elapsed_s": 0.854031816998031,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/temkin-window-independent-initial.log",
+      "log_sha256": "8c250da112a08b31ed8044e149c7cf76bb3a4fd05f752296f174c8b65d541704"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "py_compile",
+        "tests/test_temkin_source_window.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T22:56:23.299954+00:00",
+      "end_utc": "2026-10-18T22:56:23.335889+00:00",
+      "elapsed_s": 0.03593582400208106,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/temkin-source-window-tests-syntax.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_temkin_emission_window.py",
+        "-k",
+        "unresolved_subnormal_delay_projection"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T22:56:46.938889+00:00",
+      "end_utc": "2026-10-18T22:56:47.675935+00:00",
+      "elapsed_s": 0.7370548460021382,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/temkin-window-subnormal-projection-corrected.log",
+      "log_sha256": "19394e7fa786680a10fa0c2e91ac0ea5e798773e9570ddc65b07e3fbcfd44d57"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "tools/inspect_temkin_emission_window.py",
+        "--demo",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T2248/source-window-example",
+        "--plot",
+        "--require-represented-budget"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T22:57:05.488100+00:00",
+      "end_utc": "2026-10-18T22:57:06.589243+00:00",
+      "elapsed_s": 1.101154119001876,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/source-window-demo-initial.log",
+      "log_sha256": "2e45f63f7bbf1b1899e74fa850a85d77fa6f3888bc84a1149cfc4f429b7957d8"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temkin_source_window.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T22:57:07.980743+00:00",
+      "end_utc": "2026-10-18T22:57:08.835055+00:00",
+      "elapsed_s": 0.8543197969993344,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/temkin-source-window-independent-initial.log",
+      "log_sha256": "af041d1454d183da370ce27647fee10165e460d690e63df916e1050f47a6c26f"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_temkin_emission_window.py",
+        "-k",
+        "log_cdf_retains"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T22:57:27.504586+00:00",
+      "end_utc": "2026-10-18T22:57:28.331687+00:00",
+      "elapsed_s": 0.8271084139996674,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/temkin-window-log-cdf-underflow.log",
+      "log_sha256": "04e3e3bb9d17f1fd25afbb913858e021f6f43627d0fc6c2d9fae5547179ad943"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2248/window_new_core_probes.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T22:58:08.370129+00:00",
+      "end_utc": "2026-10-18T22:58:09.136476+00:00",
+      "elapsed_s": 0.7663552070007427,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/window_new_core_probes_initial.log",
+      "log_sha256": "dfe797cea6dc83b1eb80ebe6f26ba04fecba62a9e5f5ef866600ea09f68e87a6"
+    },
+    {
+      "command": [
+        "sha256sum",
+        "mhdlab/temkin_emission_window.py",
+        "tests/test_temkin_emission_window.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T22:58:09.419167+00:00",
+      "end_utc": "2026-10-18T22:58:09.423156+00:00",
+      "elapsed_s": 0.003987797004811,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/temkin-window-tested-snapshot-pins.log",
+      "log_sha256": "73c7b10e631bca30958d2c359ed01b0ba46734f75284b809eeba56bd0a1602aa"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "py_compile",
+        "tests/test_temkin_emission_window_cli.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T22:59:32.614541+00:00",
+      "end_utc": "2026-10-18T22:59:32.655112+00:00",
+      "elapsed_s": 0.040571614998043515,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/temkin-window-cli-tests-syntax.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2248/window_adapter_precision_probe.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:00:05.409917+00:00",
+      "end_utc": "2026-10-18T23:00:06.061544+00:00",
+      "elapsed_s": 0.6516355920030037,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/window_adapter_precision_probe.log",
+      "log_sha256": "2e913fd88355fde42e26373003e370061067159e283431e348d6681917deb939"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temkin_source_window.py::test_quantity_units_are_explicit_and_detached_in_manifest_and_budget",
+        "tests/test_temkin_source_window.py::test_energy_residuals_report_signed_represented_ledgers_or_unavailable_overflow"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:00:29.449610+00:00",
+      "end_utc": "2026-10-18T23:00:31.037084+00:00",
+      "elapsed_s": 1.5874804830018547,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/temkin-source-window-units-and-energy.log",
+      "log_sha256": "bc793e6f847ffd16aaf35cda092c40ff8a9c9bceb34bbcc48e2cd5ca53848f08"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_temkin_emission_window.py",
+        "-k",
+        "reference_declared_log_mass_envelope or large_tail_window"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:00:31.280847+00:00",
+      "end_utc": "2026-10-18T23:00:32.450864+00:00",
+      "elapsed_s": 1.1700245050014928,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/temkin-window-declared-error-and-large-tail.log",
+      "log_sha256": "81a9645a2ac8a03acceb71870f40d83658e3a783a1a2e203918c6364c3ba9e6e"
+    },
+    {
+      "command": [
+        "sha256sum",
+        "mhdlab/temkin_emission_window.py",
+        "docs/temkin_emission_windows.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:00:39.021414+00:00",
+      "end_utc": "2026-10-18T23:00:39.025188+00:00",
+      "elapsed_s": 0.0037739600011263974,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/reduced-window-core-doc-pins.log",
+      "log_sha256": "b8d5c79edfc031969e94bd7d503683f059c8f5c85c587852e774ef2c82ec51a6"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temkin_emission_window_cli.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:00:29.459390+00:00",
+      "end_utc": "2026-10-18T23:00:53.254149+00:00",
+      "elapsed_s": 23.794800487994507,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/temkin-window-cli-independent-initial.log",
+      "log_sha256": "69a04f1cff60106072d7f559614094afde793df0548a32dd88d81c2a304302b5"
+    },
+    {
+      "command": [
+        "sha256sum",
+        "mhdlab/temkin_emission_window.py",
+        "tests/test_temkin_emission_window.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:01:12.509563+00:00",
+      "end_utc": "2026-10-18T23:01:12.513299+00:00",
+      "elapsed_s": 0.003736605001904536,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/temkin-window-final-tested-pins.log",
+      "log_sha256": "765ba47bb0d43267a98e9e437fcdd5aa93e7df0b40de08eadbdb4986d79d04c1"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-c",
+        "import hashlib,json,pathlib; w=pathlib.Path(\"/workspace/research_work/mitl-upstream-20261018T2248\"); p=w/\"window-core-notes.json\"; n=json.loads(p.read_text()); h=lambda q:hashlib.sha256(pathlib.Path(q).read_bytes()).hexdigest(); assert h(\"mhdlab/temkin_emission_window.py\")==n[\"code_sha256\"]; assert h(\"docs/temkin_emission_windows.md\")==n[\"documentation_sha256\"]; print(json.dumps({\"notes_sha256\":h(p),\"code_sha256\":n[\"code_sha256\"],\"documentation_sha256\":n[\"documentation_sha256\"],\"core_unique_passed\":n[\"verification\"][\"core_unique_passed\"]}))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:02:02.841401+00:00",
+      "end_utc": "2026-10-18T23:02:02.870252+00:00",
+      "elapsed_s": 0.028851324997958727,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/reduced-window-notes-final.log",
+      "log_sha256": "8539d6776e6f89e94e838783fdbdbbe939e648a6addafd669f3018b674420d6c"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temkin_source_window.py",
+        "-k",
+        "test_positive_energy_rescue_does_not_depend_on_extended_exponent_range"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:03:32.320284+00:00",
+      "end_utc": "2026-10-18T23:03:33.137015+00:00",
+      "elapsed_s": 0.8167370279988972,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/source-window-positive-energy-range-regressions.log",
+      "log_sha256": "923e189f1a57feb93b3372e8c1f81e4f5db50e9e9a4dc864fd6517cc1edce9e3"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2248/window_adapter_precision_probe.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:03:57.545906+00:00",
+      "end_utc": "2026-10-18T23:03:58.117957+00:00",
+      "elapsed_s": 0.5720598209954915,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/window_adapter_precision_probe_fixed.log",
+      "log_sha256": "6cdf152cabb98198ef75b6d0938fabf835f198ab2672b464b7f267962f6929e1"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/temkin_emission_window.py",
+        "tests/test_temkin_emission_window.py",
+        "docs/temkin_emission_windows.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:04:26.164858+00:00",
+      "end_utc": "2026-10-18T23:04:26.170211+00:00",
+      "elapsed_s": 0.005351919004169758,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/stage-reduced-source-window.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Qualify partial Temkin emission windows with late survival and local timing"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:04:26.562876+00:00",
+      "end_utc": "2026-10-18T23:04:26.577330+00:00",
+      "elapsed_s": 0.014453354000579566,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/commit-reduced-source-window.log",
+      "log_sha256": "56dc316c48954fad043de0924912828fad0c4382fbf2c33a13acd8b36dad1c07"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/temkin_source_window.py",
+        "tests/test_temkin_source_window.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:04:26.978230+00:00",
+      "end_utc": "2026-10-18T23:04:26.983353+00:00",
+      "elapsed_s": 0.0051190719968872145,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/stage-source-window-budget.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Associate partial source windows with explicit number and diagnostic energy budgets"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:04:27.386877+00:00",
+      "end_utc": "2026-10-18T23:04:27.395476+00:00",
+      "elapsed_s": 0.008599560002039652,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/commit-source-window-budget.log",
+      "log_sha256": "141d0cc10b391e03b6b6dde3cfa92c9e36ca9c0400904078048ee8d29fe0a583"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "tools/inspect_temkin_emission_window.py",
+        "tests/test_temkin_emission_window_cli.py",
+        "configs/temkin_window_manufactured.json"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:04:27.792574+00:00",
+      "end_utc": "2026-10-18T23:04:27.796668+00:00",
+      "elapsed_s": 0.004094109004654456,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/stage-source-window-inspection.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Inspect canonical source windows with timing and representation provenance"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:04:28.202720+00:00",
+      "end_utc": "2026-10-18T23:04:28.222682+00:00",
+      "elapsed_s": 0.01996263599721715,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/commit-source-window-inspection.log",
+      "log_sha256": "cef8389e276b011d75ceb4cb23b7e7a10a800cf2687c304cb30a3bbc3858aa48"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2248/prepare_window_handoff.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:05:07.119941+00:00",
+      "end_utc": "2026-10-18T23:05:07.247654+00:00",
+      "elapsed_s": 0.12771577300009085,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/prepare-emission-window-handoff.log",
+      "log_sha256": "45753ac60565492a0151a4f557ee25d3c716b7223f43f94c0be2e6e9cbe13598"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temkin_emission_window.py",
+        "tests/test_temkin_source_window.py",
+        "tests/test_temkin_emission_window_cli.py",
+        "--junitxml=/workspace/research_work/mitl-upstream-20261018T2248/isolated-results.xml",
+        "--basetemp=/workspace/research_work/mitl-upstream-20261018T2248/isolated-pytest"
+      ],
+      "cwd": "/workspace/handoffs/mitl-emission-windows-20261018T2248/source",
+      "start_utc": "2026-10-18T23:05:07.620877+00:00",
+      "end_utc": "2026-10-18T23:05:32.742764+00:00",
+      "elapsed_s": 25.121928442000353,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/isolated-emission-window-boundaries.log",
+      "log_sha256": "6cf8f126e1a0f93af55608934a27754e4d158040a70f7bba86d227a08fc0bbee"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "tools/inspect_temkin_emission_window.py",
+        "--demo",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T2248/source-window-example-final",
+        "--plot",
+        "--require-represented-budget"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:05:31.740175+00:00",
+      "end_utc": "2026-10-18T23:05:32.942293+00:00",
+      "elapsed_s": 1.2021273309946992,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/source-window-demo-final.log",
+      "log_sha256": "e3bd72bc66a7d7e0dbf6a0a7621b8aa29c341e1993b5367e36146ae12c63bfe7"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "tools/inspect_temkin_emission_window.py",
+        "--source",
+        "/workspace/research_work/mitl-upstream-20261018T2148/coverage-source-example/source_0003.h5",
+        "--source-run-summary",
+        "/workspace/research_work/mitl-upstream-20261018T2148/coverage-source-example/report.json",
+        "--config",
+        "/workspace/research_work/mitl-upstream-20261018T2248/canonical-window-config.json",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T2248/canonical-window-example",
+        "--plot",
+        "--require-represented-budget"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:05:33.609296+00:00",
+      "end_utc": "2026-10-18T23:05:34.189962+00:00",
+      "elapsed_s": 0.5806734069992672,
+      "exit_code": 2,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/canonical-source-window-example.log",
+      "log_sha256": "030c169ce8b6b16919d3633149640c6eaf507fe7ba5a7b1b7e276c351c69b054"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2248/prepare_canonical_window_example.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:05:58.306104+00:00",
+      "end_utc": "2026-10-18T23:05:58.438583+00:00",
+      "elapsed_s": 0.13248074000148335,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/prepare-canonical-window-example.log",
+      "log_sha256": "6d9fbed6267510346e50c4b7af3826bd0c61f934b69eb034ad6b1eaddc4179e6"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "tools/inspect_temkin_emission_window.py",
+        "--source",
+        "/workspace/research_work/mitl-upstream-20261018T2148/coverage-source-example/source_0003.h5",
+        "--source-run-summary",
+        "/workspace/research_work/mitl-upstream-20261018T2148/coverage-source-example/report.json",
+        "--config",
+        "/workspace/research_work/mitl-upstream-20261018T2248/canonical-window-config.json",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T2248/canonical-window-example",
+        "--plot",
+        "--require-represented-budget"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:05:58.821095+00:00",
+      "end_utc": "2026-10-18T23:05:59.949118+00:00",
+      "elapsed_s": 1.1280303280000226,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/canonical-source-window-example-corrected.log",
+      "log_sha256": "38270b36380d38b63b96b4db24c862ecebda20ead880cd5d5e38658092e12740"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2248/windowed-source-controls/compose_windowed_source.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:10:04.394566+00:00",
+      "end_utc": "2026-10-18T23:10:05.399390+00:00",
+      "elapsed_s": 1.0048327350014006,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/windowed_source_composition_initial.log",
+      "log_sha256": "57fecdaa5227b5802f3662c5f52350e6bb2039961f49facfd2eaf856afa01b60"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2248/windowed-source-controls/correct_reporting.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:13:38.871212+00:00",
+      "end_utc": "2026-10-18T23:13:39.071974+00:00",
+      "elapsed_s": 0.200769680996018,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/windowed_source_reporting_correction.log",
+      "log_sha256": "ce7865502c60384627fd75be6007aa9333fd5aec9ddf90a737f4007b134165d8"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "5d60b963d7629f2d730bc033e0e4b7741bfb2167",
+        "HEAD"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T23:15:28.670726+00:00",
+      "end_utc": "2026-10-18T23:15:28.675423+00:00",
+      "elapsed_s": 0.00469539799814811,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2248/final-emission-window-diff-check.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "resolved_findings": [
+    "Coherent rebase varies local rate and coupling with starting survival; source log-mass qualification includes amplified starting-depletion error.",
+    "A new large-depletion use of the old integral helper can miss its early layer; the new window module uses a positive Ein correction and keeps existing implementations unchanged.",
+    "Per-parent positive energy products can underflow where longdouble has float64 range; raw-factor logs and log-sum-exp preserve a representable population energy.",
+    "The first composition draft summed patch densities as global totals. The corrected report uses actual-face-area means derived from unchanged physical totals, retaining the draft and exact reporting-only correction without new source/window evaluations.",
+    "One subnormal test median was actually representable; only its probability fixture was corrected and affected test rerun.",
+    "An initial example configuration used a system interpreter lacking h5py; the project interpreter generated it and the corrected canonical inspection passed."
+  ],
+  "limitations": [
+    "Integral envelopes use explicit quadrature-error and rounding estimates, not certified mathematical enclosures or physical model validation.",
+    "Supported construction does not guarantee every requested conditional CDF/quantile meets its separate numerical qualification.",
+    "Initial inventories and windows must be positive; empty cases are explicit caller responsibilities.",
+    "Finite log amounts and represented fields do not commit an inventory or establish host budget acceptance. Signed number/energy residuals need explicit owner ledger treatment.",
+    "The windows condition source emission within frozen-temperature components, not photon times after transport, excitation and radiation.",
+    "Prescribed temperature makes wall debit diagnostic; no thermal feedback, individual velocity sampling or molecular state branching is implemented.",
+    "Physical monolayer inference, VUV absolute normalization and original diagnostics remain unresolved.",
+    "No separately owned solver/state data, Quark source/build/runner, actual FLASH run, remote push/merge/publication or external message."
+  ],
+  "next_task": "Advance owner-only full-mixture source-window/response acceptance and source-grid subdivision/packet accounting with qualified local delays; retain actual collection and photon-time conditioning as separately owned requirements."
+}

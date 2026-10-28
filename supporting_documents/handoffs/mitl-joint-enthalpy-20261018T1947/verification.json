@@ -1,0 +1,906 @@
+{
+  "schema": "mitl-joint-enthalpy-conductive-verification-v1",
+  "created_utc": "2026-10-18T20:24:23.816910+00:00",
+  "source_commit": "c236ef2946484804ecf229117e3d0e912911e283",
+  "branch": "research/flash-publication-foundation",
+  "commits": [
+    "ac28eb473a2bf81216d1fe504b927b4402705561 Add explicitly qualified solid enthalpy and faithful bounded inversion",
+    "cad418101fda630c202c537146c5447fcf9570b8 Export source-evaluated enthalpy references and inverse diagnostics",
+    "e631bed229158befdd29e9ee0d7bae3c9a43006d Add periodic resistive heating and thermal diffusion reference",
+    "368665013118eed229ff214e419d0a71434ca43e Export manufactured periodic fields, conducted heat and reservoir balances",
+    "b13dfe5659a88602567b35b53c3e05ad8ead1ecf Retain joint emission timing, width and thermal source statistics",
+    "153d3cd9e172fa30848e4f6c29a52d3efe651e2e Export paired source conditionals with hash-associated provenance",
+    "c236ef2946484804ecf229117e3d0e912911e283 Document the observation invariance control for matched width sources"
+  ],
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+    "packages": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "h5py": "3.16.0",
+      "matplotlib": "3.11.2",
+      "pytest": "9.1.1"
+    }
+  },
+  "results": {
+    "new_scope_total_passed": 262,
+    "isolated_passed": 262,
+    "isolated_skipped": 0,
+    "isolated_file_pass_counts": {
+      "tests.test_conductive_heating_benchmark": 94,
+      "tests.test_conductive_heating_cli": 21,
+      "tests.test_joint_source_cli": 22,
+      "tests.test_joint_source_moments": 39,
+      "tests.test_solid_enthalpy": 70,
+      "tests.test_solid_enthalpy_cli": 16
+    },
+    "public_files_byte_identical": 39,
+    "whole_project_suite_rerun": false,
+    "isolation_purpose": "New extracted import/data/CLI boundaries and final corrected numerical implementations; earlier unchanged project suites not rerun.",
+    "independent_conservative_finite_volume_cases": 12,
+    "manufactured_accounting_cases": 15,
+    "manufactured_identifiability_checks": 12,
+    "identifiability_evidence_sha256": "fc9f10caf2e6e377c4a96a004daaa42e0977a34976e0280b2048096257779057"
+  },
+  "commands": [
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "py_compile",
+        "tests/test_solid_enthalpy.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:52:32.887294+00:00",
+      "end_utc": "2026-10-18T19:52:32.925250+00:00",
+      "elapsed_s": 0.03795637099756277,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/solid-enthalpy-independent-test-syntax.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "py_compile",
+        "tests/test_joint_source_cli.py",
+        "tests/test_solid_enthalpy_cli.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:53:04.810660+00:00",
+      "end_utc": "2026-10-18T19:53:04.848340+00:00",
+      "elapsed_s": 0.03768069999932777,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/cli-test-syntax.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_solid_enthalpy.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:53:07.614289+00:00",
+      "end_utc": "2026-10-18T19:53:08.523798+00:00",
+      "elapsed_s": 0.9095182970013411,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/solid-enthalpy-independent-tests.log",
+      "log_sha256": "3577b9205212105dad7f4cd99f1b0f1fd5a6b2d8ea6b4a2ecb387ef8f2e35420"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-c",
+        "import json; import numpy as np; from mhdlab.solid_enthalpy import load_mills_2004_solid_enthalpy; m=load_mills_2004_solid_enthalpy('data/materials/mills_2004_source_manifest.json',temperature_min_k=300.,temperature_max_k=1700.,reference_temperature_k=800.,reference_convention='rezeroed_eq11',expected_material_family='austenitic stainless steel',expected_phase='solid',material_qualification='Evaluated source family; actual foil condition unknown',phase_qualification='Explicit solid branch; actual phase requires separate verification'); t=np.array([300.,799.9999999999999,800.,800.0000000000001,1200.,1700.]); v=m.evaluate(t); restored=m.temperature_from_enthalpy_k(v.enthalpy_j_kg); print(json.dumps({'temperature_k':v.temperature_k.tolist(),'cp_j_kg_k':v.cp_j_kg_k.tolist(),'enthalpy_j_kg':v.enthalpy_j_kg.tolist(),'printed_enthalpy_at_reference_j_kg':m.printed_enthalpy_at_reference_j_kg,'inverse_temperature_k':restored.tolist(),'max_inverse_error_k':float(np.max(np.abs(t-restored))),'source_manifest_sha256':m.source_manifest_sha256,'source_pdf_sha256':m.source_pdf_sha256},indent=2)); assert np.array_equal(t,restored); assert not v.enthalpy_j_kg.flags.writeable"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:53:11.964805+00:00",
+      "end_utc": "2026-10-18T19:53:12.127752+00:00",
+      "elapsed_s": 0.16295291099959286,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/solid-enthalpy-contract-example.log",
+      "log_sha256": "0ea5228a887acd77b16994a204ce2e4db0f7a455a631567cc1a90cf2c4ecb5d1"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "py_compile",
+        "mhdlab/joint_source_moments.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:53:33.759404+00:00",
+      "end_utc": "2026-10-18T19:53:33.796701+00:00",
+      "elapsed_s": 0.0372973199991975,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-compile.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-c",
+        "import math,json,numpy as np; from mhdlab.constants import KB,QE; from mhdlab.flash_surface import FlashSurfaceHistory; from mhdlab.planar_release import PlanarSurfaceHistory; from mhdlab.temkin_release import TemkinReservoir; from mhdlab.temkin_planar import evolve_temkin_planar_release; from mhdlab.joint_source_moments import joint_source_moments; a=FlashSurfaceHistory([0.,1.],[0.,1.],[[300.],[300.]],\"synthetic\",\"joint-test\",\"manufactured symmetric fixture\",\"face\").attributes; s=PlanarSurfaceHistory([0.,1.],[-2.,-1.,1.,2.],[0.,1.],np.array([[[600.,300.,600.]]]*2),a); p=TemkinReservoir(\"sites\",\"M\",4*math.log(2.),2*math.log(2.)*KB*300/QE,.2,0.,0.,10.,10.,\"manufactured\",\"manufactured\"); h=evolve_temkin_planar_release(s,[[[4/3,1.,4/3]]],[p],parameter_provenance=\"manufactured\"); r=joint_source_moments(h,quadrature_order=32,include_component_records=True); print(json.dumps(r,allow_nan=False))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:53:55.939763+00:00",
+      "end_utc": "2026-10-18T19:53:56.554634+00:00",
+      "elapsed_s": 0.6148783960015862,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-symmetric-smoke.log",
+      "log_sha256": "ebdd23a8d8ebdc7fda0f3dccabf0766daf8b17e43247f98652295168b52bc057"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_joint_source_moments.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:54:24.029262+00:00",
+      "end_utc": "2026-10-18T19:54:25.057168+00:00",
+      "elapsed_s": 1.0279145750027965,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-independent.log",
+      "log_sha256": "3be82569511a9f8fcaa447039657defa7e4fdcc333899dc2ea219d1959dcd6cb"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_joint_source_cli.py",
+        "tests/test_solid_enthalpy_cli.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:54:06.826170+00:00",
+      "end_utc": "2026-10-18T19:54:25.507191+00:00",
+      "elapsed_s": 18.68113205699774,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/cli-independent-initial.log",
+      "log_sha256": "5be621380974a77f2f8a98f9932b5b2f599d220c7003b2c4a4ff9081d3f3eb56"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_joint_source_cli.py::test_export_retains_thermal_mixture_and_joint_width_control"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:54:46.028592+00:00",
+      "end_utc": "2026-10-18T19:54:48.323541+00:00",
+      "elapsed_s": 2.294979197002249,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/cli-independent-cancelled-mean-regression.log",
+      "log_sha256": "7363eff19367d14922702e13ec43a5eb6c584505917cfc1c3ea3cef2fb9b2929"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_joint_source_moments.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:55:12.897339+00:00",
+      "end_utc": "2026-10-18T19:55:13.845012+00:00",
+      "elapsed_s": 0.9476816089991189,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-independent-final.log",
+      "log_sha256": "4de80ca6f540c14c7583064f41e04b1d5d14417244ee4c7900f8427f3245b247"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_solid_enthalpy.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:55:23.882152+00:00",
+      "end_utc": "2026-10-18T19:55:24.957619+00:00",
+      "elapsed_s": 1.0754755050002132,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/solid-enthalpy-independent-tests-rational-revision.log",
+      "log_sha256": "bd219a6f123fb262776f0d6c5aab06d6b48d44785d4d63459f1882840eb996ec"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-c",
+        "import json\nimport numpy as np\nfrom mhdlab.solid_enthalpy import load_mills_2004_solid_enthalpy\nselection = dict(temperature_min_k=300., temperature_max_k=1700., reference_temperature_k=800., expected_material_family='austenitic stainless steel', expected_phase='solid', material_qualification='Evaluated source family; actual foil condition unknown', phase_qualification='Explicit solid branch; actual phase requires separate verification')\nreports=[]\nfor convention in ('printed_eq11', 'rezeroed_eq11'):\n    model=load_mills_2004_solid_enthalpy('data/materials/mills_2004_source_manifest.json', reference_convention=convention, **selection)\n    temperatures=np.array([[300., 700., np.nextafter(800., -np.inf)], [800., np.nextafter(800., np.inf), 1700.]])\n    values=model.evaluate(temperatures)\n    restored=model.temperature_from_enthalpy_k(values.enthalpy_j_kg)\n    rejected=[]\n    for h in (np.nextafter(model.supported_enthalpy_range_j_kg[0], -np.inf), np.nextafter(model.supported_enthalpy_range_j_kg[1], np.inf)):\n        try: model.temperature_from_enthalpy_k(h)\n        except ValueError: rejected.append(float(h))\n        else: raise AssertionError('Out-of-domain enthalpy accepted')\n    assert float(np.max(np.abs(temperatures-restored))) <= np.spacing(800.)\n    assert not values.enthalpy_j_kg.flags.writeable\n    reports.append(dict(reference_convention=convention, supported_enthalpy_range_j_kg=model.supported_enthalpy_range_j_kg, delta_enthalpy_j_kg=values.delta_enthalpy_from_reference_j_kg.tolist(), max_inverse_error_k=float(np.max(np.abs(temperatures-restored))), rejected_adjacent_external_enthalpies=rejected))\nprint(json.dumps(reports, indent=2))\n"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:55:30.753430+00:00",
+      "end_utc": "2026-10-18T19:55:30.931255+00:00",
+      "elapsed_s": 0.17783136399884825,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/solid-enthalpy-faithful-reference-example.log",
+      "log_sha256": "d44331d74ff48ece4071347bbe58951049c18c8d144533f4f6ae146568420580"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_joint_source_moments.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:55:49.851044+00:00",
+      "end_utc": "2026-10-18T19:55:50.842157+00:00",
+      "elapsed_s": 0.9911202330004016,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-independent-anchored.log",
+      "log_sha256": "9e080b729514e295585dc4112c2f883893a0e6578ba9e1f71a6c088df09c85d2"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-c",
+        "import hashlib, json, re\nfrom pathlib import Path\nroot=Path.cwd()\npaths=[root/'mhdlab/solid_enthalpy.py', root/'docs/solid_enthalpy_inputs.md']\nsha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()\nfor path in paths:\n    text=path.read_text()\n    assert all(not line.endswith((' ', '\\t')) for line in text.splitlines()), path\n    assert not any(ord(c)<32 and c not in '\\n\\t\\r' for c in text), path\nfor target in re.findall(r'\\[[^\\]]+\\]\\(([^)]+)\\)', paths[1].read_text()):\n    if '://' not in target and not target.startswith('#'):\n        assert (paths[1].parent/target.split('#',1)[0]).resolve().is_file(), target\nmanifest=root/'data/materials/mills_2004_source_manifest.json'\nassert sha(manifest)=='ff64f70a2c605cf1024cc8ecfff9ac113d325981feb4efb9cc69dc5340205a8a'\ntestlog=Path('/workspace/research_work/mitl-upstream-20261018T1947/solid-enthalpy-independent-tests-rational-revision.log')\nassert sha(testlog)=='bd219a6f123fb262776f0d6c5aab06d6b48d44785d4d63459f1882840eb996ec'\nassert '70 passed' in testlog.read_text()\nrecord={'scope':'Mills2004 guarded austenitic-solid mass-specific enthalpy input contract', 'frozen_repository_files':[{'path':str(p),'bytes':p.stat().st_size,'sha256':sha(p)} for p in paths], 'reviewed_manifest_sha256':sha(manifest), 'observed_independent_test_log':{'path':str(testlog),'sha256':sha(testlog),'passed':70,'test_execution_not_repeated_for_freeze':True}, 'checks':['text hygiene','documentation local links','pinned source manifest digest','previously observed independent test logfile digest and result'], 'physical_limits':['evaluated source family only','caller-qualified solid interval and explicit reference','no Cv, density, internal energy, phase transition or actual foil EOS'], 'no_commit_performed':True}\nout=Path('/workspace/research_work/mitl-upstream-20261018T1947/solid_enthalpy_freeze.json')\nout.write_text(json.dumps(record,indent=2)+'\\n')\nprint(json.dumps(record,indent=2))\nprint('Freeze record SHA256',sha(out))\n"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:55:55.949878+00:00",
+      "end_utc": "2026-10-18T19:55:56.006871+00:00",
+      "elapsed_s": 0.0569945130009728,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/solid-enthalpy-freeze.log",
+      "log_sha256": "22acae655184aa82b706a4e4f11056b0b2bedfb799ea83524bb25a717142573f"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/inspect_solid_enthalpy.py",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T1947/solid-enthalpy-example",
+        "--plot"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:56:53.490002+00:00",
+      "end_utc": "2026-10-18T19:56:54.245732+00:00",
+      "elapsed_s": 0.755738105999626,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/solid-enthalpy-example.log",
+      "log_sha256": "f4cc112a06adf9d4460e21bd0bf6f1d83f5ffb112908209b2cde00c057477a9c"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/solid_enthalpy.py",
+        "tests/test_solid_enthalpy.py",
+        "docs/solid_enthalpy_inputs.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:57:18.759277+00:00",
+      "end_utc": "2026-10-18T19:57:18.764418+00:00",
+      "elapsed_s": 0.005140511999343289,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/stage-solid-enthalpy.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Add explicitly qualified solid enthalpy and faithful bounded inversion"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:57:18.893316+00:00",
+      "end_utc": "2026-10-18T19:57:18.905372+00:00",
+      "elapsed_s": 0.012056644998665433,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/commit-solid-enthalpy.log",
+      "log_sha256": "c3de024fca1a0c3f36f90528bb18001bf9e23a5f639566e6190d5ee05b07c158"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "tools/inspect_solid_enthalpy.py",
+        "tests/test_solid_enthalpy_cli.py",
+        "configs/mills_enthalpy_example.json"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:57:19.028697+00:00",
+      "end_utc": "2026-10-18T19:57:19.032786+00:00",
+      "elapsed_s": 0.004089252997800941,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/stage-enthalpy-inspection.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Export source-evaluated enthalpy references and inverse diagnostics"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:57:19.165571+00:00",
+      "end_utc": "2026-10-18T19:57:19.175506+00:00",
+      "elapsed_s": 0.009934442001394928,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/commit-enthalpy-inspection.log",
+      "log_sha256": "49b2ca2857f92521ef02b99bdbb18539fe4ab7e35872b6f6f9739535b5bfc759"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_conductive_heating_benchmark.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:58:09.045295+00:00",
+      "end_utc": "2026-10-18T19:58:10.096085+00:00",
+      "elapsed_s": 1.0507995660009328,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/conductive_heating_core_initial.log",
+      "log_sha256": "5abe34b70e8de88cf1dd59851e721f20c07abe18346d6bf9a9d936f49c032722"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1947/conductive_fd_verification.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:58:20.215930+00:00",
+      "end_utc": "2026-10-18T19:58:21.304845+00:00",
+      "elapsed_s": 1.0889219250020687,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/conductive-fv-independent.log",
+      "log_sha256": "e682017a6c8ad87d124d55394344f16ae89e4f92c824d8847db6968f841b665d"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1947/verify_conductive_artifacts.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:59:10.446923+00:00",
+      "end_utc": "2026-10-18T19:59:10.614684+00:00",
+      "elapsed_s": 0.1677629279984103,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/conductive-fv-integrity.log",
+      "log_sha256": "e7d2301dde09457336fe86a44938fa32c305c5e438fd2ab45691d110d356c9dd"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1947/verify_conductive_artifacts.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T19:59:25.514087+00:00",
+      "end_utc": "2026-10-18T19:59:25.757534+00:00",
+      "elapsed_s": 0.24345489500046824,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/conductive-fv-integrity-corrected.log",
+      "log_sha256": "cd09cf2722435dcc0bb9fc38c6af4a1d8d1c915ca3a3e0ea6b4bbcff04593675"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_conductive_heating_cli.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:01:22.934916+00:00",
+      "end_utc": "2026-10-18T20:01:27.475262+00:00",
+      "elapsed_s": 4.540352964002523,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/conductive_heating_cli_initial.log",
+      "log_sha256": "39c51fb83f16bb8400fbc431cb1f8889112bef1a97f063ad726c20a682b66170"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "tools/run_conductive_heating_benchmark.py",
+        "--config",
+        "configs/conductive_heating_manufactured.json",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T1947/conductive-heating-reference",
+        "--plot"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:01:54.896246+00:00",
+      "end_utc": "2026-10-18T20:01:56.914294+00:00",
+      "elapsed_s": 2.018059927999275,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/conductive_heating_manufactured_demo.log",
+      "log_sha256": "b5c6108ea48652451a08e830e75a48df9adfcb521223bb4477bc8fba1c492e14"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/conductive_heating_benchmark.py",
+        "tests/test_conductive_heating_benchmark.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:02:28.312939+00:00",
+      "end_utc": "2026-10-18T20:02:28.319201+00:00",
+      "elapsed_s": 0.0062621969991596416,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/stage-conductive-reference.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Add periodic resistive heating and thermal diffusion reference"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:02:28.458969+00:00",
+      "end_utc": "2026-10-18T20:02:28.472859+00:00",
+      "elapsed_s": 0.01388920300087193,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/commit-conductive-reference.log",
+      "log_sha256": "26f4d0d88edd0cb94c35e8b7d1fc074b3b7481c76ca939029cfdf9d58001f7a4"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1947/inspect_conductive_heating_export.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:02:35.749415+00:00",
+      "end_utc": "2026-10-18T20:02:35.784576+00:00",
+      "elapsed_s": 0.035162938002031296,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/conductive_heating_export_inspection.log",
+      "log_sha256": "b79036fd71fdc5076c1f45860a8372b68464acf4dd8145234d2aafc9f4e5b6d8"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_joint_source_moments.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:03:10.414950+00:00",
+      "end_utc": "2026-10-18T20:03:11.561508+00:00",
+      "elapsed_s": 1.146570459000941,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-centered-fixes.log",
+      "log_sha256": "9ba266c339a3a261b40dc3579f8296f1060e692c9f9c49d4196113bcdced975e"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T1947/verify_boundary_acceptance_cases.py",
+        "--output",
+        "/workspace/research_work/mitl-upstream-20261018T1947/boundary_acceptance_results.json"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:03:23.132519+00:00",
+      "end_utc": "2026-10-18T20:03:23.213782+00:00",
+      "elapsed_s": 0.08126780499878805,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/boundary-acceptance-cases.log",
+      "log_sha256": "04944ec9979fda676a7b97bfd3a9d778e01794a939b23bd2de186b6959984311"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "tools/run_conductive_heating_benchmark.py",
+        "tests/test_conductive_heating_cli.py",
+        "configs/conductive_heating_manufactured.json",
+        "docs/conductive_heating_verification.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:03:25.148393+00:00",
+      "end_utc": "2026-10-18T20:03:25.153716+00:00",
+      "elapsed_s": 0.00532293299693265,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/stage-conductive-exports.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Export manufactured periodic fields, conducted heat and reservoir balances"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:03:25.287728+00:00",
+      "end_utc": "2026-10-18T20:03:25.298184+00:00",
+      "elapsed_s": 0.010456767999130534,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/commit-conductive-exports.log",
+      "log_sha256": "54eb40f83dd8b69d66b95ee7140a11d2ed3116791056f0f7732e1994ec4f29dd"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-c",
+        "import hashlib, json\nfrom pathlib import Path\nwork=Path('/workspace/research_work/mitl-upstream-20261018T1947')\nsha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()\nsource=work/'verify_boundary_acceptance_cases.py'\nresult_path=work/'boundary_acceptance_results.json'\nresult=json.loads(result_path.read_text())\nassert sha(source)==result['script_sha256']\nrequirements=Path(result['requirements_document']['path'])\nassert sha(requirements)==result['requirements_document']['sha256']\nruns=[json.loads(line) for line in (work/'commands.jsonl').read_text().splitlines()]\nrun=next(item for item in runs if Path(item['log']).name=='boundary-acceptance-cases.log')\nlog=Path(run['log'])\nassert run['exit_code']==0 and sha(log)==run['log_sha256']\nassert result['summary']==dict(cases=15,accepted_case_outcomes=4,rejected_case_outcomes=11,all_rejections_preserve_exact_committed_state=True,all_assertions_passed=True)\nassert all(case['before_state_sha256']==case['after_state_sha256'] for case in result['cases'] if not case['accepted'])\nevidence={'schema':'scoped-manufactured-boundary-acceptance-evidence-v1','recorded_execution':run,'capture':'Recorder merged stderr into stdout; log is a combined stream. No passing case execution repeated for freeze.','artifacts':[{'path':str(p),'bytes':p.stat().st_size,'sha256':sha(p)} for p in (source,result_path,log,requirements)],'summary':result['summary'],'cases':[{'name':item['name'],'accepted':item['accepted'],'reason':item['reason']} for item in result['cases']],'read_only_review':'No substantive findings within the manufactured one-shot accounting/copy-commit/replay/checkpoint scope; review did not execute or edit files.','limits':result['not_tested'],'scope':'Work-directory accounting prototype and evidence only; no public implementation or live-host changes; no commit.'}\nout=work/'boundary_acceptance_evidence.json'\nout.write_text(json.dumps(evidence,indent=2)+'\\n')\nprint(json.dumps({'evidence_path':str(out),'evidence_sha256':sha(out),'script_sha256':sha(source),'result_sha256':sha(result_path),'log_sha256':sha(log),'summary':result['summary']},indent=2))\n"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:05:56.976586+00:00",
+      "end_utc": "2026-10-18T20:05:57.011097+00:00",
+      "elapsed_s": 0.034510976998717524,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/boundary-acceptance-freeze.log",
+      "log_sha256": "8b227e3125999f07f7b8a8e51c4a3a89d9943b86636ddd003f5b0b314548aa60"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/inspect_joint_source_moments.py",
+        "--demo",
+        "--quadrature-order",
+        "8",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-q8",
+        "--plot"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:09:50.794675+00:00",
+      "end_utc": "2026-10-18T20:09:52.634199+00:00",
+      "elapsed_s": 1.8395315560010204,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-demo-q8.log",
+      "log_sha256": "998f077ddfcf3658411e4ea2c7d1761528f84d4a5cd639c3dd00312998147014"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/inspect_joint_source_moments.py",
+        "--source",
+        "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-q8/source_input.h5",
+        "--source-run-summary",
+        "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-q8/report.json",
+        "--quadrature-order",
+        "16",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-q16",
+        "--plot"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:10:19.403155+00:00",
+      "end_utc": "2026-10-18T20:10:21.186562+00:00",
+      "elapsed_s": 1.7834152890027326,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-inspection-q16.log",
+      "log_sha256": "d6ecb6e7db0ef1981cbf213128d8fba34143f804a06e60b5a22b69676a716772"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "tools/inspect_joint_source_moments.py",
+        "--source",
+        "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-q8/source_input.h5",
+        "--source-run-summary",
+        "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-q8/report.json",
+        "--quadrature-order",
+        "32",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-q32"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:11:31.994067+00:00",
+      "end_utc": "2026-10-18T20:11:33.164738+00:00",
+      "elapsed_s": 1.1706793310004286,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-inspection-q32.log",
+      "log_sha256": "37898ba1cd34e81cb91321097da2a074bc19774e6092f95eff48ccf998410a6f"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1947/compare_joint_quadrature.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:12:23.642879+00:00",
+      "end_utc": "2026-10-18T20:12:23.674805+00:00",
+      "elapsed_s": 0.03192594999927678,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/joint-quadrature-comparison.log",
+      "log_sha256": "a188d12e8a0024dc337b8e5a01496e942c9ef07fffe0208b9ab7087cdc499bc3"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_joint_source_moments.py",
+        "-k",
+        "unrepresentable_energy_variance or underflow_fourth or tiny_middle or tiny_current or asymmetric_endpoint or late_local or rare_early or interval_splitting_preserves_global_joint"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:15:38.547408+00:00",
+      "end_utc": "2026-10-18T20:15:39.408702+00:00",
+      "elapsed_s": 0.8613021000019216,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-new-precision.log",
+      "log_sha256": "ae201a13b2cafb129e0c05c0aa1a3bb6abd6e15f0b6230436b12746293280e8d"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_joint_source_moments.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:16:06.564826+00:00",
+      "end_utc": "2026-10-18T20:16:07.594563+00:00",
+      "elapsed_s": 1.0297458650020417,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/joint-source-final-current-code.log",
+      "log_sha256": "448ca7dc1e8861d6a369df69a7128f04b92889028ae0a48afe49377d352ca987"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/joint_source_moments.py",
+        "tests/test_joint_source_moments.py",
+        "docs/joint_source_moments.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:17:03.140955+00:00",
+      "end_utc": "2026-10-18T20:17:03.145690+00:00",
+      "elapsed_s": 0.00473329200031003,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/stage-joint-core.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Retain joint emission timing, width and thermal source statistics"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:17:03.270530+00:00",
+      "end_utc": "2026-10-18T20:17:03.279452+00:00",
+      "elapsed_s": 0.008964761000243016,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/commit-joint-core.log",
+      "log_sha256": "a3daf1f462457e0214d838bec35c0a960b54cb9e87ae6fe1a8e050a6351b9abe"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "tools/inspect_joint_source_moments.py",
+        "tests/test_joint_source_cli.py",
+        "configs/joint_source_manufactured.json"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:17:03.403611+00:00",
+      "end_utc": "2026-10-18T20:17:03.408522+00:00",
+      "elapsed_s": 0.004911514999548672,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/stage-joint-inspection.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Export paired source conditionals with hash-associated provenance"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:17:03.535050+00:00",
+      "end_utc": "2026-10-18T20:17:03.543509+00:00",
+      "elapsed_s": 0.008460456003376748,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/commit-joint-inspection.log",
+      "log_sha256": "3b8eea30c8a4b45676b93b47c8b518b1bef83471e7fde46ef9c9481f3c58a135"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1947/verify_source_identifiability.py",
+        "--document",
+        "docs/source_identifiability_controls.md",
+        "--output",
+        "/workspace/research_work/mitl-upstream-20261018T1947/source_identifiability_evidence.json"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:19:16.839258+00:00",
+      "end_utc": "2026-10-18T20:19:16.879538+00:00",
+      "elapsed_s": 0.040282828002091264,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/source-identifiability-exact.log",
+      "log_sha256": "3dfe7f3279c7a2aa0e485f0e72c7636b111cd7542a3070d12931ebe953aaf190"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "docs/source_identifiability_controls.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:23:43.246673+00:00",
+      "end_utc": "2026-10-18T20:23:43.250261+00:00",
+      "elapsed_s": 0.003595264002797194,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/stage-identifiability-control.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Document the observation invariance control for matched width sources"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:23:43.470669+00:00",
+      "end_utc": "2026-10-18T20:23:43.482983+00:00",
+      "elapsed_s": 0.012313436000113143,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/commit-identifiability-control.log",
+      "log_sha256": "adc6d241acfa25934e976e6fc9a31567a70fc138128094ac6da0c2ee9b10cd34"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1947/prepare_handoff.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:23:47.561142+00:00",
+      "end_utc": "2026-10-18T20:23:47.840195+00:00",
+      "elapsed_s": 0.2790564259994426,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/prepare-handoff.log",
+      "log_sha256": "1409e45bad56fe4f4e55156467aafbbb9e330ecff3921edd8ebb4bf8b8b11580"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "--basetemp",
+        "/workspace/research_work/mitl-upstream-20261018T1947/isolated_pytest",
+        "--junitxml",
+        "/workspace/research_work/mitl-upstream-20261018T1947/isolated-results.xml"
+      ],
+      "cwd": "/workspace/handoffs/mitl-joint-enthalpy-20261018T1947/source",
+      "start_utc": "2026-10-18T20:23:52.769811+00:00",
+      "end_utc": "2026-10-18T20:24:14.108724+00:00",
+      "elapsed_s": 21.338919630001328,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/isolated-source-tests.log",
+      "log_sha256": "90ba250615673e221944369bf112e7899d9054e77a9165c1c57549113228de24"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T1947/write_note.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:24:15.648286+00:00",
+      "end_utc": "2026-10-18T20:24:15.688509+00:00",
+      "elapsed_s": 0.04022364100092091,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T1947/write-handoff-note.log",
+      "log_sha256": "edd864c35e41993c9bfb95799d7f488d6f59138750236a0178934b4d3048a47c"
+    }
+  ],
+  "artifacts": {
+    "solid-enthalpy-example": {
+      "record_sha256": "38b868f3fb0154ae6ab544d404af5f28184759ba923f14c679f2ce43df0a2b4e",
+      "record_file": "evidence/solid-enthalpy-example/report.json"
+    },
+    "joint-source-q8": {
+      "record_sha256": "f4d4439f0c2e4bb44eca2a296067f86b824380440e0cf5ffc7a251e9c4438b27",
+      "record_file": "evidence/joint-source-q8/report.json"
+    },
+    "joint-source-q16": {
+      "record_sha256": "17abd75ae94a95819f117cb969882bbaa6b61caa2da10de81bdf3f82dae499d8",
+      "record_file": "evidence/joint-source-q16/report.json"
+    },
+    "joint-source-q32": {
+      "record_sha256": "523f5e1343ab7fbe72a941d04ef43c4819891598ab990e7737792c6477fbcd82",
+      "record_file": "evidence/joint-source-q32/report.json"
+    },
+    "conductive-heating-reference": {
+      "record_sha256": "e943aaea54d2ec6037aaa0b61a2ca7f965203489433690a46ce3e4a5fcce6cb6",
+      "record_file": "evidence/conductive-heating-reference/summary.json"
+    }
+  },
+  "resolved_findings": [
+    "A faithfully rounded source enthalpy endpoint differed from the intermediate-float bound by one ULP. Exact printed decimal coefficients and float input temperatures now give consistent Cp/H/deltaH and strict inverse bounds without exterior tolerance.",
+    "Two test comparisons required relative agreement with symmetry-cancelled near-zero coordinate means; they now use the analytic zero and physical-scale roundoff allowance.",
+    "Joint statistics formerly combined distant interval starts or spatial origins before centering. Split components and population anchors retain resolvable local timing/spatial covariance, with bounded regression evidence.",
+    "Nonzero statistic products that underflow to structural zero now reject explicitly; time-kernel underflow diagnostics/logs remain attached.",
+    "The independent finite-volume artifact integrity check initially compared one-bit-different initial-energy reduction orders; it now verifies the declared reservoir. Saved numerical solutions were not rerun or changed."
+  ],
+  "limitations": [
+    "Source and conductive examples are manufactured, not calibrated water/foil or measured-shot reconstructions.",
+    "Joint expected-energy variance concerns variation of local2kBT means, excluding within-Maxwellian kinetic scatter. No molecular inventory/state allocation is inferred.",
+    "Joint conditional bins are original width/time bins; arbitrary source-time clipping and diagnostic-gate response are not supplied.",
+    "Latent source correlation does not itself establish spectral discrimination. A fixed linear launch-width-independent full-width response preserves the matched full marginal; no physical measurement response is supplied here.",
+    "Mills Cp/H are source-evaluated austenitic-solid correlations with explicit domain/reference/phase qualifications; no Cv, EOS internal energy, density, fusion or actual foil calibration/default.",
+    "Periodic benchmark holds material stationary with supplied constant sigma/mu/Cv/kappa; no full Hall-MHD, flow, boundary foil geometry or actual FLASH run is qualified.",
+    "Independent finite-volume and accounting prototypes verify bounded manufactured arithmetic/discretization only; no live host, EOS admissibility, concurrency or durable transaction store was tested.",
+    "No Quark source/build/runner, production job, kinetic-gap/Boltzmann/radiative development, private implementation transfer or external push/merge/publication/message."
+  ],
+  "next_task": "Compare joint deterministic statistics with weighted paired packets, including actual within-Maxwellian kinetic scatter, then qualify source-time subinterval truncation without equating source gates to recorded diagnostic gates."
+}

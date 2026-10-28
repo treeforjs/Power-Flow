@@ -1,0 +1,204 @@
+{
+  "schema": "mhdlab-mfem-backend-switch-v1",
+  "created_utc": "2026-10-28T19:35:47.585993+00:00",
+  "status": "backend_switched_native_smoke_and_handoff_verified_physical_case_pending",
+  "workspace": "C:\\Users\\tsmit\\.codex\\worktrees\\neutral-spectral-observation\\Power Flow",
+  "baseline_revision": "18d155b919e70b0b20165e22ce1eb4b7f48ac5a9",
+  "selected_heating_backend": "mfem_joule",
+  "replaced_active_backend": "flash",
+  "flash_acquisition_required": false,
+  "mfem": {
+    "version": "4.10",
+    "source_root": "/home/tsmit/src/mfem-4.10",
+    "installed_package": "/usr/local/lib/cmake/mfem",
+    "source_reference": "https://github.com/mfem/mfem/tree/v4.10",
+    "upstream_joule_three_files_match_inspected_release": true,
+    "source_is_git_checkout": false,
+    "source_or_installed_library_modified": false,
+    "independent_build_source_attestation": false
+  },
+  "verification": [
+    {
+      "argv": [
+        "python",
+        "tools/probe_mfem_joule.py",
+        "--wsl-distro",
+        "Ubuntu-24.04",
+        "--source-root",
+        "/home/tsmit/src/mfem-4.10",
+        "--build-dir",
+        "/home/tsmit/.local/share/power-flow/mfem-joule-build",
+        "--output-dir",
+        "runs/mfem_joule_native_demo"
+      ],
+      "exit_code": 0,
+      "scope": "Build unchanged stock rod and inspect VisIt initial/final fields on two MPI ranks; no SI units assigned"
+    },
+    {
+      "argv": [
+        "python",
+        "-c",
+        "import sys; sys.meta_path[:] = [f for f in sys.meta_path if type(f).__module__ != '_editable_skbc_mhdlab']; import pytest; raise SystemExit(pytest.main(['tests/test_mfem_metadata_guards.py','tests/test_mfem_surface.py','tests/test_mfem_heating_comparison.py','tests/test_heating_comparison.py','-q','--basetemp=.cache/pytest-mfem-final-metadata-comparison']))"
+      ],
+      "exit_code": 0,
+      "passed": 133,
+      "scope": "Final MFEM semantics/reload/Temkin metadata and new plus previous analytic profile comparison tests"
+    },
+    {
+      "argv": [
+        "python",
+        "-c",
+        "import sys; sys.meta_path[:] = [f for f in sys.meta_path if type(f).__module__ != '_editable_skbc_mhdlab']; import pytest; raise SystemExit(pytest.main(['tests/test_pilot_comparison_evidence.py','-q','-k','mfem_backend_selection or evidence_manifest','--basetemp=.cache/pytest-mfem-backend-selection']))"
+      ],
+      "exit_code": 0,
+      "passed": 2,
+      "deselected": 20,
+      "scope": "Backend manifest revision and acquisition dependency guards"
+    },
+    {
+      "argv": [
+        "python",
+        "tools/export_mfem_surface.py",
+        "--demo",
+        "--output-dir",
+        "runs/mfem_surface_manufactured_handoff"
+      ],
+      "exit_code": 0,
+      "scope": "Authored synthetic SI table; not converted rod output"
+    },
+    {
+      "argv": [
+        "python",
+        "tools/run_temkin_planar.py",
+        "--surface",
+        "runs/mfem_surface_manufactured_handoff/export/surface.h5",
+        "--config",
+        "runs/mfem_surface_manufactured_handoff/temkin_parameters.json",
+        "--output-dir",
+        "runs/mfem_surface_temkin_direct_verified"
+      ],
+      "exit_code": 0,
+      "scope": "Existing direct CLI with current checkout import and explicit manufactured Temkin parameters"
+    },
+    {
+      "argv": [
+        "python",
+        "tools/validate_pilot_comparison.py",
+        "--report",
+        "runs/mfem_backend_pilot_readiness.json"
+      ],
+      "exit_code": 0,
+      "scope": "Fourteen recovered artifact hashes; physical inference remains unavailable"
+    },
+    {
+      "argv": [
+        "python",
+        "tools/prepare_pilot_comparison.py",
+        "--observation-id",
+        "15750_4_20_wavelength",
+        "--output",
+        "runs/mfem_backend_pilot_request.json"
+      ],
+      "exit_code": 0,
+      "scope": "MFEM selected in literal pilot request with unresolved physical evidence retained"
+    }
+  ],
+  "earlier_affected_interface_checks": [
+    {
+      "passed": 63,
+      "scope": "Initial MFEM/planar release and IO integration before semantic guard tightening",
+      "basetemp": ".cache/pytest-mfem-surface-integration"
+    },
+    {
+      "passed": 85,
+      "scope": "MFEM plus Temkin planar/history integration before central semantic guards",
+      "basetemp": ".cache/pytest-mfem-temkin-integration"
+    }
+  ],
+  "native_demo_scope": {
+    "native_execution_performed": true,
+    "physical_units_assigned": false,
+    "temperature_undershoot_retained": true,
+    "physical_positivity_or_energy_convergence_qualified": false,
+    "physical_foil_case": false
+  },
+  "source_sha256": {
+    "README.md": "53425a4c1bbb83cadd623ed637c68ab54dc52fb0567de4d25909d41d1fba429b",
+    "HANDOFF.md": "495b23b75dfe203f8cc3d64e3dd494aca92d553a4069917d2f893b6ae21cab43",
+    "pyproject.toml": "c6c6a2bc23c766bafae34052871e2dc30d3523351e558a1c091784410d59a4bf",
+    "docs/mfem_h2o_publication_plan.md": "3d0dd5ba7dda0f057ce7d4db3e06d272bf25b992c6ac9cf963ce2fa2e57ef092",
+    "docs/mfem_joule_heating.md": "e3cf4c58bb08bbffec406195df3c10cfb9cd67e30d7b79a1239047a8e48ce1ea",
+    "docs/mfem_surface_contract.md": "e92004b02c8523c9e99214f55c62c100aa0ba6c5115ed835fc48967f182e4d31",
+    "docs/mfem_heating_verification.md": "5f8a29cf02acec869225ef92665a70c332f9eab1501ae28f8e1ded4f10c4270a",
+    "docs/neutral_spectral_workflow.md": "5d002b64a0494f36dba006393d7d5f38b330961532940b0c01dde7b7db3853fc",
+    "docs/dissertation_pilot_comparison.md": "7fd0a272dda7edfaef999f676ca1605fdf495fdfd6c68b0dc746fb5bc9019eb6",
+    "docs/raikou_observation_handoff.md": "b88d178ea2edd0d2fa884d756c3c0974269612a212ea89a45599701b08e6d2c9",
+    "docs/surface_release_pipeline.md": "1c98834c68cad88b017e2ec6aa280bc56471549152504d1f0578135f993ead32",
+    "docs/energy_and_magnetized_transport.md": "e44e6c2f98a57dcef40ecab88b58223f9641772d40dc04378a9c7e0ce3281d4d",
+    "docs/flash_h2o_publication_plan.md": "479045506fa92b3a692dc7b4a9631178194637858eb3e28cfde75fba604080bf",
+    "docs/flash_wsl_setup.md": "4b8b130f0d900fa336aa476483bf458a2e647e11e71213244ac84987006a1b5b",
+    "docs/flash_heating_verification.md": "5fb15ebd0fcb3caf09d0872e8013b37c4fea2dd7200ce3200d51c0a2150d137a",
+    "mhdlab/mfem_surface.py": "0d2e31fbc5f582ed84bf2c9b7ef5e57413e022ec665ddd53d5aac91341cc1d3c",
+    "mhdlab/planar_release.py": "30a8b1318bd7fc7fc6daa3db03832ca4ca98594f4542e01529c784acfe21eae8",
+    "mhdlab/temkin_history.py": "b93eddf0d031a8815f6748dfb4a1fcb4a7ed992e53d16efe200cf2bd583edba6",
+    "mhdlab/temkin_planar.py": "46138430dd0c541792e5e64a84ef9c1175daf9acef423fc28706644eb7debfa8",
+    "mhdlab/heating_comparison.py": "43c95856c7c46728840e0de83def1767ff5bfc70ce32ad69bbc0ca41b91a4bf2",
+    "tools/export_mfem_surface.py": "4042fdf85888d8d3ce3c2ec52462a3c2ceba44ba16f8bdc60681ca5c1109512d",
+    "tools/probe_mfem_joule.py": "57b10feab21fa6d82eea2c0f193dd9d75b491bf6b4c559ff523ce6bae9164c26",
+    "tools/run_temkin_planar.py": "73fc29572a16f691af4842633a99acf87de812ace47e3790f4341d76903113c4",
+    "tools/run_planar_release.py": "9828d7d2577a349e7bd9c7ff184c9b697def4378d2c22b38d75556dee6b2cad8",
+    "tools/validate_pilot_comparison.py": "6f1e2e3ef54f5eced82c767bda22cf35de68a545d513f19aae5e24c7979cb473",
+    "data/dissertation/pilot_comparison_manifest.json": "fd8c7665b343711299b30accd84a1dd541424abdca5827280c91609ea5f22495",
+    "configs/mfem_surface_example.json": "fbd1a7b0987cc801301f9f11a7f4fdf9a949fae85ddf3cb6d97d7298cba94415",
+    "configs/mfem_joule_smoke.json": "6a1c49ee3f52acf38ed1d7e26d8fc942c3a757da680b0d4045a632506a1b4c1d",
+    "native/mfem_joule/CMakeLists.txt": "173e59f7e18f32bd04ba768c21c50036821011278e822f9eaceb9de397859db7",
+    "native/mfem_joule/inspect_snapshot.cpp": "fd21c80b0e54ea22ecbddcbc643a9c0da85415276fdf022fa4a44bd38dfce80c",
+    "tests/test_mfem_surface.py": "54fdc4bf2970b509f39724c6cad9d2d0e5c66e539a738f0a0ef8c976d9c785fd",
+    "tests/test_mfem_metadata_guards.py": "e8c1b80de80fe8dc9d59232b6f0375d3aaea63fb2bef056076eb7a24ebe2d5f5",
+    "tests/test_mfem_heating_comparison.py": "1d7ee51d310dc12f53a5f44fa9273fded22c52996bf0a6e9d9e4e5054a28cf81",
+    "tests/test_pilot_comparison_evidence.py": "c36e327baad068025c9df54b6c989ae1adeef2a6a2ff61175d87fab91bef403b"
+  },
+  "copied_reports": {
+    "native_demo.json": {
+      "original": "runs/mfem_joule_native_demo/report.json",
+      "sha256": "5883a2b48bfb8bf872408c2b8a76aa0ef6a7f4188cd81316ace4f47f38247012"
+    },
+    "installed_identity.json": {
+      "original": "runs/mfem_joule_native_demo/installed_identity.json",
+      "sha256": "0997bc235d5d4d3af73ebaeba166f72804af72bcab65534842998d43084f27d2"
+    },
+    "surface_export_manufactured.json": {
+      "original": "runs/mfem_surface_manufactured_handoff/export/extraction_manifest.json",
+      "sha256": "a15c19c553f73932d6e82f5a60628a96b78443724b8e45b08301ab873f7832fa"
+    },
+    "temkin_bridge_manufactured.json": {
+      "original": "runs/mfem_surface_temkin_direct_verified/summary.json",
+      "sha256": "af677888ea29a303c2d3e931642474e15a94849eeccf1d5dd139ea6bbd3a65b5"
+    },
+    "pilot_readiness.json": {
+      "original": "runs/mfem_backend_pilot_readiness.json",
+      "sha256": "f486bcb0675fb97758bf6e9189bbd4a55b630b1cbcffdcf0b396e5cb1ed75804"
+    },
+    "pilot_request.json": {
+      "original": "runs/mfem_backend_pilot_request.json",
+      "sha256": "9bd88b4d0bbd7b10d9e5b5f255b274b8859aa053914d228e86faa1fa84e23c90"
+    }
+  },
+  "superseded_setup_record": "../neutral_spectral_comparison/completion.json",
+  "remaining_requirements": [
+    "Finite-width physical SS304 mesh/material/drive and boundary setup",
+    "Native one-sided planar material-face evaluation with qualified SI/clock mapping",
+    "Current and magnetic/thermal/boundary energy closure, material feedback where relevant and convergence",
+    "Qualified physical Raikou source acceptance and resolved populations/rates",
+    "Experimental calibration/reduction/collection/clock mapping and sourced monolayer convention"
+  ],
+  "physical_density_temperature_or_coverage_inferred": false,
+  "remote_mutations": false,
+  "static_checks": {
+    "python_ast": "passed",
+    "source_hashes": "passed",
+    "local_links": "passed",
+    "copied_report_hashes": "passed",
+    "git_diff_check_exit_code": 0
+  }
+}

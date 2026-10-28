@@ -1,0 +1,244 @@
+{
+  "schema": "mhdlab-neutral-cr-start-v1",
+  "created_utc": "2026-10-28T22:04:52.607563+00:00",
+  "status": "manufactured_population_control_with_sourced_radiative_subset",
+  "source_revision_reference": "d58dca88c5e9f93043a7c48852f6f3c1b55b37c2",
+  "source_files_sha256": {
+    "include/raikou/chemistry.h": "0e1f8269b31977de1991f5b7b799709c016cdd4ac8b9024db3990c24fb049d17",
+    "src/chemistry.cpp": "04a6a863d1599752e8561f154ec8d7c56225cb1f58e5fa51d5aa3b2092580774",
+    "include/raikou/collisional_radiative_model.h": "b9363a6cda7057428663ec8a9d45dfbd3c374a4a309eecce837c7292930a2851",
+    "src/collisional_radiative_model.cpp": "35ec906ed0000d79a39100528f89c9fb4b7c73be1865303845b0ef1c743673a6",
+    "mechanisms/h2o_research.json": "94262505a706bef02ab59d23e34c0c86c14c6121fefc2940b85d9eb190cd8e44"
+  },
+  "executable_sha256": "9c88c68804097178cce41a06563564aa0b51155930b40b439ce906bc33d25843",
+  "binary_source_revision_match_established": false,
+  "external_repository_initially_clean": true,
+  "external_repository_modified": false,
+  "full_cr_physical_ready": false,
+  "neutral_density_or_temperature_inferred": false,
+  "radiative_graph": {
+    "species_count": 1673,
+    "reaction_count": 28466,
+    "upper_levels": 1378,
+    "lower_levels": 295,
+    "lines_in115_165_nm": 16609,
+    "native_validation": true,
+    "complete_kinetics": false
+  },
+  "water_scaffold": {
+    "species_count": 19,
+    "reactions": 13,
+    "native_validation": true,
+    "coverage": {
+      "coverage": {
+        "energy": "Event energy partitions are incomplete; use coverage.unchecked_energy_reactions before coupling energy equations.",
+        "included_families": [
+          "evolving water dissociation and positive/negative ions",
+          "hydronium proton transfer",
+          "provisional radical recombination"
+        ],
+        "missing_physics": [
+          "No bundled cross sections or numeric heavy rates",
+          "Incomplete rotational and vibrational populations",
+          "No hydrated gas cluster ladder",
+          "Incomplete excited H/O states",
+          "Not liquid breakdown physics",
+          "Not thermodynamically closed"
+        ],
+        "rates": "Unspecified coefficients are required named inputs, never zero fallbacks.",
+        "validity": "Research scaffold. Each supplied rate and cross-section set defines its own validity; no all-regime or experimental-validation claim."
+      },
+      "mechanism_id": "h2o_research",
+      "missing_eedf_rates": [
+        "H2O:ionization",
+        "H2O:dissociation_OH_H",
+        "H2O:dissociative_excitation_OHA",
+        "H2O:attachment_Hminus",
+        "H2O:attachment_Ominus",
+        "H2O:attachment_OHminus",
+        "H2O:excite_v010",
+        "H2O:excite_v100"
+      ],
+      "missing_parameters": [
+        "H2Op:proton_transfer_water",
+        "H3Op:dissociative_recombination",
+        "OH:recombine_water_third_body",
+        "H_OH:recombine_water_third_body",
+        "H2_O:exchange"
+      ],
+      "phases": [
+        "gas"
+      ],
+      "provenance": [
+        {
+          "url": "https://doi.org/10.1063/5.0035315",
+          "use": "reaction-family reference; no cross-section tables redistributed"
+        },
+        {
+          "url": "https://doi.org/10.1088/1361-6463/accaf4",
+          "use": "reaction-family reference; no cross-section tables redistributed"
+        }
+      ],
+      "rate_errors": [
+        {
+          "message": "chemistry: missing EEDF rate coefficient: H2O:ionization",
+          "reaction": "H2O:ionization"
+        },
+        {
+          "message": "chemistry: missing EEDF rate coefficient: H2O:dissociation_OH_H",
+          "reaction": "H2O:dissociation_OH_H"
+        },
+        {
+          "message": "chemistry: missing EEDF rate coefficient: H2O:dissociative_excitation_OHA",
+          "reaction": "H2O:dissociative_excitation_OHA"
+        },
+        {
+          "message": "chemistry: missing EEDF rate coefficient: H2O:attachment_Hminus",
+          "reaction": "H2O:attachment_Hminus"
+        },
+        {
+          "message": "chemistry: missing EEDF rate coefficient: H2O:attachment_Ominus",
+          "reaction": "H2O:attachment_Ominus"
+        },
+        {
+          "message": "chemistry: missing EEDF rate coefficient: H2O:attachment_OHminus",
+          "reaction": "H2O:attachment_OHminus"
+        },
+        {
+          "message": "chemistry: missing rate parameter: H2Op:proton_transfer_water",
+          "reaction": "H2Op:proton_transfer_water"
+        },
+        {
+          "message": "chemistry: missing rate parameter: H3Op:dissociative_recombination",
+          "reaction": "H3Op:dissociative_recombination"
+        },
+        {
+          "message": "chemistry: missing rate parameter: OH:recombine_water_third_body",
+          "reaction": "OH:recombine_water_third_body"
+        },
+        {
+          "message": "chemistry: missing rate parameter: H_OH:recombine_water_third_body",
+          "reaction": "H_OH:recombine_water_third_body"
+        },
+        {
+          "message": "chemistry: missing rate parameter: H2_O:exchange",
+          "reaction": "H2_O:exchange"
+        },
+        {
+          "message": "chemistry: missing EEDF rate coefficient: H2O:excite_v010",
+          "reaction": "H2O:excite_v010"
+        },
+        {
+          "message": "chemistry: missing EEDF rate coefficient: H2O:excite_v100",
+          "reaction": "H2O:excite_v100"
+        }
+      ],
+      "rates_ready": false,
+      "reaction_count": 13,
+      "species_count": 19,
+      "status": "research",
+      "unchecked_energy_reactions": [
+        "H2O:ionization",
+        "H2O:dissociation_OH_H",
+        "H2O:dissociative_excitation_OHA",
+        "H2O:attachment_Hminus",
+        "H2O:attachment_Ominus",
+        "H2O:attachment_OHminus",
+        "H2Op:proton_transfer_water",
+        "H3Op:dissociative_recombination",
+        "OH:recombine_water_third_body",
+        "H_OH:recombine_water_third_body",
+        "H2_O:exchange",
+        "H2O:excite_v010",
+        "H2O:excite_v100"
+      ]
+    }
+  },
+  "control": {
+    "upper_state_id": "H2:B:v0:J0",
+    "radiative_branches": 15,
+    "total_A_s": 1865137926.367,
+    "lifetime_s": 5.361533781835883e-10,
+    "authored_initial_density_m3": 1000000000000.0,
+    "authored_path_m": 0.001,
+    "maximum_population_error_over_initial": 3.9735283734375e-05,
+    "maximum_molecule_balance_relative_error": 4.9960036108132044e-15,
+    "radiation_event_energy_relative_error": 2.220446049250313e-16,
+    "native_accepted_steps": 48471
+  },
+  "passed": true,
+  "tool_sha256": "9a4f7cfb83ce99005c1a01bfabd3e1f6ca828f2667929d8c0fd1639fefdeb6fa",
+  "input_csv_sha256": "32a7ee7ce91e0156c0bd012f459f3ce56460d321acdb6e8d98ae567bb3195177",
+  "artifacts_sha256": {
+    "advance_000_request.json": "bc2a8dcbd1a0168a1bade2f6c3847615f9ff5083ba325d12b4f6841b50857902",
+    "advance_000_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_000_stdout.json": "334b1e7557874289c84edd61a4096c285c95014c30c6ffb0ff6a02144cf75f25",
+    "advance_001_request.json": "ab9e2cc377aae14e1a10df01f9eecddedcc7be3e3fa7be6c77f604e9b6acfc64",
+    "advance_001_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_001_stdout.json": "30a627eba048be6feec22c449916a008ff4518baf7068100aea141a3a17f7b24",
+    "advance_002_request.json": "99da30393fee1f174d299aa64571933b916c3bf7d45357872b73bb708ba73b17",
+    "advance_002_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_002_stdout.json": "a1c59f91bb18aba8b65068edcd7257057fe76bfde3e0d7008aa30ebab8633e5e",
+    "advance_003_request.json": "13c5724d758487659fd9e06224fa96ab2f67e7696c315370c883cbe5a60892a1",
+    "advance_003_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_003_stdout.json": "8717dba331d2298032f0ede565adaa1867f4fe4301bd8e773d8d7ce7047e049b",
+    "advance_004_request.json": "7cbab00d2ba15178e1f5b6d074c773cbc0996026035cb29435fcf8425a5d248e",
+    "advance_004_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_004_stdout.json": "44eb2ac2abd32f78bf869c92a072c43986a4dc0621b5506e7d3786e4cb900290",
+    "advance_005_request.json": "0ca3d3edd7161f56d42fbdfeeff685687ef9fcd0a664a0b10658d329dda5bb3a",
+    "advance_005_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_005_stdout.json": "19f69be14891d7672ae2bb290132ae5bc4cc1e028ed4e780c2dd2ff00dcd41b1",
+    "advance_006_request.json": "51bd73d561c833d68dc054b70c6b4ee4391177803b0c7f004532c98bb8f0dfbd",
+    "advance_006_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_006_stdout.json": "842e2f13d98cf0a892d888206521ab7ffc875a7cb9117d6265b073e146bb7b1f",
+    "advance_007_request.json": "e2c30adf2914ed10bfe34ff3603f6b3ca3abeb2fb21dfbb572e01b1eb216d0fb",
+    "advance_007_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_007_stdout.json": "24c7ea65cc2b8608b8834777626cdd25c229a3a5a8fbfcf093cc56cfa1d631e2",
+    "advance_008_request.json": "fbeda8534f3c9f01576e462609eaaf60097f36380fa24f01882ef31607fefc5d",
+    "advance_008_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_008_stdout.json": "d23ec53897765e943bcf09f068a5717c9d4af60aacd511ea644264482997e44e",
+    "advance_009_request.json": "ed0c43f7c8f7c40603b95d4ef1461d3cb3b591f24c84b624b4283039a19a1b29",
+    "advance_009_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_009_stdout.json": "54a71329f7f065ee6eea97bc4266a25d6f5bb4bf0fc88a0cb93d021d075b20af",
+    "advance_010_request.json": "f8c9e38a2d497a403d444bc2b7cbb17019fcf9db8ac84f0a0a3abd099fb0ce4c",
+    "advance_010_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_010_stdout.json": "87b1e5517fd504923d3af1cfef2049145efb5a6f30c5dde2bdc3c237a786308d",
+    "advance_011_request.json": "a006c0b635c6a170c83ca8da3978b219f3e5b6ef1b509a75e9adcd2f42fcad7e",
+    "advance_011_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_011_stdout.json": "d663b775a7d94f88f9e29b6ae00d93390ec8f2b8444495fc73fd9563e68a93a1",
+    "advance_012_request.json": "47b73451f12bdd8bf2799d41f4967756d96d87d3fd17fc79ed8445d5505b1781",
+    "advance_012_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_012_stdout.json": "a562854ddbe63f602dd55ad5661fe8dd88b9bf2e31dd96c2ce53559fdb7e1924",
+    "advance_013_request.json": "0ddb0e983104d1fe285c89ea0e4ba27214c80e704ae2fd5add4f7234c9d3fc96",
+    "advance_013_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_013_stdout.json": "d13a837b387f8de75f631d7e0cc38f1de11fd5173ba1527251bb9cbb629318eb",
+    "advance_014_request.json": "c0741a38189be0a4c8fa4e8d68479b50c0189b77821069f025898d82a4794b71",
+    "advance_014_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_014_stdout.json": "a4a020475a3c292316d2f06e62f4e013dc9748ab89c1feb168eca649acf9bed8",
+    "advance_015_request.json": "2039c3d72d8772dae7c1b3ac868108862d806c431f5795116dc28a89d9405693",
+    "advance_015_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_015_stdout.json": "89d66c5b0b77b54ad25fe2be93521ac28adae32326e5c4397e6631c617c5657d",
+    "advance_016_request.json": "b03a08c38463877f67694f95865184cc8f14ac0e0700f76de59bd17446dc91e1",
+    "advance_016_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_016_stdout.json": "09220db2fafab99d1dfe11d821ede4d14ed4d50bd46f1a6df9ddb07d5298211a",
+    "advance_017_request.json": "036168ae80217909939acdfe43f0ac91df9ab98512af353885cb1851a513e489",
+    "advance_017_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "advance_017_stdout.json": "4498af4031fadc009d3a52f883d380e8fa82580ff1ce1d0fbcdf0bc7ca652916",
+    "capabilities_request.json": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+    "capabilities_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "capabilities_stdout.json": "2b15188fe4d1958b6e7372e28bddcea65a1a9810e7f55428462ad682b4fec813",
+    "control_gate_spectra.json": "ec48d7b1f40c93beff08bbf2028af1763756485d96a454232eff3fbe40404043",
+    "control_mechanism.json": "0d80725dc9b666a7934c1e01e57eb2c3e2ed22f40e8692dfc08a76c81adc26d1",
+    "control_populations.npz": "c36b17b417900a380fa9b81266f52eac1ddce4266ec13acecde1f106536ef418",
+    "h2_radiative_mechanism.json": "9b46d5f30dd5d1b876e1deac8ab78940b4924c100fec82a3cf49ddfea971acd8",
+    "h2_radiative_validate_request.json": "9b46d5f30dd5d1b876e1deac8ab78940b4924c100fec82a3cf49ddfea971acd8",
+    "h2_radiative_validate_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "h2_radiative_validate_stdout.json": "97dd0f52aea6bc3874c25f960ffb0e54bac8c20ff0757b56bc9f23ce08d4cc63",
+    "h2_state_catalog.json": "9955a538ff4bbe8f5126d210f616b55e7369ae97eb5e44bc7871d819f918947b",
+    "h2o_research_validate_request.json": "94262505a706bef02ab59d23e34c0c86c14c6121fefc2940b85d9eb190cd8e44",
+    "h2o_research_validate_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "h2o_research_validate_stdout.json": "50943d46046d4208bfd6f46c8d2d7390f5c2fa645c22443d0297c76c1f4b3d27",
+    "neutral_cr_radiative_control.png": "8ed8fae14212e8bebd38c645bea52a462a1a17cb1d2f99b87fd9f940fc9963b0",
+    "source_status.json": "f9eea5ba12b01429927c92215b63a17e7d9bd3cfe21918b9db5f6ced703aaee9"
+  }
+}

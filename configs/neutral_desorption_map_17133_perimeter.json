@@ -1,0 +1,55 @@
+{
+  "schema": "mhdlab-neutral-desorption-map-case-v1",
+  "status": "provisional",
+  "case_title": "Shot 17133 current | four-face neutral desorption and vacuum flight",
+  "time_registration": "Unshifted published Fig.C.19 current coordinate; start at first retained point0.749788055492ns with uniform-DC magnetic initialization and300K; agreement with ALEGRA snapshot clock is an explicit unverified comparison scenario",
+  "heating_assumption": "MFEM 2D A_z current-constrained magnetoquasistatic extension with finite-width foil, return conductor and true nonconducting exterior; prescribed recovered shot17133 current, constant provisional properties, no phase/motion/Hall feedback; not the earlier uniform-voltage metal-only demo; side faces use actual material-boundary traces from the same native solution",
+  "seed": 20261028,
+  "frames": 65,
+  "packets_per_interval_per_face": 12000,
+  "outside_width_margin_m": 0.0004,
+  "outside_normal_margin_m": 0.0004,
+  "normal_axis_magnification": 1.0,
+  "width_bins_inside": 80,
+  "width_bins_per_margin": 64,
+  "normal_bins_per_margin": 64,
+  "normal_bins_inside_solid": 16,
+  "species": [
+    {
+      "name": "H",
+      "initial_coverage_m2": 2000000000000000.0
+    },
+    {
+      "name": "H2",
+      "initial_coverage_m2": 2000000000000000.0
+    },
+    {
+      "name": "H2O",
+      "initial_coverage_m2": 1.4e+16
+    },
+    {
+      "name": "OH",
+      "initial_coverage_m2": 2000000000000000.0
+    }
+  ],
+  "kinetic_hypothesis": {
+    "attempt_frequency_s": 1000000000000.0,
+    "activation_energy_ev": 0.8,
+    "desorption_energy_ev": 0.8,
+    "internal_energy_ev": 0.0,
+    "coverage_coefficient": 0.0,
+    "reference_coverage_m2": 2e+16,
+    "max_coverage_m2": 2e+16,
+    "provenance": "Explicit illustrative independent surface reservoirs and common first-order rates; not calibrated water/SS304 desorption or reaction branching. Equal per-area coverage/rate laws on all four faces are a stated hypothesis; side inventory uses its actual smaller area."
+  },
+  "transport_hypothesis": "collisionless neutral free flight; absorbing map boundaries and upper foil; invariant/periodic current direction; no reactions or applied force; remote return conductor is outside this near-foil observation box",
+  "chemistry_hypothesis": "H, H2, H2O and OH are four independent assumed initial adsorbate pools; no conversion between species or claim of H2O fragmentation",
+  "emitting_faces": [
+    "top",
+    "bottom",
+    "left",
+    "right"
+  ],
+  "side_packets_per_interval_per_face": 4000,
+  "minimum_packet_component_particles": 1e-250
+}

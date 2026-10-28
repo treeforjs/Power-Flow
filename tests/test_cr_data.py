@@ -4,7 +4,7 @@ from mhdlab.cr_data import CRDataLibrary
 
 
 def test_cr_data_library_loads_yacora_references():
-    cfg = load_config("configs/mykonos.yaml")
+    cfg = load_config("configs/cr_reference_library.yaml")
     library = CRDataLibrary.from_config(cfg, resolve_path)
     summary = library.summary()
     assert summary["reference_count"] >= 12

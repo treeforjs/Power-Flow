@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.20)
+project(power_flow_mfem_edge_source LANGUAGES CXX)
+find_package(MFEM 4.10 CONFIG REQUIRED)
+find_package(MPI REQUIRED COMPONENTS CXX)
+add_executable(power-flow-edge-source edge_driver.cpp)
+target_link_libraries(power-flow-edge-source PRIVATE mfem MPI::MPI_CXX)
+target_compile_features(power-flow-edge-source PRIVATE cxx_std_17)

@@ -23,8 +23,10 @@ Useful pieces include the repository layout, measured-trace import concepts, geo
 organization, reference manifests and diagnostic storage patterns. The new publication
 path should use independently verified FLASH exports and conservative kinetic/CR
 components. Passing the old smoke tests establishes software execution, not the
-physical validity of the items above. The existing solver has been retained to avoid
-silently changing the meaning of earlier exploratory calculations.
+physical validity of the items above. The homegrown production MHD solver and its
+coupled orchestration were removed on 20 October 2026. This audit records the
+reviewed baseline; earlier source snapshots remain in Git history and the
+versioned handoff packages. New heating inputs use the FLASH export contract.
 
 See [the research specification](flash_h2o_publication_plan.md) for the replacement
 architecture and [the recovery record](dissertation_recovery.md) for experimental

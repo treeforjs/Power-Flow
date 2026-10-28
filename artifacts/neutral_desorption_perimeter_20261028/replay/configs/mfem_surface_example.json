@@ -1,0 +1,50 @@
+{
+  "schema": "mhdlab-mfem-surface-samples-v1",
+  "configuration_status": "template",
+  "source": {
+    "source_kind": "mfem",
+    "heating_backend": "mfem_joule",
+    "mfem_version": "REPLACE_WITH_EXECUTED_VERSION",
+    "mfem_source_revision": "REPLACE_WITH_FULL_SOURCE_COMMIT",
+    "run_id": "REPLACE_WITH_RUN_ID",
+    "source_reference": "REPLACE_WITH_HASH_BOUND_NATIVE_RUN_AND_SURFACE_EVALUATION_RECORD",
+    "native_field": "T",
+    "si_unit_mapping": {"length": "m", "time": "s", "temperature_value": "K"},
+    "unit_mapping_reference": "REPLACE_WITH_MODEL_UNIT_MAPPING_AND_MATERIAL_PROPERTIES",
+    "source_clock_reference": "REPLACE_WITH_EXPLICIT_SIMULATION_CLOCK_REFERENCE",
+    "solver_scope": {
+      "stationary_material": true,
+      "conductivity_temperature_feedback": false,
+      "hall_induction": false,
+      "material_motion": false,
+      "qualification_reference": "REPLACE_WITH_PHYSICAL_MODEL_AND_BENCHMARK_QUALIFICATION"
+    }
+  },
+  "temperature": {
+    "value_basis": "temperature_increment_kelvin",
+    "initial_temperature_k": 300.0,
+    "zero_convention_reference": "REPLACE_WITH_EXPLICIT_INITIAL_T_AND_T_FIELD_ZERO_CONVENTION",
+    "location": "surface_boundary",
+    "evaluation": "one_sided_material_boundary_trace_patch_average",
+    "material_sample_depth_m": 0.0,
+    "boundary_temperature_reference": ""
+  },
+  "face": {
+    "coordinate_system": "x=foil_width;y=gap_normal;z=current",
+    "surface_model": "stationary_planar_single_face",
+    "surface_region": "REPLACE_WITH_NAMED_MATERIAL_FACE",
+    "normal_position_m": 0.0,
+    "outward_normal_sign": 1,
+    "material_boundary_attribute": 1,
+    "material_selection_reference": "REPLACE_WITH_MATERIAL_SIDE_SELECTION_EVIDENCE",
+    "full_width_coverage_reference": "REPLACE_WITH_ACTUAL_FOIL_WIDTH_AND_MESH_COVERAGE",
+    "current_direction_representation": "resolved_patches"
+  },
+  "time_s": [0.0, 0.000001, 0.000002],
+  "x_edges_m": [0.0, 0.0005, 0.002],
+  "z_edges_m": [0.0, 0.01, 0.03],
+  "table": {
+    "path": "REPLACE_WITH_EXPLICIT_SI_SURFACE_SAMPLES.csv",
+    "sha256": "REPLACE_WITH_EXACT_TABLE_SHA256"
+  }
+}

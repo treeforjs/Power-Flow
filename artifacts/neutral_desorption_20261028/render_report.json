@@ -1,0 +1,1038 @@
+{
+  "schema": "mhdlab-neutral-transport-gif-v1",
+  "status": "provisional",
+  "input_npz": "C:\\Users\\tsmit\\.codex\\worktrees\\neutral-spectral-observation\\Power Flow\\runs\\neutral_desorption_current_17133\\neutral_maps.npz",
+  "input_metadata": "C:\\Users\\tsmit\\.codex\\worktrees\\neutral-spectral-observation\\Power Flow\\runs\\neutral_desorption_current_17133\\metadata.json",
+  "input_sha256": {
+    "npz": "81010435673a7105a6db8fa92db3f3a34a5d1475e45e48bf6e317d442b067925",
+    "metadata": "d5c1686c02c5bca3b34ad114e7b9086c3b2db4f7bfe7a98033f095cb3470f9db"
+  },
+  "source_metadata": {
+    "schema": "mhdlab-neutral-desorption-vacuum-map-v1",
+    "status": "provisional",
+    "case_title": "Shot 17133 current | provisional MFEM edge heating and neutral transport",
+    "time_registration": "Unshifted published Fig.C.19 current coordinate; start at first retained point0.749788055492ns with uniform-DC magnetic initialization and300K; agreement with ALEGRA snapshot clock is an explicit unverified comparison scenario",
+    "invariant_current_length_m": 0.01,
+    "normal_axis_magnification": 4.0,
+    "model_description": "Native constant-property MFEM Joule heating, finite-inventory first-order desorption, flux-weighted 3V thermal launches and exact neutral vacuum flight",
+    "assumptions": [
+      "Explicit illustrative independent surface reservoirs and common first-order rates; not calibrated water/SS304 desorption or reaction branching.",
+      "collisionless neutral free flight; absorbing map boundaries and upper foil; invariant/periodic current direction; no reactions or applied force; remote return conductor is outside this near-foil observation box",
+      "H, H2, H2O and OH are four independent assumed initial adsorbate pools; no conversion between species or claim of H2O fragmentation",
+      "Only the two broad material faces emit; foil edges do not emit in this case.",
+      "Current direction is invariant/periodic: z velocity is retained for energy, while maps integrate over the declared current length.",
+      "MFEM 2D A_z current-constrained magnetoquasistatic extension with finite-width foil, return conductor and true nonconducting exterior; prescribed recovered shot17133 current, constant provisional properties, no phase/motion/Hall feedback; not the earlier uniform-voltage metal-only demo",
+      "Surface removal energy is a passive diagnostic and is not fed back into MFEM temperature.",
+      "Conditional source-event times use the existing exact frozen-temperature Temkin/first-order law; no frame-midpoint injection.",
+      "Histograms use gas-side ownership for points exactly on material faces; trajectories themselves are not shifted.",
+      "No water chemistry, fragment recoil, collisions, radiation, plasma forces or calibrated density/temperature inference is claimed."
+    ],
+    "source_records": [
+      {
+        "face": "top",
+        "source_attributes": {
+          "schema": "mhdlab-planar-surface-v1",
+          "source_kind": "mfem",
+          "heating_backend": "mfem_joule",
+          "mfem_version": "4.10",
+          "mfem_source_revision": "d964264cdb9a13e94a201b6c236c7721e0c8765f",
+          "run_id": "C19-current-constrained-MFEM-top",
+          "source_reference": "source_run.json with current, energy, mesh and surface-quadrature records",
+          "unit_mapping_reference": "SI MFEM A_z MQS current constraints and conductor-only heat FE; no numerical vacuum conductivity or thermal material",
+          "source_clock_reference": "Preserve unshifted published C.19 time. Assume it is comparable to the published ALEGRA clock; this registration is unverified.",
+          "coordinate_system": "x=foil_width;y=gap_normal;z=current",
+          "surface_model": "stationary_planar_single_face",
+          "surface_region": "upper foil top material face",
+          "temperature_location": "surface_boundary",
+          "material_sample_depth_m": 0.0,
+          "material_sample_depth_units": "m",
+          "boundary_temperature_reference": "",
+          "current_averaging_interval_m_json": "null",
+          "current_uniformity_reference": "",
+          "temperature_value_basis": "temperature_increment_kelvin",
+          "initial_temperature_offset_k": 300.0,
+          "temperature_zero_convention_reference": "At the first supported trace knot, initialize uniform DC conductor currents +/-I0, solve the static magnetic A_z field, and set temperature to300K. Prehistory and deposited heat before this timestamp are unknown, not reconstructed.",
+          "temperature_evaluation": "one_sided_material_boundary_trace_patch_average",
+          "mfem_face": {
+            "coordinate_system": "x=foil_width;y=gap_normal;z=current",
+            "surface_model": "stationary_planar_single_face",
+            "surface_region": "upper foil top material face",
+            "normal_position_m": 0.0027,
+            "outward_normal_sign": 1,
+            "material_boundary_attribute": 3,
+            "material_selection_reference": "Conductor-only H1 thermal FE material-side boundary quadrature; vacuum has no thermal unknowns",
+            "full_width_coverage_reference": "Aligned native rectangular material-face quadrature checked against every dx; invariant current direction extruded once",
+            "current_direction_representation": "resolved_patches"
+          },
+          "mfem_solver_scope": {
+            "stationary_material": true,
+            "conductivity_temperature_feedback": false,
+            "hall_induction": false,
+            "material_motion": false,
+            "qualification_reference": "Provisional constant-property current-constrained foil/return/vacuum MQS, not stock Joule or qualified ALEGRA reproduction"
+          },
+          "sample_table_sha256": "b1a3c0230bce9320c199c0b97e742844b28c5ffb165a6bc9841dc163c0e6751c",
+          "sample_configuration_sha256": "76faa05ac14db33bc6581ab59d2ddcce5ed3ed2672ecfcb44ba672f8c6c8f6aa",
+          "current_direction_representation": "resolved_piecewise_constant_surface_patches",
+          "current_patch_intervals_m": [
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          "patch_temperature_approximation": "local x/z patch averages; refine x,z,time before nonlinear release",
+          "original_source_schema": "mhdlab-mfem-surface-v1"
+        },
+        "extraction": {
+          "schema": "mhdlab-mfem-surface-extraction-v1",
+          "configuration_status": "configured",
+          "configuration": {
+            "path": "C:\\Users\\tsmit\\.codex\\worktrees\\neutral-spectral-observation\\Power Flow\\runs\\mfem_edge_current_source_v3\\top_surface.json",
+            "sha256": "76faa05ac14db33bc6581ab59d2ddcce5ed3ed2672ecfcb44ba672f8c6c8f6aa"
+          },
+          "sample_table": {
+            "path": "C:\\Users\\tsmit\\.codex\\worktrees\\neutral-spectral-observation\\Power Flow\\runs\\mfem_edge_current_source_v3\\top.csv",
+            "sha256": "b1a3c0230bce9320c199c0b97e742844b28c5ffb165a6bc9841dc163c0e6751c",
+            "rows": 9216
+          },
+          "source_attributes": {
+            "schema": "mhdlab-planar-surface-v1",
+            "source_kind": "mfem",
+            "heating_backend": "mfem_joule",
+            "mfem_version": "4.10",
+            "mfem_source_revision": "d964264cdb9a13e94a201b6c236c7721e0c8765f",
+            "run_id": "C19-current-constrained-MFEM-top",
+            "source_reference": "source_run.json with current, energy, mesh and surface-quadrature records",
+            "unit_mapping_reference": "SI MFEM A_z MQS current constraints and conductor-only heat FE; no numerical vacuum conductivity or thermal material",
+            "source_clock_reference": "Preserve unshifted published C.19 time. Assume it is comparable to the published ALEGRA clock; this registration is unverified.",
+            "coordinate_system": "x=foil_width;y=gap_normal;z=current",
+            "surface_model": "stationary_planar_single_face",
+            "surface_region": "upper foil top material face",
+            "temperature_location": "surface_boundary",
+            "material_sample_depth_m": 0.0,
+            "material_sample_depth_units": "m",
+            "boundary_temperature_reference": "",
+            "current_averaging_interval_m_json": "null",
+            "current_uniformity_reference": "",
+            "temperature_value_basis": "temperature_increment_kelvin",
+            "initial_temperature_offset_k": 300.0,
+            "temperature_zero_convention_reference": "At the first supported trace knot, initialize uniform DC conductor currents +/-I0, solve the static magnetic A_z field, and set temperature to300K. Prehistory and deposited heat before this timestamp are unknown, not reconstructed.",
+            "temperature_evaluation": "one_sided_material_boundary_trace_patch_average",
+            "mfem_face": {
+              "coordinate_system": "x=foil_width;y=gap_normal;z=current",
+              "surface_model": "stationary_planar_single_face",
+              "surface_region": "upper foil top material face",
+              "normal_position_m": 0.0027,
+              "outward_normal_sign": 1,
+              "material_boundary_attribute": 3,
+              "material_selection_reference": "Conductor-only H1 thermal FE material-side boundary quadrature; vacuum has no thermal unknowns",
+              "full_width_coverage_reference": "Aligned native rectangular material-face quadrature checked against every dx; invariant current direction extruded once",
+              "current_direction_representation": "resolved_patches"
+            },
+            "mfem_solver_scope": {
+              "stationary_material": true,
+              "conductivity_temperature_feedback": false,
+              "hall_induction": false,
+              "material_motion": false,
+              "qualification_reference": "Provisional constant-property current-constrained foil/return/vacuum MQS, not stock Joule or qualified ALEGRA reproduction"
+            },
+            "sample_table_sha256": "b1a3c0230bce9320c199c0b97e742844b28c5ffb165a6bc9841dc163c0e6751c",
+            "sample_configuration_sha256": "76faa05ac14db33bc6581ab59d2ddcce5ed3ed2672ecfcb44ba672f8c6c8f6aa",
+            "current_direction_representation": "resolved_piecewise_constant_surface_patches",
+            "current_patch_intervals_m": [
+              [
+                0.0,
+                0.01
+              ]
+            ],
+            "patch_temperature_approximation": "local x/z patch averages; refine x,z,time before nonlinear release",
+            "original_source_schema": "mhdlab-mfem-surface-v1"
+          },
+          "temperature_offset_applied_once_k": 300.0,
+          "native_mfem_gridfunction_parsed": false,
+          "new_heating_simulation_performed": false,
+          "limitations": [
+            "Native producer owns material selection, boundary evaluation and SI mapping.",
+            "No physical validity is established by matching metadata or hashes.",
+            "Local patch averages require x/z/time refinement before nonlinear release.",
+            "Temperatures are not an optical depth, neutral temperature or emitting extent."
+          ]
+        },
+        "initial_particles": [
+          100000000000.00003,
+          100000000000.00003,
+          700000000000.0,
+          100000000000.00003
+        ],
+        "remaining_particles": [
+          78935946928.71786,
+          78935946928.71786,
+          552551628501.025,
+          78935946928.71786
+        ],
+        "released_particles": [
+          21064053071.28211,
+          21064053071.28211,
+          147448371498.97467,
+          21064053071.28211
+        ],
+        "expected_launch_translational_energy_j": 6.549855899351525e-09,
+        "actual_sampled_launch_translational_energy_j": 6.554042116803596e-09,
+        "thermal_sampling_energy_residual_j": 4.1862174520710014e-12,
+        "release_file_sha256": "8926bd074b1682a36380b1da85d12d2b09af58f26984b4bf17ee260947ade9f5"
+      },
+      {
+        "face": "bottom",
+        "source_attributes": {
+          "schema": "mhdlab-planar-surface-v1",
+          "source_kind": "mfem",
+          "heating_backend": "mfem_joule",
+          "mfem_version": "4.10",
+          "mfem_source_revision": "d964264cdb9a13e94a201b6c236c7721e0c8765f",
+          "run_id": "C19-current-constrained-MFEM-bottom",
+          "source_reference": "source_run.json with current, energy, mesh and surface-quadrature records",
+          "unit_mapping_reference": "SI MFEM A_z MQS current constraints and conductor-only heat FE; no numerical vacuum conductivity or thermal material",
+          "source_clock_reference": "Preserve unshifted published C.19 time. Assume it is comparable to the published ALEGRA clock; this registration is unverified.",
+          "coordinate_system": "x=foil_width;y=gap_normal;z=current",
+          "surface_model": "stationary_planar_single_face",
+          "surface_region": "upper foil bottom material face",
+          "temperature_location": "surface_boundary",
+          "material_sample_depth_m": 0.0,
+          "material_sample_depth_units": "m",
+          "boundary_temperature_reference": "",
+          "current_averaging_interval_m_json": "null",
+          "current_uniformity_reference": "",
+          "temperature_value_basis": "temperature_increment_kelvin",
+          "initial_temperature_offset_k": 300.0,
+          "temperature_zero_convention_reference": "At the first supported trace knot, initialize uniform DC conductor currents +/-I0, solve the static magnetic A_z field, and set temperature to300K. Prehistory and deposited heat before this timestamp are unknown, not reconstructed.",
+          "temperature_evaluation": "one_sided_material_boundary_trace_patch_average",
+          "mfem_face": {
+            "coordinate_system": "x=foil_width;y=gap_normal;z=current",
+            "surface_model": "stationary_planar_single_face",
+            "surface_region": "upper foil bottom material face",
+            "normal_position_m": 0.0025,
+            "outward_normal_sign": -1,
+            "material_boundary_attribute": 1,
+            "material_selection_reference": "Conductor-only H1 thermal FE material-side boundary quadrature; vacuum has no thermal unknowns",
+            "full_width_coverage_reference": "Aligned native rectangular material-face quadrature checked against every dx; invariant current direction extruded once",
+            "current_direction_representation": "resolved_patches"
+          },
+          "mfem_solver_scope": {
+            "stationary_material": true,
+            "conductivity_temperature_feedback": false,
+            "hall_induction": false,
+            "material_motion": false,
+            "qualification_reference": "Provisional constant-property current-constrained foil/return/vacuum MQS, not stock Joule or qualified ALEGRA reproduction"
+          },
+          "sample_table_sha256": "f29956befd59e2eb1b3ea9bce1aab863301d39796fb7dfca1a38d055e2e8a968",
+          "sample_configuration_sha256": "cd14db07eb0b7dbe40d105e097000aa1369a7b62cfa0be09c4631f2950b8d1a4",
+          "current_direction_representation": "resolved_piecewise_constant_surface_patches",
+          "current_patch_intervals_m": [
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          "patch_temperature_approximation": "local x/z patch averages; refine x,z,time before nonlinear release",
+          "original_source_schema": "mhdlab-mfem-surface-v1"
+        },
+        "extraction": {
+          "schema": "mhdlab-mfem-surface-extraction-v1",
+          "configuration_status": "configured",
+          "configuration": {
+            "path": "C:\\Users\\tsmit\\.codex\\worktrees\\neutral-spectral-observation\\Power Flow\\runs\\mfem_edge_current_source_v3\\bottom_surface.json",
+            "sha256": "cd14db07eb0b7dbe40d105e097000aa1369a7b62cfa0be09c4631f2950b8d1a4"
+          },
+          "sample_table": {
+            "path": "C:\\Users\\tsmit\\.codex\\worktrees\\neutral-spectral-observation\\Power Flow\\runs\\mfem_edge_current_source_v3\\bottom.csv",
+            "sha256": "f29956befd59e2eb1b3ea9bce1aab863301d39796fb7dfca1a38d055e2e8a968",
+            "rows": 9216
+          },
+          "source_attributes": {
+            "schema": "mhdlab-planar-surface-v1",
+            "source_kind": "mfem",
+            "heating_backend": "mfem_joule",
+            "mfem_version": "4.10",
+            "mfem_source_revision": "d964264cdb9a13e94a201b6c236c7721e0c8765f",
+            "run_id": "C19-current-constrained-MFEM-bottom",
+            "source_reference": "source_run.json with current, energy, mesh and surface-quadrature records",
+            "unit_mapping_reference": "SI MFEM A_z MQS current constraints and conductor-only heat FE; no numerical vacuum conductivity or thermal material",
+            "source_clock_reference": "Preserve unshifted published C.19 time. Assume it is comparable to the published ALEGRA clock; this registration is unverified.",
+            "coordinate_system": "x=foil_width;y=gap_normal;z=current",
+            "surface_model": "stationary_planar_single_face",
+            "surface_region": "upper foil bottom material face",
+            "temperature_location": "surface_boundary",
+            "material_sample_depth_m": 0.0,
+            "material_sample_depth_units": "m",
+            "boundary_temperature_reference": "",
+            "current_averaging_interval_m_json": "null",
+            "current_uniformity_reference": "",
+            "temperature_value_basis": "temperature_increment_kelvin",
+            "initial_temperature_offset_k": 300.0,
+            "temperature_zero_convention_reference": "At the first supported trace knot, initialize uniform DC conductor currents +/-I0, solve the static magnetic A_z field, and set temperature to300K. Prehistory and deposited heat before this timestamp are unknown, not reconstructed.",
+            "temperature_evaluation": "one_sided_material_boundary_trace_patch_average",
+            "mfem_face": {
+              "coordinate_system": "x=foil_width;y=gap_normal;z=current",
+              "surface_model": "stationary_planar_single_face",
+              "surface_region": "upper foil bottom material face",
+              "normal_position_m": 0.0025,
+              "outward_normal_sign": -1,
+              "material_boundary_attribute": 1,
+              "material_selection_reference": "Conductor-only H1 thermal FE material-side boundary quadrature; vacuum has no thermal unknowns",
+              "full_width_coverage_reference": "Aligned native rectangular material-face quadrature checked against every dx; invariant current direction extruded once",
+              "current_direction_representation": "resolved_patches"
+            },
+            "mfem_solver_scope": {
+              "stationary_material": true,
+              "conductivity_temperature_feedback": false,
+              "hall_induction": false,
+              "material_motion": false,
+              "qualification_reference": "Provisional constant-property current-constrained foil/return/vacuum MQS, not stock Joule or qualified ALEGRA reproduction"
+            },
+            "sample_table_sha256": "f29956befd59e2eb1b3ea9bce1aab863301d39796fb7dfca1a38d055e2e8a968",
+            "sample_configuration_sha256": "cd14db07eb0b7dbe40d105e097000aa1369a7b62cfa0be09c4631f2950b8d1a4",
+            "current_direction_representation": "resolved_piecewise_constant_surface_patches",
+            "current_patch_intervals_m": [
+              [
+                0.0,
+                0.01
+              ]
+            ],
+            "patch_temperature_approximation": "local x/z patch averages; refine x,z,time before nonlinear release",
+            "original_source_schema": "mhdlab-mfem-surface-v1"
+          },
+          "temperature_offset_applied_once_k": 300.0,
+          "native_mfem_gridfunction_parsed": false,
+          "new_heating_simulation_performed": false,
+          "limitations": [
+            "Native producer owns material selection, boundary evaluation and SI mapping.",
+            "No physical validity is established by matching metadata or hashes.",
+            "Local patch averages require x/z/time refinement before nonlinear release.",
+            "Temperatures are not an optical depth, neutral temperature or emitting extent."
+          ]
+        },
+        "initial_particles": [
+          100000000000.00003,
+          100000000000.00003,
+          700000000000.0,
+          100000000000.00003
+        ],
+        "remaining_particles": [
+          41202491084.546524,
+          41202491084.546524,
+          288417437591.82574,
+          41202491084.546524
+        ],
+        "released_particles": [
+          58797508915.45345,
+          58797508915.45345,
+          411582562408.1741,
+          58797508915.45345
+        ],
+        "expected_launch_translational_energy_j": 1.7373783424924796e-08,
+        "actual_sampled_launch_translational_energy_j": 1.7360136182485435e-08,
+        "thermal_sampling_energy_residual_j": -1.364724243936096e-11,
+        "release_file_sha256": "2fae8c0c291537f44436684b6f3a3ba6c84ff1d2baefe45cefb5165eb809e417"
+      }
+    ],
+    "reservoirs": [
+      {
+        "name": "assumed_H_pool",
+        "state_id": "H:assumed_source_state",
+        "attempt_frequency_s": 1000000000000.0,
+        "activation_energy_ev": 0.8,
+        "desorption_energy_ev": 0.8,
+        "internal_energy_ev": 0.0,
+        "coverage_coefficient": 0.0,
+        "reference_coverage_m2": 2e+16,
+        "max_coverage_m2": 2e+16,
+        "kinetic_provenance": "Explicit illustrative independent surface reservoirs and common first-order rates; not calibrated water/SS304 desorption or reaction branching.",
+        "energy_provenance": "Illustrative independent removal/internal energy accounts; no reaction energy or fragment recoil model"
+      },
+      {
+        "name": "assumed_H2_pool",
+        "state_id": "H2:assumed_source_state",
+        "attempt_frequency_s": 1000000000000.0,
+        "activation_energy_ev": 0.8,
+        "desorption_energy_ev": 0.8,
+        "internal_energy_ev": 0.0,
+        "coverage_coefficient": 0.0,
+        "reference_coverage_m2": 2e+16,
+        "max_coverage_m2": 2e+16,
+        "kinetic_provenance": "Explicit illustrative independent surface reservoirs and common first-order rates; not calibrated water/SS304 desorption or reaction branching.",
+        "energy_provenance": "Illustrative independent removal/internal energy accounts; no reaction energy or fragment recoil model"
+      },
+      {
+        "name": "assumed_H2O_pool",
+        "state_id": "H2O:assumed_source_state",
+        "attempt_frequency_s": 1000000000000.0,
+        "activation_energy_ev": 0.8,
+        "desorption_energy_ev": 0.8,
+        "internal_energy_ev": 0.0,
+        "coverage_coefficient": 0.0,
+        "reference_coverage_m2": 2e+16,
+        "max_coverage_m2": 2e+16,
+        "kinetic_provenance": "Explicit illustrative independent surface reservoirs and common first-order rates; not calibrated water/SS304 desorption or reaction branching.",
+        "energy_provenance": "Illustrative independent removal/internal energy accounts; no reaction energy or fragment recoil model"
+      },
+      {
+        "name": "assumed_OH_pool",
+        "state_id": "OH:assumed_source_state",
+        "attempt_frequency_s": 1000000000000.0,
+        "activation_energy_ev": 0.8,
+        "desorption_energy_ev": 0.8,
+        "internal_energy_ev": 0.0,
+        "coverage_coefficient": 0.0,
+        "reference_coverage_m2": 2e+16,
+        "max_coverage_m2": 2e+16,
+        "kinetic_provenance": "Explicit illustrative independent surface reservoirs and common first-order rates; not calibrated water/SS304 desorption or reaction branching.",
+        "energy_provenance": "Illustrative independent removal/internal energy accounts; no reaction energy or fragment recoil model"
+      }
+    ],
+    "species_mass_kg": {
+      "H": 1.673557692882144e-27,
+      "H2": 3.347447493577608e-27,
+      "H2O": 2.991507623573765e-26,
+      "OH": 2.8240787905666204e-26
+    },
+    "mass_provenance": "Existing project approximate species-mass table, recorded explicitly; not isotope-resolved",
+    "initial_surface_particles": [
+      200000000000.00006,
+      200000000000.00006,
+      1400000000000.0,
+      200000000000.00006
+    ],
+    "seed": 20261028,
+    "packet_count": 3432000,
+    "frame_count": 65,
+    "inputs": {
+      "runs\\mfem_edge_current_source_v3\\top_surface.json": "76faa05ac14db33bc6581ab59d2ddcce5ed3ed2672ecfcb44ba672f8c6c8f6aa",
+      "runs\\mfem_edge_current_source_v3\\bottom_surface.json": "cd14db07eb0b7dbe40d105e097000aa1369a7b62cfa0be09c4631f2950b8d1a4",
+      "configs\\neutral_desorption_map_17133_provisional.json": "7f3013d7cc358219f4f65036ab3118eb9e0713ed2f6ca8e1fbd9bbd7125c951e"
+    },
+    "output_sha256": {
+      "bottom_release.h5": "2fae8c0c291537f44436684b6f3a3ba6c84ff1d2baefe45cefb5165eb809e417",
+      "case.json": "afeb48f88cb8613df5ea4e26195d88e11af372ca0595956da331a32deb7b1d6f",
+      "neutral_maps.npz": "81010435673a7105a6db8fa92db3f3a34a5d1475e45e48bf6e317d442b067925",
+      "particle_ledgers.json": "4b4551dc014fab8afd408dad0243c1666bf90d3aa1f047c37f7d07bb34720dd2",
+      "source_packets.npz": "2a7d48a02bedf819bdd4111e42e80082ed4b594da8ff3d757098eba9bbbc72fa",
+      "top_release.h5": "8926bd074b1682a36380b1da85d12d2b09af58f26984b4bf17ee260947ade9f5"
+    },
+    "source_sha256": {
+      "tools/run_neutral_desorption_map.py": "b65502ffcc43ebe8b59fa9444d75be10202b00fc9c1ff0d69b5d47b611eecdbe",
+      "mhdlab/neutral_vacuum_map.py": "ceb6b719701bb52cd24165e4b654200e0032b3e4539f6c4d8c1efc166f706d90",
+      "mhdlab/temkin_planar_boundary.py": "9e7d77028383fa7f3a32b0276e94ac19e15c1b7b5fe6b0a15917f795a72550de",
+      "mhdlab/planar_boundary.py": "ca577fbc4f408e66aa329e0ff7757b3df4a5d167e59787b4c752eae142780466",
+      "mhdlab/temkin_planar.py": "46138430dd0c541792e5e64a84ef9c1175daf9acef423fc28706644eb7debfa8",
+      "mhdlab/temkin_boundary.py": "3f57a74e87db0f8ad2f2261ca8f60d38bb1bd6677726707e613212db6e215bba",
+      "mhdlab/temkin_emission_time.py": "af231033b761c140405c33a683b7ab74716b018bc8401986fe40fae3a3aa720d"
+    }
+  },
+  "frame_count": 65,
+  "dimensions_pixels": [
+    1144,
+    946
+  ],
+  "requested_fps": 12.0,
+  "frame_duration_ms": [
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80
+  ],
+  "total_animation_duration_ms": 5200,
+  "physical_time_s": [
+    7.49788055492e-10,
+    1.6755726171249372e-09,
+    2.6013571787578746e-09,
+    3.527141740390812e-09,
+    4.452926302023749e-09,
+    5.378710863656687e-09,
+    6.304495425289624e-09,
+    7.2302799869225615e-09,
+    8.1560645485555e-09,
+    9.081849110188436e-09,
+    1.0007633671821374e-08,
+    1.0933418233454313e-08,
+    1.185920279508725e-08,
+    1.2784987356720186e-08,
+    1.3710771918353124e-08,
+    1.4636556479986062e-08,
+    1.5562341041618997e-08,
+    1.6488125603251934e-08,
+    1.741391016488487e-08,
+    1.833969472651781e-08,
+    1.9265479288150747e-08,
+    2.0191263849783683e-08,
+    2.1117048411416623e-08,
+    2.204283297304956e-08,
+    2.2968617534682496e-08,
+    2.3894402096315433e-08,
+    2.482018665794837e-08,
+    2.574597121958131e-08,
+    2.6671755781214246e-08,
+    2.7597540342847182e-08,
+    2.8523324904480122e-08,
+    2.944910946611306e-08,
+    3.0374894027746e-08,
+    3.130067858937894e-08,
+    3.222646315101187e-08,
+    3.315224771264481e-08,
+    3.4078032274277745e-08,
+    3.5003816835910685e-08,
+    3.5929601397543624e-08,
+    3.685538595917656e-08,
+    3.77811705208095e-08,
+    3.870695508244244e-08,
+    3.963273964407537e-08,
+    4.055852420570831e-08,
+    4.148430876734125e-08,
+    4.2410093328974184e-08,
+    4.3335877890607123e-08,
+    4.426166245224006e-08,
+    4.5187447013872997e-08,
+    4.6113231575505936e-08,
+    4.703901613713887e-08,
+    4.796480069877181e-08,
+    4.889058526040474e-08,
+    4.981636982203768e-08,
+    5.074215438367062e-08,
+    5.1667938945303556e-08,
+    5.2593723506936496e-08,
+    5.3519508068569435e-08,
+    5.444529263020237e-08,
+    5.537107719183531e-08,
+    5.629686175346825e-08,
+    5.722264631510118e-08,
+    5.814843087673412e-08,
+    5.9074215438367055e-08,
+    6e-08
+  ],
+  "display_color_scales": [
+    {
+      "species": "H",
+      "positive_min_m3": 7.080945395258351e-215,
+      "positive_max_m3": 1.4686170312914826e+20,
+      "log10_color_limits": [
+        12.166908560337152,
+        20.166908560337152
+      ],
+      "normalization": "fixed_per_species_log10",
+      "positive_bins_below_color_range": 169071,
+      "single_positive_value_color_axis_expanded_half_dex": false
+    },
+    {
+      "species": "H2",
+      "positive_min_m3": 6.248980068015115e-43,
+      "positive_max_m3": 1.8758514209563777e+20,
+      "log10_color_limits": [
+        12.273198436594125,
+        20.273198436594125
+      ],
+      "normalization": "fixed_per_species_log10",
+      "positive_bins_below_color_range": 123345,
+      "single_positive_value_color_axis_expanded_half_dex": false
+    },
+    {
+      "species": "H2O",
+      "positive_min_m3": 159259705.90970498,
+      "positive_max_m3": 2.063407836388223e+21,
+      "log10_color_limits": [
+        13.31458507556773,
+        21.31458507556773
+      ],
+      "normalization": "fixed_per_species_log10",
+      "positive_bins_below_color_range": 53861,
+      "single_positive_value_color_axis_expanded_half_dex": false
+    },
+    {
+      "species": "OH",
+      "positive_min_m3": 91016436.51747791,
+      "positive_max_m3": 2.943795845381919e+20,
+      "log10_color_limits": [
+        12.46890768803691,
+        20.46890768803691
+      ],
+      "normalization": "fixed_per_species_log10",
+      "positive_bins_below_color_range": 46279,
+      "single_positive_value_color_axis_expanded_half_dex": false
+    }
+  ],
+  "palette": "fixed_224_inferno_colors_plus32_greys; no dithering",
+  "density_values_changed": false,
+  "zeros_replaced_by_floor": false,
+  "time_interpolation": false,
+  "geometry_aspect": "declared_normal_axis_magnification",
+  "normal_axis_magnification": 4.0,
+  "requested_color_span_decades": 8.0,
+  "positive_under_range_display": "lowest colormap color; values retained and included in particle totals",
+  "foil_display": "solid rectangle overlay; source density arrays unchanged",
+  "peak_number_frame_index": 64,
+  "integrated_plot_particle_numbers": [
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      6.726986072104912,
+      6.724727185772731,
+      47.204436288162,
+      6.752650062959453
+    ],
+    [
+      13.524424904865937,
+      13.502264201167323,
+      94.57960711456057,
+      13.526075648847097
+    ],
+    [
+      20.334139925877523,
+      20.396160692638784,
+      142.61739962015602,
+      20.404616260646524
+    ],
+    [
+      27.428528197129936,
+      27.445488601634352,
+      191.7903087704815,
+      27.426639771785542
+    ],
+    [
+      34.743980909562396,
+      34.77779074352238,
+      243.29772049418048,
+      34.74322998113626
+    ],
+    [
+      42.539504222538675,
+      42.54217160504006,
+      297.8917728857692,
+      42.577403047210346
+    ],
+    [
+      51.0783290116871,
+      51.08112961539635,
+      357.5765554085578,
+      51.091905101828836
+    ],
+    [
+      61.033176049124286,
+      61.02024300121264,
+      427.35872389395183,
+      61.04918727056374
+    ],
+    [
+      74.1074886149895,
+      74.09946477061278,
+      518.7161969808311,
+      74.09516955797882
+    ],
+    [
+      96.0218359592004,
+      95.81331932960188,
+      671.7381811038393,
+      95.7256455641201
+    ],
+    [
+      140.26212464797905,
+      140.56178739581517,
+      981.0640313181843,
+      138.78072901585927
+    ],
+    [
+      252.20412160517267,
+      250.26330562379573,
+      1756.1955345592808,
+      252.18348413675724
+    ],
+    [
+      565.786432787379,
+      567.6560569462405,
+      3964.4156410000783,
+      569.905298889787
+    ],
+    [
+      1587.3243668196517,
+      1588.1048793588443,
+      11095.083412477125,
+      1579.714675579305
+    ],
+    [
+      5286.454680382038,
+      5360.8158824353995,
+      37199.852505638155,
+      5273.944934247737
+    ],
+    [
+      18234.100499645952,
+      18256.22807814,
+      128496.7221278023,
+      18334.00878095372
+    ],
+    [
+      66666.7851389503,
+      67444.12325716898,
+      469470.4583821568,
+      65890.43218810046
+    ],
+    [
+      225120.8407384701,
+      225498.01676148124,
+      1585883.9398777515,
+      225431.20111779758
+    ],
+    [
+      770314.7085889584,
+      761971.6685919304,
+      5389125.830509267,
+      774067.2974767727
+    ],
+    [
+      2520152.551279557,
+      2517979.4051866494,
+      17639586.60163394,
+      2504315.8269874607
+    ],
+    [
+      7977334.427572287,
+      7982371.561575634,
+      56125846.58633814,
+      7999416.098729171
+    ],
+    [
+      24136934.826153003,
+      24174744.99436734,
+      168266634.24070677,
+      24213176.23203661
+    ],
+    [
+      65311839.94662312,
+      65391647.71135653,
+      457771277.58870256,
+      65364699.409117796
+    ],
+    [
+      170643643.9901778,
+      172733542.82545686,
+      1201552924.3451562,
+      172662061.7438044
+    ],
+    [
+      409279738.05323505,
+      411058683.41464126,
+      2879844213.222682,
+      410841336.88453186
+    ],
+    [
+      880924791.0310063,
+      883659250.3925648,
+      6164456673.527334,
+      877253557.9542147
+    ],
+    [
+      1696680037.6866877,
+      1694666501.8055942,
+      11884284974.32223,
+      1697293148.0413263
+    ],
+    [
+      2893048617.9515395,
+      2895367759.881398,
+      20287848416.93831,
+      2906691511.4606495
+    ],
+    [
+      4217461546.6508603,
+      4221008455.432135,
+      29545280953.607502,
+      4228867050.467928
+    ],
+    [
+      5314560895.783217,
+      5312572753.053024,
+      37201252451.47199,
+      5311836017.3744135
+    ],
+    [
+      6018316141.677973,
+      6019896058.236156,
+      42130293342.74249,
+      6016409600.657144
+    ],
+    [
+      6393789229.54033,
+      6395101221.523882,
+      44755662765.16544,
+      6392372781.3165655
+    ],
+    [
+      6658626930.274461,
+      6659127820.525247,
+      46611135916.20174,
+      6658972871.943768
+    ],
+    [
+      7061685926.793221,
+      7060288661.95074,
+      49416414166.514015,
+      7060166846.706963
+    ],
+    [
+      7752116844.928986,
+      7746910667.947491,
+      54232884200.687775,
+      7743241603.178393
+    ],
+    [
+      8774751968.695757,
+      8790008219.211061,
+      61449395887.961044,
+      8792736429.648281
+    ],
+    [
+      10082764207.343443,
+      10084874124.459599,
+      70545275907.14326,
+      10072023880.583271
+    ],
+    [
+      11355973470.207613,
+      11356410512.749575,
+      79483639880.08049,
+      11354220543.881344
+    ],
+    [
+      12458075092.12643,
+      12461313834.04604,
+      87236663152.18958,
+      12454331114.237812
+    ],
+    [
+      13348073191.330042,
+      13347535414.508186,
+      93412966172.625,
+      13340656208.540802
+    ],
+    [
+      14162916390.341455,
+      14172213363.505093,
+      99166608622.4584,
+      14169864930.92737
+    ],
+    [
+      15080713182.844345,
+      15079425678.175966,
+      105551916701.2666,
+      15079889135.169579
+    ],
+    [
+      16169629861.206928,
+      16174815410.101433,
+      113194974332.95851,
+      16171849938.78145
+    ],
+    [
+      17384642314.940163,
+      17374965936.88273,
+      121619540612.92278,
+      17372422478.394238
+    ],
+    [
+      18671240332.182934,
+      18673498002.91887,
+      130752683852.04337,
+      18682403568.216537
+    ],
+    [
+      20115191099.55143,
+      20103828207.58001,
+      140762267750.03827,
+      20110401427.66563
+    ],
+    [
+      21619568722.89456,
+      21618143317.474285,
+      151352848726.76468,
+      21627435600.834145
+    ],
+    [
+      23191710395.24704,
+      23196543061.34543,
+      162421482326.92773,
+      23205405253.24715
+    ],
+    [
+      24806536932.62029,
+      24794316297.652256,
+      173608462963.72043,
+      24805933650.26585
+    ],
+    [
+      26481753325.93331,
+      26482994724.900635,
+      185416755235.2525,
+      26499982421.284527
+    ],
+    [
+      28328523629.098938,
+      28318907837.11009,
+      198284117645.436,
+      28337007879.21491
+    ],
+    [
+      30452112208.60968,
+      30454654018.22599,
+      213122860861.70056,
+      30439166001.361916
+    ],
+    [
+      32814688461.60831,
+      32833209123.193615,
+      229721222456.83633,
+      32814687346.911953
+    ],
+    [
+      35403227688.13473,
+      35397718896.12581,
+      247800397092.31076,
+      35397309395.18217
+    ],
+    [
+      38212095539.40155,
+      38191356210.70766,
+      267490318987.14923,
+      38203627870.0407
+    ],
+    [
+      41206704539.48605,
+      41197279738.551125,
+      288639214414.8355,
+      41207445068.63293
+    ],
+    [
+      44555862306.65157,
+      44530883922.7767,
+      311678405355.6486,
+      44508948376.30821
+    ],
+    [
+      48279763311.33401,
+      48291150174.30824,
+      337946959122.88257,
+      48289612848.13304
+    ],
+    [
+      52407221743.47301,
+      52403683280.02966,
+      366872684896.7692,
+      52377308874.809784
+    ],
+    [
+      56998683948.4662,
+      56986990910.09357,
+      398855249195.0231,
+      57007794656.53303
+    ],
+    [
+      62082643439.02742,
+      62063998806.184746,
+      434262600287.66815,
+      62043798596.36633
+    ],
+    [
+      67524403430.76827,
+      67544819177.28799,
+      472766096296.5549,
+      67570517787.092094
+    ],
+    [
+      73510068317.44221,
+      73464577403.70923,
+      514418763673.33923,
+      73454389121.2224
+    ],
+    [
+      79856727811.96317,
+      79861561986.73558,
+      559030933907.148,
+      79861561986.73558
+    ]
+  ],
+  "physical_model_qualified_by_renderer": false,
+  "runtime": {
+    "python": "3.14.4",
+    "numpy": "2.5.1",
+    "matplotlib": "3.11.0",
+    "pillow": "12.3.0"
+  },
+  "renderer_source_sha256": "c6a6848ba21051785f2d3f8599d8d9dad1ac3ab98ae5782f2d6572f330656ed0",
+  "output_sha256": {
+    "neutral_transport.gif": "2593a9310c36038772279c9df5ed929ab35d999dab8d824edebe644069f9c474",
+    "preview_first.png": "b6f09acc28d1987ea3f5bf1b8d72e96aaf1ac98b285d4ba8bfd4076c9c10abf4",
+    "preview_last.png": "fd224cc271a7c1512024f14091da3b50525c4f68d38634f2e5963aaf42674c98",
+    "preview_peak.png": "fd224cc271a7c1512024f14091da3b50525c4f68d38634f2e5963aaf42674c98"
+  }
+}

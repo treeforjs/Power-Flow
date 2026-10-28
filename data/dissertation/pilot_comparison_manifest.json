@@ -1,0 +1,383 @@
+{
+  "schema": "mhdlab-dissertation-pilot-comparison-v1",
+  "revision": 2,
+  "heating_backend": {
+    "implementation": "mfem_joule",
+    "entrypoint": "miniapps/electromagnetics/joule.cpp",
+    "source_repository": "https://github.com/mfem/mfem",
+    "inspected_version": "4.10",
+    "physical_case_qualified": false,
+    "flash_acquisition_required": false
+  },
+  "purpose": "Preserve literal published constraints and categorical reconstruction assumptions before neutral inference.",
+  "source": {
+    "dissertation_pdf_sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+    "repository_item_url": "https://deepblue.lib.umich.edu/items/9ccfa886-0b19-4bd8-b3b2-bb685b9ddefc",
+    "raw_data_status": "unavailable",
+    "historical_session": "01a14f33-a55a-713f-b2f3-1dc6d4cc10c6"
+  },
+  "artifacts": [
+    {
+      "path": "data/dissertation/figure_4_21_wavelength_lineouts.csv",
+      "sha256": "8047014341fd4f2e47d242857f51b1305dd06ec98196f151cd41b8422ef8328d"
+    },
+    {
+      "path": "data/dissertation/figure_4_21_wavelength_lineouts.json",
+      "sha256": "10002d9571c6b5dd808831d8508598ec75c492b668d36a0ea6e6940aa5e87f29"
+    },
+    {
+      "path": "data/dissertation/figure_4_20_profiles.csv",
+      "sha256": "53a0ac56e11b1093b2adfed470645b59424bc84e6ed7831638c0054a26605fc9"
+    },
+    {
+      "path": "data/dissertation/figure_4_20_profiles.json",
+      "sha256": "c3b2e3e5936bf211d98f46e5903565e1687b5ca6816113c1a6307c38ad3cfc98"
+    },
+    {
+      "path": "data/dissertation/figure_4_20_wavelength_lineouts.csv",
+      "sha256": "73c48deeb0ee34c1112e8f51b9f8f32f789ed7d8acceacf2b2ec5e7b826fc87b"
+    },
+    {
+      "path": "data/dissertation/figure_4_20_wavelength_lineouts.json",
+      "sha256": "3e3a341ffb0ffc7c5cdb951fedb0f61d7026bd8444daf9c18c1fb7aca6e26b4d"
+    },
+    {
+      "path": "data/dissertation/observed_spectrum_4_15.csv",
+      "sha256": "98547aa24d362d93cffc859ea49e4c82553081b3d0d578fab7e35ab6032ac3ce"
+    },
+    {
+      "path": "data/dissertation/observed_spectrum_4_15.json",
+      "sha256": "ce253146d635d8f69cd180d97cc7b2d44b834aa6098614232e9e02411e6c4c61"
+    },
+    {
+      "path": "data/dissertation/figure_4_18_calibration.csv",
+      "sha256": "3f37daca2aa6f6f023870005294281c33148f84ba4c5474889c956dad7a95e08"
+    },
+    {
+      "path": "data/dissertation/figure_4_18_calibration.json",
+      "sha256": "191b38863c08757062080fe887f6bb666679b5dee7551a8428642f56feda6c6f"
+    },
+    {
+      "path": "data/dissertation/figure_4_19_gain.csv",
+      "sha256": "623fb7ce54b39b3b474ba30baaab1e74282b95ba78b89cd28158f663778311c1"
+    },
+    {
+      "path": "data/dissertation/figure_4_19_gain.json",
+      "sha256": "13f2c33f164ea8e4f37943b5f0899412787c1d642e0e228f165049e8eeee1cba"
+    },
+    {
+      "path": "data/dissertation/calibration_primary_source_manifest.json",
+      "sha256": "6d7bd4cd0413edcd888eadde7ba02a7137c6f01d18ea126fe77da3527e06695d"
+    },
+    {
+      "path": "data/dissertation/recovery_manifest.yaml",
+      "sha256": "baa2782f1aceebe0fea8fbeef48e48bae5a9908c25e20924f669284d69840645"
+    }
+  ],
+  "observations": [
+    {
+      "id": "15750_4_20_gap",
+      "shot": 15750,
+      "figure": "4.20",
+      "printed_page": 84,
+      "pdf_page_1based": 109,
+      "role": "pilot",
+      "status": "reconstructed",
+      "artifact": "data/dissertation/figure_4_20_profiles.csv",
+      "sidecar": "data/dissertation/figure_4_20_profiles.json",
+      "quantity": "plotted_transition_density",
+      "signal_units": "emitters/cm^3",
+      "coordinate": "distance_from_cathode_mm",
+      "coordinate_units": "mm",
+      "series": [
+        "H",
+        "H2"
+      ],
+      "rows": 106,
+      "coordinate_column": "gap_mm",
+      "center_column": "nominal_transition_density_cm3",
+      "lower_column": "transition_density_digitization_lower_cm3",
+      "upper_column": "transition_density_digitization_upper_cm3",
+      "spatial_support": "central H Lyman-alpha and H2 approximately 161 nm profiles across electrode gap, width integrated",
+      "normalization": "published derived ordinate; no fresh normalization",
+      "gate_duration_s": 3e-09,
+      "gate_start_s": null,
+      "gate_end_s": null,
+      "time_registration": "unavailable",
+      "reported_table_time_before_breakdown_ns": 30,
+      "table_time_is_gate_endpoint": false,
+      "scale_role": "published_derived_unscaled",
+      "allowed_C_abs": [
+        1
+      ],
+      "mapping_status": "unavailable",
+      "mapping_needed": "owner-supplied radiance-to-published transition-density reduction with per-transition assignment and collection normalization",
+      "covariance_status": "unavailable",
+      "envelope_role": "correlated_digitization_readout",
+      "collection_kernel_status": "unavailable"
+    },
+    {
+      "id": "15750_4_20_wavelength",
+      "shot": 15750,
+      "figure": "4.20",
+      "printed_page": 84,
+      "pdf_page_1based": 109,
+      "role": "pilot",
+      "status": "reconstructed_partial",
+      "artifact": "data/dissertation/figure_4_20_wavelength_lineouts.csv",
+      "sidecar": "data/dissertation/figure_4_20_wavelength_lineouts.json",
+      "quantity": "plotted_transition_density",
+      "signal_units": "emitters/cm^3",
+      "coordinate": "wavelength_nm",
+      "coordinate_units": "nm",
+      "series": [
+        "top",
+        "middle",
+        "bottom"
+      ],
+      "rows": 157,
+      "coordinate_column": "wavelength_nm",
+      "center_column": "nominal_transition_density_cm3",
+      "lower_column": "transition_density_lower_cm3",
+      "upper_column": "transition_density_upper_cm3",
+      "support_segment_column": "support_segment_id",
+      "spatial_support": "three displayed dashed bands; exact collection kernel unresolved",
+      "normalization": "published derived ordinate; no fresh normalization",
+      "gate_duration_s": 3e-09,
+      "gate_start_s": null,
+      "gate_end_s": null,
+      "time_registration": "unavailable",
+      "reported_table_time_before_breakdown_ns": 30,
+      "table_time_is_gate_endpoint": false,
+      "scale_role": "published_derived_unscaled",
+      "allowed_C_abs": [
+        1
+      ],
+      "mapping_status": "unavailable",
+      "mapping_needed": "owner-supplied radiance-to-published transition-density reduction per wavelength sample; broad molecular ordinate is not one known upper state",
+      "covariance_status": "unavailable",
+      "envelope_role": "correlated_digitization_readout",
+      "missing_segments_interpolated": false,
+      "integrals_supported": false,
+      "collection_kernel_status": "unavailable"
+    },
+    {
+      "id": "15765_4_21_vuv",
+      "shot": 15765,
+      "figure": "4.21",
+      "printed_page": 85,
+      "pdf_page_1based": 110,
+      "appendix_duplicate": "A.14",
+      "role": "first_additional_vuv_case",
+      "status": "reconstructed_partial",
+      "artifact": "data/dissertation/figure_4_21_wavelength_lineouts.csv",
+      "sidecar": "data/dissertation/figure_4_21_wavelength_lineouts.json",
+      "rows": 183,
+      "coordinate": "wavelength_nm",
+      "coordinate_units": "nm",
+      "series": [
+        "top",
+        "middle",
+        "bottom"
+      ],
+      "coordinate_column": "wavelength_nm",
+      "center_column": "nominal_transition_density_cm3",
+      "lower_column": "transition_density_lower_cm3",
+      "upper_column": "transition_density_upper_cm3",
+      "support_segment_column": "support_segment_id",
+      "spatial_support": "three displayed dashed bands; exact collection kernel unresolved",
+      "normalization": "published derived ordinate; no fresh normalization",
+      "covariance_status": "unavailable",
+      "envelope_role": "correlated_digitization_readout",
+      "missing_segments_interpolated": false,
+      "integrals_supported": false,
+      "quantity": "plotted_transition_density",
+      "signal_units": "emitters/cm^3",
+      "foil_material": "SS304",
+      "foil_thickness_um": 400,
+      "gate_duration_s": 3e-09,
+      "gate_start_s": null,
+      "gate_end_s": null,
+      "time_registration": "unavailable",
+      "reported_table_time_before_breakdown_ns": 29,
+      "table_time_is_gate_endpoint": false,
+      "scale_role": "published_derived_unscaled",
+      "allowed_C_abs": [
+        1
+      ],
+      "mapping_status": "unavailable",
+      "same_shot_visible_is_separate_observation": true,
+      "collection_kernel_status": "unavailable"
+    },
+    {
+      "id": "15765_4_15_visible",
+      "shot": 15765,
+      "figure": "4.15",
+      "printed_page": 75,
+      "pdf_page_1based": 100,
+      "role": "separate_visible_context",
+      "status": "reconstructed_partial",
+      "artifact": "data/dissertation/observed_spectrum_4_15.csv",
+      "sidecar": "data/dissertation/observed_spectrum_4_15.json",
+      "quantity": "arbitrary_intensity",
+      "signal_units": "arbitrary",
+      "coordinate": "wavelength_nm",
+      "coordinate_units": "nm",
+      "rows": 136,
+      "series": [
+        "SVS Lineout 3: 330 ns"
+      ],
+      "time_registration": "unavailable",
+      "gate_start_s": null,
+      "gate_end_s": null,
+      "normalization": "literal Intensity [arb.]",
+      "scale_role": "arbitrary_visible_display",
+      "absolute_vuv_constraint": false,
+      "mapping_status": "unavailable",
+      "collection_kernel_status": "unavailable"
+    }
+  ],
+  "calibration": {
+    "scale_scan": {
+      "symbol": "C_abs",
+      "definition": "scenario_corrected_radiance = C_abs * nominal_radiance",
+      "values": [
+        0.01,
+        0.012589254117941675,
+        0.015848931924611134,
+        0.0199526231496888,
+        0.025118864315095794,
+        0.03162277660168379,
+        0.039810717055349734,
+        0.05011872336272725,
+        0.06309573444801933,
+        0.07943282347242814,
+        0.1,
+        0.12589254117941676,
+        0.15848931924611143,
+        0.19952623149688797,
+        0.25118864315095807,
+        0.31622776601683794,
+        0.3981071705534973,
+        0.5011872336272725,
+        0.6309573444801934,
+        0.7943282347242817,
+        1,
+        1.2589254117941675,
+        1.584893192461114,
+        1.9952623149688808,
+        2.5118864315095824,
+        3.1622776601683795,
+        3.981071705534973,
+        5.011872336272725,
+        6.309573444801936,
+        7.943282347242821,
+        10,
+        12.589254117941675,
+        15.848931924611142,
+        19.952623149688808,
+        25.11886431509582,
+        31.622776601683793,
+        39.810717055349734,
+        50.11872336272725,
+        63.095734448019364,
+        79.43282347242821,
+        100
+      ],
+      "generator": "10**linspace(-2,2,41)",
+      "range_role": "exploratory_sensitivity_not_confidence",
+      "apply_only_to": "admissible nominal radiance reconstruction",
+      "apply_to_published_derived_density": false
+    },
+    "unit_scenarios": [
+      {
+        "id": "literal_per_mm",
+        "status": "literal_evidence",
+        "axis_unit": "microW/(sr nm mm)",
+        "radiance_admissible": false,
+        "required_evidence": "line-source normalization or missing dimensional mapping"
+      },
+      {
+        "id": "area_label_hypothesis",
+        "status": "unverified_reconstruction_assumption",
+        "axis_unit_assumption": "microW/(sr nm mm^2)",
+        "radiance_admissible": false,
+        "required_evidence": "independent area-unit interpretation plus full reduction/throughput mapping; no squared-mm substitution is active"
+      }
+    ],
+    "reduction_scenarios": [
+      {
+        "id": "literal_transition_density",
+        "status": "active_display_only",
+        "output_quantity": "plotted_transition_density",
+        "absolute_inference_admissible": false
+      },
+      {
+        "id": "line_integrated_upper_state_hypothesis",
+        "status": "unverified_reconstruction_assumption",
+        "output_quantity_if_qualified": "line_integrated_radiance",
+        "absolute_inference_admissible": false,
+        "required_evidence": "known upper-state identity and A value per displayed datum, L0=5 mm width convention, line integration, angular convention and reduction ownership"
+      },
+      {
+        "id": "spectral_density_hypothesis",
+        "status": "unverified_reconstruction_assumption",
+        "output_quantity_if_qualified": "spectral_radiance_per_nm",
+        "absolute_inference_admissible": false,
+        "required_evidence": "per-bin/transition conversion, effective spectral bandwidth, normalized line-profile convention and published reduction map"
+      }
+    ],
+    "wavelength_response_scenarios": [
+      {
+        "id": "unresolved_as_published",
+        "status": "active_unresolved",
+        "numerical_response_table": null
+      },
+      {
+        "id": "separate_shot_relay_response",
+        "status": "requires_sourced_data",
+        "required_evidence": "S20/MgF2 detector and spectrometer baseline plus independently owned two-mirror/window response, no double counting"
+      }
+    ],
+    "lamp_etendue_m2_sr": 3.7e-08,
+    "lamp_etendue_is_shot_etendue": false,
+    "shot_etendue_m2_sr": null,
+    "numerical_absolute_correction_established": false
+  },
+  "comparison_policy": {
+    "score": "maximum asymmetric normalized departure from recovered center to lower/upper display envelope; score <=1 denotes readout compatibility only",
+    "coordinate_sampling": "owner predictions at identical retained nominal coordinates and literal quantity; x envelopes are separate readout information",
+    "statistical_likelihood": false,
+    "glyph_bounds_are_noise": false,
+    "dense_digitization_creates_statistical_weight": false,
+    "missing_segments": "retain explicit support_segment_id; no interpolation/integrals over gaps",
+    "neutral_coordinates": [
+      "one_initial_parent_water_inventory",
+      "one_declared_neutral_thermal_coordinate"
+    ],
+    "neutral_thermal_interpretation": "translational temperature only with qualified velocity/line-profile sensitivity; rotational/vibrational diagnostics stay separate",
+    "hypotheses": [
+      "same_complete_joint_source_uniformly_redistributed_per_face",
+      "finite_width_vs_independent_uniform_heating_matched_drive"
+    ],
+    "heating_benchmark_shot": 17133,
+    "heating_benchmark_is_pilot_drive": false
+  },
+  "readiness": {
+    "evidence_ready": true,
+    "absolute_radiance_reconstruction_ready": false,
+    "physical_inference_ready": false,
+    "coverage_only_blocking_evidence": [
+      "sourced monolayer convention for coverage"
+    ],
+    "blocking_evidence": [
+      "qualified physical-to-published reduction map",
+      "registered signed photon gate and collection kernel",
+      "qualified MFEM Joule heating and conservative source provenance",
+      "Raikou physical boundary source acceptance",
+      "resolved physical population ensemble and molecular/state/rate coverage",
+      "optical-depth or resolved-transfer admission",
+      "sourced monolayer convention for coverage"
+    ]
+  }
+}

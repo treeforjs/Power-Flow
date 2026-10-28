@@ -20,6 +20,7 @@ import hashlib
 import io
 import json
 import math
+import re
 from numbers import Real
 from pathlib import Path
 
@@ -29,6 +30,7 @@ from .heating_benchmarks import ConstantConductivityHalfSpace
 
 
 HEATING_PROFILE_SCHEMA = "mhdlab-heating-profile-v1"
+MFEM_HEATING_PROFILE_SCHEMA = "mhdlab-heating-profile-v2"
 HEATING_COMPARISON_SCHEMA = "mhdlab-heating-comparison-v1"
 CSV_COLUMNS = ("depth_left_m", "depth_right_m", "bx_t", "jz_a_m2", "joule_w_m3")
 PROFILE_UNITS = {
@@ -93,8 +95,8 @@ class HeatingProfile:
     ``depth_edges_m`` is nonnegative inward conductor depth; the lineout may
     start below the surface.  All three fields have one value per cell and
     refer to the same strictly positive time after the boundary step.  A
-    FLASH label requires a supplied version; labels do not establish that a
-    real case satisfies the benchmark assumptions.
+    FLASH or MFEM labels require their respective identity metadata; labels do
+    not establish that a real case satisfies the benchmark assumptions.
     """
 
     time_s: float
@@ -106,6 +108,8 @@ class HeatingProfile:
     run_id: str
     source_reference: str
     flash_version: str = ""
+    mfem_version: str = ""
+    source_revision: str = ""
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "time_s", _real(self.time_s, "time_s", positive=True))
@@ -120,16 +124,26 @@ class HeatingProfile:
             if name == "joule_power_w_m3" and np.any(value < 0):
                 raise ValueError("joule_power_w_m3 must be nonnegative")
             object.__setattr__(self, name, value)
-        if self.source_kind not in ("flash", "synthetic") or not isinstance(self.source_kind, str):
-            raise ValueError("source_kind must be 'flash' or 'synthetic'")
+        if self.source_kind not in ("flash", "mfem", "synthetic") or not isinstance(self.source_kind, str):
+            raise ValueError("source_kind must be 'flash', 'mfem' or 'synthetic'")
         _text(self.run_id, "run_id")
         _text(self.source_reference, "source_reference")
         _text(self.flash_version, "flash_version", allow_empty=self.source_kind != "flash")
+        _text(self.mfem_version, "mfem_version", allow_empty=True)
+        _text(self.source_revision, "source_revision", allow_empty=True)
+        if self.source_kind == "mfem" or self.mfem_version or self.source_revision:
+            if self.source_kind == "flash" or self.flash_version:
+                raise ValueError("MFEM profiles cannot carry FLASH provenance")
+            _text(self.mfem_version, "mfem_version")
+            if self.mfem_version.strip().lower() in {"pending", "unknown", "unavailable", "tbd", "n/a"}:
+                raise ValueError("MFEM version cannot be placeholder evidence")
+            if re.fullmatch(r"[0-9a-f]{40}", self.source_revision) is None:
+                raise ValueError("MFEM source_revision requires a full source commit")
 
     @property
     def metadata(self) -> dict:
         """Return an independent JSON-compatible provenance and units record."""
-        return {
+        metadata = {
             "schema": HEATING_PROFILE_SCHEMA,
             "time_s": self.time_s, "source_kind": self.source_kind,
             "run_id": self.run_id, "source_reference": self.source_reference,
@@ -137,6 +151,10 @@ class HeatingProfile:
             "coordinate_system": COORDINATE_SYSTEM,
             "cell_sampling": "cell_average", "units": dict(PROFILE_UNITS),
         }
+        if self.source_kind == "mfem" or self.mfem_version:
+            metadata.update(schema=MFEM_HEATING_PROFILE_SCHEMA, heating_backend="mfem_joule",
+                            mfem_version=self.mfem_version, source_revision=self.source_revision)
+        return metadata
 
 
 def _log_sum(terms: list[float]) -> float:
@@ -298,10 +316,16 @@ def load_heating_profile_csv(path, *, metadata_path=None) -> HeatingProfile:
         raise ValueError(f"cannot read heating CSV and required metadata: {exc}") from exc
     expected_keys = {"schema", "time_s", "source_kind", "run_id", "source_reference", "flash_version",
                      "coordinate_system", "cell_sampling", "units", "csv_sha256"}
+    if isinstance(metadata, dict) and metadata.get("schema") == MFEM_HEATING_PROFILE_SCHEMA:
+        expected_keys |= {"heating_backend", "mfem_version", "source_revision"}
+        if metadata.get("heating_backend") != "mfem_joule" or not metadata.get("mfem_version"):
+            raise ValueError("v2 heating metadata requires explicit MFEM Joule provenance")
     if not isinstance(metadata, dict) or set(metadata) != expected_keys:
         raise ValueError("heating metadata must contain exactly the canonical schema fields")
-    if metadata["schema"] != HEATING_PROFILE_SCHEMA or metadata["units"] != PROFILE_UNITS:
+    if metadata["schema"] not in {HEATING_PROFILE_SCHEMA, MFEM_HEATING_PROFILE_SCHEMA} or metadata["units"] != PROFILE_UNITS:
         raise ValueError("heating metadata schema or fixed SI units are inconsistent")
+    if metadata["schema"] == HEATING_PROFILE_SCHEMA and metadata["source_kind"] == "mfem":
+        raise ValueError("MFEM profiles require v2 provenance; a v1 downgrade is unsupported")
     if metadata["coordinate_system"] != COORDINATE_SYSTEM or metadata["cell_sampling"] != "cell_average":
         raise ValueError("heating metadata must describe the canonical cell-average coordinates")
     if metadata["csv_sha256"] != hashlib.sha256(payload).hexdigest():
@@ -330,4 +354,5 @@ def load_heating_profile_csv(path, *, metadata_path=None) -> HeatingProfile:
         magnetic_field_t=table[:, 2], current_density_a_m2=table[:, 3], joule_power_w_m3=table[:, 4],
         source_kind=metadata["source_kind"], run_id=metadata["run_id"],
         source_reference=metadata["source_reference"], flash_version=metadata["flash_version"],
+        mfem_version=metadata.get("mfem_version", ""), source_revision=metadata.get("source_revision", ""),
     )

@@ -1,0 +1,437 @@
+{
+  "schema": "mhdlab-mfem-edge-sensitivity-v1",
+  "status": "provisional",
+  "physical_experiment_prediction": false,
+  "fixed_probe_depth_m": 1.25e-05,
+  "band_sampling": "cell-average values weighted by exact geometric overlap; piecewise-constant spatial reconstruction",
+  "lineout_sampling": "interior values reconstructed linearly between cell-average depth centers, then conservatively averaged onto baseline width bins; true surface patches projected by width overlap",
+  "cases": {
+    "runs\\mfem_edge_current_source_v3": {
+      "run_record_sha256": "68169ede3120360c88f06a34d5acd68fb905c9323d7799de60924287a464e674",
+      "configuration": {
+        "schema": "mhdlab-mfem-edge-current-source-v1",
+        "status": "provisional",
+        "physical_experiment_prediction": false,
+        "width_cells": 64,
+        "thickness_cells": 8,
+        "outside_cells": 16,
+        "gap_cells": 48,
+        "foil_width_m": 0.005,
+        "foil_thickness_m": 0.0002,
+        "gap_m": 0.005,
+        "exterior_half_extent_m": 0.01,
+        "current_length_m": 0.01,
+        "electrical_conductivity_s_m": 3000000.0,
+        "volumetric_heat_capacity_j_m3_k": 2800000.0,
+        "thermal_conductivity_w_m_k": 16.0,
+        "initial_temperature_k": 300.0,
+        "maximum_time_step_s": 5e-10,
+        "stop_time_s": 6e-08,
+        "required_snapshot_times_s": [
+          4e-08,
+          6e-08
+        ],
+        "current_trace_csv": "data/dissertation/shot_17133_current.csv",
+        "current_trace_provenance": "data/dissertation/shot_17133_current.json",
+        "clock_scenario": "Preserve unshifted published C.19 time. Assume it is comparable to the published ALEGRA clock; this registration is unverified.",
+        "initial_state_scenario": "At the first supported trace knot, initialize uniform DC conductor currents +/-I0, solve the static magnetic A_z field, and set temperature to300K. Prehistory and deposited heat before this timestamp are unknown, not reconstructed.",
+        "material_provenance": "Explicit constant illustrative conductivity/heat capacity/thermal conductivity; not a fitted or qualified SS304 property model. No phase change or temperature feedback."
+      },
+      "drive_sha256": "b3cd227c46bd93d4893abf51da136c1f6344c68b4befe6a8e2a60c1ad6912b87",
+      "diagnostics": {
+        "final": {
+          "time_s": 6e-08,
+          "target_current_a": 500734.77599628345,
+          "foil_current_a": 500734.7759962852,
+          "return_current_a": -500734.77599630505,
+          "foil_gradient_v_m": 2791708.476423871,
+          "return_gradient_v_m": -2791708.476378955,
+          "foil_joule_power_w": 1098723069.7576675,
+          "return_joule_power_w": 1098723069.7626474,
+          "total_joule_power_w": 2197446139.520315,
+          "magnetic_energy_j": 677.7824388010984,
+          "thermal_energy_j": 41.263459992382685,
+          "backward_euler_magnetic_damping_j": 0.046970591039779526,
+          "drive_work_increment_j": 12.232437019256688,
+          "em_balance_residual_j": -4.0113051769097297e-13,
+          "thermal_balance_residual_j": -4.873879078104437e-14,
+          "edge_to_center_joule_ratio": 7.805849888328859,
+          "edge_mean_delta_temperature_k": 2324.9716981683155,
+          "center_mean_delta_temperature_k": 269.8684068688981,
+          "linear_iterations": 49.0,
+          "linear_relative_residual": 8.355611178945352e-14,
+          "schur_condition_proxy": 6.0810311690905205
+        },
+        "maximum_current_constraint_error_a": 2.4738255888223648e-08,
+        "maximum_em_balance_residual_j": 6.133767105342969e-12,
+        "maximum_thermal_balance_residual_j": 7.993605777301127e-14,
+        "maximum_edge_to_center_joule_ratio": 10.292357551859254
+      },
+      "snapshots": {
+        "4e-08": {
+          "edge_mean_temperature_k": 932.2166108863858,
+          "center_mean_temperature_k": 364.8916901528556,
+          "edge_mean_joule_power_w_m3": 1.5079563422989587e+17,
+          "center_mean_joule_power_w_m3": 1.6400413784755094e+16,
+          "edge_to_center_joule_ratio": 9.194623758216823,
+          "maximum_cell_average_temperature_k": 3354.4639561474946,
+          "top_maximum_patch_temperature_k": 3173.571112995869,
+          "top_mean_patch_temperature_k": 573.8824630885601,
+          "bottom_maximum_patch_temperature_k": 3716.581733799785,
+          "bottom_mean_patch_temperature_k": 751.1684478876565,
+          "lineout_change_from_baseline": {
+            "interior_temperature_k": {
+              "rms_absolute_change": 0.0,
+              "rms_change_over_baseline_rms": 0.0,
+              "maximum_absolute_change": 0.0
+            },
+            "interior_current_density_a_m2": {
+              "rms_absolute_change": 0.0,
+              "rms_change_over_baseline_rms": 0.0,
+              "maximum_absolute_change": 0.0
+            },
+            "interior_joule_power_w_m3": {
+              "rms_absolute_change": 0.0,
+              "rms_change_over_baseline_rms": 0.0,
+              "maximum_absolute_change": 0.0
+            },
+            "top_temperature_k": {
+              "rms_absolute_change": 0.0,
+              "rms_change_over_baseline_rms": 0.0,
+              "maximum_absolute_change": 0.0
+            },
+            "bottom_temperature_k": {
+              "rms_absolute_change": 0.0,
+              "rms_change_over_baseline_rms": 0.0,
+              "maximum_absolute_change": 0.0
+            }
+          }
+        },
+        "6e-08": {
+          "edge_mean_temperature_k": 2650.4806768683643,
+          "center_mean_temperature_k": 569.8398148294027,
+          "edge_mean_joule_power_w_m3": 3.3593781130026054e+17,
+          "center_mean_joule_power_w_m3": 4.259930587230078e+16,
+          "edge_to_center_joule_ratio": 7.885992610003919,
+          "maximum_cell_average_temperature_k": 9089.323475831694,
+          "top_maximum_patch_temperature_k": 8448.790511508258,
+          "top_mean_patch_temperature_k": 1227.4218948651214,
+          "bottom_maximum_patch_temperature_k": 9811.043409779431,
+          "bottom_mean_patch_temperature_k": 1711.910827266236,
+          "lineout_change_from_baseline": {
+            "interior_temperature_k": {
+              "rms_absolute_change": 0.0,
+              "rms_change_over_baseline_rms": 0.0,
+              "maximum_absolute_change": 0.0
+            },
+            "interior_current_density_a_m2": {
+              "rms_absolute_change": 0.0,
+              "rms_change_over_baseline_rms": 0.0,
+              "maximum_absolute_change": 0.0
+            },
+            "interior_joule_power_w_m3": {
+              "rms_absolute_change": 0.0,
+              "rms_change_over_baseline_rms": 0.0,
+              "maximum_absolute_change": 0.0
+            },
+            "top_temperature_k": {
+              "rms_absolute_change": 0.0,
+              "rms_change_over_baseline_rms": 0.0,
+              "maximum_absolute_change": 0.0
+            },
+            "bottom_temperature_k": {
+              "rms_absolute_change": 0.0,
+              "rms_change_over_baseline_rms": 0.0,
+              "maximum_absolute_change": 0.0
+            }
+          }
+        }
+      }
+    },
+    "runs\\mfem_edge_current_mesh_refined": {
+      "run_record_sha256": "7e1cce267fa95bab8ec02ce9e7df18076e32d519e23ad94773e002e922513731",
+      "configuration": {
+        "schema": "mhdlab-mfem-edge-current-source-v1",
+        "status": "provisional",
+        "physical_experiment_prediction": false,
+        "width_cells": 128,
+        "thickness_cells": 16,
+        "outside_cells": 32,
+        "gap_cells": 96,
+        "foil_width_m": 0.005,
+        "foil_thickness_m": 0.0002,
+        "gap_m": 0.005,
+        "exterior_half_extent_m": 0.01,
+        "current_length_m": 0.01,
+        "electrical_conductivity_s_m": 3000000.0,
+        "volumetric_heat_capacity_j_m3_k": 2800000.0,
+        "thermal_conductivity_w_m_k": 16.0,
+        "initial_temperature_k": 300.0,
+        "maximum_time_step_s": 5e-10,
+        "stop_time_s": 6e-08,
+        "required_snapshot_times_s": [
+          4e-08,
+          6e-08
+        ],
+        "current_trace_csv": "data/dissertation/shot_17133_current.csv",
+        "current_trace_provenance": "data/dissertation/shot_17133_current.json",
+        "clock_scenario": "Preserve unshifted published C.19 time. Assume it is comparable to the published ALEGRA clock; this registration is unverified.",
+        "initial_state_scenario": "At the first supported trace knot, initialize uniform DC conductor currents +/-I0, solve the static magnetic A_z field, and set temperature to300K. Prehistory and deposited heat before this timestamp are unknown, not reconstructed.",
+        "material_provenance": "Explicit constant illustrative conductivity/heat capacity/thermal conductivity; not a fitted or qualified SS304 property model. No phase change or temperature feedback."
+      },
+      "drive_sha256": "b3cd227c46bd93d4893abf51da136c1f6344c68b4befe6a8e2a60c1ad6912b87",
+      "diagnostics": {
+        "final": {
+          "time_s": 6e-08,
+          "target_current_a": 500734.77599628345,
+          "foil_current_a": 500734.7759962474,
+          "return_current_a": -500734.7759963215,
+          "foil_gradient_v_m": 2797485.6872674595,
+          "return_gradient_v_m": -2797485.687283195,
+          "foil_joule_power_w": 1084419262.7772045,
+          "return_joule_power_w": 1084419262.7818615,
+          "total_joule_power_w": 2168838525.559066,
+          "magnetic_energy_j": 680.4313633618566,
+          "thermal_energy_j": 40.47431121201453,
+          "backward_euler_magnetic_damping_j": 0.047093702958034445,
+          "drive_work_increment_j": 12.25775104067386,
+          "em_balance_residual_j": 6.62297994225014e-12,
+          "thermal_balance_residual_j": -1.6147083670148277e-12,
+          "edge_to_center_joule_ratio": 7.569636998925381,
+          "edge_mean_delta_temperature_k": 2256.602970437489,
+          "center_mean_delta_temperature_k": 272.4817788796067,
+          "linear_iterations": 62.0,
+          "linear_relative_residual": 1.5622752382252924e-13,
+          "schur_condition_proxy": 6.071687863331207
+        },
+        "maximum_current_constraint_error_a": 5.7712895795702934e-08,
+        "maximum_em_balance_residual_j": 1.2206353983135187e-11,
+        "maximum_thermal_balance_residual_j": 1.6331380692236053e-12,
+        "maximum_edge_to_center_joule_ratio": 9.620214270765945
+      },
+      "snapshots": {
+        "4e-08": {
+          "edge_mean_temperature_k": 899.9622678149957,
+          "center_mean_temperature_k": 365.5515550823167,
+          "edge_mean_joule_power_w_m3": 1.4455055345526298e+17,
+          "center_mean_joule_power_w_m3": 1.6568870750567428e+16,
+          "edge_to_center_joule_ratio": 8.724224820832319,
+          "maximum_cell_average_temperature_k": 4049.21394583216,
+          "top_maximum_patch_temperature_k": 3612.960394838084,
+          "top_mean_patch_temperature_k": 571.4901932636922,
+          "bottom_maximum_patch_temperature_k": 4274.01474846032,
+          "bottom_mean_patch_temperature_k": 757.9943533856427,
+          "lineout_change_from_baseline": {
+            "interior_temperature_k": {
+              "rms_absolute_change": 30.033256180120034,
+              "rms_change_over_baseline_rms": 0.04669501893481377,
+              "maximum_absolute_change": 167.56461910580447
+            },
+            "interior_current_density_a_m2": {
+              "rms_absolute_change": 6019303785.355226,
+              "rms_change_over_baseline_rms": 0.012459267337464568,
+              "maximum_absolute_change": 27322657508.160156
+            },
+            "interior_joule_power_w_m3": {
+              "rms_absolute_change": 4605772286216418.0,
+              "rms_change_over_baseline_rms": 0.03486137259566009,
+              "maximum_absolute_change": 2.4207659096842176e+16
+            },
+            "top_temperature_k": {
+              "rms_absolute_change": 29.596951654272655,
+              "rms_change_over_baseline_rms": 0.04986604824467015,
+              "maximum_absolute_change": 126.55354865219442
+            },
+            "bottom_temperature_k": {
+              "rms_absolute_change": 23.25759914513753,
+              "rms_change_over_baseline_rms": 0.031101512256368917,
+              "maximum_absolute_change": 110.31539135835192
+            }
+          }
+        },
+        "6e-08": {
+          "edge_mean_temperature_k": 2559.6628915868287,
+          "center_mean_temperature_k": 572.4793523532592,
+          "edge_mean_joule_power_w_m3": 3.2586060342285235e+17,
+          "center_mean_joule_power_w_m3": 4.29942744208629e+16,
+          "edge_to_center_joule_ratio": 7.57916275625596,
+          "maximum_cell_average_temperature_k": 10561.974408971815,
+          "top_maximum_patch_temperature_k": 9412.391696912884,
+          "top_mean_patch_temperature_k": 1217.815678621486,
+          "bottom_maximum_patch_temperature_k": 10988.100391443191,
+          "bottom_mean_patch_temperature_k": 1723.0923668077435,
+          "lineout_change_from_baseline": {
+            "interior_temperature_k": {
+              "rms_absolute_change": 68.43647044646086,
+              "rms_change_over_baseline_rms": 0.034460658994281426,
+              "maximum_absolute_change": 371.4660198531674
+            },
+            "interior_current_density_a_m2": {
+              "rms_absolute_change": 6442778521.432136,
+              "rms_change_over_baseline_rms": 0.00933730749639181,
+              "maximum_absolute_change": 26755938845.338135
+            },
+            "interior_joule_power_w_m3": {
+              "rms_absolute_change": 6241348520806093.0,
+              "rms_change_over_baseline_rms": 0.025302304215171184,
+              "maximum_absolute_change": 3.08015052970176e+16
+            },
+            "top_temperature_k": {
+              "rms_absolute_change": 76.6059307910739,
+              "rms_change_over_baseline_rms": 0.04256311714790211,
+              "maximum_absolute_change": 295.51695635481065
+            },
+            "bottom_temperature_k": {
+              "rms_absolute_change": 54.70848777791373,
+              "rms_change_over_baseline_rms": 0.024601550893823407,
+              "maximum_absolute_change": 269.41932062018896
+            }
+          }
+        }
+      }
+    },
+    "runs\\mfem_edge_current_domain_extended": {
+      "run_record_sha256": "aeb037dff036a346e630636b7cd3de2f5d8cef4d0acc16cf6821e1d3fbc1b5b0",
+      "configuration": {
+        "schema": "mhdlab-mfem-edge-current-source-v1",
+        "status": "provisional",
+        "physical_experiment_prediction": false,
+        "width_cells": 64,
+        "thickness_cells": 8,
+        "outside_cells": 38,
+        "gap_cells": 48,
+        "foil_width_m": 0.005,
+        "foil_thickness_m": 0.0002,
+        "gap_m": 0.005,
+        "exterior_half_extent_m": 0.02,
+        "current_length_m": 0.01,
+        "electrical_conductivity_s_m": 3000000.0,
+        "volumetric_heat_capacity_j_m3_k": 2800000.0,
+        "thermal_conductivity_w_m_k": 16.0,
+        "initial_temperature_k": 300.0,
+        "maximum_time_step_s": 5e-10,
+        "stop_time_s": 6e-08,
+        "required_snapshot_times_s": [
+          4e-08,
+          6e-08
+        ],
+        "current_trace_csv": "data/dissertation/shot_17133_current.csv",
+        "current_trace_provenance": "data/dissertation/shot_17133_current.json",
+        "clock_scenario": "Preserve unshifted published C.19 time. Assume it is comparable to the published ALEGRA clock; this registration is unverified.",
+        "initial_state_scenario": "At the first supported trace knot, initialize uniform DC conductor currents +/-I0, solve the static magnetic A_z field, and set temperature to300K. Prehistory and deposited heat before this timestamp are unknown, not reconstructed.",
+        "material_provenance": "Explicit constant illustrative conductivity/heat capacity/thermal conductivity; not a fitted or qualified SS304 property model. No phase change or temperature feedback."
+      },
+      "drive_sha256": "b3cd227c46bd93d4893abf51da136c1f6344c68b4befe6a8e2a60c1ad6912b87",
+      "diagnostics": {
+        "final": {
+          "time_s": 6e-08,
+          "target_current_a": 500734.77599628345,
+          "foil_current_a": 500734.7759962803,
+          "return_current_a": -500734.77599627286,
+          "foil_gradient_v_m": 2955882.644971302,
+          "return_gradient_v_m": -2955882.6451307843,
+          "foil_joule_power_w": 1103003026.0257895,
+          "return_joule_power_w": 1103003026.0313137,
+          "total_joule_power_w": 2206006052.057103,
+          "magnetic_energy_j": 720.9291282101295,
+          "thermal_energy_j": 41.50941074623461,
+          "backward_euler_magnetic_damping_j": 0.04994089448824141,
+          "drive_work_increment_j": 12.951799443797562,
+          "em_balance_residual_j": 7.564442128238369e-12,
+          "thermal_balance_residual_j": -1.3987699887252347e-12,
+          "edge_to_center_joule_ratio": 7.789916418895975,
+          "edge_mean_delta_temperature_k": 2333.283278024905,
+          "center_mean_delta_temperature_k": 272.96398476603446,
+          "linear_iterations": 49.0,
+          "linear_relative_residual": 1.0270935294292792e-13,
+          "schur_condition_proxy": 7.80631796334083
+        },
+        "maximum_current_constraint_error_a": 3.812601789832115e-08,
+        "maximum_em_balance_residual_j": 9.13195213891882e-12,
+        "maximum_thermal_balance_residual_j": 1.3987699887252347e-12,
+        "maximum_edge_to_center_joule_ratio": 10.022985389860509
+      },
+      "snapshots": {
+        "4e-08": {
+          "edge_mean_temperature_k": 934.8647474891122,
+          "center_mean_temperature_k": 366.2705285941924,
+          "edge_mean_joule_power_w_m3": 1.5136074565299722e+17,
+          "center_mean_joule_power_w_m3": 1.6643414525125546e+16,
+          "edge_to_center_joule_ratio": 9.094332501572747,
+          "maximum_cell_average_temperature_k": 3448.2192326152854,
+          "top_maximum_patch_temperature_k": 3085.8080816259385,
+          "top_mean_patch_temperature_k": 552.7104085325066,
+          "bottom_maximum_patch_temperature_k": 3831.6823030408136,
+          "bottom_mean_patch_temperature_k": 783.3306508527747,
+          "lineout_change_from_baseline": {
+            "interior_temperature_k": {
+              "rms_absolute_change": 28.493684327473442,
+              "rms_change_over_baseline_rms": 0.044301327875153534,
+              "maximum_absolute_change": 93.75527651750053
+            },
+            "interior_current_density_a_m2": {
+              "rms_absolute_change": 15495755929.433125,
+              "rms_change_over_baseline_rms": 0.032074434619935935,
+              "maximum_absolute_change": 17772237482.29297
+            },
+            "interior_joule_power_w_m3": {
+              "rms_absolute_change": 5352583589353774.0,
+              "rms_change_over_baseline_rms": 0.04051403310066068,
+              "maximum_absolute_change": 1.588762865415744e+16
+            },
+            "top_temperature_k": {
+              "rms_absolute_change": 25.93799219544594,
+              "rms_change_over_baseline_rms": 0.04370129685302454,
+              "maximum_absolute_change": 87.76303142720644
+            },
+            "bottom_temperature_k": {
+              "rms_absolute_change": 36.825460758724155,
+              "rms_change_over_baseline_rms": 0.0492453030936921,
+              "maximum_absolute_change": 115.10056928771019
+            }
+          }
+        },
+        "6e-08": {
+          "edge_mean_temperature_k": 2658.844044524445,
+          "center_mean_temperature_k": 572.9352706913644,
+          "edge_mean_joule_power_w_m3": 3.3697814347969984e+17,
+          "center_mean_joule_power_w_m3": 4.2818966697029816e+16,
+          "edge_to_center_joule_ratio": 7.869833615183309,
+          "maximum_cell_average_temperature_k": 9318.329711835946,
+          "top_maximum_patch_temperature_k": 8243.816009669885,
+          "top_mean_patch_temperature_k": 1168.1396447321335,
+          "bottom_maximum_patch_temperature_k": 10084.45989113463,
+          "bottom_mean_patch_temperature_k": 1796.8779497628122,
+          "lineout_change_from_baseline": {
+            "interior_temperature_k": {
+              "rms_absolute_change": 76.82127610330039,
+              "rms_change_over_baseline_rms": 0.03868276347437318,
+              "maximum_absolute_change": 229.00623604568864
+            },
+            "interior_current_density_a_m2": {
+              "rms_absolute_change": 16617400441.291378,
+              "rms_change_over_baseline_rms": 0.024083053172612293,
+              "maximum_absolute_change": 18570788358.427246
+            },
+            "interior_joule_power_w_m3": {
+              "rms_absolute_change": 8074504940371543.0,
+              "rms_change_over_baseline_rms": 0.03273388430514963,
+              "maximum_absolute_change": 2.158327367084749e+16
+            },
+            "top_temperature_k": {
+              "rms_absolute_change": 68.98574371147268,
+              "rms_change_over_baseline_rms": 0.03832925546110189,
+              "maximum_absolute_change": 204.97450183837282
+            },
+            "bottom_temperature_k": {
+              "rms_absolute_change": 95.53704637112759,
+              "rms_change_over_baseline_rms": 0.042961514821722446,
+              "maximum_absolute_change": 273.4164814050673
+            }
+          }
+        }
+      }
+    }
+  },
+  "lineouts_csv_sha256": "3b5c56a5b18a7742cfd6750ca7f26ffc94f27101ceda0e5d25319c26811eccaf"
+}

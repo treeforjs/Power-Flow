@@ -59,6 +59,12 @@ def _normal_sign(value):
 
 def _validate_extracted_face(history, coordinate, sign):
     """Check geometry retained by the raw patch exporter when it is present."""
+    if "mfem_face" in history.surface_attributes:
+        face = history.surface_attributes["mfem_face"]
+        if (not isinstance(face, Mapping)
+                or _coordinate(face.get("normal_position_m"), "MFEM face coordinate") != coordinate
+                or _normal_sign(face.get("outward_normal_sign")) != sign):
+            raise ValueError("launch face conflicts with the preserved MFEM material face")
     if "resolved_patch_extraction" not in history.surface_attributes:
         return
     extraction = history.surface_attributes["resolved_patch_extraction"]
@@ -301,4 +307,5 @@ def sample_planar_emission_packets(
         unequal_macro_weights=any(float(value) != float(rows[0].particle_weight[0]) for row in rows for value in row.particle_weight),
         surface_attributes=history.surface_attributes, row_surface_attributes=tuple(row_attributes),
         row_current_indices=tuple(row_indices), parameter_provenance=history.parameter_provenance,
+        coordinate_system=history.surface_attributes["coordinate_system"],
     )

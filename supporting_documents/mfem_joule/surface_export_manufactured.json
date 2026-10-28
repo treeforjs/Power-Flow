@@ -1,0 +1,83 @@
+{
+  "schema": "mhdlab-mfem-surface-extraction-v1",
+  "configuration_status": "manufactured",
+  "configuration": {
+    "path": "C:\\Users\\tsmit\\.codex\\worktrees\\neutral-spectral-observation\\Power Flow\\runs\\mfem_surface_manufactured_handoff\\manufactured_inputs\\configuration.json",
+    "sha256": "926cd6aab277e62f9c7f7338af9d029c4b239ee8c32fcf34dfdd92d4f81334c9"
+  },
+  "sample_table": {
+    "path": "C:\\Users\\tsmit\\.codex\\worktrees\\neutral-spectral-observation\\Power Flow\\runs\\mfem_surface_manufactured_handoff\\manufactured_inputs\\surface_samples.csv",
+    "sha256": "41467099715d566430eb818a5d298364daf03e646daf3eed121d274315c326d5",
+    "rows": 12
+  },
+  "source_attributes": {
+    "schema": "mhdlab-planar-surface-v1",
+    "source_kind": "synthetic",
+    "heating_backend": "mfem_joule",
+    "mfem_version": "",
+    "mfem_source_revision": "",
+    "run_id": "manufactured-mfem-surface-table",
+    "source_reference": "Authored table; no native MFEM execution",
+    "unit_mapping_reference": "Manufactured SI table fixture; no raw dimensionless values converted",
+    "source_clock_reference": "Manufactured nonnegative simulation clock; no experimental registration",
+    "coordinate_system": "x=foil_width;y=gap_normal;z=current",
+    "surface_model": "stationary_planar_single_face",
+    "surface_region": "manufactured gap-facing face",
+    "temperature_location": "surface_boundary",
+    "material_sample_depth_m": 0.0,
+    "material_sample_depth_units": "m",
+    "boundary_temperature_reference": "",
+    "current_averaging_interval_m_json": "null",
+    "current_uniformity_reference": "",
+    "temperature_value_basis": "temperature_increment_kelvin",
+    "initial_temperature_offset_k": 300.0,
+    "temperature_zero_convention_reference": "Manufactured 300 K initial temperature plus authored delta-T; not a physical rod conversion",
+    "temperature_evaluation": "one_sided_material_boundary_trace_patch_average",
+    "mfem_face": {
+      "coordinate_system": "x=foil_width;y=gap_normal;z=current",
+      "surface_model": "stationary_planar_single_face",
+      "surface_region": "manufactured gap-facing face",
+      "normal_position_m": 0.0,
+      "outward_normal_sign": 1,
+      "material_boundary_attribute": 1,
+      "material_selection_reference": "Manufactured material-side face selection",
+      "full_width_coverage_reference": "Manufactured complete x partition",
+      "current_direction_representation": "resolved_patches"
+    },
+    "mfem_solver_scope": {
+      "stationary_material": true,
+      "conductivity_temperature_feedback": false,
+      "hall_induction": false,
+      "material_motion": false,
+      "qualification_reference": "Manufactured interface fixture only"
+    },
+    "sample_table_sha256": "41467099715d566430eb818a5d298364daf03e646daf3eed121d274315c326d5",
+    "sample_configuration_sha256": "926cd6aab277e62f9c7f7338af9d029c4b239ee8c32fcf34dfdd92d4f81334c9",
+    "current_direction_representation": "resolved_piecewise_constant_surface_patches",
+    "current_patch_intervals_m": [
+      [
+        0.0,
+        0.01
+      ],
+      [
+        0.01,
+        0.03
+      ]
+    ],
+    "patch_temperature_approximation": "local x/z patch averages; refine x,z,time before nonlinear release",
+    "original_source_schema": "mhdlab-mfem-surface-v1"
+  },
+  "temperature_offset_applied_once_k": 300.0,
+  "native_mfem_gridfunction_parsed": false,
+  "new_heating_simulation_performed": false,
+  "limitations": [
+    "Native producer owns material selection, boundary evaluation and SI mapping.",
+    "No physical validity is established by matching metadata or hashes.",
+    "Local patch averages require x/z/time refinement before nonlinear release.",
+    "Temperatures are not an optical depth, neutral temperature or emitting extent."
+  ],
+  "surface_history": {
+    "path": "C:\\Users\\tsmit\\.codex\\worktrees\\neutral-spectral-observation\\Power Flow\\runs\\mfem_surface_manufactured_handoff\\export\\surface.h5",
+    "sha256": "2cdd139bb211b37a3ddab6f03cb65ecb539ef278c76eaba93549e70a0dea57ef"
+  }
+}

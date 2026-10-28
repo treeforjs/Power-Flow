@@ -1,0 +1,138 @@
+{
+  "schema": "mhdlab-ss304-ethos-eos-request-v1",
+  "status": "generation_request_not_executable_eos",
+  "physical_material_model_admitted": false,
+  "purpose": "Replace provisional constant material heat capacity with phase-aware thermodynamics for early0.749788-60ns foil-heating scenarios, with separate conductivity feedback qualification",
+  "material": {
+    "requested_grade": "AISI304",
+    "candidate_source_model": "SESAME4273 (304L; source author also recommends304)",
+    "nominal_composition_mass_fractions": {
+      "Fe": 0.71,
+      "Cr": 0.19,
+      "Ni": 0.1
+    },
+    "composition_status": "Source-model nominal approximation; actual foil assay unknown",
+    "nominal_reference_density_kg_m3": 8000.0,
+    "reference_density_status": "Published EOS model reference; not a measured foil density"
+  },
+  "eos_candidate": {
+    "doi": "10.1063/12.0020364",
+    "material_id": 4273,
+    "numeric_table_path": null,
+    "published_parameter_csv": "data/materials/ss304_eos_4273_published_parameters.csv",
+    "published_parameter_manifest": "data/materials/ss304_eos_4273_published_parameters.json",
+    "numeric_table_acquisition": "Obtain author/LANL supplied numeric SESAME table or reconstruct full phase Helmholtz model after all required terms are available",
+    "external_request_sent": false
+  },
+  "requested_output": {
+    "density_kg_m3": [
+      100,
+      200,
+      400,
+      800,
+      1100,
+      2000,
+      4000,
+      6000,
+      7000,
+      7780,
+      8000,
+      8137.4,
+      9000,
+      12000,
+      16000
+    ],
+    "temperature_k": [
+      300,
+      400,
+      600,
+      800,
+      1000,
+      1200,
+      1400,
+      1500,
+      1600,
+      1700,
+      1800,
+      2000,
+      2500,
+      3000,
+      4000,
+      5000,
+      7000,
+      9500,
+      12000,
+      15000,
+      20000,
+      30000
+    ],
+    "grid_status": "Initial requested support/refinement targets, not measured or validated state points",
+    "required_fields_si": [
+      "pressure_pa",
+      "internal_energy_j_kg",
+      "helmholtz_free_energy_j_kg",
+      "entropy_j_kg_k",
+      "heat_capacity_cv_j_kg_k",
+      "sound_speed_m_s",
+      "phase_fractions"
+    ],
+    "energy_reference": "Preserve supplied source reference; documented mapping required before heating coupling"
+  },
+  "ethos_extension": {
+    "doi": "10.1063/5.0237197",
+    "reference_scope": "Multi-fidelity Bayesian transport-table ensembles, demonstrated using LMD electrical conductivity for beryllium",
+    "ss304_eos_generator_or_table_recovered": false,
+    "code_location": null,
+    "generated_ensemble_count": 0,
+    "use": "Apply the multifidelity/ensemble approach to source-conditioned material extensions; do not substitute conductivity for EOS",
+    "candidate_data_classes": [
+      "Source alloy EOS",
+      "Mills solid enthalpy correlation within declared support",
+      "Phase and latent-heat constraints",
+      "Alloy QMD/average-atom calculations with matched composition",
+      "Measured transport data with specimen-specific provenance"
+    ]
+  },
+  "extrapolation": {
+    "requested_by_user": true,
+    "current_adapter_policy": "error",
+    "installed_extrapolation_model": null,
+    "required_method": "Physics-model extension or source-provided wide-range EOS with separate data-support/model-extension mask; jointly consistent free energy or thermodynamic integration",
+    "forbidden_shortcuts": [
+      "Treating LMD conductivity as EOS",
+      "Clamping solid Cp past melting",
+      "Replacing Cv with Cp without a thermodynamic justification",
+      "Independent arbitrary P/u tails without consistency checks",
+      "Calling nominal composition a foil assay"
+    ]
+  },
+  "acceptance_checks": [
+    "Exact source/version/digest binding and SI conversion",
+    "Actual material and phase applicability",
+    "Energy zero and mass-specific/volumetric mapping",
+    "Positive Cv and stable inverse on admitted branches",
+    "Isothermal mechanical stability in the declared equilibrium/stable domain",
+    "Thermodynamic consistency rho^2*du/drho = P - T*dP/dT within documented discretization error",
+    "Latent heat and phase coexistence from source model",
+    "Table and time-step refinement before comparing absolute temperatures",
+    "Transport conductivity/thermal-conductivity feedback admitted separately"
+  ],
+  "existing_bounded_inputs": {
+    "solid_enthalpy": "mhdlab.solid_enthalpy; selected solid branch300-1700K maximum; Cp is not a general Cv/EOS",
+    "flynn_transport": "253.15-423.15K only; no EOS",
+    "native_driver": "Provisional constant sigma3e6S/m,Cv2.8e6J/(m3K),k16W/(mK); unchanged by this request"
+  },
+  "table_handoff": {
+    "adapter": "mhdlab.eos_tables.load_eos_table",
+    "schema": "mhdlab-bounded-eos-table-v1",
+    "csv_columns": [
+      "density_kg_m3",
+      "temperature_k",
+      "pressure_pa",
+      "internal_energy_j_kg"
+    ],
+    "interpolation": "bilinear_in_density_and_temperature",
+    "extrapolation": "error",
+    "solver_coupled": false
+  }
+}

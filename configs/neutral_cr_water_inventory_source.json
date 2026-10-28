@@ -1,0 +1,120 @@
+{
+  "schema": "mhdlab-neutral-cr-common-water-source-v1",
+  "status": "adjustable_primary_fit_parameter_contract",
+  "physical_ready": false,
+  "run_permitted_before_parameter_binding": false,
+  "historical_four_pool_gif_reinterpreted": false,
+  "initial_parent_inventory": {
+    "parent_species": "H2O",
+    "coverage_parameter": "initial_h2o_monolayers",
+    "coverage_symbol": "N_ML",
+    "coverage_monolayers": null,
+    "coverage_binding_status": "free_parameter_bound_for_each_scan_or_regression_candidate",
+    "coverage_is_fixed": false,
+    "coverage_lower_bound": 0.0,
+    "coverage_upper_bound": null,
+    "null_coverage_meaning": "No fixed value or experimental best-fit selected; an optimizer or explicit scan supplies each candidate.",
+    "coverage_units": "monolayer equivalents under the separately supplied definition",
+    "monolayer_definition": {
+      "symbol": "sigma_ML",
+      "areal_density_molecules_m2": null,
+      "definition": null,
+      "provenance": null,
+      "area_basis": "must define molecules per geometric material-face square metre, or supply an explicit consistent microscopic-area conversion"
+    },
+    "spatial_profile": {
+      "initial_scenario": "one common scalar N_ML on each retained material face",
+      "patch_multiplier": 1.0,
+      "normalization": "literal multiplier; do not normalize away true side/broad area differences"
+    },
+    "initial_areal_inventory_equation": "Sigma_H2O(face,patch)=N_ML*sigma_ML*patch_multiplier(face,patch)",
+    "initial_particle_inventory_equation": "N_H2O(face,patch)=Sigma_H2O(face,patch)*A_geometric(face,patch)",
+    "global_inventory_equation": "N_H2O_initial=sum_over_emitting_faces_and_patches N_H2O(face,patch)",
+    "existing_binding_api": {
+      "module": "mhdlab.coverage_inventory",
+      "monolayer_definition": "MonolayerDefinition",
+      "inventory_owner": "ParentSurfaceInventory",
+      "allocation": "One H2O parent pool, or normalized bound-state fractions partitioning this same parent inventory",
+      "preflight": "prepare_coverage_inventory",
+      "source_sweep": "build_coverage_source_sweep",
+      "water_parameter_module": "mhdlab.neutral_cr_water_source",
+      "parameter_binding": "bind_initial_h2o_monolayers",
+      "water_source_sweep": "build_common_water_source_sweep"
+    }
+  },
+  "scan_and_regression": {
+    "primary_parameter": "initial_h2o_monolayers",
+    "parameter_role": "free nonnegative physical source-inventory coordinate",
+    "candidate_values": null,
+    "domain_rule": "Candidates must remain within supplied reservoir max_coverage_m2, kinetic validity and numerical domain; no arbitrary physical upper bound is invented.",
+    "forward_rule": "Bind each candidate to actual H2O source coverage before depletion, then recompute or explicitly validate reuse of transport, full CR and optical/detector projection.",
+    "forbidden_substitution": "Do not fit a multiplier on the historical independent H/H2/H2O/OH densities or on their already-solved spectra.",
+    "kinetic_reference_coverage": "Keep supplied reservoir reference_coverage_m2 fixed across the coverage scan; it is not the monolayer definition or a second inventory knob.",
+    "best_fit_monolayers": null,
+    "experimental_best_fit_claimed": false,
+    "optical_scale_nuisance": "If absolute optical/detector throughput is unresolved, its scale can be multiplicatively confounded with coverage in a linear forward regime. Constrain it independently or report the degeneracy, not a unique absolute monolayer count.",
+    "monolayer_definition_nuisance": "If sigma_ML remains undefined, a qualified inventory fit constrains initial_h2o_monolayers*sigma_ML rather than the monolayer count alone."
+  },
+  "initial_nonwater_source_inventory": {
+    "H": 0.0,
+    "H2": 0.0,
+    "OH": 0.0,
+    "O": 0.0,
+    "water_derived_ions_and_anions": 0.0,
+    "units": "particles assigned independently to the desorbing surface source",
+    "independent_contaminant_inputs": [],
+    "policy": "A nonzero independent contaminant pool requires its own amount, chemical/state definition and provenance; it is not another copy of the water inventory."
+  },
+  "desorption_transaction": {
+    "parent_water_removed_per_event": 1,
+    "gas_H2O_inserted_per_event": 1,
+    "simultaneous_unmodeled_fragment_insertions": 0,
+    "reservoir_debits_per_event": 1,
+    "source_internal_state_distribution": null,
+    "desorption_rate_parameters": null,
+    "required_rates": "A stated H2O surface-release law with supported attempt/barrier/coverage-dependence parameters and temperature/coverage domain; do not inherit illustrative four-pool rates as sourced physical data.",
+    "source_physical_state_mapping": "Resolve desorbed H2O electronic/rovibrational populations; fractions partition the one parent event and must sum to one.",
+    "energy_and_momentum": "Read back actual sampled translation, internal state energy, removal debit, outward placement and support momentum with one owning reservoir.",
+    "surface_fragment_desorption": "Not enabled; introducing direct surface fragments requires an explicit parent-conserving surface reaction and sourced state/energy branching."
+  },
+  "gas_chemistry": {
+    "fragment_source": "Accepted time-dependent chemical and dissociative-excitation reactions, not prescribed fixed fragment yields",
+    "stoichiometric_examples_only": [
+      {"reaction": "e + H2O -> e + OH + H", "H_atoms_before_after": [2, 2], "O_atoms_before_after": [1, 1], "charge_before_after": [-1, -1]},
+      {"reaction": "e + H2O -> e + H2 + O", "H_atoms_before_after": [2, 2], "O_atoms_before_after": [1, 1], "charge_before_after": [-1, -1]},
+      {"reaction": "e + H2O -> 2e + H2O+", "H_atoms_before_after": [2, 2], "O_atoms_before_after": [1, 1], "charge_before_after": [-1, -1]}
+    ],
+    "examples_assign_numeric_rates_or_branch_probabilities": false,
+    "nuclei_budget": "In a closed control, H nuclei=2*N_H2O_initial and O nuclei=N_H2O_initial across adsorbed parents, all gas states/products and accounted boundary exits; add any independent contaminants explicitly.",
+    "charge_budget": "Retain signed ion/electron charge and boundary/current exchange; charge balance is not inferred from the neutral map alone.",
+    "fragment_densities_reuse_existing_gif_values": false
+  },
+  "electron_inputs": {
+    "density_history_m3": null,
+    "eedf_or_qualified_temperature_closure": null,
+    "electron_collision_dataset_and_revision": null,
+    "source_to_electron_clock_registration": null,
+    "state_resolved_rate_coefficients": null,
+    "numerical_policy": "Require finite nonnegative per-cell electron density histories and a normalized EEDF on declared support, or a qualified bounded thermal-rate closure; missing inputs are not filled by zero or wall temperature.",
+    "wall_temperature_sets_electron_temperature": false
+  },
+  "scaling_policy": {
+    "monolayers_and_areal_density_are_separate_inputs": true,
+    "universal_linear_density_or_light_rescaling": false,
+    "conditional_linear_regime": [
+      "Prescribed wall temperature and a coverage-independent first-order release law",
+      "Prescribed density-independent transport and a fixed source-state distribution",
+      "Prescribed electron density/EEDF unaffected by the added neutral inventory",
+      "A linear state-population operator without neutral-density-dependent quenching or nonlinear chemical losses",
+      "Optically thin emission, fixed collection geometry and unsaturated linear detector response"
+    ],
+    "nonlinear_effects_requiring_recomputation": [
+      "Coverage-dependent desorption barriers or competing surface populations",
+      "Desorption energy feedback on wall temperature",
+      "Neutral-neutral chemistry, quenching or density-dependent transport",
+      "Self-consistent electron/ionization, field or energy feedback",
+      "Opacity, radiative trapping, self-absorption or detector saturation"
+    ],
+    "inference": "Without an independently defined sigma_ML, even a qualified absolute inventory fit constrains N_ML*sigma_ML rather than a unique physical monolayer count."
+  }
+}

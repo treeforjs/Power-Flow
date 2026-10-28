@@ -1,4 +1,9 @@
-# FLASH heating and finite-inventory surface sources
+# Electrode heating and finite-inventory surface sources
+
+The selected backend is now [MFEM Joule](mfem_joule_heating.md). Its
+[surface adapter](mfem_surface_contract.md) feeds the planar patch release path
+with explicit MFEM provenance. FLASH-specific examples below remain available
+for older saved inputs; they do not require FLASH for the active workflow.
 
 This workflow supplies boundary sources to separately owned gap and molecular
 population solvers. It reads prescribed material temperatures, depletes finite

@@ -1,0 +1,246 @@
+{
+  "schema": "mhdlab-neutral-spectral-implementation-v1",
+  "created_utc": "2026-10-27T04:21:53.309129+00:00",
+  "status": "available_scope_implemented_physical_inputs_pending",
+  "workspace": "C:\\Users\\tsmit\\.codex\\worktrees\\neutral-spectral-observation\\Power Flow",
+  "baseline_revision": "18d155b919e70b0b20165e22ce1eb4b7f48ac5a9",
+  "milestones": {
+    "pilot_evidence": "implemented",
+    "calibration_scenarios": "specified_but_no_absolute_reconstruction_admitted",
+    "receiver_observation_interfaces": "implemented_and_manufactured_verified",
+    "flash_prerequisites": "parallel_hdf5_mpi_smoke_passed",
+    "physical_flash_source": "not_downloaded_user_confirmed",
+    "physical_forward_ensemble": "pending_owner_outputs",
+    "neutral_inverse_engine": "implemented_and_synthetic_verified",
+    "physical_neutral_inference": "not_performed"
+  },
+  "new_wavelength_readout_samples": {
+    "15750": 157,
+    "15765": 183
+  },
+  "calibration_scan": {
+    "count": 41,
+    "range": [
+      0.01,
+      100.0
+    ],
+    "convention": "corrected_radiance=C_abs*nominal_radiance",
+    "range_is_confidence": false,
+    "applied_to_current_derived_displays": false
+  },
+  "verification": [
+    {
+      "argv": [
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_pilot_comparison_evidence.py",
+        "-q",
+        "--basetemp=.cache/pytest-pilot-evidence-final"
+      ],
+      "exit_code": 0,
+      "passed": 20,
+      "scope": "Includes exact-PDF reproductions; before the coverage-only guard addition",
+      "environment_updates": {
+        "DISSERTATION_PDF": "C:/Users/tsmit/Documents/Power Flow/.cache/dissertation/smtrevor_1.pdf"
+      }
+    },
+    {
+      "argv": [
+        "python",
+        "-c",
+        "import sys; sys.meta_path[:] = [finder for finder in sys.meta_path if type(finder).__module__ != '_editable_skbc_mhdlab']; import pytest; raise SystemExit(pytest.main(['tests/test_neutral_spectral_inference.py', 'tests/test_neutral_ensemble_cli.py', '-q', '--basetemp=.cache/pytest-neutral-ensemble-guard-final']))"
+      ],
+      "exit_code": 0,
+      "passed": 47,
+      "scope": "Before physical-evidence sentinel hardening"
+    },
+    {
+      "argv": [
+        "python",
+        "-c",
+        "import sys; sys.meta_path[:] = [finder for finder in sys.meta_path if type(finder).__module__ != '_editable_skbc_mhdlab']; import pytest; raise SystemExit(pytest.main(['tests/test_neutral_spectral_inference.py', '-q', '-k', 'missing_evidence or sentinel or nested_curve or descriptive_manufactured', '--basetemp=.cache/pytest-neutral-ensemble-sentinel-guards']))"
+      ],
+      "exit_code": 0,
+      "passed": 32,
+      "scope": "Final added sentinel guards;41 unchanged module cases deselected"
+    },
+    {
+      "argv": [
+        "python",
+        "-c",
+        "import sys; sys.meta_path[:] = [f for f in sys.meta_path if type(f).__module__ != '_editable_skbc_mhdlab']; import pytest; raise SystemExit(pytest.main(['tests/test_raikou_handoff.py','-q','--basetemp=.cache/pytest-raikou-handoff-placement-thin']))"
+      ],
+      "exit_code": 0,
+      "passed": 52,
+      "scope": "Final source-placement/thin-emission/geometry/projection contract"
+    },
+    {
+      "argv": [
+        "python",
+        "-c",
+        "import sys; sys.meta_path[:] = [f for f in sys.meta_path if type(f).__module__ != '_editable_skbc_mhdlab']; import pytest; raise SystemExit(pytest.main(['tests/test_projected_convergence.py','tests/test_pilot_comparison_bridge.py','tests/test_pilot_comparison_evidence.py::test_manifest_rejects_unsafe_scientific_promotions','-q','--basetemp=.cache/pytest-final-admission-guards']))"
+      ],
+      "exit_code": 0,
+      "passed": 37,
+      "scope": "16 convergence cases,6 bridge cases,15 affected pilot guards; overlapping counts are not a suite total"
+    },
+    {
+      "argv": [
+        "python",
+        "tools/compare_neutral_ensemble.py",
+        "--config",
+        "configs/neutral_ensemble_manufactured.json",
+        "--output-dir",
+        "runs/neutral_ensemble_manufactured_20261027_guarded",
+        "--plot"
+      ],
+      "exit_code": 0,
+      "scope": "Manufactured finite ensemble; no physical inference"
+    },
+    {
+      "argv": [
+        "python",
+        "tools/validate_raikou_handoff.py",
+        "configs/raikou_handoff_manufactured/manifest.json",
+        "--instrument-config",
+        "configs/raikou_handoff_manufactured/instrument.json",
+        "--allow-manufactured-control",
+        "--project-output",
+        "runs/raikou_receiver_contract_control/projection.json"
+      ],
+      "exit_code": 0,
+      "scope": "Manufactured hash-bound projection; no external evolution"
+    },
+    {
+      "argv": [
+        "python",
+        "tools/probe_flash_environment.py",
+        "--wsl-distro",
+        "Ubuntu-24.04",
+        "--hdf5-prefix",
+        "/home/tsmit/.local/opt/power-flow/hdf5-1.14.6-openmpi",
+        "--compile-smoke",
+        "--output",
+        "runs/flash_preflight_hdf5_runtime/report.json"
+      ],
+      "exit_code": 0,
+      "scope": "Fortran MPI/HDF5 compile and collective file creation,2 ranks"
+    }
+  ],
+  "final_command_record": "final_commands.json",
+  "preserved_previous_native_control": "../raikou_observation/registration.json",
+  "source_sha256": {
+    "HANDOFF.md": "fda02139952364ad82642a7a58bf8df0f4fc40e73fd08205f5de342d45af46c4",
+    "README.md": "d3b320a4f1da0887f1a47656d7627252c393d5452d6a05b4cb4ee6735a3bd78c",
+    "configs/neutral_ensemble_manufactured.json": "e5c80247b306df32883df6fba67281c8d0542a56d91372d04d661f2c6f4e56d6",
+    "configs/projected_convergence_manufactured.json": "8acd33c7a5cdf64a66ad9ebee8bcd62cda7745f0100cf7f296b54d394e8c944c",
+    "configs/raikou_handoff_manufactured/collection.json": "4cc88830770cf64371c0b9228dc010f0e447a2b905c9e7c7d867462f9ea95d62",
+    "configs/raikou_handoff_manufactured/electrons.json": "598c88cb0280e5f2279184f0e2eca3ae6fd9e4fd1b0272221c89fbb4ab66e258",
+    "configs/raikou_handoff_manufactured/instrument.json": "60c128f30052900475228d2f7d749e1f1367d881781219112637c0033f049399",
+    "configs/raikou_handoff_manufactured/manifest.json": "b120399c5111f9968300c92648dd2791032e5dff5dab81c6b20a1bd3a5a97d1b",
+    "configs/raikou_handoff_manufactured/mesh.json": "c4bb0f8192bb253b559b760f1e66996c7a7761005a5a14f24159f3cd5bd0c420",
+    "configs/raikou_handoff_manufactured/opacity.json": "dc024065eda3cf838e9fda2d9a4a1bdde6a1d66ea545490e77ddb1519114f6c7",
+    "configs/raikou_handoff_manufactured/populations.json": "7f009a9b5637eb2e1e98d3631b1dd754d864aba1d3c64dcf1b0fed14524ea933",
+    "configs/raikou_handoff_manufactured/rates.json": "19a5b2276571826de4352e1853d763f84a53e88f0accc35d2f86987b4bda3645",
+    "configs/raikou_handoff_manufactured/receipt.json": "07d85259670794bce08d28c2f00c74f2c0cfd065036d11dc92d79bfe593a8a53",
+    "configs/raikou_handoff_manufactured/runtime_output.txt": "24d4d04987b6946945c56d7d6bb62335e3259197c903a404621384ff9feb25be",
+    "configs/raikou_handoff_manufactured/source.json": "da679b874568354c27aebf8a00dc3f3c246312eb809f6287fe005afdf89d5999",
+    "configs/raikou_handoff_manufactured/states.json": "75928ad75f9c6b8d2df9df235a094ed2ff3bf38566bac0458a8582dd90520a43",
+    "data/dissertation/figure_4_20_wavelength_lineouts.csv": "73c48deeb0ee34c1112e8f51b9f8f32f789ed7d8acceacf2b2ec5e7b826fc87b",
+    "data/dissertation/figure_4_20_wavelength_lineouts.json": "3e3a341ffb0ffc7c5cdb951fedb0f61d7026bd8444daf9c18c1fb7aca6e26b4d",
+    "data/dissertation/figure_4_21_wavelength_lineouts.csv": "8047014341fd4f2e47d242857f51b1305dd06ec98196f151cd41b8422ef8328d",
+    "data/dissertation/figure_4_21_wavelength_lineouts.json": "10002d9571c6b5dd808831d8508598ec75c492b668d36a0ea6e6940aa5e87f29",
+    "data/dissertation/pilot_comparison_manifest.json": "abc150d2b3c4acd8bff13b57b29aa4213d27da0e74baf43cbda9226209643317",
+    "docs/dissertation_pilot_comparison.md": "65a19144fad449c52a1a64a9be8adc8f31d45f4cc139dbb0ff2ed7ba30f4b2e1",
+    "docs/external_plasma_yacora_comparison.md": "14f68e54b64bffbbc5578a1b9b6d9dc2bd14f939f0b0dfa2eea0fdf1c22541b3",
+    "docs/flash_h2o_publication_plan.md": "5efcdc290eb7dbc465065b44d9a2ecba7b08e1ed860c1488f0f8a72eace8ca2e",
+    "docs/flash_wsl_setup.md": "55c9a69c1d5a83ca2351bea80d2412c234a95cce8b9fcd4f2cb06572ca534b70",
+    "docs/neutral_ensemble_comparison.md": "108c8277b340b3351aa8bdf50621a9e37233d3288c8baad31a2cdbaccbc3a48f",
+    "docs/neutral_spectral_workflow.md": "4d238594179bc4c5f9beade982159914ae81a319836831252bc64bb3fb3c73f5",
+    "docs/projected_convergence.md": "6cf71f533d16eefa58156fce9284665393c28df445f20ff9ce1a939bc62a636d",
+    "docs/raikou_observation_handoff.md": "b17742b21d82c6777f7d96d91a06619d116195b35a434563093a0e4771249055",
+    "docs/raikou_receiver_contract.md": "bde1798020b32785662738634140bff520bc5a1eda53e09f0aa388d3c48909fe",
+    "mhdlab/neutral_spectral_inference.py": "d9949582407000e68f9c96ff5651eb0558d997b2696c9400ed910ce5e42f02d5",
+    "mhdlab/projected_convergence.py": "b86d7a9488428715d08c1ec95b7c776533dd9f0fcf660e27fe0ad69f9d84b8de",
+    "mhdlab/raikou_handoff.py": "df4488280e978375ba33a4963518ec2c4ce36e277bcdcd5dda5e77fba91e6284",
+    "mhdlab/resolved_emission_observation.py": "48be523490aa37c5832bc5ee58f67120a38b47945a0ad51537e96be27fd86114",
+    "tests/test_neutral_ensemble_cli.py": "9e3ff4f80b75f886be60559947b1756824c67d4c3234086ad764c37bf303e631",
+    "tests/test_neutral_spectral_inference.py": "dea5210f10652847c239b2d404841a5e77986e48af1922d37e7483842fbefc46",
+    "tests/test_pilot_comparison_bridge.py": "5c38a0541694ae3815912d2ccbcac0a5efa096016d0aaa7a4ac299bd3296020f",
+    "tests/test_pilot_comparison_evidence.py": "b910a9efe8e21983c4bb517c6acfffcc1ee77c361f43727b4ee272aec6fbb22d",
+    "tests/test_projected_convergence.py": "9d4376e95488cfe8720110db79be2c10651a3d55987bdcbb7a0c0f34f350838e",
+    "tests/test_raikou_handoff.py": "71721e1f4314d9300e20ba486f273550f028dc55a5edc3c34d4f870573cf1054",
+    "tests/test_resolved_emission_observation.py": "b61b210698970d580b8f2421b296b3744182f83c49434ed4fd8d3a84a4599d75",
+    "tools/build_parallel_hdf5.sh": "eaca2f0660bfb65aaa1e1f97c1e5ed7b4301824b2118008001b461ab5fa736db",
+    "tools/compare_neutral_ensemble.py": "d9420fa60a6ab148665cd560beb16664ed74bdc3d310ad2741d03d755b5e7c45",
+    "tools/prepare_pilot_comparison.py": "a098af5ea91666279208a3ecbcdfc2bab6c6058f0d4c2aaa193ac65597560d46",
+    "tools/probe_flash_environment.py": "410ffd19adc14de2cadbe6024bf7e4c2310113143502d36b8b40e26be4e2652c",
+    "tools/probe_raikou_observation.py": "992081fd7b500e8168c2d4120c38d9af68bca6a39133cb40b2a211c574dadda6",
+    "tools/qualify_projected_convergence.py": "834309b5bd0ac9ea294e35d7578e5b84ab853b7176040ae1f677ea109c910042",
+    "tools/recover_dissertation_vuv_lineouts.py": "9366e16b2ed27d98b08468c65aa2a86e7b0f7ed43d9a4e85351dbcac93c98239",
+    "tools/validate_pilot_comparison.py": "94dd7dbbc5776ead7f31183062356dc9fb5e76fb1ad19a1356c1302601289388",
+    "tools/validate_raikou_handoff.py": "7bb4d0c1f6395d775cb31250f66e8721d6ac114aa0c8e54a1beda4df71c86b47"
+  },
+  "copied_reports": {
+    "pilot_readiness.json": {
+      "local_source": "runs/dissertation_pilot_readiness_final.json",
+      "sha256": "c1102d95e9ff6aabf842bc1372604051f5477b236fd1a894b13f473893ce46c3"
+    },
+    "pilot_15750_request.json": {
+      "local_source": "runs/pilot_requests_final/15750_wavelength.json",
+      "sha256": "5815e34dd383a01d6a56257e52689a1bda07f446f97e8161e38f815c4dc5ec1b"
+    },
+    "pilot_15765_request.json": {
+      "local_source": "runs/pilot_requests_final/15765_wavelength.json",
+      "sha256": "4c57bc6b2bd6e12ad34629f1bcbaa7070c3491c277ff09b29974acb616e11f00"
+    },
+    "neutral_ensemble_manufactured.json": {
+      "local_source": "runs/neutral_ensemble_manufactured_20261027_guarded/comparison_report.json",
+      "sha256": "d8337a427772d11f7a4a1873834ace8fa3e4d9f87d1c7a7607c983d0b17ceeb6"
+    },
+    "receiver_projection_manufactured.json": {
+      "local_source": "runs/raikou_receiver_contract_control/projection.json",
+      "sha256": "85673d3719fc1a9d5f01b2f58039f37ecc2d9566aad335f92d1a69730a1859b0"
+    },
+    "projected_convergence_manufactured.json": {
+      "local_source": "runs/projected_convergence_manufactured_final/report.json",
+      "sha256": "116b7aa77438f164770ef20e198c3c0e3d6f4cb897559beb3e36e2b165b250b4"
+    },
+    "flash_preflight.json": {
+      "local_source": "runs/flash_preflight_hdf5_runtime/report.json",
+      "sha256": "3232709132e12b7a4f79997efc4e340cfd316a0f7c9dca81ba1c101cd0069df1"
+    },
+    "final_commands.json": {
+      "local_source": "runs/neutral_implementation_final_commands.json",
+      "sha256": "7fe2eff49e6e0c82d95774e28e7f0447d2ed8b23330106143e5eb75a8e6a5e9a"
+    }
+  },
+  "private_hdf5_build_record": "private_hdf5_build.json",
+  "limits": {
+    "original_detector_data_available": false,
+    "physical_source_receiver_accepted": false,
+    "physical_state_rate_coverage_complete": false,
+    "actual_flash_run": false,
+    "absolute_correction_established": false,
+    "physical_neutral_density_or_temperature_inferred": false,
+    "monolayer_coverage_inferred": false,
+    "owner_solvers_modified": false,
+    "remote_mutations": false
+  },
+  "pending_evidence": [
+    "FLASH download and source/version-specific configuration",
+    "qualified foil/material/drive and converged heating/source histories",
+    "physical Raikou receiver and complete resolved population ensembles",
+    "scenario-specific reduction mapping,registered signed gate and collection/line-response evidence",
+    "sourced monolayer convention for coverage only"
+  ],
+  "static_checks": {
+    "source_hashes": "passed",
+    "copied_report_hashes": "passed",
+    "python_ast": "passed",
+    "local_document_links": "passed",
+    "git_diff_check_exit_code": 0,
+    "python_files_checked": 19
+  }
+}

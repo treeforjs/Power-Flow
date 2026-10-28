@@ -47,10 +47,26 @@ PHASES = ("target", "finite_rule", "represented", "rule_generation_defect",
 
 @pytest.fixture(scope="module", autouse=True)
 def _record_import_boundary(record_testsuite_property):
-    forbidden = sorted(name for name in sys.modules if name == "mhdlab" or name.startswith("mhdlab."))
-    assert forbidden == []
-    record_testsuite_property("direct_core_module_name", _CORE_NAME)
-    record_testsuite_property("legacy_modules_after_direct_core_import", json.dumps(forbidden))
+    # Collection of unrelated tests legitimately imports mhdlab in this pytest
+    # process. Verify this module's independent import guarantee in a pristine
+    # interpreter instead of requiring global test-collection isolation.
+    script = """
+import importlib.util, json, sys
+path, name = sys.argv[1:]
+spec = importlib.util.spec_from_file_location(name, path)
+module = importlib.util.module_from_spec(spec)
+sys.modules[name] = module
+spec.loader.exec_module(module)
+forbidden = sorted(key for key in sys.modules if key == 'mhdlab' or key.startswith('mhdlab.'))
+print(json.dumps({'module_name': name, 'forbidden_legacy_modules': forbidden}))
+"""
+    completed = subprocess.run([sys.executable, "-W", "error", "-c", script, str(_CORE_PATH), _CORE_NAME],
+                               text=True, capture_output=True, check=True)
+    actual = json.loads(completed.stdout)
+    assert actual["forbidden_legacy_modules"] == []
+    record_testsuite_property("direct_core_module_name", actual["module_name"])
+    record_testsuite_property("legacy_modules_after_direct_core_import", json.dumps(actual["forbidden_legacy_modules"]))
+    record_testsuite_property("import_boundary_verification", "pristine_subprocess")
 
 
 def _ratio(value):

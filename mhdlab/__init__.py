@@ -1,6 +1,5 @@
-"""Reduced MHD / kinetic-neutral / CR research prototype."""
+"""Surface-source research interfaces and external FLASH interchange."""
 
 from .config import load_config
-from .runner import run_from_config
 
-__all__ = ["load_config", "run_from_config"]
+__all__ = ["load_config"]

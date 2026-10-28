@@ -1,5 +1,10 @@
 # Analytic resistive-heating checks for FLASH
 
+These mathematical references also support the selected MFEM backend. Use the
+[MFEM profile interchange](mfem_heating_verification.md) and
+[current qualification ladder](mfem_joule_heating.md). FLASH-specific wording
+below reflects the earlier backend plan; it is not an acquisition requirement.
+
 `mhdlab.heating_benchmarks.ConstantConductivityHalfSpace` supplies an analytic
 reference for a controlled diffusion problem. It is neither a replacement for
 FLASH nor an MITL shot model. Conductivity, permeability, volumetric heat capacity

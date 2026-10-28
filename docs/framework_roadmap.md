@@ -1,5 +1,7 @@
 # Framework Roadmap
 
+This is a historical prototype architecture note. The homegrown production MHD solver has been removed; current work follows the [FLASH publication plan](flash_h2o_publication_plan.md).
+
 This project should follow an AGATE-like framework shape while staying close to
 ALEGRA-MHD for physics choices, coupling strategy, diagnostics, and model
 hierarchy. In short: AGATE is the software ergonomics reference; ALEGRA is the

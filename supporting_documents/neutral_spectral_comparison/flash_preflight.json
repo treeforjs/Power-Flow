@@ -1,0 +1,138 @@
+{
+  "schema": "mhdlab-flash-environment-v1",
+  "created_utc": "2026-10-27T04:10:36.604099+00:00",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "commands": {
+    "gcc": "/usr/bin/gcc",
+    "gfortran": "/usr/bin/gfortran",
+    "mpicc": "/usr/bin/mpicc",
+    "mpif90": "/usr/bin/mpif90",
+    "mpiexec": "/usr/bin/mpiexec",
+    "make": "/usr/bin/make",
+    "cmake": "/usr/bin/cmake",
+    "ninja": "/usr/bin/ninja",
+    "h5pfc": "/home/tsmit/.local/opt/power-flow/hdf5-1.14.6-openmpi/bin/h5pfc"
+  },
+  "checks": [
+    {
+      "argv": [
+        "/usr/bin/gcc",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": "",
+      "environment_updates": {}
+    },
+    {
+      "argv": [
+        "/usr/bin/gfortran",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": "",
+      "environment_updates": {}
+    },
+    {
+      "argv": [
+        "/usr/bin/mpicc",
+        "--showme:version"
+      ],
+      "exit_code": 0,
+      "stdout": "/usr/bin/mpicc: Open MPI 4.1.6 (Language: C)\n",
+      "stderr": "",
+      "environment_updates": {}
+    },
+    {
+      "argv": [
+        "/usr/bin/mpif90",
+        "--showme:command"
+      ],
+      "exit_code": 0,
+      "stdout": "gfortran\n",
+      "stderr": "",
+      "environment_updates": {}
+    },
+    {
+      "argv": [
+        "/usr/bin/cmake",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "cmake version 3.28.3\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\n",
+      "stderr": "",
+      "environment_updates": {}
+    },
+    {
+      "argv": [
+        "dpkg-query",
+        "-W",
+        "-f=${binary:Package} ${Version}\n",
+        "*hdf5*",
+        "*openmpi*"
+      ],
+      "exit_code": 1,
+      "stdout": "gromacs-openmpi \nlibcaf-openmpi-3 \nlibcaf-openmpi-3t64:amd64 2.10.2+ds-2.1build2\nlibcoarrays-openmpi-dev:amd64 2.10.2+ds-2.1build2\nlibopenmpi-dev:amd64 4.1.6-7ubuntu2\nlibopenmpi3 \nlibopenmpi3t64:amd64 4.1.6-7ubuntu2\nopenmpi-bin 4.1.6-7ubuntu2\nopenmpi-common 4.1.6-7ubuntu2\nopenmpi-doc \n",
+      "stderr": "dpkg-query: no packages found matching *hdf5*\n",
+      "environment_updates": {}
+    },
+    {
+      "argv": [
+        "/home/tsmit/.local/opt/power-flow/hdf5-1.14.6-openmpi/bin/h5pfc",
+        "-show"
+      ],
+      "exit_code": 0,
+      "stdout": "/usr/bin/mpif90 -show -I/home/tsmit/.local/opt/power-flow/hdf5-1.14.6-openmpi/include -L/home/tsmit/.local/opt/power-flow/hdf5-1.14.6-openmpi/lib -lhdf5_fortran -lhdf5\n",
+      "stderr": "",
+      "environment_updates": {}
+    },
+    {
+      "argv": [
+        "/home/tsmit/.local/opt/power-flow/hdf5-1.14.6-openmpi/bin/h5pfc",
+        "-showconfig"
+      ],
+      "exit_code": 0,
+      "stdout": "        SUMMARY OF THE HDF5 CONFIGURATION\n        =================================\n\nGeneral Information:\n-------------------\n                   HDF5 Version: 1.14.6\n                  Configured on: 2026-10-26\n                  Configured by: Ninja\n                    Host system: Linux-6.6.87.2-microsoft-standard-WSL2\n              Uname information: Linux\n                       Byte sex: little-endian\n             Installation point: /home/tsmit/.local/opt/power-flow/hdf5-1.14.6-openmpi\n\nCompiling Options:\n------------------\n                     Build Mode: Release\n              Debugging Symbols: OFF\n                        Asserts: OFF\n                      Profiling: OFF\n             Optimization Level: OFF\n\nLinking Options:\n----------------\n                      Libraries: \n  Statically Linked Executables: OFF\n                        LDFLAGS: \n                     H5_LDFLAGS: \n                     AM_LDFLAGS: \n                Extra libraries: m;dl\n                       Archiver: /usr/bin/ar\n                       AR_FLAGS:\n                         Ranlib: /usr/bin/ranlib\n\nLanguages:\n----------\n                              C: YES\n                     C Compiler: /usr/bin/mpicc 13.3.0\n                       CPPFLAGS: \n                    H5_CPPFLAGS: \n                    AM_CPPFLAGS: \n                         CFLAGS:   -std=c99  -fstdarg-opt -fdiagnostics-urls=never -fno-diagnostics-color -fmessage-length=0\n                      H5_CFLAGS: -Wall;-Wcast-qual;-Wconversion;-Wextra;-Wfloat-equal;-Wformat=2;-Winit-self;-Winvalid-pch;-Wmissing-include-dirs;-Wshadow;-Wundef;-Wwrite-strings;-pedantic;-Wno-c++-compat;-Wbad-function-cast;-Wcast-align;-Wformat;-Wimplicit-function-declaration;-Wint-to-pointer-cast;-Wmissing-declarations;-Wmissing-prototypes;-Wnested-externs;-Wold-style-definition;-Wpacked;-Wpointer-sign;-Wpointer-to-int-cast;-Wredundant-decls;-Wstrict-prototypes;-Wswitch;-Wunused-but-set-variable;-Wunused-variable;-Wunused-function;-Wunused-parameter;-finline-functions;-Wno-aggregate-return;-Wno-inline;-Wno-missing-format-attribute;-Wno-missing-noreturn;-Wno-overlength-strings;-Wlarger-than=2560;-Wlogical-op;-Wframe-larger-than=16384;-Wpacked-bitfield-compat;-Wsync-nand;-Wno-unsuffixed-float-constants;-Wdouble-promotion;-Wtrampolines;-Wstack-usage=8192;-Wmaybe-uninitialized;-Wno-jump-misses-init;-Wstrict-overflow=2;-Wno-suggest-attribute=const;-Wno-suggest-attribute=noreturn;-Wno-suggest-attribute=pure;-Wno-suggest-attribute=format;-Wdate-time;-Warray-bounds=2;-Wc99-c11-compat;-Wincompatible-pointer-types;-Wint-conversion;-Wshadow;-Wduplicated-cond;-Whsa;-Wnormalized;-Wnull-dereference;-Wunused-const-variable;-Walloca;-Walloc-zero;-Wduplicated-branches;-Wformat-overflow=2;-Wformat-truncation=1;-Wrestrict;-Wattribute-alias;-Wshift-overflow=2;-Wcast-function-type;-Wmaybe-uninitialized;-Wcast-align=strict;-Wno-suggest-attribute=cold;-Wno-suggest-attribute=malloc;-Wattribute-alias=2;-Wmissing-profile;-Wc11-c2x-compat\n                      AM_CFLAGS: \n               Shared C Library: YES\n               Static C Library: YES\n\n                        Fortran: ON\n               Fortran Compiler: /usr/bin/mpif90 13.3.0\n                  Fortran Flags: \n               H5 Fortran Flags: \n               AM Fortran Flags: \n         Shared Fortran Library: YES\n         Static Fortran Library: YES\n               Module Directory: /home/tsmit/.local/share/power-flow/hdf5-1.14.6-openmpi-build-20261027/build/mod\n\n                            C++: OFF\n                   C++ Compiler:  \n                      C++ Flags: \n                   H5 C++ Flags: \n                   AM C++ Flags: \n             Shared C++ Library: YES\n             Static C++ Library: YES\n\n                           JAVA: OFF\n                  JAVA Compiler:  \n\nFeatures:\n---------\n                     Parallel HDF5: ON\n  Parallel Filtered Dataset Writes: ON\n                Large Parallel I/O: ON\n                High-level library: ON\nDimension scales w/ new references: \n                  Build HDF5 Tests: OFF\n                  Build HDF5 Tools: OFF\n                   Build GIF Tools: \n                      Threadsafety: OFF\n               Default API mapping: v16\n    With deprecated public symbols: ON\n            I/O filters (external): \n                  _Float16 support: ON\n                     Map (H5M) API: OFF\n                        Direct VFD: OFF\n                        Mirror VFD: OFF\n                     Subfiling VFD: OFF\n                (Read-Only) S3 VFD: OFF\n              (Read-Only) HDFS VFD: OFF\n    Packages w/ extra debug output: \n                       API Tracing: OFF\n              Using memory checker: OFF\n                  Use file locking: best-effort\n         Strict File Format Checks: OFF\n      Optimization Instrumentation: \n",
+      "stderr": "",
+      "environment_updates": {}
+    },
+    {
+      "argv": [
+        "/home/tsmit/.local/opt/power-flow/hdf5-1.14.6-openmpi/bin/h5pfc",
+        "smoke.f90",
+        "-o",
+        "smoke"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "environment_updates": {}
+    },
+    {
+      "argv": [
+        "/usr/bin/mpiexec",
+        "-n",
+        "2",
+        "./smoke"
+      ],
+      "exit_code": 0,
+      "stdout": " parallel HDF5 collective file creation passed\n",
+      "stderr": "",
+      "environment_updates": {
+        "LD_LIBRARY_PATH": "/home/tsmit/.local/opt/power-flow/hdf5-1.14.6-openmpi/lib"
+      }
+    }
+  ],
+  "source": null,
+  "flash_run_performed": false,
+  "licensed_source_copied": false,
+  "parallel_hdf5_smoke_passed": true,
+  "blockers": [
+    "licensed FLASH source root not supplied",
+    "FLASH version, site configuration and physical benchmark remain unverified"
+  ],
+  "status": "preflight_only",
+  "wsl_distro": "Ubuntu-24.04",
+  "probe_source_sha256": "410ffd19adc14de2cadbe6024bf7e4c2310113143502d36b8b40e26be4e2652c"
+}

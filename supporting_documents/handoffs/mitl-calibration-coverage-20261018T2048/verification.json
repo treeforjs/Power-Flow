@@ -1,0 +1,1068 @@
+{
+  "schema": "mitl-calibration-coverage-verification-v1",
+  "created_utc": "2026-10-18T21:09:38.646737+00:00",
+  "source_commit": "f4bcf3e4d0e402c3ca57b8ef91dd4e09717e2fda",
+  "branch": "research/flash-publication-foundation",
+  "commits": [
+    "5e385b457a92e8b4da64d38f1ddd6c50048187c6 Fit explicit monolayer coverage with covariance and calibration profiles",
+    "aa84257003c0769a4b11bb4191febe588369d491 Export coverage profiles with declared calibration and manufactured controls",
+    "e109a38e82e53329359f97394f7c70612cf58526 Separate photon response from radiometric bin geometry and exposure",
+    "221b9e4aff440cfe73b9b9ce6d66f4ca1a79b7e4 Recover published calibration paths and preserve absolute-unit ambiguities",
+    "f4bcf3e4d0e402c3ca57b8ef91dd4e09717e2fda Pin manufacturer calibration quantity and detector-response evidence"
+  ],
+  "environment": {
+    "python": "3.12.14",
+    "packages": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "matplotlib": "3.11.2",
+      "pytest": "9.1.1",
+      "PyMuPDF": "1.28.2"
+    }
+  },
+  "results": {
+    "targeted_unique_passed": 174,
+    "isolated_passed": 173,
+    "isolated_skipped": 1,
+    "isolated_skip_reason": "External dissertation PDF deliberately absent from portable extraction; exact-source integration passed in original workspace.",
+    "isolated_file_pass_counts": {
+      "tests.test_coverage_regression": 68,
+      "tests.test_coverage_regression_cli": 26,
+      "tests.test_dissertation_calibration_recovery": 9,
+      "tests.test_radiometric_response": 70
+    },
+    "public_files_byte_identical": 19,
+    "unchanged_project_suites_repeated": false,
+    "manufactured_coverage_tradeoff_cases": 6,
+    "manufactured_radiometric_examples": 2,
+    "primary_manufacturer_response_records": 11,
+    "primary_pinpoint_findings": 15
+  },
+  "input_labels": {
+    "coverage_examples": "manufactured",
+    "calibration_figures": "reconstructed published vector display geometry",
+    "manufacturer_records": "generic primary documentation, not serial calibration"
+  },
+  "absolute_calibration": {
+    "numerical_amplitude_correction_supported": false,
+    "physical_monolayers_inferred": false,
+    "user_preference": "Re-derive from dissertation",
+    "primary_manifest_sha256": "ce7af6beb867af02985059a537978996d37b6df63b893888662d8a94cafbfef1"
+  },
+  "commands": [
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/extend_response_scope.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:48:42.880838+00:00",
+      "end_utc": "2026-10-18T20:48:42.909314+00:00",
+      "elapsed_s": 0.028475155002524843,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/reserve-radiometric-response.log",
+      "log_sha256": "a38b338dc80428c79b078ca8837f66cd84ec8aceef0b5986a7f46a9d2278a4f1"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-c",
+        "from mhdlab.coverage_regression import *; import json; g=CoveragePredictionGrid([0,1,2],[[0,0],[2,1],[2,4]],monolayer_areal_density_m2=1e19,monolayer_definition=\"Manufactured count layer\",monolayer_provenance=\"Manufactured input\",signal_units=\"a.u.\",bin_edges=[1,2,3],bin_axis_units=\"nm\",bin_support=\"two manufactured bins\",status=\"manufactured\",provenance=\"owner manufactured forward grid\"); o=BinnedObservation([2.5,2.5],[[1,.3],[.3,2]],[.5,0],signal_units=\"a.u.\",bin_edges=[1,2,3],bin_axis_units=\"nm\",bin_support=\"two manufactured bins\",status=\"manufactured\",provenance=\"manufactured observations\"); r=fit_surface_coverage(g,o,CalibrationScale(\"fixed\",fixed_scale=1,provenance=\"manufactured fixed scale\")); assert abs(r[\"best_fit\"][\"coverage_ml\"]-1.5)<1e-13; print(json.dumps(r,allow_nan=False))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:51:04.531096+00:00",
+      "end_utc": "2026-10-18T20:51:04.928251+00:00",
+      "elapsed_s": 0.3971620369993616,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/coverage-core-smoke.log",
+      "log_sha256": "886f775ad8ab45ad2089833d973d22dae2c400045b8a7870bc5b6ba7eb6cd522"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-c",
+        "import importlib.util,json; import pymupdf; p='tools/recover_dissertation_calibration.py'; s=importlib.util.spec_from_file_location('calibration_recovery',p); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); d=pymupdf.open('/workspace/research_sources/smtrevor_1.pdf'); print(json.dumps({n:m.drawings_digest(d[n-1].get_drawings()) for n in (105,106)},indent=2)); d.close()"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:51:11.573536+00:00",
+      "end_utc": "2026-10-18T20:51:11.900111+00:00",
+      "elapsed_s": 0.32658407500275644,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-native-path-hashes.log",
+      "log_sha256": "ba97e0092facd8daa88e39816754db259189ec7a29a68e63e824a9c8ac2b538e"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_coverage_regression.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:51:11.458349+00:00",
+      "end_utc": "2026-10-18T20:51:12.443493+00:00",
+      "elapsed_s": 0.9851535730012984,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/coverage-regression-independent-initial.log",
+      "log_sha256": "8676960c97d54b242768dea625eeece3235e8011c7b2204ee5c9017c2b183297"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "tools/recover_dissertation_calibration.py",
+        "--pdf",
+        "/workspace/research_sources/smtrevor_1.pdf",
+        "--qa-dir",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-recovery"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:51:18.525756+00:00",
+      "end_utc": "2026-10-18T20:51:20.564106+00:00",
+      "elapsed_s": 2.038361849998182,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-recovery.log",
+      "log_sha256": "bd8f42ac68c91141f464449a6e9ddfec720e921eb2a504a25fcaac0dc5b08e90"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2048/coverage_fit_oracles.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:51:22.632451+00:00",
+      "end_utc": "2026-10-18T20:51:23.176475+00:00",
+      "elapsed_s": 0.5439951279986417,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/coverage-fit-oracles.log",
+      "log_sha256": "c6a7969c4cc400f8d7d99a1eaf7e8b35119821c26aa4f708b52fbd0cadc8221a"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_coverage_regression.py",
+        "-k",
+        "selected_candidate_or_reported_signal_or_gaussian_calibration_constraint"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:52:37.868335+00:00",
+      "end_utc": "2026-10-18T20:52:38.635371+00:00",
+      "elapsed_s": 0.7670422209994285,
+      "exit_code": 5,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/coverage-regression-objective-and-zero-prior.log",
+      "log_sha256": "4452913d7717a109bede2add86d7fb175400d69e3e82a3017c431f028909bab9"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_coverage_regression.py",
+        "-k",
+        "selected_candidate or gaussian_calibration_constraint"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:52:43.216703+00:00",
+      "end_utc": "2026-10-18T20:52:44.088880+00:00",
+      "elapsed_s": 0.8721879679978883,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/coverage-regression-objective-and-zero-prior-selected.log",
+      "log_sha256": "7b62d409b0d599bc067d8327c306fa7ac7dff79d2249af946fc2dc6c73cad40e"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_dissertation_calibration_recovery.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:54:29.988984+00:00",
+      "end_utc": "2026-10-18T20:54:30.702297+00:00",
+      "elapsed_s": 0.713322159001109,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-recovery-tests.log",
+      "log_sha256": "2685a12b758225a8206538860ae3928696723d9f3f95fd2ae6bc7867f8ca8d2c"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "py_compile",
+        "tests/test_coverage_regression_cli.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:54:38.801118+00:00",
+      "end_utc": "2026-10-18T20:54:38.847686+00:00",
+      "elapsed_s": 0.04656990600051358,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/coverage-cli-tests-syntax.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-c",
+        "import csv,json; import numpy as np; p='data/dissertation/figure_4_18_calibration.csv'; rows=list(csv.DictReader(open(p))); w=np.array([float(r['wavelength_nm']) for r in rows]); bad=np.flatnonzero(np.diff(w)<=0); print(json.dumps({'nonincreasing_segments':[{'from_index':int(i),'to_index':int(i+1),'wavelength_from_nm':w[i],'wavelength_to_nm':w[i+1],'intensity_from':rows[i]['plotted_intensity'],'intensity_to':rows[i+1]['plotted_intensity']} for i in bad]},indent=2))"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:54:45.845683+00:00",
+      "end_utc": "2026-10-18T20:54:45.975825+00:00",
+      "elapsed_s": 0.13018788899717038,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-native-order-inspection.log",
+      "log_sha256": "6f98afb066008cfdd5167079ba5c2f1891959920da5470916d46866ce0977c83"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_coverage_regression.py",
+        "-k",
+        "weak_shape or unrepresentable_interior or whitening_cannot or large_parameter_independent"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:55:03.290848+00:00",
+      "end_utc": "2026-10-18T20:55:04.043653+00:00",
+      "elapsed_s": 0.7528132249972259,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/coverage-regression-new-numeric-range.log",
+      "log_sha256": "62468053eae9e1be030558a0070e798636d5923e8e9ea36a74d9937d6c9fd109"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_radiometric_response.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:55:16.170216+00:00",
+      "end_utc": "2026-10-18T20:55:16.969341+00:00",
+      "elapsed_s": 0.7991350610027439,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/radiometric-response-targeted-tests.log",
+      "log_sha256": "bc8986b37f99c9047ece3ea887a327b532b13957d7c9da5e98caadb00425d391"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "tools/recover_dissertation_calibration.py",
+        "--pdf",
+        "/workspace/research_sources/smtrevor_1.pdf"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:55:21.003577+00:00",
+      "end_utc": "2026-10-18T20:55:21.340648+00:00",
+      "elapsed_s": 0.33707761600089725,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-recovery-order-qualified.log",
+      "log_sha256": "bd8f42ac68c91141f464449a6e9ddfec720e921eb2a504a25fcaac0dc5b08e90"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-c",
+        "import hashlib, pathlib, py_compile; p=pathlib.Path(\"mhdlab/coverage_regression.py\"); py_compile.compile(str(p),doraise=True); print(hashlib.sha256(p.read_bytes()).hexdigest())"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:56:25.044099+00:00",
+      "end_utc": "2026-10-18T20:56:25.081486+00:00",
+      "elapsed_s": 0.03738791900104843,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/coverage-core-freeze.log",
+      "log_sha256": "25b79486282c8351a443c6102e1aeff11886450c266787cdca1b36996d179ae4"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_dissertation_calibration_recovery.py::test_lamp_curve_retains_original_vertices_literal_units_and_source_identity",
+        "tests/test_dissertation_calibration_recovery.py::test_gain_series_keep_marker_and_polygon_roles_without_legend_contamination",
+        "tests/test_dissertation_calibration_recovery.py::test_qa_rejects_changed_source_before_producing_an_overlay"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:56:28.409644+00:00",
+      "end_utc": "2026-10-18T20:56:29.194805+00:00",
+      "elapsed_s": 0.7851725590007845,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-source-order-and-qa-guard-tests.log",
+      "log_sha256": "d67af6276960c86f8235293a7fd7c89828928cae760895086fdc5286a51dbb55"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "tools/recover_dissertation_calibration.py",
+        "--pdf",
+        "/workspace/research_sources/smtrevor_1.pdf",
+        "--qa-dir",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-recovery"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:56:29.301266+00:00",
+      "end_utc": "2026-10-18T20:56:31.099047+00:00",
+      "elapsed_s": 1.7977935589988192,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-final-qa.log",
+      "log_sha256": "bd8f42ac68c91141f464449a6e9ddfec720e921eb2a504a25fcaac0dc5b08e90"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_coverage_regression.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:56:41.057419+00:00",
+      "end_utc": "2026-10-18T20:56:41.981433+00:00",
+      "elapsed_s": 0.9240439269997296,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/coverage-regression-final-frozen.log",
+      "log_sha256": "42e2c3afa02b7d5d2e9c4cd9da896128d5ebc6156e3d6044e1131e0e9b921de3"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_radiometric_response.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:56:50.173020+00:00",
+      "end_utc": "2026-10-18T20:56:51.019037+00:00",
+      "elapsed_s": 0.8460283550011809,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/radiometric-response-targeted-tests-result-guard.log",
+      "log_sha256": "8cc15382e5874aa57bf4f8b7465a90619c53a67d03d5e9144399ea38e9c7bc1b"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_coverage_regression_cli.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:56:45.930167+00:00",
+      "end_utc": "2026-10-18T20:56:56.683199+00:00",
+      "elapsed_s": 10.753041662999749,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/coverage-cli-independent-initial.log",
+      "log_sha256": "1c49df89de84301b253d1ad5e34c1c214eb4f959a32f7a23ff9121195d9329b3"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "tools/recover_dissertation_calibration.py",
+        "--help"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:57:09.509178+00:00",
+      "end_utc": "2026-10-18T20:57:09.710014+00:00",
+      "elapsed_s": 0.20084719700025744,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-cli-help.log",
+      "log_sha256": "ea34f3773959494c5c47383078b84da32dfd8dc5059adcc3c26c73770e73b8c4"
+    },
+    {
+      "command": [
+        "python",
+        "tools/recover_dissertation_calibration.py",
+        "--pdf",
+        "/workspace/research_sources/smtrevor_1.pdf",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-recovery/default-runtime"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:57:09.526895+00:00",
+      "end_utc": "2026-10-18T20:57:09.944020+00:00",
+      "elapsed_s": 0.41713588099810295,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-default-runtime-reproduction.log",
+      "log_sha256": "d88adffc533d1a29a0341857c75a7ee07581760f97c41fb06d45a32461cecdb5"
+    },
+    {
+      "command": [
+        "env",
+        "DISSERTATION_SOURCE_PDF=/nonexistent/dissertation.pdf",
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_dissertation_calibration_recovery.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:57:09.534813+00:00",
+      "end_utc": "2026-10-18T20:57:10.480722+00:00",
+      "elapsed_s": 0.945919525998761,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-portable-no-source.log",
+      "log_sha256": "36d310c9168c600a01cd4eedf1dfc97ad05362113725226b84f12640d6e0b0f2"
+    },
+    {
+      "command": [
+        "sha256sum",
+        "mhdlab/radiometric_response.py",
+        "tests/test_radiometric_response.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:57:11.854905+00:00",
+      "end_utc": "2026-10-18T20:57:11.870927+00:00",
+      "elapsed_s": 0.016013314998417627,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/radiometric-response-final-digests.log",
+      "log_sha256": "b8152d4250eb5e3f66db1024e2ee6b0acc8a557c78ea5d7855a8c0c74a4aa4ae"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "tools/fit_surface_coverage.py",
+        "--config",
+        "configs/coverage_regression_manufactured.json",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T2048/coverage-fit-example",
+        "--plot"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:57:19.791051+00:00",
+      "end_utc": "2026-10-18T20:57:21.183352+00:00",
+      "elapsed_s": 1.392319801998383,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/coverage-fit-example.log",
+      "log_sha256": "fb0c57c69ff20d9b02859641c454b9e224919e99f297423fcea9ba000aaf5cbf"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2048/coverage_calibration_tradeoffs.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:57:19.776163+00:00",
+      "end_utc": "2026-10-18T20:57:21.438930+00:00",
+      "elapsed_s": 1.6627856800005247,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/coverage-calibration-tradeoffs.log",
+      "log_sha256": "693877c93772db3db27d3033b5ef26568a3be2364f0f13ac2de06f46c122014d"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-W",
+        "error",
+        "tools/recover_dissertation_calibration.py",
+        "--pdf",
+        "/workspace/research_sources/smtrevor_1.pdf",
+        "--qa-dir",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-recovery"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:58:02.852240+00:00",
+      "end_utc": "2026-10-18T20:58:04.637060+00:00",
+      "elapsed_s": 1.7848386999976356,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-rational-axis-recovery.log",
+      "log_sha256": "519f1d829fc7ebc77a6216aa7248cd57db0011637ab6238eb0b0559ead04b4b8"
+    },
+    {
+      "command": [
+        "python",
+        "tools/recover_dissertation_calibration.py",
+        "--pdf",
+        "/workspace/research_sources/smtrevor_1.pdf",
+        "--output-dir",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-recovery/rational-default-runtime"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:58:04.742036+00:00",
+      "end_utc": "2026-10-18T20:58:05.177661+00:00",
+      "elapsed_s": 0.43568948800020735,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-rational-default-runtime.log",
+      "log_sha256": "6338d874f60e7ec8f2bb60357c29c09e4e012ab42fad7f0a1157c4de8ff0d03e"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/coverage_regression.py",
+        "tests/test_coverage_regression.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:58:16.216909+00:00",
+      "end_utc": "2026-10-18T20:58:16.221839+00:00",
+      "elapsed_s": 0.00496825000300305,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/stage-coverage-regression.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Fit explicit monolayer coverage with covariance and calibration profiles"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:58:16.340831+00:00",
+      "end_utc": "2026-10-18T20:58:16.349584+00:00",
+      "elapsed_s": 0.008754698999837274,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/commit-coverage-regression.log",
+      "log_sha256": "17c162456fc28766546844da5c2fe14738d595ea12e5fcf26b9699ab00d03e6c"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "tests/test_dissertation_calibration_recovery.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:58:32.626567+00:00",
+      "end_utc": "2026-10-18T20:58:35.122787+00:00",
+      "elapsed_s": 2.4962701209988154,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-rational-axis-tests.log",
+      "log_sha256": "9cd385b957fb458833b891eccb9781b2da004f7295e93cda8bb94e197ae4ad2b"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2048/radiometric_response_example.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:59:12.680389+00:00",
+      "end_utc": "2026-10-18T20:59:12.847552+00:00",
+      "elapsed_s": 0.16716934999931254,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/radiometric-response-example.log",
+      "log_sha256": "7909c415cd68742b8a75462df3ad946c94b2cd5d45906480ac50ca04b182ba4e"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "tools/fit_surface_coverage.py",
+        "tests/test_coverage_regression_cli.py",
+        "configs/coverage_regression_manufactured.json",
+        "docs/surface_coverage_inference.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:59:34.935829+00:00",
+      "end_utc": "2026-10-18T20:59:34.941170+00:00",
+      "elapsed_s": 0.005341455998859601,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/stage-coverage-cli.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Export coverage profiles with declared calibration and manufactured controls"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:59:35.115649+00:00",
+      "end_utc": "2026-10-18T20:59:35.133412+00:00",
+      "elapsed_s": 0.01776310900095268,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/commit-coverage-cli.log",
+      "log_sha256": "354e7deaa378a1dd0174b4585ab6f80aced03611bd743965808c86f2093fa73b"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "mhdlab/radiometric_response.py",
+        "tests/test_radiometric_response.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:59:35.274084+00:00",
+      "end_utc": "2026-10-18T20:59:35.278380+00:00",
+      "elapsed_s": 0.004295958002330735,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/stage-radiometric-response.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Separate photon response from radiometric bin geometry and exposure"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:59:35.410827+00:00",
+      "end_utc": "2026-10-18T20:59:35.422986+00:00",
+      "elapsed_s": 0.012163793999206973,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/commit-radiometric-response.log",
+      "log_sha256": "266bf25e837b23fa5c6ce2043f438c1721f39e058a6e87edc50438629f6c06d0"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-c",
+        "import csv,hashlib,json,re\nfrom pathlib import Path\nwork=Path('/workspace/research_work/mitl-upstream-20261018T2048')\nroot=Path('/workspace/Power-Flow')\npaths=[root/'tools/recover_dissertation_calibration.py',root/'tests/test_dissertation_calibration_recovery.py',root/'docs/absolute_spectral_calibration.md']\npaths += [root/'data/dissertation'/name for name in ('figure_4_18_calibration.csv','figure_4_18_calibration.json','figure_4_19_gain.csv','figure_4_19_gain.json')]\nsha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()\nsource=Path('/workspace/research_sources/smtrevor_1.pdf')\nassert sha(source)=='1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7'\nqa=[]\nfor stem,count in (('figure_4_18_calibration',243),('figure_4_19_gain',340)):\n    csv_path=root/'data/dissertation'/(stem+'.csv')\n    meta=json.loads((root/'data/dissertation'/(stem+'.json')).read_text())\n    with csv_path.open(newline='') as stream: rows=list(csv.DictReader(stream))\n    assert len(rows)==count and sha(csv_path)==meta['output']['csv_sha256']\n    alternate=work/'calibration-recovery/rational-default-runtime'/(stem+'.csv')\n    assert alternate.read_bytes()==csv_path.read_bytes()\n    image=Path(meta['QA_overlay']['path'])\n    assert sha(image)==meta['QA_overlay']['sha256']\n    assert meta['QA_overlay']['contains_source_pixels'] and not meta['QA_overlay']['redistribute_in_public_archive']\n    qa.append({'path':str(image),'sha256':sha(image),'contains_source_pixels':True,'redistribute_in_delivery_archive':False})\nfor path in paths:\n    text=path.read_text()\n    assert all(not line.endswith((' ','\\t')) for line in text.splitlines()),path\n    assert not any(ord(c)<32 and c not in '\\n\\t\\r' for c in text),path\nfor target in re.findall(r'\\[[^\\]]+\\]\\(([^)]+)\\)',(root/'docs/absolute_spectral_calibration.md').read_text()):\n    if '://' not in target and not target.startswith('#'):\n        assert (root/'docs'/target.split('#',1)[0]).resolve().is_file(),target\nentries=[json.loads(line) for line in (work/'commands.jsonl').read_text().splitlines()]\nentries=[entry for entry in entries if Path(entry['log']).name.startswith('calibration-')]\nfor entry in entries:\n    assert sha(Path(entry['log']))==entry['log_sha256']\ncurrent=next(entry for entry in entries if Path(entry['log']).name=='calibration-rational-axis-tests.log')\nassert current['exit_code']==0 and '10 passed' in Path(current['log']).read_text()\nevidence={'schema':'dissertation-calibration-recovery-evidence-v1','source_pdf':{'path':str(source),'sha256':sha(source),'redistribute_in_delivery_archive':False},'frozen_repository_artifacts':[{'path':str(p),'bytes':p.stat().st_size,'sha256':sha(p)} for p in paths],'source_pixel_QA':qa,'recorded_commands':entries,'command_history_scope':'Observed recorded calibration development/recovery/tests/reproduction/help only; preliminary read-only text/page/native inspections were not persisted as command logs. Recorder combines stderr into stdout.','validation':{'current_focused_tests_passed':10,'current_focused_tests_log':current['log'],'current_test_warning_policy':'error','cross_runtime_csv_bytes_identical':True,'earlier_source_free_test_result':'9 passed, 1 skipped; before exact-rational-axis revision, preserved as historical evidence','earlier_failure_resolution':['Initial strict-increasing wavelength assumption contradicted one encoded native backstep; retained and flagged, no sorting','Initial integer-gain proximity tolerance was narrower than native coordinate rounding; preserved original unsnapped centres','NumPy axis-fit last-bit differences changed 17-digit CSV outputs across runtimes; exact rational tick regression produced identical output bytes']},'scientific_limits':['literal single-mm ordinate dimension unresolved','no numerical absolute correction adopted','gain markers have no recovered per-point gate assignment','display fit-error polygon is not a confidence interval','lamp backstep retained; not interpolation-ready','line-integrated versus per-nm forward equation distinguished','source-pixel QA must remain local'],'no_commit':True}\nout=work/'calibration-recovery/completion.json'\nout.write_text(json.dumps(evidence,indent=2)+'\\n')\njson.loads(out.read_text())\nprint(json.dumps({'completion':str(out),'completion_sha256':sha(out),'frozen_files':len(paths),'recorded_commands':len(entries),'source_pixel_QA_local_only':True,'artifact_hashes':{str(p.relative_to(root)):sha(p) for p in paths}},indent=2))\n"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T20:59:48.363915+00:00",
+      "end_utc": "2026-10-18T20:59:48.513711+00:00",
+      "elapsed_s": 0.14980469299916876,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration-freeze.log",
+      "log_sha256": "57dca767f54eb2c1b824d474d16ca55838454071565fd89f90be1cf81a50ebc5"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "tools/recover_dissertation_calibration.py",
+        "tests/test_dissertation_calibration_recovery.py",
+        "data/dissertation/figure_4_18_calibration.csv",
+        "data/dissertation/figure_4_18_calibration.json",
+        "data/dissertation/figure_4_19_gain.csv",
+        "data/dissertation/figure_4_19_gain.json",
+        "docs/absolute_spectral_calibration.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:00:23.239011+00:00",
+      "end_utc": "2026-10-18T21:00:23.247177+00:00",
+      "elapsed_s": 0.008233682001446141,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/stage-calibration-recovery.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Recover published calibration paths and preserve absolute-unit ambiguities"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:00:23.378765+00:00",
+      "end_utc": "2026-10-18T21:00:23.388413+00:00",
+      "elapsed_s": 0.009649650000937982,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/commit-calibration-recovery.log",
+      "log_sha256": "f02e5b3d72a5d0fa3cfeefb64706f73a45994a88dec0c9b12acccb1ac6afd5f0"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-primary-sources/fetch_primary.py",
+        "mcpherson_home",
+        "https://www.mcphersoninc.com/"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:00:49.964649+00:00",
+      "end_utc": "2026-10-18T21:00:50.546872+00:00",
+      "elapsed_s": 0.5822274780002772,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration_primary_mcpherson_home.log",
+      "log_sha256": "e7c0ef38e4b9c1748055b86aa9055f00d9f6847b732e075a04d721e56f3ceb12"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-primary-sources/fetch_primary.py",
+        "mcpherson_vuvspectrometers",
+        "https://www.mcphersoninc.com/spectrometers/vuvuvvis/vuvuvvis.html"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:01:03.506287+00:00",
+      "end_utc": "2026-10-18T21:01:03.771027+00:00",
+      "elapsed_s": 0.264745258999028,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration_primary_spectrometers.log",
+      "log_sha256": "9e502a8de85ae6c46230c19f49c8517d0ed31588d849fe14cb062c999c44488a"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-primary-sources/fetch_primary.py",
+        "mcpherson_lightsources",
+        "https://www.mcphersoninc.com/lightsources/lightsources.html"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:01:03.474111+00:00",
+      "end_utc": "2026-10-18T21:01:03.786302+00:00",
+      "elapsed_s": 0.3121949050000694,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration_primary_lightsources.log",
+      "log_sha256": "4191245c1216a88800e85f6785f2578129d8ac91383b6ffbfa455adb28f40546"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-primary-sources/fetch_primary.py",
+        "mcpherson_calibration_systems",
+        "https://mcphersoninc.com/systems/spectralcalibration.html"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:01:03.495226+00:00",
+      "end_utc": "2026-10-18T21:01:04.094733+00:00",
+      "elapsed_s": 0.5995110100011516,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration_primary_calibration.log",
+      "log_sha256": "01431903ae5865e6b8aec63d29555bdb0b2a479b1a6d55a7e20e9047ec692958"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-primary-sources/fetch_primary.py",
+        "mcpherson_234302",
+        "https://www.mcphersoninc.com/spectrometers/vuvuvvis/model234302.html"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:01:18.101761+00:00",
+      "end_utc": "2026-10-18T21:01:18.428798+00:00",
+      "elapsed_s": 0.32703923100052634,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration_primary_234302.log",
+      "log_sha256": "a61a774368cdf975fb4de64f4894242d99c7f3c6634c044702cd687eb889293e"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-primary-sources/fetch_primary.py",
+        "mcpherson_632",
+        "https://www.mcphersoninc.com/lightsources/model632.html"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:01:18.108948+00:00",
+      "end_utc": "2026-10-18T21:01:18.561580+00:00",
+      "elapsed_s": 0.4526376519970654,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration_primary_632.log",
+      "log_sha256": "278a3d20a98cb64fb1956cc4233924488688b489e2a8da3c1d41ecce913fa4a1"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2048/prepare_calibration_handoff.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:01:38.433222+00:00",
+      "end_utc": "2026-10-18T21:01:38.495681+00:00",
+      "elapsed_s": 0.06245899200075655,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/prepare-calibration-handoff.log",
+      "log_sha256": "6141e735b52078076442a39825a3345a2fd98a551674d92c5ff48fc63ac0b4c0"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-primary-sources/fetch_primary.py",
+        "mcpherson_632_legacy_pdf",
+        "https://www.mcphersoninc.com/pdf/632.pdf"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:01:51.497933+00:00",
+      "end_utc": "2026-10-18T21:01:51.916661+00:00",
+      "elapsed_s": 0.4187339449999854,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration_primary_632_legacy_pdf.log",
+      "log_sha256": "40cfc513e030c628de0224b2d107423034eb11d09e637d6af47ada78cf5d7e38"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-primary-sources/fetch_primary.py",
+        "mcpherson_634_pdf",
+        "https://www.mcphersoninc.com/pdf/634.pdf"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:01:51.448148+00:00",
+      "end_utc": "2026-10-18T21:01:51.921986+00:00",
+      "elapsed_s": 0.4738422749978781,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration_primary_634_pdf.log",
+      "log_sha256": "fb33ff2f25ff6dd46be327d26001c04fdbc0b295e5be3f130e71a3a780c6367e"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-primary-sources/fetch_primary.py",
+        "mcpherson_632_spectrum",
+        "https://www.mcphersoninc.com/images/632-deuterium-spectrum.jpg"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:01:51.502413+00:00",
+      "end_utc": "2026-10-18T21:01:52.009122+00:00",
+      "elapsed_s": 0.506715745999827,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration_primary_632_spectrum.log",
+      "log_sha256": "0ac66929fdd7d57324d6b904dc05c4bb605757ddbd1dec4fc0f1e48d7db498af"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-primary-sources/fetch_primary.py",
+        "mcpherson_monarch_pdf",
+        "https://www.mcphersoninc.com/pdf/Monarch_Data_Sheet.pdf"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:01:51.470080+00:00",
+      "end_utc": "2026-10-18T21:01:52.081975+00:00",
+      "elapsed_s": 0.6118997859994124,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration_primary_monarch_pdf.log",
+      "log_sha256": "b2023e6abb226df19906ca067499002b43a81f9789f5541d563450554f7e260b"
+    },
+    {
+      "command": [
+        "env",
+        "DISSERTATION_SOURCE_PDF=/workspace/handoffs/mitl-calibration-coverage-20261018T2048/source/EXTERNAL_PDF_NOT_DISTRIBUTED.pdf",
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-W",
+        "error",
+        "--basetemp",
+        "/workspace/research_work/mitl-upstream-20261018T2048/isolated_pytest",
+        "--junitxml",
+        "/workspace/research_work/mitl-upstream-20261018T2048/isolated-results.xml"
+      ],
+      "cwd": "/workspace/handoffs/mitl-calibration-coverage-20261018T2048/source",
+      "start_utc": "2026-10-18T21:01:38.626061+00:00",
+      "end_utc": "2026-10-18T21:01:52.787577+00:00",
+      "elapsed_s": 14.161525798001094,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/isolated-calibration-source-tests.log",
+      "log_sha256": "dc0f2c2a5d1230b178fff54afc681c2ee95e71f1623355c595b9e49f83248bff"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-primary-sources/fetch_primary.py",
+        "mcpherson_gratings",
+        "https://www.mcphersoninc.com/gratings.html"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:02:45.386828+00:00",
+      "end_utc": "2026-10-18T21:02:45.677948+00:00",
+      "elapsed_s": 0.2911251170007745,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration_primary_gratings.log",
+      "log_sha256": "ae917fb80cd85aafeb1ac60ba3c5edd8581e0e0adc18c048717a528a7efcb34f"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-primary-sources/fetch_primary.py",
+        "mcpherson_234302_legacy_pdf",
+        "https://www.mcphersoninc.com/pdf/234302.pdf"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:02:45.291365+00:00",
+      "end_utc": "2026-10-18T21:02:45.776914+00:00",
+      "elapsed_s": 0.485554384002171,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration_primary_234302_legacy_pdf.log",
+      "log_sha256": "58c04c5b548ff32f22ded6652e8396e26856e8768d8c108ae4cd4a54a53afa73"
+    },
+    {
+      "command": [
+        "python",
+        "-c",
+        "import datetime,fcntl,json\nfrom pathlib import Path\np=Path('/workspace/research_work/mitl-upstream-status.json')\nwith Path('/workspace/research_work/mitl-upstream-status.lock').open('a') as lock:\n fcntl.flock(lock,fcntl.LOCK_EX)\n s=json.loads(p.read_text());assert s['active_lease_owner']=='mitl-upstream-20261018T2048'\n paths=['data/dissertation/calibration_primary_source_manifest.json','docs/calibration_primary_source_followup.md']\n assert not any(x in s['reserved_paths'] for x in paths)\n s['reserved_paths'].extend(paths);s['last_update_utc']=datetime.datetime.now(datetime.timezone.utc).isoformat()\n t=p.with_suffix('.tmp');t.write_text(json.dumps(s,indent=2)+'\\n');t.replace(p)\n with Path('/workspace/research_work/mitl-upstream-journal.jsonl').open('a') as f:f.write(json.dumps({'utc':s['last_update_utc'],'event':'scope_extended','pass_id':s['active_lease_owner'],'paths':paths,'purpose':'New primary manufacturer-source evidence; preserve earlier frozen calibration recovery unchanged'})+'\\n')\n print(json.dumps({'reserved_paths_added':paths},indent=2))\n"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:03:29.683603+00:00",
+      "end_utc": "2026-10-18T21:03:29.712550+00:00",
+      "elapsed_s": 0.028946810998604633,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/reserve-calibration-source-followup.log",
+      "log_sha256": "787b1125ad11f956fb3293b7a3e1cfcd28f34dc6857814fac241f000015a49ad"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2048/verify_calibration_examples.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:04:44.358801+00:00",
+      "end_utc": "2026-10-18T21:04:44.410310+00:00",
+      "elapsed_s": 0.05150953900010791,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/verify-calibration-examples.log",
+      "log_sha256": "d095fb0910d1244c63312c359eec07a4692c9eb07284581bac6c88fb3b8b1477"
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "/workspace/research_work/mitl-upstream-20261018T2048/calibration-primary-sources/build_public_manifest.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:05:36.896874+00:00",
+      "end_utc": "2026-10-18T21:05:37.052320+00:00",
+      "elapsed_s": 0.15544859299916425,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/calibration_primary_manifest.log",
+      "log_sha256": "c9efc31ab10ca44c7447a669352d4ebb54881411c4c53f67418216955b2c9d0b"
+    },
+    {
+      "command": [
+        "git",
+        "add",
+        "data/dissertation/calibration_primary_source_manifest.json",
+        "docs/calibration_primary_source_followup.md"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:06:41.340009+00:00",
+      "end_utc": "2026-10-18T21:06:41.345030+00:00",
+      "elapsed_s": 0.005020762000640389,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/stage-primary-calibration-followup.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "user.name=Research Development",
+        "-c",
+        "user.email=research@local.invalid",
+        "commit",
+        "-m",
+        "Pin manufacturer calibration quantity and detector-response evidence"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:06:41.477748+00:00",
+      "end_utc": "2026-10-18T21:06:41.487800+00:00",
+      "elapsed_s": 0.010052279998490121,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/commit-primary-calibration-followup.log",
+      "log_sha256": "368bf42a2e83ce5fcfc07fbdb78a981a5155d401d74311281c5ee672ffaf998f"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2048/extend_calibration_handoff_sources.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:06:41.719643+00:00",
+      "end_utc": "2026-10-18T21:06:41.773774+00:00",
+      "elapsed_s": 0.05413248400145676,
+      "exit_code": 0,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/extend-calibration-handoff-sources.log",
+      "log_sha256": "4795b87ac6490e26c769141e19eae3959fe782fa4a978221c7d09631c5d8b433"
+    },
+    {
+      "command": [
+        "/workspace/Power-Flow/.venv/bin/python",
+        "-W",
+        "error",
+        "/workspace/research_work/mitl-upstream-20261018T2048/freeze_calibration_handoff.py"
+      ],
+      "cwd": "/workspace/Power-Flow",
+      "start_utc": "2026-10-18T21:08:42.676666+00:00",
+      "end_utc": "2026-10-18T21:08:42.878510+00:00",
+      "elapsed_s": 0.2018513510010962,
+      "exit_code": 1,
+      "log": "/workspace/research_work/mitl-upstream-20261018T2048/freeze-calibration-handoff.log",
+      "log_sha256": "db2714faf69c312942c690a47dfabeb0be4bb85e8479ad305795b6f8e9d4ba49"
+    }
+  ],
+  "resolved_findings": [
+    "Stationary-profile Gram products lost weak shape information; long-double Householder coordinates retain the qualified direction.",
+    "Rounded large common total costs erased small differences; centered residual/prior contrasts select minima and retain deltas.",
+    "Multiplying exported rounded scale could differ from the internal fit; supplied prediction arrays preserve the evaluated model and scalar-rounding qualification remains explicit.",
+    "Whitening/coverage numeric losses reject rather than silently produce zero or endpoint fits.",
+    "Initial recovery tests assumed monotone lamp vertices and snapped gains; real source backstep and native rounding are now preserved and flagged.",
+    "Runtime-dependent axis polyfit last bits changed CSV serialization; exact rational tick regression now produces identical bytes across both checked environments.",
+    "One invalid targeted selection expression ran no tests; corrected selection and final frozen affected suite are recorded.",
+    "Delivery text review rejected raw transport-certificate diagnostics. Original acquisition/transport files stay local; the archive includes selected acquisition metadata and hashes without certificate bodies."
+  ],
+  "limitations": [
+    "No justified absolute experimental amplitude correction or physical water-monolayer estimate from available evidence.",
+    "Generic manufacturer specifications cannot identify the original lamp quantity/reference plane or per-shot detector calibration.",
+    "Supplied-grid piecewise-linear inference and Gaussian covariance/linear-scale calibration assumptions require physical validation.",
+    "Constant-bin radiometry, numerical PSD checks and condition IDs do not recover a response, line profile or uncertainty.",
+    "No separately owned solver/data, Quark or actual FLASH execution; no remote publication or messages."
+  ],
+  "next_task": "Map explicit monolayer definitions and owner-supplied state allocations into upstream source inventory/grid inputs, while recovering usable published spectral observations with unresolved calibration retained."
+}

@@ -1,5 +1,7 @@
 # MHD Course Notes For Solver Direction
 
+These are historical background notes from the prototype stage. The homegrown solver referenced below has been removed; FLASH supplies the intended production heating backend.
+
 Source reviewed: `C:\Users\tsmit\Documents\Papers\porto_course.pdf`
 
 The PDF text layer is badly encoded, so this note records the reliable course

@@ -1,0 +1,129 @@
+{
+  "schema": "mhdlab-neutral-full-cr-requirements-v1",
+  "status": "requirements_only_not_a_complete_executable_mechanism",
+  "physical_ready": false,
+  "runtime": {
+    "repository": "https://github.com/treeforjs/raikou",
+    "inspected_revision": "d58dca88c5e9f93043a7c48852f6f3c1b55b37c2",
+    "operation": "chemistry.advance",
+    "transport_owner": "spatial model or explicitly coupled particle/cell host",
+    "legacy_five_level_hydrogen_model_is_full_model": false,
+    "missing_rate_fallback_to_zero": false
+  },
+  "target": {
+    "neutral_species": ["H", "H2", "H2O", "OH"],
+    "additional_atomic_products": ["O"],
+    "supporting_charged_species": "Retain every ion/anion introduced by accepted reaction channels, with its own state and energy requirements.",
+    "time_window_s": [0.0, 6e-8],
+    "time_window_note": "Early-time study scope only; actual source/measurement clock registration remains explicit and input-owned.",
+    "vuv_window_nm": [115.0, 165.0],
+    "gate_duration_s": 3e-9,
+    "fit_status": "No physical density, neutral temperature or absolute intensity fit admitted."
+  },
+  "state_bases": [
+    {
+      "species": "H",
+      "minimum_basis": ["1s", "2s", "2p", "higher_nl_cascade_states", "ionization_continuum"],
+      "requirements": "Keep metastable2s distinct from Ly-alpha-emitting2p; converge upper n/l cutoff and fine-structure treatment against recorded features.",
+      "radiative_source": "https://www.nist.gov/pml/atomic-spectra-database",
+      "status": "required_state_resolved_import"
+    },
+    {
+      "species": "H2",
+      "minimum_basis": ["X(v,J)", "B(v,J)", "C_minus(v,J)", "C_plus(v,J)"],
+      "radiative_data": "data/cr_model/molat_h2/transitions.csv",
+      "radiative_state_count": 1673,
+      "radiative_transition_count": 28466,
+      "lines_in_vuv_window": 16609,
+      "generated_raikou_mechanism": "tools/neutral_cr_probe.py exports a sourced radiative subgraph",
+      "requirements": "Preserve source parity labels, map collision-data state basis and nuclear-spin convention, supply level energies/weights, omitted electronic-state cascades and relevant triplet/metastable channels.",
+      "status": "radiative_subgraph_available_excitation_and_full_kinetics_missing"
+    },
+    {
+      "species": "OH",
+      "minimum_basis": ["electronic_state", "v", "J", "spin_orbit_component", "parity", "Lambda_doubling"],
+      "radiative_candidate": "https://www.exomol.com/data/molecules/OH/16O-1H/MYTHOS/",
+      "requirements": "Excitation mechanism and dissociation formation pumping must determine state populations; the A-X diagnostic near308nm is outside the retained VUV window.",
+      "status": "required_not_curated_for_full_cr"
+    },
+    {
+      "species": "H2O",
+      "minimum_basis": ["electronic_state", "v1", "v2", "v3", "J", "Ka", "Kc", "parity", "nuclear_spin_symmetry"],
+      "requirements": "Use polyatomic quantum labels; retain dissociative electronic states/continua and state-specific fragment channels rather than stable invented vibrational levels.",
+      "existing_scaffold": "Raikou mechanisms/h2o_research.json has ground+two vibrational placeholders, not a full water state model.",
+      "status": "required_not_curated_for_full_cr"
+    },
+    {
+      "species": "O",
+      "minimum_basis": ["ground_fine_structure", "retained_VUV_upper_states", "cascade_states", "ionization_continuum"],
+      "radiative_source": "https://www.nist.gov/pml/atomic-spectra-database",
+      "requirements": "Water dissociation can feed oxygen emitters; do not assign every VUV feature to H/H2.",
+      "status": "required_state_resolved_import"
+    }
+  ],
+  "rate_families": [
+    {"family": "spontaneous_radiative_branching", "H2_status": "B/C-to-X subset exported and native-validated", "other_species_status": "explicit state-matched data required"},
+    {"family": "electron_excitation_and_deexcitation", "status": "required_missing", "input": "state-resolved cross sections plus shared EEDF, or explicitly qualified thermal rate tables", "candidate": "https://mccc-db.org/"},
+    {"family": "excited_to_excited_transfer", "status": "required_missing", "input": "state-resolved electron and relevant heavy collision rates; assess density-dependent importance"},
+    {"family": "quenching_predissociation_cascades", "status": "required_missing", "input": "state-dependent losses and outgoing state/energy branching"},
+    {"family": "dissociation_ionization_attachment_detachment_recombination", "status": "partial_total_or_fragment_cross_sections_available_full_state_branching_missing", "existing_inputs": ["data/cross_sections/song2021", "data/cross_sections/nist"], "double_counting_rule": "Do not sum a total ionization channel and all of its partial fragment channels as independent losses."},
+    {"family": "heavy_state_transfer_and_chemical_exchange", "status": "required_missing_for_full_model", "input": "temperature/level-specific coefficients on documented support"},
+    {"family": "source_and_chemical_formation_pumping", "status": "required_missing", "input": "canonical source states, internal distributions, fragment recoil and one parent-inventory accounting"}
+  ],
+  "source_and_electron_inputs": {
+    "neutral_transport": "Four-face packet/map fields exist as provisional independent-source cases; not yet accepted state-resolved receiver populations.",
+    "physical_source_basis": "configs/neutral_cr_water_inventory_source.json: one common H2O parent inventory N_ML*sigma_ML over actual face areas; no independent water-derived fragment source pools.",
+    "physical_source_numeric_readiness": {
+      "coverage_monolayers": null,
+      "sigma_ML_molecules_m2": null,
+      "primary_fit_parameter": "initial_h2o_monolayers",
+      "coverage_binding_status": "free_nonnegative_parameter_bound_per_scan_or_regression_candidate",
+      "coverage_lower_bound": 0.0,
+      "no_fixed_or_experimental_best_fit_value_selected": true,
+      "parameter_binding_api": "mhdlab.neutral_cr_water_source.bind_initial_h2o_monolayers",
+      "source_sweep_api": "mhdlab.neutral_cr_water_source.build_common_water_source_sweep",
+      "monolayer_definition_and_provenance": "missing",
+      "H2O_release_parameters_and_validity": "missing_physical_qualification",
+      "desorbed_H2O_internal_state_distribution": "missing",
+      "initial_nonwater_water_derived_fragment_inventory": 0.0,
+      "physical_source_run_ready": false
+    },
+    "source_internal_states": "H/H2/H2O/OH assumed_source_state IDs require physical electronic/rovibrational mapping.",
+    "physical_source_state_policy": "The new water-derived source inserts H2O only. H/H2/OH/O and ions are generated by accepted chemistry; initial nonwater contaminants require separately declared inventories. Historical independent-pool GIFs remain historical controls.",
+    "electron_history": "n_e(t,cell), EEDF(t,cell) or independently justified electron closure, collision-data provenance and excitation clock are missing.",
+    "electron_numeric_readiness": {
+      "electron_density_history_m3": null,
+      "normalized_EEDF_or_qualified_thermal_closure": null,
+      "collision_dataset_revision": null,
+      "clock_registration": null,
+      "numeric_excitation_history_ready": false,
+      "missing_inputs_default_to_zero_or_wall_temperature": false
+    },
+    "temperature_separation": "Electrode, neutral translation, molecular rotation/vibration and electron energy remain separate; never set Te from MFEM wall temperature.",
+    "energy": "Accepted event energy partitions must close internal, translational, electron and photon accounts; prescribed environments remain prescribed rather than self-consistent.",
+    "coverage_rescaling": "Only a verified linear source/transport/CR/thin-observation regime with prescribed electrons admits proportional inventory/light scaling; full density-dependent chemistry, quenching, feedback and opacity require recomputed cases.",
+    "optical_scale_identifiability": "Unknown absolute optical/detector throughput is confounded with initial_h2o_monolayers in a linear amplitude regime; constrain the throughput scale or report an unresolved joint fit. An undefined sigma_ML adds another inventory-to-monolayer degeneracy."
+  },
+  "observation_inputs": {
+    "existing_projector": "mhdlab/resolved_emission_observation.py",
+    "collection": "Simulation ray-cell paths and collection weights enter once; detector throughput/etendue/gate/bin-width allocation are separate.",
+    "opacity": "Assess optical depth on actual spatial states and rays before opting into thin transfer; a standalone slab escape factor is not a replacement for ordered transfer.",
+    "profiles": "Use emitting-state velocity/fragment-recoil distributions and qualified instrument response;0.03nm/pixel is sampling, not a measured Gaussian FWHM.",
+    "measured_quantity": "Recovered dissertation transition-density displays require an explicit reduction/radiance mapping before absolute fitting."
+  },
+  "acceptance_sequence": [
+    "Freeze canonical state/rate/cross-section provenance and uncertainty on retained support.",
+    "Validate rate completeness and atomic/molecular nuclei, charge and event-energy balances.",
+    "Run transient per-cell native controls with independent analytic/reference cases, without imposing QSS by default.",
+    "Import the real source with conserved state/inventory/energy/placement readback and time registration.",
+    "Advance chemistry with prescribed/solved electron histories and transport coupling, retaining velocity and state distributions.",
+    "Project through actual collection geometry, transfer and detector response; integrate contained3ns gates.",
+    "Converge state, spatial, time, transport and spectral features before comparing density/temperature hypotheses."
+  ],
+  "primary_research_sources": [
+    {"url": "https://arxiv.org/abs/2405.10227", "use": "Molecular hydrogen CR process/density sensitivity; missing excited-state electron rates remain a physical issue."},
+    {"url": "https://mccc-db.org/", "use": "Candidate state-resolved collision data; source policy requires obtaining data from provider and does not authorize third-party redistribution."},
+    {"url": "https://www.nist.gov/pml/atomic-spectra-database", "use": "Atomic energy levels/wavelengths/A values, not a complete electron-collision model."},
+    {"url": "https://www.nist.gov/pml/electron-impact-cross-sections-ionization-and-excitation-database", "use": "Primarily total molecular ionization; not a complete resolved molecular excitation dataset."}
+  ]
+}

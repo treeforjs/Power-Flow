@@ -1,5 +1,10 @@
 # Width-dependent water desorption and VUV emission in planar MITLs
 
+This is the earlier FLASH-oriented specification. The active backend is now
+MFEM Joule; use the [current research specification](mfem_h2o_publication_plan.md)
+and [backend requirements](mfem_joule_heating.md). The earlier text below is
+retained as design history and does not require FLASH acquisition.
+
 Working research specification, 18 October 2026. The agreed goal is to test whether
 finite-width electrode heating changes water release and fragment transport enough
 to produce distinguishable recorded spectra relative to a uniform-desorption model.
@@ -16,13 +21,16 @@ SI surface-history interface for external FLASH calculations. An independent
 motion to state-changing collisions and conservative product recoil. There has
 been no FLASH run, no physical full-water rovibrational calculation, and no
 demonstration that the spectra distinguish
-the hypotheses. The old `MHD_heating.py` path still executes the legacy prototype;
-the new surface interface is not connected to that runner.
+the hypotheses. The homegrown MHD solver and `MHD_heating.py` entrypoint have
+been removed. Heating enters through explicitly configured FLASH exports.
+The external plasma model and planned standard/rotational-band Yacora
+comparisons are described in the [comparison plan](external_plasma_yacora_comparison.md).
 
-The user's FLASH source and workstation are available; workstation setup is planned
-for Wednesday, 21 October. Hardware sizing and a version-specific FLASH setup remain
-to be determined from a small benchmark. No licensed FLASH implementation is included
-in this public-code repository.
+The selected workstation is Ubuntu 24.04 WSL2 on this PC. GNU/OpenMPI and a private
+parallel HDF5 build are prepared, with a passing two-rank Fortran I/O test; see the
+[setup record](flash_wsl_setup.md). FLASH has not yet been downloaded. Hardware
+sizing and version-specific setup remain to be determined from a small benchmark.
+No licensed FLASH implementation is included in this public-code repository.
 
 ## Publication question and comparison
 

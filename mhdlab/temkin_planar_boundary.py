@@ -18,6 +18,7 @@ from typing import Any
 import numpy as np
 
 from .flash_surface import validate_surface_attributes
+from .planar_release import MFEM_SURFACE_SCHEMA, _source_attributes
 from .planar_boundary import _allocate_rows, _coordinate, _immutable, _normal_sign, _validate_extracted_face
 from .temkin_boundary import sample_temkin_emission_packets
 from .temkin_emission_time import NoTemkinEmissionError, TIME_IDENTITY
@@ -43,7 +44,8 @@ def _selected_history(history, index):
 def _row_history(history, current, source_interval):
     attributes = dict(history.surface_attributes)
     attributes["schema"] = attributes["original_source_schema"]
-    attributes = validate_surface_attributes(attributes)
+    attributes = (dict(_source_attributes(attributes)) if attributes["schema"] == MFEM_SURFACE_SCHEMA
+                  else validate_surface_attributes(attributes))
     attributes["temkin_planar_row_adapter"] = MappingProxyType({
         "identity": ROW_ADAPTER_IDENTITY, "parent_history_schema": SOURCE_SCHEMA,
         "current_index": current, "source_interval_index": source_interval,
@@ -244,4 +246,5 @@ def sample_temkin_planar_emission_packets(
         surface_attributes=selected.surface_attributes, row_surface_attributes=tuple(row_attributes),
         row_current_indices=tuple(row_indices), parameter_provenance=selected.parameter_provenance,
         source_time_model=selected.time_model, coverage_model=selected.coverage_model,
+        coordinate_system=selected.surface_attributes["coordinate_system"],
     )

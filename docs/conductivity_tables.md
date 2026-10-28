@@ -1,5 +1,7 @@
 # Conductivity Table Direction
 
+This is a historical design note. Its surrogate material/seed-table implementation and builder have been removed with the homegrown MHD solver. Qualified material evidence is cataloged in [the property-source assessment](ss304_property_sources.md).
+
 Primary design reference:
 
 - L. J. Stanek et al., "ETHOS: An automated framework to generate

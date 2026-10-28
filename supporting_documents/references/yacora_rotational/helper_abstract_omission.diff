@@ -1,0 +1,11 @@
+--- read_official_pages.before_abstract_omission.reconstructed.py
++++ read_official_pages.py
+@@ -77,7 +77,7 @@
+         document = json.loads(body)
+         message = document.get('message', document)
+         fields = ('DOI','title','author','published','published-print','published-online',
+-                  'container-title','volume','issue','page','article-number','URL','link','abstract')
++                  'container-title','volume','issue','page','article-number','URL','link')
+         evidence = {**record, 'JSON_metadata': {key:message[key] for key in fields if key in message}}
+     else:
+         evidence = record

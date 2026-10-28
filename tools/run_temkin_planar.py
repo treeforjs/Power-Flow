@@ -22,6 +22,9 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+# Keep this checkout authoritative if a scikit-build editable finder points elsewhere.
+sys.meta_path[:] = [finder for finder in sys.meta_path
+                    if type(finder).__module__ != "_editable_skbc_mhdlab"]
 
 from mhdlab.flash_planar import as_planar_boundary_temperature_proxy
 from mhdlab.planar_release_io import load_planar_surface_history, write_planar_surface_history, plain_metadata

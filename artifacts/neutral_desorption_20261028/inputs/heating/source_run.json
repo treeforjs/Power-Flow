@@ -1,0 +1,179 @@
+{
+  "schema": "mhdlab-mfem-edge-current-run-v1",
+  "created_utc": "2026-10-28T20:27:34.230337+00:00",
+  "status": "provisional",
+  "passed": true,
+  "physical_experiment_prediction": false,
+  "configuration": {
+    "schema": "mhdlab-mfem-edge-current-source-v1",
+    "status": "provisional",
+    "physical_experiment_prediction": false,
+    "width_cells": 64,
+    "thickness_cells": 8,
+    "outside_cells": 16,
+    "gap_cells": 48,
+    "foil_width_m": 0.005,
+    "foil_thickness_m": 0.0002,
+    "gap_m": 0.005,
+    "exterior_half_extent_m": 0.01,
+    "current_length_m": 0.01,
+    "electrical_conductivity_s_m": 3000000.0,
+    "volumetric_heat_capacity_j_m3_k": 2800000.0,
+    "thermal_conductivity_w_m_k": 16.0,
+    "initial_temperature_k": 300.0,
+    "maximum_time_step_s": 5e-10,
+    "stop_time_s": 6e-08,
+    "required_snapshot_times_s": [
+      4e-08,
+      6e-08
+    ],
+    "current_trace_csv": "data/dissertation/shot_17133_current.csv",
+    "current_trace_provenance": "data/dissertation/shot_17133_current.json",
+    "clock_scenario": "Preserve unshifted published C.19 time. Assume it is comparable to the published ALEGRA clock; this registration is unverified.",
+    "initial_state_scenario": "At the first supported trace knot, initialize uniform DC conductor currents +/-I0, solve the static magnetic A_z field, and set temperature to300K. Prehistory and deposited heat before this timestamp are unknown, not reconstructed.",
+    "material_provenance": "Explicit constant illustrative conductivity/heat capacity/thermal conductivity; not a fitted or qualified SS304 property model. No phase change or temperature feedback."
+  },
+  "configuration_sha256": "68fa70548b7ea00342d962a5434ac09293ff3aa5ceb541ac5185b3f950429c6f",
+  "drive": {
+    "csv": "/mnt/c/Users/tsmit/.codex/worktrees/neutral-spectral-observation/Power Flow/data/dissertation/shot_17133_current.csv",
+    "csv_sha256": "b3cd227c46bd93d4893abf51da136c1f6344c68b4befe6a8e2a60c1ad6912b87",
+    "provenance_sha256": "1e09c819b33defea6b4a75e0438759380be5830c6572b34890e8e370297b524d",
+    "canonical_lf_csv_sha256": "2c54d2dbaec6b6c8fcf2e45b5abd837aa72999f5fd14217f530277ffd5949076",
+    "newline_normalization": "CRLF to LF for provenance identity only; numeric values unchanged",
+    "shot": 17133,
+    "figure": "C.19",
+    "raw_oscilloscope_data": false,
+    "time_shift_s": 0,
+    "support_s": [
+      7.49788055492e-10,
+      1.9674963671e-07
+    ],
+    "run_support_s": [
+      7.49788055492e-10,
+      6e-08
+    ],
+    "interpolation": "bounded piecewise linear; original knots and required40/60ns included; no padding/clamping",
+    "clock_scenario": "Preserve unshifted published C.19 time. Assume it is comparable to the published ALEGRA clock; this registration is unverified.",
+    "initial_state_scenario": "At the first supported trace knot, initialize uniform DC conductor currents +/-I0, solve the static magnetic A_z field, and set temperature to300K. Prehistory and deposited heat before this timestamp are unknown, not reconstructed."
+  },
+  "formulation": "MFEM H1 A_z MQS with sigma0 vacuum, two independent conductor gradients constrained by a2x2 current Schur complement; separate conductor-only insulated thermal FE",
+  "stock_joule_kernel_reused": false,
+  "commands": [
+    {
+      "argv": [
+        "cmake",
+        "-S",
+        "/mnt/c/Users/tsmit/.codex/worktrees/neutral-spectral-observation/Power Flow/native/mfem_edge_source",
+        "-B",
+        "/home/tsmit/.local/share/power-flow/mfem-edge-current-source",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DMFEM_DIR=/usr/local/lib/cmake/mfem"
+      ],
+      "exit_code": 0,
+      "stdout_file": "configure.stdout.txt",
+      "stderr_file": "configure.stderr.txt"
+    },
+    {
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/tsmit/.local/share/power-flow/mfem-edge-current-source",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0,
+      "stdout_file": "build.stdout.txt",
+      "stderr_file": "build.stderr.txt"
+    },
+    {
+      "argv": [
+        "/home/tsmit/.local/share/power-flow/mfem-edge-current-source/power-flow-edge-source",
+        "--schedule",
+        "/mnt/c/Users/tsmit/.codex/worktrees/neutral-spectral-observation/Power Flow/runs/mfem_edge_current_source_v3/schedule.csv",
+        "--output-dir",
+        "/mnt/c/Users/tsmit/.codex/worktrees/neutral-spectral-observation/Power Flow/runs/mfem_edge_current_source_v3",
+        "--width-cells",
+        "64",
+        "--thickness-cells",
+        "8",
+        "--outside-cells",
+        "16",
+        "--gap-cells",
+        "48",
+        "--width-m",
+        "0.005",
+        "--thickness-m",
+        "0.0002",
+        "--gap-m",
+        "0.005",
+        "--extent-m",
+        "0.01",
+        "--length-m",
+        "0.01",
+        "--sigma-s-m",
+        "3000000.0",
+        "--capacity-j-m3-k",
+        "2800000.0",
+        "--conductivity-w-m-k",
+        "16.0"
+      ],
+      "exit_code": 0,
+      "stdout_file": "native.stdout.txt",
+      "stderr_file": "native.stderr.txt"
+    }
+  ],
+  "binary_sha256": "fbda3590d67eac2f402abbb6584b2abff9f774d31d99b21e9bbe5c646c21ae75",
+  "diagnostics": {
+    "final": {
+      "time_s": 6e-08,
+      "target_current_a": 500734.77599628345,
+      "foil_current_a": 500734.7759962852,
+      "return_current_a": -500734.77599630505,
+      "foil_gradient_v_m": 2791708.476423871,
+      "return_gradient_v_m": -2791708.476378955,
+      "foil_joule_power_w": 1098723069.7576675,
+      "return_joule_power_w": 1098723069.7626474,
+      "total_joule_power_w": 2197446139.520315,
+      "magnetic_energy_j": 677.7824388010984,
+      "thermal_energy_j": 41.263459992382685,
+      "backward_euler_magnetic_damping_j": 0.046970591039779526,
+      "drive_work_increment_j": 12.232437019256688,
+      "em_balance_residual_j": -4.0113051769097297e-13,
+      "thermal_balance_residual_j": -4.873879078104437e-14,
+      "edge_to_center_joule_ratio": 7.805849888328859,
+      "edge_mean_delta_temperature_k": 2324.9716981683155,
+      "center_mean_delta_temperature_k": 269.8684068688981,
+      "linear_iterations": 49.0,
+      "linear_relative_residual": 8.355611178945352e-14,
+      "schur_condition_proxy": 6.0810311690905205
+    },
+    "maximum_current_constraint_error_a": 2.4738255888223648e-08,
+    "maximum_em_balance_residual_j": 6.133767105342969e-12,
+    "maximum_thermal_balance_residual_j": 7.993605777301127e-14,
+    "maximum_edge_to_center_joule_ratio": 10.292357551859254
+  },
+  "owned_source_sha256": {
+    "native/mfem_edge_source/CMakeLists.txt": "0c9b3c1e4df86376aec5bcb77eaffca05645188e1ef0ecd4859c47b4332c830f",
+    "native/mfem_edge_source/edge_driver.cpp": "1150873c6aa5af547bd8eebed6cf3334d439a6d0ca3a1dc42db833fe1a834542",
+    "tools/run_mfem_edge_source.py": "6a0b6dfbe59ce4f16ee3882ae5c74a1577561cb61ad6cd5298f7daf0aa38afc2"
+  },
+  "outputs_sha256": {
+    "bottom.csv": "f29956befd59e2eb1b3ea9bce1aab863301d39796fb7dfca1a38d055e2e8a968",
+    "bottom_surface.json": "cd14db07eb0b7dbe40d105e097000aa1369a7b62cfa0be09c4631f2950b8d1a4",
+    "build.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build.stdout.txt": "126c84c39c9c4bb4d815ef74069136ef4a679de495a1e196c45bdc98f15440da",
+    "configuration.json": "e71d3988cd31277b638324fdba5d1f486a8ae75bb743769288682d1bd2844e5d",
+    "configure.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "configure.stdout.txt": "c3d0175f3ac994e7877018d4a8715f704b3cb3cc29846b8f0b2c1175292062cb",
+    "diagnostics.csv": "e124de4de588fa7f9439c733789429b75d8ba0ca2151ce79a5471e5837e0f312",
+    "foil_snapshots.csv": "9e159cd7ba45605ecfcd3be376ef704b00c9b92cd4e91350346124351874805f",
+    "foil_snapshots.json": "3c5728a89949bb96f40cc5270050e70d8b074780310415651a0b7953adc6ef7d",
+    "native.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "native.stdout.txt": "cc5ee4f20c8cd6a9d84ccbd353e36fac294a1c318de6d9ef36df331d2a658e67",
+    "schedule.csv": "cd3db659412e00472d2fe3a64b95167b50d00ab429600235537f2e4e4355f083",
+    "top.csv": "b1a3c0230bce9320c199c0b97e742844b28c5ffb165a6bc9841dc163c0e6751c",
+    "top_surface.json": "76faa05ac14db33bc6581ab59d2ddcce5ed3ed2672ecfcb44ba672f8c6c8f6aa"
+  }
+}

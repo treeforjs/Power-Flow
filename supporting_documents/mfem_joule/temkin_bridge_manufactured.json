@@ -1,0 +1,137 @@
+{
+  "schema": "mhdlab-temkin-planar-run-v1",
+  "law_identity": "temkin_first_order_constant_attempt_frequency_v1",
+  "scope": "prescribed-temperature local planar depletion; no transport or thermal feedback solve",
+  "parameter_status": "manufactured",
+  "parameter_provenance": "Numerical verification inputs for a generic emitted state M; not a water/SS304 calibration",
+  "reservoirs": [
+    {
+      "name": "manufactured_coverage_dependent_pool",
+      "state_id": "M:manufactured-ground",
+      "attempt_frequency_s": 1000000000000.0,
+      "activation_energy_ev": 0.8,
+      "desorption_energy_ev": 0.6,
+      "internal_energy_ev": 0.0,
+      "coverage_coefficient": 0.35,
+      "reference_coverage_m2": 2e+18,
+      "max_coverage_m2": 2e+18,
+      "kinetic_provenance": "Manufactured constant-prefactor, first-order Temkin-type law; parameter magnitudes are not fitted physical data",
+      "energy_provenance": "Manufactured constant adsorbate-to-gas-reference cost; independent of the kinetic barrier"
+    }
+  ],
+  "surface_attributes": {
+    "boundary_temperature_reference": "",
+    "coordinate_system": "x=foil_width;y=gap_normal;z=current",
+    "current_averaging_interval_m_json": "null",
+    "current_direction_representation": "resolved_piecewise_constant_surface_patches",
+    "current_patch_intervals_m": [
+      [
+        0.0,
+        0.01
+      ],
+      [
+        0.01,
+        0.03
+      ]
+    ],
+    "current_uniformity_reference": "",
+    "heating_backend": "mfem_joule",
+    "initial_temperature_offset_k": 300.0,
+    "material_sample_depth_m": 0.0,
+    "material_sample_depth_units": "m",
+    "mfem_face": {
+      "coordinate_system": "x=foil_width;y=gap_normal;z=current",
+      "current_direction_representation": "resolved_patches",
+      "full_width_coverage_reference": "Manufactured complete x partition",
+      "material_boundary_attribute": 1,
+      "material_selection_reference": "Manufactured material-side face selection",
+      "normal_position_m": 0.0,
+      "outward_normal_sign": 1,
+      "surface_model": "stationary_planar_single_face",
+      "surface_region": "manufactured gap-facing face"
+    },
+    "mfem_solver_scope": {
+      "conductivity_temperature_feedback": false,
+      "hall_induction": false,
+      "material_motion": false,
+      "qualification_reference": "Manufactured interface fixture only",
+      "stationary_material": true
+    },
+    "mfem_source_revision": "",
+    "mfem_version": "",
+    "original_source_schema": "mhdlab-mfem-surface-v1",
+    "patch_temperature_approximation": "local x/z patch averages; refine x,z,time before nonlinear release",
+    "run_id": "manufactured-mfem-surface-table",
+    "sample_configuration_sha256": "926cd6aab277e62f9c7f7338af9d029c4b239ee8c32fcf34dfdd92d4f81334c9",
+    "sample_table_sha256": "41467099715d566430eb818a5d298364daf03e646daf3eed121d274315c326d5",
+    "schema": "mhdlab-planar-surface-v1",
+    "source_clock_reference": "Manufactured nonnegative simulation clock; no experimental registration",
+    "source_kind": "synthetic",
+    "source_reference": "Authored table; no native MFEM execution",
+    "surface_model": "stationary_planar_single_face",
+    "surface_region": "manufactured gap-facing face",
+    "temperature_evaluation": "one_sided_material_boundary_trace_patch_average",
+    "temperature_location": "surface_boundary",
+    "temperature_value_basis": "temperature_increment_kelvin",
+    "temperature_zero_convention_reference": "Manufactured 300 K initial temperature plus authored delta-T; not a physical rod conversion",
+    "unit_mapping_reference": "Manufactured SI table fixture; no raw dimensionless values converted"
+  },
+  "patch_shape_z_x": [
+    2,
+    2
+  ],
+  "face_area_m2": 5.9999999999999995e-05,
+  "initial_particles": [
+    60000000000000.0
+  ],
+  "remaining_particles": [
+    51804805588085.39
+  ],
+  "released_particles": [
+    8195194411914.601
+  ],
+  "wall_energy_debit_j": [
+    9.068518830281216e-07
+  ],
+  "particle_balance_residual": [
+    0.0087890625
+  ],
+  "intervals": 4,
+  "subdivisions_per_input_interval": 2,
+  "input_config_sha256": "707a7f5579a6faa5666a9867b6342e605af4961aea863a9bd203b9be6c77cd46",
+  "input_surface_sha256": "2cdd139bb211b37a3ddab6f03cb65ecb539ef278c76eaba93549e70a0dea57ef",
+  "uniform_controls": {
+    "default": "width_only_preserving_each_current_patch",
+    "full_face_included": false
+  },
+  "source_sha256": {
+    "mhdlab/temkin_planar.py": "46138430dd0c541792e5e64a84ef9c1175daf9acef423fc28706644eb7debfa8",
+    "mhdlab/temkin_planar_io.py": "81c91788d71cdf8877d3b18218196cffabf3da3a2060bb5a35e9b348cde3e228",
+    "mhdlab/temkin_release.py": "c8a05f0946759626d8db2e1f4b4d03617b72e539e009f6c1cb1433e865fa20e5",
+    "mhdlab/temkin_history.py": "b93eddf0d031a8815f6748dfb4a1fcb4a7ed992e53d16efe200cf2bd583edba6",
+    "mhdlab/temkin_io.py": "7f206aaadc25b1cb728d2a9879820c79855bf53a1efa0fb11a7e432f90ddd4da",
+    "mhdlab/thermal_release.py": "13aacf2e8a6ed3a19edc017fef7bfa72079dfce6dc6f85951c832cd5964326b6",
+    "mhdlab/planar_release.py": "30a8b1318bd7fc7fc6daa3db03832ca4ca98594f4542e01529c784acfe21eae8",
+    "mhdlab/planar_release_io.py": "2da3bdf19a6699e24f6f4b7887312bfb1d3903e1a3005f9eacb8865dea7cb7b4",
+    "mhdlab/flash_planar.py": "9decd3006ecedc46ccffb2f8dade9b16a41c62339682d6939678aa86722bdbc3",
+    "mhdlab/flash_surface.py": "f9af49ab3dc92cae7423c7311d16a804faf0d33e76decaf86386cc8630df73d0",
+    "mhdlab/hdf_integrity.py": "c96f54beaef38a8db615635256394bc555ce58fa1d8ab9c65209910ced0c6769",
+    "mhdlab/surface_sources.py": "2c4b91d6092c5d4637d2750d7049f8bd351f70862f7f0f9459afaeb34bb8892a",
+    "mhdlab/constants.py": "b3b94b84e0f2982a1b9aa783ae0b60f476c7c37a264f3ed93ce4e9fba5f40fac",
+    "tools/run_planar_release.py": "9828d7d2577a349e7bd9c7ff184c9b697def4378d2c22b38d75556dee6b2cad8",
+    "tools/run_temkin_planar.py": "73fc29572a16f691af4842633a99acf87de812ace47e3790f4341d76903113c4"
+  },
+  "limits": [
+    "Caller-supplied parameters retain their status; the example is manufactured, not H2O/SS304 data.",
+    "No averaging of current-direction temperature precedes nonlinear release.",
+    "Actual patch areas determine all extensive quantities; no extra current length factor is applied.",
+    "Moment controls do not by themselves assign molecular states or launch distributions.",
+    "A planar Temkin particle adapter is separate from this moment-source output.",
+    "Each independent pool uses its own coverage; shared surface occupancy is not inferred."
+  ],
+  "output_sha256": {
+    "integrated_source.csv": "fd24d86a6ddbef98d82f6a99e7bf0362897cd9b196cc36a5cc06b840bed21720",
+    "surface_input.h5": "2cdd139bb211b37a3ddab6f03cb65ecb539ef278c76eaba93549e70a0dea57ef",
+    "temkin_planar_release.h5": "bf69ab354fac9e757a81b9bfa4acf2d5d037c2dddfb3cbd865acc5cbcf65d41c"
+  }
+}

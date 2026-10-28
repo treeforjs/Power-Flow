@@ -1,0 +1,4893 @@
+{
+  "schema": "mhdlab-neutral-ensemble-run-v1",
+  "input_config_sha256": "e5c80247b306df32883df6fba67281c8d0542a56d91372d04d661f2c6f4e56d6",
+  "source_sha256": {
+    "mhdlab/neutral_spectral_inference.py": "d9949582407000e68f9c96ff5651eb0558d997b2696c9400ed910ce5e42f02d5",
+    "tools/compare_neutral_ensemble.py": "d9420fa60a6ab148665cd560beb16664ed74bdc3d310ad2741d03d755b5e7c45"
+  },
+  "comparison": {
+    "schema": "mhdlab-neutral-ensemble-comparison-v1",
+    "reconstruction_id": "manufactured_radiance",
+    "mapping_status": "qualified",
+    "observation_status": "manufactured",
+    "score_definition": "maximum over all retained curves/points of absolute displacement from center divided by the lower or upper readout half-width on that side; <=1 means every point is inside its envelope",
+    "zero_half_width_policy": "exact equality has zero departure; any displacement toward a zero half-width is unbounded and serialized as null with an explicit flag",
+    "calibration": {
+      "definition": "C_abs multiplies nominal-to-scenario-corrected radiance observations, never the forward population or detector responsivity",
+      "scales": [
+        0.01,
+        0.012589254117941675,
+        0.015848931924611134,
+        0.0199526231496888,
+        0.025118864315095794,
+        0.03162277660168379,
+        0.039810717055349734,
+        0.05011872336272725,
+        0.06309573444801933,
+        0.07943282347242814,
+        0.1,
+        0.12589254117941676,
+        0.15848931924611143,
+        0.19952623149688797,
+        0.25118864315095807,
+        0.31622776601683794,
+        0.3981071705534973,
+        0.5011872336272725,
+        0.6309573444801934,
+        0.7943282347242817,
+        1.0,
+        1.2589254117941675,
+        1.584893192461114,
+        1.9952623149688808,
+        2.5118864315095824,
+        3.1622776601683795,
+        3.981071705534973,
+        5.011872336272725,
+        6.309573444801936,
+        7.943282347242821,
+        10.0,
+        12.589254117941675,
+        15.848931924611142,
+        19.952623149688808,
+        25.11886431509582,
+        31.622776601683793,
+        39.810717055349734,
+        50.11872336272725,
+        63.095734448019364,
+        79.43282347242821,
+        100.0
+      ],
+      "scaled_curve_ids": [
+        "manufactured_vuv"
+      ],
+      "provenance": "Exploratory .01-100 nominal-to-corrected radiance multipliers; no calibration uncertainty claim.",
+      "interpretation": "exploratory sensitivity scenarios; not a confidence interval or probability distribution"
+    },
+    "registered_observation": {
+      "time_registration": "manufactured signed photon clock, breakdown t=0",
+      "gate_start_s": -3e-09,
+      "gate_end_s": 0.0,
+      "observation_contract": "manufactured fixed radiance collection/gate/LSF",
+      "excitation_contract": "manufactured fixed excitation assumptions",
+      "provenance": "Numerical recoverability fixture, not physical spectra."
+    },
+    "thermal_coordinate": "source_translational_temperature_K",
+    "thermal_coordinate_definition": "Manufactured source translational parameter; rotational/vibrational descriptors are not used as gas temperature.",
+    "case_metadata": [
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "parent_water_areal_inventory_m2": 1e+18,
+        "thermal_parameter_K": 300.0,
+        "neutral_columns_m2": {
+          "H2O[X]": 2e+16
+        },
+        "weighted_neutral_densities_m3": {
+          "H2O[X]": 4e+18
+        },
+        "neutral_diagnostic_definition": "Manufactured same collected 5 mm path and uniform neutral population; no fitted depth.",
+        "status": "manufactured",
+        "source_receipt": "Manufactured fixture, no physical source admitted.",
+        "population_provenance": "Authored synthetic forward case; no CR output.",
+        "transport_provenance": "Authored synthetic transport diagnostic; no gap solver output.",
+        "conservation_provenance": "Manufactured admission label only; no claim of physical number or energy evaluation.",
+        "optical_admission": "Manufactured optically thin comparison, no opacity inference.",
+        "numerical_qualification": "Exact authored three-point fixture; no mesh/state convergence claim.",
+        "provenance": "Independent supplied numerical forward-case fixture."
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "parent_water_areal_inventory_m2": 1e+18,
+        "thermal_parameter_K": 600.0,
+        "neutral_columns_m2": {
+          "H2O[X]": 2e+16
+        },
+        "weighted_neutral_densities_m3": {
+          "H2O[X]": 4e+18
+        },
+        "neutral_diagnostic_definition": "Manufactured same collected 5 mm path and uniform neutral population; no fitted depth.",
+        "status": "manufactured",
+        "source_receipt": "Manufactured fixture, no physical source admitted.",
+        "population_provenance": "Authored synthetic forward case; no CR output.",
+        "transport_provenance": "Authored synthetic transport diagnostic; no gap solver output.",
+        "conservation_provenance": "Manufactured admission label only; no claim of physical number or energy evaluation.",
+        "optical_admission": "Manufactured optically thin comparison, no opacity inference.",
+        "numerical_qualification": "Exact authored three-point fixture; no mesh/state convergence claim.",
+        "provenance": "Independent supplied numerical forward-case fixture."
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "parent_water_areal_inventory_m2": 2e+18,
+        "thermal_parameter_K": 300.0,
+        "neutral_columns_m2": {
+          "H2O[X]": 4e+16
+        },
+        "weighted_neutral_densities_m3": {
+          "H2O[X]": 8e+18
+        },
+        "neutral_diagnostic_definition": "Manufactured same collected 5 mm path and uniform neutral population; no fitted depth.",
+        "status": "manufactured",
+        "source_receipt": "Manufactured fixture, no physical source admitted.",
+        "population_provenance": "Authored synthetic forward case; no CR output.",
+        "transport_provenance": "Authored synthetic transport diagnostic; no gap solver output.",
+        "conservation_provenance": "Manufactured admission label only; no claim of physical number or energy evaluation.",
+        "optical_admission": "Manufactured optically thin comparison, no opacity inference.",
+        "numerical_qualification": "Exact authored three-point fixture; no mesh/state convergence claim.",
+        "provenance": "Independent supplied numerical forward-case fixture."
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "parent_water_areal_inventory_m2": 2e+18,
+        "thermal_parameter_K": 600.0,
+        "neutral_columns_m2": {
+          "H2O[X]": 4e+16
+        },
+        "weighted_neutral_densities_m3": {
+          "H2O[X]": 8e+18
+        },
+        "neutral_diagnostic_definition": "Manufactured same collected 5 mm path and uniform neutral population; no fitted depth.",
+        "status": "manufactured",
+        "source_receipt": "Manufactured fixture, no physical source admitted.",
+        "population_provenance": "Authored synthetic forward case; no CR output.",
+        "transport_provenance": "Authored synthetic transport diagnostic; no gap solver output.",
+        "conservation_provenance": "Manufactured admission label only; no claim of physical number or energy evaluation.",
+        "optical_admission": "Manufactured optically thin comparison, no opacity inference.",
+        "numerical_qualification": "Exact authored three-point fixture; no mesh/state convergence claim.",
+        "provenance": "Independent supplied numerical forward-case fixture."
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "parent_water_areal_inventory_m2": 1e+18,
+        "thermal_parameter_K": 300.0,
+        "neutral_columns_m2": {
+          "H2O[X]": 2e+16
+        },
+        "weighted_neutral_densities_m3": {
+          "H2O[X]": 4e+18
+        },
+        "neutral_diagnostic_definition": "Manufactured same collected 5 mm path and uniform neutral population; no fitted depth.",
+        "status": "manufactured",
+        "source_receipt": "Manufactured fixture, no physical source admitted.",
+        "population_provenance": "Authored synthetic forward case; no CR output.",
+        "transport_provenance": "Authored synthetic transport diagnostic; no gap solver output.",
+        "conservation_provenance": "Manufactured admission label only; no claim of physical number or energy evaluation.",
+        "optical_admission": "Manufactured optically thin comparison, no opacity inference.",
+        "numerical_qualification": "Exact authored three-point fixture; no mesh/state convergence claim.",
+        "provenance": "Independent supplied numerical forward-case fixture."
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "parent_water_areal_inventory_m2": 1e+18,
+        "thermal_parameter_K": 600.0,
+        "neutral_columns_m2": {
+          "H2O[X]": 2e+16
+        },
+        "weighted_neutral_densities_m3": {
+          "H2O[X]": 4e+18
+        },
+        "neutral_diagnostic_definition": "Manufactured same collected 5 mm path and uniform neutral population; no fitted depth.",
+        "status": "manufactured",
+        "source_receipt": "Manufactured fixture, no physical source admitted.",
+        "population_provenance": "Authored synthetic forward case; no CR output.",
+        "transport_provenance": "Authored synthetic transport diagnostic; no gap solver output.",
+        "conservation_provenance": "Manufactured admission label only; no claim of physical number or energy evaluation.",
+        "optical_admission": "Manufactured optically thin comparison, no opacity inference.",
+        "numerical_qualification": "Exact authored three-point fixture; no mesh/state convergence claim.",
+        "provenance": "Independent supplied numerical forward-case fixture."
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "parent_water_areal_inventory_m2": 2e+18,
+        "thermal_parameter_K": 300.0,
+        "neutral_columns_m2": {
+          "H2O[X]": 4e+16
+        },
+        "weighted_neutral_densities_m3": {
+          "H2O[X]": 8e+18
+        },
+        "neutral_diagnostic_definition": "Manufactured same collected 5 mm path and uniform neutral population; no fitted depth.",
+        "status": "manufactured",
+        "source_receipt": "Manufactured fixture, no physical source admitted.",
+        "population_provenance": "Authored synthetic forward case; no CR output.",
+        "transport_provenance": "Authored synthetic transport diagnostic; no gap solver output.",
+        "conservation_provenance": "Manufactured admission label only; no claim of physical number or energy evaluation.",
+        "optical_admission": "Manufactured optically thin comparison, no opacity inference.",
+        "numerical_qualification": "Exact authored three-point fixture; no mesh/state convergence claim.",
+        "provenance": "Independent supplied numerical forward-case fixture."
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "parent_water_areal_inventory_m2": 2e+18,
+        "thermal_parameter_K": 600.0,
+        "neutral_columns_m2": {
+          "H2O[X]": 4e+16
+        },
+        "weighted_neutral_densities_m3": {
+          "H2O[X]": 8e+18
+        },
+        "neutral_diagnostic_definition": "Manufactured same collected 5 mm path and uniform neutral population; no fitted depth.",
+        "status": "manufactured",
+        "source_receipt": "Manufactured fixture, no physical source admitted.",
+        "population_provenance": "Authored synthetic forward case; no CR output.",
+        "transport_provenance": "Authored synthetic transport diagnostic; no gap solver output.",
+        "conservation_provenance": "Manufactured admission label only; no claim of physical number or energy evaluation.",
+        "optical_admission": "Manufactured optically thin comparison, no opacity inference.",
+        "numerical_qualification": "Exact authored three-point fixture; no mesh/state convergence claim.",
+        "provenance": "Independent supplied numerical forward-case fixture."
+      }
+    ],
+    "case_scale_comparisons": [
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.01,
+        "max_normalized_departure": 989.9999999999991,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 989.9999999999991
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.01,
+        "max_normalized_departure": 979.9999999999991,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 979.9999999999991
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.01,
+        "max_normalized_departure": 1989.9999999999982,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1989.9999999999982
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.01,
+        "max_normalized_departure": 1979.9999999999982,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1979.9999999999982
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.01,
+        "max_normalized_departure": 989.9999999999991,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 989.9999999999991
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.01,
+        "max_normalized_departure": 1379.9999999999986,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1379.9999999999986
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.01,
+        "max_normalized_departure": 1989.9999999999982,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1989.9999999999982
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.01,
+        "max_normalized_departure": 2779.9999999999973,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 2779.9999999999973
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.012589254117941675,
+        "max_normalized_departure": 784.3282347242803,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 784.3282347242803
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.012589254117941675,
+        "max_normalized_departure": 774.3282347242803,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 774.3282347242803
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.012589254117941675,
+        "max_normalized_departure": 1578.6564694485603,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1578.6564694485603
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.012589254117941675,
+        "max_normalized_departure": 1568.6564694485605,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1568.6564694485605
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.012589254117941675,
+        "max_normalized_departure": 784.3282347242803,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 784.3282347242803
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.012589254117941675,
+        "max_normalized_departure": 1092.0595286139924,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1092.0595286139924
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.012589254117941675,
+        "max_normalized_departure": 1578.6564694485603,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1578.6564694485603
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.012589254117941675,
+        "max_normalized_departure": 2204.1190572279843,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 2204.1190572279843
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.015848931924611134,
+        "max_normalized_departure": 620.9573444801932,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 620.9573444801932
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.015848931924611134,
+        "max_normalized_departure": 610.9573444801933,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 610.9573444801933
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.015848931924611134,
+        "max_normalized_departure": 1251.9146889603865,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1251.9146889603865
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.015848931924611134,
+        "max_normalized_departure": 1241.9146889603865,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1241.9146889603865
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.015848931924611134,
+        "max_normalized_departure": 620.9573444801932,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 620.9573444801932
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.015848931924611134,
+        "max_normalized_departure": 863.3402822722705,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 863.3402822722705
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.015848931924611134,
+        "max_normalized_departure": 1251.9146889603865,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1251.9146889603865
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.015848931924611134,
+        "max_normalized_departure": 1746.680564544541,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1746.680564544541
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.0199526231496888,
+        "max_normalized_departure": 491.18723362727167,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 491.18723362727167
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.0199526231496888,
+        "max_normalized_departure": 481.18723362727167,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 481.18723362727167
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.0199526231496888,
+        "max_normalized_departure": 992.3744672545434,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 992.3744672545434
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.0199526231496888,
+        "max_normalized_departure": 982.3744672545433,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 982.3744672545433
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.0199526231496888,
+        "max_normalized_departure": 491.18723362727167,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 491.18723362727167
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.0199526231496888,
+        "max_normalized_departure": 681.6621270781803,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 681.6621270781803
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.0199526231496888,
+        "max_normalized_departure": 992.3744672545434,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 992.3744672545434
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.0199526231496888,
+        "max_normalized_departure": 1383.3242541563607,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1383.3242541563607
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.025118864315095794,
+        "max_normalized_departure": 388.1071705534968,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 388.1071705534968
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.025118864315095794,
+        "max_normalized_departure": 378.1071705534968,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 378.1071705534968
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.025118864315095794,
+        "max_normalized_departure": 786.2143411069936,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 786.2143411069936
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.025118864315095794,
+        "max_normalized_departure": 776.2143411069936,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 776.2143411069936
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.025118864315095794,
+        "max_normalized_departure": 388.1071705534968,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 388.1071705534968
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.025118864315095794,
+        "max_normalized_departure": 537.3500387748956,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 537.3500387748956
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.025118864315095794,
+        "max_normalized_departure": 786.2143411069936,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 786.2143411069936
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.025118864315095794,
+        "max_normalized_departure": 1094.700077549791,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 1094.700077549791
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.03162277660168379,
+        "max_normalized_departure": 306.22776601683756,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 306.22776601683756
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.03162277660168379,
+        "max_normalized_departure": 296.22776601683756,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 296.22776601683756
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.03162277660168379,
+        "max_normalized_departure": 622.455532033675,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 622.455532033675
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.03162277660168379,
+        "max_normalized_departure": 612.4555320336751,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 612.4555320336751
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.03162277660168379,
+        "max_normalized_departure": 306.22776601683756,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 306.22776601683756
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.03162277660168379,
+        "max_normalized_departure": 422.7188724235726,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 422.7188724235726
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.03162277660168379,
+        "max_normalized_departure": 622.455532033675,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 622.455532033675
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.03162277660168379,
+        "max_normalized_departure": 865.437744847145,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 865.437744847145
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.039810717055349734,
+        "max_normalized_departure": 241.18864315095752,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 241.18864315095752
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.039810717055349734,
+        "max_normalized_departure": 231.18864315095755,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 231.18864315095755
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.039810717055349734,
+        "max_normalized_departure": 492.3772863019151,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 492.3772863019151
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.039810717055349734,
+        "max_normalized_departure": 482.37728630191503,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 482.37728630191503
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.039810717055349734,
+        "max_normalized_departure": 241.18864315095752,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 241.18864315095752
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.039810717055349734,
+        "max_normalized_departure": 331.66410041134054,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 331.66410041134054
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.039810717055349734,
+        "max_normalized_departure": 492.3772863019151,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 492.3772863019151
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.039810717055349734,
+        "max_normalized_departure": 683.3282008226811,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 683.3282008226811
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.05011872336272725,
+        "max_normalized_departure": 189.5262314968876,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 189.5262314968876
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.05011872336272725,
+        "max_normalized_departure": 179.5262314968876,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 179.5262314968876
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.05011872336272725,
+        "max_normalized_departure": 389.0524629937752,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 389.0524629937752
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.05011872336272725,
+        "max_normalized_departure": 379.0524629937752,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 379.0524629937752
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.05011872336272725,
+        "max_normalized_departure": 189.5262314968876,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 189.5262314968876
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.05011872336272725,
+        "max_normalized_departure": 259.33672409564264,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 259.33672409564264
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.05011872336272725,
+        "max_normalized_departure": 389.0524629937752,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 389.0524629937752
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.05011872336272725,
+        "max_normalized_departure": 538.6734481912853,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 538.6734481912853
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.06309573444801933,
+        "max_normalized_departure": 148.48931924611108,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 148.48931924611108
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.06309573444801933,
+        "max_normalized_departure": 138.4893192461114,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 138.4893192461114
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.06309573444801933,
+        "max_normalized_departure": 306.9786384922221,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 306.9786384922221
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.06309573444801933,
+        "max_normalized_departure": 296.9786384922228,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 296.9786384922228
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.06309573444801933,
+        "max_normalized_departure": 148.48931924611108,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 148.48931924611108
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.06309573444801933,
+        "max_normalized_departure": 201.88504694455594,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 201.88504694455594
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.06309573444801933,
+        "max_normalized_departure": 306.9786384922221,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 306.9786384922221
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.06309573444801933,
+        "max_normalized_departure": 423.7700938891119,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 423.7700938891119
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.07943282347242814,
+        "max_normalized_departure": 115.89254117941653,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 115.89254117941653
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.07943282347242814,
+        "max_normalized_departure": 105.89254117941674,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 105.89254117941674
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.07943282347242814,
+        "max_normalized_departure": 241.78508235883305,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 241.78508235883305
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.07943282347242814,
+        "max_normalized_departure": 231.78508235883348,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 231.78508235883348
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.07943282347242814,
+        "max_normalized_departure": 115.89254117941653,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 115.89254117941653
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.07943282347242814,
+        "max_normalized_departure": 156.2495576511834,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 156.2495576511834
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.07943282347242814,
+        "max_normalized_departure": 241.78508235883305,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 241.78508235883305
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.07943282347242814,
+        "max_normalized_departure": 332.4991153023668,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 332.4991153023668
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.1,
+        "max_normalized_departure": 89.99999999999993,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 89.99999999999993
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.1,
+        "max_normalized_departure": 79.99999999999993,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 79.99999999999993
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.1,
+        "max_normalized_departure": 189.99999999999983,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 189.99999999999983
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.1,
+        "max_normalized_departure": 179.99999999999986,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 179.99999999999986
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.1,
+        "max_normalized_departure": 89.99999999999993,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 89.99999999999993
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.1,
+        "max_normalized_departure": 119.99999999999989,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 119.99999999999989
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.1,
+        "max_normalized_departure": 189.99999999999983,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 189.99999999999983
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.1,
+        "max_normalized_departure": 259.9999999999997,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 259.9999999999997
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.12589254117941676,
+        "max_normalized_departure": 69.43282347242811,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 69.43282347242811
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.12589254117941676,
+        "max_normalized_departure": 59.43282347242799,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 59.43282347242799
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.12589254117941676,
+        "max_normalized_departure": 148.86564694485622,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 148.86564694485622
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.12589254117941676,
+        "max_normalized_departure": 138.8656469448559,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 138.8656469448559
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.12589254117941676,
+        "max_normalized_departure": 69.43282347242811,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 69.43282347242811
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.12589254117941676,
+        "max_normalized_departure": 91.20595286139915,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 91.20595286139915
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.12589254117941676,
+        "max_normalized_departure": 148.86564694485622,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 148.86564694485622
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.12589254117941676,
+        "max_normalized_departure": 202.41190572279825,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 202.41190572279825
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.15848931924611143,
+        "max_normalized_departure": 53.09573444801928,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 53.09573444801928
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.15848931924611143,
+        "max_normalized_departure": 43.0957344480192,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 43.0957344480192
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.15848931924611143,
+        "max_normalized_departure": 116.19146889603854,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 116.19146889603854
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.15848931924611143,
+        "max_normalized_departure": 106.19146889603836,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 106.19146889603836
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.15848931924611143,
+        "max_normalized_departure": 53.09573444801928,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 53.09573444801928
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.15848931924611143,
+        "max_normalized_departure": 68.33402822722687,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 68.33402822722687
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.15848931924611143,
+        "max_normalized_departure": 116.19146889603854,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 116.19146889603854
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.15848931924611143,
+        "max_normalized_departure": 156.66805645445368,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 156.66805645445368
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.19952623149688797,
+        "max_normalized_departure": 40.11872336272718,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 40.11872336272718
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.19952623149688797,
+        "max_normalized_departure": 30.11872336272719,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 30.11872336272719
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.19952623149688797,
+        "max_normalized_departure": 90.23744672545435,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 90.23744672545435
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.19952623149688797,
+        "max_normalized_departure": 80.23744672545436,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 80.23744672545436
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.19952623149688797,
+        "max_normalized_departure": 40.11872336272718,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 40.11872336272718
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.19952623149688797,
+        "max_normalized_departure": 50.166212707818055,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 50.166212707818055
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.19952623149688797,
+        "max_normalized_departure": 90.23744672545435,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 90.23744672545435
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.19952623149688797,
+        "max_normalized_departure": 120.33242541563608,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 120.33242541563608
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.25118864315095807,
+        "max_normalized_departure": 29.81071705534966,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 29.81071705534966
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.25118864315095807,
+        "max_normalized_departure": 19.81071705534972,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.81071705534972
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.25118864315095807,
+        "max_normalized_departure": 69.6214341106993,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 69.6214341106993
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.25118864315095807,
+        "max_normalized_departure": 59.62143411069945,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 59.62143411069945
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.25118864315095807,
+        "max_normalized_departure": 29.81071705534966,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 29.81071705534966
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.25118864315095807,
+        "max_normalized_departure": 35.7350038774896,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 35.7350038774896
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.25118864315095807,
+        "max_normalized_departure": 69.6214341106993,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 69.6214341106993
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.25118864315095807,
+        "max_normalized_departure": 91.47000775497922,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 91.47000775497922
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.31622776601683794,
+        "max_normalized_departure": 21.622776601683764,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 21.622776601683764
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.31622776601683794,
+        "max_normalized_departure": 11.622776601683798,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 11.622776601683798
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.31622776601683794,
+        "max_normalized_departure": 53.24555320336752,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 53.24555320336752
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.31622776601683794,
+        "max_normalized_departure": 43.245553203367606,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 43.245553203367606
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.31622776601683794,
+        "max_normalized_departure": 21.622776601683764,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 21.622776601683764
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.31622776601683794,
+        "max_normalized_departure": 24.27188724235732,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 24.27188724235732
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.31622776601683794,
+        "max_normalized_departure": 53.24555320336752,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 53.24555320336752
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.31622776601683794,
+        "max_normalized_departure": 68.54377448471465,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 68.54377448471465
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.3981071705534973,
+        "max_normalized_departure": 15.11886431509578,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 15.11886431509578
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.3981071705534973,
+        "max_normalized_departure": 5.1188643150957915,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 5.1188643150957915
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.3981071705534973,
+        "max_normalized_departure": 40.23772863019155,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 40.23772863019155
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.3981071705534973,
+        "max_normalized_departure": 30.23772863019156,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 30.23772863019156
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.3981071705534973,
+        "max_normalized_departure": 15.11886431509578,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 15.11886431509578
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.3981071705534973,
+        "max_normalized_departure": 15.166410041134096,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 15.166410041134096
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.3981071705534973,
+        "max_normalized_departure": 40.23772863019155,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 40.23772863019155
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.3981071705534973,
+        "max_normalized_departure": 50.33282008226817,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 50.33282008226817
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.5011872336272725,
+        "max_normalized_departure": 10.023688425155601,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 10.023688425155601
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.5011872336272725,
+        "max_normalized_departure": 0.047376850311211166,
+        "unbounded_departure": false,
+        "readout_compatible": true,
+        "curve_scores": {
+          "manufactured_vuv": 0.047376850311211166
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.5011872336272725,
+        "max_normalized_departure": 29.905246299377563,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 29.905246299377563
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.5011872336272725,
+        "max_normalized_departure": 19.905246299377524,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.905246299377524
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.5011872336272725,
+        "max_normalized_departure": 10.023688425155601,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 10.023688425155601
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.5011872336272725,
+        "max_normalized_departure": 7.933672409564282,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 7.933672409564282
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.5011872336272725,
+        "max_normalized_departure": 29.905246299377563,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 29.905246299377563
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.5011872336272725,
+        "max_normalized_departure": 35.86734481912851,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 35.86734481912851
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.6309573444801934,
+        "max_normalized_departure": 12.07553403769442,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 12.07553403769442
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.6309573444801934,
+        "max_normalized_departure": 4.151068075388863,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 4.151068075388863
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.6309573444801934,
+        "max_normalized_departure": 21.69786384922224,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 21.69786384922224
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.6309573444801934,
+        "max_normalized_departure": 11.69786384922225,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 11.69786384922225
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.6309573444801934,
+        "max_normalized_departure": 12.07553403769442,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 12.07553403769442
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.6309573444801934,
+        "max_normalized_departure": 4.151068075388863,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 4.151068075388863
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.6309573444801934,
+        "max_normalized_departure": 21.69786384922224,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 21.69786384922224
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.6309573444801934,
+        "max_normalized_departure": 24.377009388911137,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 24.377009388911137
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.7943282347242817,
+        "max_normalized_departure": 13.705372941029161,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 13.705372941029161
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.7943282347242817,
+        "max_normalized_departure": 7.410745882058329,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 7.410745882058329
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 0.7943282347242817,
+        "max_normalized_departure": 15.178508235883333,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 15.178508235883333
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 0.7943282347242817,
+        "max_normalized_departure": 5.178508235883336,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 5.178508235883336
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.7943282347242817,
+        "max_normalized_departure": 13.705372941029161,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 13.705372941029161
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.7943282347242817,
+        "max_normalized_departure": 7.410745882058329,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 7.410745882058329
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.7943282347242817,
+        "max_normalized_departure": 15.178508235883333,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 15.178508235883333
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 0.7943282347242817,
+        "max_normalized_departure": 15.249911530236666,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 15.249911530236666
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 1.0,
+        "max_normalized_departure": 14.999999999999988,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 14.999999999999988
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 1.0,
+        "max_normalized_departure": 9.999999999999991,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 9.999999999999991
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 1.0,
+        "max_normalized_departure": 9.999999999999991,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 9.999999999999991
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 1.0,
+        "max_normalized_departure": 0.0,
+        "unbounded_departure": false,
+        "readout_compatible": true,
+        "curve_scores": {
+          "manufactured_vuv": 0.0
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.0,
+        "max_normalized_departure": 14.999999999999988,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 14.999999999999988
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.0,
+        "max_normalized_departure": 9.999999999999991,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 9.999999999999991
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.0,
+        "max_normalized_departure": 9.999999999999991,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 9.999999999999991
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.0,
+        "max_normalized_departure": 7.999999999999991,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 7.999999999999991
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 1.2589254117941675,
+        "max_normalized_departure": 16.028358826378597,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.028358826378597
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 1.2589254117941675,
+        "max_normalized_departure": 12.05671765275719,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 12.05671765275719
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 1.2589254117941675,
+        "max_normalized_departure": 12.05671765275719,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 12.05671765275719
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 1.2589254117941675,
+        "max_normalized_departure": 4.113435305514375,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 4.113435305514375
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.2589254117941675,
+        "max_normalized_departure": 16.028358826378597,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.028358826378597
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.2589254117941675,
+        "max_normalized_departure": 12.05671765275719,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 12.05671765275719
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.2589254117941675,
+        "max_normalized_departure": 12.05671765275719,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 12.05671765275719
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.2589254117941675,
+        "max_normalized_departure": 4.113435305514375,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 4.113435305514375
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 1.584893192461114,
+        "max_normalized_departure": 16.845213277599008,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.845213277599008
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 1.584893192461114,
+        "max_normalized_departure": 13.690426555198048,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 13.690426555198048
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 1.584893192461114,
+        "max_normalized_departure": 13.690426555198048,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 13.690426555198048
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 1.584893192461114,
+        "max_normalized_departure": 7.380853110396128,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 7.380853110396128
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.584893192461114,
+        "max_normalized_departure": 16.845213277599008,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.845213277599008
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.584893192461114,
+        "max_normalized_departure": 13.690426555198048,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 13.690426555198048
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.584893192461114,
+        "max_normalized_departure": 13.690426555198048,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 13.690426555198048
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.584893192461114,
+        "max_normalized_departure": 7.380853110396128,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 7.380853110396128
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 1.9952623149688808,
+        "max_normalized_departure": 17.49406383186361,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 17.49406383186361
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 1.9952623149688808,
+        "max_normalized_departure": 14.988127663727255,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 14.988127663727255
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 1.9952623149688808,
+        "max_normalized_departure": 14.988127663727255,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 14.988127663727255
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 1.9952623149688808,
+        "max_normalized_departure": 9.976255327454544,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 9.976255327454544
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.9952623149688808,
+        "max_normalized_departure": 17.49406383186361,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 17.49406383186361
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.9952623149688808,
+        "max_normalized_departure": 14.988127663727255,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 14.988127663727255
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.9952623149688808,
+        "max_normalized_departure": 14.988127663727255,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 14.988127663727255
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 1.9952623149688808,
+        "max_normalized_departure": 9.976255327454544,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 9.976255327454544
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 2.5118864315095824,
+        "max_normalized_departure": 18.009464147232517,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.009464147232517
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 2.5118864315095824,
+        "max_normalized_departure": 16.01892829446503,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.01892829446503
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 2.5118864315095824,
+        "max_normalized_departure": 16.01892829446503,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.01892829446503
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 2.5118864315095824,
+        "max_normalized_departure": 12.037856588930062,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 12.037856588930062
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 2.5118864315095824,
+        "max_normalized_departure": 18.009464147232517,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.009464147232517
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 2.5118864315095824,
+        "max_normalized_departure": 16.01892829446503,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.01892829446503
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 2.5118864315095824,
+        "max_normalized_departure": 16.01892829446503,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.01892829446503
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 2.5118864315095824,
+        "max_normalized_departure": 12.037856588930062,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 12.037856588930062
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 3.1622776601683795,
+        "max_normalized_departure": 18.418861169915807,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.418861169915807
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 3.1622776601683795,
+        "max_normalized_departure": 16.83772233983162,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.83772233983162
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 3.1622776601683795,
+        "max_normalized_departure": 16.83772233983162,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.83772233983162
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 3.1622776601683795,
+        "max_normalized_departure": 13.67544467966324,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 13.67544467966324
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 3.1622776601683795,
+        "max_normalized_departure": 18.418861169915807,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.418861169915807
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 3.1622776601683795,
+        "max_normalized_departure": 16.83772233983162,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.83772233983162
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 3.1622776601683795,
+        "max_normalized_departure": 16.83772233983162,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.83772233983162
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 3.1622776601683795,
+        "max_normalized_departure": 13.67544467966324,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 13.67544467966324
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 3.981071705534973,
+        "max_normalized_departure": 18.744056784245178,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.744056784245178
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 3.981071705534973,
+        "max_normalized_departure": 17.48811356849039,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 17.48811356849039
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 3.981071705534973,
+        "max_normalized_departure": 17.48811356849039,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 17.48811356849039
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 3.981071705534973,
+        "max_normalized_departure": 14.976227136980816,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 14.976227136980816
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 3.981071705534973,
+        "max_normalized_departure": 18.744056784245178,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.744056784245178
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 3.981071705534973,
+        "max_normalized_departure": 17.48811356849039,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 17.48811356849039
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 3.981071705534973,
+        "max_normalized_departure": 17.48811356849039,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 17.48811356849039
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 3.981071705534973,
+        "max_normalized_departure": 14.976227136980816,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 14.976227136980816
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 5.011872336272725,
+        "max_normalized_departure": 19.00236884251551,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.00236884251551
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 5.011872336272725,
+        "max_normalized_departure": 18.004737685031074,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.004737685031074
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 5.011872336272725,
+        "max_normalized_departure": 18.004737685031074,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.004737685031074
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 5.011872336272725,
+        "max_normalized_departure": 16.0094753700622,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.0094753700622
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 5.011872336272725,
+        "max_normalized_departure": 19.00236884251551,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.00236884251551
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 5.011872336272725,
+        "max_normalized_departure": 18.004737685031074,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.004737685031074
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 5.011872336272725,
+        "max_normalized_departure": 18.004737685031074,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.004737685031074
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 5.011872336272725,
+        "max_normalized_departure": 16.0094753700622,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.0094753700622
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 6.309573444801936,
+        "max_normalized_departure": 19.207553403769428,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.207553403769428
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 6.309573444801936,
+        "max_normalized_departure": 18.415106807538873,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.415106807538873
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 6.309573444801936,
+        "max_normalized_departure": 18.415106807538873,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.415106807538873
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 6.309573444801936,
+        "max_normalized_departure": 16.83021361507776,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.83021361507776
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 6.309573444801936,
+        "max_normalized_departure": 19.207553403769428,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.207553403769428
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 6.309573444801936,
+        "max_normalized_departure": 18.415106807538873,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.415106807538873
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 6.309573444801936,
+        "max_normalized_departure": 18.415106807538873,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.415106807538873
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 6.309573444801936,
+        "max_normalized_departure": 16.83021361507776,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 16.83021361507776
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 7.943282347242821,
+        "max_normalized_departure": 19.3705372941029,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.3705372941029
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 7.943282347242821,
+        "max_normalized_departure": 18.741074588205816,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.741074588205816
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 7.943282347242821,
+        "max_normalized_departure": 18.741074588205816,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.741074588205816
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 7.943282347242821,
+        "max_normalized_departure": 17.482149176411653,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 17.482149176411653
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 7.943282347242821,
+        "max_normalized_departure": 19.3705372941029,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.3705372941029
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 7.943282347242821,
+        "max_normalized_departure": 18.741074588205816,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.741074588205816
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 7.943282347242821,
+        "max_normalized_departure": 18.741074588205816,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.741074588205816
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 7.943282347242821,
+        "max_normalized_departure": 17.482149176411653,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 17.482149176411653
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 10.0,
+        "max_normalized_departure": 19.5,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.5
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 10.0,
+        "max_normalized_departure": 19.0,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.0
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 10.0,
+        "max_normalized_departure": 19.0,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.0
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 10.0,
+        "max_normalized_departure": 18.0,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.0
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 10.0,
+        "max_normalized_departure": 19.5,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.5
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 10.0,
+        "max_normalized_departure": 19.0,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.0
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 10.0,
+        "max_normalized_departure": 19.0,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.0
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 10.0,
+        "max_normalized_departure": 18.0,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.0
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 12.589254117941675,
+        "max_normalized_departure": 19.60283588263782,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.60283588263782
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 12.589254117941675,
+        "max_normalized_departure": 19.20567176527568,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.20567176527568
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 12.589254117941675,
+        "max_normalized_departure": 19.20567176527568,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.20567176527568
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 12.589254117941675,
+        "max_normalized_departure": 18.411343530551402,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.411343530551402
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 12.589254117941675,
+        "max_normalized_departure": 19.60283588263782,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.60283588263782
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 12.589254117941675,
+        "max_normalized_departure": 19.20567176527568,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.20567176527568
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 12.589254117941675,
+        "max_normalized_departure": 19.20567176527568,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.20567176527568
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 12.589254117941675,
+        "max_normalized_departure": 18.411343530551402,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.411343530551402
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 15.848931924611142,
+        "max_normalized_departure": 19.684521327759875,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.684521327759875
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 15.848931924611142,
+        "max_normalized_departure": 19.369042655519777,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.369042655519777
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 15.848931924611142,
+        "max_normalized_departure": 19.369042655519777,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.369042655519777
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 15.848931924611142,
+        "max_normalized_departure": 18.738085311039587,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.738085311039587
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 15.848931924611142,
+        "max_normalized_departure": 19.684521327759875,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.684521327759875
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 15.848931924611142,
+        "max_normalized_departure": 19.369042655519777,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.369042655519777
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 15.848931924611142,
+        "max_normalized_departure": 19.369042655519777,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.369042655519777
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 15.848931924611142,
+        "max_normalized_departure": 18.738085311039587,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.738085311039587
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 19.952623149688808,
+        "max_normalized_departure": 19.74940638318634,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.74940638318634
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 19.952623149688808,
+        "max_normalized_departure": 19.498812766372705,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.498812766372705
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 19.952623149688808,
+        "max_normalized_departure": 19.498812766372705,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.498812766372705
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 19.952623149688808,
+        "max_normalized_departure": 18.99762553274543,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.99762553274543
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 19.952623149688808,
+        "max_normalized_departure": 19.74940638318634,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.74940638318634
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 19.952623149688808,
+        "max_normalized_departure": 19.498812766372705,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.498812766372705
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 19.952623149688808,
+        "max_normalized_departure": 19.498812766372705,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.498812766372705
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 19.952623149688808,
+        "max_normalized_departure": 18.99762553274543,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 18.99762553274543
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 25.11886431509582,
+        "max_normalized_departure": 19.800946414723207,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.800946414723207
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 25.11886431509582,
+        "max_normalized_departure": 19.60189282944646,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.60189282944646
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 25.11886431509582,
+        "max_normalized_departure": 19.60189282944646,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.60189282944646
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 25.11886431509582,
+        "max_normalized_departure": 19.20378565889296,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.20378565889296
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 25.11886431509582,
+        "max_normalized_departure": 19.800946414723207,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.800946414723207
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 25.11886431509582,
+        "max_normalized_departure": 19.60189282944646,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.60189282944646
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 25.11886431509582,
+        "max_normalized_departure": 19.60189282944646,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.60189282944646
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 25.11886431509582,
+        "max_normalized_departure": 19.20378565889296,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.20378565889296
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 31.622776601683793,
+        "max_normalized_departure": 19.841886116991542,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.841886116991542
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 31.622776601683793,
+        "max_normalized_departure": 19.683772233983124,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.683772233983124
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 31.622776601683793,
+        "max_normalized_departure": 19.683772233983124,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.683772233983124
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 31.622776601683793,
+        "max_normalized_departure": 19.367544467966287,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.367544467966287
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 31.622776601683793,
+        "max_normalized_departure": 19.841886116991542,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.841886116991542
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 31.622776601683793,
+        "max_normalized_departure": 19.683772233983124,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.683772233983124
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 31.622776601683793,
+        "max_normalized_departure": 19.683772233983124,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.683772233983124
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 31.622776601683793,
+        "max_normalized_departure": 19.367544467966287,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.367544467966287
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 39.810717055349734,
+        "max_normalized_departure": 19.874405678424523,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.874405678424523
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 39.810717055349734,
+        "max_normalized_departure": 19.748811356849046,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.748811356849046
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 39.810717055349734,
+        "max_normalized_departure": 19.748811356849046,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.748811356849046
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 39.810717055349734,
+        "max_normalized_departure": 19.49762271369809,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.49762271369809
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 39.810717055349734,
+        "max_normalized_departure": 19.874405678424523,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.874405678424523
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 39.810717055349734,
+        "max_normalized_departure": 19.748811356849046,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.748811356849046
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 39.810717055349734,
+        "max_normalized_departure": 19.748811356849046,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.748811356849046
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 39.810717055349734,
+        "max_normalized_departure": 19.49762271369809,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.49762271369809
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 50.11872336272725,
+        "max_normalized_departure": 19.900236884251534,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.900236884251534
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 50.11872336272725,
+        "max_normalized_departure": 19.80047376850309,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.80047376850309
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 50.11872336272725,
+        "max_normalized_departure": 19.80047376850309,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.80047376850309
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 50.11872336272725,
+        "max_normalized_departure": 19.600947537006203,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.600947537006203
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 50.11872336272725,
+        "max_normalized_departure": 19.900236884251534,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.900236884251534
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 50.11872336272725,
+        "max_normalized_departure": 19.80047376850309,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.80047376850309
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 50.11872336272725,
+        "max_normalized_departure": 19.80047376850309,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.80047376850309
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 50.11872336272725,
+        "max_normalized_departure": 19.600947537006203,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.600947537006203
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 63.095734448019364,
+        "max_normalized_departure": 19.920755340376928,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.920755340376928
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 63.095734448019364,
+        "max_normalized_departure": 19.841510680753874,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.841510680753874
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 63.095734448019364,
+        "max_normalized_departure": 19.841510680753874,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.841510680753874
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 63.095734448019364,
+        "max_normalized_departure": 19.683021361507762,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.683021361507762
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 63.095734448019364,
+        "max_normalized_departure": 19.920755340376928,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.920755340376928
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 63.095734448019364,
+        "max_normalized_departure": 19.841510680753874,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.841510680753874
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 63.095734448019364,
+        "max_normalized_departure": 19.841510680753874,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.841510680753874
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 63.095734448019364,
+        "max_normalized_departure": 19.683021361507762,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.683021361507762
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 79.43282347242821,
+        "max_normalized_departure": 19.93705372941031,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.93705372941031
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 79.43282347242821,
+        "max_normalized_departure": 19.8741074588206,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.8741074588206
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 79.43282347242821,
+        "max_normalized_departure": 19.8741074588206,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.8741074588206
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 79.43282347242821,
+        "max_normalized_departure": 19.748214917641185,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.748214917641185
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 79.43282347242821,
+        "max_normalized_departure": 19.93705372941031,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.93705372941031
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 79.43282347242821,
+        "max_normalized_departure": 19.8741074588206,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.8741074588206
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 79.43282347242821,
+        "max_normalized_departure": 19.8741074588206,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.8741074588206
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 79.43282347242821,
+        "max_normalized_departure": 19.748214917641185,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.748214917641185
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 100.0,
+        "max_normalized_departure": 19.95,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.95
+        }
+      },
+      {
+        "case_id": "localized_source_N1_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 100.0,
+        "max_normalized_departure": 19.9,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.9
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T300",
+        "hypothesis": "localized_source",
+        "C_abs": 100.0,
+        "max_normalized_departure": 19.9,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.9
+        }
+      },
+      {
+        "case_id": "localized_source_N2_T600",
+        "hypothesis": "localized_source",
+        "C_abs": 100.0,
+        "max_normalized_departure": 19.8,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.8
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 100.0,
+        "max_normalized_departure": 19.95,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.95
+        }
+      },
+      {
+        "case_id": "uniform_source_N1_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 100.0,
+        "max_normalized_departure": 19.9,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.9
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T300",
+        "hypothesis": "uniform_source",
+        "C_abs": 100.0,
+        "max_normalized_departure": 19.9,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.9
+        }
+      },
+      {
+        "case_id": "uniform_source_N2_T600",
+        "hypothesis": "uniform_source",
+        "C_abs": 100.0,
+        "max_normalized_departure": 19.8,
+        "unbounded_departure": false,
+        "readout_compatible": false,
+        "curve_scores": {
+          "manufactured_vuv": 19.8
+        }
+      }
+    ],
+    "hypothesis_scale_summaries": [
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.01,
+        "minimum_normalized_departure": 979.9999999999991,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.01,
+        "minimum_normalized_departure": 989.9999999999991,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.012589254117941675,
+        "minimum_normalized_departure": 774.3282347242803,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.012589254117941675,
+        "minimum_normalized_departure": 784.3282347242803,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.015848931924611134,
+        "minimum_normalized_departure": 610.9573444801933,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.015848931924611134,
+        "minimum_normalized_departure": 620.9573444801932,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.0199526231496888,
+        "minimum_normalized_departure": 481.18723362727167,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.0199526231496888,
+        "minimum_normalized_departure": 491.18723362727167,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.025118864315095794,
+        "minimum_normalized_departure": 378.1071705534968,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.025118864315095794,
+        "minimum_normalized_departure": 388.1071705534968,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.03162277660168379,
+        "minimum_normalized_departure": 296.22776601683756,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.03162277660168379,
+        "minimum_normalized_departure": 306.22776601683756,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.039810717055349734,
+        "minimum_normalized_departure": 231.18864315095755,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.039810717055349734,
+        "minimum_normalized_departure": 241.18864315095752,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.05011872336272725,
+        "minimum_normalized_departure": 179.5262314968876,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.05011872336272725,
+        "minimum_normalized_departure": 189.5262314968876,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.06309573444801933,
+        "minimum_normalized_departure": 138.4893192461114,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.06309573444801933,
+        "minimum_normalized_departure": 148.48931924611108,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.07943282347242814,
+        "minimum_normalized_departure": 105.89254117941674,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.07943282347242814,
+        "minimum_normalized_departure": 115.89254117941653,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.1,
+        "minimum_normalized_departure": 79.99999999999993,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.1,
+        "minimum_normalized_departure": 89.99999999999993,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.12589254117941676,
+        "minimum_normalized_departure": 59.43282347242799,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.12589254117941676,
+        "minimum_normalized_departure": 69.43282347242811,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.15848931924611143,
+        "minimum_normalized_departure": 43.0957344480192,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.15848931924611143,
+        "minimum_normalized_departure": 53.09573444801928,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.19952623149688797,
+        "minimum_normalized_departure": 30.11872336272719,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.19952623149688797,
+        "minimum_normalized_departure": 40.11872336272718,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.25118864315095807,
+        "minimum_normalized_departure": 19.81071705534972,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.25118864315095807,
+        "minimum_normalized_departure": 29.81071705534966,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.31622776601683794,
+        "minimum_normalized_departure": 11.622776601683798,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.31622776601683794,
+        "minimum_normalized_departure": 21.622776601683764,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.3981071705534973,
+        "minimum_normalized_departure": 5.1188643150957915,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.3981071705534973,
+        "minimum_normalized_departure": 15.11886431509578,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T300"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.5011872336272725,
+        "minimum_normalized_departure": 0.047376850311211166,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_inventory_values_m2": [
+          1e+18
+        ],
+        "compatible_thermal_values_K": [
+          600.0
+        ]
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.5011872336272725,
+        "minimum_normalized_departure": 7.933672409564282,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.6309573444801934,
+        "minimum_normalized_departure": 4.151068075388863,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.6309573444801934,
+        "minimum_normalized_departure": 4.151068075388863,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 0.7943282347242817,
+        "minimum_normalized_departure": 5.178508235883336,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 0.7943282347242817,
+        "minimum_normalized_departure": 7.410745882058329,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N1_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 1.0,
+        "minimum_normalized_departure": 0.0,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_inventory_values_m2": [
+          2e+18
+        ],
+        "compatible_thermal_values_K": [
+          600.0
+        ]
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 1.0,
+        "minimum_normalized_departure": 7.999999999999991,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 1.2589254117941675,
+        "minimum_normalized_departure": 4.113435305514375,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 1.2589254117941675,
+        "minimum_normalized_departure": 4.113435305514375,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 1.584893192461114,
+        "minimum_normalized_departure": 7.380853110396128,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 1.584893192461114,
+        "minimum_normalized_departure": 7.380853110396128,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 1.9952623149688808,
+        "minimum_normalized_departure": 9.976255327454544,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 1.9952623149688808,
+        "minimum_normalized_departure": 9.976255327454544,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 2.5118864315095824,
+        "minimum_normalized_departure": 12.037856588930062,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 2.5118864315095824,
+        "minimum_normalized_departure": 12.037856588930062,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 3.1622776601683795,
+        "minimum_normalized_departure": 13.67544467966324,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 3.1622776601683795,
+        "minimum_normalized_departure": 13.67544467966324,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 3.981071705534973,
+        "minimum_normalized_departure": 14.976227136980816,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 3.981071705534973,
+        "minimum_normalized_departure": 14.976227136980816,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 5.011872336272725,
+        "minimum_normalized_departure": 16.0094753700622,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 5.011872336272725,
+        "minimum_normalized_departure": 16.0094753700622,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 6.309573444801936,
+        "minimum_normalized_departure": 16.83021361507776,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 6.309573444801936,
+        "minimum_normalized_departure": 16.83021361507776,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 7.943282347242821,
+        "minimum_normalized_departure": 17.482149176411653,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 7.943282347242821,
+        "minimum_normalized_departure": 17.482149176411653,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 10.0,
+        "minimum_normalized_departure": 18.0,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 10.0,
+        "minimum_normalized_departure": 18.0,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 12.589254117941675,
+        "minimum_normalized_departure": 18.411343530551402,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 12.589254117941675,
+        "minimum_normalized_departure": 18.411343530551402,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 15.848931924611142,
+        "minimum_normalized_departure": 18.738085311039587,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 15.848931924611142,
+        "minimum_normalized_departure": 18.738085311039587,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 19.952623149688808,
+        "minimum_normalized_departure": 18.99762553274543,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 19.952623149688808,
+        "minimum_normalized_departure": 18.99762553274543,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 25.11886431509582,
+        "minimum_normalized_departure": 19.20378565889296,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 25.11886431509582,
+        "minimum_normalized_departure": 19.20378565889296,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 31.622776601683793,
+        "minimum_normalized_departure": 19.367544467966287,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 31.622776601683793,
+        "minimum_normalized_departure": 19.367544467966287,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 39.810717055349734,
+        "minimum_normalized_departure": 19.49762271369809,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 39.810717055349734,
+        "minimum_normalized_departure": 19.49762271369809,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 50.11872336272725,
+        "minimum_normalized_departure": 19.600947537006203,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 50.11872336272725,
+        "minimum_normalized_departure": 19.600947537006203,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 63.095734448019364,
+        "minimum_normalized_departure": 19.683021361507762,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 63.095734448019364,
+        "minimum_normalized_departure": 19.683021361507762,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 79.43282347242821,
+        "minimum_normalized_departure": 19.748214917641185,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 79.43282347242821,
+        "minimum_normalized_departure": 19.748214917641185,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "localized_source",
+        "C_abs": 100.0,
+        "minimum_normalized_departure": 19.8,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "localized_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      },
+      {
+        "hypothesis": "uniform_source",
+        "C_abs": 100.0,
+        "minimum_normalized_departure": 19.8,
+        "all_departures_unbounded": false,
+        "minimum_case_ids": [
+          "uniform_source_N2_T600"
+        ],
+        "compatible_case_ids": [],
+        "compatible_inventory_values_m2": [],
+        "compatible_thermal_values_K": []
+      }
+    ],
+    "diagnostics": {
+      "compatible_at_any_scanned_scale_case_ids": [
+        "localized_source_N1_T600",
+        "localized_source_N2_T600"
+      ],
+      "compatible_inventory_values_m2": [
+        1e+18,
+        2e+18
+      ],
+      "compatible_thermal_values_K": [
+        600.0
+      ],
+      "multiple_compatible_inventory_values": true,
+      "multiple_compatible_thermal_values": false,
+      "no_compatible_supplied_case": false,
+      "forward_case_interpolation": false,
+      "extrapolation": false,
+      "populations_rescaled": false,
+      "confidence_intervals_calculated": false
+    },
+    "limits": [
+      "Readout envelopes are reconstruction support, not stochastic errors; point counts do not increase statistical weight.",
+      "All minima and compatible values refer only to supplied complete cases and scanned scales; unsampled alternatives remain unresolved.",
+      "Matching contract labels and owner attestations are admission requirements, not independent validation of kinetics, transport, conservation, opacity or convergence.",
+      "Source inventory is the single fitted amplitude coordinate; no independent density or monolayer amplitude is fitted.",
+      "Neutral columns/densities and the declared thermal coordinate are supplied forward diagnostics; internal populations do not automatically define translational gas temperature.",
+      "A categorical reconstruction assumption or exploratory calibration scale does not establish a verified absolute calibration or physical estimate."
+    ]
+  },
+  "output_sha256": {
+    "case_scale_comparisons.csv": "6d16d703c66223c9dfe5c42353b122be65af1e036418ae1bc556912c06940bde",
+    "input_config.json": "e5c80247b306df32883df6fba67281c8d0542a56d91372d04d661f2c6f4e56d6",
+    "neutral_ensemble_comparison.png": "e0552f8eec72fab7df42236a2b5ca4b2d3e8a8f191216d344885ad7f7abc0109"
+  },
+  "manufactured_truth_not_used_by_comparison": {
+    "case_id": "localized_source_N2_T600",
+    "C_abs": 1.0,
+    "purpose": "Independent validation label only; never used by comparison."
+  }
+}

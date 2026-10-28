@@ -95,7 +95,7 @@ def _batched_metadata(attributes):
     Original resolved metadata remains authoritative in the planar record.
     """
     adapted = _plain(attributes)
-    adapted["schema"] = SOURCE_SCHEMA
+    adapted["schema"] = adapted.get("original_source_schema", SOURCE_SCHEMA)
     adapted["planar_batch_coordinate_interpretation"] = "independent_patch_index_for_kinetic_validation_only_no_physical_width"
     return adapted
 

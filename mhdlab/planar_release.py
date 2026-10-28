@@ -11,6 +11,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 import json
+import re
 from numbers import Real
 from types import MappingProxyType
 from typing import Any
@@ -20,9 +21,11 @@ import numpy as np
 from .flash_surface import COORDINATE_SYSTEM, SCHEMA as SOURCE_SCHEMA, SURFACE_MODEL
 from .surface_sources import matched_uniform_moments
 from .thermal_release import BindingReservoir, SurfaceInventory, energy_budgets, release_step
+from .surface_coordinates import MFEM_SIDE_COORDINATE_SYSTEM, validate_mfem_face_axes
 
 
 PLANAR_SURFACE_SCHEMA = "mhdlab-planar-surface-v1"
+MFEM_SURFACE_SCHEMA = "mhdlab-mfem-surface-v1"
 PLANAR_RELEASE_SCHEMA = "mhdlab-planar-release-v1"
 _RELEASE_FIELDS = (
     "released_m2", "translational_energy_j_m2", "internal_energy_j_m2",
@@ -96,25 +99,103 @@ def _plain(value: Any) -> Any:
     return value
 
 
+def _mfem_attributes(attributes: Mapping[str, Any], source_kind: str) -> None:
+    """Apply MFEM semantics to direct construction, reload and release alike."""
+    def evidence(value, name):
+        value = _text(value, name)
+        normalized = value.strip().lower()
+        if normalized.startswith("replace_") or normalized in {
+                "pending", "unknown", "unavailable", "none", "n/a", "tbd", "missing"}:
+            raise ValueError(f"{name} cannot be placeholder evidence")
+        return value
+
+    for key in ("run_id", "source_reference", "surface_region", "unit_mapping_reference",
+                "source_clock_reference", "temperature_zero_convention_reference"):
+        evidence(attributes.get(key), key)
+    if source_kind == "mfem":
+        evidence(attributes.get("mfem_version"), "mfem_version")
+        revision = evidence(attributes.get("mfem_source_revision"), "mfem_source_revision")
+        if re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+            raise ValueError("MFEM source revision requires a full source commit")
+    else:
+        for key in ("mfem_version", "mfem_source_revision"):
+            _text(attributes.get(key), key, empty=True)
+    location = attributes.get("temperature_location")
+    expected = ("one_sided_material_boundary_trace_patch_average" if location == "surface_boundary"
+                else "resolved_material_sample_plane_patch_average")
+    if attributes.get("temperature_evaluation") != expected:
+        raise ValueError("MFEM temperature evaluation must preserve its one-sided trace or sampled-plane association")
+    basis = attributes.get("temperature_value_basis")
+    offset = attributes.get("initial_temperature_offset_k")
+    if isinstance(offset, bool) or not isinstance(offset, Real) or not np.isfinite(offset):
+        raise ValueError("MFEM initial temperature offset must be finite real data")
+    if (basis == "absolute_kelvin" and offset != 0 or
+            basis == "temperature_increment_kelvin" and offset <= 0 or
+            basis not in {"absolute_kelvin", "temperature_increment_kelvin"}):
+        raise ValueError("MFEM temperature basis and initial offset are inconsistent")
+    scope = attributes.get("mfem_solver_scope")
+    if not isinstance(scope, Mapping) or scope.get("stationary_material") is not True:
+        raise ValueError("MFEM surface requires stationary solver scope")
+    for key in ("conductivity_temperature_feedback", "hall_induction", "material_motion"):
+        if type(scope.get(key)) is not bool:
+            raise ValueError("MFEM solver scope must explicitly declare supported physics")
+    if scope["material_motion"]:
+        raise ValueError("moving MFEM material requires a different surface contract")
+    evidence(scope.get("qualification_reference"), "MFEM solver qualification")
+    face = attributes.get("mfem_face")
+    if not isinstance(face, Mapping):
+        raise ValueError("MFEM source requires its physical face metadata")
+    validate_mfem_face_axes(face)
+    for key in ("coordinate_system", "surface_model", "surface_region"):
+        if face.get(key) != attributes.get(key):
+            raise ValueError("MFEM face metadata conflicts with the surface association")
+    if face.get("current_direction_representation") != "resolved_patches":
+        raise ValueError("MFEM face must retain resolved current patches")
+    if type(face.get("outward_normal_sign")) is not int or face["outward_normal_sign"] not in {-1, 1}:
+        raise ValueError("MFEM face requires a signed local normal")
+    if type(face.get("material_boundary_attribute")) is not int or face["material_boundary_attribute"] <= 0:
+        raise ValueError("MFEM face requires its positive material boundary attribute")
+    position = face.get("normal_position_m")
+    if isinstance(position, bool) or not isinstance(position, Real) or not np.isfinite(position):
+        raise ValueError("MFEM face position must be finite real data")
+    for key in ("material_selection_reference", "full_width_coverage_reference"):
+        evidence(face.get(key), key)
+    for key in ("sample_table_sha256", "sample_configuration_sha256"):
+        value = attributes.get(key)
+        if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
+            raise ValueError("MFEM surface must preserve sample/configuration SHA256 identities")
+
+
 def _source_attributes(value: Mapping[str, Any]) -> Mapping[str, Any]:
     if not isinstance(value, Mapping):
         raise ValueError("source_attributes must be a metadata mapping")
     attributes = _freeze(value)
-    for key, expected in (("coordinate_system", COORDINATE_SYSTEM), ("surface_model", SURFACE_MODEL),
-                          ("material_sample_depth_units", "m")):
+    for key, expected in (("surface_model", SURFACE_MODEL), ("material_sample_depth_units", "m")):
         if attributes.get(key) != expected:
             raise ValueError(f"source_attributes must preserve {key}={expected!r}")
     schema = _text(attributes.get("schema"), "source schema")
-    if schema not in {SOURCE_SCHEMA, PLANAR_SURFACE_SCHEMA}:
+    if schema not in {SOURCE_SCHEMA, MFEM_SURFACE_SCHEMA, PLANAR_SURFACE_SCHEMA}:
         raise ValueError("source_attributes must identify the supported surface metadata schema")
-    if attributes.get("schema") == PLANAR_SURFACE_SCHEMA and attributes.get("original_source_schema") != SOURCE_SCHEMA:
+    original_schema = attributes.get("original_source_schema", schema)
+    if schema == PLANAR_SURFACE_SCHEMA and original_schema not in {SOURCE_SCHEMA, MFEM_SURFACE_SCHEMA}:
         raise ValueError("planar metadata must retain its original supported source schema")
+    allowed_coordinates = ({COORDINATE_SYSTEM, MFEM_SIDE_COORDINATE_SYSTEM}
+                           if original_schema == MFEM_SURFACE_SCHEMA else {COORDINATE_SYSTEM})
+    if attributes.get("coordinate_system") not in allowed_coordinates:
+        raise ValueError("source_attributes must preserve its supported coordinate_system")
     for key in ("run_id", "source_reference", "surface_region"):
         _text(attributes.get(key), key)
     source_kind = _text(attributes.get("source_kind"), "source_kind")
-    if source_kind not in {"flash", "synthetic"}:
-        raise ValueError("source_attributes must explicitly identify flash or synthetic data")
-    _text(attributes.get("flash_version"), "flash_version", empty=attributes.get("source_kind") != "flash")
+    if source_kind not in {"flash", "mfem", "synthetic"}:
+        raise ValueError("source_attributes must explicitly identify flash, mfem or synthetic data")
+    if original_schema == MFEM_SURFACE_SCHEMA:
+        if source_kind not in {"mfem", "synthetic"} or attributes.get("heating_backend") != "mfem_joule":
+            raise ValueError("MFEM surface metadata must identify the MFEM Joule backend")
+        _mfem_attributes(attributes, source_kind)
+    else:
+        if source_kind == "mfem":
+            raise ValueError("MFEM data must retain its own supported source schema")
+        _text(attributes.get("flash_version"), "flash_version", empty=source_kind != "flash")
     location = _text(attributes.get("temperature_location"), "temperature_location")
     if location not in {"surface_boundary", "material_sample_plane", "boundary_temperature_proxy"}:
         raise ValueError("source_attributes must preserve the temperature association")

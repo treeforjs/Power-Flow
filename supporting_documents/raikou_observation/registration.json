@@ -1,0 +1,139 @@
+{
+  "schema": "mhdlab-raikou-neutral-observation-registration-v1",
+  "status": "manufactured_interface_verification",
+  "power_flow_base": "18d155b919e70b0b20165e22ce1eb4b7f48ac5a9",
+  "power_flow_branch": "research/flash-publication-foundation",
+  "external_repository": "https://github.com/treeforjs/raikou",
+  "inspected_source_reference": "1997f65374ee9dbdaf2f2e6688af7e28cce008fe",
+  "native_version": "1.0.0",
+  "native_binary_sha256": "9c88c68804097178cce41a06563564aa0b51155930b40b439ce906bc33d25843",
+  "binary_source_revision_match_established": false,
+  "target": [
+    "neutral state populations and density",
+    "translational/rotational/vibrational temperature definitions",
+    "surface coverage with explicit monolayer convention"
+  ],
+  "original_detector_data_available": false,
+  "dissertation_pdf_sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+  "geometry": "simulation-derived ray-cell lengths with dimensionless normalized collection weights, fixed during the selected gate; no fitted slab depth or detector etendue",
+  "timing": "explicit signed photon-clock registration and a contained rectangular gate; no automatic time shift",
+  "optical_scope": "optically thin, state-resolved spontaneous lines, normalized Gaussian bin integrals",
+  "verification": {
+    "initial_focused_tests": {
+      "passed": 50,
+      "exit_code": 0,
+      "basetemp": ".cache/pytest-resolved-emission-observation-agent-final"
+    },
+    "signed_clock_cases": {
+      "passed": 4,
+      "deselected": 49,
+      "exit_code": 0,
+      "basetemp": ".cache/pytest-resolved-emission-signed-clock"
+    },
+    "affected_time_gate_guards": {
+      "passed": 10,
+      "exit_code": 0,
+      "basetemp": ".cache/pytest-resolved-emission-time-gate-guards"
+    },
+    "current_module_test_count": 53,
+    "source_isolation": "test process removed only the stale _editable_skbc_mhdlab finder; no installation changed. Probe explicitly loads its local projector source.",
+    "initial_native_control": {
+      "report_sha256": "fc759c83dae6a64f4c56dd65e78591410cafe8b6136b2255b7706d0b2d613f11",
+      "checks": {
+        "native_success": true,
+        "state_ids_match": true,
+        "particle_inventory_conserved": true,
+        "nontrivial_decay": true,
+        "analytic_interpolant_projection": true,
+        "full_window_line_energy_captured": true
+      },
+      "native_evolution_calls": 1,
+      "exit_code": 0
+    },
+    "signed_clock_saved_output_control": {
+      "report_sha256": "de9e6a2f065492a3a3e3a176c7eac61798078012afddaa4a1c414151fededa80",
+      "checks": {
+        "native_success": true,
+        "state_ids_match": true,
+        "particle_inventory_conserved": true,
+        "nontrivial_decay": true,
+        "analytic_interpolant_projection": true,
+        "full_window_line_energy_captured": true
+      },
+      "native_evolution_calls": 0,
+      "photon_clock_origin_s": -0.1,
+      "exit_code": 0
+    },
+    "source_sha256": {
+      "mhdlab/resolved_emission_observation.py": "48be523490aa37c5832bc5ee58f67120a38b47945a0ad51537e96be27fd86114",
+      "tests/test_resolved_emission_observation.py": "b61b210698970d580b8f2421b296b3744182f83c49434ed4fd8d3a84a4599d75",
+      "tools/probe_raikou_observation.py": "992081fd7b500e8168c2d4120c38d9af68bca6a39133cb40b2a211c574dadda6"
+    },
+    "unchanged_suites_replayed": 0,
+    "commands": [
+      {
+        "argv": [
+          "python",
+          "-c",
+          "import sys; sys.meta_path[:] = [finder for finder in sys.meta_path if type(finder).__module__ != '_editable_skbc_mhdlab']; import pytest; raise SystemExit(pytest.main(['tests/test_resolved_emission_observation.py', '-q', '--basetemp=.cache/pytest-resolved-emission-observation-agent-final']))"
+        ],
+        "exit_code": 0,
+        "passed": 50
+      },
+      {
+        "argv": [
+          "python",
+          "-c",
+          "import sys; sys.meta_path[:] = [finder for finder in sys.meta_path if type(finder).__module__ != '_editable_skbc_mhdlab']; import pytest; raise SystemExit(pytest.main(['tests/test_resolved_emission_observation.py','-q','-k','time or gate or signed or clock','--basetemp=.cache/pytest-resolved-emission-signed-clock']))"
+        ],
+        "exit_code": 0,
+        "passed": 4,
+        "deselected": 49
+      },
+      {
+        "argv": [
+          "python",
+          "-c",
+          "import sys; sys.meta_path[:] = [finder for finder in sys.meta_path if type(finder).__module__ != '_editable_skbc_mhdlab']; import pytest; node='tests/test_resolved_emission_observation.py::test_invalid_inputs_and_unregistered_or_unsupported_models_reject'; raise SystemExit(pytest.main([node+'[changes'+str(i)+']' for i in range(10)]+['-q','--basetemp=.cache/pytest-resolved-emission-time-gate-guards']))"
+        ],
+        "exit_code": 0,
+        "passed": 10
+      },
+      {
+        "argv": [
+          "python",
+          "tools/probe_raikou_observation.py",
+          "--executable",
+          "C:/Users/tsmit/Documents/Raikou/build-v1-install/bin/raikou-native.exe",
+          "--source-revision",
+          "1997f65374ee9dbdaf2f2e6688af7e28cce008fe"
+        ],
+        "exit_code": 0,
+        "native_evolution_calls": 1
+      },
+      {
+        "argv": [
+          "python",
+          "tools/probe_raikou_observation.py",
+          "--executable",
+          "C:/Users/tsmit/Documents/Raikou/build-v1-install/bin/raikou-native.exe",
+          "--source-revision",
+          "1997f65374ee9dbdaf2f2e6688af7e28cce008fe",
+          "--saved-native-dir",
+          "runs/raikou_observation_20261027T032348_487350Z",
+          "--clock-origin-s",
+          "-0.1"
+        ],
+        "exit_code": 0,
+        "native_evolution_calls": 0
+      }
+    ]
+  },
+  "surface_source_receiver_accepted": false,
+  "physical_state_rate_mapping_complete": false,
+  "absolute_experimental_calibration_corrected": false,
+  "physical_neutral_density_or_temperature_inferred": false,
+  "actual_FLASH_run": false,
+  "owner_solvers_modified": false,
+  "remote_mutations": "none; no push, merge, publication or message"
+}

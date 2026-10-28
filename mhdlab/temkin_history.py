@@ -81,7 +81,13 @@ def _plain(value):
 
 
 def _qualified_metadata(value):
-    validate_surface_attributes(value)
+    # MFEM enters through the resolved planar path. Its independent-patch batch
+    # validation retains the actual backend schema instead of claiming FLASH.
+    from .planar_release import MFEM_SURFACE_SCHEMA, _source_attributes
+    if isinstance(value, Mapping) and value.get("schema") == MFEM_SURFACE_SCHEMA:
+        _source_attributes(value)
+    else:
+        validate_surface_attributes(value)
     if value["temperature_location"] == "material_sample_plane":
         raise ValueError("Temkin release requires a boundary temperature or explicitly justified boundary proxy")
     if (json.loads(value["current_averaging_interval_m_json"]) is not None

@@ -1,0 +1,47 @@
+{
+  "schema": "mhdlab-mfem-foil-snapshots-v1",
+  "status": "provisional",
+  "sampling": "cell_average",
+  "units": {
+    "time_s": "s",
+    "x_left_m": "m",
+    "x_right_m": "m",
+    "depth_left_m": "m",
+    "depth_right_m": "m",
+    "temperature_k": "K",
+    "current_density_a_m2": "A m^-2",
+    "joule_power_w_m3": "W m^-3"
+  },
+  "csv_sha256": "9e159cd7ba45605ecfcd3be376ef704b00c9b92cd4e91350346124351874805f",
+  "geometry": {
+    "foil": "upper",
+    "depth_reference": "inward_from_upper_gap_face",
+    "foil_width_m": 0.005,
+    "foil_thickness_m": 0.0002,
+    "gap_m": 0.005
+  },
+  "drive": {
+    "csv": "/mnt/c/Users/tsmit/.codex/worktrees/neutral-spectral-observation/Power Flow/data/dissertation/shot_17133_current.csv",
+    "csv_sha256": "b3cd227c46bd93d4893abf51da136c1f6344c68b4befe6a8e2a60c1ad6912b87",
+    "provenance_sha256": "1e09c819b33defea6b4a75e0438759380be5830c6572b34890e8e370297b524d",
+    "canonical_lf_csv_sha256": "2c54d2dbaec6b6c8fcf2e45b5abd837aa72999f5fd14217f530277ffd5949076",
+    "newline_normalization": "CRLF to LF for provenance identity only; numeric values unchanged",
+    "shot": 17133,
+    "figure": "C.19",
+    "raw_oscilloscope_data": false,
+    "time_shift_s": 0,
+    "support_s": [
+      7.49788055492e-10,
+      1.9674963671e-07
+    ],
+    "run_support_s": [
+      7.49788055492e-10,
+      6e-08
+    ],
+    "interpolation": "bounded piecewise linear; original knots and required40/60ns included; no padding/clamping",
+    "clock_scenario": "Preserve unshifted published C.19 time. Assume it is comparable to the published ALEGRA clock; this registration is unverified.",
+    "initial_state_scenario": "At the first supported trace knot, initialize uniform DC conductor currents +/-I0, solve the static magnetic A_z field, and set temperature to300K. Prehistory and deposited heat before this timestamp are unknown, not reconstructed."
+  },
+  "model": "MFEM H1 A_z MQS with sigma0 vacuum, two independent conductor gradients constrained by a2x2 current Schur complement; separate conductor-only insulated thermal FE",
+  "material_provenance": "Explicit constant illustrative conductivity/heat capacity/thermal conductivity; not a fitted or qualified SS304 property model. No phase change or temperature feedback."
+}

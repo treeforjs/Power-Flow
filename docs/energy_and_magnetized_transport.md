@@ -102,11 +102,14 @@ the single-ion quasineutral formula throughout the gap.
 
 Separate-species kinetic motion plus self-consistent current/field evolution can
 produce Hall behavior without an added particle force. Do not add an extra Hall
-force to those orbits. A fluid region can use a consistent Hall closure instead;
-the [FLASH extended-MHD guide](https://flash.rochester.edu/site/flashcode/user_support/flash_ug_devel/node107.html)
-documents Hall support and wave/timestep constraints. Its plasma closure needs
-independent justification before use in cold metal. The conductor and gap can
-have different valid closures.
+force to those orbits. A fluid region can use a consistent Hall closure instead.
+The selected [MFEM Joule electrode backend](mfem_joule_heating.md) has no Hall
+closure; its use for stationary heating does not qualify magnetized gap physics.
+The external gap owner must supply the required field/current response. The
+earlier [FLASH extended-MHD reference](https://flash.rochester.edu/site/flashcode/user_support/flash_ug_devel/node107.html)
+remains a source on Hall wave/timestep constraints, not an active backend
+requirement. Plasma closures need independent justification in cold metal.
+The conductor and gap can have different valid closures.
 
 Assign one owner to each field update and to each contribution to charge, current
 and energy deposition. The interface must distinguish applied, self-generated and
@@ -117,7 +120,7 @@ Hall feedback requires current/field coupling rather than particle tracing alone
 
 ## Mesh and verification choices
 
-The geometry/mesh frontend, FLASH grid and kinetic mesh need not be identical.
+The geometry/mesh frontend, MFEM electrode mesh and kinetic mesh need not be identical.
 Define face normals/areas, material boundaries, interpolation, charge/current
 deposition and conservative transfer explicitly. Cell size must resolve the scales
 required by the chosen field/sheath model; particle timestep or a validated reduced
