@@ -86,3 +86,42 @@ Both views use equal physical x/y length scales and the same saved maps, times
 and fixed color scales. The edge view crops only the axes. Collisionless
 transport, independent assumed species pools, passive removal-energy accounting
 and the absence of a calibrated chemistry or spectral fit remain unchanged.
+
+## Current observation grid and physics extensions
+
+The completed Arch source now has a65-frame four-face map with8,824,000
+weighted packets. The original208×144 observation grid changed width bins
+from62.5um over the foil to6.25um beside it. Refining all bins fourfold retained
+that jump. A uniform3.125um grid (1856×320) removes this observation-grid
+seam while retaining the same packets, physical bounds and frame times.
+Coarsening its cell inventories recovers the original density to6.71e-14
+relative, under a2e-12 numerical comparison threshold. Fine H/H2 cells remain
+limited by weighted packet statistics; no smoothing was applied.
+
+The residual-gas request uses the50 nominal mass channels of dissertation
+Figure2.3. The450 encoded PDF rectangles are graphics provenance, not450
+independent observed bars. The reported pressure is approximately5e-5Torr;
+it is not imposed as an exact normalization. Background gas interactions,
+plume self-collisions and a calibrated RGA parent composition are not present
+in the current GIFs. A conditional collision-size screening has been computed;
+it does not enable a collision operator or replace energy-dependent data.
+
+Water fragmentation work now explicitly uses Raikou. A sourced Table10 OH-yield
+screening advanced99 prescribed monoenergetic-electron cases through60ns with
+H/O/charge checks and an analytic single-channel comparison. It does not close
+the full19-species water model: after binding this OH coefficient, the full
+mechanism still refuses missing electron/heavy rates at zero accepted time.
+The water-monolayer count remains adjustable; no RGA-derived surface coverage
+or independent fragment pools are assigned to this parent-water source.
+
+The requested surface-temperature-dependent electron current is now evaluated
+with the unrestricted Richardson-Dushman law, with explicit work function and
+Richardson coefficient. `mhdlab/thermionic_supply.py` is an analytic boundary
+supply calculation, not a second electron-kinetics solver. Its outputs have no
+space-charge cap, field enhancement or collected-current claim. The next
+physical closure must normalize Raikou's incoming electron distribution to
+this supply, solve the transient Poisson/sheath/circuit field, and obtain the
+EEDF from that field and collisions. The axial conductor voltage gradients
+from the heating solve are not a cross-gap voltage. Surface phase changes,
+work-function evolution, magnetic insulation and full reaction energy closure
+remain required physical qualifications.

@@ -49,6 +49,8 @@ def main():
     parser.add_argument("--right-surface", type=Path)
     parser.add_argument("--case", type=Path, default=ROOT / "configs/neutral_desorption_map_provisional.json")
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--resolved-only-source-history", action="store_true",
+                        help="archive validated local release without optional spatially uniform comparison controls")
     args = parser.parse_args()
     output = args.output_dir
     if output.exists():
@@ -108,9 +110,11 @@ def main():
         source = evolve_temkin_planar_release(surface, coverage, pools, parameter_provenance=law["provenance"])
         area = source.patch_areas_m2
         initial_particles += np.sum(source.coverage_m2[0] * area, axis=(1, 2))
-        write_temkin_planar_release_history(output / f"{label}_release.h5", source)
+        write_temkin_planar_release_history(output / f"{label}_release.h5", source,
+            include_width_uniform=not args.resolved_only_source_history)
         expected, sampled = 0., 0.
         numerical_omissions = []
+        face_block_start = len(blocks)
         for interval in range(len(source.time_edges_s)-1):
             sampling_source, sampling_index, sampling_report = prepare_sampling_interval(source, interval,
                 minimum_component_particles=case.get("minimum_packet_component_particles", 1e-250))
@@ -145,6 +149,14 @@ def main():
             "released_particles": np.sum(source.released_m2*area, axis=(0, 2, 3)).tolist(),
             "expected_launch_translational_energy_j": expected, "actual_sampled_launch_translational_energy_j": sampled,
             "thermal_sampling_energy_residual_j": sampled-expected, "release_file_sha256": sha(output/f"{label}_release.h5")})
+        # Preserve completed faces before starting another source or observer.
+        face_blocks = blocks[face_block_start:]
+        if face_blocks:
+            checkpoint = output / f"{label}_source_packets.npz"
+            np.savez_compressed(checkpoint, **{key: np.concatenate([block[key] for block in face_blocks])
+                                              for key in face_blocks[0]})
+            write(output / f"{label}_source_record.json", {**source_records[-1],
+                "packet_checkpoint_sha256": sha(checkpoint), "rng_state_after_face": rng.bit_generator.state})
     if not blocks:
         raise ValueError("no source packets were emitted")
     packets = {key: np.concatenate([block[key] for block in blocks], axis=0) for key in blocks[0]}
@@ -187,6 +199,7 @@ def main():
         "mass_provenance": "Existing project approximate species-mass table, recorded explicitly; not isotope-resolved",
         "initial_surface_particles": initial_particles.tolist(), "seed": case["seed"],
         "packet_count": len(packets["birth_time_s"]), "frame_count": len(times),
+        "width_uniform_comparison_included": not args.resolved_only_source_history,
         "inputs": {str(path): sha(path) for path in (*input_paths, args.case)},
         "output_sha256": {p.name: sha(p) for p in output.iterdir() if p.is_file()},
         "source_sha256": {name: sha(ROOT/name) for name in ("tools/run_neutral_desorption_map.py",

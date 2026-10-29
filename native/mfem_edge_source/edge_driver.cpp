@@ -3,6 +3,7 @@
 #include "mfem.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <fstream>
 #include <iomanip>
 #include <limits>
@@ -34,32 +35,7 @@ int Bin(const std::vector<double> &x,double value)
    return std::clamp(i,0,int(x.size())-2);
 }
 
-struct LinearSystem
-{
-   SparseMatrix &matrix;
-   HYPRE_BigInt partition[2];
-   std::unique_ptr<HypreParMatrix> parallel;
-   std::unique_ptr<HypreBoomerAMG> amg;
-   std::unique_ptr<CGSolver> cg;
-   int iterations=0;double residual=0;
-   explicit LinearSystem(SparseMatrix &a):matrix(a)
-   {
-      partition[0]=0;partition[1]=a.Height();
-      parallel=std::make_unique<HypreParMatrix>(MPI_COMM_SELF,HYPRE_BigInt(a.Height()),partition,&a);
-      amg=std::make_unique<HypreBoomerAMG>(*parallel);amg->SetPrintLevel(0);
-      cg=std::make_unique<CGSolver>(MPI_COMM_SELF);cg->SetRelTol(2e-13);cg->SetAbsTol(1e-20);
-      cg->SetMaxIter(3000);cg->SetPrintLevel(0);cg->SetPreconditioner(*amg);cg->SetOperator(*parallel);
-   }
-   void Solve(const Vector &rhs,Vector &answer)
-   {
-      answer.SetSize(rhs.Size());answer=0.;cg->Mult(rhs,answer);
-      MFEM_VERIFY(cg->GetConverged(),"MFEM linear system did not converge");
-      Vector error(rhs.Size());matrix.Mult(answer,error);error-=rhs;
-      const double norm=rhs.Norml2(),relative=norm>0?error.Norml2()/norm:error.Norml2();
-      iterations=std::max(iterations,cg->GetNumIterations());residual=std::max(residual,relative);
-      MFEM_VERIFY(std::isfinite(residual),"Nonfinite solver residual");
-   }
-};
+#include "distributed_linear.hpp"
 
 struct EMGrid
 {
@@ -245,9 +221,8 @@ Metrics Inspect(Thermal &foil,Thermal &return_foil,double stamp,std::ofstream &c
    m.edge_q/=m.edge_area;m.center_q/=m.center_area;m.edge_T/=m.edge_area;m.center_T/=m.center_area;return m;
 }
 
-int main(int argc,char **argv)
+int RunRoot(int argc,char **argv)
 {
-   Mpi::Init(argc,argv);Hypre::Init();MFEM_VERIFY(Mpi::WorldSize()==1,"This explicit 2D reference uses one MPI rank");
    Settings s;OptionsParser options(argc,argv);
    options.AddOption(&s.nx,"-nx","--width-cells","Cells across each foil width");
    options.AddOption(&s.ny,"-ny","--thickness-cells","Cells through each foil thickness");
@@ -284,8 +259,27 @@ int main(int argc,char **argv)
       MFEM_VERIFY(std::isfinite(stamp)&&(i==0||stamp>s.field_times[i-1]),"Nonfinite or unordered field snapshot time");
       MFEM_VERIFY(std::any_of(times.begin(),times.end(),[stamp](double t){return std::abs(stamp-t)<1e-20;}),"Field output must use an actual native timestep");
    }
+   distributed_linear::output=s.output;
+   {
+      std::ofstream execution(std::string(s.output)+"/parallel_execution.json");
+      execution<<"{\"mpi_ranks\":"<<Mpi::WorldSize()<<",\"assembly_rank\":0,\"output_rank\":0,\"completed\":false}\n";
+   }
+   std::cout<<"MPI ranks "<<Mpi::WorldSize()<<"; distributed EM/thermal linear solves; root-owned assembly and output"<<std::endl;
    EMGrid em(s);em.InitialDC(currents[0]);Thermal foil(s,em,0),return_foil(s,em,1);foil.gradient=currents[0]/em.d[0];return_foil.gradient=-currents[0]/em.d[1];
    std::ofstream top(std::string(s.output)+"/top.csv"),bottom(std::string(s.output)+"/bottom.csv"),left(std::string(s.output)+"/left.csv"),right(std::string(s.output)+"/right.csv"),diagnostics(std::string(s.output)+"/diagnostics.csv"),cells(std::string(s.output)+"/foil_snapshots.csv");
+   std::ofstream at(std::string(s.output)+"/anode_top.csv"),ab(std::string(s.output)+"/anode_bottom.csv"),al(std::string(s.output)+"/anode_left.csv"),ar(std::string(s.output)+"/anode_right.csv");
+   MFEM_VERIFY(at&&ab&&al&&ar,"Cannot open anode surface outputs");
+   for(auto *stream:{&at,&ab,&al,&ar}){*stream<<std::setprecision(17);*stream<<"time_s,z_index,x_index,temperature_value\n";}
+   {
+      std::ofstream mesh_file(std::string(s.output)+"/em_mesh.mesh");mesh_file<<std::setprecision(17);em.mesh->Print(mesh_file);
+      std::ofstream axes(std::string(s.output)+"/em_axes.csv");axes<<std::setprecision(17)<<"axis,index,position_m\n";
+      for(size_t i=0;i<em.x.size();++i)axes<<"x,"<<i<<","<<em.x[i]<<"\n";
+      for(size_t i=0;i<em.y.size();++i)axes<<"y,"<<i<<","<<em.y[i]<<"\n";
+      MFEM_VERIFY(mesh_file&&axes,"Cannot export electromagnetic mesh geometry");
+   }
+   std::ofstream field_index(std::string(s.output)+"/em_field_snapshots.csv");
+   field_index<<std::setprecision(17)<<"time_s,potential_file,rate_file\n";
+   MFEM_VERIFY(field_index,"Cannot export electromagnetic field index");
    MFEM_VERIFY(top&&bottom&&left&&right&&diagnostics&&cells,"Cannot open output files");
    for(auto *stream:{&top,&bottom,&left,&right,&diagnostics,&cells})*stream<<std::setprecision(17);
    for(auto *stream:{&top,&bottom,&left,&right})*stream<<"time_s,z_index,x_index,temperature_value\n";
@@ -297,6 +291,18 @@ int main(int argc,char **argv)
       std::vector<double> t,b;foil.Faces(t,b);for(int ix=0;ix<s.nx;++ix){top<<times[step]<<",0,"<<ix<<","<<t[ix]<<"\n";bottom<<times[step]<<",0,"<<ix<<","<<b[ix]<<"\n";}
       std::vector<double> l,r;int left_attribute=0,right_attribute=0;foil.SideFaces(l,r,left_attribute,right_attribute);
       for(int iy=0;iy<s.ny;++iy){left<<times[step]<<",0,"<<iy<<","<<l[iy]<<"\n";right<<times[step]<<",0,"<<iy<<","<<r[iy]<<"\n";}
+      std::vector<double> rt,rb,rl,rr;int rla=0,rra=0;
+      return_foil.Faces(rt,rb);return_foil.SideFaces(rl,rr,rla,rra);
+      for(int ix=0;ix<s.nx;++ix){at<<times[step]<<",0,"<<ix<<","<<rt[ix]<<"\n";ab<<times[step]<<",0,"<<ix<<","<<rb[ix]<<"\n";}
+      for(int iy=0;iy<s.ny;++iy){al<<times[step]<<",0,"<<iy<<","<<rl[iy]<<"\n";ar<<times[step]<<",0,"<<iy<<","<<rr[iy]<<"\n";}
+      if(std::any_of(s.field_times.begin(),s.field_times.end(),[&](double stamp){return std::abs(times[step]-stamp)<1e-20;}))
+      {
+         const std::string stem="em_step_"+std::to_string(step),az=stem+"_Az.gf",rate=stem+"_dAz_dt.gf";
+         std::ofstream a_file(std::string(s.output)+"/"+az),r_file(std::string(s.output)+"/"+rate);
+         a_file<<std::setprecision(17);r_file<<std::setprecision(17);em.potential->Save(a_file);em.rate->Save(r_file);
+         MFEM_VERIFY(a_file&&r_file,"Cannot export electromagnetic potential fields");
+         field_index<<times[step]<<","<<az<<","<<rate<<"\n";field_index.flush();
+      }
       if(step==0)
       {
          std::ofstream geometry(std::string(s.output)+"/face_geometry.json");MFEM_VERIFY(geometry,"Cannot open face geometry record");
@@ -306,7 +312,8 @@ int main(int argc,char **argv)
       diagnostics<<times[step]<<","<<currents[step]<<","<<m.current[0]<<","<<m.current[1]<<","<<foil.gradient<<","<<return_foil.gradient<<","<<m.power[0]<<","<<m.power[1]<<","<<m.power[0]+m.power[1]<<","<<em.MagneticEnergy()<<","<<foil.Energy()+return_foil.Energy()<<","<<damping<<","<<work<<","<<em_residual<<","<<thermal_residual<<","<<m.edge_q/m.center_q<<","<<m.edge_T<<","<<m.center_T<<","<<iterations<<","<<residual<<","<<condition<<"\n";
       const double error=std::max(std::abs(m.current[0]-currents[step]),std::abs(m.current[1]+currents[step]));
       MFEM_VERIFY(error<=std::max(1e-3,1e-8*std::abs(currents[step])),"Current constraint reconstruction failed");
-      if(step%10==0)std::cout<<"step "<<step<<" t_ns "<<times[step]*1e9<<" I_A "<<m.current[0]<<" edge_q_ratio "<<m.edge_q/m.center_q<<" edge_T_K "<<300+m.edge_T<<" center_T_K "<<300+m.center_T<<std::endl;
+      for(auto *stream:{&top,&bottom,&left,&right,&at,&ab,&al,&ar,&diagnostics,&cells})stream->flush();
+      std::cout<<"step "<<step<<" t_ns "<<times[step]*1e9<<" I_A "<<m.current[0]<<" edge_q_ratio "<<m.edge_q/m.center_q<<" edge_T_K "<<300+m.edge_T<<" center_T_K "<<300+m.center_T<<std::endl;
    };
    snapshot(0,0,0,0,0,0,0,0);
    for(size_t step=1;step<times.size();++step)
@@ -333,4 +340,19 @@ int main(int argc,char **argv)
       old_magnetic=magnetic;old_thermal=thermal;
    }
    return 0;
+}
+
+int main(int argc,char **argv)
+{
+   Mpi::Init(argc,argv);Hypre::Init();
+   int result=0;
+   if(Mpi::WorldRank()==0)
+   {
+      result=RunRoot(argc,argv);
+      distributed_linear::Send(distributed_linear::Finish,0);
+   }
+   else{distributed_linear::Workers();}
+   distributed_linear::Record();
+   MPI_Bcast(&result,1,MPI_INT,0,MPI_COMM_WORLD);
+   return result;
 }

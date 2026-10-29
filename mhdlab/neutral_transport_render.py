@@ -165,7 +165,15 @@ def render_transport(npz_path, metadata_path, output_dir, *, fps=10., dpi=110, c
         raise ValueError("integrated map counts exceed the finite numerical domain")
     x, y, foil = (arrays[name] * 1000 for name in ("x_edges_m", "y_edges_m", "foil_bounds_m"))
     limits = log_display_limits(density, color_span_decades)
-    cmap = plt.get_cmap("inferno").with_extremes(bad="white")
+    # Preserve SI arrays/count integration; convert display logarithms by -6 dex
+    # so even subnormal positive native densities remain visible.
+    for scale in limits:
+        for key in ("positive_min", "positive_max"):
+            value = scale.pop(key + "_m3")
+            scale[key + "_cm3"] = None if value is None else value / 1e6
+        if scale["log10_color_limits"] is not None:
+            scale["log10_color_limits"] = [v-6 for v in scale["log10_color_limits"]]
+    cmap = plt.get_cmap("YlGnBu").with_extremes(bad="white")
     fig, axes = plt.subplots(2, 2, figsize=(10.4, 8.6), layout="constrained")
     fig.set_dpi(dpi)
     title = metadata.get("case_title", "Neutral desorption and vacuum transport")
@@ -194,7 +202,7 @@ def render_transport(npz_path, metadata_path, output_dir, *, fps=10., dpi=110, c
         if color_limits is not None:
             colorbar = fig.colorbar(artist, ax=ax, fraction=.046, pad=.035,
                                    extend="min" if scale["positive_bins_below_color_range"] else "neither")
-            colorbar.set_label(r"Number density [m$^{-3}$]", fontsize=9)
+            colorbar.set_label(r"Number density [cm$^{-3}$]", fontsize=9)
             colorbar.locator = MaxNLocator(5)
             colorbar.formatter = FuncFormatter(lambda value, _: r"$10^{%g}$" % value)
             colorbar.update_ticks()
@@ -211,12 +219,13 @@ def render_transport(npz_path, metadata_path, output_dir, *, fps=10., dpi=110, c
             positive = values > 0
             logged = np.zeros_like(values)
             np.log10(values, out=logged, where=positive)
+            logged[positive] -= 6
             display = np.ma.array(logged, mask=~positive)
             artist.set_array(display)
         aspect_note = ("Equal length scale" if normal_magnification == 1
                        else f"Normal axis enlarged {normal_magnification:g}×")
         color_note = ("No time interpolation" if color_span_decades is None
-                      else f"Color span ≤{color_span_decades:g} decades; lower positive values dark")
+                      else f"Color span ≤{color_span_decades:g} decades; lower positive values pale")
         footer.set_text(f"t = {stamp*multiplier:.5g} {unit}    |    frame {frame+1}/{len(times)}\n"
                         f"Gray: solid foil   •   White: zero density   •   {aspect_note}\n{color_note}")
         fig.canvas.draw()
@@ -251,7 +260,9 @@ def render_transport(npz_path, metadata_path, output_dir, *, fps=10., dpi=110, c
         "source_metadata": metadata, "frame_count": frame_count, "dimensions_pixels": dimensions,
         "requested_fps": fps, "frame_duration_ms": durations, "total_animation_duration_ms": sum(durations),
         "physical_time_s": times.tolist(), "display_color_scales": limits,
-        "palette": "fixed_224_inferno_colors_plus32_greys; no dithering",
+        "palette": "fixed_224_YlGnBu_colors_plus32_greys; no dithering",
+        "display_density_units": "cm^-3", "native_archive_density_units": "m^-3",
+        "display_conversion_factor_from_m3": 1e-6,
         "density_values_changed": False, "zeros_replaced_by_floor": False,
         "time_interpolation": False,
         "geometry_aspect": "equal_millimetre_units" if normal_magnification == 1 else "declared_normal_axis_magnification",

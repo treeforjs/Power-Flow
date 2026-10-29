@@ -53,7 +53,7 @@ def _stored_dataset(handle, name, units):
     return item
 
 
-def _preflight(handle, nr, include_full_face):
+def _preflight(handle, nr, include_full_face, include_width=True):
     """Reject oversized or inconsistent HDF shapes before allocating arrays."""
     datasets = {name: _stored_dataset(handle, name, units) for name, units in RELEASE_UNITS.items()}
     for name in ("time_edges_s", "x_edges_m", "z_edges_m"):
@@ -72,7 +72,8 @@ def _preflight(handle, nr, include_full_face):
             raise ValueError(f"{name} shape disagrees with the declared time, reservoir and patch dimensions")
     if _stored_dataset(handle, "patch_areas_m2", "m^2").shape != (nz, nx):
         raise ValueError("patch_areas_m2 shape disagrees with the planar geometry")
-    for group in ("matched_uniform_width", "matched_uniform_full_face") if include_full_face else ("matched_uniform_width",):
+    groups = (["matched_uniform_width"] if include_width else []) + (["matched_uniform_full_face"] if include_full_face else [])
+    for group in groups:
         for name in ("released_m2", "translational_energy_j_m2", "internal_energy_j_m2",
                      "binding_energy_j_m2", "total_wall_energy_debit_j_m2"):
             if _stored_dataset(handle, f"{group}/{name}", RELEASE_UNITS[name]).shape != (nt, nr, nz, nx):
@@ -85,12 +86,15 @@ def write_temkin_planar_release_history(
     history: TemkinPlanarReleaseHistory,
     *,
     include_full_face_uniform: bool = False,
+    include_width_uniform: bool = True,
 ) -> None:
     """Persist the identified local law, numerical qualifications and controls."""
     if not isinstance(history, TemkinPlanarReleaseHistory):
         raise ValueError("history must be a distinct TemkinPlanarReleaseHistory")
     if not isinstance(include_full_face_uniform, (bool, np.bool_)):
         raise ValueError("include_full_face_uniform must be a boolean")
+    if not isinstance(include_width_uniform, (bool, np.bool_)):
+        raise ValueError("include_width_uniform must be a boolean")
     validated = TemkinPlanarReleaseHistory(**{field.name: getattr(history, field.name)
                                              for field in fields(TemkinPlanarReleaseHistory)})
     try:
@@ -101,14 +105,16 @@ def write_temkin_planar_release_history(
                 handle.attrs[name] = value
             handle.attrs["inversion_regime_definitions_json"] = json.dumps(REGIME_DEFINITIONS, sort_keys=True, allow_nan=False)
             handle.attrs["full_face_uniform_included"] = bool(include_full_face_uniform)
+            handle.attrs["width_uniform_included"] = bool(include_width_uniform)
             handle.attrs["parameter_provenance"] = validated.parameter_provenance
             handle.attrs["surface_attributes_json"] = json.dumps(plain_metadata(validated.surface_attributes), sort_keys=True, allow_nan=False)
             handle.attrs["reservoirs_json"] = json.dumps([asdict(pool) for pool in validated.reservoirs], sort_keys=True, allow_nan=False)
             for name, units in RELEASE_UNITS.items():
                 _write_dataset(handle, name, getattr(validated, name), units)
             _write_dataset(handle, "patch_areas_m2", validated.patch_areas_m2, "m^2")
-            for name, value in validated.matched_uniform_width().items():
-                _write_dataset(handle, f"matched_uniform_width/{name}", value, RELEASE_UNITS[name])
+            if include_width_uniform:
+                for name, value in validated.matched_uniform_width().items():
+                    _write_dataset(handle, f"matched_uniform_width/{name}", value, RELEASE_UNITS[name])
             if include_full_face_uniform:
                 handle.attrs["full_face_uniform_model"] = FULL_FACE_UNIFORM_MODEL
                 for name, value in validated.matched_uniform_full_face().items():
@@ -135,6 +141,13 @@ def load_temkin_planar_release_history(path: str | Path) -> TemkinPlanarReleaseH
             included = handle.attrs.get("full_face_uniform_included")
             if not isinstance(included, (bool, np.bool_)):
                 raise ValueError("full_face_uniform_included must be an explicit boolean")
+            # Earlier records always included the width control. Only an
+            # explicit false declaration permits a resolved-only archive.
+            width_included = handle.attrs.get("width_uniform_included", True)
+            if not isinstance(width_included, (bool, np.bool_)):
+                raise ValueError("width_uniform_included must be a boolean")
+            if not width_included and "matched_uniform_width" in handle:
+                raise ValueError("undeclared width-uniform control is present")
             records = _json_attribute(handle, "reservoirs_json")
             expected_keys = {field.name for field in fields(TemkinReservoir)}
             if (not isinstance(records, list) or not records
@@ -146,7 +159,7 @@ def load_temkin_planar_release_history(path: str | Path) -> TemkinPlanarReleaseH
                 _attribute_equals(handle, "full_face_uniform_model", FULL_FACE_UNIFORM_MODEL)
             elif "matched_uniform_full_face" in handle or "full_face_uniform_model" in handle.attrs:
                 raise ValueError("undeclared full-face uniform control is present")
-            datasets = _preflight(handle, len(records), included)
+            datasets = _preflight(handle, len(records), included, width_included)
             history = TemkinPlanarReleaseHistory(
                 **{name: dataset[...] for name, dataset in datasets.items()},
                 reservoirs=tuple(TemkinReservoir(**record) for record in records),
@@ -158,8 +171,9 @@ def load_temkin_planar_release_history(path: str | Path) -> TemkinPlanarReleaseH
                 schema=_text(handle.attrs["schema"], "schema"),
             )
             _check_derived(handle, "patch_areas_m2", history.patch_areas_m2, "m^2")
-            for name, expected in history.matched_uniform_width().items():
-                _check_derived(handle, f"matched_uniform_width/{name}", expected, RELEASE_UNITS[name])
+            if width_included:
+                for name, expected in history.matched_uniform_width().items():
+                    _check_derived(handle, f"matched_uniform_width/{name}", expected, RELEASE_UNITS[name])
             if included:
                 _attribute_equals(handle, "full_face_uniform_model", FULL_FACE_UNIFORM_MODEL)
                 for name, expected in history.matched_uniform_full_face().items():

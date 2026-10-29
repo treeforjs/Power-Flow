@@ -9,6 +9,7 @@ import hashlib
 import json
 import math
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -28,11 +29,12 @@ def write(path, value):
 
 
 def command(argv, output, name, *, cwd=None):
-    env = dict(os.environ, OMP_NUM_THREADS="2")
+    env = dict(os.environ, OMP_NUM_THREADS="1", OPENBLAS_NUM_THREADS="1",
+               HWLOC_COMPONENTS="-gl,-opencl,-cuda,-nvml,-rsmi,-levelzero")
     started = time.perf_counter()
-    result = subprocess.run(argv, cwd=cwd, env=env, text=True, capture_output=True)
-    (output / (name + ".stdout.txt")).write_text(result.stdout, encoding="utf-8")
-    (output / (name + ".stderr.txt")).write_text(result.stderr, encoding="utf-8")
+    with (output / (name + ".stdout.txt")).open("w", encoding="utf-8") as stdout, \
+            (output / (name + ".stderr.txt")).open("w", encoding="utf-8") as stderr:
+        result = subprocess.run(argv, cwd=cwd, env=env, stdout=stdout, stderr=stderr)
     return {"argv": argv, "exit_code": result.returncode,
             "wall_time_s": time.perf_counter()-started,
             "stdout_file": name + ".stdout.txt", "stderr_file": name + ".stderr.txt"}
@@ -45,7 +47,10 @@ def main():
     parser.add_argument("--build-dir", type=Path, help="Linux build directory; default ~/.cache/power-flow/mfem-edge-current-source")
     parser.add_argument("--mfem-dir", type=Path, help="Installed MFEM CMake directory; alternatively config mfem_dir or environment MFEM_DIR")
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--ranks", type=int, default=1, help="MPI ranks for distributed electromagnetic and thermal linear solves")
     args = parser.parse_args()
+    if args.ranks < 1:
+        parser.error("--ranks must be positive")
     if args.wsl_distro:
         if os.name != "nt":
             parser.error("--wsl-distro is Windows only")
@@ -123,10 +128,19 @@ def main():
             "clock_scenario": config["clock_scenario"], "initial_state_scenario": config["initial_state_scenario"]},
         "formulation": "MFEM H1 A_z MQS with sigma0 vacuum, two independent conductor gradients constrained by a2x2 current Schur complement; separate conductor-only insulated thermal FE",
         "stock_joule_kernel_reused": False, "build_directory":str(args.build_dir),
+        "requested_mpi_ranks": args.ranks,
         "mfem_cmake_directory":str(mfem_dir) if mfem_dir else "CMake default package search",
         "field_snapshot_times_s": field_times,
         "field_snapshot_sampling": "cell averages at selected actual native timesteps; no temporal interpolation",
         "commands": []}
+    owned_sources = ("native/mfem_edge_source/CMakeLists.txt", "native/mfem_edge_source/edge_driver.cpp",
+                     "native/mfem_edge_source/distributed_linear.hpp", "tools/run_mfem_edge_source.py")
+    record["owned_source_sha256"] = {name:sha(ROOT/name) for name in owned_sources}
+    for name in owned_sources:
+        destination = output/"source_snapshot"/name
+        destination.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copy2(ROOT/name,destination)
+    write(output / "source_run.json", record)
     write(output / "configuration.json", config)
     failure = None
     try:
@@ -138,8 +152,11 @@ def main():
                 ("build", ["cmake", "--build", str(args.build_dir), "--parallel", "2"])]
         for name, argv in jobs:
             result = command(argv, output, name); record["commands"].append(result)
+            write(output / "source_run.json", record)
             if result["exit_code"]:
                 raise RuntimeError(name + " failed")
+        if any(sha(ROOT/name) != digest for name,digest in record["owned_source_sha256"].items()):
+            raise RuntimeError("Native build source changed during configuration or compilation")
         binary = args.build_dir / "power-flow-edge-source"
         options = {"width-cells": "width_cells", "thickness-cells": "thickness_cells", "outside-cells": "outside_cells",
             "gap-cells": "gap_cells", "width-m": "foil_width_m", "thickness-m": "foil_thickness_m", "gap-m": "gap_m",
@@ -149,10 +166,17 @@ def main():
                 "--snapshot-times", str(output / "field_snapshot_times.csv")]
         for flag, key in options.items():
             argv += ["--" + flag, str(config[key])]
+        if args.ranks > 1:
+            argv = ["mpiexec", "--bind-to", "core", "--map-by", "core", "-n", str(args.ranks), *argv]
         record["binary_sha256"] = sha(binary)
         result = command(argv, output, "native", cwd=output); record["commands"].append(result)
         if result["exit_code"]:
             raise RuntimeError("native current-constrained solve failed")
+        execution = json.loads((output/"parallel_execution.json").read_bytes())
+        if (execution.get("mpi_ranks") != args.ranks or execution.get("all_ranks_participated") is not True
+                or execution.get("linear_systems_per_rank",0) < 1 or execution.get("linear_solves_per_rank",0) < 1):
+            raise RuntimeError("Actual MPI execution does not match the requested distributed solve")
+        record["parallel_execution"] = execution
         dependency = json.loads((output/"mfem_dependency.json").read_bytes())
         if [dependency.get(key) for key in ("major","minor","patch")] != [4,10,0]:
             raise RuntimeError("executed MFEM library version differs from the pinned4.10 release")
@@ -220,6 +244,32 @@ def main():
                 "temperature_evaluation":sample["temperature"]["evaluation"]}
         units = {"time_s":"s", "x_left_m":"m", "x_right_m":"m", "depth_left_m":"m", "depth_right_m":"m",
                  "temperature_k":"K", "current_density_a_m2":"A m^-2", "joule_power_w_m3":"W m^-3"}
+        for face in ("top", "bottom", "left", "right"):
+            sample = json.loads((output/(face+"_surface.json")).read_text())
+            side = face in ("left", "right")
+            coordinate = (-width/2 if face=="left" else width/2) if side else (-gap/2 if face=="top" else -gap/2-thickness)
+            sample["source"]["run_id"] = "C19-current-constrained-MFEM-anode-"+face
+            sample["face"].update(surface_region="lower return foil "+face+" material face",normal_position_m=coordinate)
+            if side:
+                sample["x_edges_m"] = [-gap/2-thickness+thickness*i/ny for i in range(ny+1)]
+            csv_path = output/("anode_"+face+".csv")
+            sample["table"] = {"path":csv_path.name,"sha256":sha(csv_path)}
+            write(output/("anode_"+face+"_surface.json"),sample)
+            record["surface_faces"]["anode_"+face] = dict(record["surface_faces"][face],normal_position_m=coordinate,electrode="lower_return")
+        with (output/"em_field_snapshots.csv").open(newline="") as stream:
+            exported_fields = list(csv.DictReader(stream))
+        if [float(row["time_s"]) for row in exported_fields] != field_times:
+            raise RuntimeError("Electromagnetic field snapshot times differ from requested native states")
+        field_records = []
+        for row in exported_fields:
+            for key in ("potential_file","rate_file"):
+                field = output/row[key]
+                if field.parent!=output or not field.is_file():raise RuntimeError("Missing native electromagnetic field")
+            field_records.append(dict(time_s=float(row["time_s"]),potential_file=row["potential_file"],rate_file=row["rate_file"],
+                potential_sha256=sha(output/row["potential_file"]),rate_sha256=sha(output/row["rate_file"])))
+        write(output/"em_field_snapshots.json",dict(schema="mhdlab-mfem-Az-field-history-v1",mesh_file="em_mesh.mesh",mesh_sha256=sha(output/"em_mesh.mesh"),
+            axes_file="em_axes.csv",axes_sha256=sha(output/"em_axes.csv"),potential_units="T m",rate_units="V/m",magnetic_field_definition="Bx=dAz/dy; By=-dAz/dx; Bz=0 in native x=width,y=gap,z=current coordinates",
+            rate_scope="dAz/dt supplies an inductive component only; it is not a measured electrostatic AK voltage or the complete E field",snapshots=field_records))
         write(output / "foil_snapshots.json", {"schema":"mhdlab-mfem-foil-snapshots-v1", "status":"provisional", "sampling":"cell_average",
             "units":units, "csv_sha256":sha(output/"foil_snapshots.csv"), "geometry":{"foil":"upper", "depth_reference":"inward_from_upper_gap_face",
             "foil_width_m":width, "foil_thickness_m":thickness, "gap_m":gap}, "drive":record["drive"],
@@ -228,7 +278,7 @@ def main():
         record["passed"] = True
     except (OSError, RuntimeError, ValueError, KeyError) as exc:
         failure = str(exc); record["failure"] = failure
-    record["owned_source_sha256"] = {name: sha(ROOT/name) for name in ("native/mfem_edge_source/CMakeLists.txt", "native/mfem_edge_source/edge_driver.cpp", "tools/run_mfem_edge_source.py")}
+    record["source_files_unchanged_after_run"] = all(sha(ROOT/name)==digest for name,digest in record["owned_source_sha256"].items())
     record["outputs_sha256"] = {p.name:sha(p) for p in output.iterdir() if p.is_file()}
     write(output / "source_run.json", record)
     print(json.dumps({"report":str(output/"source_run.json"), "passed":record["passed"], "failure":failure}))

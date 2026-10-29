@@ -32,8 +32,9 @@ def test_encoding_retains_snapshots_orientation_and_exact_zero_species(tmp_path)
     report = render_transport(path, metadata, output, fps=10, dpi=60)
     assert report["frame_count"] == 3
     assert report["frame_duration_ms"] == [100, 100, 100]
-    assert report["display_color_scales"][0]["positive_min_m3"] == 1e15
-    assert report["display_color_scales"][0]["positive_max_m3"] == 3e15
+    assert report["display_density_units"] == "cm^-3"
+    assert report["display_color_scales"][0]["positive_min_cm3"] == 1e9
+    assert report["display_color_scales"][0]["positive_max_cm3"] == 3e9
     assert report["display_color_scales"][1]["log10_color_limits"] is None
     assert report["zeros_replaced_by_floor"] is False
     # H occupies different unequal-width cells. This tests the y,x convention.
@@ -84,8 +85,8 @@ def test_color_span_retains_small_positive_values_and_particle_totals(tmp_path):
     np.savez(path, **arrays)
     report = render_transport(path, metadata, tmp_path / "span", dpi=60, color_span_decades=8)
     scale = report["display_color_scales"][0]
-    assert scale["positive_min_m3"] == 1e-200
-    assert scale["log10_color_limits"] == [np.log10(3e15)-8, np.log10(3e15)]
+    assert scale["positive_min_cm3"] == 1e-206
+    assert scale["log10_color_limits"] == [np.log10(3e15)-8-6, np.log10(3e15)-6]
     assert scale["positive_bins_below_color_range"] == 1
     assert report["density_values_changed"] is False
     assert report["zeros_replaced_by_floor"] is False

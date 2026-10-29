@@ -203,3 +203,38 @@ def test_baseline_schema_and_wrong_records_are_not_accepted_as_temkin(tmp_path):
         write_temkin_planar_release_history(tmp_path / "unused.h5", sample_release(), include_full_face_uniform=1)
     with pytest.raises(ValueError):
         load_temkin_planar_release_history(tmp_path / "missing.h5")
+
+
+def test_resolved_only_archive_retains_local_law_when_uniform_control_is_unrepresentable(tmp_path):
+    base = FlashSurfaceHistory([0., 1.], [0., 1.], [[300.], [300.]], 'synthetic', 'local-archive-range',
+                               'manufactured floating-point range check', 'test boundary')
+    surface = PlanarSurfaceHistory([0., 1.], [0., 1e-200, 1e200], [0., 1.],
+                                   np.full((2,1,2),300.), base.attributes)
+    pool = TemkinReservoir('local sites','M:v0',1.,0.,0.,0.,0.,1e18,1e18,
+                           'manufactured independent pool','manufactured zero binding energy')
+    original = evolve_temkin_planar_release(surface, [[[1.,0.]]], [pool], parameter_provenance='manufactured range check')
+    with pytest.raises(ValueError, match='below the qualified normal range'):
+        write_temkin_planar_release_history(tmp_path/'default.h5',original)
+    target=tmp_path/'resolved.h5'
+    write_temkin_planar_release_history(target,original,include_width_uniform=False)
+    loaded=load_temkin_planar_release_history(target)
+    for name in RELEASE_UNITS:
+        np.testing.assert_array_equal(getattr(loaded,name),getattr(original,name))
+    with pytest.raises(ValueError,match='below the qualified normal range'):
+        loaded.matched_uniform_width()
+    with h5py.File(target,'a') as f:
+        assert not f.attrs['width_uniform_included']
+        assert 'matched_uniform_width' not in f
+        f['released_m2'][0,0,0,0] *= .5
+    with pytest.raises(ValueError):
+        load_temkin_planar_release_history(target)
+
+
+def test_resolved_only_archive_rejects_hidden_control_and_nonboolean_declaration(tmp_path):
+    target=tmp_path/'source.h5';write_temkin_planar_release_history(target,sample_release())
+    with h5py.File(target,'a') as f: f.attrs['width_uniform_included']=False
+    with pytest.raises(ValueError,match='undeclared width-uniform'):
+        load_temkin_planar_release_history(target)
+    with h5py.File(target,'a') as f: f.attrs['width_uniform_included']='false'
+    with pytest.raises(ValueError,match='must be a boolean'):
+        load_temkin_planar_release_history(target)

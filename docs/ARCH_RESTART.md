@@ -14,11 +14,20 @@ Do not mistake the saved configuration for a completed simulation.
 ```bash
 mkdir -p runs
 python3 tools/benchmark_mfem_edge_source.py --config configs/mfem_edge_current_arch_2048x256.json --output-dir runs/arch_2048_preflight --mode preflight
-/usr/bin/time -v -o runs/arch_2048_walltime.txt python3 tools/run_mfem_edge_source.py --config configs/mfem_edge_current_arch_2048x256.json --output-dir runs/arch_2048_heating
+/usr/bin/time -v -o runs/arch_2048_walltime.txt python3 tools/run_mfem_edge_source.py --config configs/mfem_edge_current_arch_2048x256.json --output-dir runs/arch_2048_heating --ranks 8
 python3 tools/render_mfem_foil_temperature.py --source-run runs/arch_2048_heating --output-dir runs/arch_2048_foil_temperature
 ```
 
 The runner also records configure/build/native-command wall times separately.
+The driver distributes every electromagnetic and thermal linear system over
+the requested MPI ranks. Assembly, field evaluation and output retain rank-zero
+ownership. Each rank owns a disjoint contiguous matrix-row block; a completed
+`parallel_execution.json` checks equal system/solve participation on every rank.
+The numerical equations, source trace, solver tolerances and current checks
+are unchanged. Single-rank results reproduced the earlier driver exactly in
+two differential controls; eight-rank field, face and diagnostic comparisons
+passed a declared 1e-8 column-scaled limit with separate energy checks.
+Use the frozen environment launcher for builds and runs on this installation.
 The case retains the shot 17133 trace, 60 ns cap, four material-face exports,
 0.25 ns maximum step and 66 selected actual field snapshots. Check free RAM
 and disk before the full run: field CSV output alone may occupy several GB.
