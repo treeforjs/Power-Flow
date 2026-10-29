@@ -1,0 +1,280 @@
+CHICAGO reference studies for a heated pulsed-power A-K gap
+Primary-source review checked 2026-10-29
+
+CHICAGO is a well-supported reference code for this problem family. The closest
+published comparisons require matching a particular geometry, drive circuit,
+surface inventory, emission prescription and chemistry closure. A code name by
+itself does not specify those choices. Nichelle L. Bennett is listed as N. Bennett
+on the principal journal papers below. No simulations or production changes were
+performed for this review. No local thesis/RGA data were interpreted.
+
+The present model advances 3D electron trajectories using prescribed magnetic
+fields and a height-averaged 2D Poisson solve, an imposed conditional voltage,
+Richardson thermal supply, and no gas, ions, collisions, melt or plasma feedback.
+The following CHICAGO studies evolve electromagnetic fields and particle/plasma
+currents together. Their emission models generally include field-triggered SCL
+emission and contaminant plasma. Their plasma results therefore cannot be used
+as numerical validation of the present collisionless electron-only approximation
+without first defining a common restricted case.
+
+Eight prioritized works
+
+[1] Derek C. Lamppa, Sean C. Simpson, Brian T. Hutsel, George R. Laity,
+Michael E. Cuneo, David V. Rose (October 2021).
+Assessment of Electrode Contamination Mitigation at 0.5 MA Scale.
+SAND2021-12691. DOI: https://doi.org/10.2172/1825219
+Primary full text:
+https://www.sandia.gov/app/uploads/sites/293/2025/02/Lamppa-2021-SAND-Report-SAND2021-12691.pdf
+Closest finite-electrode geometry: Appendix C, printed pp.53-56, uses 3D
+Cartesian CHICAGO for Mykonos parallel plates, half-volume symmetry, actual
+current-path hardware, Ohmic/impact heating, field-triggered cathode SCL emission,
+temperature-triggered anode ions and Temkin water-plasma sourcing. Open perimeter
+transport changes accumulation relative to coaxial lines. Nominal 0.5/1.0 mm
+calculations are compared with ICCD plasma structure/turn-on trends. The report
+explicitly distinguishes integrated ion density from self-emission intensity;
+this is qualitative morphology/trend support, not calibrated electron-density or
+EEDF validation. Appendix D separately uses an idealized 2D cylindrical geometry.
+This is the first geometry benchmark to reproduce before treating a strip/foil
+cross-section as equivalent to an axisymmetric line.
+
+[2] N. Bennett, D. R. Welch, K. Cochrane, K. Leung, C. Thoma,
+M. E. Cuneo, G. Frye-Mason (25 April 2023).
+Electrode plasma formation and melt in Z-pinch accelerators.
+Physical Review Accelerators and Beams 26, 040401.
+DOI/full text: https://doi.org/10.1103/PhysRevAccelBeams.26.040401
+https://journals.aps.org/prab/pdf/10.1103/PhysRevAccelBeams.26.040401
+Most relevant chemistry/feedback study: 2D cylindrical relativistic EM Monte
+Carlo PIC follows H2/H/ions, surface heating, neutral desorption, impact ionization,
+momentum/charge exchange and Coulomb collisions. It uses 4 um cells for kinetic
+breakdown; an approximate immediate-plasma comparison uses 10 um cells. It
+demonstrates screening, changing particle energies and delayed ionization versus
+desorption. This is detailed hydrogen kinetics, not validated full H2O chemistry.
+Upstream plasma influx and terminal accumulation are omitted in this breakdown
+case; bulk melt is studied with complementary MHD. Its curves are model/refinement
+benchmarks, not an experimental EEDF measurement. See Secs.III A-C and Figs.5-9.
+
+[3] N. Bennett, D. R. Welch, G. Laity, D. V. Rose, M. E. Cuneo
+(23 June 2021).
+Magnetized particle transport in multi-MA accelerators.
+Physical Review Accelerators and Beams 24, 060401.
+DOI/full text: https://doi.org/10.1103/PhysRevAccelBeams.24.060401
+https://journals.aps.org/prab/pdf/10.1103/PhysRevAccelBeams.24.060401
+Fully relativistic EM kinetic simulations connect plasma density/energy and
+Hall-related cross-gap transport in Z geometries. Electrons, ions and neutrals
+advance kinetically with collisions and arbitrary distributions. Crucially,
+surface molecules are immediately fragmented and ionized: molecular breakup
+delay is not resolved. H and O represent light/heavy constituents; selected
+excitation and higher charge states are omitted. Field-triggered cathode SCL
+emission, thermal anode ions and Joule/particle heating are included. Comparisons
+include simulated cross-gap current against Hall-current estimates and geometry/
+load-inductance trends. Agreement of an integral current does not validate a
+low-energy EEDF or species branching. See Sec.III A-B and Sec.V.
+
+[4] D. R. Welch, N. Bennett, T. C. Genoni, D. V. Rose, C. Thoma,
+C. Miller, W. A. Stygar (8 July 2019).
+Electrode contaminant plasma effects in 10^7-A Z pinch accelerators.
+Physical Review Accelerators and Beams 22, 070401.
+DOI/full text: https://doi.org/10.1103/PhysRevAccelBeams.22.070401
+https://journals.aps.org/prab/pdf/10.1103/PhysRevAccelBeams.22.070401
+2D fully kinetic EM inner-MITL models include Ohmic/particle heating and Temkin
+water supply. Desorbed water is assumed to produce 3 electrons, 2 H+ and O+
+within a grid cell; rapid dissociation/ionization is a closure, not a resolved
+reaction sequence. It compares current delivery/loss for geometries, adsorbate
+coverage and applied magnetic insulation, and checks the magnetic-implicit orbit
+algorithm. Bulk-metal vaporization is excluded; the water-dominance and rapid
+ionization assumptions are explicitly identified for further work. Useful
+benchmark observables are loss-current waveforms, surface/volume plasma density
+and the same coverage sweep, with the closure declared. See Sec.II A and Sec.III.
+
+[5] D. R. Welch, N. Bennett, T. C. Genoni, C. Thoma, D. V. Rose
+(3 November 2020).
+Fast hybrid particle-in-cell technique for pulsed-power accelerators.
+Physical Review Accelerators and Beams 23, 110401.
+DOI/full text: https://doi.org/10.1103/PhysRevAccelBeams.23.110401
+https://journals.aps.org/prab/pdf/10.1103/PhysRevAccelBeams.23.110401
+EM kinetic, multifluid and particle-migration hybrid calculations compare orbit,
+plasma-density and current-loss results. Dense thermal material can be fluid while
+energetic particles remain kinetic; examples use a 50 keV transition. Integral
+current agreement can coexist with loss of sheath vortices. Underresolved plasma
+frequencies omit high-frequency interactions. This provides numerical reference
+cases, not permission to enlarge the current explicit Boris timestep or replace
+the low-energy EEDF by a fluid temperature. Reproduce the Larmor/E x B tests and
+compare distribution functions before considering analogous acceleration.
+
+[6] Nichelle L. Bennett, Dale Welch (October 2022; Sandia catalog dates it
+1 October 2022).
+Resolution requirements for energy conservation in kinetic plasma simulations.
+SAND2022-13998. DOI: https://doi.org/10.2172/1891696
+Primary accessible summary:
+https://www.sandia.gov/research/publications/details/resolution-requirements-for-energy-conservation-in-kinetic-plasma-simulatio-2022-10-01/
+CHICAGO energy-conserving implicit PIC tests an unforced drifting plasma in 2D,
+using 400 particles/cell and 50,000 timesteps. Reported skin-depth-based grid
+limits differ by particle shape order and chosen energy-error criterion. This
+is a controlled numerical conservation benchmark with specified solver, shapes,
+population and timestep, not a universal allowable mesh size for another PIC
+formulation. It does not establish convergence of surface sheaths, EEDF tails or
+reaction rates. The Sandia summary was inspected; OSTI full text was unavailable
+through the web reader during this review.
+
+[7] Nathan Hines, Derek Lamppa, Jens Schwarz, Michael Cuneo,
+Thomas Awe, Mark Gilmore (7-11 October 2024).
+MITL electrode surface plasma density measurements at Sandia's 1 MA accelerator
+Mykonos. SAND2024-13691C, APS Division of Plasma Physics presentation.
+Primary full text:
+https://www.sandia.gov/app/uploads/sites/293/2025/02/2024-10-APS-DPP-Presentation-SAND2024-13691C.pdf
+Experimental diagnostic benchmark, not a CHICAGO validation paper. SHOP-DI
+measures free-electron areal density versus time; reported sensitivity is
+6.3e13 cm^-2. Preliminary geometry scans compare plasma detection with calculated
+thermal and field-enhanced onset times. Field-enhanced/explosive emission is
+considered as an explanation; it is not an independently proven universal trigger.
+Compare synthetic line-integrated density along the same chord and detection
+threshold, not a local cm^-3 pixel. The finite probe position and expansion delay
+separate detection time from creation time. See slides6-10.
+
+[8] T. M. Watson, D. C. Lamppa, N. Bennett, D. Welch, T. Smith,
+J. T. Banasek, N. R. Hines, J. Schwarz, J. P. Van Devender (June 2025).
+Investigation of Magnetically Insulated Transmission Lines Surface Plasma
+Temperature with a Novel Miniature X-ray Detector.
+SAND2025-01647A, 25th IEEE Pulsed Power and Plasma Science Conference abstract.
+Primary abstract:
+https://www.sandia.gov/app/uploads/sites/293/2025/03/Watson-PPPS-2025-Abstract.pdf
+miniXRD observations target spatially varying surface-plasma temperature and
+turn-on, including Mykonos and Z PF17/PF18. The abstract explicitly proposes the
+turn-on data as a CHICAGO benchmark. Its temperature inference assumes continuum
+radiation and the Mykonos results suggest an axial nonequilibrium distribution.
+This is an announced benchmark opportunity, not a published quantitative
+simulation-data agreement or a measurement of the complete EEDF. Obtain detector
+response, line/continuum separation, view geometry and uncertainty before using
+its inferred temperature to constrain electron distributions.
+
+Supporting sources for a foil/water benchmark
+
+[S1] T. J. Smith et al., Understanding electrode plasma formation on wires and
+thin foils via vacuum ultraviolet spectroscopy of desorbed surface contaminants,
+SAND2024-02100C (2024), DOI https://doi.org/10.2172/2540452
+https://www.osti.gov/servlets/purl/2540452
+The primary poster covers planar foil loads, a heating/desorption PDE model,
+VUV hydrogen diagnostics and visible spectra. It is close to thin-foil hardware,
+but the poster does not document a CHICAGO run. Do not present it as CHICAGO
+validation. The related 2023 abstract has different authors/report metadata;
+do not merge the versions.
+
+[S2] M.-Y. Song, H. Cho, G. P. Karwasz, V. Kokoouline, Y. Nakamura,
+J. Tennyson, A. Faure, N. J. Mason, Y. Itikawa (2021).
+Cross Sections for Electron Collisions with H2O.
+Journal of Physical and Chemical Reference Data 50, 023103.
+DOI https://doi.org/10.1063/5.0035315
+Author repository, version of record:
+https://discovery.ucl.ac.uk/id/eprint/10128988/
+Primary evaluated cross-section reference covering scattering, momentum transfer,
+rotational/vibrational/electronic excitation, dissociation, ionization and
+dissociative attachment; literature surveyed through 2019. Version and hash the
+chosen complete reaction dataset, branching and secondary-energy rules. A total
+ionization table alone is insufficient for H2O fragment populations or EEDF loss.
+
+[S3] J. Matthew D. Lane, Kevin Leung, Aidan P. Thompson, Michael E. Cuneo
+(2018). Water desorption from rapidly-heated metal oxide surfaces-first
+principles, molecular dynamics, and the Temkin isotherm.
+Journal of Physics: Condensed Matter 30, 465002.
+DOI https://doi.org/10.1088/1361-648X/aae4af
+Primary laboratory publication record:
+https://www.sandia.gov/research/publications/details/water-desorption-from-rapidly-heated-metal-oxide-surfaces-first-principles-2018-10-26/
+This is surface chemistry/MD support for desorption, not a PIC validation.
+Surface oxide/facet, coverage and finite temperature affect the inferred binding
+model; a CHICAGO Temkin parameter should not silently become a measured foil
+parameter. Journal/online and catalog dates differ; retain the 2018 citation.
+
+[S4] N. Bennett, D. R. Welch, C. A. Jennings, E. Yu, M. H. Hess,
+B. T. Hutsel, G. Laity, J. K. Moore, D. V. Rose, K. Peterson,
+M. E. Cuneo (10 December 2019).
+Current transport and loss mechanisms in the Z accelerator.
+Physical Review Accelerators and Beams 22, 120401.
+DOI https://doi.org/10.1103/PhysRevAccelBeams.22.120401
+https://journals.aps.org/prab/pdf/10.1103/PhysRevAccelBeams.22.120401
+This adds quantitative experiment/theory comparisons: upstream currents from two
+Z shots agree with coupled simulations within 2%; Fig.13 compares load currents
+with measurement uncertainty of +/-5%. A 40 kA coaxial MITL resolution test
+compares integrated E against a laminar-flow theory relation; mesh refinement
+fixes artificial sheath broadening while timestep refinement alone does not.
+The EM circuit-coupled model includes adaptive particle management that limits
+species/cell counts only when charge, energy and momentum distributions can be
+preserved. This supports controlled particle management, not arbitrary thinning
+or guaranteed EEDF preservation. See Sec.II B and Figs.5,6,13.
+
+Recommended benchmark sequence (proposed work, not completed validation)
+
+A. Match the restricted collisionless problem first. Create a common finite
+electrode case with identical voltage history, magnetic-field history, emission
+law, imposed/source charge, boundaries and initial particles. Compare particle
+orbits, E x B drift, electrode flux, energy spectra, charge conservation and
+height/line sampling. This determines numerical disagreement before adding
+physics. A published full-EM CHICAGO current-loss curve is not the corresponding
+reference for a prescribed-B Poisson approximation. Separate errors caused by
+field evolution, electrostatic geometry and particle sampling.
+
+B. Reproduce the finite parallel-plate reference [1]. Use its actual dimensions,
+driver circuit, symmetry, emission-enabled surfaces and open perimeters. Use a
+documented water-plasma closure initially, then finite-rate chemistry. Compare
+turn-on, plasma extent and current transfer at common drive times. Forward-model
+ICCD emission before comparing light intensity; use line integrals for SHOP-DI
+[7]. Neither a 2D cylindrical movie nor a height-averaged density field by itself
+tests finite-electrode escape and axial nonuniformity.
+
+C. Reproduce a finite-rate breakdown case [2] as specified in the paper, using
+the hydrogen-only species set and boundary impedance. Compare neutral depletion,
+ionization fraction, local particle-energy distributions, screened E profiles and
+ion/electron wall energy flux. Then compare its immediate-ionization closure on
+the same drive. This isolates the chemistry-delay assumption without pretending
+that H2 kinetics validates water fragmentation. The 4 um published resolution is
+a reference setup to refine, not evidence that 25 um is sufficient here.
+
+D. Add a water reaction benchmark with fixed sources and fields before feedback.
+Use a controlled monoenergetic electron beam through uniform H2O to check each
+channel probability 1-exp(-n sigma v dt), branching, electron multiplication,
+reaction energy loss, atom/charge balance and weighted-particle bookkeeping.
+Next use prescribed spatially varying H2O from both finite electrodes. Track
+H2O, OH, O, H and relevant molecular/atomic ions and negative-ion channels when
+supported by the selected dataset and energy regime. Declare every omitted
+channel. Do not turn one molecule directly into 2H+ + O+ + 3e unless explicitly
+testing that fast-plasma approximation. Secondary electrons must enter the EEDF.
+
+For stationary neutrals, use the local rate for reaction r,
+
+    R_r(x,t) = n_H2O(x,t) n_e(x,t) integral[sigma_r(E) v(E) f_E(E,x,t) dE],
+
+where f_E is normalized to one; with moving neutrals use relative collision
+energy/velocity. A gap-averaged EEDF or mean energy substituted into sigma cannot
+capture the overlap of hot electrons and dense near-surface water. Save EEDF and
+pitch-angle distributions by physical region/height/time, high-energy tail
+fractions, channel-resolved rates, fragment densities and ion energy/angular
+fluxes. Report local densities in cm^-3, chord integrals in cm^-2 and spectra
+with normalization and weighted effective sample size. Compare actual rate
+integrals, not only fitted temperatures.
+
+E. Enable feedback in declared stages. First ion space charge and ion transport;
+then ion/electron surface heating, desorption depletion/resupply, secondary or
+stimulated emission where justified, magnetic/current feedback and electrode
+motion/melt/erosion. Check changes in sheath potential, electron residence time,
+EEDF cooling/tail replenishment, ionization geography, wall energy deposition and
+load-current waveform at every stage. A hot electron-only cloud cannot predict
+plasma current shunting or ion-driven source feedback. A thermal field past melt
+without phase change needs an explicit validity boundary.
+
+Required experimental inputs and comparison limits
+
+Use measured circuit/current/voltage timing with their locations and load
+inductance, not only nominal peak voltage. Specify foil alloy/thickness, oxide,
+roughness, cleaning, pumpdown/heating history, initial surface coverage and
+background gas separately. An RGA water signal needs cracking-pattern, species
+sensitivity, pumping/conductance and timing calibration before it becomes a
+surface inventory or spatial gas source; detector fragments are not automatically
+the plasma fragment fractions. Preserve measured anode/cathode differences
+instead of imposing mirrored temperatures when testing actual hardware.
+
+Numerical convergence must cover particle count/weight, mesh, timestep, source
+patch/event sampling, collision probability substepping and chemistry inventory.
+Use uncertainty on both simulated observables and experimental inversion. Hybrid
+current agreement [5] and global energy stability [6] do not guarantee low-energy
+EEDF or reaction-rate accuracy. No reviewed source supplies a matched input deck
+and calibrated EEDF/H2O-fragmentation dataset for the present finite foil geometry;
+those remain required benchmark inputs rather than inferred evidence.

@@ -1,0 +1,114 @@
+--- v1/compare_saved_pic.py
++++ v2/compare_saved_pic.py
+@@ -15,6 +15,7 @@
+ MAX_PARTICLES=2000000
+ HERE=pathlib.Path(__file__).resolve().parent
+ LEASE=HERE.parent.parent/"testing-core.lock"
++ALLOCATION=HERE.parent.parent.parent/"pic-testing-allocation.json"
+ DIAGNOSTICS="time_s particle_charge_C deposited_charge_C lower_field_charge_C upper_field_charge_C gauss_defect_C particle_charge_defect_C field_energy_J particle_kinetic_energy_J lower_absorbed_charge_C upper_absorbed_charge_C lower_absorbed_energy_J upper_absorbed_energy_J lower_injected_charge_C upper_injected_charge_C injected_energy_J authored_charge_C authored_kinetic_energy_J maximum_nodal_continuity_defect_C escaped_charge_C escaped_kinetic_energy_J short_absorbed_charge_C short_absorbed_energy_J axial_escaped_charge_C poisson_residual_C_per_m".split()
+ HISTORY="time_s step macro_particles gauss_defect_C particle_charge_defect_C nodal_continuity_defect_C field_energy_J kinetic_energy_J source_reservoir_electrons short_absorbed_charge_C short_absorbed_energy_J axial_escaped_charge_C".split()
+ FRAME="time_s x_m y_m potential_V Ex_V_m Ey_V_m electron_density_cm3 height_average_electron_density_cm3 solid".split()
+@@ -256,7 +257,44 @@
+     result["command"]=command;return result
+ 
+ 
+-def validate_run(state,seed,comp,states,guards):
++def replay_policy(expected_cpu=6,allocation_receipt=ALLOCATION):
++    require(type(expected_cpu)is int and expected_cpu in (6,7),"expected replay CPU must be 6 or 7; CPU8 is unauthorized")
++    result={"expected_replay_cpu":expected_cpu,"comparator_cpu":6,"allocation":None}
++    if expected_cpu==7:
++        path=pathlib.Path(allocation_receipt).resolve();proof=strict_json(path)
++        require(isinstance(proof,dict),"invalid CPU7 allocation receipt")
++        require(proof.get("status")=="paused_job_frozen_core7_released_for_testing" and proof.get("native_stopped")is True and proof.get("production_cgroup_frozen")is True and proof.get("gpu_benchmarks_serial")is True,"CPU7 requires recorded frozen-production/serial-testing allocation proof")
++        cpus=proof.get("testing_logical_cpus")
++        require(isinstance(cpus,list) and all(type(x)is int for x in cpus) and 6 in cpus and 7 in cpus and 8 not in cpus,"CPU7 missing from authorized testing allocation")
++        identity=proof.get("production_identity")
++        require(isinstance(identity,dict) and type(identity.get("pid"))is int and identity['pid']>0 and isinstance(identity.get("exe"),str) and isinstance(identity.get("start_ticks"),str),"allocation lacks production identity proof")
++        finite(proof.get("updated_unix_s"),"allocation timestamp")
++        result['allocation']={"path":str(path),"sha256":sha(path),"status":proof['status'],"updated_unix_s":proof['updated_unix_s'],"testing_logical_cpus":cpus,"production_identity":identity,"native_stopped":True,"production_cgroup_frozen":True,"gpu_benchmarks_serial":True}
++    return result
++
++
++def validate_replay_receipt(receipt,policy):
++    expected=policy['expected_replay_cpu']
++    require(type(receipt.get("profile_cpu"))is int and receipt['profile_cpu']==expected,"replay receipt CPU differs from explicit expected replay CPU")
++    if expected==7:
++        allocation=policy['allocation']
++        require(allocation is not None,"CPU7 allocation proof missing")
++        require(receipt.get("production_left_stopped")is True,"CPU7 replay receipt must preserve frozen production")
++        identity=receipt.get("production_identity")
++        require(isinstance(identity,dict) and identity.get('state')in ('T','t'),"CPU7 replay lacks stopped native-state receipt")
++        for key in ('pid','exe','start_ticks','args'):
++            if key in allocation['production_identity']:require(identity.get(key)==allocation['production_identity'][key],"CPU7 replay/allocation production identity mismatch: "+key)
++        command=receipt.get("command")
++        require(isinstance(command,list) and all(isinstance(x,str)for x in command),"CPU7 replay lacks command affinity proof")
++        affinity=[]
++        for i,token in enumerate(command):
++            if pathlib.Path(token).name=='taskset':
++                require(i+2<len(command) and command[i+1]in ('-c','--cpu-list'),"unsupported taskset affinity receipt")
++                affinity.append(command[i+2])
++        require(affinity==['7'],"CPU7 replay command must record exactly taskset -c 7")
++
++
++def validate_run(state,seed,comp,states,guards,policy):
+     root=state.directory;prefix=root.name
+     progress=strict_json(root/"progress.json");receipt=strict_json(root/"run-receipt.json");scope=strict_json(root/"scope.json");parallel=strict_json(root/"parallel_execution.json")
+     state.files.extend(root/name for name in ("progress.json","run-receipt.json","scope.json","parallel_execution.json"))
+@@ -266,7 +304,8 @@
+     finite(receipt["window_ps"],"receipt window_ps")
+     require(progress["phase"]=="completed" and receipt["returncode"]==0,"run did not complete successfully")
+     require(receipt["seed"]==seed.seed_info==state.seed_info,"seed identity mismatch")
+-    require(receipt["profile_cpu"]==6 and receipt["window_ps"]>0,"unexpected replay CPU/window")
++    validate_replay_receipt(receipt,policy)
++    require(receipt["window_ps"]>0,"unexpected replay window")
+     require(progress["steps"]==state.step and progress["macro_particles"]==len(state.particles),"progress/checkpoint step or count mismatch")
+     require(progress["upper_potential_V"]==state.options["upper_potential_V"],"progress/metadata voltage mismatch")
+     require(parallel["completed"]is True and parallel["all_ranks_participated"]is True and parallel["mpi_ranks"]==progress["mpi_ranks"]==1,"incomplete parallel execution")
+@@ -333,7 +372,8 @@
+     return rows,bins
+ 
+ 
+-def compare(a_path,b_path,seed_path,schema_path=HERE/"abi-schema.json"):
++def compare(a_path,b_path,seed_path,schema_path=HERE/"abi-schema.json",expected_replay_cpu=6,allocation_receipt=ALLOCATION):
++    policy=replay_policy(expected_replay_cpu,allocation_receipt)
+     input_paths={p for root in (a_path,b_path,seed_path) for p in pathlib.Path(root).resolve().iterdir() if p.is_file() and (p.suffix in (".bin",".csv",".meta",".json"))}
+     before={p:sha(p)for p in input_paths}
+     s=schema(schema_path);a,b,seed=[read_state(p,s)for p in (a_path,b_path,seed_path)]
+@@ -358,7 +398,7 @@
+         comp.scalar(state.directory.name+".deposition_charge",d["deposited_charge_C"],d["particle_charge_C"],tolerance("particle_charge_C",states,guards))
+         comp.scalar(state.directory.name+".gauss_identity",d["gauss_defect_C"],d["particle_charge_C"]+d["lower_field_charge_C"]+d["upper_field_charge_C"],tolerance("gauss_defect_C",states,guards))
+         comp.check(state.directory.name+".poisson_guard",g["guard_passed"],**g)
+-    meta=[validate_run(state,seed,comp,states,guards)for state in (a,b)]
++    meta=[validate_run(state,seed,comp,states,guards,policy)for state in (a,b)]
+     require(meta[0]["scope"]==meta[1]["scope"],"scope/model mismatch")
+     for key in ("start_time_s","requested_end_time_s"):require(meta[0]["progress"][key]==meta[1]["progress"][key],"run time domain mismatch")
+     ap={p["id"]:p for p in a.particles};bp={p["id"]:p for p in b.particles};sp={p["id"]:p for p in seed.particles}
+@@ -412,9 +452,15 @@
+             if p not in tracked:tracked[p]=before[p]
+     # Detect a file being replaced while it is read; inputs must be completed outputs.
+     require(all(sha(p)==digest for p,digest in tracked.items()),"input changed during comparison")
++    if policy["allocation"]:
++        allocation_path=pathlib.Path(policy["allocation"]["path"])
++        require(sha(allocation_path)==policy["allocation"]["sha256"],"allocation proof changed during comparison")
++        tracked[allocation_path]=policy["allocation"]["sha256"]
+     failures=[x for x in comp.checks if not x["passed"]]
+     births=a.next_id-seed.next_id
+     report={"status":"passed"if not failures else"failed","comparison_complete":True,"policy":POLICY,"paths":{"baseline":str(a.directory),"candidate":str(b.directory),"seed":str(seed.directory)},"abi_schema_sha256":sha(schema_path),"options":{"all_fields_exact":True,"field_count":len(s["options"]),"values":a.options},"particle_counts":{"seed":len(seed.particles),"final":len(a.particles),"allocated_id_increment":births,"seed_survivors":len(ap.keys()&sp.keys()),"seed_ids_missing_at_final":len(sp.keys()-ap.keys()),"new_ids_present_at_final":len(ap.keys()-sp.keys()),"inferred_total_removed_count":len(seed.particles)+births-len(a.particles)},"particles":particle_metrics,"raw_diagnostics":raw,"seed_to_final_public_ledger_increments":increments,"history":{"baseline_rows":len(a.history),"candidate_rows":len(b.history),"common_steps":common,"baseline_only_steps":sorted(ah.keys()-bh.keys()),"candidate_only_steps":sorted(bh.keys()-ah.keys()),"baseline_values":a.history,"candidate_values":b.history,"cadence":"wall-clock reports; unmatched intermediate rows validated independently but not compared by interpolation","endpoint_ledger_increments":history_increments},"source_reservoirs":{"all_values_exact":True,"pool_metrics":pool_metrics,"pool_lengths":[len(p["integral"])for p in a.pools],"baseline_electrons":a.reservoir(),"candidate_electrons":b.reservoir(),"seed_electrons":seed.reservoir()},"frame":frame_metrics,"density_analysis":density_explanation,"runtime_residual_guards":{state.directory.name:g for state,g in zip(states,guards)},"field_error_budget_impulse_m_s":E_CHARGE/min(p["mass_kg"]for p in a.particles)*field_error*(a.ledger["time_s"]-seed.ledger["time_s"])if a.particles else 0.,"checks":comp.checks,"failures":failures,"input_manifest":[{"path":str(p),"sha256":digest}for p,digest in sorted(tracked.items())],"limits":["Checkpoint has no nodal potential or crossing-event log; field comparison is limited to final saved CSV cell centers.","Only matching history steps are compared; no unrecorded intermediate state is inferred.","Saved residual norms are checked against CPU-reconstructed RHS guards; residual error vectors and solver maximum-relative history are not saved.","This is a short-window integration regression comparison, not physical, grid or timestep convergence."]}
++    report["replay_cpu_policy"]=policy
++    report["limits"].append("CPU7 proof is recorded allocation/receipt evidence; no live production/cgroup state is changed or inferred.")
+     return report
+ 
+ 
+@@ -430,9 +476,11 @@
+ def main():
+     parser=argparse.ArgumentParser(description=__doc__)
+     parser.add_argument("baseline",type=pathlib.Path);parser.add_argument("candidate",type=pathlib.Path);parser.add_argument("seed",type=pathlib.Path);parser.add_argument("--output",type=pathlib.Path,required=True)
++    parser.add_argument("--expected-replay-cpu",type=int,choices=(6,7),default=6,help="expected CPU recorded by BOTH replay receipts; comparator remains on CPU6")
++    parser.add_argument("--allocation-receipt",type=pathlib.Path,default=ALLOCATION,help="recorded CPU7 testing allocation proof")
+     args=parser.parse_args()
+     try:
+-        with cpu_lease()as execution:report=compare(args.baseline,args.candidate,args.seed);report["execution"]=execution
++        with cpu_lease()as execution:report=compare(args.baseline,args.candidate,args.seed,expected_replay_cpu=args.expected_replay_cpu,allocation_receipt=args.allocation_receipt);report["execution"]=execution
+     except (Invalid,ValueError,OSError,KeyError,TypeError,IndexError,ZeroDivisionError,OverflowError,struct.error)as exc:
+         report={"status":"invalid","comparison_complete":False,"error":str(exc),"error_type":type(exc).__name__}
+     report["created_utc"]=datetime.datetime.now(datetime.timezone.utc).isoformat()

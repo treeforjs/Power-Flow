@@ -1,0 +1,115 @@
+--- a/src/mfem_gap_pic.cpp
++++ b/src/mfem_gap_pic.cpp
+@@ -13,6 +13,7 @@
+ #include <cstdlib>
+ #include "bench_profile.hpp"
+ #include "cudss_poisson.hpp"
++#include "pic_particle_trace.hpp"
+ 
+ #ifdef MFEM_USE_MPI
+ namespace raikou_pic_parallel {
+@@ -541,6 +542,7 @@
+  pic_bench::Timer timer("advance_total");
+     if (!std::isfinite(dt) || dt<=0 || !std::isfinite(ledger_.time_s+dt))
+         throw std::invalid_argument("Gap PIC advance requires positive finite dt");
++    pic_particle_trace::initial(ledger_.time_s,dt,particles_);
+     std::fill(horizontal_transfers_.begin(),horizontal_transfers_.end(),0);
+     std::fill(vertical_transfers_.begin(),vertical_transfers_.end(),0);
+     // Midpoint position splitting; full-time velocities. Absorption is resolved
+@@ -558,10 +560,13 @@
+             for(int i=0;i<3;++i)E[i]+=extra[i];
+         }
+         if(external_magnetic_) B=external_magnetic_(p.position_m[0],p.position_m[1],ledger_.time_s+.5*dt);
++        const auto velocity_before=p.proper_velocity_m_s;
+         p.proper_velocity_m_s=pic_boris(p.proper_velocity_m_s,p.charge_C/p.mass_kg,E,B,dt);
++        pic_particle_trace::force(ledger_.time_s+.5*dt,dt,p,E,B,velocity_before);
+     }
+     drift(.5*dt); solve_fields();
+     ledger_.time_s+=dt;
++    pic_particle_trace::step(ledger_.time_s,dt,particles_);
+ }
+ 
+ void GapPic::advance_empty(double dt) {
+--- /dev/null
++++ b/src/pic_particle_trace.hpp
+@@ -0,0 +1,80 @@
++#pragma once
++
++#include "raikou/mfem_gap_pic.h"
++#include <algorithm>
++#include <array>
++#include <cstdlib>
++#include <fstream>
++#include <iomanip>
++#include <stdexcept>
++#include <vector>
++
++// Isolated diagnostic instrumentation. These hooks only read the particle
++// state and the E/B and velocities already computed by the native force loop.
++namespace pic_particle_trace {
++using namespace raikou::mfem_backend;
++class Recorder {
++    std::vector<std::uint64_t> ids_;
++    std::ofstream output_;
++    bool started_=false;
++    bool selected(std::uint64_t id) const {
++        return std::binary_search(ids_.begin(),ids_.end(),id);
++    }
++    void triple(const PicVector* value) {
++        for(int k=0;k<3;++k) {output_<<',';if(value)output_<<(*value)[k];}
++    }
++    void row(const char* event,double time,double dt,std::uint64_t id,const GapParticle* particle,
++             const PicVector* electric,const PicVector* magnetic,const PicVector* before) {
++        output_<<event<<','<<time<<','<<dt<<','<<id<<','<<(particle?1:0);
++        triple(particle?&particle->position_m:nullptr);triple(electric);triple(magnetic);triple(before);
++        triple(particle?&particle->proper_velocity_m_s:nullptr);output_<<'\n';
++    }
++public:
++    Recorder() {
++        const char* ids_path=std::getenv("RAIKOU_PIC_TRACK_IDS_FILE");
++        const char* output_path=std::getenv("RAIKOU_PIC_TRACK_PATH");
++        if(!ids_path && !output_path)return;
++        if(!ids_path || !output_path)throw std::runtime_error("Tracking requires both ID and output paths");
++        std::ifstream input(ids_path);std::uint64_t id;
++        if(!input)throw std::runtime_error("Cannot open tracking IDs");
++        while(input>>id) {if(id==0)throw std::runtime_error("Invalid tracking ID");ids_.push_back(id);}
++        if(!input.eof() || ids_.empty() || ids_.size()>32)throw std::runtime_error("Require 1 through 32 tracking IDs");
++        std::sort(ids_.begin(),ids_.end());
++        if(std::adjacent_find(ids_.begin(),ids_.end())!=ids_.end())throw std::runtime_error("Duplicate tracking ID");
++        output_.open(output_path);if(!output_)throw std::runtime_error("Cannot open tracking output");
++        output_<<std::setprecision(17)
++            <<"event,time_relative_s,dt_s,id,present,x_m,y_m,z_m,Ex_V_m,Ey_V_m,Ez_V_m,Bx_T,By_T,Bz_T,"
++              "ux_before_m_s,uy_before_m_s,uz_before_m_s,ux_after_m_s,uy_after_m_s,uz_after_m_s\n";
++    }
++    void state(const char* event,double time,double dt,const std::vector<GapParticle>& particles) {
++        if(ids_.empty())return;
++        std::array<const GapParticle*,32> found{};
++        for(const auto& p:particles) {
++            const auto it=std::lower_bound(ids_.begin(),ids_.end(),p.id);
++            if(it!=ids_.end() && *it==p.id)found[it-ids_.begin()]=&p;
++        }
++        for(std::size_t k=0;k<ids_.size();++k)row(event,time,dt,ids_[k],found[k],nullptr,nullptr,nullptr);
++        output_.flush();if(!output_)throw std::runtime_error("Particle tracking output failed");
++    }
++    void initial(double time,double dt,const std::vector<GapParticle>& particles) {
++        if(started_ || ids_.empty())return;
++        state("initial",time,dt,particles);started_=true;
++    }
++    void force(double time,double dt,const GapParticle& particle,const PicVector& electric,
++               const PicVector& magnetic,const PicVector& before) {
++        if(!selected(particle.id))return;
++        row("force_midpoint",time,dt,particle.id,&particle,&electric,&magnetic,&before);
++    }
++};
++inline Recorder& recorder() {static Recorder recorder;return recorder;}
++inline void initial(double time,double dt,const std::vector<GapParticle>& particles) {
++    recorder().initial(time,dt,particles);
++}
++inline void force(double time,double dt,const GapParticle& particle,const PicVector& electric,
++                  const PicVector& magnetic,const PicVector& before) {
++    recorder().force(time,dt,particle,electric,magnetic,before);
++}
++inline void step(double time,double dt,const std::vector<GapParticle>& particles) {
++    recorder().state("step_end",time,dt,particles);
++}
++} // namespace pic_particle_trace

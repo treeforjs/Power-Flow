@@ -1,0 +1,90 @@
+{
+  "status": "ready",
+  "completed_utc": "2026-10-29T23:08:13.330812+00:00",
+  "tool": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/compare_saved_pic.py",
+  "result": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/comparison.json",
+  "tests": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixture-tests.json",
+  "notes": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/README.txt",
+  "actual_comparison_passed": true,
+  "actual_checks": 164,
+  "fixture_cases": 146,
+  "cli_exit_codes": [
+    0,
+    1,
+    2
+  ],
+  "particle_count": 29613,
+  "max_position_difference_m": 3.469446951953614e-18,
+  "max_proper_velocity_difference_m_s": 5.287583917379379e-07,
+  "field_maxima": {
+    "potential_V": 9.167706593871117e-10,
+    "Ex_V_m": 2.9103830456733704e-06,
+    "Ey_V_m": 3.0566006898880005e-06
+  },
+  "densities_identical": true,
+  "runtime_guards": {
+    "baseline-cpu6-run1": {
+      "rhs_norm": 8.227406016442554e-05,
+      "residual_norm": 4.9391429701803693e-20,
+      "guard_limit": 1.645481203288511e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 29613,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/baseline-cpu6-run1/checkpoint_403852.bin"
+      ]
+    },
+    "cpu-candidate-cpu6-run1": {
+      "rhs_norm": 8.227406016442554e-05,
+      "residual_norm": 4.946397827285137e-20,
+      "guard_limit": 1.645481203288511e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 29613,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-candidate-cpu6-run1/checkpoint_403852.bin"
+      ]
+    },
+    "seed-current": {
+      "rhs_norm": 8.227406016442553e-05,
+      "residual_norm": 4.923656362796183e-20,
+      "guard_limit": 1.6454812032885106e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 29537,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-current/checkpoint_403642.bin"
+      ]
+    }
+  },
+  "execution": {
+    "cpu": 6,
+    "nice": 15,
+    "threads": 1,
+    "lease": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock",
+    "gpu_work": false
+  },
+  "abi_header_sha256": "6912c82b401987f7359ce69a3db9f662d32fe1eeaa8b098b910c51476733b7c4",
+  "guard_source_sha256": "dba0b3def1ed792ff9b02148d114d157d4694759e9635d12b87f7a5435deab4f",
+  "source_candidate_or_dof_patch_edited": false,
+  "gpu_work": false,
+  "production_signals_or_edits": false,
+  "limitations": [
+    "Checkpoint has no nodal potential or crossing-event log; field comparison is limited to final saved CSV cell centers.",
+    "Only matching history steps are compared; no unrecorded intermediate state is inferred.",
+    "Saved residual norms are checked against CPU-reconstructed RHS guards; residual error vectors and solver maximum-relative history are not saved.",
+    "This is a short-window integration regression comparison, not physical, grid or timestep convergence."
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "status": "ready",
+  "created_utc": "2026-10-29T22:31:04.751681+00:00",
+  "candidate_path": "/home/treefor/projects/runtimes/pic-cpu-candidate-20261029",
+  "candidate_source": "/home/treefor/projects/runtimes/pic-cpu-candidate-20261029/source",
+  "candidate_build": "/home/treefor/projects/runtimes/pic-cpu-candidate-20261029/candidate-build",
+  "reference_source": "/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source",
+  "changed_files": [
+    "CMakeLists.txt",
+    "examples/mfem_heating_history_pic.cpp",
+    "examples/native_heating_fields.hpp",
+    "include/raikou/mfem_gap_pic.h",
+    "include/raikou/q1_scalar_gather.h",
+    "src/mfem_gap_pic.cpp",
+    "src/mfem_pic_distributed.hpp",
+    "tests/pic_cpu_trace.cpp",
+    "tests/test_q1_scalar_gather.cpp"
+  ],
+  "patch": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-audit/cpu-hotpaths.patch",
+  "patch_sha256": "7a97913c871a1c9ba1584382d3a78be34c044e2705040d2369b62f3451cea70b",
+  "source_manifest": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-audit/source-manifest.json",
+  "build": {
+    "status": "passed",
+    "frozen_mfem": "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi",
+    "launcher": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+    "type": "Release",
+    "logical_cpu": 0,
+    "nice": 15,
+    "parallel_jobs": 1,
+    "command": "taskset -c 0 nice -n 15 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen cmake --build candidate-build --parallel 1"
+  },
+  "tests": [
+    {
+      "name": "existing PIC foundation tests",
+      "status": "passed",
+      "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-audit/pic_foundation_tests.log"
+    },
+    {
+      "name": "Q1 gather and fallback bitwise comparisons",
+      "status": "passed",
+      "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-audit/q1_gather_tests.log"
+    }
+  ],
+  "trace_evidence": {
+    "serial_pic": {
+      "byte_identical": true,
+      "bytes": 455537,
+      "baseline": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-audit/baseline-trace.txt",
+      "candidate": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-audit/candidate-trace.txt"
+    },
+    "native_fields_and_time_caches": {
+      "byte_identical": true,
+      "bytes": 31386,
+      "baseline": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-audit/baseline-field-trace.txt",
+      "candidate": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-audit/candidate-field-trace.txt"
+    }
+  },
+  "benchmarks": {
+    "scope": "targeted operations only, not production end-to-end speed",
+    "repetitions": 5,
+    "samples_per_repetition": 2000000,
+    "q1_gradient": {
+      "baseline": 0.217253138,
+      "candidate": 0.139595281,
+      "operation_speedup": 1.5563071791803624
+    },
+    "native_gather": {
+      "baseline": 0.60205974,
+      "candidate": 0.32379275,
+      "operation_speedup": 1.859398457809818
+    },
+    "checksums_equal": true,
+    "raw_results": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-audit/cpu-validation-summary.json"
+  },
+  "preserved_math": [
+    "MFEM CalcShape and CalcDShape",
+    "MFEM dot and transpose products and actual point Jacobians",
+    "same drift crossing values, sort, deposit order",
+    "same interval search and interpolation on cache misses",
+    "same full-matrix action reused by copy",
+    "same residual error vector, norms, thresholds and maximum-relative statistic"
+  ],
+  "limitations": [
+    "Distributed residual cache is compile-checked only; merged checkpoint replay must qualify it because the frozen distributed branch invokes cuDSS.",
+    "Targeted microbenchmarks do not estimate end-to-end production acceleration.",
+    "Q1 connectivity cache consumes approximately 16 bytes per element per scalar field."
+  ],
+  "gpu_work_performed": false,
+  "production_processes_signaled": false,
+  "active_runtime_modified": false,
+  "deployment_performed": false,
+  "deployment_owner": "parent",
+  "cudss_poisson_hpp_unchanged": true,
+  "review_notes": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-audit/README.md"
+}

@@ -1,0 +1,4137 @@
+{
+  "status": "passed",
+  "comparison_complete": true,
+  "policy": {
+    "position_atol_m": 1e-12,
+    "velocity_rtol_global": 1e-10,
+    "field_rtol_global": 1e-10,
+    "ledger_roundoff_factor": 1024,
+    "density_roundoff_factor": 256,
+    "time_roundoff_factor": 64,
+    "rationale": {
+      "position": "Existing checkpoint regression budget; 4e-8 of a 25 um cell. Record measured differences and bin-boundary crossings separately.",
+      "velocity": "Existing global proper-velocity regression budget. Mass, charge, weights and identity remain exact.",
+      "fields": "Conservative integration regression budget, not a production solver tolerance. 1e-10 of each global component plus 256 epsilon V_scale/h for derivative cancellation. The corresponding e/m E_error window impulse is reported against the velocity budget.",
+      "ledger": "1024 epsilon times the appropriate full charge/energy scale, rather than relative error of a cancellation residual near zero.",
+      "density": "Validate each CSV against that checkpoint particle deposition; permit only roundoff or particle-bin/slab-boundary changes explained by matched, position-qualified particles. No blanket absolute density threshold.",
+      "time": "64 epsilon times the global clock scale, with a 1e-23 s floor reflecting the existing nonprogress guard. Pairwise clocks/options/counts remain exact."
+    }
+  },
+  "paths": {
+    "baseline": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_baseline",
+    "candidate": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_candidate",
+    "seed": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/valid/seed"
+  },
+  "abi_schema_sha256": "0a9c8e39fb2d5d85770955114c9a9a10fbf0d25b6371d3d2614f8533b19b7f3e",
+  "options": {
+    "all_fields_exact": true,
+    "field_count": 23,
+    "values": {
+      "nx": 2,
+      "ny": 2,
+      "width_m": 0.001,
+      "gap_m": 0.001,
+      "depth_m": 0.025,
+      "lower_potential_V": 0.0,
+      "upper_potential_V": -1000.0,
+      "magnetic_field_T[0]": 0.0,
+      "magnetic_field_T[1]": 0.0,
+      "magnetic_field_T[2]": 0.0,
+      "distributed_fields": 1,
+      "finite_foils": 0,
+      "lower_foil.left_m": 0.0,
+      "lower_foil.right_m": 0.0,
+      "lower_foil.bottom_m": 0.0,
+      "lower_foil.top_m": 0.0,
+      "upper_foil.left_m": 0.0,
+      "upper_foil.right_m": 0.0,
+      "upper_foil.bottom_m": 0.0,
+      "upper_foil.top_m": 0.0,
+      "finite_axial_extent": 0,
+      "short_z_m": -0.0125,
+      "feed_z_m": 0.0125
+    }
+  },
+  "particle_counts": {
+    "seed": 2,
+    "final": 2,
+    "allocated_id_increment": 0,
+    "seed_survivors": 2,
+    "seed_ids_missing_at_final": 0,
+    "new_ids_present_at_final": 0,
+    "inferred_total_removed_count": 0
+  },
+  "particles": {
+    "charge_C": {
+      "count": 2,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 1.602176634e-19,
+      "a_l2": 2.2658199251200743e-19,
+      "b_l2": 2.2658199251200743e-19,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "mass_kg": {
+      "count": 2,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 9.1093837139e-31,
+      "a_l2": 1.2882613993057973e-30,
+      "b_l2": 1.2882613993057973e-30,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "weight": {
+      "count": 2,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 1.0,
+      "a_l2": 1.4142135623730951,
+      "b_l2": 1.4142135623730951,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "position_m": {
+      "count": 6,
+      "linf_absolute": 4.0007060164715114e-16,
+      "l2_absolute": 4.0007060164715114e-16,
+      "rms_absolute": 1.6332813918729858e-16,
+      "reference_linf": 0.00075,
+      "a_l2": 0.0011989578808280965,
+      "b_l2": 0.0011989578808282633,
+      "relative_l2": 3.3368194833564517e-13,
+      "relative_linf_global_scale": 5.334274688628682e-13,
+      "max_difference_index": 0
+    },
+    "position_m_components": [
+      {
+        "count": 2,
+        "linf_absolute": 4.0007060164715114e-16,
+        "l2_absolute": 4.0007060164715114e-16,
+        "rms_absolute": 2.828926353780825e-16,
+        "reference_linf": 0.00075,
+        "a_l2": 0.0009013878188658864,
+        "b_l2": 0.0009013878188661083,
+        "relative_l2": 4.438384824751858e-13,
+        "relative_linf_global_scale": 5.334274688628682e-13,
+        "max_difference_index": 0
+      },
+      {
+        "count": 2,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.00075,
+        "a_l2": 0.0007905694150420948,
+        "b_l2": 0.0007905694150420948,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      },
+      {
+        "count": 2,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    ],
+    "proper_velocity_m_s": {
+      "count": 6,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 0.0,
+      "a_l2": 0.0,
+      "b_l2": 0.0,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "proper_velocity_m_s_components": [
+      {
+        "count": 2,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      },
+      {
+        "count": 2,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      },
+      {
+        "count": 2,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    ]
+  },
+  "raw_diagnostics": {
+    "time_s": {
+      "baseline": 1.001e-09,
+      "candidate": 1.001e-09,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "particle_charge_C": {
+      "baseline": -3.204353268e-19,
+      "candidate": -3.204353268e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "deposited_charge_C": {
+      "baseline": -3.204353268e-19,
+      "candidate": -3.204353268e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "lower_field_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 7.28585579963692e-32
+    },
+    "upper_field_charge_C": {
+      "baseline": 3.204353268e-19,
+      "candidate": 3.204353268e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 7.28585579963692e-32
+    },
+    "gauss_defect_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 7.28585579963692e-32
+    },
+    "particle_charge_defect_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "field_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "particle_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "lower_absorbed_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "upper_absorbed_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "lower_absorbed_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "upper_absorbed_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "lower_injected_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "upper_injected_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "injected_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "authored_charge_C": {
+      "baseline": -3.204353268e-19,
+      "candidate": -3.204353268e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "authored_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "maximum_nodal_continuity_defect_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "escaped_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "escaped_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "short_absorbed_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "short_absorbed_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "axial_escaped_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "poisson_residual_C_per_m": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.6147070410204926e-21
+    }
+  },
+  "seed_to_final_public_ledger_increments": {
+    "time_s": {
+      "baseline": 9.999999999998931e-13,
+      "candidate": 9.999999999998931e-13,
+      "absolute_difference": 0.0,
+      "absolute_limit": 1.4225065569917205e-23
+    },
+    "particle_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "deposited_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "lower_field_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 7.28585579963692e-32
+    },
+    "upper_field_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 7.28585579963692e-32
+    },
+    "gauss_defect_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 7.28585579963692e-32
+    },
+    "particle_charge_defect_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "field_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "particle_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "lower_absorbed_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "upper_absorbed_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "lower_absorbed_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "upper_absorbed_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "lower_injected_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "upper_injected_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "injected_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "authored_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "authored_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "maximum_nodal_continuity_defect_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "escaped_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "escaped_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "short_absorbed_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "short_absorbed_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "axial_escaped_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 2.1857567398910757e-31
+    },
+    "poisson_residual_C_per_m": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.6147070410204926e-21
+    }
+  },
+  "history": {
+    "baseline_rows": 2,
+    "candidate_rows": 2,
+    "common_steps": [
+      0,
+      1
+    ],
+    "baseline_only_steps": [],
+    "candidate_only_steps": [],
+    "baseline_values": [
+      {
+        "time_s": 1e-09,
+        "step": 0.0,
+        "macro_particles": 2.0,
+        "gauss_defect_C": 0.0,
+        "particle_charge_defect_C": 0.0,
+        "nodal_continuity_defect_C": 0.0,
+        "field_energy_J": 0.0,
+        "kinetic_energy_J": 0.0,
+        "source_reservoir_electrons": 0.0,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": 0.0
+      },
+      {
+        "time_s": 1.001e-09,
+        "step": 1.0,
+        "macro_particles": 2.0,
+        "gauss_defect_C": 0.0,
+        "particle_charge_defect_C": 0.0,
+        "nodal_continuity_defect_C": 0.0,
+        "field_energy_J": 0.0,
+        "kinetic_energy_J": 0.0,
+        "source_reservoir_electrons": 0.0,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": 0.0
+      }
+    ],
+    "candidate_values": [
+      {
+        "time_s": 1e-09,
+        "step": 0.0,
+        "macro_particles": 2.0,
+        "gauss_defect_C": 0.0,
+        "particle_charge_defect_C": 0.0,
+        "nodal_continuity_defect_C": 0.0,
+        "field_energy_J": 0.0,
+        "kinetic_energy_J": 0.0,
+        "source_reservoir_electrons": 0.0,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": 0.0
+      },
+      {
+        "time_s": 1.001e-09,
+        "step": 1.0,
+        "macro_particles": 2.0,
+        "gauss_defect_C": 0.0,
+        "particle_charge_defect_C": 0.0,
+        "nodal_continuity_defect_C": 0.0,
+        "field_energy_J": 0.0,
+        "kinetic_energy_J": 0.0,
+        "source_reservoir_electrons": 0.0,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": 0.0
+      }
+    ],
+    "cadence": "wall-clock reports; unmatched intermediate rows validated independently but not compared by interpolation",
+    "endpoint_ledger_increments": {
+      "gauss_defect_C": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      },
+      "particle_charge_defect_C": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      },
+      "nodal_continuity_defect_C": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      },
+      "field_energy_J": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      },
+      "kinetic_energy_J": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      },
+      "short_absorbed_charge_C": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      },
+      "short_absorbed_energy_J": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      },
+      "axial_escaped_charge_C": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      }
+    }
+  },
+  "source_reservoirs": {
+    "all_values_exact": true,
+    "pool_metrics": [
+      {
+        "span": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 0.0,
+          "a_l2": 0.0,
+          "b_l2": 0.0,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "integral": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 0.0,
+          "a_l2": 0.0,
+          "b_l2": 0.0,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "weighted_temperature": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 0.0,
+          "a_l2": 0.0,
+          "b_l2": 0.0,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        }
+      },
+      {
+        "span": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 0.0,
+          "a_l2": 0.0,
+          "b_l2": 0.0,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "integral": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 0.0,
+          "a_l2": 0.0,
+          "b_l2": 0.0,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "weighted_temperature": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 0.0,
+          "a_l2": 0.0,
+          "b_l2": 0.0,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        }
+      },
+      {
+        "span": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 0.0,
+          "a_l2": 0.0,
+          "b_l2": 0.0,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "integral": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 0.0,
+          "a_l2": 0.0,
+          "b_l2": 0.0,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "weighted_temperature": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 0.0,
+          "a_l2": 0.0,
+          "b_l2": 0.0,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        }
+      },
+      {
+        "span": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 0.0,
+          "a_l2": 0.0,
+          "b_l2": 0.0,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "integral": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 0.0,
+          "a_l2": 0.0,
+          "b_l2": 0.0,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "weighted_temperature": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 0.0,
+          "a_l2": 0.0,
+          "b_l2": 0.0,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        }
+      }
+    ],
+    "pool_lengths": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "baseline_electrons": 0.0,
+    "candidate_electrons": 0.0,
+    "seed_electrons": 0.0
+  },
+  "frame": {
+    "time_s": {
+      "count": 4,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 1.001e-09,
+      "a_l2": 2.002e-09,
+      "b_l2": 2.002e-09,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "x_m": {
+      "count": 4,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 0.00075,
+      "a_l2": 0.001118033988749895,
+      "b_l2": 0.001118033988749895,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "y_m": {
+      "count": 4,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 0.00075,
+      "a_l2": 0.0011180339887498947,
+      "b_l2": 0.0011180339887498947,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "potential_V": {
+      "count": 4,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 750.0,
+      "a_l2": 1118.033988749895,
+      "b_l2": 1118.033988749895,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "Ex_V_m": {
+      "count": 4,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 0.0,
+      "a_l2": 0.0,
+      "b_l2": 0.0,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "Ey_V_m": {
+      "count": 4,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 1000000.0,
+      "a_l2": 2000000.0,
+      "b_l2": 2000000.0,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "electron_density_cm3": {
+      "count": 4,
+      "linf_absolute": 3999.9999999999995,
+      "l2_absolute": 5656.8542494923795,
+      "rms_absolute": 2828.4271247461897,
+      "reference_linf": 3999.9999999999995,
+      "a_l2": 5656.8542494923795,
+      "b_l2": 5656.8542494923795,
+      "relative_l2": 1.0,
+      "relative_linf_global_scale": 1.0,
+      "max_difference_index": 0
+    },
+    "height_average_electron_density_cm3": {
+      "count": 4,
+      "linf_absolute": 160.0,
+      "l2_absolute": 226.27416997969522,
+      "rms_absolute": 113.13708498984761,
+      "reference_linf": 160.0,
+      "a_l2": 226.27416997969522,
+      "b_l2": 226.27416997969522,
+      "relative_l2": 1.0,
+      "relative_linf_global_scale": 1.0,
+      "max_difference_index": 0
+    },
+    "solid": {
+      "count": 4,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 0.0,
+      "a_l2": 0.0,
+      "b_l2": 0.0,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    }
+  },
+  "density_analysis": {
+    "transverse_bin_change_count": 1,
+    "slab_membership_change_count": 0,
+    "transverse_bin_change_ids": [
+      1
+    ],
+    "slab_membership_change_ids": [],
+    "basis": "Each saved density independently reconstructed from its own particles; paired identity/weight/position checks constrain bin changes. Different occupancy bins are not inferred crossing events.",
+    "all_density_components_identical": false
+  },
+  "runtime_residual_guards": {
+    "boundary_baseline": {
+      "rhs_norm": 1.807353520510246e-08,
+      "residual_norm": 0,
+      "guard_limit": 3.6147070410204926e-21,
+      "guard_passed": true,
+      "ndofs": 9,
+      "essential_dofs": 6,
+      "particles": 2,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_baseline/checkpoint_1.bin"
+      ]
+    },
+    "boundary_candidate": {
+      "rhs_norm": 1.807353520510246e-08,
+      "residual_norm": 0,
+      "guard_limit": 3.6147070410204926e-21,
+      "guard_passed": true,
+      "ndofs": 9,
+      "essential_dofs": 6,
+      "particles": 2,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_candidate/checkpoint_1.bin"
+      ]
+    },
+    "seed": {
+      "rhs_norm": 1.8073535204710014e-08,
+      "residual_norm": 0,
+      "guard_limit": 3.614707040942003e-21,
+      "guard_passed": true,
+      "ndofs": 9,
+      "essential_dofs": 6,
+      "particles": 2,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/valid/seed/checkpoint_0.bin"
+      ]
+    }
+  },
+  "field_error_budget_impulse_m_s": 1.7603196685143653e-05,
+  "checks": [
+    {
+      "name": "boundary_baseline.particle_charge_reconstruction",
+      "passed": true,
+      "a": -3.204353268e-19,
+      "b": -3.204353268e-19,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 3.204353268e-19,
+        "a_l2": 3.204353268e-19,
+        "b_l2": 3.204353268e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.deposition_charge",
+      "passed": true,
+      "a": -3.204353268e-19,
+      "b": -3.204353268e-19,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 3.204353268e-19,
+        "a_l2": 3.204353268e-19,
+        "b_l2": 3.204353268e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.gauss_identity",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.poisson_guard",
+      "passed": true,
+      "rhs_norm": 1.807353520510246e-08,
+      "residual_norm": 0,
+      "guard_limit": 3.6147070410204926e-21,
+      "guard_passed": true,
+      "ndofs": 9,
+      "essential_dofs": 6,
+      "particles": 2,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_baseline/checkpoint_1.bin"
+      ]
+    },
+    {
+      "name": "boundary_candidate.particle_charge_reconstruction",
+      "passed": true,
+      "a": -3.204353268e-19,
+      "b": -3.204353268e-19,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 3.204353268e-19,
+        "a_l2": 3.204353268e-19,
+        "b_l2": 3.204353268e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.deposition_charge",
+      "passed": true,
+      "a": -3.204353268e-19,
+      "b": -3.204353268e-19,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 3.204353268e-19,
+        "a_l2": 3.204353268e-19,
+        "b_l2": 3.204353268e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.gauss_identity",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.poisson_guard",
+      "passed": true,
+      "rhs_norm": 1.807353520510246e-08,
+      "residual_norm": 0,
+      "guard_limit": 3.6147070410204926e-21,
+      "guard_passed": true,
+      "ndofs": 9,
+      "essential_dofs": 6,
+      "particles": 2,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_candidate/checkpoint_1.bin"
+      ]
+    },
+    {
+      "name": "seed.particle_charge_reconstruction",
+      "passed": true,
+      "a": -3.204353268e-19,
+      "b": -3.204353268e-19,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 3.204353268e-19,
+        "a_l2": 3.204353268e-19,
+        "b_l2": 3.204353268e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed.deposition_charge",
+      "passed": true,
+      "a": -3.204353268e-19,
+      "b": -3.204353268e-19,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 3.204353268e-19,
+        "a_l2": 3.204353268e-19,
+        "b_l2": 3.204353268e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed.gauss_identity",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed.poisson_guard",
+      "passed": true,
+      "rhs_norm": 1.8073535204710014e-08,
+      "residual_norm": 0,
+      "guard_limit": 3.614707040942003e-21,
+      "guard_passed": true,
+      "ndofs": 9,
+      "essential_dofs": 6,
+      "particles": 2,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/valid/seed/checkpoint_0.bin"
+      ]
+    },
+    {
+      "name": "boundary_baseline.seed_global_clock",
+      "passed": true,
+      "a": 1e-09,
+      "b": 1e-09,
+      "absolute_limit": 1.4225065569917205e-23,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1e-09,
+        "a_l2": 1e-09,
+        "b_l2": 1e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.final_global_clock",
+      "passed": true,
+      "a": 1.001e-09,
+      "b": 1.001e-09,
+      "absolute_limit": 1.4225065569917205e-23,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.001e-09,
+        "a_l2": 1.001e-09,
+        "b_l2": 1.001e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.progress_clock",
+      "passed": true,
+      "a": 1.001e-09,
+      "b": 1.001e-09,
+      "absolute_limit": 1.4225065569917205e-23,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.001e-09,
+        "a_l2": 1.001e-09,
+        "b_l2": 1.001e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.requested_clock",
+      "passed": true,
+      "a": 1.001e-09,
+      "b": 1.001e-09,
+      "absolute_limit": 1.4225065569917205e-23,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.001e-09,
+        "a_l2": 1.001e-09,
+        "b_l2": 1.001e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.window",
+      "passed": true,
+      "a": 9.999999999998931e-13,
+      "b": 1e-12,
+      "absolute_limit": 1.4225065569917205e-23,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.068306992286503e-25,
+        "l2_absolute": 1.068306992286503e-25,
+        "rms_absolute": 1.068306992286503e-25,
+        "reference_linf": 1e-12,
+        "a_l2": 9.999999999998931e-13,
+        "b_l2": 1e-12,
+        "relative_l2": 1.068306992286503e-13,
+        "relative_linf_global_scale": 1.068306992286503e-13,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "boundary_baseline.history_final.gauss_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_seed.gauss_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_final.particle_charge_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_seed.particle_charge_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_final.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_seed.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_final.field_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_seed.field_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_final.kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_seed.kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_final.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_seed.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_final.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_seed.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_final.axial_escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.history_seed.axial_escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.reservoir_final",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 5.684341886080802e-14,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.reservoir_initial",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 5.684341886080802e-14,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.progress_reservoir",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 5.684341886080802e-14,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.seed_global_clock",
+      "passed": true,
+      "a": 1e-09,
+      "b": 1e-09,
+      "absolute_limit": 1.4225065569917205e-23,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1e-09,
+        "a_l2": 1e-09,
+        "b_l2": 1e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.final_global_clock",
+      "passed": true,
+      "a": 1.001e-09,
+      "b": 1.001e-09,
+      "absolute_limit": 1.4225065569917205e-23,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.001e-09,
+        "a_l2": 1.001e-09,
+        "b_l2": 1.001e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.progress_clock",
+      "passed": true,
+      "a": 1.001e-09,
+      "b": 1.001e-09,
+      "absolute_limit": 1.4225065569917205e-23,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.001e-09,
+        "a_l2": 1.001e-09,
+        "b_l2": 1.001e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.requested_clock",
+      "passed": true,
+      "a": 1.001e-09,
+      "b": 1.001e-09,
+      "absolute_limit": 1.4225065569917205e-23,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.001e-09,
+        "a_l2": 1.001e-09,
+        "b_l2": 1.001e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.window",
+      "passed": true,
+      "a": 9.999999999998931e-13,
+      "b": 1e-12,
+      "absolute_limit": 1.4225065569917205e-23,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.068306992286503e-25,
+        "l2_absolute": 1.068306992286503e-25,
+        "rms_absolute": 1.068306992286503e-25,
+        "reference_linf": 1e-12,
+        "a_l2": 9.999999999998931e-13,
+        "b_l2": 1e-12,
+        "relative_l2": 1.068306992286503e-13,
+        "relative_linf_global_scale": 1.068306992286503e-13,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "boundary_candidate.history_final.gauss_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_seed.gauss_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_final.particle_charge_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_seed.particle_charge_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_final.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_seed.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_final.field_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_seed.field_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_final.kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_seed.kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_final.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_seed.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_final.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_seed.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_final.axial_escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.history_seed.axial_escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.reservoir_final",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 5.684341886080802e-14,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.reservoir_initial",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 5.684341886080802e-14,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.progress_reservoir",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 5.684341886080802e-14,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "particles.charge_C",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 2,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.602176634e-19,
+        "a_l2": 2.2658199251200743e-19,
+        "b_l2": 2.2658199251200743e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "particles.mass_kg",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 2,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 9.1093837139e-31,
+        "a_l2": 1.2882613993057973e-30,
+        "b_l2": 1.2882613993057973e-30,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "particles.weight",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 2,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.0,
+        "a_l2": 1.4142135623730951,
+        "b_l2": 1.4142135623730951,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "particles.position_m",
+      "passed": true,
+      "absolute_limit": 1e-12,
+      "metrics": {
+        "count": 6,
+        "linf_absolute": 4.0007060164715114e-16,
+        "l2_absolute": 4.0007060164715114e-16,
+        "rms_absolute": 1.6332813918729858e-16,
+        "reference_linf": 0.00075,
+        "a_l2": 0.0011989578808280965,
+        "b_l2": 0.0011989578808282633,
+        "relative_l2": 3.3368194833564517e-13,
+        "relative_linf_global_scale": 5.334274688628682e-13,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "particles.proper_velocity_m_s",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 6,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.time_s",
+      "passed": true,
+      "a": 1.001e-09,
+      "b": 1.001e-09,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.001e-09,
+        "a_l2": 1.001e-09,
+        "b_l2": 1.001e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.time_s",
+      "passed": true,
+      "a": 9.999999999998931e-13,
+      "b": 9.999999999998931e-13,
+      "absolute_limit": 1.4225065569917205e-23,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 9.999999999998931e-13,
+        "a_l2": 9.999999999998931e-13,
+        "b_l2": 9.999999999998931e-13,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.particle_charge_C",
+      "passed": true,
+      "a": -3.204353268e-19,
+      "b": -3.204353268e-19,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 3.204353268e-19,
+        "a_l2": 3.204353268e-19,
+        "b_l2": 3.204353268e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.particle_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.deposited_charge_C",
+      "passed": true,
+      "a": -3.204353268e-19,
+      "b": -3.204353268e-19,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 3.204353268e-19,
+        "a_l2": 3.204353268e-19,
+        "b_l2": 3.204353268e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.deposited_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.lower_field_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.lower_field_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.upper_field_charge_C",
+      "passed": true,
+      "a": 3.204353268e-19,
+      "b": 3.204353268e-19,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 3.204353268e-19,
+        "a_l2": 3.204353268e-19,
+        "b_l2": 3.204353268e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.upper_field_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.gauss_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.gauss_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.particle_charge_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.particle_charge_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.field_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.field_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.particle_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.particle_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.lower_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.lower_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.upper_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.upper_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.lower_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.lower_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.upper_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.upper_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.lower_injected_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.lower_injected_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.upper_injected_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.upper_injected_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.injected_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.injected_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.authored_charge_C",
+      "passed": true,
+      "a": -3.204353268e-19,
+      "b": -3.204353268e-19,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 3.204353268e-19,
+        "a_l2": 3.204353268e-19,
+        "b_l2": 3.204353268e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.authored_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.authored_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.authored_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.maximum_nodal_continuity_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.maximum_nodal_continuity_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.escaped_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.escaped_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.axial_escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.axial_escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.poisson_residual_C_per_m",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.6147070410204926e-21,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.poisson_residual_C_per_m",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.6147070410204926e-21,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.0.time_s",
+      "passed": true,
+      "a": 1e-09,
+      "b": 1e-09,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1e-09,
+        "a_l2": 1e-09,
+        "b_l2": 1e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.0.step",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.0.macro_particles",
+      "passed": true,
+      "a": 2.0,
+      "b": 2.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.0,
+        "a_l2": 2.0,
+        "b_l2": 2.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.0.gauss_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.0.particle_charge_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.0.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.0.field_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.0.kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.0.source_reservoir_electrons",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.0.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.0.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.0.axial_escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.1.time_s",
+      "passed": true,
+      "a": 1.001e-09,
+      "b": 1.001e-09,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.001e-09,
+        "a_l2": 1.001e-09,
+        "b_l2": 1.001e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.1.step",
+      "passed": true,
+      "a": 1.0,
+      "b": 1.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.0,
+        "a_l2": 1.0,
+        "b_l2": 1.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.1.macro_particles",
+      "passed": true,
+      "a": 2.0,
+      "b": 2.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.0,
+        "a_l2": 2.0,
+        "b_l2": 2.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.1.gauss_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 7.28585579963692e-32,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.1.particle_charge_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.1.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.1.field_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.1.kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.1.source_reservoir_electrons",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.1.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.1.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.1.axial_escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 2.1857567398910757e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.gauss_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 1.457171159927384e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.particle_charge_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 4.3715134797821515e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 4.3715134797821515e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.field_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 4.3715134797821515e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.axial_escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 4.3715134797821515e-31,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.frame_clock",
+      "passed": true,
+      "a": 1.001e-09,
+      "b": 1.001e-09,
+      "absolute_limit": 1.4225065569917205e-23,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.001e-09,
+        "a_l2": 1.001e-09,
+        "b_l2": 1.001e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.frame_reconstruction.height_average_electron_density_cm3",
+      "passed": true,
+      "absolute_limit": 9.094947017729282e-12,
+      "one_electron_density_cm3": 160.0,
+      "metrics": {
+        "count": 4,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 160.0,
+        "a_l2": 226.27416997969522,
+        "b_l2": 226.27416997969522,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.integrated_density_count.height_average_electron_density_cm3",
+      "passed": true,
+      "a": 2.0000000000000004,
+      "b": 2.0,
+      "absolute_limit": 4.547473508864641e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 4.440892098500626e-16,
+        "l2_absolute": 4.440892098500626e-16,
+        "rms_absolute": 4.440892098500626e-16,
+        "reference_linf": 2.0000000000000004,
+        "a_l2": 2.0000000000000004,
+        "b_l2": 2.0,
+        "relative_l2": 2.2204460492503126e-16,
+        "relative_linf_global_scale": 2.2204460492503126e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "boundary_baseline.frame_reconstruction.electron_density_cm3",
+      "passed": true,
+      "absolute_limit": 2.2737367544323206e-10,
+      "one_electron_density_cm3": 4000.0,
+      "metrics": {
+        "count": 4,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 3999.9999999999995,
+        "a_l2": 5656.8542494923795,
+        "b_l2": 5656.8542494923795,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_baseline.integrated_density_count.electron_density_cm3",
+      "passed": true,
+      "a": 1.9999999999999996,
+      "b": 2.0,
+      "absolute_limit": 4.547473508864641e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 4.440892098500626e-16,
+        "l2_absolute": 4.440892098500626e-16,
+        "rms_absolute": 4.440892098500626e-16,
+        "reference_linf": 2.0,
+        "a_l2": 1.9999999999999996,
+        "b_l2": 2.0,
+        "relative_l2": 2.220446049250313e-16,
+        "relative_linf_global_scale": 2.220446049250313e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "boundary_candidate.frame_clock",
+      "passed": true,
+      "a": 1.001e-09,
+      "b": 1.001e-09,
+      "absolute_limit": 1.4225065569917205e-23,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.001e-09,
+        "a_l2": 1.001e-09,
+        "b_l2": 1.001e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.frame_reconstruction.height_average_electron_density_cm3",
+      "passed": true,
+      "absolute_limit": 9.094947017729282e-12,
+      "one_electron_density_cm3": 160.0,
+      "metrics": {
+        "count": 4,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 160.0,
+        "a_l2": 226.27416997969522,
+        "b_l2": 226.27416997969522,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.integrated_density_count.height_average_electron_density_cm3",
+      "passed": true,
+      "a": 2.0000000000000004,
+      "b": 2.0,
+      "absolute_limit": 4.547473508864641e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 4.440892098500626e-16,
+        "l2_absolute": 4.440892098500626e-16,
+        "rms_absolute": 4.440892098500626e-16,
+        "reference_linf": 2.0000000000000004,
+        "a_l2": 2.0000000000000004,
+        "b_l2": 2.0,
+        "relative_l2": 2.2204460492503126e-16,
+        "relative_linf_global_scale": 2.2204460492503126e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "boundary_candidate.frame_reconstruction.electron_density_cm3",
+      "passed": true,
+      "absolute_limit": 2.2737367544323206e-10,
+      "one_electron_density_cm3": 4000.0,
+      "metrics": {
+        "count": 4,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 3999.9999999999995,
+        "a_l2": 5656.8542494923795,
+        "b_l2": 5656.8542494923795,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "boundary_candidate.integrated_density_count.electron_density_cm3",
+      "passed": true,
+      "a": 1.9999999999999996,
+      "b": 2.0,
+      "absolute_limit": 4.547473508864641e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 4.440892098500626e-16,
+        "l2_absolute": 4.440892098500626e-16,
+        "rms_absolute": 4.440892098500626e-16,
+        "reference_linf": 2.0,
+        "a_l2": 1.9999999999999996,
+        "b_l2": 2.0,
+        "relative_l2": 2.220446049250313e-16,
+        "relative_linf_global_scale": 2.220446049250313e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "frame.time_s",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 4,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.001e-09,
+        "a_l2": 2.002e-09,
+        "b_l2": 2.002e-09,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "frame.x_m",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 4,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.00075,
+        "a_l2": 0.001118033988749895,
+        "b_l2": 0.001118033988749895,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "frame.y_m",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 4,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.00075,
+        "a_l2": 0.0011180339887498947,
+        "b_l2": 0.0011180339887498947,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "frame.potential_V",
+      "passed": true,
+      "absolute_limit": 7.50426325641456e-08,
+      "roundoff_floor": 4.263256414560601e-11,
+      "metrics": {
+        "count": 4,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 750.0,
+        "a_l2": 1118.033988749895,
+        "b_l2": 1118.033988749895,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "frame.Ex_V_m",
+      "passed": true,
+      "absolute_limit": 8.526512829121202e-08,
+      "roundoff_floor": 8.526512829121202e-08,
+      "metrics": {
+        "count": 4,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "frame.Ey_V_m",
+      "passed": true,
+      "absolute_limit": 0.00010008526512829122,
+      "roundoff_floor": 8.526512829121202e-08,
+      "metrics": {
+        "count": 4,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1000000.0,
+        "a_l2": 2000000.0,
+        "b_l2": 2000000.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "frame.solid",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 4,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    }
+  ],
+  "failures": [],
+  "input_manifest": [
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_baseline/checkpoint_1.bin",
+      "sha256": "aee528611c87956de70a2fb7c58226eb7fd6f29602193a5cb6ae6809e675daff"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_baseline/frame_0.csv",
+      "sha256": "ded5c4cd24f3276934f4edf4613330e66861497c390c761db064fb2576d90e16"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_baseline/history.csv",
+      "sha256": "3bad17d52867362fc26b616760e731bf56de9c1a24f54fa73d87b0d7af214f64"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_baseline/parallel_execution.json",
+      "sha256": "44af8f35a6aff3036ff4dd67249ad49ecbf32f1c5c3e23e6bdc985107afad101"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_baseline/progress.json",
+      "sha256": "52e4c6b53119ac8c494d84887ab7cd7d69978135af2bf5d47d4ad87e85e2d156"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_baseline/restart.meta",
+      "sha256": "e80f31787f4646d76674052b675405dbdec18ede55b65f029d9b9a7be2c7cfde"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_baseline/run-receipt.json",
+      "sha256": "a99fb1aaee340f427140d7004e17c46d1cc278a97f04d7bb5baff201bb915cdf"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_baseline/scope.json",
+      "sha256": "8f05b4a63be94e725bbacf420e410e80550a0bbd710b8f6a9b61b87b27b69bca"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_baseline/seed.json",
+      "sha256": "7fd1ba4ffa74e8c1d66cf7ad3f9b822eb7476b3bc0acea194f8fae1fd42938e6"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_candidate/checkpoint_1.bin",
+      "sha256": "c96419b749bff764bef2f0b48ed360bf836b762b2972332ba387391f2313f421"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_candidate/frame_0.csv",
+      "sha256": "62850c7e7d4b1d6cf653f008e68bed4ead949174a928dc00b7af3897df2e2539"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_candidate/history.csv",
+      "sha256": "3bad17d52867362fc26b616760e731bf56de9c1a24f54fa73d87b0d7af214f64"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_candidate/parallel_execution.json",
+      "sha256": "44af8f35a6aff3036ff4dd67249ad49ecbf32f1c5c3e23e6bdc985107afad101"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_candidate/progress.json",
+      "sha256": "52e4c6b53119ac8c494d84887ab7cd7d69978135af2bf5d47d4ad87e85e2d156"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_candidate/restart.meta",
+      "sha256": "e80f31787f4646d76674052b675405dbdec18ede55b65f029d9b9a7be2c7cfde"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_candidate/run-receipt.json",
+      "sha256": "a99fb1aaee340f427140d7004e17c46d1cc278a97f04d7bb5baff201bb915cdf"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_candidate/scope.json",
+      "sha256": "8f05b4a63be94e725bbacf420e410e80550a0bbd710b8f6a9b61b87b27b69bca"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/boundary_candidate/seed.json",
+      "sha256": "7fd1ba4ffa74e8c1d66cf7ad3f9b822eb7476b3bc0acea194f8fae1fd42938e6"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/valid/seed/checkpoint_0.bin",
+      "sha256": "244b43d1c554f234ac505c8a52648216643175fe7ca281caa4a6cb2f4edb8ba4"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/valid/seed/history.csv",
+      "sha256": "03613f21e986195419d65a0cdb83e36e49bb3a650a4e9d97fa2449563ccfcca9"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/valid/seed/restart.meta",
+      "sha256": "1669d513bb6f90f0a2c69c8bd6df265fd5ce5c5b6332d831c6e767dfb44a59e5"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/fixtures-e94fbfd2/valid/seed/seed.json",
+      "sha256": "7fd1ba4ffa74e8c1d66cf7ad3f9b822eb7476b3bc0acea194f8fae1fd42938e6"
+    }
+  ],
+  "limits": [
+    "Checkpoint has no nodal potential or crossing-event log; field comparison is limited to final saved CSV cell centers.",
+    "Only matching history steps are compared; no unrecorded intermediate state is inferred.",
+    "Saved residual norms are checked against CPU-reconstructed RHS guards; residual error vectors and solver maximum-relative history are not saved.",
+    "This is a short-window integration regression comparison, not physical, grid or timestep convergence."
+  ]
+}

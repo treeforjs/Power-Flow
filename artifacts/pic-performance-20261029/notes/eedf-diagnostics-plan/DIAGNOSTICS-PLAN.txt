@@ -1,0 +1,122 @@
+EEDF, spatial occupancy, crossing flux and H2O coupling: diagnostics plan
+
+Decision
+Existing checkpoints support weighted instantaneous electron energy and angular OCCUPANCY maps. Existing field/density CSVs and cumulative wall ledgers do not provide energy-resolved crossing flux. Keep those observables distinct. The isolated snapshot_occupancy.py demonstrates the occupancy calculation with finite/normalization fixtures; it computes no crossing flux, residence-time average, fragmentation rate or ion evolution. No production or candidate source was changed.
+
+Existing data and their limits
+1. seed-current/checkpoint_403642.bin, baseline-cpu6-run1/checkpoint_403852.bin and cpu-candidate-cpu6-run1/checkpoint_403852.bin contain particle IDs, x/y/z, proper velocity u=gamma*v, single-particle charge and mass, and represented-particle weight. Options give geometry/extrusion; metadata and progress/seed records supply the absolute clock. These are sufficient for weighted local kinetic-energy histograms, spatial moments and global-axis angular occupancy at those saved times.
+2. The seed is at 26.317150539561544 ns and the two replay finals share 26.318150539561545 ns. The finals are paired numerical realizations of the SAME physical endpoint, not independent samples or extra time. Do not concatenate replay copies into a time average or an independent-sample confidence interval.
+3. particle-audit/copied-checkpoint/checkpoint_400040.bin is another saved phase-space state. Its existing inventory reports absolute time 26.29994633716247 ns, 28098 macros and about 879.33 represented electrons. Its binary format also supports an occupancy EEDF, but the standalone copy needs its documented origin/provenance adapter rather than an invented timestamp. That older state was not added to the new three-input demo.
+4. frame_*.csv contains cell-center potential, Ex, Ey, solid markers, a strict 1 mm slab density and a 25 mm height average. It contains no velocity or energy distribution. history.csv contains sparse wall-clock reports and global moments, not per-step phase space or arrival spectra. A mean energy cannot reconstruct an EEDF.
+5. save_checkpoint writes only the latest options, raw ledger, next ID and active particles; the main program removes the previous checkpoint at each save. The retained field frames do not imply retained particle snapshots at every frame time. Save/version phase-space diagnostic samples explicitly before claiming a time-resolved EEDF history.
+6. No per-particle birth time, electrode/face/patch, source-event ID, thermal state, initial momentum, parent IDs, species tag or collision history is saved. Current source reservoirs preserve aggregate pending supply and weighted temperature, not individual birth provenance. An ID at or above the seed next-ID identifies a newly allocated particle in that branch; it does not recover its source face/time or the trajectory of a particle already removed.
+7. Absorbed/escaped ledgers contain cumulative signed charge and energy. They cannot reconstruct arrival energy/angle/time/position/surface histograms. Axial escape is a SUBSET of total escape and must not be added again. Source code has Q1 path-integrated edge-charge transfers in memory for the last advance, but they are not serialized here; these shape-weighted currents are not point-particle crossing counts.
+8. options.magnetic_field_T is not the full imposed B used by the external callback. The native magnetic field is reconstructed from time-interpolated Az inputs and overrides the option field. Checkpoints and final CSVs therefore support global-axis momentum angles, but not a verified pitch angle to the actual local B without separately reconstructing and binding those inputs.
+
+Definitions and units
+Particle weight w is the represented number of physical particles; q and m remain single-particle values. Current weights are around 0.0313 electrons per macro, so a macro is not an integer electron or a direct physical shot-noise sample.
+
+For each particle:
+    gamma = sqrt(1 + |u|^2/c^2)
+    v_m/s = u/gamma
+    K_J = m|u|^2/(gamma+1) = (gamma-1)mc^2
+    K_eV = K_J / 1.602176634e-19
+Use the stable first form for low-energy particles. Do not treat proper velocity as physical velocity, use a nonrelativistic energy formula indiscriminately, or substitute |q phi| for kinetic energy. Multiply K by w once when summing represented energy.
+
+For spatial volume V_cm3 and finite energy bin width DeltaE_eV:
+    dn/dE = sum(w in bin)/(V_cm3 DeltaE_eV)            [cm^-3 eV^-1]
+    P_E = sum(w in bin)/(sum(w in region) DeltaE_eV)  [eV^-1]
+P_E integrates to one only when finite bins cover all represented weight; dn/dE integrates to the number density. Do not confuse this number-normalized energy PDF with an EEPF convention proportional to P_E/sqrt(E), or with a velocity-space distribution. State the convention in every artifact.
+
+Use fixed physical regions/coarse bins first, retain the original 25 um map as a separate view, and record sum(w), sum(w^2), macro count, weighted K and N_eff=(sum w)^2/sum(w^2). N_eff describes numerical weight concentration; correlated orbits and repeated snapshots do not become independent samples. Empty-region P_E and mean energy are undefined, while its density is zero. Report energy overflow with its weight/energy; never silently drop a tail or normalize a truncated histogram to one.
+
+The demo uses a 9x9 map, 0.25 eV bins from 0 to 20 eV, then wider explicit bins through 1 MeV; these are exploratory display bins, not a qualified chemistry quadrature. Resolve each selected channel threshold/resonance with that channel data grid and demonstrate bin refinement before rate use. Raw weighted energy per bin is retained, so energy closure uses the actual moment rather than bin centers.
+
+Volumes and the numerical midpoint slab
+The full domain is 9x9x25 mm; nominal volume is 2.025 cm3. The midpoint sample is |z|<0.5 mm, volume 0.081 cm3 before conductor subtraction. It is a finite numerical slab centered on z=0, not a pointwise two-dimensional density. The full-height average divides all represented particles by the 25 mm extrusion. Changing slab depth changes the observable and must not be used to conceal sampling noise.
+
+Legacy CSV densities use nominal Cartesian cell volumes. For coarse chemistry regions partly occupied by conductors, distinguish that nominal volume from actual vacuum/gas volume. The demo reports both normalizations and subtracts the two extruded foil rectangles geometrically. Fully solid bins have undefined vacuum density; boundary-assigned particles in a zero-vacuum bin are flagged rather than divided by zero. A neutral map must be zero in solid material and consistently averaged or integrated over the gas volume.
+
+Angular occupancy and crossing flux
+Use mu=cos(theta) and phi with an explicit reference axis/frame. Uniform mu/phi bins have DeltaOmega=DeltaMu DeltaPhi. An occupancy angular density is sum(w)/(V DeltaOmega), or jointly sum(w)/(V DeltaE DeltaOmega). A zero-speed particle has no direction: retain its weight separately rather than assigning an arbitrary angle. The demo uses global +z and retains stationary weight; it does not report wall incidence or local-B pitch.
+
+For a detector/surface area A_cm2 and physical interval DeltaT_s:
+    Gamma_plus/minus = sum(w of measured +/- crossing events)/(A_cm2 DeltaT_s)
+                                                              [cm^-2 s^-1]
+    dGamma/(dE dOmega) = sum(w)/(A_cm2 DeltaT_s DeltaE DeltaOmega)
+                                               [cm^-2 s^-1 eV^-1 sr^-1]
+Charge current density is sum(q w)/(A DeltaT), in A/cm2, with a stated normal. Keep positive/negative directions separate; signed net flux can hide large bidirectional traffic. Count every actual recrossing, with an unambiguous endpoint rule such as t in (t_start,t_end]. For moving detectors, use the appropriate relative normal velocity and area-time exposure.
+
+A local velocity moment n<max(v dot n,0)> can be estimated from a sufficiently resolved occupancy distribution, but it is not a recorded event count or a measured wall-arrival spectrum. This diagnostic does not compute or label that estimate as crossing flux. Two saved positions do not resolve gyro-orbit recrossings, injection, removal or intervening acceleration. Do not infer those unrecorded events or add an ad hoc 1/v correction to an occupancy histogram.
+
+For future validation, an isotropic monoenergetic distribution has occupancy dN/dOmega constant but one-sided plane flux Gamma=n v/4; its conditional crossing mu distribution is 2 mu on [0,1]. That is a useful analytic fixture for the future event counter, not a claim that this driven population is isotropic or thermal. A thermal flux-weighted source and a volume occupancy distribution have different energy weighting; do not assign either source law to the transported EEDF.
+
+Time averages and residence weighting
+One checkpoint is instantaneous occupancy. A physical-time average requires a declared interval, actual accepted times, adequate sampling and weights proportional to physical DeltaT, not the number of adaptive steps or wall-clock progress rows. For a residence accumulator:
+    average dn/dE = sum(w DeltaT_in_region_energy_bin)/(V DeltaT_window DeltaE)
+Split path segments at region/detector boundaries if exact residence accounting is needed. If endpoint histograms are sampled sparsely, label trapezoidal/time-quadrature averages as approximate and test cadence convergence. Do not count restart duplicate endpoints twice. Do not interpret transient midpoint-position/pre- or post-kick momentum combinations as a full-time state without an explicit integrator-phase convention.
+
+Minimal future diagnostics in an isolated candidate
+A. Window metadata and occupancy aggregates:
+- Versioned schema, run/branch ID, parent checkpoint/input/source hashes, restart epoch, coordinate frame, absolute start/end clocks, accepted-step range, integrator phase, actual accumulated duration, spatial/energy/angular edges, selection slab and nominal/vacuum volumes.
+- Per species/region/bin: macro count, sum(w), sum(w^2), sum(q w), sum(K_J w), stationary and overflow weight/energy, and explicit incomplete-coverage flags. Start with coarse regional accumulators; avoid per-step allocation or full trajectory dumps. Measure diagnostic overhead before choosing cadence.
+B. Birth records:
+- Run/epoch/particle ID and unique source-event ID; creation time/step/substep/phase; electrode and geometric face/patch; position and proper velocity; q,m,w; source law/version and actual T/current-density/seed or counter; reservoir integration window and released weight/energy.
+- Reservoir integration time is not the individual physical emission time. Record delayed creation as such; do not fabricate earlier birth times from the pool span. Keep an ID-to-birth mapping for active particles and a committed event offset for restart.
+C. Crossing/sink records or conservative aggregates:
+- Detector ID and geometric area, event time/position, direction/normal, particle/species/birth ID, proper velocity and K, w,q; electrode face vs outer side vs feed vs short; actual integrator segment and any grazing/corner tie convention.
+- Instrument the existing drift segments before a particle is removed, including the two half drifts around the Boris kick. Preserve current hit order, absorption, reflection and timestep rules. Source injection on a detector plane is a separate birth/source term, not a spurious zero-time crossing.
+- Prefer preallocated weighted histograms/counters per window; if raw events are sampled, record inclusion probabilities and keep full conservative totals. Dropped/partial event coverage must disable complete-flux claims.
+D. Restart discipline:
+- Commit diagnostic counters/window exposure, last event ID and log offsets alongside a checkpoint or a bound sidecar. Resume must not duplicate or lose events. Branch IDs prevent replay copies with the same particle IDs from becoming accidental independent samples.
+
+H2O fragmentation: what is still needed
+Decide whether H2O is a gas, adsorbate, liquid/ice or another target before choosing a model. The current thermal-electron/metal-foil model contains no H2O density, molecular-state distribution, neutral transport, collision or ion model. A gas reaction rate needs n_H2O(x,y,z,t), gas temperature/drift and internal-state assumptions, plus process-resolved cross sections and product branching/energy/angular distributions with units, references, hashes and valid energy range. A surface-fragment yield needs incident crossing flux and a target/material/coverage-dependent yield or compatible surface model; a gas-phase ionization cross section is not that yield.
+
+For stationary, isotropic gas targets, a proposed postprocessing estimate is:
+    R_c = n_H2O * integral[(dn_e/dE) sigma_c(E) v_rel(E) dE]  [cm^-3 s^-1]
+with sigma in cm2, v in cm/s, E in eV. Dividing by n_e gives a rate coefficient in cm3/s. For moving/thermal targets or orientation effects, use the appropriate relative-frame distribution; a lab energy marginal alone can be insufficient. This formula is a proposed estimator, not a rate calculated here. Unknown/out-of-range cross-section coverage is missing information, not zero cross section.
+
+Only if reaction probabilities and feedback are demonstrated negligible can collisionless occupancy provide a passive, dilute-target estimate. Substantial fragmentation, attachment, ionization, neutral depletion, secondary electrons or ion space charge changes the electron distribution and requires coupled evolution rather than a post hoc yield asserted as a prediction.
+
+Primary-source checks, accessed 2026-10-29
+- NIST Chemistry WebBook reports an evaluated gas-phase H2O ionization energy of 12.621 +/- 0.002 eV. This is not a universal fragmentation threshold, channel yield or cross section. [NIST water ion energetics](https://webbook.nist.gov/cgi/cbook.cgi?ID=C7732185&Mask=20)
+- Itikawa and Mason review electron-water scattering, excitation, attachment, ionization and dissociation with process-specific recommended data. Treat it as a provenance starting reference and check newer/channel-specific data before adoption; no numeric channel set is installed here. [Original review, DOI 10.1063/1.1799251](https://pubs.aip.org/aip/jpr/article-abstract/34/1/1/242075/Cross-Sections-for-Electron-Collisions-with-Water?redirectedFrom=PDF)
+- NIST BEB supplies total ionization information, not a complete water-fragment branching/secondary-angle model. NIST describes its ordinary BEB model as nonrelativistic and excludes incident energies above 10 keV; the stated typical accuracy range is chiefly through about 1 keV. Track energy coverage explicitly, including future harder tails. [NIST model scope](https://physics.nist.gov/PhysRefData/Ionization/intro.html), [H2O target](https://physics.nist.gov/cgi-bin/Ionization/table.pl?ionization=H2O)
+
+Conservative path to joint electron/ion evolution
+Use explicit species IDs, charge states, physical masses and weighted parent/product identities. Example stoichiometries for bookkeeping only are neutral dissociation (e+H2O -> e+OH+H), ionization (e+H2O -> 2e+H2O+), dissociative ionization (e+H2O -> 2e+OH+ + H), and attachment (e+H2O -> H- + OH). A validated channel set must specify actual electronic/internal product states, thresholds and branching; these examples do not assign probabilities.
+
+For every reaction, check weighted charge, H/O nuclei and total energy including target recoil, internal/chemical energy and all electron/ion/neutral products or explicitly tracked baths. Electron number is not conserved by ionization or attachment; use species source terms DeltaN_s=sum(nu_s,c W_c). Product weights must represent the same physical reaction extent as the consumed reactants; arbitrary rounding/resampling must not create charge or atoms. Log momentum exchange with a neutral reservoir if it is not dynamically tracked.
+
+Deposit total charge sum_s q_s w_s through the same spatial basis. A local ion/electron pair creation should cancel its charge source locally to roundoff; test nodal continuity with reaction/source terms and the unchanged Poisson guard. Q1 shape-weighted edge currents must be checked against the matching nodal continuity equation, not equated blindly to point-particle detector crossings. For a geometric control volume, measured point crossings must close the corresponding weighted point-occupancy balance plus births/reactions/sinks.
+
+Keep separate weighted species number/charge/kinetic energy, reaction extents and chemical-energy changes, injected/absorbed/escaped terms, and external/electrode work. The current imposed voltage/inductive fields and sources/sinks mean field energy plus particle energy is not constant; no complete external/boundary-work ledger is saved. Do not hide a particle-energy error under the much larger imposed field-energy scale, or claim a zero total-energy defect from current history.csv.
+
+Before ions/collisions become active, qualify multispecies plasma/gyro/transport/collision time constraints and reaction splitting, preserve the existing electron stability constraints, and validate deposition, pair production, sinks, restart and analytic homogeneous cases. Ion subcycling would need a separately conservative current/deposition strategy; it is not authorized or implemented here. Poisson remains a 2D height average with imposed axial fields unless a separately qualified model replaces it.
+
+Acceptance checks for the next isolated instrumentation stage
+- Sum of histogram weight equals selected represented count; sum of energy moments equals selected relativistic kinetic energy. Angular weight plus stationary weight closes the same count. Include all overflow and zero-density regions.
+- Time-window exposures sum to the accepted physical duration, independent of adaptive steps, I/O cadence and restarts.
+- Straight-path event fixtures check both directions, recrossings, grazing/corner rules, injection on planes, absorption before a detector, half-drift boundaries and restart replay with no double counting. Angular/flux analytic fixtures distinguish isotropic occupancy from cosine-weighted crossing traffic.
+- Summed surface event charge/energy matches increments of the existing appropriate sink ledger. Do not add axial escape twice. Closed-volume point balance and Q1 nodal continuity each use their own consistent charge representation.
+- Reaction fixtures check weighted charge/nuclei, product energies/angles, species increments and reaction energy thresholds, followed by coupled-field and cadence/bin/timestep convergence with all original guards intact.
+
+Current model limitations
+The run uses collisionless 2D height-averaged Poisson with 3D trajectories, finite axial bounds/short/feed sinks, a prescribed axial voltage profile, coarse prescribed native magnetic/inductive fields, conditional midplane pulse and mirrored lower thermal reconstruction. It has no H2O, neutral/ion feedback, phase change, gas collisions or resolved full 3D field fringing. Physical, sheath/grid and timestep convergence have not been established. Diagnostics improve observability; they do not remove these approximations.
+
+Audit demo results and direct use
+The seed and early paired finals have finite, fully covered energy histograms with no energy overflow. The final full-height sample contains29613 macros representing926.8212146119841 electrons, weighted mean kinetic energy1737.9557971142822eV and maximum8100.451399777359eV. The strict1mm slab has1234 macros representing38.62074172949173 electrons, mean1904.7091219343454eV and sampled minimum46.85646878573595eV. That instantaneous minimum does not prove a generally absent low-energy population or zero attachment rate. Approximately57.96% of full-height represented weight and66.22% of slab weight lie above1keV; channel data coverage through the actual tail must be checked rather than borrowing a nominal low-energy accuracy claim.
+
+Full-height count closure error is5.7980287238024175e-12 represented electrons; the energy histogram grouping error is1.3271346688270569e-8 eV against approximately1.61e6 weighted eV. Both are well inside the recorded floating-point normalization budgets. Macro N_eff is about29612.95 full-height and1233.998 in the slab; these are numerical weight statistics, not physical electron counts or independent temporal samples. No physical/statistical convergence claim follows.
+
+Additional retained phase data now include seed-late-phase and the phase-baseline-late-cpu7/phase-cpu-v2-late-cpu7 pair. Their saved particle fields support the same occupancy diagnostic at the later times, but those states were not pooled into this early-time demo. The independent v2 checkpoint comparator qualified that phase pair; its CPU7 receipt policy does not move this CPU6 diagnostic toCPU7.
+
+For gas with z-dependent density, evaluate the joint x/y/z occupancy or particles against n_H2O at their locations. A product of separate height averages generally is not the height average of the collision-rate product. For a surface yield, integrate the measured incident flux distribution times the compatible yield; do not multiply a flux distribution by velocity a second time. Do not use a surface flux as a volume EEDF in sigma*v.
+
+Example (a fresh output directory is required):
+taskset -c 6 nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= python3 /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/eedf-diagnostics-plan/snapshot_occupancy.py /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-candidate-cpu6-run1 --out /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/eedf-diagnostics-plan/another-occupancy --grid 9
+ The tool takes testing-core.lock internally. Outputs are occupancy.json, sparse energy_occupancy.csv and angular_occupancy.csv. Empty distributions may have no CSV rows/file; the JSON states zero counts and undefined mean/PDF. Blank optional vacuum-density/PDF fields mean undefined, never infinity or an invented zero probability. The command in README.txt uses the exact tokens.
+
+Coordinate alignment note
+The PIC x/y box is0 to9mm, while the native imposed-field callback uses x_native=x_PIC-4.5mm and y_native=y_PIC-4.5mm. z is the finite axial coordinate. A future neutral/adsorbate map, detector normal and surface-patch provenance must name their coordinate frame and apply this transform explicitly. Do not interpret options.magnetic_field_T as the externally reconstructed native field.

@@ -1,0 +1,4210 @@
+{
+  "status": "passed",
+  "comparison_complete": true,
+  "policy": {
+    "position_atol_m": 1e-12,
+    "velocity_rtol_global": 1e-10,
+    "field_rtol_global": 1e-10,
+    "ledger_roundoff_factor": 1024,
+    "density_roundoff_factor": 256,
+    "time_roundoff_factor": 64,
+    "rationale": {
+      "position": "Existing checkpoint regression budget; 4e-8 of a 25 um cell. Record measured differences and bin-boundary crossings separately.",
+      "velocity": "Existing global proper-velocity regression budget. Mass, charge, weights and identity remain exact.",
+      "fields": "Conservative integration regression budget, not a production solver tolerance. 1e-10 of each global component plus 256 epsilon V_scale/h for derivative cancellation. The corresponding e/m E_error window impulse is reported against the velocity budget.",
+      "ledger": "1024 epsilon times the appropriate full charge/energy scale, rather than relative error of a cancellation residual near zero.",
+      "density": "Validate each CSV against that checkpoint particle deposition; permit only roundoff or particle-bin/slab-boundary changes explained by matched, position-qualified particles. No blanket absolute density threshold.",
+      "time": "64 epsilon times the global clock scale, with a 1e-23 s floor reflecting the existing nonprogress guard. Pairwise clocks/options/counts remain exact."
+    }
+  },
+  "paths": {
+    "baseline": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-baseline-late-cpu7",
+    "candidate": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-cpu-v2-late-cpu7",
+    "seed": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-late-phase"
+  },
+  "abi_schema_sha256": "0a9c8e39fb2d5d85770955114c9a9a10fbf0d25b6371d3d2614f8533b19b7f3e",
+  "options": {
+    "all_fields_exact": true,
+    "field_count": 23,
+    "values": {
+      "nx": 360,
+      "ny": 360,
+      "width_m": 0.009,
+      "gap_m": 0.009,
+      "depth_m": 0.025,
+      "lower_potential_V": 0.0,
+      "upper_potential_V": -80633.43519123226,
+      "magnetic_field_T[0]": 0.0,
+      "magnetic_field_T[1]": 0.0,
+      "magnetic_field_T[2]": 0.0,
+      "distributed_fields": 1,
+      "finite_foils": 1,
+      "lower_foil.left_m": 0.002,
+      "lower_foil.right_m": 0.007,
+      "lower_foil.bottom_m": 0.0018,
+      "lower_foil.top_m": 0.002,
+      "upper_foil.left_m": 0.002,
+      "upper_foil.right_m": 0.007,
+      "upper_foil.bottom_m": 0.007,
+      "upper_foil.top_m": 0.0072,
+      "finite_axial_extent": 1,
+      "short_z_m": -0.0125,
+      "feed_z_m": 0.0125
+    }
+  },
+  "particle_counts": {
+    "seed": 46726,
+    "final": 46842,
+    "allocated_id_increment": 320,
+    "seed_survivors": 46679,
+    "seed_ids_missing_at_final": 47,
+    "new_ids_present_at_final": 163,
+    "inferred_total_removed_count": 204
+  },
+  "particles": {
+    "charge_C": {
+      "count": 46842,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 1.602176634e-19,
+      "a_l2": 3.467592928423643e-17,
+      "b_l2": 3.467592928423643e-17,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "mass_kg": {
+      "count": 46842,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 9.1093837139e-31,
+      "a_l2": 1.9715450767589828e-28,
+      "b_l2": 1.9715450767589828e-28,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "weight": {
+      "count": 46842,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 0.031562858772902457,
+      "a_l2": 6.780105613687304,
+      "b_l2": 6.780105613687304,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "position_m": {
+      "count": 140526,
+      "linf_absolute": 3.469446951953614e-18,
+      "l2_absolute": 6.824604207162495e-17,
+      "rms_absolute": 1.820535396528437e-19,
+      "reference_linf": 0.012499696279031422,
+      "a_l2": 2.455502106733129,
+      "b_l2": 2.455502106733129,
+      "relative_l2": 2.779311077945742e-17,
+      "relative_linf_global_scale": 2.7756250028040323e-16,
+      "max_difference_index": 887
+    },
+    "position_m_components": [
+      {
+        "count": 46842,
+        "linf_absolute": 3.469446951953614e-18,
+        "l2_absolute": 4.192597324386896e-17,
+        "rms_absolute": 1.937159755357853e-19,
+        "reference_linf": 0.007053760397172069,
+        "a_l2": 1.0319270469677748,
+        "b_l2": 1.0319270469677748,
+        "relative_l2": 4.06288151541959e-17,
+        "relative_linf_global_scale": 4.918577831683302e-16,
+        "max_difference_index": 649
+      },
+      {
+        "count": 46842,
+        "linf_absolute": 3.469446951953614e-18,
+        "l2_absolute": 3.649109481245373e-17,
+        "rms_absolute": 1.6860450653932115e-19,
+        "reference_linf": 0.007863847787614902,
+        "a_l2": 1.5927348483951895,
+        "b_l2": 1.5927348483951895,
+        "relative_l2": 2.2910966536094497e-17,
+        "relative_linf_global_scale": 4.4118948454442225e-16,
+        "max_difference_index": 3074
+      },
+      {
+        "count": 46842,
+        "linf_absolute": 3.469446951953614e-18,
+        "l2_absolute": 3.959968466269523e-17,
+        "rms_absolute": 1.8296752470654364e-19,
+        "reference_linf": 0.012499696279031422,
+        "a_l2": 1.558144046169924,
+        "b_l2": 1.558144046169924,
+        "relative_l2": 2.541464940936319e-17,
+        "relative_linf_global_scale": 2.7756250028040323e-16,
+        "max_difference_index": 295
+      }
+    ],
+    "proper_velocity_m_s": {
+      "count": 140526,
+      "linf_absolute": 5.033798515796661e-07,
+      "l2_absolute": 1.8668687691451573e-05,
+      "rms_absolute": 4.9800700109982365e-08,
+      "reference_linf": 53045147.37697029,
+      "a_l2": 5348822650.806661,
+      "b_l2": 5348822650.806661,
+      "relative_l2": 3.4902424159896442e-15,
+      "relative_linf_global_scale": 9.489649411327868e-15,
+      "max_difference_index": 41559
+    },
+    "proper_velocity_m_s_components": [
+      {
+        "count": 46842,
+        "linf_absolute": 5.033798515796661e-07,
+        "l2_absolute": 1.4856673514201126e-05,
+        "rms_absolute": 6.864420263496196e-08,
+        "reference_linf": 53045147.37697029,
+        "a_l2": 4942515874.2388315,
+        "b_l2": 4942515874.23883,
+        "relative_l2": 3.0058929282627984e-15,
+        "relative_linf_global_scale": 9.489649411327868e-15,
+        "max_difference_index": 13853
+      },
+      {
+        "count": 46842,
+        "linf_absolute": 2.896413207054138e-07,
+        "l2_absolute": 8.330812902623716e-06,
+        "rms_absolute": 3.84919281193754e-08,
+        "reference_linf": 34170833.60067982,
+        "a_l2": 1698441367.506073,
+        "b_l2": 1698441367.5060737,
+        "relative_l2": 4.9049752685053606e-15,
+        "relative_linf_global_scale": 8.47627318929824e-15,
+        "max_difference_index": 19219
+      },
+      {
+        "count": 46842,
+        "linf_absolute": 2.4028122425079346e-07,
+        "l2_absolute": 7.641773916759671e-06,
+        "rms_absolute": 3.530827252353635e-08,
+        "reference_linf": 35759843.49544295,
+        "a_l2": 1138743827.128679,
+        "b_l2": 1138743827.1286788,
+        "relative_l2": 6.710705019607666e-15,
+        "relative_linf_global_scale": 6.719303016004912e-15,
+        "max_difference_index": 8624
+      }
+    ]
+  },
+  "raw_diagnostics": {
+    "time_s": {
+      "baseline": 2.572965307563373e-08,
+      "candidate": 2.572965307563373e-08,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "particle_charge_C": {
+      "baseline": -2.3510596413905636e-16,
+      "candidate": -2.3510596413905636e-16,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "deposited_charge_C": {
+      "baseline": -2.351059641390477e-16,
+      "candidate": -2.3510596413904783e-16,
+      "absolute_difference": 1.4791141972893971e-31,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "lower_field_charge_C": {
+      "baseline": 2.8168553582777933e-08,
+      "candidate": 2.8168553582777582e-08,
+      "absolute_difference": 3.5072457972248373e-22,
+      "absolute_limit": 1.2809575066738753e-20
+    },
+    "upper_field_charge_C": {
+      "baseline": -2.8168553347645773e-08,
+      "candidate": -2.816855334764491e-08,
+      "absolute_difference": 8.635765595053609e-22,
+      "absolute_limit": 1.2809575066738753e-20
+    },
+    "gauss_defect_C": {
+      "baseline": 2.619515563832928e-20,
+      "candidate": 2.6708007618112158e-20,
+      "absolute_difference": 5.128519797828772e-22,
+      "absolute_limit": 1.2809575066738753e-20
+    },
+    "particle_charge_defect_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "field_energy_J": {
+      "baseline": 0.0011356636196667572,
+      "candidate": 0.001135663619666731,
+      "absolute_difference": 2.6237692574149207e-17,
+      "absolute_limit": 2.5822001127079593e-16
+    },
+    "particle_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "lower_absorbed_charge_C": {
+      "baseline": -2.957095667431326e-16,
+      "candidate": -2.957095667431326e-16,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "upper_absorbed_charge_C": {
+      "baseline": -6.072929377809059e-17,
+      "candidate": -6.072929377809059e-17,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "lower_absorbed_energy_J": {
+      "baseline": 8.621783786506409e-17,
+      "candidate": 8.621783786506409e-17,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "upper_absorbed_energy_J": {
+      "baseline": 8.342427193508008e-15,
+      "candidate": 8.342427193508008e-15,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "lower_injected_charge_C": {
+      "baseline": -2.9577491828856964e-16,
+      "candidate": -2.9577491828856964e-16,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "upper_injected_charge_C": {
+      "baseline": -2.957749182885629e-16,
+      "candidate": -2.957749182885629e-16,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "injected_energy_J": {
+      "baseline": 1.7043419448130413e-16,
+      "candidate": 1.7043419448130413e-16,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "authored_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "authored_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "maximum_nodal_continuity_defect_C": {
+      "baseline": 1.279915864994533e-32,
+      "candidate": 1.279915864994533e-32,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "escaped_charge_C": {
+      "baseline": -5.0119168693974896e-21,
+      "candidate": -5.0119168693974896e-21,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "escaped_kinetic_energy_J": {
+      "baseline": 2.6070428967782895e-21,
+      "candidate": 2.6070428967782895e-21,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "short_absorbed_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "short_absorbed_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "axial_escaped_charge_C": {
+      "baseline": -5.0119168693974896e-21,
+      "candidate": -5.0119168693974896e-21,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "poisson_residual_C_per_m": {
+      "baseline": 4.920131166663422e-20,
+      "candidate": 4.940728875651119e-20,
+      "absolute_difference": 2.0597708987697127e-22,
+      "absolute_limit": 1.6454812032885355e-17
+    }
+  },
+  "seed_to_final_public_ledger_increments": {
+    "time_s": {
+      "baseline": 1.000000000001134e-12,
+      "candidate": 1.000000000001134e-12,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.6564036173038134e-22
+    },
+    "particle_charge_C": {
+      "baseline": -5.820164266800266e-19,
+      "candidate": -5.820164266800266e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "deposited_charge_C": {
+      "baseline": -5.820164266800759e-19,
+      "candidate": -5.820164266802238e-19,
+      "absolute_difference": 1.4791141972893971e-31,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "lower_field_charge_C": {
+      "baseline": 4.847278389560742e-21,
+      "candidate": 4.4965538098382584e-21,
+      "absolute_difference": 3.5072457972248373e-22,
+      "absolute_limit": 1.2809575066738753e-20
+    },
+    "upper_field_charge_C": {
+      "baseline": 5.763000414881446e-19,
+      "candidate": 5.7716361804765e-19,
+      "absolute_difference": 8.635765595053609e-22,
+      "absolute_limit": 1.2809575066738753e-20
+    },
+    "gauss_defect_C": {
+      "baseline": -8.701940044057851e-22,
+      "candidate": -3.5734202462290796e-22,
+      "absolute_difference": 5.128519797828772e-22,
+      "absolute_limit": 1.2809575066738753e-20
+    },
+    "particle_charge_defect_C": {
+      "baseline": -1.9721522630525295e-31,
+      "candidate": -1.9721522630525295e-31,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "field_energy_J": {
+      "baseline": -2.3852447794681098e-18,
+      "candidate": -2.862293735361732e-17,
+      "absolute_difference": 2.6237692574149207e-17,
+      "absolute_limit": 2.5822001127079593e-16
+    },
+    "particle_kinetic_energy_J": {
+      "baseline": 1.231080288198978e-15,
+      "candidate": 1.2310802881991799e-15,
+      "absolute_difference": 2.0194839173657902e-28,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "lower_absorbed_charge_C": {
+      "baseline": -8.130649729335392e-19,
+      "candidate": -8.130649729335392e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "upper_absorbed_charge_C": {
+      "baseline": -2.1083134560023447e-19,
+      "candidate": -2.1083134560023447e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "lower_absorbed_energy_J": {
+      "baseline": 2.6038649652727427e-19,
+      "candidate": 2.6038649652727427e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "upper_absorbed_energy_J": {
+      "baseline": 2.941318091281229e-17,
+      "candidate": 2.941318091281229e-17,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "lower_injected_charge_C": {
+      "baseline": -8.029563726067276e-19,
+      "candidate": -8.029563726067276e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "upper_injected_charge_C": {
+      "baseline": -8.029563726067276e-19,
+      "candidate": -8.029563726067276e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "injected_energy_J": {
+      "baseline": 4.901445932682305e-19,
+      "candidate": 4.901445932682305e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "authored_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "authored_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "maximum_nodal_continuity_defect_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "escaped_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "escaped_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "short_absorbed_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "short_absorbed_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.45006849064045e-26
+    },
+    "axial_escaped_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "poisson_residual_C_per_m": {
+      "baseline": -2.571379084999608e-22,
+      "candidate": -5.116081862298955e-23,
+      "absolute_difference": 2.0597708987697127e-22,
+      "absolute_limit": 1.6454812032885355e-17
+    }
+  },
+  "history": {
+    "baseline_rows": 3,
+    "candidate_rows": 3,
+    "common_steps": [
+      437411,
+      437621
+    ],
+    "baseline_only_steps": [
+      437544
+    ],
+    "candidate_only_steps": [
+      437593
+    ],
+    "baseline_values": [
+      {
+        "time_s": 2.647844113112573e-08,
+        "step": 437411.0,
+        "macro_particles": 46726.0,
+        "gauss_defect_C": 2.6592202332354734e-20,
+        "particle_charge_defect_C": -1.6150519751371322e-29,
+        "nodal_continuity_defect_C": 1.279915864994533e-32,
+        "field_energy_J": 0.0011356636196668069,
+        "kinetic_energy_J": 4.057882454284543e-13,
+        "source_reservoir_electrons": 4.767844719073557,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": -5.0119168693974896e-21
+      },
+      {
+        "time_s": 2.647907637791059e-08,
+        "step": 437544.0,
+        "macro_particles": 46825.0,
+        "gauss_defect_C": 2.556980709523919e-20,
+        "particle_charge_defect_C": -1.64463425908292e-29,
+        "nodal_continuity_defect_C": 1.279915864994533e-32,
+        "field_energy_J": 0.0011356636196667598,
+        "kinetic_energy_J": 4.065158178849201e-13,
+        "source_reservoir_electrons": 3.566005878514784,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": -5.0119168693974896e-21
+      },
+      {
+        "time_s": 2.647944113112573e-08,
+        "step": 437621.0,
+        "macro_particles": 46842.0,
+        "gauss_defect_C": 2.619515563832928e-20,
+        "particle_charge_defect_C": -1.6347734977676575e-29,
+        "nodal_continuity_defect_C": 1.279915864994533e-32,
+        "field_energy_J": 0.0011356636196667572,
+        "kinetic_energy_J": 4.070193257166533e-13,
+        "source_reservoir_electrons": 5.485539207507216,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": -5.0119168693974896e-21
+      }
+    ],
+    "candidate_values": [
+      {
+        "time_s": 2.647844113112573e-08,
+        "step": 437411.0,
+        "macro_particles": 46726.0,
+        "gauss_defect_C": 2.542753202988007e-20,
+        "particle_charge_defect_C": -1.6150519751371322e-29,
+        "nodal_continuity_defect_C": 1.279915864994533e-32,
+        "field_energy_J": 0.0011356636196667342,
+        "kinetic_energy_J": 4.057882454284543e-13,
+        "source_reservoir_electrons": 4.767844719073557,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": -5.0119168693974896e-21
+      },
+      {
+        "time_s": 2.647931041619975e-08,
+        "step": 437593.0,
+        "macro_particles": 46846.0,
+        "gauss_defect_C": 2.6009867181117402e-20,
+        "particle_charge_defect_C": -1.64463425908292e-29,
+        "nodal_continuity_defect_C": 1.279915864994533e-32,
+        "field_energy_J": 0.001135663619666732,
+        "kinetic_energy_J": 4.0684484205175587e-13,
+        "source_reservoir_electrons": 4.079802905235674,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": -5.0119168693974896e-21
+      },
+      {
+        "time_s": 2.647944113112573e-08,
+        "step": 437621.0,
+        "macro_particles": 46842.0,
+        "gauss_defect_C": 2.6708007618112158e-20,
+        "particle_charge_defect_C": -1.6347734977676575e-29,
+        "nodal_continuity_defect_C": 1.279915864994533e-32,
+        "field_energy_J": 0.001135663619666731,
+        "kinetic_energy_J": 4.070193257166535e-13,
+        "source_reservoir_electrons": 5.485539207507216,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": -5.0119168693974896e-21
+      }
+    ],
+    "cadence": "wall-clock reports; unmatched intermediate rows validated independently but not compared by interpolation",
+    "endpoint_ledger_increments": {
+      "gauss_defect_C": {
+        "baseline": -3.970466940254533e-22,
+        "candidate": 1.2804755882320868e-21,
+        "absolute_difference": 1.6775222822575401e-21
+      },
+      "particle_charge_defect_C": {
+        "baseline": -1.9721522630525295e-31,
+        "candidate": -1.9721522630525295e-31,
+        "absolute_difference": 0.0
+      },
+      "nodal_continuity_defect_C": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      },
+      "field_energy_J": {
+        "baseline": -4.96564594998361e-17,
+        "candidate": -3.2526065174565133e-18,
+        "absolute_difference": 4.640385298237959e-17
+      },
+      "kinetic_energy_J": {
+        "baseline": 1.231080288198978e-15,
+        "candidate": 1.2310802881991799e-15,
+        "absolute_difference": 2.0194839173657902e-28
+      },
+      "short_absorbed_charge_C": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      },
+      "short_absorbed_energy_J": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      },
+      "axial_escaped_charge_C": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      }
+    }
+  },
+  "source_reservoirs": {
+    "all_values_exact": true,
+    "pool_metrics": [
+      {
+        "span": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 8.041720435603552e-13,
+          "a_l2": 8.041720435603552e-13,
+          "b_l2": 8.041720435603552e-13,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "integral": {
+          "count": 2048,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 6.5520705159929336e-15,
+          "a_l2": 9.989325125332837e-15,
+          "b_l2": 9.989325125332837e-15,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "weighted_temperature": {
+          "count": 2048,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 9.781099132986451e-12,
+          "a_l2": 1.4849143121718153e-11,
+          "b_l2": 1.4849143121718153e-11,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        }
+      },
+      {
+        "span": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 3.4564804858835654e-13,
+          "a_l2": 3.4564804858835654e-13,
+          "b_l2": 3.4564804858835654e-13,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "integral": {
+          "count": 2048,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 5.872149887042507e-13,
+          "a_l2": 9.113406849102177e-13,
+          "b_l2": 9.113406849102177e-13,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "weighted_temperature": {
+          "count": 2048,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 1.0313407049086952e-09,
+          "a_l2": 1.5916901794316005e-09,
+          "b_l2": 1.5916901794316005e-09,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        }
+      },
+      {
+        "span": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 6.226729622172729e-13,
+          "a_l2": 6.226729622172729e-13,
+          "b_l2": 6.226729622172729e-13,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "integral": {
+          "count": 256,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 1.4891525785942133e-12,
+          "a_l2": 2.5935227601148494e-12,
+          "b_l2": 2.5935227601148494e-12,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "weighted_temperature": {
+          "count": 256,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 2.645170331336666e-09,
+          "a_l2": 4.549005474512192e-09,
+          "b_l2": 4.549005474512192e-09,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        }
+      },
+      {
+        "span": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 6.226729622172729e-13,
+          "a_l2": 6.226729622172729e-13,
+          "b_l2": 6.226729622172729e-13,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "integral": {
+          "count": 256,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 1.4891525813223646e-12,
+          "a_l2": 2.5935227644499442e-12,
+          "b_l2": 2.5935227644499442e-12,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "weighted_temperature": {
+          "count": 256,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 2.6451703363436997e-09,
+          "a_l2": 4.549005482359524e-09,
+          "b_l2": 4.549005482359524e-09,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        }
+      }
+    ],
+    "pool_lengths": [
+      2048,
+      2048,
+      256,
+      256
+    ],
+    "baseline_electrons": 5.48553920750722,
+    "candidate_electrons": 5.48553920750722,
+    "seed_electrons": 4.767844719073557
+  },
+  "frame": {
+    "time_s": {
+      "count": 129600,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 2.647944113112573e-08,
+      "a_l2": 9.532598807201545e-06,
+      "b_l2": 9.532598807201545e-06,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "x_m": {
+      "count": 129600,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 0.008987499999999999,
+      "a_l2": 1.8706130679538144,
+      "b_l2": 1.8706130679538144,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "y_m": {
+      "count": 129600,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 0.008987499999999999,
+      "a_l2": 1.8706130679537707,
+      "b_l2": 1.8706130679537707,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "potential_V": {
+      "count": 129600,
+      "linf_absolute": 1.7462298274040222e-09,
+      "l2_absolute": 1.4676578856752216e-07,
+      "rms_absolute": 4.076827460208949e-10,
+      "reference_linf": 80633.43519123226,
+      "a_l2": 17780925.24457942,
+      "b_l2": 17780925.244579475,
+      "relative_l2": 8.254114257201761e-15,
+      "relative_linf_global_scale": 2.1656398778777317e-14,
+      "max_difference_index": 126001
+    },
+    "Ex_V_m": {
+      "count": 129600,
+      "linf_absolute": 3.7848949432373047e-06,
+      "l2_absolute": 0.00015212361521577488,
+      "rms_absolute": 4.225655978215969e-07,
+      "reference_linf": 47559922.03782451,
+      "a_l2": 1052414951.1308863,
+      "b_l2": 1052414951.1308525,
+      "relative_l2": 1.4454718174832887e-13,
+      "relative_linf_global_scale": 7.958160528999961e-14,
+      "max_difference_index": 103960
+    },
+    "Ey_V_m": {
+      "count": 129600,
+      "linf_absolute": 3.4924596548080444e-06,
+      "l2_absolute": 0.0001879830762888861,
+      "rms_absolute": 5.221752119135725e-07,
+      "reference_linf": 48349829.23588744,
+      "a_l2": 3912554748.648217,
+      "b_l2": 3912554748.6482224,
+      "relative_l2": 4.804612033961538e-14,
+      "relative_linf_global_scale": 7.223313318789929e-14,
+      "max_difference_index": 83520
+    },
+    "electron_density_cm3": {
+      "count": 129600,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 602597.156917396,
+      "a_l2": 4176384.3775648754,
+      "b_l2": 4176384.3775648754,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "height_average_electron_density_cm3": {
+      "count": 129600,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 554373.4417052625,
+      "a_l2": 3445053.3846119535,
+      "b_l2": 3445053.3846119535,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "solid": {
+      "count": 129600,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 1.0,
+      "a_l2": 56.568542494923804,
+      "b_l2": 56.568542494923804,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    }
+  },
+  "density_analysis": {
+    "transverse_bin_change_count": 0,
+    "slab_membership_change_count": 0,
+    "transverse_bin_change_ids": [],
+    "slab_membership_change_ids": [],
+    "basis": "Each saved density independently reconstructed from its own particles; paired identity/weight/position checks constrain bin changes. Different occupancy bins are not inferred crossing events.",
+    "all_density_components_identical": true
+  },
+  "runtime_residual_guards": {
+    "phase-baseline-late-cpu7": {
+      "rhs_norm": 8.227406016442678e-05,
+      "residual_norm": 4.920131166663422e-20,
+      "guard_limit": 1.6454812032885355e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 46842,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-baseline-late-cpu7/checkpoint_437621.bin"
+      ]
+    },
+    "phase-cpu-v2-late-cpu7": {
+      "rhs_norm": 8.227406016442678e-05,
+      "residual_norm": 4.940728875651119e-20,
+      "guard_limit": 1.6454812032885355e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 46842,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-cpu-v2-late-cpu7/checkpoint_437621.bin"
+      ]
+    },
+    "seed-late-phase": {
+      "rhs_norm": 8.227406016442678e-05,
+      "residual_norm": 4.945844957513418e-20,
+      "guard_limit": 1.6454812032885355e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 46726,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-late-phase/checkpoint_437411.bin"
+      ]
+    }
+  },
+  "field_error_budget_impulse_m_s": 0.0008826325368663263,
+  "checks": [
+    {
+      "name": "phase-baseline-late-cpu7.particle_charge_reconstruction",
+      "passed": true,
+      "a": -2.3510596413905636e-16,
+      "b": -2.3510596413904754e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.82538137716007e-30,
+        "l2_absolute": 8.82538137716007e-30,
+        "rms_absolute": 8.82538137716007e-30,
+        "reference_linf": 2.3510596413905636e-16,
+        "a_l2": 2.3510596413905636e-16,
+        "b_l2": 2.3510596413904754e-16,
+        "relative_l2": 3.753788811559109e-14,
+        "relative_linf_global_scale": 3.753788811559109e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.deposition_charge",
+      "passed": true,
+      "a": -2.351059641390477e-16,
+      "b": -2.3510596413905636e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.67746995743113e-30,
+        "l2_absolute": 8.67746995743113e-30,
+        "rms_absolute": 8.67746995743113e-30,
+        "reference_linf": 2.3510596413905636e-16,
+        "a_l2": 2.351059641390477e-16,
+        "b_l2": 2.3510596413905636e-16,
+        "relative_l2": 3.690876149912867e-14,
+        "relative_linf_global_scale": 3.690876149912867e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.gauss_identity",
+      "passed": true,
+      "a": 2.619515563832928e-20,
+      "b": 2.619515563832928e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.619515563832928e-20,
+        "a_l2": 2.619515563832928e-20,
+        "b_l2": 2.619515563832928e-20,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.poisson_guard",
+      "passed": true,
+      "rhs_norm": 8.227406016442678e-05,
+      "residual_norm": 4.920131166663422e-20,
+      "guard_limit": 1.6454812032885355e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 46842,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-baseline-late-cpu7/checkpoint_437621.bin"
+      ]
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.particle_charge_reconstruction",
+      "passed": true,
+      "a": -2.3510596413905636e-16,
+      "b": -2.3510596413904754e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.82538137716007e-30,
+        "l2_absolute": 8.82538137716007e-30,
+        "rms_absolute": 8.82538137716007e-30,
+        "reference_linf": 2.3510596413905636e-16,
+        "a_l2": 2.3510596413905636e-16,
+        "b_l2": 2.3510596413904754e-16,
+        "relative_l2": 3.753788811559109e-14,
+        "relative_linf_global_scale": 3.753788811559109e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.deposition_charge",
+      "passed": true,
+      "a": -2.3510596413904783e-16,
+      "b": -2.3510596413905636e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.52955853770219e-30,
+        "l2_absolute": 8.52955853770219e-30,
+        "rms_absolute": 8.52955853770219e-30,
+        "reference_linf": 2.3510596413905636e-16,
+        "a_l2": 2.3510596413904783e-16,
+        "b_l2": 2.3510596413905636e-16,
+        "relative_l2": 3.627963488266625e-14,
+        "relative_linf_global_scale": 3.627963488266625e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.gauss_identity",
+      "passed": true,
+      "a": 2.6708007618112158e-20,
+      "b": 2.6708007618112158e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.6708007618112158e-20,
+        "a_l2": 2.6708007618112158e-20,
+        "b_l2": 2.6708007618112158e-20,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.poisson_guard",
+      "passed": true,
+      "rhs_norm": 8.227406016442678e-05,
+      "residual_norm": 4.940728875651119e-20,
+      "guard_limit": 1.6454812032885355e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 46842,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-cpu-v2-late-cpu7/checkpoint_437621.bin"
+      ]
+    },
+    {
+      "name": "seed-late-phase.particle_charge_reconstruction",
+      "passed": true,
+      "a": -2.3452394771237634e-16,
+      "b": -2.345239477123677e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.628166150854817e-30,
+        "l2_absolute": 8.628166150854817e-30,
+        "rms_absolute": 8.628166150854817e-30,
+        "reference_linf": 2.3452394771237634e-16,
+        "a_l2": 2.3452394771237634e-16,
+        "b_l2": 2.345239477123677e-16,
+        "relative_l2": 3.6790128406999736e-14,
+        "relative_linf_global_scale": 3.6790128406999736e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed-late-phase.deposition_charge",
+      "passed": true,
+      "a": -2.345239477123676e-16,
+      "b": -2.3452394771237634e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.726773764007443e-30,
+        "l2_absolute": 8.726773764007443e-30,
+        "rms_absolute": 8.726773764007443e-30,
+        "reference_linf": 2.3452394771237634e-16,
+        "a_l2": 2.345239477123676e-16,
+        "b_l2": 2.3452394771237634e-16,
+        "relative_l2": 3.721058701736544e-14,
+        "relative_linf_global_scale": 3.721058701736544e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed-late-phase.gauss_identity",
+      "passed": true,
+      "a": 2.7065349642735066e-20,
+      "b": 2.7065349642735066e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.7065349642735066e-20,
+        "a_l2": 2.7065349642735066e-20,
+        "b_l2": 2.7065349642735066e-20,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed-late-phase.poisson_guard",
+      "passed": true,
+      "rhs_norm": 8.227406016442678e-05,
+      "residual_norm": 4.945844957513418e-20,
+      "guard_limit": 1.6454812032885355e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 46726,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/residual_guard_probe",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-late-phase/checkpoint_437411.bin"
+      ]
+    },
+    {
+      "name": "phase-baseline-late-cpu7.seed_global_clock",
+      "passed": true,
+      "a": 2.647844113112573e-08,
+      "b": 2.647844113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647844113112573e-08,
+        "a_l2": 2.647844113112573e-08,
+        "b_l2": 2.647844113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.final_global_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.progress_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.requested_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.window",
+      "passed": true,
+      "a": 1.000000000001134e-12,
+      "b": 1e-12,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.1339402196008912e-24,
+        "l2_absolute": 1.1339402196008912e-24,
+        "rms_absolute": 1.1339402196008912e-24,
+        "reference_linf": 1.000000000001134e-12,
+        "a_l2": 1.000000000001134e-12,
+        "b_l2": 1e-12,
+        "relative_l2": 1.1339402195996054e-12,
+        "relative_linf_global_scale": 1.1339402195996054e-12,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_final.gauss_defect_C",
+      "passed": true,
+      "a": 2.619515563832928e-20,
+      "b": 2.619515563832928e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.619515563832928e-20,
+        "a_l2": 2.619515563832928e-20,
+        "b_l2": 2.619515563832928e-20,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_seed.gauss_defect_C",
+      "passed": true,
+      "a": 2.6592202332354734e-20,
+      "b": 2.7065349642735066e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 4.731473103803318e-22,
+        "l2_absolute": 4.731473103803318e-22,
+        "rms_absolute": 4.731473103803318e-22,
+        "reference_linf": 2.7065349642735066e-20,
+        "a_l2": 2.6592202332354734e-20,
+        "b_l2": 2.7065349642735066e-20,
+        "relative_l2": 0.01748166259168704,
+        "relative_linf_global_scale": 0.01748166259168704,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_final.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.6347734977676575e-29,
+      "b": -1.6347734977676575e-29,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.6347734977676575e-29,
+        "a_l2": 1.6347734977676575e-29,
+        "b_l2": 1.6347734977676575e-29,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_seed.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.6150519751371322e-29,
+      "b": -1.6150519751371322e-29,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.6150519751371322e-29,
+        "a_l2": 1.6150519751371322e-29,
+        "b_l2": 1.6150519751371322e-29,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_final.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_seed.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_final.field_energy_J",
+      "passed": true,
+      "a": 0.0011356636196667572,
+      "b": 0.0011356636196667572,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0011356636196667572,
+        "a_l2": 0.0011356636196667572,
+        "b_l2": 0.0011356636196667572,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_seed.field_energy_J",
+      "passed": true,
+      "a": 0.0011356636196668069,
+      "b": 0.0011356636196667596,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 4.7271214720367993e-17,
+        "l2_absolute": 4.7271214720367993e-17,
+        "rms_absolute": 4.7271214720367993e-17,
+        "reference_linf": 0.0011356636196668069,
+        "a_l2": 0.0011356636196668069,
+        "b_l2": 0.0011356636196667596,
+        "relative_l2": 4.162431014056515e-14,
+        "relative_linf_global_scale": 4.162431014056515e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_final.kinetic_energy_J",
+      "passed": true,
+      "a": 4.070193257166533e-13,
+      "b": 4.070193257166533e-13,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.070193257166533e-13,
+        "a_l2": 4.070193257166533e-13,
+        "b_l2": 4.070193257166533e-13,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_seed.kinetic_energy_J",
+      "passed": true,
+      "a": 4.057882454284543e-13,
+      "b": 4.057882454284543e-13,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.057882454284543e-13,
+        "a_l2": 4.057882454284543e-13,
+        "b_l2": 4.057882454284543e-13,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_final.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_seed.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_final.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_seed.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_final.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.history_seed.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.reservoir_final",
+      "passed": true,
+      "a": 5.485539207507216,
+      "b": 5.48553920750722,
+      "absolute_limit": 3.1181680284971774e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 3.552713678800501e-15,
+        "l2_absolute": 3.552713678800501e-15,
+        "rms_absolute": 3.552713678800501e-15,
+        "reference_linf": 5.48553920750722,
+        "a_l2": 5.485539207507216,
+        "b_l2": 5.48553920750722,
+        "relative_l2": 6.476507676653636e-16,
+        "relative_linf_global_scale": 6.476507676653636e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.reservoir_initial",
+      "passed": true,
+      "a": 4.767844719073557,
+      "b": 4.767844719073557,
+      "absolute_limit": 2.7102059442958974e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.767844719073557,
+        "a_l2": 4.767844719073557,
+        "b_l2": 4.767844719073557,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.progress_reservoir",
+      "passed": true,
+      "a": 5.485539207507216,
+      "b": 5.48553920750722,
+      "absolute_limit": 3.1181680284971774e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 3.552713678800501e-15,
+        "l2_absolute": 3.552713678800501e-15,
+        "rms_absolute": 3.552713678800501e-15,
+        "reference_linf": 5.48553920750722,
+        "a_l2": 5.485539207507216,
+        "b_l2": 5.48553920750722,
+        "relative_l2": 6.476507676653636e-16,
+        "relative_linf_global_scale": 6.476507676653636e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.seed_global_clock",
+      "passed": true,
+      "a": 2.647844113112573e-08,
+      "b": 2.647844113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647844113112573e-08,
+        "a_l2": 2.647844113112573e-08,
+        "b_l2": 2.647844113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.final_global_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.progress_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.requested_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.window",
+      "passed": true,
+      "a": 1.000000000001134e-12,
+      "b": 1e-12,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.1339402196008912e-24,
+        "l2_absolute": 1.1339402196008912e-24,
+        "rms_absolute": 1.1339402196008912e-24,
+        "reference_linf": 1.000000000001134e-12,
+        "a_l2": 1.000000000001134e-12,
+        "b_l2": 1e-12,
+        "relative_l2": 1.1339402195996054e-12,
+        "relative_linf_global_scale": 1.1339402195996054e-12,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.gauss_defect_C",
+      "passed": true,
+      "a": 2.6708007618112158e-20,
+      "b": 2.6708007618112158e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.6708007618112158e-20,
+        "a_l2": 2.6708007618112158e-20,
+        "b_l2": 2.6708007618112158e-20,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.gauss_defect_C",
+      "passed": true,
+      "a": 2.542753202988007e-20,
+      "b": 2.7065349642735066e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.6378176128549948e-21,
+        "l2_absolute": 1.6378176128549948e-21,
+        "rms_absolute": 1.6378176128549948e-21,
+        "reference_linf": 2.7065349642735066e-20,
+        "a_l2": 2.542753202988007e-20,
+        "b_l2": 2.7065349642735066e-20,
+        "relative_l2": 0.06051344743276284,
+        "relative_linf_global_scale": 0.06051344743276284,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.6347734977676575e-29,
+      "b": -1.6347734977676575e-29,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.6347734977676575e-29,
+        "a_l2": 1.6347734977676575e-29,
+        "b_l2": 1.6347734977676575e-29,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.6150519751371322e-29,
+      "b": -1.6150519751371322e-29,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.6150519751371322e-29,
+        "a_l2": 1.6150519751371322e-29,
+        "b_l2": 1.6150519751371322e-29,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.field_energy_J",
+      "passed": true,
+      "a": 0.001135663619666731,
+      "b": 0.001135663619666731,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.001135663619666731,
+        "a_l2": 0.001135663619666731,
+        "b_l2": 0.001135663619666731,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.field_energy_J",
+      "passed": true,
+      "a": 0.0011356636196667342,
+      "b": 0.0011356636196667596,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.5370330836160804e-17,
+        "l2_absolute": 2.5370330836160804e-17,
+        "rms_absolute": 2.5370330836160804e-17,
+        "reference_linf": 0.0011356636196667596,
+        "a_l2": 0.0011356636196667342,
+        "b_l2": 0.0011356636196667596,
+        "relative_l2": 2.233965269012076e-14,
+        "relative_linf_global_scale": 2.233965269012076e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.kinetic_energy_J",
+      "passed": true,
+      "a": 4.070193257166535e-13,
+      "b": 4.070193257166535e-13,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.070193257166535e-13,
+        "a_l2": 4.070193257166535e-13,
+        "b_l2": 4.070193257166535e-13,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.kinetic_energy_J",
+      "passed": true,
+      "a": 4.057882454284543e-13,
+      "b": 4.057882454284543e-13,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.057882454284543e-13,
+        "a_l2": 4.057882454284543e-13,
+        "b_l2": 4.057882454284543e-13,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.reservoir_final",
+      "passed": true,
+      "a": 5.485539207507216,
+      "b": 5.48553920750722,
+      "absolute_limit": 3.1181680284971774e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 3.552713678800501e-15,
+        "l2_absolute": 3.552713678800501e-15,
+        "rms_absolute": 3.552713678800501e-15,
+        "reference_linf": 5.48553920750722,
+        "a_l2": 5.485539207507216,
+        "b_l2": 5.48553920750722,
+        "relative_l2": 6.476507676653636e-16,
+        "relative_linf_global_scale": 6.476507676653636e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.reservoir_initial",
+      "passed": true,
+      "a": 4.767844719073557,
+      "b": 4.767844719073557,
+      "absolute_limit": 2.7102059442958974e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.767844719073557,
+        "a_l2": 4.767844719073557,
+        "b_l2": 4.767844719073557,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.progress_reservoir",
+      "passed": true,
+      "a": 5.485539207507216,
+      "b": 5.48553920750722,
+      "absolute_limit": 3.1181680284971774e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 3.552713678800501e-15,
+        "l2_absolute": 3.552713678800501e-15,
+        "rms_absolute": 3.552713678800501e-15,
+        "reference_linf": 5.48553920750722,
+        "a_l2": 5.485539207507216,
+        "b_l2": 5.48553920750722,
+        "relative_l2": 6.476507676653636e-16,
+        "relative_linf_global_scale": 6.476507676653636e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "particles.charge_C",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 46842,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.602176634e-19,
+        "a_l2": 3.467592928423643e-17,
+        "b_l2": 3.467592928423643e-17,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "particles.mass_kg",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 46842,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 9.1093837139e-31,
+        "a_l2": 1.9715450767589828e-28,
+        "b_l2": 1.9715450767589828e-28,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "particles.weight",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 46842,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.031562858772902457,
+        "a_l2": 6.780105613687304,
+        "b_l2": 6.780105613687304,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "particles.position_m",
+      "passed": true,
+      "absolute_limit": 1e-12,
+      "metrics": {
+        "count": 140526,
+        "linf_absolute": 3.469446951953614e-18,
+        "l2_absolute": 6.824604207162495e-17,
+        "rms_absolute": 1.820535396528437e-19,
+        "reference_linf": 0.012499696279031422,
+        "a_l2": 2.455502106733129,
+        "b_l2": 2.455502106733129,
+        "relative_l2": 2.779311077945742e-17,
+        "relative_linf_global_scale": 2.7756250028040323e-16,
+        "max_difference_index": 887
+      }
+    },
+    {
+      "name": "particles.proper_velocity_m_s",
+      "passed": true,
+      "absolute_limit": 0.005304514737697029,
+      "metrics": {
+        "count": 140526,
+        "linf_absolute": 5.033798515796661e-07,
+        "l2_absolute": 1.8668687691451573e-05,
+        "rms_absolute": 4.9800700109982365e-08,
+        "reference_linf": 53045147.37697029,
+        "a_l2": 5348822650.806661,
+        "b_l2": 5348822650.806661,
+        "relative_l2": 3.4902424159896442e-15,
+        "relative_linf_global_scale": 9.489649411327868e-15,
+        "max_difference_index": 41559
+      }
+    },
+    {
+      "name": "raw_diagnostics.time_s",
+      "passed": true,
+      "a": 2.572965307563373e-08,
+      "b": 2.572965307563373e-08,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.572965307563373e-08,
+        "a_l2": 2.572965307563373e-08,
+        "b_l2": 2.572965307563373e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.time_s",
+      "passed": true,
+      "a": 1.000000000001134e-12,
+      "b": 1.000000000001134e-12,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.000000000001134e-12,
+        "a_l2": 1.000000000001134e-12,
+        "b_l2": 1.000000000001134e-12,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.particle_charge_C",
+      "passed": true,
+      "a": -2.3510596413905636e-16,
+      "b": -2.3510596413905636e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.3510596413905636e-16,
+        "a_l2": 2.3510596413905636e-16,
+        "b_l2": 2.3510596413905636e-16,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.particle_charge_C",
+      "passed": true,
+      "a": -5.820164266800266e-19,
+      "b": -5.820164266800266e-19,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.820164266800266e-19,
+        "a_l2": 5.820164266800266e-19,
+        "b_l2": 5.820164266800266e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.deposited_charge_C",
+      "passed": true,
+      "a": -2.351059641390477e-16,
+      "b": -2.3510596413904783e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.4791141972893971e-31,
+        "l2_absolute": 1.4791141972893971e-31,
+        "rms_absolute": 1.4791141972893971e-31,
+        "reference_linf": 2.3510596413904783e-16,
+        "a_l2": 2.351059641390477e-16,
+        "b_l2": 2.3510596413904783e-16,
+        "relative_l2": 6.291266164624433e-16,
+        "relative_linf_global_scale": 6.291266164624433e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed_to_final_increment.deposited_charge_C",
+      "passed": true,
+      "a": -5.820164266800759e-19,
+      "b": -5.820164266802238e-19,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.4791141972893971e-31,
+        "l2_absolute": 1.4791141972893971e-31,
+        "rms_absolute": 1.4791141972893971e-31,
+        "reference_linf": 5.820164266802238e-19,
+        "a_l2": 5.820164266800759e-19,
+        "b_l2": 5.820164266802238e-19,
+        "relative_l2": 2.541361599922787e-13,
+        "relative_linf_global_scale": 2.541361599922787e-13,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "raw_diagnostics.lower_field_charge_C",
+      "passed": true,
+      "a": 2.8168553582777933e-08,
+      "b": 2.8168553582777582e-08,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 3.5072457972248373e-22,
+        "l2_absolute": 3.5072457972248373e-22,
+        "rms_absolute": 3.5072457972248373e-22,
+        "reference_linf": 2.8168553582777933e-08,
+        "a_l2": 2.8168553582777933e-08,
+        "b_l2": 2.8168553582777582e-08,
+        "relative_l2": 1.245092612554002e-14,
+        "relative_linf_global_scale": 1.245092612554002e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed_to_final_increment.lower_field_charge_C",
+      "passed": true,
+      "a": 4.847278389560742e-21,
+      "b": 4.4965538098382584e-21,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 3.5072457972248373e-22,
+        "l2_absolute": 3.5072457972248373e-22,
+        "rms_absolute": 3.5072457972248373e-22,
+        "reference_linf": 4.847278389560742e-21,
+        "a_l2": 4.847278389560742e-21,
+        "b_l2": 4.4965538098382584e-21,
+        "relative_l2": 0.07235494880546076,
+        "relative_linf_global_scale": 0.07235494880546076,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "raw_diagnostics.upper_field_charge_C",
+      "passed": true,
+      "a": -2.8168553347645773e-08,
+      "b": -2.816855334764491e-08,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.635765595053609e-22,
+        "l2_absolute": 8.635765595053609e-22,
+        "rms_absolute": 8.635765595053609e-22,
+        "reference_linf": 2.8168553347645773e-08,
+        "a_l2": 2.8168553347645773e-08,
+        "b_l2": 2.816855334764491e-08,
+        "relative_l2": 3.0657469300869707e-14,
+        "relative_linf_global_scale": 3.0657469300869707e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed_to_final_increment.upper_field_charge_C",
+      "passed": true,
+      "a": 5.763000414881446e-19,
+      "b": 5.7716361804765e-19,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.635765595053609e-22,
+        "l2_absolute": 8.635765595053609e-22,
+        "rms_absolute": 8.635765595053609e-22,
+        "reference_linf": 5.7716361804765e-19,
+        "a_l2": 5.763000414881446e-19,
+        "b_l2": 5.7716361804765e-19,
+        "relative_l2": 0.0014962421963230278,
+        "relative_linf_global_scale": 0.0014962421963230278,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "raw_diagnostics.gauss_defect_C",
+      "passed": true,
+      "a": 2.619515563832928e-20,
+      "b": 2.6708007618112158e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 5.128519797828772e-22,
+        "l2_absolute": 5.128519797828772e-22,
+        "rms_absolute": 5.128519797828772e-22,
+        "reference_linf": 2.6708007618112158e-20,
+        "a_l2": 2.619515563832928e-20,
+        "b_l2": 2.6708007618112158e-20,
+        "relative_l2": 0.019202180376610506,
+        "relative_linf_global_scale": 0.019202180376610506,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed_to_final_increment.gauss_defect_C",
+      "passed": true,
+      "a": -8.701940044057851e-22,
+      "b": -3.5734202462290796e-22,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 5.128519797828772e-22,
+        "l2_absolute": 5.128519797828772e-22,
+        "rms_absolute": 5.128519797828772e-22,
+        "reference_linf": 8.701940044057851e-22,
+        "a_l2": 8.701940044057851e-22,
+        "b_l2": 3.5734202462290796e-22,
+        "relative_l2": 0.5893536121673004,
+        "relative_linf_global_scale": 0.5893536121673004,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "raw_diagnostics.particle_charge_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.9721522630525295e-31,
+      "b": -1.9721522630525295e-31,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.9721522630525295e-31,
+        "a_l2": 1.9721522630525295e-31,
+        "b_l2": 1.9721522630525295e-31,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.field_energy_J",
+      "passed": true,
+      "a": 0.0011356636196667572,
+      "b": 0.001135663619666731,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.6237692574149207e-17,
+        "l2_absolute": 2.6237692574149207e-17,
+        "rms_absolute": 2.6237692574149207e-17,
+        "reference_linf": 0.0011356636196667572,
+        "a_l2": 0.0011356636196667572,
+        "b_l2": 0.001135663619666731,
+        "relative_l2": 2.3103401500039466e-14,
+        "relative_linf_global_scale": 2.3103401500039466e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed_to_final_increment.field_energy_J",
+      "passed": true,
+      "a": -2.3852447794681098e-18,
+      "b": -2.862293735361732e-17,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.6237692574149207e-17,
+        "l2_absolute": 2.6237692574149207e-17,
+        "rms_absolute": 2.6237692574149207e-17,
+        "reference_linf": 2.862293735361732e-17,
+        "a_l2": 2.3852447794681098e-18,
+        "b_l2": 2.862293735361732e-17,
+        "relative_l2": 0.9166666666666666,
+        "relative_linf_global_scale": 0.9166666666666666,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "raw_diagnostics.particle_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.particle_kinetic_energy_J",
+      "passed": true,
+      "a": 1.231080288198978e-15,
+      "b": 1.2310802881991799e-15,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.0194839173657902e-28,
+        "l2_absolute": 2.0194839173657902e-28,
+        "rms_absolute": 2.0194839173657902e-28,
+        "reference_linf": 1.2310802881991799e-15,
+        "a_l2": 1.231080288198978e-15,
+        "b_l2": 1.2310802881991799e-15,
+        "relative_l2": 1.6404160936732116e-13,
+        "relative_linf_global_scale": 1.6404160936732116e-13,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "raw_diagnostics.lower_absorbed_charge_C",
+      "passed": true,
+      "a": -2.957095667431326e-16,
+      "b": -2.957095667431326e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.957095667431326e-16,
+        "a_l2": 2.957095667431326e-16,
+        "b_l2": 2.957095667431326e-16,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.lower_absorbed_charge_C",
+      "passed": true,
+      "a": -8.130649729335392e-19,
+      "b": -8.130649729335392e-19,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 8.130649729335392e-19,
+        "a_l2": 8.130649729335392e-19,
+        "b_l2": 8.130649729335392e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.upper_absorbed_charge_C",
+      "passed": true,
+      "a": -6.072929377809059e-17,
+      "b": -6.072929377809059e-17,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 6.072929377809059e-17,
+        "a_l2": 6.072929377809059e-17,
+        "b_l2": 6.072929377809059e-17,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.upper_absorbed_charge_C",
+      "passed": true,
+      "a": -2.1083134560023447e-19,
+      "b": -2.1083134560023447e-19,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.1083134560023447e-19,
+        "a_l2": 2.1083134560023447e-19,
+        "b_l2": 2.1083134560023447e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.lower_absorbed_energy_J",
+      "passed": true,
+      "a": 8.621783786506409e-17,
+      "b": 8.621783786506409e-17,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 8.621783786506409e-17,
+        "a_l2": 8.621783786506409e-17,
+        "b_l2": 8.621783786506409e-17,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.lower_absorbed_energy_J",
+      "passed": true,
+      "a": 2.6038649652727427e-19,
+      "b": 2.6038649652727427e-19,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.6038649652727427e-19,
+        "a_l2": 2.6038649652727427e-19,
+        "b_l2": 2.6038649652727427e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.upper_absorbed_energy_J",
+      "passed": true,
+      "a": 8.342427193508008e-15,
+      "b": 8.342427193508008e-15,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 8.342427193508008e-15,
+        "a_l2": 8.342427193508008e-15,
+        "b_l2": 8.342427193508008e-15,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.upper_absorbed_energy_J",
+      "passed": true,
+      "a": 2.941318091281229e-17,
+      "b": 2.941318091281229e-17,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.941318091281229e-17,
+        "a_l2": 2.941318091281229e-17,
+        "b_l2": 2.941318091281229e-17,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.lower_injected_charge_C",
+      "passed": true,
+      "a": -2.9577491828856964e-16,
+      "b": -2.9577491828856964e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.9577491828856964e-16,
+        "a_l2": 2.9577491828856964e-16,
+        "b_l2": 2.9577491828856964e-16,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.lower_injected_charge_C",
+      "passed": true,
+      "a": -8.029563726067276e-19,
+      "b": -8.029563726067276e-19,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 8.029563726067276e-19,
+        "a_l2": 8.029563726067276e-19,
+        "b_l2": 8.029563726067276e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.upper_injected_charge_C",
+      "passed": true,
+      "a": -2.957749182885629e-16,
+      "b": -2.957749182885629e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.957749182885629e-16,
+        "a_l2": 2.957749182885629e-16,
+        "b_l2": 2.957749182885629e-16,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.upper_injected_charge_C",
+      "passed": true,
+      "a": -8.029563726067276e-19,
+      "b": -8.029563726067276e-19,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 8.029563726067276e-19,
+        "a_l2": 8.029563726067276e-19,
+        "b_l2": 8.029563726067276e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.injected_energy_J",
+      "passed": true,
+      "a": 1.7043419448130413e-16,
+      "b": 1.7043419448130413e-16,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.7043419448130413e-16,
+        "a_l2": 1.7043419448130413e-16,
+        "b_l2": 1.7043419448130413e-16,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.injected_energy_J",
+      "passed": true,
+      "a": 4.901445932682305e-19,
+      "b": 4.901445932682305e-19,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.901445932682305e-19,
+        "a_l2": 4.901445932682305e-19,
+        "b_l2": 4.901445932682305e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.authored_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.authored_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.authored_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.authored_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.maximum_nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.maximum_nodal_continuity_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.escaped_kinetic_energy_J",
+      "passed": true,
+      "a": 2.6070428967782895e-21,
+      "b": 2.6070428967782895e-21,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.6070428967782895e-21,
+        "a_l2": 2.6070428967782895e-21,
+        "b_l2": 2.6070428967782895e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.escaped_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.axial_escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.poisson_residual_C_per_m",
+      "passed": true,
+      "a": 4.920131166663422e-20,
+      "b": 4.940728875651119e-20,
+      "absolute_limit": 1.6454812032885355e-17,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.0597708987697127e-22,
+        "l2_absolute": 2.0597708987697127e-22,
+        "rms_absolute": 2.0597708987697127e-22,
+        "reference_linf": 4.940728875651119e-20,
+        "a_l2": 4.920131166663422e-20,
+        "b_l2": 4.940728875651119e-20,
+        "relative_l2": 0.004168961605889098,
+        "relative_linf_global_scale": 0.004168961605889098,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed_to_final_increment.poisson_residual_C_per_m",
+      "passed": true,
+      "a": -2.571379084999608e-22,
+      "b": -5.116081862298955e-23,
+      "absolute_limit": 1.6454812032885355e-17,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.0597708987697127e-22,
+        "l2_absolute": 2.0597708987697127e-22,
+        "rms_absolute": 2.0597708987697127e-22,
+        "reference_linf": 2.571379084999608e-22,
+        "a_l2": 2.571379084999608e-22,
+        "b_l2": 5.116081862298955e-23,
+        "relative_l2": 0.8010374319312108,
+        "relative_linf_global_scale": 0.8010374319312108,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_common.437411.time_s",
+      "passed": true,
+      "a": 2.647844113112573e-08,
+      "b": 2.647844113112573e-08,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647844113112573e-08,
+        "a_l2": 2.647844113112573e-08,
+        "b_l2": 2.647844113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.step",
+      "passed": true,
+      "a": 437411.0,
+      "b": 437411.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 437411.0,
+        "a_l2": 437411.0,
+        "b_l2": 437411.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.macro_particles",
+      "passed": true,
+      "a": 46726.0,
+      "b": 46726.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 46726.0,
+        "a_l2": 46726.0,
+        "b_l2": 46726.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.gauss_defect_C",
+      "passed": true,
+      "a": 2.6592202332354734e-20,
+      "b": 2.542753202988007e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.164670302474663e-21,
+        "l2_absolute": 1.164670302474663e-21,
+        "rms_absolute": 1.164670302474663e-21,
+        "reference_linf": 2.6592202332354734e-20,
+        "a_l2": 2.6592202332354734e-20,
+        "b_l2": 2.542753202988007e-20,
+        "relative_l2": 0.04379743685454772,
+        "relative_linf_global_scale": 0.04379743685454772,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_common.437411.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.6150519751371322e-29,
+      "b": -1.6150519751371322e-29,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.6150519751371322e-29,
+        "a_l2": 1.6150519751371322e-29,
+        "b_l2": 1.6150519751371322e-29,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.field_energy_J",
+      "passed": true,
+      "a": 0.0011356636196668069,
+      "b": 0.0011356636196667342,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 7.26415455565288e-17,
+        "l2_absolute": 7.26415455565288e-17,
+        "rms_absolute": 7.26415455565288e-17,
+        "reference_linf": 0.0011356636196668069,
+        "a_l2": 0.0011356636196668069,
+        "b_l2": 0.0011356636196667342,
+        "relative_l2": 6.396396283068498e-14,
+        "relative_linf_global_scale": 6.396396283068498e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_common.437411.kinetic_energy_J",
+      "passed": true,
+      "a": 4.057882454284543e-13,
+      "b": 4.057882454284543e-13,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.057882454284543e-13,
+        "a_l2": 4.057882454284543e-13,
+        "b_l2": 4.057882454284543e-13,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.source_reservoir_electrons",
+      "passed": true,
+      "a": 4.767844719073557,
+      "b": 4.767844719073557,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.767844719073557,
+        "a_l2": 4.767844719073557,
+        "b_l2": 4.767844719073557,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.time_s",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.step",
+      "passed": true,
+      "a": 437621.0,
+      "b": 437621.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 437621.0,
+        "a_l2": 437621.0,
+        "b_l2": 437621.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.macro_particles",
+      "passed": true,
+      "a": 46842.0,
+      "b": 46842.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 46842.0,
+        "a_l2": 46842.0,
+        "b_l2": 46842.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.gauss_defect_C",
+      "passed": true,
+      "a": 2.619515563832928e-20,
+      "b": 2.6708007618112158e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 5.128519797828772e-22,
+        "l2_absolute": 5.128519797828772e-22,
+        "rms_absolute": 5.128519797828772e-22,
+        "reference_linf": 2.6708007618112158e-20,
+        "a_l2": 2.619515563832928e-20,
+        "b_l2": 2.6708007618112158e-20,
+        "relative_l2": 0.019202180376610506,
+        "relative_linf_global_scale": 0.019202180376610506,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_common.437621.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.6347734977676575e-29,
+      "b": -1.6347734977676575e-29,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.6347734977676575e-29,
+        "a_l2": 1.6347734977676575e-29,
+        "b_l2": 1.6347734977676575e-29,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.field_energy_J",
+      "passed": true,
+      "a": 0.0011356636196667572,
+      "b": 0.001135663619666731,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.6237692574149207e-17,
+        "l2_absolute": 2.6237692574149207e-17,
+        "rms_absolute": 2.6237692574149207e-17,
+        "reference_linf": 0.0011356636196667572,
+        "a_l2": 0.0011356636196667572,
+        "b_l2": 0.001135663619666731,
+        "relative_l2": 2.3103401500039466e-14,
+        "relative_linf_global_scale": 2.3103401500039466e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_common.437621.kinetic_energy_J",
+      "passed": true,
+      "a": 4.070193257166533e-13,
+      "b": 4.070193257166535e-13,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.0194839173657902e-28,
+        "l2_absolute": 2.0194839173657902e-28,
+        "rms_absolute": 2.0194839173657902e-28,
+        "reference_linf": 4.070193257166535e-13,
+        "a_l2": 4.070193257166533e-13,
+        "b_l2": 4.070193257166535e-13,
+        "relative_l2": 4.961641351574677e-16,
+        "relative_linf_global_scale": 4.961641351574677e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_common.437621.source_reservoir_electrons",
+      "passed": true,
+      "a": 5.485539207507216,
+      "b": 5.485539207507216,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.485539207507216,
+        "a_l2": 5.485539207507216,
+        "b_l2": 5.485539207507216,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.45006849064045e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.gauss_defect_C",
+      "passed": true,
+      "a": -3.970466940254533e-22,
+      "b": 1.2804755882320868e-21,
+      "absolute_limit": 2.5619150133477505e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.6775222822575401e-21,
+        "l2_absolute": 1.6775222822575401e-21,
+        "rms_absolute": 1.6775222822575401e-21,
+        "reference_linf": 1.2804755882320868e-21,
+        "a_l2": 3.970466940254533e-22,
+        "b_l2": 1.2804755882320868e-21,
+        "relative_l2": 1.310077519379845,
+        "relative_linf_global_scale": 1.310077519379845,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_endpoint_increment.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.9721522630525295e-31,
+      "b": -1.9721522630525295e-31,
+      "absolute_limit": 6.449275357273103e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.9721522630525295e-31,
+        "a_l2": 1.9721522630525295e-31,
+        "b_l2": 1.9721522630525295e-31,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 6.449275357273103e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.field_energy_J",
+      "passed": true,
+      "a": -4.96564594998361e-17,
+      "b": -3.2526065174565133e-18,
+      "absolute_limit": 5.164400225415919e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 4.640385298237959e-17,
+        "l2_absolute": 4.640385298237959e-17,
+        "rms_absolute": 4.640385298237959e-17,
+        "reference_linf": 4.96564594998361e-17,
+        "a_l2": 4.96564594998361e-17,
+        "b_l2": 3.2526065174565133e-18,
+        "relative_l2": 0.9344978165938864,
+        "relative_linf_global_scale": 0.9344978165938864,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_endpoint_increment.kinetic_energy_J",
+      "passed": true,
+      "a": 1.231080288198978e-15,
+      "b": 1.2310802881991799e-15,
+      "absolute_limit": 1.89001369812809e-25,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.0194839173657902e-28,
+        "l2_absolute": 2.0194839173657902e-28,
+        "rms_absolute": 2.0194839173657902e-28,
+        "reference_linf": 1.2310802881991799e-15,
+        "a_l2": 1.231080288198978e-15,
+        "b_l2": 1.2310802881991799e-15,
+        "relative_l2": 1.6404160936732116e-13,
+        "relative_linf_global_scale": 1.6404160936732116e-13,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_endpoint_increment.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 6.449275357273103e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 1.89001369812809e-25,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.axial_escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 6.449275357273103e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.frame_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.frame_reconstruction.height_average_electron_density_cm3",
+      "passed": true,
+      "absolute_limit": 3.151248175215997e-08,
+      "one_electron_density_cm3": 64000.000000000015,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 554373.4417052625,
+        "a_l2": 3445053.3846119535,
+        "b_l2": 3445053.3846119535,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.integrated_density_count.height_average_electron_density_cm3",
+      "passed": true,
+      "a": 1467.4160086337117,
+      "b": 1467.416008633712,
+      "absolute_limit": 3.3365177128728464e-10,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.2737367544323206e-13,
+        "l2_absolute": 2.2737367544323206e-13,
+        "rms_absolute": 2.2737367544323206e-13,
+        "reference_linf": 1467.416008633712,
+        "a_l2": 1467.4160086337117,
+        "b_l2": 1467.416008633712,
+        "relative_l2": 1.549483405560882e-16,
+        "relative_linf_global_scale": 1.549483405560882e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.frame_reconstruction.electron_density_cm3",
+      "passed": true,
+      "absolute_limit": 9.094947017729284e-08,
+      "one_electron_density_cm3": 1600000.0000000002,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 602597.156917396,
+        "a_l2": 4176384.3775648754,
+        "b_l2": 4176384.3775648754,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-baseline-late-cpu7.integrated_density_count.electron_density_cm3",
+      "passed": true,
+      "a": 62.46672695669126,
+      "b": 62.46672695669127,
+      "absolute_limit": 1.4203289301051715e-11,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 7.105427357601002e-15,
+        "l2_absolute": 7.105427357601002e-15,
+        "rms_absolute": 7.105427357601002e-15,
+        "reference_linf": 62.46672695669127,
+        "a_l2": 62.46672695669126,
+        "b_l2": 62.46672695669127,
+        "relative_l2": 1.137473932726979e-16,
+        "relative_linf_global_scale": 1.137473932726979e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.frame_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.frame_reconstruction.height_average_electron_density_cm3",
+      "passed": true,
+      "absolute_limit": 3.151248175215997e-08,
+      "one_electron_density_cm3": 64000.000000000015,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 554373.4417052625,
+        "a_l2": 3445053.3846119535,
+        "b_l2": 3445053.3846119535,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.integrated_density_count.height_average_electron_density_cm3",
+      "passed": true,
+      "a": 1467.4160086337117,
+      "b": 1467.416008633712,
+      "absolute_limit": 3.3365177128728464e-10,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.2737367544323206e-13,
+        "l2_absolute": 2.2737367544323206e-13,
+        "rms_absolute": 2.2737367544323206e-13,
+        "reference_linf": 1467.416008633712,
+        "a_l2": 1467.4160086337117,
+        "b_l2": 1467.416008633712,
+        "relative_l2": 1.549483405560882e-16,
+        "relative_linf_global_scale": 1.549483405560882e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.frame_reconstruction.electron_density_cm3",
+      "passed": true,
+      "absolute_limit": 9.094947017729284e-08,
+      "one_electron_density_cm3": 1600000.0000000002,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 602597.156917396,
+        "a_l2": 4176384.3775648754,
+        "b_l2": 4176384.3775648754,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.integrated_density_count.electron_density_cm3",
+      "passed": true,
+      "a": 62.46672695669126,
+      "b": 62.46672695669127,
+      "absolute_limit": 1.4203289301051715e-11,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 7.105427357601002e-15,
+        "l2_absolute": 7.105427357601002e-15,
+        "rms_absolute": 7.105427357601002e-15,
+        "reference_linf": 62.46672695669127,
+        "a_l2": 62.46672695669126,
+        "b_l2": 62.46672695669127,
+        "relative_l2": 1.137473932726979e-16,
+        "relative_linf_global_scale": 1.137473932726979e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "frame.time_s",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 9.532598807201545e-06,
+        "b_l2": 9.532598807201545e-06,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "frame.x_m",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.008987499999999999,
+        "a_l2": 1.8706130679538144,
+        "b_l2": 1.8706130679538144,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "frame.y_m",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.008987499999999999,
+        "a_l2": 1.8706130679537707,
+        "b_l2": 1.8706130679537707,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "frame.potential_V",
+      "passed": true,
+      "absolute_limit": 8.067926999253988e-06,
+      "roundoff_floor": 4.5834801307610326e-09,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 1.7462298274040222e-09,
+        "l2_absolute": 1.4676578856752216e-07,
+        "rms_absolute": 4.076827460208949e-10,
+        "reference_linf": 80633.43519123226,
+        "a_l2": 17780925.24457942,
+        "b_l2": 17780925.244579475,
+        "relative_l2": 8.254114257201761e-15,
+        "relative_linf_global_scale": 2.1656398778777317e-14,
+        "max_difference_index": 126001
+      }
+    },
+    {
+      "name": "frame.Ex_V_m",
+      "passed": true,
+      "absolute_limit": 0.004939331409012893,
+      "roundoff_floor": 0.0001833392052304413,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 3.7848949432373047e-06,
+        "l2_absolute": 0.00015212361521577488,
+        "rms_absolute": 4.225655978215969e-07,
+        "reference_linf": 47559922.03782451,
+        "a_l2": 1052414951.1308863,
+        "b_l2": 1052414951.1308525,
+        "relative_l2": 1.4454718174832887e-13,
+        "relative_linf_global_scale": 7.958160528999961e-14,
+        "max_difference_index": 103960
+      }
+    },
+    {
+      "name": "frame.Ey_V_m",
+      "passed": true,
+      "absolute_limit": 0.005018322128819186,
+      "roundoff_floor": 0.0001833392052304413,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 3.4924596548080444e-06,
+        "l2_absolute": 0.0001879830762888861,
+        "rms_absolute": 5.221752119135725e-07,
+        "reference_linf": 48349829.23588744,
+        "a_l2": 3912554748.648217,
+        "b_l2": 3912554748.6482224,
+        "relative_l2": 4.804612033961538e-14,
+        "relative_linf_global_scale": 7.223313318789929e-14,
+        "max_difference_index": 83520
+      }
+    },
+    {
+      "name": "frame.solid",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.0,
+        "a_l2": 56.568542494923804,
+        "b_l2": 56.568542494923804,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    }
+  ],
+  "failures": [],
+  "input_manifest": [
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-baseline-late-cpu7/checkpoint_437621.bin",
+      "sha256": "a6d160936f8b3f0c4d13012251e4eeb665d5aceb5c05e15ed157f1d607ba22f5"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-baseline-late-cpu7/frame_27.csv",
+      "sha256": "fb73b3c047ab469131fed0d7503e574021ab23cd61410f7b93eeffbdf0bc9708"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-baseline-late-cpu7/history.csv",
+      "sha256": "56fdfbeb2bf42a5a34f9c6cdce6ec917575cc6bbf577510557ee4dfebd02b631"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-baseline-late-cpu7/parallel_execution.json",
+      "sha256": "9d58061eadbab9201559c49014058160f2a68174064f35769fb501d70f163775"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-baseline-late-cpu7/progress.json",
+      "sha256": "08e4bad7689252e2d898b8d5f913ed20cb9f2ec56a9bf43da697e4fe513d6d60"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-baseline-late-cpu7/restart.meta",
+      "sha256": "f2f66b2f09ef3c0a88d09f268ddef43b4852357133302614f59e0365b77b16ee"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-baseline-late-cpu7/run-receipt.json",
+      "sha256": "f76a7708e8fef59b554e2be17f192fabc8f301953a0264f0ca94d9348c2dc0ee"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-baseline-late-cpu7/scope.json",
+      "sha256": "54ed1268fbf345a1718c091cccf1338ed2996a60296ff54f23af697b9f64fdc4"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-baseline-late-cpu7/seed.json",
+      "sha256": "6f9f375e9c224af518d1354691f57154e22b247bdfc00310db039ed1968e0b33"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-cpu-v2-late-cpu7/checkpoint_437621.bin",
+      "sha256": "bd675c56cb8f056e2041cd0734707285869f07adbce3d686623e8ffce79d15df"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-cpu-v2-late-cpu7/frame_27.csv",
+      "sha256": "2391992d39aa5934736853bf74459e5a5a96d38b84418023b8f886628e33cd6e"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-cpu-v2-late-cpu7/history.csv",
+      "sha256": "e53d6cf449bc9933c5307d1426f3a6055fc26013d289d3bc97c2bb1c30d8a1ef"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-cpu-v2-late-cpu7/parallel_execution.json",
+      "sha256": "9d58061eadbab9201559c49014058160f2a68174064f35769fb501d70f163775"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-cpu-v2-late-cpu7/progress.json",
+      "sha256": "894ae27ebff2d1ae8ce21a7a0300d02f9e0990c7c0deb0bfefeaa0b9f60599f0"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-cpu-v2-late-cpu7/restart.meta",
+      "sha256": "f2f66b2f09ef3c0a88d09f268ddef43b4852357133302614f59e0365b77b16ee"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-cpu-v2-late-cpu7/run-receipt.json",
+      "sha256": "3f2ed11e602e168f71559e24794f45c47dd6029ddac213a4b2b2fd61d6ed5bc9"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-cpu-v2-late-cpu7/scope.json",
+      "sha256": "54ed1268fbf345a1718c091cccf1338ed2996a60296ff54f23af697b9f64fdc4"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-cpu-v2-late-cpu7/seed.json",
+      "sha256": "6f9f375e9c224af518d1354691f57154e22b247bdfc00310db039ed1968e0b33"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-late-phase/checkpoint_437411.bin",
+      "sha256": "673d7af6ba12521425bb4a327eaa6d5be8e3f58b1b744362257f5467a0eba6db"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-late-phase/history.csv",
+      "sha256": "03613f21e986195419d65a0cdb83e36e49bb3a650a4e9d97fa2449563ccfcca9"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-late-phase/restart.meta",
+      "sha256": "067d78271a237cc9cc3dc7a4e125520ff6ec6e1d04ecffb85d07fad35f3ff4d3"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-late-phase/seed.json",
+      "sha256": "6f9f375e9c224af518d1354691f57154e22b247bdfc00310db039ed1968e0b33"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-testing-allocation.json",
+      "sha256": "344c8b62d7bcf312536f56410ca5152d51035ae3f609a7759354770a45cad873"
+    }
+  ],
+  "limits": [
+    "Checkpoint has no nodal potential or crossing-event log; field comparison is limited to final saved CSV cell centers.",
+    "Only matching history steps are compared; no unrecorded intermediate state is inferred.",
+    "Saved residual norms are checked against CPU-reconstructed RHS guards; residual error vectors and solver maximum-relative history are not saved.",
+    "This is a short-window integration regression comparison, not physical, grid or timestep convergence.",
+    "CPU7 proof is recorded allocation/receipt evidence; no live production/cgroup state is changed or inferred."
+  ],
+  "replay_cpu_policy": {
+    "expected_replay_cpu": 7,
+    "comparator_cpu": 6,
+    "allocation": {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-testing-allocation.json",
+      "sha256": "344c8b62d7bcf312536f56410ca5152d51035ae3f609a7759354770a45cad873",
+      "status": "paused_job_frozen_core7_released_for_testing",
+      "updated_unix_s": 1793315492.8666961,
+      "testing_logical_cpus": [
+        6,
+        7
+      ],
+      "production_identity": {
+        "pid": 278902,
+        "exe": "/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/qualified/heating-history-pic-gpu",
+        "args": [
+          "/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/qualified/heating-history-pic-gpu",
+          "/home/treefor/projects/Power-Flow/runs/restore_field_mpi8_domain40mm",
+          "/home/treefor/Documents/Codex/2026-10-28/we/outputs/heating-history-full.bin",
+          "/home/treefor/Documents/Codex/2026-10-28/we/outputs/electron-heating-pic-25um-full60ns-gpu-midplane110kV-height25mm",
+          "60",
+          "/home/treefor/Documents/Codex/2026-10-28/we/outputs/gap-pulse-midplane110kV.csv"
+        ],
+        "start_ticks": "5288339"
+      },
+      "native_stopped": true,
+      "production_cgroup_frozen": true,
+      "gpu_benchmarks_serial": true
+    }
+  },
+  "execution": {
+    "cpu": 6,
+    "nice": 15,
+    "threads": 1,
+    "lease": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock",
+    "gpu_work": false
+  },
+  "created_utc": "2026-10-29T23:29:08.215046+00:00"
+}

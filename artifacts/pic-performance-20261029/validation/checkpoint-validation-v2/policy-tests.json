@@ -1,0 +1,166 @@
+{
+  "status": "passed",
+  "policy_cases": 14,
+  "cases": [
+    {
+      "name": "CPU6 default with CPU6 receipt",
+      "expected_accept": true,
+      "accepted": true,
+      "reason": null
+    },
+    {
+      "name": "CPU7 is not accepted by default6",
+      "expected_accept": false,
+      "accepted": false,
+      "reason": "replay receipt CPU differs from explicit expected replay CPU"
+    },
+    {
+      "name": "CPU7 explicit with allocation and recorded affinity/stopped identity",
+      "expected_accept": true,
+      "accepted": true,
+      "reason": null
+    },
+    {
+      "name": "CPU6 receipt rejected when CPU7 explicitly expected",
+      "expected_accept": false,
+      "accepted": false,
+      "reason": "replay receipt CPU differs from explicit expected replay CPU"
+    },
+    {
+      "name": "CPU8 requested",
+      "expected_accept": false,
+      "accepted": false,
+      "reason": "expected replay CPU must be 6 or 7; CPU8 is unauthorized"
+    },
+    {
+      "name": "CPU8 receipt against CPU6 policy",
+      "expected_accept": false,
+      "accepted": false,
+      "reason": "replay receipt CPU differs from explicit expected replay CPU"
+    },
+    {
+      "name": "CPU8 receipt against CPU7 policy",
+      "expected_accept": false,
+      "accepted": false,
+      "reason": "replay receipt CPU differs from explicit expected replay CPU"
+    },
+    {
+      "name": "CPU7 missing allocation",
+      "expected_accept": false,
+      "accepted": false,
+      "reason": "[Errno 2] No such file or directory: '/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/missing-allocation.json'"
+    },
+    {
+      "name": "CPU7 allocation not frozen",
+      "expected_accept": false,
+      "accepted": false,
+      "reason": "CPU7 requires recorded frozen-production/serial-testing allocation proof"
+    },
+    {
+      "name": "CPU7 receipt did not preserve stopped production",
+      "expected_accept": false,
+      "accepted": false,
+      "reason": "CPU7 replay receipt must preserve frozen production"
+    },
+    {
+      "name": "CPU7 identity proof mismatched",
+      "expected_accept": false,
+      "accepted": false,
+      "reason": "CPU7 replay/allocation production identity mismatch: pid"
+    },
+    {
+      "name": "CPU7 command affinity proof missing",
+      "expected_accept": false,
+      "accepted": false,
+      "reason": "CPU7 replay command must record exactly taskset -c 7"
+    },
+    {
+      "name": "CPU7 label with CPU8 command rejected",
+      "expected_accept": false,
+      "accepted": false,
+      "reason": "CPU7 replay command must record exactly taskset -c 7"
+    },
+    {
+      "name": "finite checks still reject a v1 nonfinite fixture",
+      "expected_accept": false,
+      "accepted": false,
+      "reason": "particle[0].position_m[0]: nonfinite or nonnumeric"
+    }
+  ],
+  "default6_real_comparison_passed": true,
+  "default6_scientific_metrics_identical_to_v1": {
+    "policy": true,
+    "options": true,
+    "particle_counts": true,
+    "particles": true,
+    "raw_diagnostics": true,
+    "seed_to_final_public_ledger_increments": true,
+    "history": true,
+    "source_reservoirs": true,
+    "frame": true,
+    "density_analysis": true,
+    "field_error_budget_impulse_m_s": true
+  },
+  "explicit7_real_phase_comparison_passed": true,
+  "cpu7_cli_command": [
+    "/usr/bin/python3",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/compare_saved_pic.py",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-baseline-late-cpu7",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/phase-cpu-v2-late-cpu7",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-late-phase",
+    "--expected-replay-cpu",
+    "7",
+    "--output",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/comparison-phase-cpu7.json"
+  ],
+  "CPU8_cli_returncode": 2,
+  "v1_all_original_files_preserved": {
+    "compare_saved_pic.py": true,
+    "test_comparator.py": true,
+    "make_schema.py": true,
+    "schema_probe.cpp": true,
+    "residual_guard_probe.cpp": true,
+    "build_schema.sh": true,
+    "build_guard_probe.sh": true,
+    "abi-schema.json": true,
+    "schema_probe": true,
+    "residual_guard_probe": true,
+    "README.txt": true,
+    "comparison.json": true,
+    "fixture-tests.json": true,
+    "handoff.json": true
+  },
+  "execution": {
+    "cpu": 6,
+    "nice": 15,
+    "threads": 1,
+    "lease": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock",
+    "gpu_work": false
+  },
+  "allocation_receipt": {
+    "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-testing-allocation.json",
+    "sha256": "344c8b62d7bcf312536f56410ca5152d51035ae3f609a7759354770a45cad873",
+    "status": "paused_job_frozen_core7_released_for_testing",
+    "updated_unix_s": 1793315492.8666961,
+    "testing_logical_cpus": [
+      6,
+      7
+    ],
+    "production_identity": {
+      "pid": 278902,
+      "exe": "/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/qualified/heating-history-pic-gpu",
+      "args": [
+        "/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/qualified/heating-history-pic-gpu",
+        "/home/treefor/projects/Power-Flow/runs/restore_field_mpi8_domain40mm",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/heating-history-full.bin",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/electron-heating-pic-25um-full60ns-gpu-midplane110kV-height25mm",
+        "60",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/gap-pulse-midplane110kV.csv"
+      ],
+      "start_ticks": "5288339"
+    },
+    "native_stopped": true,
+    "production_cgroup_frozen": true,
+    "gpu_benchmarks_serial": true
+  }
+}

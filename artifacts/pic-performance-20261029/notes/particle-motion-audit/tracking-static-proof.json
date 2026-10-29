@@ -1,0 +1,23 @@
+{
+  "status": "source_contract_verified",
+  "changed_files": [
+    "src/mfem_gap_pic.cpp",
+    "src/pic_particle_trace.hpp"
+  ],
+  "original_core_restored_by_removing_exact_insertions": true,
+  "insertions": [
+    "#include \"pic_particle_trace.hpp\"\n",
+    "    pic_particle_trace::initial(ledger_.time_s,dt,particles_);\n",
+    "        const auto velocity_before=p.proper_velocity_m_s;\n",
+    "        pic_particle_trace::force(ledger_.time_s+.5*dt,dt,p,E,B,velocity_before);\n",
+    "    pic_particle_trace::step(ledger_.time_s,dt,particles_);\n"
+  ],
+  "public_checkpoint_header_unchanged": true,
+  "existing_field_callbacks_unchanged": true,
+  "existing_Boris_statement_unchanged": true,
+  "existing_solver_and_drift_order_unchanged": true,
+  "new_field_callbacks": 0,
+  "simulation_run_performed": false,
+  "gpu_work": false,
+  "runtime_math_parity_pending_parent_validation": true
+}

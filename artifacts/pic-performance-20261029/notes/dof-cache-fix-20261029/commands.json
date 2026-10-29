@@ -1,0 +1,382 @@
+[
+  {
+    "name": "original_reproducer",
+    "argv": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/tests/cache_edges"
+    ],
+    "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/original_reproducer.log",
+    "inherited_execution": {
+      "affinity": [
+        6
+      ],
+      "nice": 15,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "compiler_jobs": 1,
+      "CUDA_VISIBLE_DEVICES": "",
+      "gpu_work": false
+    },
+    "returncode": 0,
+    "wall_seconds": 0.04848578400560655
+  },
+  {
+    "name": "configure",
+    "argv": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/cmake",
+      "-S",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/source",
+      "-B",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/build",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DMFEM_DIR=/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/cmake/mfem",
+      "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+    ],
+    "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/configure.log",
+    "inherited_execution": {
+      "affinity": [
+        6
+      ],
+      "nice": 15,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "compiler_jobs": 1,
+      "CUDA_VISIBLE_DEVICES": "",
+      "gpu_work": false
+    },
+    "returncode": 0,
+    "wall_seconds": 0.1153656310052611
+  },
+  {
+    "name": "build_cpu_targets",
+    "argv": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/cmake",
+      "--build",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/build",
+      "--parallel",
+      "1",
+      "--target",
+      "q1_gather_tests",
+      "pic_foundation_tests",
+      "pic_cpu_trace"
+    ],
+    "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/build_cpu_targets.log",
+    "inherited_execution": {
+      "affinity": [
+        6
+      ],
+      "nice": 15,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "compiler_jobs": 1,
+      "CUDA_VISIBLE_DEVICES": "",
+      "gpu_work": false
+    },
+    "returncode": 0,
+    "wall_seconds": 9.858774758999061
+  },
+  {
+    "name": "q1_gather_tests",
+    "argv": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/build/q1_gather_tests"
+    ],
+    "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/q1_gather_tests.log",
+    "inherited_execution": {
+      "affinity": [
+        6
+      ],
+      "nice": 15,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "compiler_jobs": 1,
+      "CUDA_VISIBLE_DEVICES": "",
+      "gpu_work": false
+    },
+    "returncode": 0,
+    "wall_seconds": 0.06758427799650235
+  },
+  {
+    "name": "pic_foundation_tests",
+    "argv": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/build/pic_foundation_tests"
+    ],
+    "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/pic_foundation_tests.log",
+    "inherited_execution": {
+      "affinity": [
+        6
+      ],
+      "nice": 15,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "compiler_jobs": 1,
+      "CUDA_VISIBLE_DEVICES": "",
+      "gpu_work": false
+    },
+    "returncode": 0,
+    "wall_seconds": 0.12615514800563687
+  },
+  {
+    "name": "pic_cpu_trace",
+    "argv": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/build/pic_cpu_trace"
+    ],
+    "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/pic_cpu_trace.log",
+    "inherited_execution": {
+      "affinity": [
+        6
+      ],
+      "nice": 15,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "compiler_jobs": 1,
+      "CUDA_VISIBLE_DEVICES": "",
+      "gpu_work": false
+    },
+    "returncode": 0,
+    "wall_seconds": 0.07101656000304502
+  },
+  {
+    "name": "compile_serial_state_trace",
+    "argv": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-O2",
+      "-DNDEBUG",
+      "-std=c++20",
+      "-I/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/source/include",
+      "-I/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/source/src",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/tests/serial_state_trace.cpp",
+      "-o",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/tests/serial_state_trace",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/build/libpic.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath,/usr/lib",
+      "/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cu12/lib/libcudss.so.0",
+      "/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/lib/libcudart.so.12",
+      "-Wl,-rpath,/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cu12/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cublas/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/lib"
+    ],
+    "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/compile_serial_state_trace.log",
+    "inherited_execution": {
+      "affinity": [
+        6
+      ],
+      "nice": 15,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "compiler_jobs": 1,
+      "CUDA_VISIBLE_DEVICES": "",
+      "gpu_work": false
+    },
+    "returncode": 0,
+    "wall_seconds": 13.557262608999736
+  },
+  {
+    "name": "serial_state_trace",
+    "argv": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/tests/serial_state_trace",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/tests/checkpoint"
+    ],
+    "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/serial_state_trace.log",
+    "inherited_execution": {
+      "affinity": [
+        6
+      ],
+      "nice": 15,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "compiler_jobs": 1,
+      "CUDA_VISIBLE_DEVICES": "",
+      "gpu_work": false
+    },
+    "returncode": 0,
+    "wall_seconds": 0.08452342200325802
+  },
+  {
+    "name": "compile_cache_edges",
+    "argv": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-O2",
+      "-DNDEBUG",
+      "-std=c++20",
+      "-I/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/source/include",
+      "-I/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/source/src",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/tests/cache_edges.cpp",
+      "-o",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/tests/cache_edges",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/build/libpic.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath,/usr/lib",
+      "/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cu12/lib/libcudss.so.0",
+      "/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/lib/libcudart.so.12",
+      "-Wl,-rpath,/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cu12/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cublas/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/lib"
+    ],
+    "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/compile_cache_edges.log",
+    "inherited_execution": {
+      "affinity": [
+        6
+      ],
+      "nice": 15,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "compiler_jobs": 1,
+      "CUDA_VISIBLE_DEVICES": "",
+      "gpu_work": false
+    },
+    "returncode": 0,
+    "wall_seconds": 1.969968188997882
+  },
+  {
+    "name": "cache_edges",
+    "argv": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/tests/cache_edges"
+    ],
+    "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/cache_edges.log",
+    "inherited_execution": {
+      "affinity": [
+        6
+      ],
+      "nice": 15,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "compiler_jobs": 1,
+      "CUDA_VISIBLE_DEVICES": "",
+      "gpu_work": false
+    },
+    "returncode": 0,
+    "wall_seconds": 0.06892243299807888
+  },
+  {
+    "name": "compile_native_field_trace",
+    "argv": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-O2",
+      "-DNDEBUG",
+      "-std=c++20",
+      "-I/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/source/include",
+      "-I/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/source/src",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "-DHISTORY_SOURCE=\"/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/source/examples/mfem_heating_history_pic.cpp\"",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/tests/field_cache_trace.cpp",
+      "-o",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/tests/field_cache_trace",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/build/libpic.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath,/usr/lib",
+      "/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cu12/lib/libcudss.so.0",
+      "/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/lib/libcudart.so.12",
+      "-Wl,-rpath,/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cu12/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cublas/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/lib"
+    ],
+    "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/compile_native_field_trace.log",
+    "inherited_execution": {
+      "affinity": [
+        6
+      ],
+      "nice": 15,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "compiler_jobs": 1,
+      "CUDA_VISIBLE_DEVICES": "",
+      "gpu_work": false
+    },
+    "returncode": 0,
+    "wall_seconds": 3.3367401590003283
+  },
+  {
+    "name": "native_field_trace",
+    "argv": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/tests/field_cache_trace",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/tests/native-fixture",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/tests/native-timing.json",
+      "isolated_fix"
+    ],
+    "log": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/native_field_trace.log",
+    "inherited_execution": {
+      "affinity": [
+        6
+      ],
+      "nice": 15,
+      "thread_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "compiler_jobs": 1,
+      "CUDA_VISIBLE_DEVICES": "",
+      "gpu_work": false
+    },
+    "returncode": 0,
+    "wall_seconds": 0.39114983000035863
+  }
+]

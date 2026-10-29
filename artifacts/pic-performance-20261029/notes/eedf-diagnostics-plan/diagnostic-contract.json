@@ -1,0 +1,120 @@
+{
+  "status": "proposal_only",
+  "implemented_scope": "instantaneous electron occupancy offline only",
+  "units": {
+    "position": "m in PIC frame",
+    "time": "absolute physical s with origin provenance",
+    "proper_velocity": "m/s, u=gamma*v",
+    "single_particle_charge": "C",
+    "single_particle_mass": "kg",
+    "weight": "represented physical particles",
+    "kinetic_energy": "J and eV; stable relativistic formula",
+    "dn_dE": "cm^-3 eV^-1",
+    "number_normalized_energy_pdf": "eV^-1",
+    "angular_occupancy": "cm^-3 sr^-1",
+    "crossing_flux": "cm^-2 s^-1",
+    "joint_energy_angular_crossing_flux": "cm^-2 s^-1 eV^-1 sr^-1",
+    "cross_section": "cm^2",
+    "volume_reaction_rate": "cm^-3 s^-1",
+    "rate_coefficient": "cm^3 s^-1"
+  },
+  "selectors": {
+    "full_height_m": 0.025,
+    "midpoint_slab_m": 0.001,
+    "slab_definition": "abs(z)<0.0005 m, not a pointwise plane",
+    "volume_conventions": [
+      "nominal Cartesian volume for legacy comparison",
+      "vacuum/gas volume with declared conductor subtraction"
+    ]
+  },
+  "future_window_metadata": [
+    "schema_version",
+    "run_branch_id",
+    "restart_epoch",
+    "parent_checkpoint_sha256",
+    "source_and_input_hashes",
+    "coordinate_frame",
+    "absolute_start_end_s",
+    "accepted_step_range",
+    "integrator_phase",
+    "accumulated_physical_duration_s",
+    "spatial_energy_angular_edges",
+    "nominal_and_vacuum_volumes",
+    "coverage_complete",
+    "overflow_weight_and_energy"
+  ],
+  "future_histogram_fields": [
+    "macro_count",
+    "sum_weight",
+    "sum_weight_squared",
+    "sum_charge_C",
+    "sum_weighted_kinetic_J",
+    "stationary_weight",
+    "overflow_weight",
+    "overflow_energy"
+  ],
+  "future_birth_fields": [
+    "particle_id",
+    "birth_event_id",
+    "species_charge_state_mass",
+    "weight",
+    "absolute_creation_time_s",
+    "step_substep_phase",
+    "electrode_face_patch",
+    "position_m",
+    "proper_velocity_m_s",
+    "source_law_version",
+    "source_temperature_current_density",
+    "reservoir_window_and_released_supply",
+    "RNG_seed_or_counter",
+    "parent_ids"
+  ],
+  "future_crossing_fields": [
+    "event_id",
+    "detector_surface_face_id",
+    "area_and_exposure",
+    "absolute_event_time_s",
+    "particle_species_birth_id",
+    "position_m",
+    "outward_normal",
+    "signed_direction",
+    "proper_velocity_m_s",
+    "kinetic_J",
+    "weight",
+    "charge_C",
+    "segment_phase",
+    "grazing_corner_rule"
+  ],
+  "future_reaction_fields": [
+    "event_id",
+    "channel_version_and_data_hash",
+    "target_phase_species_internal_state",
+    "reactant_and_product_ids",
+    "reaction_extent_weight",
+    "pre_post_momenta",
+    "chemical_internal_energy_change",
+    "target_bath_energy_momentum_exchange"
+  ],
+  "checkpoint_extension": "Use a versioned new format or atomically bound sidecar; never reinterpret frozen PIC2 bytes as a new species/provenance schema.",
+  "missing_physics_inputs": [
+    "H2O target phase",
+    "neutral density temperature velocity/internal states in space/time",
+    "validated process-resolved cross sections covering the populated energy range",
+    "fragment and secondary-electron product energy/angular laws",
+    "joint electron/ion feedback model"
+  ],
+  "must_not_infer": [
+    "unrecorded crossing events",
+    "individual removed-particle paths or birth surfaces from IDs alone",
+    "residence time from wall-clock logging",
+    "independent samples from paired replay copies",
+    "physical convergence from normalized histograms"
+  ],
+  "current_flags": {
+    "crossing_flux_computed": false,
+    "residence_time_weighted": false,
+    "fragmentation_rates_computed": false,
+    "ion_evolution": false,
+    "production_source_changes": false
+  }
+}

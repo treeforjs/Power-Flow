@@ -1,0 +1,85 @@
+{
+  "status": "passed",
+  "completed_utc": "2026-10-29T22:40:41.754316+00:00",
+  "execution": {
+    "affinity": [
+      6
+    ],
+    "nice": 15,
+    "thread_environment": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1"
+    },
+    "compiler_jobs": 1,
+    "CUDA_VISIBLE_DEVICES": "",
+    "gpu_work": false
+  },
+  "results": [
+    {
+      "name": "original_bug_reproduced",
+      "mismatches": "6/6",
+      "cache_available": true
+    },
+    {
+      "name": "q1_gather_tests",
+      "status": "passed",
+      "coverage": "renumbering invalidation, idempotence, reconstruction, values and gradients at corners/interiors; original Q1, Q2, triangles, refinement fallbacks"
+    },
+    {
+      "name": "pic_foundation_tests",
+      "status": "passed",
+      "solver": "serial CG; distributed_fields=false"
+    },
+    {
+      "name": "supplied_serial_trace",
+      "byte_identical": true,
+      "bytes": 455537,
+      "actual_sha256": "79947a84f5e45e8011b046d584fde84c0c731320df4fc37cb067df17d4bbc226",
+      "reference_sha256": "79947a84f5e45e8011b046d584fde84c0c731320df4fc37cb067df17d4bbc226",
+      "actual": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/pic_cpu_trace.log",
+      "reference": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-audit/baseline-trace.txt"
+    },
+    {
+      "name": "complete_serial_state_trace",
+      "byte_identical": true,
+      "bytes": 328651,
+      "actual_sha256": "1624f743214d33a3986e8ca5b7d6271a6a012bc105bcff7db9fe9f6a69955cd3",
+      "reference_sha256": "1624f743214d33a3986e8ca5b7d6271a6a012bc105bcff7db9fe9f6a69955cd3",
+      "actual": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/serial_state_trace.log",
+      "reference": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/tests/baseline_serial_state_trace.txt"
+    },
+    {
+      "name": "cache_edges",
+      "status": "passed",
+      "coverage": "fresh coefficients; geometry mutation; signed DOFs; custom nonidentity transform; Q2 rebind; explicit invalidation before unversioned renumbering and reconstructed cache"
+    },
+    {
+      "name": "native_field_time_cache_trace",
+      "byte_identical": true,
+      "bytes": 31386,
+      "actual_sha256": "64fe3cfda218d0b1fea64b578187145544532abdba6db160ae2a646f21a794c9",
+      "reference_sha256": "64fe3cfda218d0b1fea64b578187145544532abdba6db160ae2a646f21a794c9",
+      "actual": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/logs/native_field_trace.log",
+      "reference": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-audit/baseline-field-trace.txt"
+    },
+    {
+      "name": "native_gather_checksum",
+      "actual": -4019096847.1793637,
+      "expected": -4019096847.1793637,
+      "equal": true
+    }
+  ],
+  "shared_source_unchanged": true,
+  "isolated_changed_files": [
+    "include/raikou/q1_scalar_gather.h",
+    "tests/test_q1_scalar_gather.cpp"
+  ],
+  "patch_sha256": "aa423ea8f3f221dcc1060d2cdb1bdcfa2498577d365461aa93509804c125f387",
+  "fixed_library_sha256": "2168d44605d479818831b6289fb991a72105b5a9f531692c959fc4714ff3f812",
+  "limitations": [
+    "Unversioned numbering operations require explicit invalidate() before mutation; no automatic detection added.",
+    "GPU/distributed residual branch and end-to-end performance not executed.",
+    "No shared candidate edits, deployment, active-run operations, or reservation changes."
+  ]
+}

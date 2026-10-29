@@ -1,0 +1,82 @@
+{
+  "status": "cpu_candidate_replay_qualification_and_physics_preparation",
+  "request": "Profile CPU/GPU work and improve speed while preserving code quality and scientific correctness. Evaluate macro-particle sampling only with convergence evidence.",
+  "production_output": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/electron-heating-pic-25um-full60ns-gpu-midplane110kV-height25mm",
+  "production_manifest": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/full60-gpu-launch.json",
+  "profile_cpu": 7,
+  "production_cpu": 7,
+  "reserved_production_logical_pair": [
+    7,
+    15
+  ],
+  "constraints": [
+    "Do not change the sealed active executable in place.",
+    "Preserve/checkpoint the full-run state; any bounded profiling pause must resume the same verified native process in finally.",
+    "No looser timestep, Poisson residual, charge or continuity guards.",
+    "No macroparticle reduction without weighted-source and observable convergence checks.",
+    "No new scheduled heartbeat; it was deleted by request.",
+    "Full production must remain stopped across bounded tests; do not restart it until a new explicit restart decision."
+  ],
+  "profilers": {
+    "CPU_candidate": "GNU gprofng supplied in frozen userspace",
+    "GPU_candidate": "pinned NVIDIA Nsight Systems from official CUDA12.8.1 redistribution"
+  },
+  "created_unix_s": 1793312247.9450657,
+  "visible_project_chats": [
+    {
+      "thread_id": "01a189c9-0f4f-7790-970b-18dbb1a703c0",
+      "title": "Validate PIC macroparticle sampling"
+    },
+    {
+      "thread_id": "01a189c9-0c4e-7741-83fd-dac41fd91b52",
+      "title": "Review PIC CPU optimizations"
+    },
+    {
+      "thread_id": "01a189c9-0920-71c2-95e1-2ab739fd6f62",
+      "title": "Review PIC GPU profiling and solver path"
+    },
+    {
+      "thread_id": "01a189e4-9a5d-72d0-8b1e-eb1a93290165",
+      "title": "Investigate CUDA particle and field gathers"
+    }
+  ],
+  "project_id": "6241e2f4-49ab-4149-9301-bace4c43c1f7",
+  "creation_directives_due_in_final": true,
+  "cpu_baseline": "outputs/pic-profile/cpu-baseline-1ps/functions-cpu.txt",
+  "cpu_profile_result": "210steps,~29537particles,advance11.1908s; GPUcopies+solves3.0551s; CPUprofilemeasuresFEgathers,sparseSPMV,drift,allocation andCUDApolling.",
+  "testing_allocation": "CPU6 for isolated builds/CPU checks under testing-core.lock; CPU7 for parent-controlled GPU tests under testing-core7.lock and testing-gpu.lock. Full production cgroup remains frozen; core isolation must be restored before any future explicit resume.",
+  "cpu_candidate_v2": "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029",
+  "checkpoint_seed": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-current",
+  "last_updated_unix_s": 1793314541.9466586,
+  "gpu_graph_trial": {
+    "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/gpu-v2-required-1ps",
+    "status": "failed_stricter_bitwise_first_rhs_gate",
+    "interpretation": "Capture/replay occurs, but no qualified graph application performance. Bitwise mismatch alone is not numerical corruption; cuDSS0.6 lacks a bitwise guarantee. No graph promotion."
+  },
+  "cpu_preliminary_timings": {
+    "baseline_1ps_210steps_s": [
+      10.464682168,
+      10.907517226,
+      10.6565824
+    ],
+    "candidate_s": [
+      8.073032869,
+      8.146377825,
+      8.01729044
+    ],
+    "note": "First two candidate timings v1; third v2 only adds the explicit invalidation contract. Full validation pending."
+  },
+  "physics_preparation": {
+    "objective": "Ultimately simultaneous fields/electrons/H2O fragmentation/neutrals/ions, with conserved product charge and energy; initial saved-electron rate checks only an intermediate validation",
+    "threads_assigned": [
+      "Raikou channel/cross-section/RGA handoff",
+      "Weighted spatial occupancy EEDF vs flux and provenance diagnostics",
+      "Self-consistent electron/ion deposition, products, fields and conservative coupling roadmap"
+    ]
+  },
+  "cuda_deeper_investigation": "User explicitly requested deeper CUDA effort; original GPU review chat handles solver tuning, additional chat handles particle/gather offload. Parent-owned fine phase instrumentation and bounded GPU execution remain onCPU6.",
+  "production_state": "paused_by_explicit_request",
+  "manual_pause_receipt": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/full60-manual-pause.json",
+  "testing_allocation_receipt": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-testing-allocation.json",
+  "latest_gif": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/electron-mapping-paused-26p48ns/electron-history-through-26p48ns.gif"
+}

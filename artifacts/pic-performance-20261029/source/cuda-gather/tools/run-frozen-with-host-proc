@@ -1,0 +1,31 @@
+#!/bin/sh
+set -eu
+base=/home/treefor/projects/runtimes/arch-base-20261028
+root="$base/root"
+IFS= read -r expected_kernel < "$base/kernel.release"
+IFS= read -r running_kernel < /proc/sys/kernel/osrelease
+if [ "$running_kernel" != "$expected_kernel" ]; then
+    printf '%s\n' 'The kernel changed; qualify the native runtime before updating the frozen kernel record.' >&2
+    exit 78
+fi
+exec "$root/usr/lib/ld-linux-x86-64.so.2" --library-path "$root/usr/lib" \
+    "$root/usr/bin/bwrap" \
+    --unshare-user --unshare-pid --unshare-ipc --die-with-parent \
+    --ro-bind "$root" / \
+    --proc /proc --dev-bind /dev /dev --ro-bind /sys /sys \
+    --tmpfs /tmp --tmpfs /run --tmpfs /var/tmp \
+    --ro-bind /proc /run/pic-host-proc \
+    --tmpfs /home/treefor \
+    --bind /home/treefor/projects /home/treefor/projects \
+    --bind /home/treefor/Documents/Codex /home/treefor/Documents/Codex \
+    --ro-bind "$base" "$base" \
+    --ro-bind /home/treefor/projects/deps /home/treefor/projects/deps \
+    --ro-bind /home/treefor/projects/Power-Flow/.venv /home/treefor/projects/Power-Flow/.venv \
+    --ro-bind /home/treefor/projects/.venvs/plasma /home/treefor/projects/.venvs/plasma \
+    --ro-bind /home/treefor/projects/.tooling/python /home/treefor/projects/.tooling/python \
+    --tmpfs /home/treefor/.cache --tmpfs /home/treefor/.config --tmpfs /home/treefor/.local \
+    --setenv HOME /home/treefor \
+    --setenv PYTHONNOUSERSITE 1 \
+    --setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    --unsetenv LD_LIBRARY_PATH --unsetenv LD_PRELOAD --unsetenv PYTHONPATH --unsetenv PYTHONHOME \
+    --chdir "$PWD" -- "$@"
