@@ -1,5 +1,7 @@
 # Collection optics and the water-coverage spectral fit
 
+Current mirror identification and focus constraints are recorded in [relay_focus_update.txt](relay_focus_update.txt). The older assumed-focal-length scenarios below are historical examples, not the current apparatus prescription.
+
 The primary physical source parameter is now **initial_h2o_monolayers**, a
 free nonnegative parameter bound at each spectral forward-model evaluation.
 It is not a preset experimental coverage or a multiplier on the historical

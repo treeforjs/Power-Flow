@@ -1,5 +1,7 @@
 # Target-to-iCMOS collection geometry evidence
 
+Current mirror identification and focus constraints are recorded in [relay_focus_update.txt](relay_focus_update.txt). The older assumed-focal-length scenarios below are historical examples, not the current apparatus prescription.
+
 The dissertation supports a conditional photon-budget and edge-overlap
 calculation. It does not provide a unique numerical target-to-detector transfer
 matrix or absolute ADU prediction. The recovered geometry is recorded in

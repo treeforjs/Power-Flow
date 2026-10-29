@@ -81,6 +81,40 @@ class RelayGeometry:
                 'on_axis_first_pupil_geometric_semiangle_rad': math.atan2(radius,d)}
 
 
+def focused_relay_conjugate(target_to_first_m, mirror_separation_m,
+                            focal_length_first_m, focal_length_second_m,
+                            slit_width_m=50e-6):
+    """Infer a slit conjugate for an unfolded, near-normal two-concave relay.
+
+    Distances follow the ray encounters, not mechanical mirror names. A
+    virtual image is returned as a diagnostic and is never assigned a physical
+    object-plane slit width. Focus observation and uncertain distances must be
+    reconciled independently; this routine does not fit measurements.
+    """
+    values=[_real(v,n,positive=True) for v,n in zip(
+        [target_to_first_m,mirror_separation_m,focal_length_first_m,
+         focal_length_second_m,slit_width_m],
+        ['target_to_first_m','mirror_separation_m','focal_length_first_m',
+         'focal_length_second_m','slit_width_m'])]
+    u,d,f1,f2,width=values
+    p=lambda length:np.array([[1.,length],[0.,1.]])
+    power=lambda focal:np.array([[1.,0.],[-1/focal,1.]])
+    pre=power(f2)@p(d)@power(f1)@p(u)
+    if abs(pre[1,1])<64*np.finfo(float).eps:
+        return dict(image_type='at_infinity',second_to_slit_m=None,
+                    magnification_abs=None,object_plane_slit_width_m=None)
+    final=-pre[0,1]/pre[1,1]
+    system=p(final)@pre
+    real=final>0
+    return dict(image_type='real' if real else 'virtual',
+        second_to_slit_m=float(final),formal_signed_magnification=float(system[0,0]),
+        magnification_abs=float(abs(system[0,0])) if real else None,
+        object_plane_slit_width_m=float(width/abs(system[0,0])) if real else None,
+        source_to_slit_abcd=system.tolist(),focus_coefficient_B_m=float(system[0,1]),
+        determinant=float(np.linalg.det(system)),
+        qualification='Near-normal paraxial scenario; not an independently measured optical prescription')
+
+
 def _foil_bounds(value):
     bounds = np.asarray(value)
     if (bounds.shape != (4,) or bounds.dtype.kind not in 'iuf'
