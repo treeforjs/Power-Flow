@@ -1,0 +1,1 @@
+Unfinished, untested gas-temperature producer saved at the stop instruction. Do not run as production. See docs/ARCH_RESTART.md for known corner-ownership, invariant-z and overflow issues. No real temperature job or focused producer tests were run.

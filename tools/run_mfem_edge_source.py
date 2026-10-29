@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,10 +29,12 @@ def write(path, value):
 
 def command(argv, output, name, *, cwd=None):
     env = dict(os.environ, OMP_NUM_THREADS="2")
+    started = time.perf_counter()
     result = subprocess.run(argv, cwd=cwd, env=env, text=True, capture_output=True)
     (output / (name + ".stdout.txt")).write_text(result.stdout, encoding="utf-8")
     (output / (name + ".stderr.txt")).write_text(result.stderr, encoding="utf-8")
     return {"argv": argv, "exit_code": result.returncode,
+            "wall_time_s": time.perf_counter()-started,
             "stdout_file": name + ".stdout.txt", "stderr_file": name + ".stderr.txt"}
 
 
@@ -39,13 +42,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--wsl-distro")
     parser.add_argument("--config", type=Path, default=ROOT / "configs/mfem_edge_current_source.json")
-    parser.add_argument("--build-dir", type=Path, default=Path("/home/tsmit/.local/share/power-flow/mfem-edge-current-source"))
+    parser.add_argument("--build-dir", type=Path, help="Linux build directory; default ~/.cache/power-flow/mfem-edge-current-source")
+    parser.add_argument("--mfem-dir", type=Path, help="Installed MFEM CMake directory; alternatively config mfem_dir or environment MFEM_DIR")
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     if args.wsl_distro:
         if os.name != "nt":
             parser.error("--wsl-distro is Windows only")
-        forwarded = ["--build-dir", args.build_dir.as_posix(), "--output-dir", args.output_dir.as_posix()]
+        forwarded = ["--output-dir", args.output_dir.as_posix()]
+        if args.build_dir:
+            forwarded += ["--build-dir", args.build_dir.as_posix()]
+        if args.mfem_dir:
+            forwarded += ["--mfem-dir", args.mfem_dir.as_posix()]
         if "--config" in sys.argv:
             forwarded += ["--config", args.config.as_posix()]
         raise SystemExit(subprocess.run(["wsl.exe", "-d", args.wsl_distro, "--exec", "python3",
@@ -53,6 +61,9 @@ def main():
     if os.name == "nt":
         parser.error("run in WSL/Linux")
     config = json.loads(args.config.read_bytes())
+    args.build_dir = (args.build_dir or Path.home()/".cache/power-flow/mfem-edge-current-source").expanduser().resolve()
+    mfem_location = args.mfem_dir or config.get("mfem_dir") or os.environ.get("MFEM_DIR")
+    mfem_dir = Path(mfem_location).expanduser().resolve() if mfem_location else None
     if config.get("schema") != "mhdlab-mfem-edge-current-source-v1" or config.get("physical_experiment_prediction") is not False:
         parser.error("only the explicit provisional case is admitted")
     if config.get("initial_temperature_k") != 300.0:
@@ -77,8 +88,11 @@ def main():
     for stamp in config["required_snapshot_times_s"]:
         if not start <= stamp <= stop:
             raise ValueError("required snapshot is outside supported run")
+    field_times = sorted(set(config.get("field_snapshot_times_s", []) + config["required_snapshot_times_s"]))
+    if not field_times or not all(math.isfinite(stamp) and start <= stamp <= stop for stamp in field_times):
+        raise ValueError("field snapshots must remain inside known run support")
     knots = sorted(set([stamp for stamp in trace_time if start <= stamp <= stop]
-                       + config["required_snapshot_times_s"] + [start, stop]))
+                       + config["required_snapshot_times_s"] + field_times + [start, stop]))
     grid = [start]
     for a, b in zip(knots, knots[1:]):
         count = max(1, math.ceil((b-a)/config["maximum_time_step_s"]))
@@ -95,6 +109,9 @@ def main():
     with (output / "schedule.csv").open("w", newline="") as stream:
         writer = csv.writer(stream); writer.writerow(["time_s", "current_A"])
         writer.writerows(zip(map(repr, grid), map(repr, values)))
+    with (output / "field_snapshot_times.csv").open("w", newline="") as stream:
+        writer = csv.writer(stream); writer.writerow(["time_s"])
+        writer.writerows([repr(stamp)] for stamp in field_times)
     record = {"schema": "mhdlab-mfem-edge-current-run-v1", "created_utc": datetime.now(timezone.utc).isoformat(),
         "status": "provisional", "passed": False, "physical_experiment_prediction": False,
         "configuration": config, "configuration_sha256": sha(args.config),
@@ -105,12 +122,19 @@ def main():
             "interpolation": "bounded piecewise linear; original knots and required40/60ns included; no padding/clamping",
             "clock_scenario": config["clock_scenario"], "initial_state_scenario": config["initial_state_scenario"]},
         "formulation": "MFEM H1 A_z MQS with sigma0 vacuum, two independent conductor gradients constrained by a2x2 current Schur complement; separate conductor-only insulated thermal FE",
-        "stock_joule_kernel_reused": False, "commands": []}
+        "stock_joule_kernel_reused": False, "build_directory":str(args.build_dir),
+        "mfem_cmake_directory":str(mfem_dir) if mfem_dir else "CMake default package search",
+        "field_snapshot_times_s": field_times,
+        "field_snapshot_sampling": "cell averages at selected actual native timesteps; no temporal interpolation",
+        "commands": []}
     write(output / "configuration.json", config)
     failure = None
     try:
-        jobs = [("configure", ["cmake", "-S", str(ROOT / "native/mfem_edge_source"), "-B", str(args.build_dir),
-                  "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Release", "-DMFEM_DIR=/usr/local/lib/cmake/mfem"]),
+        configure = ["cmake", "-S", str(ROOT / "native/mfem_edge_source"), "-B", str(args.build_dir),
+                     "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Release"]
+        if mfem_dir:
+            configure += ["-DMFEM_DIR="+str(mfem_dir)]
+        jobs = [("configure", configure),
                 ("build", ["cmake", "--build", str(args.build_dir), "--parallel", "2"])]
         for name, argv in jobs:
             result = command(argv, output, name); record["commands"].append(result)
@@ -121,17 +145,36 @@ def main():
             "gap-cells": "gap_cells", "width-m": "foil_width_m", "thickness-m": "foil_thickness_m", "gap-m": "gap_m",
             "extent-m": "exterior_half_extent_m", "length-m": "current_length_m", "sigma-s-m": "electrical_conductivity_s_m",
             "capacity-j-m3-k": "volumetric_heat_capacity_j_m3_k", "conductivity-w-m-k": "thermal_conductivity_w_m_k"}
-        argv = [str(binary), "--schedule", str(output / "schedule.csv"), "--output-dir", str(output)]
+        argv = [str(binary), "--schedule", str(output / "schedule.csv"), "--output-dir", str(output),
+                "--snapshot-times", str(output / "field_snapshot_times.csv")]
         for flag, key in options.items():
             argv += ["--" + flag, str(config[key])]
         record["binary_sha256"] = sha(binary)
         result = command(argv, output, "native", cwd=output); record["commands"].append(result)
         if result["exit_code"]:
             raise RuntimeError("native current-constrained solve failed")
+        dependency = json.loads((output/"mfem_dependency.json").read_bytes())
+        if [dependency.get(key) for key in ("major","minor","patch")] != [4,10,0]:
+            raise RuntimeError("executed MFEM library version differs from the pinned4.10 release")
+        record["mfem_dependency"] = dependency
+        record["mfem_dependency_sha256"] = sha(output/"mfem_dependency.json")
+        record["mfem_release_commit"] = REVISION
+        record["installed_git_identity_verified"] = REVISION in dependency.get("git_string","")
+        record["mfem_revision_basis"] = "Pinned v4.10 release commit; actual executed version and installed Git string retained separately. An absent embedded Git hash does not verify installed source identity."
         with (output / "diagnostics.csv").open(newline="") as stream:
             diagnostics = [{k: float(v) for k, v in row.items()} for row in csv.DictReader(stream)]
         if len(diagnostics) != len(grid) or not all(math.isfinite(v) for row in diagnostics for v in row.values()):
             raise RuntimeError("missing/nonfinite native diagnostics")
+        field_rows = dict.fromkeys(field_times, 0)
+        with (output / "foil_snapshots.csv").open(newline="") as stream:
+            for row in csv.DictReader(stream):
+                stamp = float(row["time_s"])
+                if stamp not in field_rows or not all(math.isfinite(float(value)) for value in row.values()):
+                    raise RuntimeError("unsupported/nonfinite native field snapshot")
+                field_rows[stamp] += 1
+        if any(count != config["width_cells"]*config["thickness_cells"] for count in field_rows.values()):
+            raise RuntimeError("native field snapshot is missing material cells")
+        record["field_snapshot_cell_counts"] = {repr(stamp): count for stamp, count in field_rows.items()}
         record["diagnostics"] = {"final": diagnostics[-1],
             "maximum_current_constraint_error_a": max(max(abs(r["foil_current_a"]-r["target_current_a"]), abs(r["return_current_a"]+r["target_current_a"])) for r in diagnostics),
             "maximum_em_balance_residual_j": max(abs(r["em_balance_residual_j"]) for r in diagnostics),
@@ -148,7 +191,7 @@ def main():
                                                  ("left", -1, -width/2, True), ("right", 1, width/2, True)):
             sample = json.loads((ROOT / "configs/mfem_surface_example.json").read_bytes())
             sample["configuration_status"] = "configured"
-            sample["source"].update(source_kind="mfem", heating_backend="mfem_joule", mfem_version="4.10", mfem_source_revision=REVISION,
+            sample["source"].update(source_kind="mfem", heating_backend="mfem_joule", mfem_version=dependency["version"], mfem_source_revision=REVISION,
                 run_id="C19-current-constrained-MFEM-"+face, source_reference="source_run.json with current, energy, mesh and surface-quadrature records",
                 unit_mapping_reference="SI MFEM A_z MQS current constraints and conductor-only heat FE; no numerical vacuum conductivity or thermal material",
                 source_clock_reference=config["clock_scenario"])
@@ -180,7 +223,8 @@ def main():
         write(output / "foil_snapshots.json", {"schema":"mhdlab-mfem-foil-snapshots-v1", "status":"provisional", "sampling":"cell_average",
             "units":units, "csv_sha256":sha(output/"foil_snapshots.csv"), "geometry":{"foil":"upper", "depth_reference":"inward_from_upper_gap_face",
             "foil_width_m":width, "foil_thickness_m":thickness, "gap_m":gap}, "drive":record["drive"],
-            "model":record["formulation"], "material_provenance":config["material_provenance"]})
+            "model":record["formulation"], "material_provenance":config["material_provenance"],
+            "field_snapshot_times_s":field_times, "temporal_sampling":"selected actual native timesteps; no interpolation"})
         record["passed"] = True
     except (OSError, RuntimeError, ValueError, KeyError) as exc:
         failure = str(exc); record["failure"] = failure

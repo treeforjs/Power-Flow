@@ -1,0 +1,1 @@
+Saved-data cathode temperature views. foil_temperature.gif contains ONLY the actual 40 and 60 ns 128x16 interior fields; it is not a continuous interior solution. foil_surface_temperature.gif uses actual recorded boundary traces. Both use fixed Kelvin scales; the thickness display enlargement is declared. No 2048x256 simulation has run. See docs/ARCH_RESTART.md.

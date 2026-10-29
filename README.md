@@ -1,5 +1,9 @@
 # Power-Flow
 
+**Restart handoff:** [Arch setup, selected 2048x256 timed run, temperature
+views and deferred physics questions](docs/ARCH_RESTART.md). Work is stopped;
+the new native run has not been launched.
+
 MFEM Joule based preparation for studying electrode heating, water desorption and VUV
 spectroscopy in magnetically insulated transmission lines (MITLs).
 

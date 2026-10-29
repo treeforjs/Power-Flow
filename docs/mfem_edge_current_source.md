@@ -140,6 +140,25 @@ Its depth coordinate increases into the upper foil from the gap-facing surface.
 The JSON sidecar declares SI units, sampling, geometry, current provenance and
 the CSV hash for `tools/compare_mfem_alegra.py`.
 
+The optional configuration field `field_snapshot_times_s` requests additional
+actual native field outputs. These times are inserted into the solve schedule,
+written to `field_snapshot_times.csv`, and passed to the native driver through
+`--snapshot-times`. The runner verifies a complete finite material-cell grid at
+every requested time. The required 40/60 ns comparison snapshots remain present.
+No interior temperature history is reconstructed from surface traces, and no
+temporal interpolation supplies the rendered foil frames. The high-fidelity
+configuration requests 66 field snapshots, a 256 x 32 conductor mesh, doubled
+vacuum/gap resolution relative to the earlier 128 x 16 case, and a 0.25 ns
+timestep cap. This configuration increases numerical resolution while keeping
+the same provisional material physics.
+
+`tools/render_mfem_foil_temperature.py` renders these cell averages and the
+separate one-sided material-face traces with fixed linear Kelvin scales and
+physical mm axes. Thickness is explicitly expanded tenfold for visibility.
+The geometry is identified as the upper cathode using the dissertation's
+explicit Fig.4.27 labels and Fig.4.28 cathode profiles at +2.5 to +2.7 mm; the
+electrode identity is not inferred from coordinate sign alone.
+
 ## Scope and physical limits
 
 The values sigma = 3e6 S/m, Cv = 2.8e6 J/(m^3 K) and k = 16 W/(m K) are

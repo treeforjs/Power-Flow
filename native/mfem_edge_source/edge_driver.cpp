@@ -17,7 +17,8 @@ struct Settings
    int nx=64, ny=8, outside=16, gap_cells=48;
    double width=.005, thickness=.0002, gap=.005, extent=.010;
    double length=.010, sigma=3e6, cv=2.8e6, k=16, mu=4e-7*M_PI;
-   const char *schedule="schedule.csv", *output=".";
+   const char *schedule="schedule.csv", *output=".", *snapshot_times="";
+   std::vector<double> field_times={40e-9,60e-9};
 };
 
 std::vector<double> AxisSegment(double a,double b,int n)
@@ -216,6 +217,7 @@ struct Metrics
 Metrics Inspect(Thermal &foil,Thermal &return_foil,double stamp,std::ofstream &cells)
 {
    Metrics m;Settings &s=foil.s;
+   const bool emit_field=std::any_of(s.field_times.begin(),s.field_times.end(),[stamp](double t){return std::abs(stamp-t)<1e-20;});
    for(Thermal *body:{&foil,&return_foil})for(int e=0;e<body->mesh.GetNE();++e)
    {
       auto *tr=body->mesh.GetElementTransformation(e);Vector p(2),center(2);tr->Transform(Geometries.GetCenter(Geometry::SQUARE),center);
@@ -233,7 +235,7 @@ Metrics Inspect(Thermal &foil,Thermal &return_foil,double stamp,std::ofstream &c
          }
       }
       m.current[body->conductor]+=current;m.power[body->conductor]+=power*s.length;
-      if(body->conductor==0 && (std::abs(stamp-40e-9)<1e-20 || std::abs(stamp-60e-9)<1e-20))
+      if(body->conductor==0 && emit_field)
       {
          const int ix=std::clamp(int((center[0]+s.width/2)/s.width*s.nx),0,s.nx-1);
          const int iy=std::clamp(int((center[1]-body->lower)/s.thickness*s.ny),0,s.ny-1);
@@ -256,11 +258,32 @@ int main(int argc,char **argv)
    options.AddOption(&s.length,"-l","--length-m","Invariant current length");options.AddOption(&s.sigma,"-sig","--sigma-s-m","Metal conductivity");
    options.AddOption(&s.cv,"-cv","--capacity-j-m3-k","Volumetric capacity");options.AddOption(&s.k,"-k","--conductivity-w-m-k","Thermal conductivity");
    options.AddOption(&s.schedule,"-in","--schedule","Bounded current/time schedule CSV");options.AddOption(&s.output,"-out","--output-dir","Existing output directory");
+   options.AddOption(&s.snapshot_times,"-snap","--snapshot-times","Optional CSV of actual native field output times; default 40/60 ns");
    options.Parse();if(!options.Good()){options.PrintUsage(std::cerr);return 2;}
+   {
+      std::ofstream dependency(std::string(s.output)+"/mfem_dependency.json");MFEM_VERIFY(dependency,"Cannot open executed MFEM dependency record");
+      dependency<<"{\"version\":\""<<GetVersionMajor()<<"."<<GetVersionMinor()<<"."<<GetVersionPatch()
+                <<"\",\"major\":"<<GetVersionMajor()<<",\"minor\":"<<GetVersionMinor()<<",\"patch\":"<<GetVersionPatch()
+                <<",\"version_string\":"<<std::quoted(GetVersionStr())<<",\"git_string\":"<<std::quoted(GetGitStr())<<"}\n";
+   }
+   MFEM_VERIFY(GetVersionMajor()==4&&GetVersionMinor()==10&&GetVersionPatch()==0,"This source handoff pins the executed MFEM4.10 release");
    std::vector<double> times,currents;std::ifstream input(s.schedule);std::string line;std::getline(input,line);
    while(std::getline(input,line)){auto comma=line.find(',');MFEM_VERIFY(comma!=std::string::npos,"Invalid schedule");times.push_back(std::stod(line.substr(0,comma)));currents.push_back(std::stod(line.substr(comma+1)));}
    MFEM_VERIFY(times.size()>1 && std::isfinite(times[0]) && std::isfinite(currents[0]),"Missing finite drive schedule");
    for(size_t i=1;i<times.size();++i)MFEM_VERIFY(std::isfinite(times[i])&&std::isfinite(currents[i])&&times[i]>times[i-1],"Nonfinite or unordered drive schedule");
+   if(std::string(s.snapshot_times).size())
+   {
+      std::ifstream snapshots(s.snapshot_times);MFEM_VERIFY(snapshots,"Cannot open field snapshot time CSV");
+      s.field_times.clear();std::getline(snapshots,line);
+      while(std::getline(snapshots,line))s.field_times.push_back(std::stod(line));
+   }
+   MFEM_VERIFY(!s.field_times.empty(),"Missing field snapshot times");
+   for(size_t i=0;i<s.field_times.size();++i)
+   {
+      const double stamp=s.field_times[i];
+      MFEM_VERIFY(std::isfinite(stamp)&&(i==0||stamp>s.field_times[i-1]),"Nonfinite or unordered field snapshot time");
+      MFEM_VERIFY(std::any_of(times.begin(),times.end(),[stamp](double t){return std::abs(stamp-t)<1e-20;}),"Field output must use an actual native timestep");
+   }
    EMGrid em(s);em.InitialDC(currents[0]);Thermal foil(s,em,0),return_foil(s,em,1);foil.gradient=currents[0]/em.d[0];return_foil.gradient=-currents[0]/em.d[1];
    std::ofstream top(std::string(s.output)+"/top.csv"),bottom(std::string(s.output)+"/bottom.csv"),left(std::string(s.output)+"/left.csv"),right(std::string(s.output)+"/right.csv"),diagnostics(std::string(s.output)+"/diagnostics.csv"),cells(std::string(s.output)+"/foil_snapshots.csv");
    MFEM_VERIFY(top&&bottom&&left&&right&&diagnostics&&cells,"Cannot open output files");
