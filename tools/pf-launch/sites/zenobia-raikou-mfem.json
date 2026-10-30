@@ -1,0 +1,194 @@
+{
+  "schema": "pf-launch-site/1",
+  "site": "zenobia-raikou-mfem",
+  "hostname": "zenobia",
+  "detected": {
+    "at": "2026-10-30T21:16:31.737571Z",
+    "by": "pf-launch 1.0.0 --detect",
+    "gpu_inventory": "ok"
+  },
+  "topology": {
+    "cpu_model": "AMD Ryzen 7 9850X3D 8-Core Processor",
+    "logical_cpus": "0-15",
+    "physical_core_count": 8,
+    "smt_threads_per_core": 2,
+    "numa_nodes": {
+      "0": "0-15"
+    },
+    "physical_cores": [
+      {
+        "core": 0,
+        "cpus": [
+          0,
+          8
+        ],
+        "package": 0,
+        "core_id": 0,
+        "numa": 0
+      },
+      {
+        "core": 1,
+        "cpus": [
+          1,
+          9
+        ],
+        "package": 0,
+        "core_id": 1,
+        "numa": 0
+      },
+      {
+        "core": 2,
+        "cpus": [
+          2,
+          10
+        ],
+        "package": 0,
+        "core_id": 2,
+        "numa": 0
+      },
+      {
+        "core": 3,
+        "cpus": [
+          3,
+          11
+        ],
+        "package": 0,
+        "core_id": 3,
+        "numa": 0
+      },
+      {
+        "core": 4,
+        "cpus": [
+          4,
+          12
+        ],
+        "package": 0,
+        "core_id": 4,
+        "numa": 0
+      },
+      {
+        "core": 5,
+        "cpus": [
+          5,
+          13
+        ],
+        "package": 0,
+        "core_id": 5,
+        "numa": 0
+      },
+      {
+        "core": 6,
+        "cpus": [
+          6,
+          14
+        ],
+        "package": 0,
+        "core_id": 6,
+        "numa": 0
+      },
+      {
+        "core": 7,
+        "cpus": [
+          7,
+          15
+        ],
+        "package": 0,
+        "core_id": 7,
+        "numa": 0
+      }
+    ]
+  },
+  "gpus": [
+    {
+      "index": 0,
+      "uuid": "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9",
+      "name": "NVIDIA GeForce RTX 3080 Ti",
+      "compute_cap": "8.6",
+      "memory_total": "12288 MiB",
+      "driver_version": "615.78.08",
+      "pci_bus_id": "00000000:01:00.0",
+      "numa": -1
+    }
+  ],
+  "notes": [
+    "Site file for the raikou-mfem port on zenobia: cores 4-5. The single RTX 3080 Ti is shared with Power-Flow; GPU leases are the same lock files as in zenobia.json, so GPU jobs from the two projects take turns."
+  ],
+  "nice": 15,
+  "default_gpus": "auto",
+  "core_preference": [
+    4,
+    5
+  ],
+  "reserved_cores": {
+    "cores": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "reason": "allocated to other work: 0-3 Spheral, 6-7 Power-Flow (the raikou-mfem port uses cores 4-5)"
+  },
+  "reserved_gpus": {
+    "gpus": [],
+    "reason": ""
+  },
+  "reservations": [],
+  "leases": {
+    "core_path": "/home/treefor/projects/.workspace/outputs/pic-profile/testing-core{core}.lock",
+    "core_overrides": {
+      "6": "/home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock"
+    },
+    "gpu_path": "/home/treefor/projects/.workspace/outputs/pic-profile/testing-gpu-{uuid}.lock",
+    "gpu_extra": {
+      "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9": [
+        "/home/treefor/projects/.workspace/outputs/pic-profile/testing-gpu.lock"
+      ]
+    }
+  },
+  "launcher": {
+    "mpirun": "mpirun",
+    "mpirun_args": [],
+    "srun": "srun",
+    "srun_args": [
+      "--cpu-bind=cores",
+      "--ntasks-per-core=1",
+      "--kill-on-bad-exit=1"
+    ],
+    "srun_in_allocation": true,
+    "nvidia_smi": "nvidia-smi",
+    "wrapper_python": null
+  },
+  "execution": {
+    "kind": "frozen-root",
+    "prefix": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen"
+    ],
+    "mpi_inside_prefix": true,
+    "wrapper_python": "/usr/bin/python3",
+    "root": "/home/treefor/projects/runtimes/arch-base-20261028/root",
+    "manifest": "/home/treefor/projects/runtimes/arch-base-20261028/root-files.json",
+    "image": null,
+    "image_digest": null,
+    "hash_image": false
+  },
+  "environment": {
+    "set": {},
+    "unset": []
+  },
+  "identity": {
+    "policy": "strict",
+    "record": {
+      "kernel_release": "7.2.11-arch1-1",
+      "nvidia_driver_version": "615.78.08",
+      "nvidia_srcversion": "4200B1C66D4D12038311105",
+      "gpu_uuids": [
+        "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
+      ],
+      "cpu_model": "AMD Ryzen 7 9850X3D 8-Core Processor",
+      "frozen_root_manifest_sha256": "b2df5e5864ecbe75a691a4fb2410f8fef21d55982b54c01adeddee9cb16563dd"
+    }
+  },
+  "receipt_dir": "/home/treefor/projects/.workspace/outputs/pf-launch-receipts"
+}
