@@ -163,6 +163,11 @@ Gauss, max divB); parent H2O exact inventory (source stock + native H2O + H2O+);
 Joule, outer loss/supply, circuit work, kinetic delta, thermal delta, wall heat, source-v4 neutral kinetic/internal/reference energy,
 reaction defects, collected/escaped kinetic energy).
 
+Resolution requirement: the purpose of the GPU-resident path is to make fine meshes affordable. Any screening or breakdown statement
+from the pilot needs a refinement series on that path (200, 100, 50 and 25 um cells over the same window, more if the GPU memory
+budget allows: ~200 B per edge, ~60M edges on 12 GB, ~110M on 24 GB), with the Debye length and the cell size reported side by side
+per step. The 200 um mesh alone qualifies only the machinery.
+
 Recorded limitations of the pilot: no disk restart (A05/A11); ionization only, ions do not react (A13); 1 keV seam (A14); emission phases,
 unit accommodation, clean 4.3 eV surface (A15); SS304 solid <= 1500 K, refuses beyond, no melt (A16); C19-only drive (A17); 200 um mesh
 does not resolve the Debye length above ~1e16 m^-3 at a few eV, so a refinement series is required before any screening claim; no
