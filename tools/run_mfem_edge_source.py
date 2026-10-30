@@ -48,9 +48,19 @@ def main():
     parser.add_argument("--mfem-dir", type=Path, help="Installed MFEM CMake directory; alternatively config mfem_dir or environment MFEM_DIR")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--ranks", type=int, default=1, help="MPI ranks for distributed electromagnetic and thermal linear solves")
+    parser.add_argument("--cpu-list", help="One logical CPU per MPI rank on this host, e.g. 6,7")
     args = parser.parse_args()
     if args.ranks < 1:
         parser.error("--ranks must be positive")
+    cpu_ids = None
+    if args.cpu_list is not None:
+        try:
+            cpu_ids = [int(value) for value in args.cpu_list.split(",")]
+        except ValueError:
+            parser.error("--cpu-list must contain comma-separated nonnegative integers")
+        if (len(cpu_ids) != args.ranks or len(set(cpu_ids)) != len(cpu_ids)
+                or any(value < 0 for value in cpu_ids)):
+            parser.error("--cpu-list requires one distinct nonnegative CPU per rank")
     if args.wsl_distro:
         if os.name != "nt":
             parser.error("--wsl-distro is Windows only")
@@ -59,12 +69,27 @@ def main():
             forwarded += ["--build-dir", args.build_dir.as_posix()]
         if args.mfem_dir:
             forwarded += ["--mfem-dir", args.mfem_dir.as_posix()]
+        if args.cpu_list:
+            forwarded += ["--cpu-list", args.cpu_list]
+        forwarded += ["--ranks", str(args.ranks)]
         if "--config" in sys.argv:
             forwarded += ["--config", args.config.as_posix()]
         raise SystemExit(subprocess.run(["wsl.exe", "-d", args.wsl_distro, "--exec", "python3",
                                         "tools/run_mfem_edge_source.py", *forwarded]).returncode)
     if os.name == "nt":
         parser.error("run in WSL/Linux")
+    logical_pus = None
+    if cpu_ids is not None:
+        if not set(cpu_ids).issubset(os.sched_getaffinity(0)):
+            parser.error("--cpu-list must stay inside the launcher's allowed CPU affinity")
+        logical_pus = []
+        for cpu in cpu_ids:
+            value = subprocess.check_output(
+                ["hwloc-calc", "--physical-input", "--logical-output", "--intersect", "PU", f"pu:{cpu}"],
+                text=True, env=dict(os.environ, HWLOC_COMPONENTS="-gl,-opencl,-cuda,-nvml,-rsmi,-levelzero")).strip()
+            if not value.isdigit():
+                parser.error(f"cannot map operating-system CPU {cpu} to one hwloc processing unit")
+            logical_pus.append(int(value))
     config = json.loads(args.config.read_bytes())
     args.build_dir = (args.build_dir or Path.home()/".cache/power-flow/mfem-edge-current-source").expanduser().resolve()
     mfem_location = args.mfem_dir or config.get("mfem_dir") or os.environ.get("MFEM_DIR")
@@ -129,6 +154,8 @@ def main():
         "formulation": "MFEM H1 A_z MQS with sigma0 vacuum, two independent conductor gradients constrained by a2x2 current Schur complement; separate conductor-only insulated thermal FE",
         "stock_joule_kernel_reused": False, "build_directory":str(args.build_dir),
         "requested_mpi_ranks": args.ranks,
+        "requested_logical_cpus": cpu_ids,
+        "hwloc_logical_processing_units": logical_pus,
         "mfem_cmake_directory":str(mfem_dir) if mfem_dir else "CMake default package search",
         "field_snapshot_times_s": field_times,
         "field_snapshot_sampling": "cell averages at selected actual native timesteps; no temporal interpolation",
@@ -166,7 +193,11 @@ def main():
                 "--snapshot-times", str(output / "field_snapshot_times.csv")]
         for flag, key in options.items():
             argv += ["--" + flag, str(config[key])]
-        if args.ranks > 1:
+        if cpu_ids is not None:
+            argv = ["mpiexec", "--bind-to", "hwthread", "--map-by",
+                    "pe-list=" + ",".join(map(str, logical_pus)) + ":ordered:hwtcpus",
+                    "-n", str(args.ranks), *argv]
+        elif args.ranks > 1:
             argv = ["mpiexec", "--bind-to", "core", "--map-by", "core", "-n", str(args.ranks), *argv]
         record["binary_sha256"] = sha(binary)
         result = command(argv, output, "native", cwd=output); record["commands"].append(result)
