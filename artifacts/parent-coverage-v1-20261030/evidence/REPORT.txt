@@ -1,0 +1,62 @@
+Water parent-channel coverage scope v1 (pilot prerequisite H4), 2026-10-30
+
+Runtime: /home/treefor/projects/runtimes/pic-water-parent-coverage-v1-20261030
+Full description: COVERAGE-SCOPE.md in that directory. Sealed v3 sources,
+the native candidate003 library and the v1 water dataset are used unchanged.
+
+Change
+Unsupported electron energies in the parent-ionization channel no longer abort
+the exposure (and the joint step). Each (electron, H2O) pair whose target-rest
+energy lies where the parent cross section is positive or unknown but no
+qualified kernel exists is excluded from the exposure and recorded in an exact
+unresolved-coverage ledger: exact pair counts, exact weight sums, distinct
+carriers, energy bins, sigma-free exposures and, where a data bound exists, the
+upper bound on the reactions not applied (lower bound 0). Nothing is
+renormalized, no rate is invented, no unrecorded zero is introduced. The ledger
+is part of the RNG/clock state, so it is bound into the native completion,
+checkpoint/restore and the full-time seal. A configurable hard limit refuses an
+exposure with the typed CoverageRefusal when exceeded.
+
+Coverage map (target-rest energy)
+  0-12.621 eV         known zero (v1 parent reference threshold)
+  12.621-13.5 eV      unresolved onset gap (Song 2021 parent table starts at
+                      13.5 eV); bounded by Munoz 2007 inelastic, 4.665e-21 m^2
+  13.5-1000 eV        qualified: Song 2021 Table 12 + parent_ground_equal_pair_CM_v1
+  1000-10000 eV       unresolved; bounded by Munoz 2007 inelastic. Existing
+                      outer3_BEB_Tan_parent_v1 (v5, carried in v7/v7.1) not
+                      admitted: separate binding, weighted-BEB header and a
+                      +26.8 % parent seam at 1 keV (4.32e-21 vs 5.476e-21 m^2)
+  above 10000 eV      unresolved, no data or bound in any version; refused
+                      unless admit_unbounded is set
+  v8 H(1s) is an atomic-H target and v7.1 is metadata only; neither supplies
+  anything for the onset gap. Equal-pair products of 37.86-39.62 eV incidents
+  land in the gap (38.3 eV gives two electrons at 12.838 eV).
+
+Limit (defaults; part of the scope identity)
+  refuse iff unbounded pairs present and not admitted, or
+          (events_upper > 0.01 per exposure [1.0 cumulative] AND
+           unresolved upper-bound share of physical reactions > 1 %)
+  0.01 events bounds the probability that the excluded hazard changed the
+  sampled exposure; 1 % is below one sixth of the 6 % uncertainty of the applied
+  parent table.
+
+Qualification: attempt-001, CPU 6 lease (any-core.sh), nice 15, one thread,
+no GPU, frozen launcher, 58 s.
+  test_parent_coverage            171/171 normal, 171/171 UBSan, results identical
+  v3 parent regression port       442 checks, all results equal to the sealed
+                                  baseline, recorded event physics equal, 73/128
+                                  first events, event counts [7, 7]; normal and UBSan
+Covered by the 171 checks: exact accumulator; class and sigma bound at each
+range edge against the sealed bridge; pure limit and two-exposure ledger
+transitions; 13 eV, 1000.5 eV, 8000 eV, 20000 eV and the 38.3 eV post-event
+gap (v3 aborts; default policy refuses with CoverageRefusal and unchanged owners;
+record-only policy proceeds with exact ledger values checked against independent
+integrals); mixed 100 eV + 13 eV and + 8000 eV populations (supported events,
+RNG streams and every carrier identical to v3); supported-only parity; each
+limit branch including the cumulative refusal; restart, rollback to an older
+native snapshot, tampered and foreign-policy ledgers; full-time first exposure
+admission and refusal.
+
+Builds ran through any-core.sh on one core because core 7 was held by a
+concurrent long run; a both-cores.sh build would have held core 6 idle.
+No physical trajectory time advanced; no Hall coupling; no joint step.
