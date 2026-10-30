@@ -1,0 +1,99 @@
+{
+  "schema": "hall-gpu-field-qualification-v1",
+  "label": "qual-02",
+  "phase": "prep",
+  "mesh": "m29a2",
+  "runner_argv": [
+    "/home/treefor/projects/runtimes/hall-gpu-resident-v1-20261030/field/tests/run_field.py",
+    "prep",
+    "qual-02",
+    "m29a2"
+  ],
+  "runner": "/home/treefor/projects/runtimes/hall-gpu-resident-v1-20261030/field/tests/run_field.py",
+  "runner_sha256": "b8ad596962467fc732d252b798924ad18439e3d7776724e69b4dcbe2e35178a0",
+  "python": "/usr/bin/python",
+  "python_version": "3.14.8",
+  "started_unix": 1793395951.9852097,
+  "admission": {
+    "phase": "prep",
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "PF_CORE": "6",
+    "leases_verified_held_by_launcher": {
+      "core6": "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock"
+    },
+    "kernel_release": "7.2.11-arch1-1",
+    "hall_commit": "8dddec0610982778bf02bdfe697b70a37129c012",
+    "hall_git_clean": true,
+    "runtime_pins": "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-field-correction-20261030/runtime-pins.json",
+    "runtime_pins_sha256": "d1a6be483171116a123a25565cde1c93817e0d4b1795613a9e7614344db4567c",
+    "frozen_launcher": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+    "frozen_launcher_sha256": "d149ac9c013dd630ca11ba69a6d91b603dd715e0ca3ee41e03e00d51122faa5c",
+    "frozen_runtime_manifest_checked": false
+  },
+  "commands": [
+    {
+      "name": "prep",
+      "argv": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "prlimit",
+        "--as=4294967296",
+        "--cpu=3000",
+        "--",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/build/hall_field_cpu",
+        "prep",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/source/development/hall-finite-foil-em-20261029/data/shot_17133_current.csv",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m29a2",
+        "29",
+        "2",
+        "1",
+        "0.0058",
+        "20"
+      ],
+      "returncode": 0,
+      "elapsed_s": 1.618445638999674,
+      "log": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m29a2/prep.log",
+      "log_sha256": "b8302e9febe0f54507fde12ccb628123346f51c1225c285acc2652b2e9eaf6e3",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C.UTF-8",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "PYTHONNOUSERSITE": "1",
+        "CUDA_VISIBLE_DEVICES": ""
+      },
+      "cwd": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m29a2"
+    }
+  ],
+  "binary_sha256": "72175fdf8a5c43025ffce6167e20443665b9a9260de375fda99409cd6e4ec124",
+  "trace_sha256": "2c54d2dbaec6b6c8fcf2e45b5abd837aa72999f5fd14217f530277ffd5949076",
+  "result": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m29a2/prep.json",
+  "result_sha256": "eeef3348a3fc5ff0089a22b3d193545ed611e035f95236bd835968c0e9d914c8",
+  "fixtures": {
+    "dc-10fs": {
+      "file": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m29a2/dc-10fs/fixture.bin",
+      "sha256": "c1b669733793f31652dc52b2f94447352049a1f3db052d7b1bd5a7b2b8647e98",
+      "verified_sha256": "c1b669733793f31652dc52b2f94447352049a1f3db052d7b1bd5a7b2b8647e98"
+    },
+    "dc-1fs": {
+      "file": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m29a2/dc-1fs/fixture.bin",
+      "sha256": "452d06dbb12ad3bb1666e134ec5b4c9d56ade7bb1700aa23e3d7f5a347fcd573",
+      "verified_sha256": "452d06dbb12ad3bb1666e134ec5b4c9d56ade7bb1700aa23e3d7f5a347fcd573"
+    },
+    "heated-10fs": {
+      "file": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m29a2/heated-10fs/fixture.bin",
+      "sha256": "01141c81ff1460cce487dc6401a6e8930b10d62c009e757df17afd056926ca96",
+      "verified_sha256": "01141c81ff1460cce487dc6401a6e8930b10d62c009e757df17afd056926ca96"
+    },
+    "heated-1fs": {
+      "file": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m29a2/heated-1fs/fixture.bin",
+      "sha256": "edc9d18bb0ae8ae007b537d9ec224347c104d19b51dcd02738407243de4202e2",
+      "verified_sha256": "edc9d18bb0ae8ae007b537d9ec224347c104d19b51dcd02738407243de4202e2"
+    }
+  },
+  "status": "passed",
+  "finished_unix": 1793395953.6521623
+}

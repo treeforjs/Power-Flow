@@ -1,0 +1,430 @@
+{
+  "schema": "hall-gpu-field-qualification-v1",
+  "label": "qual-02",
+  "phase": "gpu",
+  "mesh": "m45",
+  "runner_argv": [
+    "/home/treefor/projects/runtimes/hall-gpu-resident-v1-20261030/field/tests/run_field.py",
+    "gpu",
+    "qual-02",
+    "m45"
+  ],
+  "runner": "/home/treefor/projects/runtimes/hall-gpu-resident-v1-20261030/field/tests/run_field.py",
+  "runner_sha256": "b8ad596962467fc732d252b798924ad18439e3d7776724e69b4dcbe2e35178a0",
+  "python": "/usr/bin/python",
+  "python_version": "3.14.8",
+  "started_unix": 1793395966.8062367,
+  "admission": {
+    "phase": "gpu",
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "PF_CORE": "6",
+    "leases_verified_held_by_launcher": {
+      "core6": "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock",
+      "gpu": "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-gpu.lock"
+    },
+    "kernel_release": "7.2.11-arch1-1",
+    "hall_commit": "8dddec0610982778bf02bdfe697b70a37129c012",
+    "hall_git_clean": true,
+    "runtime_pins": "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-field-correction-20261030/runtime-pins.json",
+    "runtime_pins_sha256": "d1a6be483171116a123a25565cde1c93817e0d4b1795613a9e7614344db4567c",
+    "frozen_launcher": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+    "frozen_launcher_sha256": "d149ac9c013dd630ca11ba69a6d91b603dd715e0ca3ee41e03e00d51122faa5c",
+    "frozen_runtime_manifest_checked": false
+  },
+  "binary_sha256": "a0c5915f13767f9811328ab4841977515fa094640e4f8dbc0842507a9cd332eb",
+  "inputs_sha256": {
+    "dc-10fs": "a387f7283ee6c0a786a8e9195ec3c4452c7df25d37fea8903aa7e0cd7f54bee6",
+    "dc-1fs": "92b9eb95fd3f5d02892b38bcda1463d7006139cd95c5b9cd422f1930387d6bcb",
+    "heated-10fs": "3cffbd74e61d7f6ec73d1fef16abb0b7d0df7ec9b1bcffc8d907624964d07225",
+    "heated-1fs": "db871e472ef701d5a69eb80652c8d744676b2b97e0a6dddd4aa42d45f4a07cb1"
+  },
+  "device_identity_before": {
+    "proc_driver_version": "NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  615.78.08  Release Build  (root@)  \nGCC version:  gcc version 16.2.1 20260810 (GCC) \n",
+    "nvidia_smi": "index, name, uuid, driver_version, compute_cap, pci.bus_id, memory.total [MiB]\n0, NVIDIA GeForce RTX 3080 Ti, GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9, 615.78.08, 8.6, 00000000:01:00.0, 12288 MiB\n"
+  },
+  "commands": [
+    {
+      "name": "gpu-run-1",
+      "argv": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "prlimit",
+        "--cpu=900",
+        "--",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/build/hall_field_gpu",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45/gpu-run-1",
+        "3",
+        "20",
+        "4",
+        "1",
+        "0",
+        "1"
+      ],
+      "returncode": 0,
+      "elapsed_s": 1.1669094250000853,
+      "log": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45/gpu-run-1.log",
+      "log_sha256": "570b7b7bf2ea69c8d08474799f3c585e9a7a6a95da4faac4eab354a5583843ec",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C.UTF-8",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "PYTHONNOUSERSITE": "1"
+      },
+      "cwd": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45"
+    },
+    {
+      "name": "gpu-run-2",
+      "argv": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "prlimit",
+        "--cpu=900",
+        "--",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/build/hall_field_gpu",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45/gpu-run-2",
+        "3",
+        "20",
+        "4",
+        "1",
+        "0",
+        "0"
+      ],
+      "returncode": 0,
+      "elapsed_s": 0.7666464639996775,
+      "log": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45/gpu-run-2.log",
+      "log_sha256": "30aefd77d5beb101152345589b752802888fac5637103027f3e9838c2e5be2e0",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C.UTF-8",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "PYTHONNOUSERSITE": "1"
+      },
+      "cwd": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45"
+    },
+    {
+      "name": "gpu-run-3",
+      "argv": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "prlimit",
+        "--cpu=900",
+        "--",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/build/hall_field_gpu",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45/gpu-run-3",
+        "3",
+        "20",
+        "4",
+        "1",
+        "0",
+        "0"
+      ],
+      "returncode": 0,
+      "elapsed_s": 0.7666102739999587,
+      "log": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45/gpu-run-3.log",
+      "log_sha256": "de5109d6f7234fa5bde89be9f5f24c8eb53e846d8faba98ac09cd3e97f1cd319",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C.UTF-8",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "PYTHONNOUSERSITE": "1"
+      },
+      "cwd": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45"
+    },
+    {
+      "name": "gpu-run-blocking",
+      "argv": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "prlimit",
+        "--cpu=900",
+        "--",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/build/hall_field_gpu",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45/gpu-run-blocking",
+        "3",
+        "20",
+        "4",
+        "1",
+        "1",
+        "0"
+      ],
+      "returncode": 0,
+      "elapsed_s": 0.7689420849997077,
+      "log": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45/gpu-run-blocking.log",
+      "log_sha256": "64d533b2b9bbcbb994687b3e3111bf36a7ebc9789c6c19a05fcd4e6835b2cbfd",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C.UTF-8",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "PYTHONNOUSERSITE": "1"
+      },
+      "cwd": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45"
+    }
+  ],
+  "device_identity_after": {
+    "proc_driver_version": "NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  615.78.08  Release Build  (root@)  \nGCC version:  gcc version 16.2.1 20260810 (GCC) \n",
+    "nvidia_smi": "index, name, uuid, driver_version, compute_cap, pci.bus_id, memory.total [MiB]\n0, NVIDIA GeForce RTX 3080 Ti, GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9, 615.78.08, 8.6, 00000000:01:00.0, 12288 MiB\n"
+  },
+  "bit_identity": {
+    "dc-10fs/assembled": {
+      "processes": {
+        "gpu-run-1": {
+          "x_sha256": "cb852498c727fcb5b9d8487f164d8c69e3dd8f1647451bdf773eba09b5f77bb9",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "f0ca7f9bb4d861d3ae400b3dacfd3a0643ce2df4e1ea7fee293135ed2ba4a218"
+        },
+        "gpu-run-2": {
+          "x_sha256": "cb852498c727fcb5b9d8487f164d8c69e3dd8f1647451bdf773eba09b5f77bb9",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "f0ca7f9bb4d861d3ae400b3dacfd3a0643ce2df4e1ea7fee293135ed2ba4a218"
+        },
+        "gpu-run-3": {
+          "x_sha256": "cb852498c727fcb5b9d8487f164d8c69e3dd8f1647451bdf773eba09b5f77bb9",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "f0ca7f9bb4d861d3ae400b3dacfd3a0643ce2df4e1ea7fee293135ed2ba4a218"
+        },
+        "gpu-run-blocking": {
+          "x_sha256": "cb852498c727fcb5b9d8487f164d8c69e3dd8f1647451bdf773eba09b5f77bb9",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "f0ca7f9bb4d861d3ae400b3dacfd3a0643ce2df4e1ea7fee293135ed2ba4a218"
+        }
+      },
+      "identical_across_processes": true,
+      "all_repeats_identical": true,
+      "equal_to_host_emulation": true
+    },
+    "dc-10fs/factored": {
+      "processes": {
+        "gpu-run-1": {
+          "x_sha256": "8a90d71a06a67cb3e1a9820b2a53265a35dba7983a765c98dc80b112f7a2f1e5",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "782e9ec4bf6a05b3c0acd5e0228c77d79a69390c7f6f8c326c39a8e7d2b24e45"
+        },
+        "gpu-run-2": {
+          "x_sha256": "8a90d71a06a67cb3e1a9820b2a53265a35dba7983a765c98dc80b112f7a2f1e5",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "782e9ec4bf6a05b3c0acd5e0228c77d79a69390c7f6f8c326c39a8e7d2b24e45"
+        },
+        "gpu-run-3": {
+          "x_sha256": "8a90d71a06a67cb3e1a9820b2a53265a35dba7983a765c98dc80b112f7a2f1e5",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "782e9ec4bf6a05b3c0acd5e0228c77d79a69390c7f6f8c326c39a8e7d2b24e45"
+        },
+        "gpu-run-blocking": {
+          "x_sha256": "8a90d71a06a67cb3e1a9820b2a53265a35dba7983a765c98dc80b112f7a2f1e5",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "782e9ec4bf6a05b3c0acd5e0228c77d79a69390c7f6f8c326c39a8e7d2b24e45"
+        }
+      },
+      "identical_across_processes": true,
+      "all_repeats_identical": true,
+      "equal_to_host_emulation": true
+    },
+    "dc-1fs/assembled": {
+      "processes": {
+        "gpu-run-1": {
+          "x_sha256": "59965f0c8b26218cd2371facd965282b2e399959eddc974b3e7a61d24ce59af8",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "2eaf07662bf04407be1f4775cc186c84e7943d344a2fede14ce5051bf9b80452"
+        },
+        "gpu-run-2": {
+          "x_sha256": "59965f0c8b26218cd2371facd965282b2e399959eddc974b3e7a61d24ce59af8",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "2eaf07662bf04407be1f4775cc186c84e7943d344a2fede14ce5051bf9b80452"
+        },
+        "gpu-run-3": {
+          "x_sha256": "59965f0c8b26218cd2371facd965282b2e399959eddc974b3e7a61d24ce59af8",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "2eaf07662bf04407be1f4775cc186c84e7943d344a2fede14ce5051bf9b80452"
+        },
+        "gpu-run-blocking": {
+          "x_sha256": "59965f0c8b26218cd2371facd965282b2e399959eddc974b3e7a61d24ce59af8",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "2eaf07662bf04407be1f4775cc186c84e7943d344a2fede14ce5051bf9b80452"
+        }
+      },
+      "identical_across_processes": true,
+      "all_repeats_identical": true,
+      "equal_to_host_emulation": true
+    },
+    "dc-1fs/factored": {
+      "processes": {
+        "gpu-run-1": {
+          "x_sha256": "17687d1da8191be04c1e96455193e5eb0ecc025400972e0da6ac753869438105",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "90cc6c4cb80621fd2a5a04c14294e546fd122f9ed71df404d949821995ad2951"
+        },
+        "gpu-run-2": {
+          "x_sha256": "17687d1da8191be04c1e96455193e5eb0ecc025400972e0da6ac753869438105",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "90cc6c4cb80621fd2a5a04c14294e546fd122f9ed71df404d949821995ad2951"
+        },
+        "gpu-run-3": {
+          "x_sha256": "17687d1da8191be04c1e96455193e5eb0ecc025400972e0da6ac753869438105",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "90cc6c4cb80621fd2a5a04c14294e546fd122f9ed71df404d949821995ad2951"
+        },
+        "gpu-run-blocking": {
+          "x_sha256": "17687d1da8191be04c1e96455193e5eb0ecc025400972e0da6ac753869438105",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "90cc6c4cb80621fd2a5a04c14294e546fd122f9ed71df404d949821995ad2951"
+        }
+      },
+      "identical_across_processes": true,
+      "all_repeats_identical": true,
+      "equal_to_host_emulation": true
+    },
+    "heated-10fs/assembled": {
+      "processes": {
+        "gpu-run-1": {
+          "x_sha256": "49aca08721d00f6901aa0beafcabff1b73c7bfc71ef0347c480b6043679bbdd9",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "8635501b84a1023c6d1c4142dbc17a5b3ac4731119eeaa0c54c70c6f4282d21b"
+        },
+        "gpu-run-2": {
+          "x_sha256": "49aca08721d00f6901aa0beafcabff1b73c7bfc71ef0347c480b6043679bbdd9",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "8635501b84a1023c6d1c4142dbc17a5b3ac4731119eeaa0c54c70c6f4282d21b"
+        },
+        "gpu-run-3": {
+          "x_sha256": "49aca08721d00f6901aa0beafcabff1b73c7bfc71ef0347c480b6043679bbdd9",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "8635501b84a1023c6d1c4142dbc17a5b3ac4731119eeaa0c54c70c6f4282d21b"
+        },
+        "gpu-run-blocking": {
+          "x_sha256": "49aca08721d00f6901aa0beafcabff1b73c7bfc71ef0347c480b6043679bbdd9",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "8635501b84a1023c6d1c4142dbc17a5b3ac4731119eeaa0c54c70c6f4282d21b"
+        }
+      },
+      "identical_across_processes": true,
+      "all_repeats_identical": true,
+      "equal_to_host_emulation": true
+    },
+    "heated-10fs/factored": {
+      "processes": {
+        "gpu-run-1": {
+          "x_sha256": "334f35cf9b84c11feed330b99e3e69348d7b9f2a218731a76594771910c0738d",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "093734d80e8916ee5add766a57a95be9adc489d3f3b54cee03d3424309c621ad"
+        },
+        "gpu-run-2": {
+          "x_sha256": "334f35cf9b84c11feed330b99e3e69348d7b9f2a218731a76594771910c0738d",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "093734d80e8916ee5add766a57a95be9adc489d3f3b54cee03d3424309c621ad"
+        },
+        "gpu-run-3": {
+          "x_sha256": "334f35cf9b84c11feed330b99e3e69348d7b9f2a218731a76594771910c0738d",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "093734d80e8916ee5add766a57a95be9adc489d3f3b54cee03d3424309c621ad"
+        },
+        "gpu-run-blocking": {
+          "x_sha256": "334f35cf9b84c11feed330b99e3e69348d7b9f2a218731a76594771910c0738d",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "093734d80e8916ee5add766a57a95be9adc489d3f3b54cee03d3424309c621ad"
+        }
+      },
+      "identical_across_processes": true,
+      "all_repeats_identical": true,
+      "equal_to_host_emulation": true
+    },
+    "heated-1fs/assembled": {
+      "processes": {
+        "gpu-run-1": {
+          "x_sha256": "9d0491404ada675018a204fd9eaf4209ed63c5550eeea445768366f34afe29af",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "046eed25f80b42e7be7561ea5a52edef0ce1bb4285771ba18c9ca1722d1ae93a"
+        },
+        "gpu-run-2": {
+          "x_sha256": "9d0491404ada675018a204fd9eaf4209ed63c5550eeea445768366f34afe29af",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "046eed25f80b42e7be7561ea5a52edef0ce1bb4285771ba18c9ca1722d1ae93a"
+        },
+        "gpu-run-3": {
+          "x_sha256": "9d0491404ada675018a204fd9eaf4209ed63c5550eeea445768366f34afe29af",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "046eed25f80b42e7be7561ea5a52edef0ce1bb4285771ba18c9ca1722d1ae93a"
+        },
+        "gpu-run-blocking": {
+          "x_sha256": "9d0491404ada675018a204fd9eaf4209ed63c5550eeea445768366f34afe29af",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "046eed25f80b42e7be7561ea5a52edef0ce1bb4285771ba18c9ca1722d1ae93a"
+        }
+      },
+      "identical_across_processes": true,
+      "all_repeats_identical": true,
+      "equal_to_host_emulation": true
+    },
+    "heated-1fs/factored": {
+      "processes": {
+        "gpu-run-1": {
+          "x_sha256": "976d01630c93a974cfe9a3b60ca5caafcfd9272a71816a6b6b6484d81d5db672",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "b79cc8c068c693fa312a18dce9c507634d1a2d7dd866164054afd69ec3e8d0f3"
+        },
+        "gpu-run-2": {
+          "x_sha256": "976d01630c93a974cfe9a3b60ca5caafcfd9272a71816a6b6b6484d81d5db672",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "b79cc8c068c693fa312a18dce9c507634d1a2d7dd866164054afd69ec3e8d0f3"
+        },
+        "gpu-run-3": {
+          "x_sha256": "976d01630c93a974cfe9a3b60ca5caafcfd9272a71816a6b6b6484d81d5db672",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "b79cc8c068c693fa312a18dce9c507634d1a2d7dd866164054afd69ec3e8d0f3"
+        },
+        "gpu-run-blocking": {
+          "x_sha256": "976d01630c93a974cfe9a3b60ca5caafcfd9272a71816a6b6b6484d81d5db672",
+          "repeat_identical": true,
+          "emulation_bitwise": true,
+          "x_file_sha256": "b79cc8c068c693fa312a18dce9c507634d1a2d7dd866164054afd69ec3e8d0f3"
+        }
+      },
+      "identical_across_processes": true,
+      "all_repeats_identical": true,
+      "equal_to_host_emulation": true
+    }
+  },
+  "status": "passed",
+  "finished_unix": 1793395970.3610196
+}

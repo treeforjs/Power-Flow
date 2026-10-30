@@ -1,0 +1,85 @@
+Hall field GPU backend (gpu1) qualification, label qual-02 - 2026-10-30
+
+Reference: Hall corrective field model, commit 8dddec0 (clean), snapshotted into
+source/ and verified blob by blob against the commit tree. Field sources: field-source/
+(copy of /home/treefor/projects/runtimes/hall-gpu-resident-v1-20261030/field). Receipts:
+build.json, meshes/<mesh>/{prep,gpu,guard}-phase.json, report.json; every recorded
+sha256 re-verified after the 16:33 reboot (post-reboot-verification.json: 570 checked,
+0 mismatched). Device: NVIDIA GeForce RTX 3080 Ti, GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9,
+sm_86, driver 615.78.08 (driver API 13040). NVRTC 12.8, SASS for sm_86 chosen at run
+time, --fmad=false --prec-div=true --prec-sqrt=true --ftz=false.
+
+Fixtures (all through the model's own code): Model::dc_seed with the 300 K material
+law ("dc"), and a heated state ("heated": synthetic nonuniform Joule load applied in
+4 x 10 fs steps through hall_driver::Thermal::prepare/commit, sigma from
+Thermal::conductivity(); T 489-920 K at 45 cells, 451-1324 K at 270 cells,
+sigma 0.83-1.20 MS/m vs 1.39 MS/m at 300 K); dt = 10 fs and 1 fs.
+Meshes: m29a2 (12,300 edges, 5.8 mm box, timing point only), m45a2 (29,164),
+m45 = MeshSpec{45,4,1,.009} (41,676), m90 (164,346), m135a6 (478,448),
+m270a6 (1,904,588, largest run; Model construction 85 s).
+
+1. Explicit operator vs sealed matrix-free apply (4 probes per fixture, 24 fixtures)
+   factored form (curl / transposed-curl rows in sealed operation order): bitwise
+     equal on every probe of every fixture.
+   assembled scaled CSR (exactly symmetric): not bitwise; normwise rel <= 5.7e-16,
+     max |diff| / (|A||v|)_e <= 1.18e-15. Bitwise equality is not reachable for a
+     single matrix: the sealed apply rounds C E, H(.), C^T(.), 1/sqrt(M) in sequence
+     and never forms A_ef.
+   Jacobi diagonal, a, q, sqrt(M): bitwise equal to Model::prepare's values.
+
+2. Guards (every fixture, both device forms; values in report.json)
+   independent FP64 residual (sealed apply, foil::norm): ratio to max(1e-30,2e-13||b||)
+     between 4.5e-4 and 0.114 - all pass.
+   absolute Gauss <= 3.3e-25 C (bounds 1.7e-23..3.2e-23 C); divB <= 7.9e-12 T/m
+     (bounds >= 3.1e-10); Gauss increment <= 1.2e-26 C (bound 1e-22); field energy
+     |balance| <= 1.2e-21 J (bound >= 2.7e-19); Joule operand accepted by the v2
+     thermal owner; field/heat bound (owner.hpp:20-24) passes. All pass, as does the
+     CPU-path candidate, which is reproduced bit for bit (same after_sha256) by the
+     guard rebuild.
+   Negative controls: a 1e-6 relative change of one component is refused by the
+     residual gate on every fixture. With the gate bypassed, a 0.1 % scaling of the
+     whole increment passes Model::prepare's own guards on every dc-1fs fixture
+     (near-equilibrium steps); 10 % and 100 % are refused (Gauss increment or energy
+     bound). The residual gate is therefore the binding solver-accuracy check.
+
+3. Determinism
+   3 fresh processes x (3 warmup + 20 timed resident + 20 with transfers + 20 with
+   sigma refresh + 20 with full upload; 10 each at m270a6) solves, plus one blocking-sync process and
+   a batch/graph sweep: every solution bitwise identical per fixture and form, and
+   bitwise equal to the host emulation of the same fixed-tree algorithm. Increment
+   vs the sealed CPU PCG: factored normwise <= 1.1e-16 (bitwise identical on several
+   fixtures), assembled <= 5.2e-16.
+
+4. Iterations and conditioning
+   GPU iterations equal the sealed CPU PCG on every fixture: 2-5, one correction
+   cycle. Lanczos kappa (Jacobi-scaled) 1.000001-1.0131 (larger for finer mesh and
+   10 fs); forward error estimate kappa * ||r||/||b|| <= ~2.3e-14.
+
+5. Timing, median ms (CPU core 6 or 7, nice 15, one thread)
+   mesh     edges     fixture     CPU sealed  CPU CSR  | GPU fac  +b/x   +sigma  +full  | GPU asm
+   m29a2    12,300    dc-10fs       0.554     0.264   |  0.233   0.245  0.255   0.353  |  0.200
+                      heated-1fs    0.340     0.162   |  0.151   0.162  0.177   0.281  |  0.125
+   m45      41,676    dc-10fs       1.949     1.048   |  0.282   0.338  0.358   0.693  |  0.254
+                      heated-1fs    1.155     0.588   |  0.180   0.237  0.255   0.596  |  0.161
+   m90      164,346   dc-10fs       7.360     3.869   |  0.540   0.761  0.780   2.159  |  0.649
+   m135a6   478,448   dc-10fs      28.77     17.19    |  1.710   2.315  2.343   6.583  |  2.319
+                      dc-1fs       22.78     15.17    |  0.995   1.627  1.640   5.704  |  1.338
+   m270a6   1,904,588 dc-10fs     173.5      86.26    |  6.975   9.255  9.341  25.22   |  9.115
+                      heated-1fs  111.5      62.36    |  4.221   6.546  6.490  22.47   |  5.473
+   (all 24 rows in report.json "timing_by_fixture"). GPU fac = factored form,
+   device-resident (b and x on the device); +b/x = with H2D of b and D2H of x
+   (pinned); +sigma = also the per-step sigma(T) refresh of the conduction rows;
+   +full = upload of every operator value (dt change; upper bound). Blocking-sync
+   scheduling changes resident times by -2 % to +18 % (larger at small sizes).
+   Crossover: against the sealed CPU PCG the GPU is faster at every admissible
+   mesh (2.2-2.5x at 12,300 edges; linear extrapolation puts equality near 5e3
+   edges, below the smallest admissible mesh). Against a preassembled single-thread
+   CPU CSR PCG the crossover is at about 1.2e4 edges (break-even at m29a2), with the
+   GPU at the Hall default mesh 2.3-2.9x faster including b/x transfers and sigma
+   refresh (3.3-3.7x resident), and 9.0-9.6x (11.7-14.8x resident) at 1.9e6 edges.
+   Against the sealed CPU PCG: 4.5-5.4x (6.4-7.0x resident) at the Hall default,
+   17-19x (24-27x resident) at 1.9e6 edges. The factored form is slower than the assembled one below
+   ~1e5 edges (two kernels per product) and faster above (less memory traffic).
+
+Superseded: label qual-01 stopped at its guard phase because the bypassed-gate
+scaling control was then mandatory; that control is now a characterization (above).

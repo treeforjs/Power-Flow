@@ -1,0 +1,1153 @@
+{
+  "argv": [
+    "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/build/hall_field_cpu",
+    "guard",
+    "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/source/development/hall-finite-foil-em-20261029/data/shot_17133_current.csv",
+    "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45a2",
+    "45",
+    "2",
+    "1",
+    "0.009",
+    "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45a2/gpu-run-1"
+  ],
+  "configuration_sha256": "32bb829da1199b303d9ca00a45d5378d94a38da976cd53a039aa44fa72534e89",
+  "fixtures": {
+    "dc-10fs": {
+      "dt_s": 1e-14,
+      "fixture": "dc-10fs",
+      "fixture_sha256": "2f8bec301e466a001b3158e2cf96fd37b4126627da4309e38f1bbb08db80e08c",
+      "negative_controls": {
+        "model_guards_without_residual_gate": [
+          {
+            "independent_residual": 2.402681536182377e-13,
+            "message": "existing field Gauss increment bound",
+            "perturbation": "whole increment scaled, residual gate bypassed",
+            "ratio_to_target": 4999999999.999803,
+            "rejected": true,
+            "scale": 1.001,
+            "target": 4.805363072364943e-23
+          },
+          {
+            "independent_residual": 2.4026815361824752e-11,
+            "message": "existing field Gauss increment bound",
+            "perturbation": "whole increment scaled, residual gate bypassed",
+            "ratio_to_target": 500000000000.00073,
+            "rejected": true,
+            "scale": 1.1,
+            "target": 4.805363072364943e-23
+          },
+          {
+            "independent_residual": 2.402681536182472e-10,
+            "message": "existing field Gauss increment bound",
+            "perturbation": "whole increment scaled, residual gate bypassed",
+            "ratio_to_target": 5000000000000.001,
+            "rejected": true,
+            "scale": 2.0,
+            "target": 4.805363072364943e-23
+          }
+        ],
+        "residual_gate": {
+          "independent_residual": 9.613732827900503e-18,
+          "message": "GPU increment fails the independent FP64 residual bound",
+          "perturbation": "largest component x (1+1e-6), residual gate active",
+          "ratio_to_target": 200062.56932359404,
+          "rejected": true,
+          "target": 4.805363072364943e-23
+        }
+      },
+      "state_time_s": 7.49788055492e-10,
+      "variants": {
+        "cpu_sealed": {
+          "guards": {
+            "absolute_divB": {
+              "max_T_m": 7.383366605087779e-13,
+              "max_bound_T_m": 3.161910083791042e-10,
+              "passed": true
+            },
+            "absolute_gauss": {
+              "max_bound_C": 2.8653906992743876e-23,
+              "max_defect_C": 3.806135492459068e-25,
+              "passed": true
+            },
+            "after_sha256": "afb2f6f5c1cf0435a0e489669489820099bb691bc16de91ec9b25a3bd1673cd9",
+            "field_energy": {
+              "balance_J": -3.970466940254533e-23,
+              "bound_J": 2.6096909838386265e-18,
+              "passed": true
+            },
+            "field_heat_energy": {
+              "balance_J": 2.9621580446859256e-15,
+              "bound_J": 6.568373383678353e-12,
+              "formula": "owner.hpp:20-24 FieldHeatProposal bound, evaluated here",
+              "passed": true
+            },
+            "gauss_increment": {
+              "bound_C": 1.0000063877896011e-22,
+              "passed": true,
+              "value_C": 5.532640465721693e-27
+            },
+            "joule_transfer": {
+              "bound_J": 2.6088256469193134e-20,
+              "field_joule_J": 1.2994128234596568e-08,
+              "thermal_admitted_joule_J": 1.2994128234596584e-08,
+              "thermal_owner_accepted": true
+            },
+            "model_prepare_returned": true,
+            "receipt": {
+              "ampere_residual_A_m": 4.888579607712758e-16,
+              "balance_J": -3.970466940254533e-23,
+              "circuit_work_J": 1.299416679546252e-08,
+              "current_A": 6012.0793553594385,
+              "field_delta_J": 3.856086586270318e-14,
+              "gauss_increment_C": 5.532640465721693e-27,
+              "joule_J": 1.2994128234596568e-08,
+              "kcl_residual_A": 5.557376382553739e-13,
+              "outer_loss_J": 4.2881237306826806e-12,
+              "outer_supply_J": 4.2881237306330635e-12,
+              "plasma_work_J": 0.0,
+              "region_boundary_A": 7.483144659481411e-11,
+              "region_conduction_A": 6012.071360469982,
+              "region_displacement_A": 0.007994889378512216,
+              "region_plasma_A": 0.0,
+              "terminal_V": 216.1343193828422
+            }
+          },
+          "increment_vs_cpu_sealed": {
+            "bitwise_equal": true,
+            "differing_components": 0,
+            "max_abs": 0.0,
+            "max_abs_over_absA_absv": 0.0,
+            "max_rel": 0.0,
+            "normwise_rel": 0.0
+          },
+          "independent_residual": {
+            "norm": "foil::norm (long double accumulation, canonical index order)",
+            "operator": "sealed matrix-free apply of Model::prepare",
+            "passed": true,
+            "ratio_to_target": 0.0007485026983714356,
+            "residual": 3.5968272263196124e-26,
+            "rhs_norm": 2.4026815361824715e-10,
+            "target": 4.805363072364943e-23
+          },
+          "x_sha256": "07c0c6f25f8b8440637d73e23e015d493749126cf6575ec80f638dfe30027a9d"
+        },
+        "gpu_assembled": {
+          "guards": {
+            "absolute_divB": {
+              "max_T_m": 7.383366605087779e-13,
+              "max_bound_T_m": 3.161910083791042e-10,
+              "passed": true
+            },
+            "absolute_gauss": {
+              "max_bound_C": 2.8653906992743876e-23,
+              "max_defect_C": 3.806135492459663e-25,
+              "passed": true
+            },
+            "after_sha256": "4143e1aaee106471db8e4252d7f0d0bd2d8b621b3c25c647ee341e26b8eaa478",
+            "field_energy": {
+              "balance_J": -3.970466940254533e-23,
+              "bound_J": 2.6096909838386265e-18,
+              "passed": true
+            },
+            "field_heat_energy": {
+              "balance_J": 2.9621580446859256e-15,
+              "bound_J": 6.568373383678353e-12,
+              "formula": "owner.hpp:20-24 FieldHeatProposal bound, evaluated here",
+              "passed": true
+            },
+            "gauss_increment": {
+              "bound_C": 1.0000063877896011e-22,
+              "passed": true,
+              "value_C": 5.5326404657214765e-27
+            },
+            "joule_transfer": {
+              "bound_J": 2.6088256469193134e-20,
+              "field_joule_J": 1.2994128234596568e-08,
+              "thermal_admitted_joule_J": 1.2994128234596584e-08,
+              "thermal_owner_accepted": true
+            },
+            "model_prepare_returned": true,
+            "receipt": {
+              "ampere_residual_A_m": 4.888579607713011e-16,
+              "balance_J": -3.970466940254533e-23,
+              "circuit_work_J": 1.299416679546252e-08,
+              "current_A": 6012.0793553594385,
+              "field_delta_J": 3.8560865862703174e-14,
+              "gauss_increment_C": 5.5326404657214765e-27,
+              "joule_J": 1.2994128234596568e-08,
+              "kcl_residual_A": 5.557376382553743e-13,
+              "outer_loss_J": 4.2881237306826806e-12,
+              "outer_supply_J": 4.2881237306330635e-12,
+              "plasma_work_J": 0.0,
+              "region_boundary_A": 7.483144659481411e-11,
+              "region_conduction_A": 6012.071360469982,
+              "region_displacement_A": 0.007994889378512213,
+              "region_plasma_A": 0.0,
+              "terminal_V": 216.1343193828422
+            }
+          },
+          "increment_vs_cpu_sealed": {
+            "bitwise_equal": false,
+            "differing_components": 26003,
+            "max_abs": 6.462348535570529e-27,
+            "max_abs_over_absA_absv": 0.0,
+            "max_rel": 1.6333281542915252e-10,
+            "normwise_rel": 3.4410461920471833e-16
+          },
+          "independent_residual": {
+            "norm": "foil::norm (long double accumulation, canonical index order)",
+            "operator": "sealed matrix-free apply of Model::prepare",
+            "passed": true,
+            "ratio_to_target": 0.0014504251659811754,
+            "residual": 6.969819531834734e-26,
+            "rhs_norm": 2.4026815361824715e-10,
+            "target": 4.805363072364943e-23
+          },
+          "input_file": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45a2/gpu-run-1/dc-10fs/x_gpu_assembled.bin",
+          "input_sha256": "2ff61a845e0023daecaf1569577408a5c264a601e54455ac886e1832154e5ba9",
+          "x_sha256": "1e2c622c899e0e8a55ba9a13368490cdd0c291f0dff9e5a05f83076571cca809"
+        },
+        "gpu_factored": {
+          "guards": {
+            "absolute_divB": {
+              "max_T_m": 7.383366605087779e-13,
+              "max_bound_T_m": 3.161910083791042e-10,
+              "passed": true
+            },
+            "absolute_gauss": {
+              "max_bound_C": 2.8653906992743876e-23,
+              "max_defect_C": 3.806135492459068e-25,
+              "passed": true
+            },
+            "after_sha256": "670ade5850e5869cb659ef47f3c153db4907440c705ba2083cc785d23c27a8f6",
+            "field_energy": {
+              "balance_J": -3.970466940254533e-23,
+              "bound_J": 2.6096909838386265e-18,
+              "passed": true
+            },
+            "field_heat_energy": {
+              "balance_J": 2.9621580446859256e-15,
+              "bound_J": 6.568373383678353e-12,
+              "formula": "owner.hpp:20-24 FieldHeatProposal bound, evaluated here",
+              "passed": true
+            },
+            "gauss_increment": {
+              "bound_C": 1.0000063877896011e-22,
+              "passed": true,
+              "value_C": 5.532640465721693e-27
+            },
+            "joule_transfer": {
+              "bound_J": 2.6088256469193134e-20,
+              "field_joule_J": 1.2994128234596568e-08,
+              "thermal_admitted_joule_J": 1.2994128234596584e-08,
+              "thermal_owner_accepted": true
+            },
+            "model_prepare_returned": true,
+            "receipt": {
+              "ampere_residual_A_m": 4.888579607712758e-16,
+              "balance_J": -3.970466940254533e-23,
+              "circuit_work_J": 1.299416679546252e-08,
+              "current_A": 6012.0793553594385,
+              "field_delta_J": 3.856086586270318e-14,
+              "gauss_increment_C": 5.532640465721693e-27,
+              "joule_J": 1.2994128234596568e-08,
+              "kcl_residual_A": 5.557376382553739e-13,
+              "outer_loss_J": 4.2881237306826806e-12,
+              "outer_supply_J": 4.2881237306330635e-12,
+              "plasma_work_J": 0.0,
+              "region_boundary_A": 7.483144659481411e-11,
+              "region_conduction_A": 6012.071360469982,
+              "region_displacement_A": 0.007994889378512216,
+              "region_plasma_A": 0.0,
+              "terminal_V": 216.1343193828422
+            }
+          },
+          "increment_vs_cpu_sealed": {
+            "bitwise_equal": false,
+            "differing_components": 3600,
+            "max_abs": 4.930380657631324e-32,
+            "max_abs_over_absA_absv": 0.0,
+            "max_rel": 2.729085905933058e-13,
+            "normwise_rel": 9.038330025199873e-22
+          },
+          "independent_residual": {
+            "norm": "foil::norm (long double accumulation, canonical index order)",
+            "operator": "sealed matrix-free apply of Model::prepare",
+            "passed": true,
+            "ratio_to_target": 0.0007485026993482807,
+            "residual": 3.596827231013708e-26,
+            "rhs_norm": 2.4026815361824715e-10,
+            "target": 4.805363072364943e-23
+          },
+          "input_file": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45a2/gpu-run-1/dc-10fs/x_gpu_factored.bin",
+          "input_sha256": "cc84131b2e542512b2d375a2c504c91b2c1cd282154da4e12e34817b86379b88",
+          "x_sha256": "2574f0cc28bb25faef9c4ccb03aeb086f24dd5dd00159621c5c160262b7e0c52"
+        }
+      }
+    },
+    "dc-1fs": {
+      "dt_s": 1e-15,
+      "fixture": "dc-1fs",
+      "fixture_sha256": "44aa4dd47bfc55c4e07db25b3b1e2549c096a9855d73ab48c62cb818665d6845",
+      "negative_controls": {
+        "model_guards_without_residual_gate": [
+          {
+            "accepted_ampere_residual_A_m": 6.396008722653335e-12,
+            "accepted_energy_balance_J": 1.7279989111870573e-19,
+            "accepted_gauss_increment_C": 1.598979414239918e-23,
+            "energy_bound_J": 2.6996836600559944e-19,
+            "independent_residual": 2.4026813677942143e-15,
+            "perturbation": "whole increment scaled, residual gate bypassed",
+            "ratio_to_target": 4999999999.999497,
+            "rejected": false,
+            "scale": 1.001,
+            "target": 4.805362735588912e-25
+          },
+          {
+            "independent_residual": 2.4026813677944585e-13,
+            "message": "existing field Gauss increment bound",
+            "perturbation": "whole increment scaled, residual gate bypassed",
+            "ratio_to_target": 500000000000.00055,
+            "rejected": true,
+            "scale": 1.1,
+            "target": 4.805362735588912e-25
+          },
+          {
+            "independent_residual": 2.402681367794456e-12,
+            "message": "existing field Gauss increment bound",
+            "perturbation": "whole increment scaled, residual gate bypassed",
+            "ratio_to_target": 5000000000000.0,
+            "rejected": true,
+            "scale": 2.0,
+            "target": 4.805362735588912e-25
+          }
+        ],
+        "residual_gate": {
+          "independent_residual": 9.612698410916728e-20,
+          "message": "GPU increment fails the independent FP64 residual bound",
+          "perturbation": "largest component x (1+1e-6), residual gate active",
+          "ratio_to_target": 200041.0570407993,
+          "rejected": true,
+          "target": 4.805362735588912e-25
+        }
+      },
+      "state_time_s": 7.49788055492e-10,
+      "variants": {
+        "cpu_sealed": {
+          "guards": {
+            "absolute_divB": {
+              "max_T_m": 7.38336666557718e-13,
+              "max_bound_T_m": 3.161910083791042e-10,
+              "passed": true
+            },
+            "absolute_gauss": {
+              "max_bound_C": 2.8653906812768714e-23,
+              "max_defect_C": 3.805529206924381e-25,
+              "passed": true
+            },
+            "after_sha256": "f5c304e0f316fe4da56cdde30f1cf776956f0328b32c92c16d55754741c2fa36",
+            "field_energy": {
+              "balance_J": 2.895132143935597e-24,
+              "bound_J": 2.6996836598406157e-19,
+              "passed": true
+            },
+            "field_heat_energy": {
+              "balance_J": -2.9879977943158557e-15,
+              "bound_J": 6.568371018950451e-12,
+              "formula": "owner.hpp:20-24 FieldHeatProposal bound, evaluated here",
+              "passed": true
+            },
+            "gauss_increment": {
+              "bound_C": 1.0000000631650768e-22,
+              "passed": true,
+              "value_C": 5.6663227406246e-28
+            },
+            "joule_transfer": {
+              "bound_J": 2.6988256469192653e-21,
+              "field_joule_J": 1.2994128234596328e-09,
+              "thermal_admitted_joule_J": 1.2994128234596338e-09,
+              "thermal_owner_accepted": true
+            },
+            "model_prepare_returned": true,
+            "receipt": {
+              "ampere_residual_A_m": 5.551115123125783e-16,
+              "balance_J": 2.895132143935597e-24,
+              "circuit_work_J": 1.2994130175472432e-09,
+              "current_A": 6012.072159958944,
+              "field_delta_J": 1.9408760823088924e-16,
+              "gauss_increment_C": 5.6663227406246e-28,
+              "joule_J": 1.2994128234596328e-09,
+              "kcl_residual_A": 5.694181952764929e-13,
+              "outer_loss_J": 4.288123730682658e-13,
+              "outer_supply_J": 4.288123730631228e-13,
+              "plasma_work_J": 0.0,
+              "region_boundary_A": 7.483144659481411e-11,
+              "region_conduction_A": 6012.071360469982,
+              "region_displacement_A": 0.0007994888838352287,
+              "region_plasma_A": 0.0,
+              "terminal_V": 216.1339689502523
+            }
+          },
+          "increment_vs_cpu_sealed": {
+            "bitwise_equal": true,
+            "differing_components": 0,
+            "max_abs": 0.0,
+            "max_abs_over_absA_absv": 0.0,
+            "max_rel": 0.0,
+            "normwise_rel": 0.0
+          },
+          "independent_residual": {
+            "norm": "foil::norm (long double accumulation, canonical index order)",
+            "operator": "sealed matrix-free apply of Model::prepare",
+            "passed": true,
+            "ratio_to_target": 0.0004947590926004388,
+            "residual": 2.3774969066759325e-28,
+            "rhs_norm": 2.402681367794456e-12,
+            "target": 4.805362735588912e-25
+          },
+          "x_sha256": "94fdb667a53f4e259983255dde18ccf49a6ee535da42426ba9bde3e6ebe395a8"
+        },
+        "gpu_assembled": {
+          "guards": {
+            "absolute_divB": {
+              "max_T_m": 7.38336666557718e-13,
+              "max_bound_T_m": 3.161910083791042e-10,
+              "passed": true
+            },
+            "absolute_gauss": {
+              "max_bound_C": 2.8653906812768714e-23,
+              "max_defect_C": 3.805529207020378e-25,
+              "passed": true
+            },
+            "after_sha256": "d0eb41cf2fa629ea364ba28ed5d193588dbf93639b3b8f107d49597cd6c0c969",
+            "field_energy": {
+              "balance_J": 2.895132143935597e-24,
+              "bound_J": 2.6996836598406157e-19,
+              "passed": true
+            },
+            "field_heat_energy": {
+              "balance_J": -2.9879977943158557e-15,
+              "bound_J": 6.568371018950451e-12,
+              "formula": "owner.hpp:20-24 FieldHeatProposal bound, evaluated here",
+              "passed": true
+            },
+            "gauss_increment": {
+              "bound_C": 1.0000000631650768e-22,
+              "passed": true,
+              "value_C": 5.66632274062478e-28
+            },
+            "joule_transfer": {
+              "bound_J": 2.6988256469192653e-21,
+              "field_joule_J": 1.2994128234596328e-09,
+              "thermal_admitted_joule_J": 1.2994128234596338e-09,
+              "thermal_owner_accepted": true
+            },
+            "model_prepare_returned": true,
+            "receipt": {
+              "ampere_residual_A_m": 5.551115123125783e-16,
+              "balance_J": 2.895132143935597e-24,
+              "circuit_work_J": 1.2994130175472432e-09,
+              "current_A": 6012.072159958944,
+              "field_delta_J": 1.940876082308893e-16,
+              "gauss_increment_C": 5.66632274062478e-28,
+              "joule_J": 1.2994128234596328e-09,
+              "kcl_residual_A": 5.694181952764929e-13,
+              "outer_loss_J": 4.288123730682658e-13,
+              "outer_supply_J": 4.288123730631228e-13,
+              "plasma_work_J": 0.0,
+              "region_boundary_A": 7.483144659481411e-11,
+              "region_conduction_A": 6012.071360469982,
+              "region_displacement_A": 0.0007994888838352289,
+              "region_plasma_A": 0.0,
+              "terminal_V": 216.1339689502523
+            }
+          },
+          "increment_vs_cpu_sealed": {
+            "bitwise_equal": false,
+            "differing_components": 17676,
+            "max_abs": 5.048709793414476e-29,
+            "max_abs_over_absA_absv": 0.0,
+            "max_rel": 2.1110584901056662e-11,
+            "normwise_rel": 2.0924837673592429e-16
+          },
+          "independent_residual": {
+            "norm": "foil::norm (long double accumulation, canonical index order)",
+            "operator": "sealed matrix-free apply of Model::prepare",
+            "passed": true,
+            "ratio_to_target": 0.0011410990813120706,
+            "residual": 5.483395002951766e-28,
+            "rhs_norm": 2.402681367794456e-12,
+            "target": 4.805362735588912e-25
+          },
+          "input_file": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45a2/gpu-run-1/dc-1fs/x_gpu_assembled.bin",
+          "input_sha256": "e8b2c521a08d3a97909fbecf71a14454749326c17c5d4b9706be7822afb6ad67",
+          "x_sha256": "f8cebdcaaabca758576049872875e5a54651ee6c5dd9a330487128eeb02c762d"
+        },
+        "gpu_factored": {
+          "guards": {
+            "absolute_divB": {
+              "max_T_m": 7.38336666557718e-13,
+              "max_bound_T_m": 3.161910083791042e-10,
+              "passed": true
+            },
+            "absolute_gauss": {
+              "max_bound_C": 2.8653906812768714e-23,
+              "max_defect_C": 3.805529206924381e-25,
+              "passed": true
+            },
+            "after_sha256": "f5c304e0f316fe4da56cdde30f1cf776956f0328b32c92c16d55754741c2fa36",
+            "field_energy": {
+              "balance_J": 2.895132143935597e-24,
+              "bound_J": 2.6996836598406157e-19,
+              "passed": true
+            },
+            "field_heat_energy": {
+              "balance_J": -2.9879977943158557e-15,
+              "bound_J": 6.568371018950451e-12,
+              "formula": "owner.hpp:20-24 FieldHeatProposal bound, evaluated here",
+              "passed": true
+            },
+            "gauss_increment": {
+              "bound_C": 1.0000000631650768e-22,
+              "passed": true,
+              "value_C": 5.6663227406246e-28
+            },
+            "joule_transfer": {
+              "bound_J": 2.6988256469192653e-21,
+              "field_joule_J": 1.2994128234596328e-09,
+              "thermal_admitted_joule_J": 1.2994128234596338e-09,
+              "thermal_owner_accepted": true
+            },
+            "model_prepare_returned": true,
+            "receipt": {
+              "ampere_residual_A_m": 5.551115123125783e-16,
+              "balance_J": 2.895132143935597e-24,
+              "circuit_work_J": 1.2994130175472432e-09,
+              "current_A": 6012.072159958944,
+              "field_delta_J": 1.9408760823088924e-16,
+              "gauss_increment_C": 5.6663227406246e-28,
+              "joule_J": 1.2994128234596328e-09,
+              "kcl_residual_A": 5.694181952764929e-13,
+              "outer_loss_J": 4.288123730682658e-13,
+              "outer_supply_J": 4.288123730631228e-13,
+              "plasma_work_J": 0.0,
+              "region_boundary_A": 7.483144659481411e-11,
+              "region_conduction_A": 6012.071360469982,
+              "region_displacement_A": 0.0007994888838352287,
+              "region_plasma_A": 0.0,
+              "terminal_V": 216.1339689502523
+            }
+          },
+          "increment_vs_cpu_sealed": {
+            "bitwise_equal": true,
+            "differing_components": 0,
+            "max_abs": 0.0,
+            "max_abs_over_absA_absv": 0.0,
+            "max_rel": 0.0,
+            "normwise_rel": 0.0
+          },
+          "independent_residual": {
+            "norm": "foil::norm (long double accumulation, canonical index order)",
+            "operator": "sealed matrix-free apply of Model::prepare",
+            "passed": true,
+            "ratio_to_target": 0.0004947590926004388,
+            "residual": 2.3774969066759325e-28,
+            "rhs_norm": 2.402681367794456e-12,
+            "target": 4.805362735588912e-25
+          },
+          "input_file": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45a2/gpu-run-1/dc-1fs/x_gpu_factored.bin",
+          "input_sha256": "438877334d2bb72348181ea36752494d5ca46f52b8c00b2d1faee1718d7f94a1",
+          "x_sha256": "94fdb667a53f4e259983255dde18ccf49a6ee535da42426ba9bde3e6ebe395a8"
+        }
+      }
+    },
+    "heated-10fs": {
+      "dt_s": 1e-14,
+      "fixture": "heated-10fs",
+      "fixture_sha256": "68d353be5950d965aff205893bb59cf7a4bb011d02f197c244c43f317a9a01f4",
+      "negative_controls": {
+        "model_guards_without_residual_gate": [
+          {
+            "independent_residual": 7.20745063696485e-07,
+            "message": "existing field Gauss increment bound",
+            "perturbation": "whole increment scaled, residual gate bypassed",
+            "ratio_to_target": 4999999999.998666,
+            "rejected": true,
+            "scale": 1.001,
+            "target": 1.4414901273933548e-16
+          },
+          {
+            "independent_residual": 7.20745063696677e-05,
+            "message": "existing field Gauss increment bound",
+            "perturbation": "whole increment scaled, residual gate bypassed",
+            "ratio_to_target": 499999999999.9997,
+            "rejected": true,
+            "scale": 1.1,
+            "target": 1.4414901273933548e-16
+          },
+          {
+            "independent_residual": 0.0007207450636966772,
+            "message": "existing field Gauss increment bound",
+            "perturbation": "whole increment scaled, residual gate bypassed",
+            "ratio_to_target": 4999999999999.999,
+            "rejected": true,
+            "scale": 2.0,
+            "target": 1.4414901273933548e-16
+          }
+        ],
+        "residual_gate": {
+          "independent_residual": 3.784514455291983e-11,
+          "message": "GPU increment fails the independent FP64 residual bound",
+          "perturbation": "largest component x (1+1e-6), residual gate active",
+          "ratio_to_target": 262541.8227550068,
+          "rejected": true,
+          "target": 1.4414901273933548e-16
+        }
+      },
+      "state_time_s": 7.498280554919999e-10,
+      "variants": {
+        "cpu_sealed": {
+          "guards": {
+            "absolute_divB": {
+              "max_T_m": 7.383366607881747e-13,
+              "max_bound_T_m": 3.1619099062642495e-10,
+              "passed": true
+            },
+            "absolute_gauss": {
+              "max_bound_C": 2.8654082545752804e-23,
+              "max_defect_C": 3.8061355047028965e-25,
+              "passed": true
+            },
+            "after_sha256": "5022fa0c3c9cf31cbae5769dcec44caaed449a960f8d832564bbe12f1c56f6f7",
+            "field_energy": {
+              "balance_J": 2.150669592637872e-23,
+              "bound_J": 3.3697899280892177e-18,
+              "passed": true
+            },
+            "field_heat_energy": {
+              "balance_J": 3.2725135585747778e-15,
+              "bound_J": 2.0035763663179577e-11,
+              "formula": "owner.hpp:20-24 FieldHeatProposal bound, evaluated here",
+              "passed": true
+            },
+            "gauss_increment": {
+              "bound_C": 1.003091449943777e-22,
+              "passed": true,
+              "value_C": 6.332483179192141e-27
+            },
+            "joule_transfer": {
+              "bound_J": 3.368932303343083e-20,
+              "field_joule_J": 1.6794661516715416e-08,
+              "thermal_admitted_joule_J": 1.6794661516715413e-08,
+              "thermal_owner_accepted": true
+            },
+            "model_prepare_returned": true,
+            "receipt": {
+              "ampere_residual_A_m": 1.3322676295501878e-15,
+              "balance_J": 2.150669592637872e-23,
+              "circuit_work_J": 1.2994475321010222e-08,
+              "current_A": 6012.143314474939,
+              "field_delta_J": -3.800186195705355e-09,
+              "gauss_increment_C": 6.332483179192141e-27,
+              "joule_J": 1.6794661516715416e-08,
+              "kcl_residual_A": 6.391379785852412e-13,
+              "outer_loss_J": 4.2881237306827395e-12,
+              "outer_supply_J": 4.2881237305007146e-12,
+              "plasma_work_J": 0.0,
+              "region_boundary_A": 7.483144659481411e-11,
+              "region_conduction_A": 6008.042760833884,
+              "region_displacement_A": 4.100553640974496,
+              "region_plasma_A": 0.0,
+              "terminal_V": 216.13715178286728
+            }
+          },
+          "increment_vs_cpu_sealed": {
+            "bitwise_equal": true,
+            "differing_components": 0,
+            "max_abs": 0.0,
+            "max_abs_over_absA_absv": 0.0,
+            "max_rel": 0.0,
+            "normwise_rel": 0.0
+          },
+          "independent_residual": {
+            "norm": "foil::norm (long double accumulation, canonical index order)",
+            "operator": "sealed matrix-free apply of Model::prepare",
+            "passed": true,
+            "ratio_to_target": 0.00957495578416035,
+            "residual": 1.3802204233095043e-18,
+            "rhs_norm": 0.0007207450636966774,
+            "target": 1.4414901273933548e-16
+          },
+          "x_sha256": "2f8f587486c5677f3181ee5ce74382d68b5131af8fd24e51863d844741cae5ee"
+        },
+        "gpu_assembled": {
+          "guards": {
+            "absolute_divB": {
+              "max_T_m": 7.383366607881747e-13,
+              "max_bound_T_m": 3.1619099062642495e-10,
+              "passed": true
+            },
+            "absolute_gauss": {
+              "max_bound_C": 2.8654082545752804e-23,
+              "max_defect_C": 3.8061355538619895e-25,
+              "passed": true
+            },
+            "after_sha256": "09ad545ef07b7654dba421b0a17a4c932979f33c90faf34be9b5c30b6da9f374",
+            "field_energy": {
+              "balance_J": 1.6543612251060553e-23,
+              "bound_J": 3.3697899280892174e-18,
+              "passed": true
+            },
+            "field_heat_energy": {
+              "balance_J": 3.2725135618835002e-15,
+              "bound_J": 2.0035763663179577e-11,
+              "formula": "owner.hpp:20-24 FieldHeatProposal bound, evaluated here",
+              "passed": true
+            },
+            "gauss_increment": {
+              "bound_C": 1.003091449943777e-22,
+              "passed": true,
+              "value_C": 6.3324831693596745e-27
+            },
+            "joule_transfer": {
+              "bound_J": 3.368932303343082e-20,
+              "field_joule_J": 1.679466151671541e-08,
+              "thermal_admitted_joule_J": 1.679466151671541e-08,
+              "thermal_owner_accepted": true
+            },
+            "model_prepare_returned": true,
+            "receipt": {
+              "ampere_residual_A_m": 1.4432899320127035e-15,
+              "balance_J": 1.6543612251060553e-23,
+              "circuit_work_J": 1.2994475321010222e-08,
+              "current_A": 6012.143314474939,
+              "field_delta_J": -3.8001861957053534e-09,
+              "gauss_increment_C": 6.3324831693596745e-27,
+              "joule_J": 1.679466151671541e-08,
+              "kcl_residual_A": 6.391379777382082e-13,
+              "outer_loss_J": 4.2881237306827395e-12,
+              "outer_supply_J": 4.2881237305007146e-12,
+              "plasma_work_J": 0.0,
+              "region_boundary_A": 7.483144659481411e-11,
+              "region_conduction_A": 6008.042760833884,
+              "region_displacement_A": 4.1005536409744945,
+              "region_plasma_A": 0.0,
+              "terminal_V": 216.13715178286728
+            }
+          },
+          "increment_vs_cpu_sealed": {
+            "bitwise_equal": false,
+            "differing_components": 26157,
+            "max_abs": 2.117582368135751e-22,
+            "max_abs_over_absA_absv": 0.0,
+            "max_rel": 1.178121335298296e-06,
+            "normwise_rel": 5.202702599121686e-16
+          },
+          "independent_residual": {
+            "norm": "foil::norm (long double accumulation, canonical index order)",
+            "operator": "sealed matrix-free apply of Model::prepare",
+            "passed": true,
+            "ratio_to_target": 0.010261714121452223,
+            "residual": 1.4792159596206355e-18,
+            "rhs_norm": 0.0007207450636966774,
+            "target": 1.4414901273933548e-16
+          },
+          "input_file": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45a2/gpu-run-1/heated-10fs/x_gpu_assembled.bin",
+          "input_sha256": "7938c57913508f5562ea277c8ab47504b99ba4ecf7ef5eb124dde97f8556b0da",
+          "x_sha256": "a47121d04c9e29188c16270e0bb92f95425eb939cf485807ad49e9e5aeabb4e2"
+        },
+        "gpu_factored": {
+          "guards": {
+            "absolute_divB": {
+              "max_T_m": 7.383366607881747e-13,
+              "max_bound_T_m": 3.1619099062642495e-10,
+              "passed": true
+            },
+            "absolute_gauss": {
+              "max_bound_C": 2.8654082545752804e-23,
+              "max_defect_C": 3.8061355047028965e-25,
+              "passed": true
+            },
+            "after_sha256": "b54d24c80188b2d90d6d81c7d892a71150879ddcc5328a766bfa5261e63f5c8e",
+            "field_energy": {
+              "balance_J": 2.150669592637872e-23,
+              "bound_J": 3.3697899280892177e-18,
+              "passed": true
+            },
+            "field_heat_energy": {
+              "balance_J": 3.2725135585747778e-15,
+              "bound_J": 2.0035763663179577e-11,
+              "formula": "owner.hpp:20-24 FieldHeatProposal bound, evaluated here",
+              "passed": true
+            },
+            "gauss_increment": {
+              "bound_C": 1.003091449943777e-22,
+              "passed": true,
+              "value_C": 6.332483179190969e-27
+            },
+            "joule_transfer": {
+              "bound_J": 3.368932303343083e-20,
+              "field_joule_J": 1.6794661516715416e-08,
+              "thermal_admitted_joule_J": 1.6794661516715413e-08,
+              "thermal_owner_accepted": true
+            },
+            "model_prepare_returned": true,
+            "receipt": {
+              "ampere_residual_A_m": 1.3322676295501878e-15,
+              "balance_J": 2.150669592637872e-23,
+              "circuit_work_J": 1.2994475321010222e-08,
+              "current_A": 6012.143314474939,
+              "field_delta_J": -3.800186195705355e-09,
+              "gauss_increment_C": 6.332483179190969e-27,
+              "joule_J": 1.6794661516715416e-08,
+              "kcl_residual_A": 6.391379785852412e-13,
+              "outer_loss_J": 4.2881237306827395e-12,
+              "outer_supply_J": 4.2881237305007146e-12,
+              "plasma_work_J": 0.0,
+              "region_boundary_A": 7.483144659481411e-11,
+              "region_conduction_A": 6008.042760833884,
+              "region_displacement_A": 4.100553640974496,
+              "region_plasma_A": 0.0,
+              "terminal_V": 216.13715178286728
+            }
+          },
+          "increment_vs_cpu_sealed": {
+            "bitwise_equal": false,
+            "differing_components": 4118,
+            "max_abs": 6.462348535570529e-27,
+            "max_abs_over_absA_absv": 0.0,
+            "max_rel": 5.3266145499444705e-14,
+            "normwise_rel": 5.960239987521624e-21
+          },
+          "independent_residual": {
+            "norm": "foil::norm (long double accumulation, canonical index order)",
+            "operator": "sealed matrix-free apply of Model::prepare",
+            "passed": true,
+            "ratio_to_target": 0.009574955782358797,
+            "residual": 1.3802204230498123e-18,
+            "rhs_norm": 0.0007207450636966774,
+            "target": 1.4414901273933548e-16
+          },
+          "input_file": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45a2/gpu-run-1/heated-10fs/x_gpu_factored.bin",
+          "input_sha256": "ac02fef7ab93c46303abf1d0af56a373d3435e17faa9b5c8de842667862b40d9",
+          "x_sha256": "9b32abddd4392eae6b9a704b2518a5885c48fc8cd239d7790c18d28f1d1314cf"
+        }
+      }
+    },
+    "heated-1fs": {
+      "dt_s": 1e-15,
+      "fixture": "heated-1fs",
+      "fixture_sha256": "0fa58bc27833159fffc108e57bb478edc622265f0b10d4fecac594f5d53cd9a8",
+      "negative_controls": {
+        "model_guards_without_residual_gate": [
+          {
+            "independent_residual": 7.207450636962094e-08,
+            "message": "existing field Gauss increment bound",
+            "perturbation": "whole increment scaled, residual gate bypassed",
+            "ratio_to_target": 5000000000.001028,
+            "rejected": true,
+            "scale": 1.001,
+            "target": 1.4414901273921226e-17
+          },
+          {
+            "independent_residual": 7.207450636960642e-06,
+            "message": "existing field Gauss increment bound",
+            "perturbation": "whole increment scaled, residual gate bypassed",
+            "ratio_to_target": 500000000000.002,
+            "rejected": true,
+            "scale": 1.1,
+            "target": 1.4414901273921226e-17
+          },
+          {
+            "independent_residual": 7.207450636960616e-05,
+            "message": "existing field Gauss increment bound",
+            "perturbation": "whole increment scaled, residual gate bypassed",
+            "ratio_to_target": 5000000000000.002,
+            "rejected": true,
+            "scale": 2.0,
+            "target": 1.4414901273921226e-17
+          }
+        ],
+        "residual_gate": {
+          "independent_residual": 3.784511542429158e-12,
+          "message": "GPU increment fails the independent FP64 residual bound",
+          "perturbation": "largest component x (1+1e-6), residual gate active",
+          "ratio_to_target": 262541.6206821979,
+          "rejected": true,
+          "target": 1.4414901273921226e-17
+        }
+      },
+      "state_time_s": 7.498280554919999e-10,
+      "variants": {
+        "cpu_sealed": {
+          "guards": {
+            "absolute_divB": {
+              "max_T_m": 7.383366666135974e-13,
+              "max_bound_T_m": 3.1619100665454817e-10,
+              "passed": true
+            },
+            "absolute_gauss": {
+              "max_bound_C": 2.8654069891362466e-23,
+              "max_defect_C": 3.805529209470524e-25,
+              "passed": true
+            },
+            "after_sha256": "501be9590683e5c56cbce501570dd3b53d2ce2a4c647b850be3980b9a48cd994",
+            "field_energy": {
+              "balance_J": 1.4475660719677984e-24,
+              "bound_J": 3.4131242653855134e-19,
+              "passed": true
+            },
+            "field_heat_energy": {
+              "balance_J": 5.865879814495598e-16,
+              "bound_J": 2.0035760602219912e-11,
+              "formula": "owner.hpp:20-24 FieldHeatProposal bound, evaluated here",
+              "passed": true
+            },
+            "gauss_increment": {
+              "bound_C": 1.0028688487967526e-22,
+              "passed": true,
+              "value_C": 9.042438192863985e-28
+            },
+            "joule_transfer": {
+              "bound_J": 3.4122666406393786e-21,
+              "field_joule_J": 1.6561333203196892e-09,
+              "thermal_admitted_joule_J": 1.6561333203196894e-09,
+              "thermal_owner_accepted": true
+            },
+            "model_prepare_returned": true,
+            "receipt": {
+              "ampere_residual_A_m": 1.163316460828494e-14,
+              "balance_J": 1.4475660719677984e-24,
+              "circuit_work_J": 1.2994285449049404e-09,
+              "current_A": 6012.136119074446,
+              "field_delta_J": -3.567047754147525e-10,
+              "gauss_increment_C": 9.042438192863985e-28,
+              "joule_J": 1.6561333203196892e-09,
+              "kcl_residual_A": 9.418471523192485e-13,
+              "outer_loss_J": 4.288123730682658e-13,
+              "outer_supply_J": 4.288123730631228e-13,
+              "plasma_work_J": 0.0,
+              "region_boundary_A": 7.483144659481411e-11,
+              "region_conduction_A": 5973.035408855477,
+              "region_displacement_A": 39.10071021887212,
+              "region_plasma_A": 0.0,
+              "terminal_V": 216.13425231379892
+            }
+          },
+          "increment_vs_cpu_sealed": {
+            "bitwise_equal": true,
+            "differing_components": 0,
+            "max_abs": 0.0,
+            "max_abs_over_absA_absv": 0.0,
+            "max_rel": 0.0,
+            "normwise_rel": 0.0
+          },
+          "independent_residual": {
+            "norm": "foil::norm (long double accumulation, canonical index order)",
+            "operator": "sealed matrix-free apply of Model::prepare",
+            "passed": true,
+            "ratio_to_target": 0.07471951359822275,
+            "residual": 1.0770744117537955e-18,
+            "rhs_norm": 7.207450636960612e-05,
+            "target": 1.4414901273921226e-17
+          },
+          "x_sha256": "1dd9e7b18934065c1a7ccbc222841149d9d6784b78d7b8a6fedf760c6c9a03c0"
+        },
+        "gpu_assembled": {
+          "guards": {
+            "absolute_divB": {
+              "max_T_m": 7.383366666135974e-13,
+              "max_bound_T_m": 3.1619100665454817e-10,
+              "passed": true
+            },
+            "absolute_gauss": {
+              "max_bound_C": 2.8654069891362466e-23,
+              "max_defect_C": 3.8055292094705233e-25,
+              "passed": true
+            },
+            "after_sha256": "0fdb6118d0d40a928ee4877fbc1a9770ee47bfabe884045f0be6242a4e480f82",
+            "field_energy": {
+              "balance_J": 1.6543612251060553e-24,
+              "bound_J": 3.4131242653855134e-19,
+              "passed": true
+            },
+            "field_heat_energy": {
+              "balance_J": 5.86587981656355e-16,
+              "bound_J": 2.0035760602219912e-11,
+              "formula": "owner.hpp:20-24 FieldHeatProposal bound, evaluated here",
+              "passed": true
+            },
+            "gauss_increment": {
+              "bound_C": 1.0028688487967526e-22,
+              "passed": true,
+              "value_C": 9.042444338226082e-28
+            },
+            "joule_transfer": {
+              "bound_J": 3.4122666406393786e-21,
+              "field_joule_J": 1.6561333203196892e-09,
+              "thermal_admitted_joule_J": 1.6561333203196894e-09,
+              "thermal_owner_accepted": true
+            },
+            "model_prepare_returned": true,
+            "receipt": {
+              "ampere_residual_A_m": 1.163316460828494e-14,
+              "balance_J": 1.6543612251060553e-24,
+              "circuit_work_J": 1.2994285449049404e-09,
+              "current_A": 6012.136119074446,
+              "field_delta_J": -3.5670477541475243e-10,
+              "gauss_increment_C": 9.042444338226082e-28,
+              "joule_J": 1.6561333203196892e-09,
+              "kcl_residual_A": 9.41847152848644e-13,
+              "outer_loss_J": 4.288123730682658e-13,
+              "outer_supply_J": 4.288123730631228e-13,
+              "plasma_work_J": 0.0,
+              "region_boundary_A": 7.483144659481411e-11,
+              "region_conduction_A": 5973.035408855476,
+              "region_displacement_A": 39.10071021887211,
+              "region_plasma_A": 0.0,
+              "terminal_V": 216.13425231379892
+            }
+          },
+          "increment_vs_cpu_sealed": {
+            "bitwise_equal": false,
+            "differing_components": 19781,
+            "max_abs": 1.5881867761018131e-22,
+            "max_abs_over_absA_absv": 0.0,
+            "max_rel": 0.13109411542645494,
+            "normwise_rel": 3.1308318228043587e-16
+          },
+          "independent_residual": {
+            "norm": "foil::norm (long double accumulation, canonical index order)",
+            "operator": "sealed matrix-free apply of Model::prepare",
+            "passed": true,
+            "ratio_to_target": 0.07477132678532328,
+            "residual": 1.0778212937305368e-18,
+            "rhs_norm": 7.207450636960612e-05,
+            "target": 1.4414901273921226e-17
+          },
+          "input_file": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45a2/gpu-run-1/heated-1fs/x_gpu_assembled.bin",
+          "input_sha256": "4d541d04f0ede7214e722aa051e08e0e627fd2540ce5b93a18a05f212d9f6186",
+          "x_sha256": "87ac8850b2b3aa2a00486c3e67701c721204a66366915da5cdf5cff4a8646e39"
+        },
+        "gpu_factored": {
+          "guards": {
+            "absolute_divB": {
+              "max_T_m": 7.383366666135974e-13,
+              "max_bound_T_m": 3.1619100665454817e-10,
+              "passed": true
+            },
+            "absolute_gauss": {
+              "max_bound_C": 2.8654069891362466e-23,
+              "max_defect_C": 3.805529209470524e-25,
+              "passed": true
+            },
+            "after_sha256": "501be9590683e5c56cbce501570dd3b53d2ce2a4c647b850be3980b9a48cd994",
+            "field_energy": {
+              "balance_J": 1.4475660719677984e-24,
+              "bound_J": 3.4131242653855134e-19,
+              "passed": true
+            },
+            "field_heat_energy": {
+              "balance_J": 5.865879814495598e-16,
+              "bound_J": 2.0035760602219912e-11,
+              "formula": "owner.hpp:20-24 FieldHeatProposal bound, evaluated here",
+              "passed": true
+            },
+            "gauss_increment": {
+              "bound_C": 1.0028688487967526e-22,
+              "passed": true,
+              "value_C": 9.042438192863985e-28
+            },
+            "joule_transfer": {
+              "bound_J": 3.4122666406393786e-21,
+              "field_joule_J": 1.6561333203196892e-09,
+              "thermal_admitted_joule_J": 1.6561333203196894e-09,
+              "thermal_owner_accepted": true
+            },
+            "model_prepare_returned": true,
+            "receipt": {
+              "ampere_residual_A_m": 1.163316460828494e-14,
+              "balance_J": 1.4475660719677984e-24,
+              "circuit_work_J": 1.2994285449049404e-09,
+              "current_A": 6012.136119074446,
+              "field_delta_J": -3.567047754147525e-10,
+              "gauss_increment_C": 9.042438192863985e-28,
+              "joule_J": 1.6561333203196892e-09,
+              "kcl_residual_A": 9.418471523192485e-13,
+              "outer_loss_J": 4.288123730682658e-13,
+              "outer_supply_J": 4.288123730631228e-13,
+              "plasma_work_J": 0.0,
+              "region_boundary_A": 7.483144659481411e-11,
+              "region_conduction_A": 5973.035408855477,
+              "region_displacement_A": 39.10071021887212,
+              "region_plasma_A": 0.0,
+              "terminal_V": 216.13425231379892
+            }
+          },
+          "increment_vs_cpu_sealed": {
+            "bitwise_equal": true,
+            "differing_components": 0,
+            "max_abs": 0.0,
+            "max_abs_over_absA_absv": 0.0,
+            "max_rel": 0.0,
+            "normwise_rel": 0.0
+          },
+          "independent_residual": {
+            "norm": "foil::norm (long double accumulation, canonical index order)",
+            "operator": "sealed matrix-free apply of Model::prepare",
+            "passed": true,
+            "ratio_to_target": 0.07471951359822275,
+            "residual": 1.0770744117537955e-18,
+            "rhs_norm": 7.207450636960612e-05,
+            "target": 1.4414901273921226e-17
+          },
+          "input_file": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/field/qual-02/meshes/m45a2/gpu-run-1/heated-1fs/x_gpu_factored.bin",
+          "input_sha256": "9566e35f7df91638bf363f722c75e0b092f6f802751ed2019d28b18390b37137",
+          "x_sha256": "1dd9e7b18934065c1a7ccbc222841149d9d6784b78d7b8a6fedf760c6c9a03c0"
+        }
+      }
+    }
+  },
+  "heated_state": {
+    "T_max_K": 920.1658924576452,
+    "T_min_K": 488.7725255051139,
+    "heating_dt_s": 1e-14,
+    "heating_steps": 4,
+    "peak_power_density_W_m3": 1.4000000000000001e+23,
+    "sigma_300K_max_S_m": 1390820.5841446454,
+    "sigma_300K_min_S_m": 1390820.5841446454,
+    "sigma_max_S_m": 1162600.3991130765,
+    "sigma_min_S_m": 924798.8827860766,
+    "sigma_sha256": "ad44f642ead306d16ecf7522dcbaae731d2d7d707cc34ee2123deb9b5b6c7a8f",
+    "thermal_revision": 4,
+    "thermal_time_s": 7.498280554919999e-10
+  },
+  "heating_ms": 1.564548,
+  "initial_constraints": {
+    "max_divB_T_m": 7.383366687509827e-13,
+    "max_divB_bound_T_m": 3.161910083791042e-10,
+    "max_gauss_C": 3.8054618499331396e-25,
+    "max_gauss_bound_C": 2.8653906810950877e-23
+  },
+  "mesh": {
+    "cells": 8100,
+    "dx_m": 0.00019999999999999998,
+    "dz_m": 0.0125,
+    "edges": 29164,
+    "faces": 26685,
+    "nodes": 10580,
+    "nx": 45,
+    "nz": 4,
+    "pec_edges": 1402
+  },
+  "mesh_spec": {
+    "air": 1,
+    "axial": 2,
+    "transverse": 45,
+    "width_m": 0.009
+  },
+  "mode": "guard",
+  "model_construction_ms": 134.894456,
+  "seam_calls": 28,
+  "total_ms": 706.602505
+}
