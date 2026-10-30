@@ -1,0 +1,49 @@
+{
+  "schema": "lorentz-image-emission-layer-v1",
+  "status": "usable_conditional_API_qualified_components_not_full_driver",
+  "API": "include/surface_emission.hpp: LayerState,LayerTrial,LayerExchange,CurrentPath; begin_layer/advance_layer",
+  "ownership": [
+    "LayerState Active belongs to ONE PIC inventory and charge deposition, persisted/restarted across field intervals",
+    "Only subgrid owner advances Active; after PICHandedOff ordinary PIC advances remaining accepted time; Recollected removes once",
+    "Packet.ledger is birth diagnostic; advance returns incremental LayerTrial.exchange. Never redebit birth when continuing"
+  ],
+  "source_quantum_projection": "Stationary finite-energy overlap x=outer_root[U(x)=epsilon-overlap] or saddle if above; overlap=eta_E*max(kBT,Gamow decay width). Not a measured quantum exit velocity/formation delay. Zero-duration source current bridge is explicit.",
+  "local_transport": {
+    "fields": "frozen actual local collective E/B with matching accepted revision and actual constant-vector-field/geometry validity region",
+    "equations": "delta_u=(q/m)h[E+c/(x_old*x_new)n+w cross B]; delta_r=h*w; w=(u_old+u_new)/(gamma_old+gamma_new)",
+    "conservation": "deltaK+deltaU_image=q E dot delta_r; actual physical flight time, lateral deflection and every path are retained",
+    "bounds": "gyroangle and relative normal displacement bounded;<=4096 substeps by default; geometry/field extent refusal rolls back"
+  },
+  "handoff": "outward packet beyond image force/energy tolerance; conservative remaining image-tail energy restored from normal kinetic energy; no extra heat/circuit source; no second microscopic image force in ordinary PIC",
+  "return": "own-return unit electronic accommodation, explicit reverse quantum/current bridge and full heat/reference/charge exchange; material scattering remains conditional",
+  "energy_equation": "Q_wall + deltaK_particle + deltaE_electron_reference + deltaE_image_reference = W_field_boundary_and_layer",
+  "current": "Each CurrentPath already contains weighted signed charge and integrated field_work_J. Use compatible shape/edge path deposition; never multiply weight twice or divide a zero-duration bridge by its path duration. Assemble current over accepted dt.",
+  "double_counting": [
+    "no second field-work application from source jump",
+    "no heat deposition of PIC electric work",
+    "no extra phi debit with complete Nottingham wall heat",
+    "no simultaneous ordinary PIC and micro-layer transport",
+    "no analytic microscopic image force already in provided E"
+  ],
+  "coarse_image_overlap": "Parent must provide self-excluded mean field or bound/remove that physical electron discrete image self-energy U_h=(e^2/2)s^T(G_D-G_free)s. Code assumes this convention and rejects already applied analytic microscopic image force; overlap/circuit admission remains field owner.",
+  "magnetic_barrier": {
+    "supply_model": "unmagnetized planar SN approximation",
+    "guard": "estimated transverse canonical magnetic shift plus normal Landau energy / source energy width",
+    "nominal_default": 0.2,
+    "manufactured_test_explicit_override": 0.3,
+    "note": "0.3 is not an unqualified physical default or rigorous current-error bound; guard failures abort, no sample deletion"
+  },
+  "stable_qualified_evidence": {
+    "scalar_and_phase_space_checks": 80,
+    "strong_B_cases": 4,
+    "PIC_handoffs": 3,
+    "magnetic_recollections": 1,
+    "max_scaled_complete_energy_residual": 4.462117352796063e-16
+  },
+  "parent_admission_still_required": [
+    "material/surface data and conditional approximations",
+    "actual one-sided field/geometry/space-charge/circuit work/current integration",
+    "physical requested range vs nominal magnetic-barrier guard",
+    "common-step refinement/rollback/checkpoint and full coupled pilot"
+  ]
+}

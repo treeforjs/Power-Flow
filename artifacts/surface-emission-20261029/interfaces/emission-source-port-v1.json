@@ -1,0 +1,48 @@
+{
+  "schema": "thermal-field-emission-source-v1",
+  "status": "usable_conditional_component_NOT_jointly_admitted_physical_foil_model",
+  "owner": "parent integration; this component prepares immutable trials only",
+  "source": "one finite-temperature free-electron supply times SN/Kemble transmission integral; no Richardson+FN sum",
+  "baseline": {
+    "beta": 1,
+    "work_function_eV": "explicit input;4.3 clean-surface benchmark, not measured present SS304",
+    "ideal_Richardson": "free-electron expression, no invented effective prefactor"
+  },
+  "field_sign": "F_extraction = -E_one_sided_vacuum_total dot n_material_outward; electron charge=-e",
+  "clock": "One immutable accepted_state with exact same declared field_time/thermal_time/stage_time within[t,t+dt]; consume actual evolved boundary T and actual solved E/B",
+  "required_inputs": [
+    "actual physical patch area/normal/mesh/material IDs and data-hash binding",
+    "material T/phase, local equilibrium and planar-barrier conditional admission",
+    "actual solved total E/B from parent field stage, no artificial shielding",
+    "caller-owned draws, weights, source event IDs and coupled commit/rollback",
+    "capacity and event/reservoir owner remains parent; no independent electron or neutral inventory"
+  ],
+  "numerical_domain": {
+    "T_K": "0 or1..3000; not material validity",
+    "phi_eV": "2..6 explicit",
+    "signed_F_V_m": "abs<=5e9; positive>=1, barrier lowering<0.98phi; small positive below1 is a declared numerical restriction",
+    "field_work_owner": "parent compatible boundary/circuit current stage"
+  },
+  "phase_space": "quadrature-discrete normal spectrum defining J; exact conditional FD transverse quantile and uniform azimuth; field particles never old half-Maxwellian",
+  "entry_points": {
+    "prepare": "PreparedFlux(Stage,Config)",
+    "preferred_strong_B": "begin_layer -> advance_layer -> parent commit",
+    "weak_B_only": "sample_conditional with actual gyro/variation/geometry criteria"
+  },
+  "heat": {
+    "complete_wall_heat_J": "sampled reservoir/Nottingham exchange, already including its declared work-function cost",
+    "mean_wall_heat": "diagnostic only; never debit this plus sampled heat",
+    "reference": "electron reference+image reference are explicit decomposition, not extra thermal debit",
+    "collection": "explicit unit accommodation of own returned electron in conditional model; secondary/reflection/Pauli/contaminated-surface data not calibrated"
+  },
+  "thermal_port": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-feedback-20261029/interfaces/heat-feedback-port-v1.json",
+  "both_electrodes": "all actual normals; retarding surfaces retain outward thermal supply and actual PIC returns",
+  "forbidden": [
+    "abs(E) source selection",
+    "anode source deletion",
+    "invented beta/work-function calibration",
+    "Child-Langmuir cap in addition to PIC space charge",
+    "discard/resample failed phase-space samples",
+    "physical foil completion claim before joint admission"
+  ]
+}
