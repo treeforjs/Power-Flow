@@ -1,6 +1,6 @@
 from pathlib import Path
 import os,json,hashlib,time,subprocess,signal,sys
-w=Path('<workspace>')
+w=Path('/home/treefor/sim-workspace/powerflow')
 manifest_path=w/'outputs/full60-gpu-launch.json'
 m=json.loads(manifest_path.read_text());out=Path(m['output']);status=w/'outputs/full60-gpu-supervisor.json'
 def write(path,value):

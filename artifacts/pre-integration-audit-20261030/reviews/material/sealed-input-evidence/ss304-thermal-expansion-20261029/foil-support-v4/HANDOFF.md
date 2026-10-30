@@ -77,7 +77,7 @@ Dependencies were not rebuilt; no GPU or production work was performed.
 `source-manifest.json` seals106 inputs and four binaries. `integration.patch`
 applies to the immutable v3 base. The compact Git evidence is
 `artifacts/ss304-native-thermoelastic-v4-20261029`. Backup:
-`/home/treefor/Documents/Codex/reconstructed-source-20261029/ss304-thermal-expansion-20261029/foil-support-v4`. It contains a verified selected-source/evidence archive, all four
+`/home/treefor/sim-workspace/source-backups/reconstructed-source-20261029/ss304-thermal-expansion-20261029/foil-support-v4`. It contains a verified selected-source/evidence archive, all four
 binaries,1,195 verified raw evidence files and an incremental Git bundle.
 The bundle requires v3 base`d491d934cc6d163a3a2536c2e0b45d9e3556314c`, available
 in the unchanged sibling `foil-support-v3/source-and-results.bundle`.

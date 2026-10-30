@@ -4,7 +4,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 assert os.sched_getaffinity(0)=={7}
-S=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-material-feedback-pilot-20261029')
+S=Path('/home/treefor/sim-workspace/powerflow/outputs/ss304-material-feedback-pilot-20261029')
 O=Path(__file__).parent
 results=json.loads((S/'results.json').read_text());source_hashes={}
 plt.rcParams.update({'figure.facecolor':'white','axes.facecolor':'white','savefig.facecolor':'white','font.size':10,'axes.spines.top':False,'axes.spines.right':False})

@@ -2,7 +2,7 @@
 """Seal source, dependencies, CPU receipts and a static-only GPU request."""
 import datetime,difflib,hashlib,json,pathlib,shutil
 P=pathlib.Path('/home/treefor/projects/runtimes/pic-electric-exterior-20261029')
-W=pathlib.Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs')
+W=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs')
 O=W/'pic-electric-exterior-20261029'
 F=W/'pic-profile/cuda-gather-investigation/actual-midpoint-fixture'
 OLD=pathlib.Path('/home/treefor/projects/runtimes/pic-static-domain-20261029')

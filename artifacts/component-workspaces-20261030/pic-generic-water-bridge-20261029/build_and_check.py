@@ -1,6 +1,6 @@
 from pathlib import Path
 import os,json,hashlib,subprocess,time,resource,tarfile
-p=Path(__file__).parent;o=Path('<workspace>/outputs/pic-generic-water-bridge-20261029')
+p=Path(__file__).parent;o=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-generic-water-bridge-20261029')
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)==15
 resource.setrlimit(resource.RLIMIT_AS,(1536*1024**2,1536*1024**2));resource.setrlimit(resource.RLIMIT_CPU,(180,180))
 sha=lambda f:hashlib.sha256(f.read_bytes()).hexdigest()

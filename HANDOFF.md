@@ -43,7 +43,7 @@ the existing parent-water inventory. The historical GIF's four independent
 pools are not the physical water source. Finite-pupil target collection,
 geometric-edge and source-face overlap, exact supplied-population photon
 projection, a sourced Raikou H2 radiative graph/control and bounded SS304 EOS
-table admission are implemented. New geometry uses the user's approximately
+table admission are implemented. New geometry uses the stated approximately
 19-inch target-to-first distance,8-inch mirror separation and50um by1inch slit;
 the first-mirror-to-slit few-inch distance is straight-line geometry. Actual
 relay prescription/throughput, full collision data and numeric alloy EOS

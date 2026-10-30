@@ -58,8 +58,8 @@ Evidence: [v2 inventory law](/home/treefor/projects/runtimes/ss304-thermal-prope
 [v4 density guard](/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/mhdlab/solid_foil_native_coupling_v4.py:71),
 [fixed mechanical masses](/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/mhdlab/solid_foil_mechanics.py:195),
 [geometry mass reconstruction](/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/mhdlab/solid_foil_geometry.py:133),
-[joint caloric receipt](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-expansion-20261029/foil-support-v4/qualified-final/expansion-checkpoint/joint.json),
-[spatial ownership contract](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-spatial-metal-transfer-20261029/spatial-material-port-v1.txt).
+[joint caloric receipt](/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-expansion-20261029/foil-support-v4/qualified-final/expansion-checkpoint/joint.json),
+[spatial ownership contract](/home/treefor/sim-workspace/powerflow/outputs/ss304-spatial-metal-transfer-20261029/spatial-material-port-v1.txt).
 
 **MG-02 — P1: the admitted mechanical trajectory ends before the hot-material/vapor regime.**
 
@@ -85,8 +85,8 @@ the3000K material ceiling. This audit supplies no replacement constitutive model
 
 Evidence: [knot refusal](/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/mhdlab/thermoelastic_energy.py:159),
 [crossing refusal](/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/mhdlab/thermoelastic_energy.py:208),
-[actual supported geometry prefix](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-expansion-20261029/foil-support-v4/actual-pilot-geometry-summary.json),
-[solid-only material stop](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-material-feedback-pilot-20261029/HANDOFF.txt).
+[actual supported geometry prefix](/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-expansion-20261029/foil-support-v4/actual-pilot-geometry-summary.json),
+[solid-only material stop](/home/treefor/sim-workspace/powerflow/outputs/ss304-material-feedback-pilot-20261029/HANDOFF.txt).
 
 **MG-03 — P1: deformed geometry, boundary current and mechanical/field work are not one coupled operator.**
 
@@ -116,7 +116,7 @@ transport law to close the missing terms.
 Evidence: [v4 explicit readiness flags](/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/docs/interfaces/solid-native-thermoelastic-port-v4.json),
 [stationary-source declaration](/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/mhdlab/solid_foil_native_coupling_v4.py:93),
 [sampled geometry and self-contact limit](/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/mhdlab/solid_foil_geometry.py:94),
-[actual geometry comparison](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-expansion-20261029/foil-support-v4/actual-pilot-geometry-summary.json).
+[actual geometry comparison](/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-expansion-20261029/foil-support-v4/actual-pilot-geometry-summary.json).
 
 **MG-04 — P1: reconcile source inventories, native particles and the new count codec before common publication.**
 
@@ -155,8 +155,8 @@ assert whether a later full-time implementation has already supplied that proof.
 Evidence: [v4 local population storage](/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/native/mfem_thermoelastic_v4/thermoelastic_v4.cpp:14),
 [v4 Count2 gas update](/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/native/mfem_thermoelastic_v4/thermoelastic_v4.cpp:112),
 [spatial GasPort scope](/home/treefor/projects/runtimes/ss304-spatial-metal-transfer-20261029/source/spatial_material.hpp:56),
-[exact-count review](/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/exact-count-independent-review-20261029/REVIEW.md),
-[fresh existing-history count reconstruction](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-material-geometry-readiness-audit-20261029/evidence-audit.json).
+[exact-count review](/home/treefor/sim-workspace/powerflow/outputs/pic-profile/exact-count-independent-review-20261029/REVIEW.md),
+[fresh existing-history count reconstruction](/home/treefor/sim-workspace/powerflow/outputs/ss304-material-geometry-readiness-audit-20261029/evidence-audit.json).
 
 **MG-05 — P1: component rollback/restart is not the full common accepted boundary.**
 
@@ -177,8 +177,8 @@ schema relabelling is evidence of full-driver rollback or crash consistency.
 
 Evidence: [v4 common checkpoint protocol](/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/mhdlab/solid_foil_native_coupling_v4.py:53),
 [spatial checkpoint boundary](/home/treefor/projects/runtimes/ss304-spatial-metal-transfer-20261029/source/spatial_material.hpp:213),
-[solid-only restart proof](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-material-feedback-pilot-20261029/restart-proof.json),
-[v4 restart scope and acknowledgement limit](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-expansion-20261029/foil-support-v4/native-independent-review.md).
+[solid-only restart proof](/home/treefor/sim-workspace/powerflow/outputs/ss304-material-feedback-pilot-20261029/restart-proof.json),
+[v4 restart scope and acknowledgement limit](/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-expansion-20261029/foil-support-v4/native-independent-review.md).
 
 **MG-06 — P2: mapping and convergence evidence remain component specific.**
 
@@ -201,8 +201,8 @@ Required evidence is convergence of the actual combined discretizations and
 quantities, with local phase/energy margins and unchanged guards retained.
 
 Evidence: [native-to-solid map contract](/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/docs/interfaces/solid-native-thermoelastic-port-v4.json),
-[spatial refinement](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-spatial-metal-transfer-20261029/disposition.json),
-[solid-only time/mesh comparison](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-material-feedback-pilot-20261029/results.json).
+[spatial refinement](/home/treefor/sim-workspace/powerflow/outputs/ss304-spatial-metal-transfer-20261029/disposition.json),
+[solid-only time/mesh comparison](/home/treefor/sim-workspace/powerflow/outputs/ss304-material-feedback-pilot-20261029/results.json).
 
 **MG-07 — P2: hot condensed/vapor laws are conditional and are not a plasma/EOS model.**
 
@@ -229,8 +229,8 @@ proxy metal or apply condensed sigma/k to dilute plasma gas. Required physical
 interpretation must retain the exact selected scenario and discrepancies; no
 guard extension or replacement property assumption is supplied by this audit.
 
-Evidence: [material handoff and uncertainty](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-properties-v2-20261029/HANDOFF.md),
-[material verification](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-properties-v2-20261029/verification.json),
+Evidence: [material handoff and uncertainty](/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-properties-v2-20261029/HANDOFF.md),
+[material verification](/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-properties-v2-20261029/verification.json),
 [conditional thermoelastic capacity](/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/mhdlab/thermoelastic_energy.py:93).
 
 **MG-08 — P2: actual-pilot geometry is a conditional comparison with incomplete build/run provenance.**
@@ -255,8 +255,8 @@ bind the actual selected initial/support/density/drive identities. Retain the
 conditional status where measurements or physical support are absent; do not
 turn shape comparisons or missing prehistory into implicit production inputs.
 
-Evidence: [actual-pilot geometry provenance](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-expansion-20261029/foil-support-v4/actual-pilot-geometry-summary.json),
-[solid-only formulation and inactive physics](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-material-feedback-pilot-20261029/component-contract.json).
+Evidence: [actual-pilot geometry provenance](/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-expansion-20261029/foil-support-v4/actual-pilot-geometry-summary.json),
+[solid-only formulation and inactive physics](/home/treefor/sim-workspace/powerflow/outputs/ss304-material-feedback-pilot-20261029/component-contract.json).
 
 The existing local and global bookkeeping is verified within its declared scope.
 For v4, only certified electron Qwall enters solid heat; electron K/reference/
@@ -272,7 +272,7 @@ in the combined ledger. Prescribed-field Wfield cannot also remain an independen
 external input for that same internal transfer.
 
 All source hashes, evidence paths, reconstruction results and process identity
-are in [evidence-audit.json](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-material-geometry-readiness-audit-20261029/evidence-audit.json).
+are in [evidence-audit.json](/home/treefor/sim-workspace/powerflow/outputs/ss304-material-geometry-readiness-audit-20261029/evidence-audit.json).
 Production PID278902/start5288339 remains T/frozen1, original executable SHA
 `cddd9f1867b50f471b6e8ce49e698c45414b568acb6e42c5a4364d5c5fb37797`.
 No integration test, GPU work, production signal, deployment, model assumption or

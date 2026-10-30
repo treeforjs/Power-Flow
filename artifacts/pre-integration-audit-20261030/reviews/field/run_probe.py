@@ -4,7 +4,7 @@ here=Path(__file__).resolve().parent
 assert os.sched_getaffinity(0)=={6} and os.getpriority(os.PRIO_PROCESS,0)==15
 assert all(os.getenv(k)=='1' for k in ['OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS'])
 assert os.getenv('CUDA_VISIBLE_DEVICES')==''
-lease='/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock'
+lease='/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock'
 with open(lease,'a') as f:
  try:fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB)
  except BlockingIOError:pass

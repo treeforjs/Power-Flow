@@ -18,8 +18,8 @@ import sys
 import time
 
 SCHEMA = "pic_generic_test_dispatch_v1"
-CPU_LOCK = "<workspace>/outputs/pic-profile/testing-core7.lock"
-GPU_LOCK = "<workspace>/outputs/pic-profile/testing-gpu.lock"
+CPU_LOCK = "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core7.lock"
+GPU_LOCK = "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-gpu.lock"
 MAX_MANIFEST = 1024 * 1024
 MAX_FILES = 10000
 MAX_BYTES = 2 * 1024**3

@@ -3,9 +3,9 @@
 import hashlib,json,os,pathlib,subprocess,sys,time
 
 PREFIX=pathlib.Path('/home/treefor/projects/runtimes/pic-electric-exterior-20261029')
-OUT=pathlib.Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electric-exterior-20261029')
-FIXTURE=pathlib.Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture')
-QUALIFIED=pathlib.Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation/cpu-qualified')
+OUT=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/pic-electric-exterior-20261029')
+FIXTURE=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture')
+QUALIFIED=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation/cpu-qualified')
 FROZEN='/home/treefor/projects/runtimes/arch-base-20261028/run-frozen'
 
 def sha(path):

@@ -2,7 +2,7 @@ from pathlib import Path
 import os, json, hashlib, subprocess, time, resource, tarfile
 
 P = Path(__file__).resolve().parent
-O = Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-water-full-time-subflow-20261029')
+O = Path('/home/treefor/sim-workspace/powerflow/outputs/pic-water-full-time-subflow-20261029')
 assert P.name == 'pic-water-full-time-subflow-20261029'
 if not (P/'native-handoff.json').is_file():
     raise SystemExit('Native full-time implementation handoff is not installed; draft declarations are insufficient.')

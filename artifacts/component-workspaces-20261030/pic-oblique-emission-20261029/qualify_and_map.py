@@ -2,7 +2,7 @@ import csv,hashlib,json,math,os,pathlib,time
 import saddle_modes as sm
 
 C=pathlib.Path(__file__).resolve().parent
-O=pathlib.Path('<workspace>/outputs/pic-oblique-emission-20261029')
+O=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/pic-oblique-emission-20261029')
 O.mkdir(parents=True,exist_ok=True)
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15
 checks=0
@@ -72,7 +72,7 @@ fd_check={'manufactured_not_SS304':True,'T_K':T,'F_V_m':F,'B_normal_T':Bn,'B_tan
           'heat_difference_upper_W_m2':manufactured['FD_absolute_heat_difference_upper_W_m2'],
           'direct_quadrature_relative_current_difference':abs(coarse[0]/fine[0]-1)}
 
-joint=pathlib.Path('<workspace>/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/evidence')
+joint=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/evidence')
 comparison=[]
 for T in [298.2,300.,773.15,1490.]:
  full0=json.loads((joint/f'joint-{int(T)}-0-2.json').read_text())
@@ -87,7 +87,7 @@ for T in [298.2,300.,773.15,1490.]:
   'quadratic_mean_energy_B0_error_eV':p0['activated_MB_model_mean_Fermi_energy_eV']-full0['known_component_mean_metal_energy_eV'],
   'quadratic_is_not_full_SN_error_bound':True})
 
-probe=pathlib.Path('<workspace>/outputs/cathode-emission-audit-20261029/fields/probes.csv')
+probe=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/cathode-emission-audit-20261029/fields/probes.csv')
 rows=list(csv.DictReader(probe.open()));maps=[]
 for index,row in enumerate(rows):
  n=[float(row[x]) for x in ['nx','ny','nz']]

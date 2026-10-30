@@ -6,8 +6,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 V2 = HERE.parent
-FIXTURE = Path('<workspace>/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture')
-REVIEW = Path('<workspace>/outputs/pic-profile/cuda-gather-independent-review/backend-v2/disposition.json')
+FIXTURE = Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture')
+REVIEW = Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cuda-gather-independent-review/backend-v2/disposition.json')
 
 def digest(path):
     with Path(path).open('rb') as stream:

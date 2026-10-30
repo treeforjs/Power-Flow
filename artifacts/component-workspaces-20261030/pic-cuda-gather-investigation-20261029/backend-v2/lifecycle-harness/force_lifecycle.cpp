@@ -234,7 +234,7 @@ int main(int argc,char** argv) {
             "Lifecycle qualification requires parent-owned CPU7/nice15 and external GPU/core7 leases");
         const auto start=Clock::now();
         const auto snapshot=HostSnapshot::load(argv[1],true);receipt.particles=snapshot.particles.size();
-        native_reference::NativeReference native(snapshot,argv[1],"<workspace>/outputs/gap-pulse-midplane110kV.csv");
+        native_reference::NativeReference native(snapshot,argv[1],"/home/treefor/sim-workspace/powerflow/outputs/gap-pulse-midplane110kV.csv");
         auto bounded=[&]{io::require(std::chrono::duration<double>(Clock::now()-start).count()<30,"Lifecycle internal30-second guard exceeded");};
         if(receipt.mode=="--shared-lifecycle") {
             ManufacturedPoisson poisson(snapshot);poisson.solve("solve1_before_force",receipt);

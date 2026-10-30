@@ -10,7 +10,7 @@ struct CaptureClock {double origin,relative;};
 CaptureClock capture_clock(const std::filesystem::path& fixture) {
     // Exact original thermal origin, read from its frozen binary header rather
     // than inferred by subtracting rounded clocks. See original Thermal schema.
-    std::ifstream thermal("<workspace>/outputs/heating-history-full.bin",std::ios::binary);
+    std::ifstream thermal("/home/treefor/sim-workspace/powerflow/outputs/heating-history-full.bin",std::ios::binary);
     std::uint64_t magic=0,n=0;thermal.read(reinterpret_cast<char*>(&magic),8);thermal.read(reinterpret_cast<char*>(&n),8);
     io::require(magic==0x544845524d303031ULL && n>=2 && n<=10000,"Invalid frozen thermal origin header");
     thermal.seekg(48);double origin;thermal.read(reinterpret_cast<char*>(&origin),8);

@@ -10,7 +10,7 @@ import struct
 R = Path('/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029')
 V = R / 'backend-v2'
 H = V / 'lifecycle-harness'
-O = Path('<workspace>/outputs/pic-profile/cuda-gather-investigation')
+O = Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cuda-gather-investigation')
 G = O / 'gpu-lifecycle-v2'
 F = O / 'actual-midpoint-fixture'
 REVIEW = O.parent / 'cuda-gather-independent-review/backend-v2/lifecycle-harness/disposition.json'

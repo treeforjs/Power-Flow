@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 prefix=/home/treefor/projects/runtimes/pic-native-spatial-diagnostics-20261029
-lease=<workspace>/outputs/pic-profile/testing-core7.lock
+lease=/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core7.lock
 frozen=/home/treefor/projects/runtimes/arch-base-20261028/run-frozen
 mfem=/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/cmake/mfem
 # Fresh output directory is required. No simulation or GPU operation is present.

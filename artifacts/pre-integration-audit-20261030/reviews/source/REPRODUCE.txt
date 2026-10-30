@@ -1,6 +1,6 @@
 Audit-only reproducer; no full joint test.
 
-Run the argv in build_command.json via /home/treefor/projects/runtimes/arch-base-20261028/run-frozen under taskset -c 7, nice -n 15, one OMP/BLAS thread, CUDA_VISIBLE_DEVICES empty, and exclusive flock on /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core7.lock. This compiles only source_v3_reproducer.cpp and links the existing sealed static libraries. Release the lease after compilation. Acquire a fresh short lease with the same affinity/environment to run source_v3_reproducer via run-frozen. No shared source or accepted state is modified.
+Run the argv in build_command.json via /home/treefor/projects/runtimes/arch-base-20261028/run-frozen under taskset -c 7, nice -n 15, one OMP/BLAS thread, CUDA_VISIBLE_DEVICES empty, and exclusive flock on /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core7.lock. This compiles only source_v3_reproducer.cpp and links the existing sealed static libraries. Release the lease after compilation. Acquire a fresh short lease with the same affinity/environment to run source_v3_reproducer via run-frozen. No shared source or accepted state is modified.
 
 Compare the output with reproducer.log. Exact allocation evidence comes from summing fractions.Fraction(float.fromhex(weight)) over the emitted packet_weights_hex field. Python built-in sum may use a different summation algorithm; the original C++ assigned==released guard passes even though the exact rational total exceeds the debit.
 

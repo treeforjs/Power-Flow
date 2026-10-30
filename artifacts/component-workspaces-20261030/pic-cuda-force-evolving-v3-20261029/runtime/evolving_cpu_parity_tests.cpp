@@ -48,7 +48,7 @@ int main(int argc,char** argv) {
         } else {
             auto s=HostSnapshot::load(argv[2],true);Scalar self(s,s.phi),unit(s,s.psi);
             native_reference::Fields fields("/home/treefor/projects/Power-Flow/runs/restore_field_mpi8_domain40mm");
-            native_reference::Voltage voltage("<workspace>/outputs/gap-pulse-midplane110kV.csv");
+            native_reference::Voltage voltage("/home/treefor/sim-workspace/powerflow/outputs/gap-pulse-midplane110kV.csv");
             constexpr double midpoint=2.6478443519271536e-08;
             fields.set(midpoint);
             if(mode=="frame-boundary") {

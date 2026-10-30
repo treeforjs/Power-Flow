@@ -1,9 +1,9 @@
 from pathlib import Path
 import os,sys,fcntl,hashlib,json,subprocess,time
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[1];PREFIX=ROOT.parent
-OUT=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/finite-foil-em')
+OUT=Path('/home/treefor/sim-workspace/powerflow/outputs/hall-coupled-transport-20261029/finite-foil-em')
 launcher='/home/treefor/projects/runtimes/arch-base-20261028/run-frozen'
-lease='/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock'
+lease='/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock'
 assert os.sched_getaffinity(0)=={6} and os.getpriority(os.PRIO_PROCESS,0)==15
 assert all(os.getenv(v)=='1' for v in ('OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS')) and os.getenv('CUDA_VISIBLE_DEVICES')==''
 with open(lease,'a') as f:

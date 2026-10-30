@@ -13,7 +13,7 @@ from matplotlib.colors import LogNorm
 from matplotlib.patches import Rectangle
 from PIL import Image
 
-W = Path('/home/treefor/Documents/Codex/2026-10-28/we')
+W = Path('/home/treefor/sim-workspace/powerflow')
 PRODUCTION = W / 'outputs/electron-heating-pic-25um-full60ns-gpu-midplane110kV-height25mm'
 SNAPSHOT = W / 'outputs/pic-profile/paused-checkpoint-snapshot/frame_27.csv'
 OUT = W / 'outputs/electron-mapping-paused-26p48ns'

@@ -44,7 +44,7 @@ numerical results and replay commands. Main figures:
 - `optics/collection_acceptance.png`: finite-pupil acceptance and foil shadow.
 - `cr/neutral_cr_radiative_control.png`: sourced H2 radiative branching control.
 
-The optics use the user's approximately19-inch target distance,8-inch mirror
+The optics use the stated approximately19-inch target distance,8-inch mirror
 spacing and50um by1inch slit height along foil thickness. The few-inch
 first-mirror-to-slit separation is straight-line geometry, not the last
 optical leg. Final-leg length, focal lengths/curvature, mirror tilts and camera

@@ -1,6 +1,6 @@
 from pathlib import Path
 import os,subprocess,json
-p=Path(__file__).parent;s=p/'snapshot';o=Path('<workspace>/outputs/pic-native-arena-review-v5-20261029')
+p=Path(__file__).parent;s=p/'snapshot';o=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-native-arena-review-v5-20261029')
 assert sorted(os.sched_getaffinity(0))==[7]
 text=(s/'tests/test_arena.cpp').read_text();(p/'fixture.hpp').write_text(text[:text.index('int main(')])
 base='/home/treefor/projects/runtimes/mfem-4.10-pic-20261029';includes=['-I'+str(s/'source/include'),'-isystem',str(s/'inputs'),'-I'+str(s/'vendor')]

@@ -9,7 +9,7 @@ from pathlib import Path
 import socket
 
 HOST_PROC = Path('/run/pic-host-proc')
-RESULT_ROOT = Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs')
+RESULT_ROOT = Path('/home/treefor/sim-workspace/powerflow/outputs')
 CGROUP_NAME = '/powerflow-pic-gpu-reserved'
 CGROUP = Path('/sys/fs/cgroup' + CGROUP_NAME)
 

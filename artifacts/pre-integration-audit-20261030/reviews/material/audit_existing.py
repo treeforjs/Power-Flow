@@ -1,7 +1,7 @@
 from pathlib import Path
 from fractions import Fraction as F
 import json,hashlib,os,fcntl,time,math
-O=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs')
+O=Path('/home/treefor/sim-workspace/powerflow/outputs')
 R=Path(__file__).resolve().parent
 V=O/'ss304-thermal-expansion-20261029/foil-support-v4'
 M=O/'ss304-thermal-properties-v2-20261029'

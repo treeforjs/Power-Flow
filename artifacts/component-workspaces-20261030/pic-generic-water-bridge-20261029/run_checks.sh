@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-exec flock <workspace>/outputs/pic-profile/testing-core7.lock taskset -c 7 nice -n 15 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen env PIC_GENERIC_REBUILD="${PIC_GENERIC_REBUILD:-0}" OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= bash -c '
+exec flock /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core7.lock taskset -c 7 nice -n 15 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen env PIC_GENERIC_REBUILD="${PIC_GENERIC_REBUILD:-0}" OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= bash -c '
 set -euo pipefail
 ulimit -v 1572864
 ulimit -t 180

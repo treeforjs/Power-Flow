@@ -8,7 +8,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.lines import Line2D
-W=Path('/home/treefor/Documents/Codex/2026-10-28/we')
+W=Path('/home/treefor/sim-workspace/powerflow')
 F=W/'outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture'
 A=W/'outputs/pic-profile/em-field-consistency-audit/alignment'
 E=W/'outputs/pic-profile/native-event-log-prototype/real-seed-1ps/events'

@@ -1,7 +1,7 @@
 from pathlib import Path
 from fractions import Fraction as F
 import os,json,hashlib,math,struct,shutil
-p=Path(__file__).parent;s=p/'snapshot';o=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-native-subflow-v6_1-review-20261029');assert sorted(os.sched_getaffinity(0))==[7]
+p=Path(__file__).parent;s=p/'snapshot';o=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-native-subflow-v6_1-review-20261029');assert sorted(os.sched_getaffinity(0))==[7]
 sha=lambda f:hashlib.sha256(f.read_bytes()).hexdigest()
 assert sha(p/'driver-source.tar.gz')=='f7e4ceddc69ad4eed43721b24415691c4d668b340b3b06ec3b0380a8b8da25fc'
 assert sha(s/'source/native_parent_subflow.hpp')=='ad499c5549a78bae371c5b2f72ee66085c3b141126d1931d1ec654d8a9e25675'

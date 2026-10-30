@@ -73,7 +73,7 @@ return injected;
     old=ROOT.parent/'native_slice.hpp'
     # A separate source-only executable owns these verbatim native routines.
     (ROOT/'native_source_only.hpp').write_bytes(old.read_bytes())
-    eq=json.loads(Path('<workspace>/outputs/pic-profile/source-sampling-validation/native-equivalence.json').read_text())
+    eq=json.loads(Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/source-sampling-validation/native-equivalence.json').read_text())
     assert sha(old.read_bytes())==eq['generated_sha256']
     source_proof={str(SOURCE/name):digest for name,digest in original.items()}
     manifest=dict(gpu_execution_enabled=False,coupled_execution_enabled=False,

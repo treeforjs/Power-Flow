@@ -62,7 +62,7 @@ an experimental normalization.
 
 ## Absolute normalization remains unresolved
 
-The user requested rederivation from the dissertation. Its literal plotted
+Rederivation from the dissertation was requested. Its literal plotted
 intensity unit is µW/(sr·nm·mm), while the stated lamp étendue is 0.037 mm²·sr.
 Original detector counts, the actual lamp certificate, relay acceptance and
 throughput, and shot-specific gain/effective gate records are unavailable.

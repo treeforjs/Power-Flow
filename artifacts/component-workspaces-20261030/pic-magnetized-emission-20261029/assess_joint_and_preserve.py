@@ -1,13 +1,13 @@
 import csv,hashlib,json,os,pathlib,shutil,time
 C=pathlib.Path('/home/treefor/projects/runtimes/pic-magnetized-emission-20261029')
-O=pathlib.Path('<workspace>/outputs/pic-magnetized-emission-20261029')
+O=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029')
 E=O/'tangential-onepass'
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 api=pathlib.Path('/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/snapshots/usable-api-v1')
 assert sha(api/'SOURCE-SHA256.json')=='9bd0fa5771b8cba405cc0b63b99c0e32a24da8d735eef240606c36b1fb49f0ca'
 for path,value in json.loads((api/'SOURCE-SHA256.json').read_text()).items():assert sha(api/path)==value
-reverse=pathlib.Path('<workspace>/outputs/pic-thermal-field-emission-20261029/source-backup-epoch-reentry-v2/inward_layer_adapter.hpp')
+reverse=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/pic-thermal-field-emission-20261029/source-backup-epoch-reentry-v2/inward_layer_adapter.hpp')
 assert sha(reverse)=='f47c5978e1ada5a8f74342df41b7b591f3839f06157c0796f912f07adfa5e294'
 cases=[json.loads(p.read_text()) for p in E.glob('joint-*.json')]
 assert len(cases)==16 and all(x['passed'] and not x['physical_foil_model_admitted'] and not x['exact_magnetized_solid_supply_solved'] for x in cases)
@@ -79,7 +79,7 @@ shutil.copytree(C,P,ignore=shutil.ignore_patterns('build','snapshots','__pycache
 shutil.copytree(E,P/'evidence')
 shutil.copy(O/'interfaces/tangential-joint-source-port-v1.json',P/'tangential-joint-source-port-v1.json')
 shutil.copy(reverse,P/'inward_layer_adapter.hpp')
-(P/'DEPENDENCIES.json').write_text(json.dumps({'immutable_API_v1_manifest_sha256':sha(api/'SOURCE-SHA256.json'),'complete_API_v1_outside_backup':'<workspace>/outputs/pic-thermal-field-emission-20261029/source-backup-usable-api-v1','reverse_adapter_sha256':sha(reverse)},indent=2)+'\n')
+(P/'DEPENDENCIES.json').write_text(json.dumps({'immutable_API_v1_manifest_sha256':sha(api/'SOURCE-SHA256.json'),'complete_API_v1_outside_backup':'/home/treefor/sim-workspace/powerflow/outputs/pic-thermal-field-emission-20261029/source-backup-usable-api-v1','reverse_adapter_sha256':sha(reverse)},indent=2)+'\n')
 manifest={str(p.relative_to(P)):sha(p) for p in sorted(P.rglob('*')) if p.is_file()}
 (P/'SOURCE-SHA256.json').write_text(json.dumps(manifest,indent=2)+'\n')
 seal={'status':'SEALED_TANGENTIAL_ONEPASS_COMPONENT_V1','manifest_sha256':sha(P/'SOURCE-SHA256.json'),'source_snapshot':str(P),'physical_foil_model_admitted':False,'oblique_B_supported':False,'new_native_dispatch_qualified':False}

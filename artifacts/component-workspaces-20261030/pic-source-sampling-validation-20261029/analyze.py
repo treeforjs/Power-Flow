@@ -10,7 +10,7 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-OUT = Path('<workspace>/outputs/pic-profile/source-sampling-validation')
+OUT = Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/source-sampling-validation')
 N = 32
 T95 = 2.0395134463964077  # Student t, 31 degrees of freedom, two-sided 95%.
 CHI95 = (17.538738216309, 48.231889640522)  # chi square, 31 df, 2.5/97.5%.
@@ -252,16 +252,16 @@ with (OUT/'seeds.csv').open('w') as stream:
         v=(s*0x9e3779b97f4a7c15)&((1<<64)-1)
         stream.write(f'{s},{v},0x{v:016x}\n')
 paths=list(ROOT.iterdir())+[OUT/n for n in ['run-summary.json','analysis.json','native-equivalence.json','seed-metrics.csv','expected-metrics.csv','patch-metrics.csv','seeds.csv','events.csv','events.bin','build.log','run.log','source-sampling-report.txt']]
-inputs=[Path('<workspace>/outputs/heating-history-full.bin'),
-        Path('<workspace>/outputs/pic-profile/particle-audit/copied-checkpoint/restart.meta'),
-        Path('<workspace>/outputs/pic-profile/particle-audit/copied-checkpoint/checkpoint_400040.bin'),
-        Path('<workspace>/outputs/pic-profile/particle-audit/audit-report.txt'),
-        Path('<workspace>/outputs/pic-profile/particle-audit/inventory.json')]
+inputs=[Path('/home/treefor/sim-workspace/powerflow/outputs/heating-history-full.bin'),
+        Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/particle-audit/copied-checkpoint/restart.meta'),
+        Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/particle-audit/copied-checkpoint/checkpoint_400040.bin'),
+        Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/particle-audit/audit-report.txt'),
+        Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/particle-audit/inventory.json')]
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 provenance=dict(compiler=subprocess.check_output(['/usr/sbin/c++','--version'],text=True).splitlines()[0],
     flags='-std=c++20 -O3 -DNDEBUG -Wall -Wextra -Werror=return-type',cpu=6,nice=15,threads=1,
-    testing_lease='<workspace>/outputs/pic-profile/testing-core.lock',
+    testing_lease='/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock',
     linked_libraries=subprocess.check_output(['ldd',str(ROOT/'validate')],text=True),
     inputs_sha256={str(p):digest(p) for p in inputs},files_sha256={str(p):digest(p) for p in paths if p.is_file()})
 equivalence=json.loads((OUT/'native-equivalence.json').read_text())

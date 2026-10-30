@@ -3,7 +3,7 @@
 from fractions import Fraction
 import argparse,hashlib,json,os,pathlib,resource,signal,struct,time
 from microcase import Grid
-FIX=pathlib.Path('<workspace>/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture')
+FIX=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture')
 PT=struct.Struct('<Q9d');PK=struct.Struct('<QQ5d');CELL=struct.Struct('<Qd')
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def main():

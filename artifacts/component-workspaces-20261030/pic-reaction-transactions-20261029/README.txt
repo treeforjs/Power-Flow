@@ -79,14 +79,14 @@ Manufactured-only content
 
 Build/checks
   Run build_and_test.py under taskset CPU7, nice15, one thread/job and
-  flock <workspace>/outputs/pic-profile/testing-core7.lock.
+  flock /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core7.lock.
   It uses the frozen userspace, -std=c++17 -O2 -Wall -Wextra -Wpedantic -Werror,
   pinned MFEM headers for a value-type check, existing JSON and frozen libcrypto.
   No MFEM/PIC solver library is required at runtime. run_sanitizers.py repeats
   with address/undefined behavior/leak checks; verify_ledgers.py independently
   reconstructs the three closed event ledgers with80-digit decimal arithmetic.
   Full command arrays, inputs, outputs and results are in
-  <workspace>/outputs/pic-profile/reaction-transactions-20261029.
+  /home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029.
 
 The exact native integration boundary is native-commit-contract.txt in that
 report directory. Typed ports are staged proposals. They do not implement native

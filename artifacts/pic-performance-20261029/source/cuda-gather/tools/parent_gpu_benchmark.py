@@ -96,7 +96,7 @@ build = json.loads(a.ptx.with_suffix('.build.json').read_text())
 source = Path(__file__).resolve().parents[1] / 'source'
 if build['core_sha256'] != hashlib.sha256((source / 'gather_push_core.hpp').read_bytes()).hexdigest() or build['kernel_sha256'] != hashlib.sha256((source / 'gather_push.cu').read_bytes()).hexdigest() or build['ptx_sha256'] != hashlib.sha256(ptx).hexdigest():
     p.error('Compiled PTX is stale or changed; rebuild before benchmarking')
-result_root = Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs')
+result_root = Path('/home/treefor/sim-workspace/powerflow/outputs')
 profile_root = result_root / 'pic-profile'
 
 with ExitStack() as leases:

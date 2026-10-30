@@ -1,7 +1,7 @@
 from pathlib import Path
 import fcntl,hashlib,json,os,subprocess
 from fractions import Fraction
-P=Path('/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-surface-acceptance');R=Path('<workspace>/outputs/pic-profile/reaction-transactions-20261029/native-surface-acceptance');base=P.parent/'native-completion-clock';evidence=R.parent/'native-completion-clock'
+P=Path('/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-surface-acceptance');R=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-surface-acceptance');base=P.parent/'native-completion-clock';evidence=R.parent/'native-completion-clock'
 assert os.sched_getaffinity(0)=={7}and os.getpriority(os.PRIO_PROCESS,0)==15
 with(R.parent.parent/'testing-core7.lock').open('a')as h:
  try:fcntl.flock(h,fcntl.LOCK_EX|fcntl.LOCK_NB)

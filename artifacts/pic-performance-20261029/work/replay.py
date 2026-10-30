@@ -1,6 +1,6 @@
 from pathlib import Path
 import json,os,signal,time,subprocess,shutil,argparse,hashlib,fcntl
-W=Path('/home/treefor/Documents/Codex/2026-10-28/we')
+W=Path('/home/treefor/sim-workspace/powerflow')
 OUT=W/'outputs/pic-profile';OUT.mkdir(exist_ok=True)
 M=json.loads((W/'outputs/full60-gpu-launch.json').read_text())
 PRODUCTION=Path(M['output'])

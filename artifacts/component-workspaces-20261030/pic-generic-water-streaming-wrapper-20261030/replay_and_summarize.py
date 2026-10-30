@@ -1,7 +1,7 @@
 from pathlib import Path
 import os,json,subprocess,resource
 P=Path(__file__).resolve().parent
-O=Path(os.environ.get('PIC_STREAMING_WRAPPER_OUTPUT','<workspace>/outputs/pic-generic-water-streaming-wrapper-20261030'))
+O=Path(os.environ.get('PIC_STREAMING_WRAPPER_OUTPUT','/home/treefor/sim-workspace/powerflow/outputs/pic-generic-water-streaming-wrapper-20261030'))
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)==15
 resource.setrlimit(resource.RLIMIT_AS,(1536*1024**2,1536*1024**2))
 resource.setrlimit(resource.RLIMIT_CPU,(180,180))

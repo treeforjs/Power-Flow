@@ -2,7 +2,7 @@ from pathlib import Path
 import os, json, hashlib, subprocess, time, resource, tarfile
 
 P = Path('/home/treefor/projects/runtimes/pic-water-exact-count-subflow-20261029')
-O = Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-water-exact-count-subflow-20261029')
+O = Path('/home/treefor/sim-workspace/powerflow/outputs/pic-water-exact-count-subflow-20261029')
 assert os.sched_getaffinity(0) == {7}
 assert os.getpriority(os.PRIO_PROCESS, 0) == 15
 resource.setrlimit(resource.RLIMIT_AS, (3*1024**3, 3*1024**3))

@@ -2,7 +2,7 @@ from pathlib import Path
 import datetime,fcntl,hashlib,json,os,subprocess,struct,math
 from fractions import Fraction
 from decimal import Decimal,localcontext
-P=Path('/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-audit-fix');R=Path('<workspace>/outputs/pic-profile/reaction-transactions-20261029/native-audit-fix')
+P=Path('/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-audit-fix');R=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-audit-fix')
 assert os.sched_getaffinity(0)=={7}and os.getpriority(os.PRIO_PROCESS,0)==15
 with(R.parent.parent/'testing-core7.lock').open('a')as h:
  try:fcntl.flock(h,fcntl.LOCK_EX|fcntl.LOCK_NB)

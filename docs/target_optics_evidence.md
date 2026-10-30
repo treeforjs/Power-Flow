@@ -28,8 +28,8 @@ Page numbers below are printed dissertation page / one-based PDF page.
 | Reported grating reflectance | 75-85% above 115 nm; this is not an order-efficiency measurement | 79 / 104 |
 | Lamp setup | 50 micrometre slit and quoted 0.037 mm2 sr etendue | 80,82 / 105,107 |
 
-The last row belongs to the D2 lamp calibration. The user has now confirmed
-the same slit width for the collection setup, but that does not transfer the
+The last row belongs to the D2 lamp calibration. The same slit width has now been confirmed
+for the collection setup, but that does not transfer the
 lamp etendue to the shot relay. The 16-inch chamber radius and mechanical adapters on
 page82 are not recovered object distances or pupil locations. Figs.4.3 and4.5
 are layout schematics; scaling their drawn rays would not recover metrology.
@@ -44,7 +44,7 @@ of the historical units' illuminated apertures or incidence angles.
 
 ## Human-confirmed collection dimensions
 
-The user supplied the following geometry in this session:
+The following geometry was supplied:
 
 > first collection mirror is approximately 19 inches away. Slit is 50 um by 1 inch height aligned parallel to the foil thickness.
 
@@ -52,8 +52,8 @@ These are trusted session inputs, separate from PDF recovery: approximate
 target-to-first-mirror distance 0.4826 m, slit width 50 micrometres, slit height
 25.4 mm, with the slit height along the foil-thickness/gap-normal direction y.
 The conversion from inches is exact; the physical distance remains approximate
-and no measurement tolerance has been supplied. The user subsequently gave an
-approximately8-inch (203.2-mm) mirror separation and confirmed that the first
+and no measurement tolerance has been supplied. A subsequent
+approximately8-inch (203.2-mm) mirror separation was given, with confirmation that the first
 mirror's few-inch distance from the slit is a straight-line distance. The
 final second-mirror-to-slit optical path, mirror100-mm focal-length/ROC
 interpretation and relay magnification remain unknown.

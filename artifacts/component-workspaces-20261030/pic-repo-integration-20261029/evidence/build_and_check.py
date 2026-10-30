@@ -13,7 +13,7 @@ REPO=Path('/home/treefor/projects/raikou-mfem')
 EVIDENCE=ROOT/'evidence'
 BASELINE=ROOT/'baseline-source'
 LAUNCHER='/home/treefor/projects/runtimes/arch-base-20261028/run-frozen'
-LOCK='<workspace>/outputs/pic-profile/testing-core.lock'
+LOCK='/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock'
 MFEM=Path('/home/treefor/projects/runtimes/mfem-4.10-pic-20261029')
 assert os.sched_getaffinity(0)=={6} and os.getpriority(os.PRIO_PROCESS,0)==15
 with open(LOCK,'a') as lease:

@@ -11,7 +11,7 @@ import time
 ROOT=Path('/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029')
 EVIDENCE=ROOT/'evidence'
 LAUNCHER='/home/treefor/projects/runtimes/arch-base-20261028/run-frozen'
-LOCK='<workspace>/outputs/pic-profile/testing-core.lock'
+LOCK='/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock'
 V1=Path('/home/treefor/projects/runtimes/pic-cpu-candidate-20261029/source')
 ACTIVE=Path('/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source')
 MFEM=Path('/home/treefor/projects/runtimes/mfem-4.10-pic-20261029')
@@ -48,7 +48,7 @@ run('build',['cmake','--build','build','--parallel','1'])
 run('foundation',[ROOT/'build/pic_foundation_tests'])
 run('q1-invalidation',[ROOT/'build/q1_gather_tests'])
 trace=run('serial-trace',[ROOT/'build/pic_cpu_trace'])
-baseline=Path('<workspace>/outputs/pic-profile/cpu-audit/baseline-trace.txt').read_text()
+baseline=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cpu-audit/baseline-trace.txt').read_text()
 assert trace==baseline,'V2 serial trace differs from the sealed-source baseline'
 
 includes=['-isystem',str(MFEM/'install-mpi/include'),'-isystem',str(MFEM/'tpl/hypre/include'),

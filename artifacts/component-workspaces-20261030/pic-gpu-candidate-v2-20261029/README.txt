@@ -79,7 +79,7 @@ so its aggregate graph status is mixed; its successful exit is only a small test
 
 Build and CPU-only verification
 Commands used CPU6, nice15, one job/thread, holding exclusive flock:
-  <workspace>/outputs/pic-profile/testing-core.lock
+  /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock
 Frozen launcher:
   /home/treefor/projects/runtimes/arch-base-20261028/run-frozen
 Configuration:

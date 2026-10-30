@@ -94,5 +94,5 @@ times, phase counts, step ordering, accepted dt, and the separate terminal check
 
 Build invocation:
   taskset -c 6 nice -n 15 \
-    flock <workspace>/outputs/pic-profile/testing-core.lock \
+    flock /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock \
     /bin/bash /home/treefor/projects/runtimes/pic-phase-timing-20261029/build.sh

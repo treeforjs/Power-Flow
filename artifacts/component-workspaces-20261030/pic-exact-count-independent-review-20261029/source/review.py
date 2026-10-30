@@ -2,7 +2,7 @@ from pathlib import Path
 from fractions import Fraction as F
 import math,json,hashlib,os,fcntl,subprocess,sys,time,tarfile
 P=Path(__file__).resolve().parent.parent;S=P/'source';I=P/'sealed-input'
-O=Path('<workspace>/outputs/pic-profile/exact-count-independent-review-20261029')
+O=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/exact-count-independent-review-20261029')
 B=P/'build';B.mkdir(exist_ok=True)
 FROZEN='/home/treefor/projects/runtimes/arch-base-20261028/run-frozen'
 TINY=math.ulp(0.);MAX=float.fromhex('0x1.fffffffffffffp+1023');LIMIT=1<<2098
@@ -35,7 +35,7 @@ def inputs():
   ops=[op('credit','tiny'),op('debit','tiny')]if name.startswith('dense')else[]
   leaves(name,w,ops)
  leaves('debit-credit-refusals',[1.],[op('debit','nan'),op('debit','inf'),op('debit',-1),op('debit',0),op('credit','nan'),op('credit','inf'),op('credit',-1),op('debit',math.nextafter(1.,math.inf))])
- packet=json.loads(Path('<workspace>/outputs/ss304-spatial-metal-transfer-20261029/native/native-batches.json').read_text())[0]['packets'][0]
+ packet=json.loads(Path('/home/treefor/sim-workspace/powerflow/outputs/ss304-spatial-metal-transfer-20261029/native/native-batches.json').read_text())[0]['packets'][0]
  return {'cases':rows,'atom_mass':packet['mass_per_atom_kg'],'reference':packet['reference_per_atom_J'],'manufactured_K':1.23456789e-20,'scope':'count/material exact-currency interface; K is manufactured, no native birth or source-rate admission'}
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def hold():

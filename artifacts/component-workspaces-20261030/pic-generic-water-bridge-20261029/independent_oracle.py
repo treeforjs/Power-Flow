@@ -2,7 +2,7 @@ from pathlib import Path
 import json,decimal,os
 from fractions import Fraction
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)==15
-o=Path('<workspace>/outputs/pic-generic-water-bridge-20261029')
+o=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-generic-water-bridge-20261029')
 decimal.getcontext().prec=140
 D=decimal.Decimal.from_float;C=D(299792458.)
 def kinetic(m,u):

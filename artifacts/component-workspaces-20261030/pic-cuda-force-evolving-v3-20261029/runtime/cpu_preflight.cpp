@@ -21,7 +21,7 @@ int main(int argc,char** argv) {
             rejects([&]{validate_runtime_outputs(bad,s.particles);});
         }
         rejects([&]{pic_evolving::candidate_environment();}); // CPU6 ownership gate, before CUDA
-        rejects([&]{pic_evolving::validate_output("<workspace>/outputs/pic-profile/full60");});
+        rejects([&]{pic_evolving::validate_output("/home/treefor/sim-workspace/powerflow/outputs/pic-profile/full60");});
         rejects([&]{pic_evolving::bound_restart(0,2.6478441131125727e-08,2.6480441131125727e-08,437411);});
         rejects([&]{pic_evolving::bound_restart(0,2.6478441131125727e-08,2.6479441131125727e-08,437412);});
         pic_evolving::validate_output("/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/private-preflight");

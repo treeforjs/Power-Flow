@@ -1,7 +1,7 @@
 from pathlib import Path
 import fcntl,json,os,subprocess
 PREFIX=Path('/home/treefor/projects/runtimes/pic-reaction-transactions-20261029')
-REPORT=Path('<workspace>/outputs/pic-profile/reaction-transactions-20261029')
+REPORT=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029')
 assert os.sched_getaffinity(0)=={7}and os.getpriority(os.PRIO_PROCESS,0)==15
 with(REPORT.parent/'testing-core7.lock').open('a')as h:
  try:fcntl.flock(h,fcntl.LOCK_EX|fcntl.LOCK_NB)

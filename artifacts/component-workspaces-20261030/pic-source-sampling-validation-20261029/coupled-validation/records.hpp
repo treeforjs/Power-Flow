@@ -140,7 +140,7 @@ inline std::string cap_reason(const Caps& c,std::uint64_t steps,double wall,doub
     if(steps>=c.steps)return "step_cap";
     return "";}
 inline void require_owned_output(const std::filesystem::path& output){
-    const auto root=std::filesystem::canonical("<workspace>/outputs/pic-profile/source-sampling-validation/coupled-preflight");
+    const auto root=std::filesystem::canonical("/home/treefor/sim-workspace/powerflow/outputs/pic-profile/source-sampling-validation/coupled-preflight");
     const auto full=std::filesystem::weakly_canonical(output);auto rel=full.lexically_relative(root);
     require(!rel.empty()&&!rel.is_absolute(),"output outside owned directory");
     for(const auto& part:rel)require(part!="..","output escapes owned directory");

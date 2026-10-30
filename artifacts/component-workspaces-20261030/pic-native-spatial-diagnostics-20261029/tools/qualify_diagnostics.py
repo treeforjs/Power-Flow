@@ -7,7 +7,7 @@ def main():
  p=argparse.ArgumentParser();p.add_argument('--out-dir',type=pathlib.Path,required=True);a=p.parse_args();assert not a.out_dir.exists()
  assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15
  resource.setrlimit(resource.RLIMIT_AS,(4*1024**3,4*1024**3));a.out_dir.mkdir();records=[]
- fixture='<workspace>/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture'
+ fixture='/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture'
  commands=[('contracts',['python',str(P/'tools/run_contracts.py'),'--out-dir',str(a.out_dir/'contracts')]),('preserved-midpoint',['python',str(P/'tools/diagnose_preserved_fixture.py'),'--fixture',fixture,'--out-dir',str(a.out_dir/'preserved-midpoint')]),('plots',['/home/treefor/projects/Power-Flow/.venv/bin/python',str(P/'tools/plot_diagnostics.py'),'--diagnostics',str(a.out_dir/'preserved-midpoint/diagnostics.json'),'--out-dir',str(a.out_dir/'white-plots')])]
  for name,command in commands:
   t=time.monotonic();r=subprocess.run(command,text=True,capture_output=True,timeout=120,check=False);log=a.out_dir/(name+'.log');log.write_text(r.stdout+r.stderr);records.append(dict(name=name,command=command,returncode=r.returncode,wall_s=time.monotonic()-t,log_sha256=sha(log),cumulative_children_peak_RSS_KiB=resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss));assert r.returncode==0;print(name+' PASS',flush=True)

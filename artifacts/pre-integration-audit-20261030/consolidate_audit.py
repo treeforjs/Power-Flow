@@ -6,7 +6,7 @@ import hashlib
 import json
 import shutil
 
-O = Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs')
+O = Path('/home/treefor/sim-workspace/powerflow/outputs')
 D = O / 'pre-integration-audit-20261029'
 
 # Each disposition separates an implementation defect from an unimplemented

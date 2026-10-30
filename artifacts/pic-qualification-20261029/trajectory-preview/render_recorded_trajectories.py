@@ -19,7 +19,7 @@ from matplotlib.patches import Rectangle
 from matplotlib.lines import Line2D
 from PIL import Image
 
-ROOT=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile')
+ROOT=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile')
 AUDIT=ROOT/'particle-motion-audit'
 OUT=AUDIT/'trajectory-diagnostic-10ps'
 RUN=AUDIT/'tracking-run-10ps'

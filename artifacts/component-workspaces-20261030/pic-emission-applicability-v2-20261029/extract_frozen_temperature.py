@@ -1,6 +1,6 @@
 import array,bisect,csv,hashlib,json,math,os,pathlib,struct,sys
 
-W=pathlib.Path('<workspace>/outputs')
+W=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs')
 O=W/'pic-emission-applicability-v2-20261029';O.mkdir(parents=True,exist_ok=True)
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15
 metadata=json.loads((W/'heating-history-full.json').read_text())

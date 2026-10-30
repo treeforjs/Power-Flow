@@ -84,7 +84,7 @@ Evidence
 Reproduce each family on CPU6 under the exclusive existing lease
   env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
     CUDA_VISIBLE_DEVICES= taskset -c 6 nice -n 15 \
-    flock -n <workspace>/outputs/pic-profile/testing-core.lock \
+    flock -n /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock \
     python3 development/hall-canonical-driver-20261029/run_thermal_v2.py UNIQUE_RUN
   Use run_motion.py or run_joint_v2.py with a different unique label for the other
   families. Runners snapshot inputs, retain failures, enforce 2 GiB/180 CPU s/

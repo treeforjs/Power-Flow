@@ -1,6 +1,6 @@
 from pathlib import Path
 import json,subprocess,os,sys,hashlib,datetime
-P=Path(__file__).parent;R=Path('<workspace>/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003')
+P=Path(__file__).parent;R=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003')
 def need(ok,message):
  if not ok:raise RuntimeError(message)
 need(os.sched_getaffinity(0)=={7}and os.getpriority(os.PRIO_PROCESS,0)==15,'CPU7/nice15 required')

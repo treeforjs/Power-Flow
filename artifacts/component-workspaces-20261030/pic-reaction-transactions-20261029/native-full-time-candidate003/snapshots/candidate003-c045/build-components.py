@@ -1,6 +1,6 @@
 from pathlib import Path
 import json,subprocess,os,fcntl,hashlib
-P=Path(__file__).parent;R=Path('<workspace>/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003');R.mkdir(exist_ok=True);(P/'build').mkdir(exist_ok=True)
+P=Path(__file__).parent;R=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003');R.mkdir(exist_ok=True);(P/'build').mkdir(exist_ok=True)
 if os.sched_getaffinity(0)!={7}or os.getpriority(os.PRIO_PROCESS,0)!=15:raise RuntimeError('CPU7/nice15 required')
 lock=R.parent.parent/'testing-core7.lock'
 with lock.open('a')as lease:

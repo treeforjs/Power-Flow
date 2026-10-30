@@ -82,10 +82,10 @@ Output:
 
 Post-run CPU-only validation and SHA256 receipt:
   taskset -c 6 nice -n 15 \
-    flock -s -w 1 <workspace>/outputs/pic-profile/testing-core.lock \
+    flock -s -w 1 /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock \
     python /home/treefor/projects/runtimes/pic-rhs-observer-20261029/validate_capture.py \
     /absolute/new-capture-directory \
-    --audit-prefix <workspace>/outputs/pic-profile/cudss-tuning-validation/v2-default-audit/poisson.0 \
+    --audit-prefix /home/treefor/sim-workspace/powerflow/outputs/pic-profile/cudss-tuning-validation/v2-default-audit/poisson.0 \
     --write-receipt
 
 The validator checks complete selection, finite vectors, exact essential

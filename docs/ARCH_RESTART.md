@@ -1,6 +1,6 @@
 # Arch restart checkpoint
 
-Work stopped at the user's request before restarting the computer. No new
+Work stopped on request before restarting the computer. No new
 high-resolution native simulation has run. The selected restart mesh is
 **2048 x 256 cells per foil**, superseding the earlier 8192/16384 requests.
 

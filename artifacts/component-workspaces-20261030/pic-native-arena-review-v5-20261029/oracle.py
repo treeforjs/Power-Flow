@@ -3,7 +3,7 @@ from fractions import Fraction as F
 from decimal import Decimal as D,localcontext
 import math,json,os
 assert sorted(os.sched_getaffinity(0))==[7]
-p=Path('<workspace>/outputs/pic-native-arena-review-v5-20261029')
+p=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-native-arena-review-v5-20261029')
 cases={r['id']:r for r in json.loads((p/'count-cases.json').read_text())};rows=json.loads((p/'count-results.json').read_text())
 summary={'count_cases':len(rows),'carrier_admissions':0,'exact_debit_admissions':0,'overdraw_admissions':[],'carrier_sum_errors':[],'nonpositive_or_nonfinite_carriers':[],'debit_errors':[],'maximum_carriers':0,'near_cancel_maximum_cases_admitted':[]}
 for row in rows:

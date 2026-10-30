@@ -18,10 +18,10 @@ The shipped template has both booleans false and authorizes nothing.
 Execution syntax after that separate approval:
 
  taskset -c 7 nice -n 15 env PYTHONDONTWRITEBYTECODE=1 python 3 \
- /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electric-exterior-20261029/dispatcher-v2/dispatch.py \
+ /home/treefor/sim-workspace/powerflow/outputs/pic-electric-exterior-20261029/dispatcher-v2/dispatch.py \
  approved-followup --approval ABSOLUTE_NEW_APPROVAL_FILE \
  --case nested-105-40 \
- --receipt /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electric-exterior-20261029/parent-followup-v2-40.json
+ --receipt /home/treefor/sim-workspace/powerflow/outputs/pic-electric-exterior-20261029/parent-followup-v2-40.json
 
 Repeat --case only for the explicitly selected cases. No stage or followup
 launches automatically. GPU→core 7 locks are acquired internally; do not wrap

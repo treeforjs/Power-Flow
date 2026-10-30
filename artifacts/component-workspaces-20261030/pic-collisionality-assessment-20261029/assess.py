@@ -3,7 +3,7 @@
 import argparse,csv,hashlib,json,math,os,pathlib,resource,subprocess,time
 import numpy as np
 QE=1.602176634e-19;ME=9.1093837139e-31;C=299792458.;KB=1.380649e-23;EPS0=8.8541878128e-12;H=6.62607015e-34
-BASE=pathlib.Path('<workspace>/outputs')
+BASE=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs')
 FIX=BASE/'pic-profile/cuda-gather-investigation/actual-midpoint-fixture'
 FD=BASE/'cathode-emission-audit-20261029/fields'
 DATA=pathlib.Path('/home/treefor/projects/runtimes/pic-native-spatial-diagnostics-20261029/arena-v5/inputs/h2o-gas-20261029.json')

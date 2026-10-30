@@ -1,6 +1,6 @@
 # Bounded cuDSS tuning plan for the integration chat
 
-Preserve the manual hold recorded in `<workspace>/outputs/full60-manual-pause.json`. Only the integration chat executes GPU replays, with CPU6/nice15/one job and the shared testing-core.lock. Every trial uses a fresh copy of the same checkpoint and the harness that preserves pre-existing stopped state. No automatic resume/restart, live executable edit, precision/refinement change, solver skipping or dependency update is part of this plan.
+Preserve the manual hold recorded in `/home/treefor/sim-workspace/powerflow/outputs/full60-manual-pause.json`. Only the integration chat executes GPU replays, with CPU6/nice15/one job and the shared testing-core.lock. Every trial uses a fresh copy of the same checkpoint and the harness that preserves pre-existing stopped state. No automatic resume/restart, live executable edit, precision/refinement change, solver skipping or dependency update is part of this plan.
 
 ## Why this sweep
 

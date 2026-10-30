@@ -1,6 +1,6 @@
 from pathlib import Path
 import os,json,hashlib
-p=Path(__file__).parent;s=p/'snapshot';o=Path('<workspace>/outputs/pic-native-arena-review-20261029')
+p=Path(__file__).parent;s=p/'snapshot';o=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-native-arena-review-20261029')
 assert sorted(os.sched_getaffinity(0))==[7]
 sha=lambda f:hashlib.sha256(f.read_bytes()).hexdigest()
 identity=json.loads((o/'source-identity.json').read_text())

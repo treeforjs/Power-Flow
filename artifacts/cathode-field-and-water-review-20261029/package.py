@@ -1,6 +1,6 @@
 from pathlib import Path
 import hashlib,json,tarfile,io,shutil
-W=Path('/home/treefor/Documents/Codex/2026-10-28/we');R=Path('/home/treefor/projects/Power-Flow');O=R/'artifacts/cathode-field-and-water-review-20261029';items={}
+W=Path('/home/treefor/sim-workspace/powerflow');R=Path('/home/treefor/projects/Power-Flow');O=R/'artifacts/cathode-field-and-water-review-20261029';items={}
 def add(p,key):
  if p.is_file() and p.suffix not in {'.pdf','.o','.a','.so'} and p.read_bytes()[:4]!=b'\x7fELF':items[key]=p
 A=W/'outputs/cathode-emission-audit-20261029'
@@ -58,7 +58,7 @@ receipt={'files':len(manifest),'uncompressed_bytes':sum(x['bytes'] for x in mani
 (O/'verification.json').write_text(json.dumps(receipt,indent=2)+'\n')
 for n in ['README.txt']:
  (O/n).write_text('Surface source/cloud audit, fixed-state electric exterior sensitivity, water-data readiness and supplied CHICAGO paper scope.\n\nThe original9mm strict-capture comparison remains FAILED and preserved. The separate CPU causal audit explains its fresh-solve nodal differences, without changing solver/source/physical guards. Larger static domains ran under a separately documented continuation; no particles advanced.9-to25mm fixed-state vector E differences are14.03% inside the finite gap and39.90% overall. Field-domain/sheath/material/full3D convergence and full H2O kinetics are not established.\n\nThe archive retains own simulation fixtures, source, receipts, ledgers, plots, source-data hashes and authored literature/data summaries. Full external PDFs/text/page renders and compiled libraries are excluded. Join the numbered gzip-tar parts in order to restore the archive. Every archive member was reopened and hash-verified; the joined part stream reproduces the original archive hash. The run remains explicitly paused, dependencies remain frozen, and changed source/field inputs require a new supported-start history.\n')
-B=Path('/home/treefor/Documents/Codex/reconstructed-source-20261029/cathode-field-water-review-20261029');B.mkdir(exist_ok=False)
+B=Path('/home/treefor/sim-workspace/source-backups/reconstructed-source-20261029/cathode-field-water-review-20261029');B.mkdir(exist_ok=False)
 for p in O.iterdir():
  if p.is_file():shutil.copy2(p,B/p.name)
 print(json.dumps(receipt,indent=2))

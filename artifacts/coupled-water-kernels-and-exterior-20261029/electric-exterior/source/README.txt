@@ -1,7 +1,7 @@
 Static graded electric exterior — CPU-qualified candidate, not integrated
 
 Prefix: /home/treefor/projects/runtimes/pic-electric-exterior-20261029
-Evidence: /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electric-exterior-20261029
+Evidence: /home/treefor/sim-workspace/powerflow/outputs/pic-electric-exterior-20261029
 
 The candidate appends graded vacuum quadrilaterals to the exact captured
 360 x 360, nominal 25 um, 9 mm electric mesh. Particle and foil positions

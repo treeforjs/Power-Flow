@@ -2,7 +2,7 @@ from pathlib import Path
 from fractions import Fraction as F
 from decimal import Decimal as D,localcontext
 import os,json,hashlib,csv
-p=Path(__file__).parent;o=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-generic-products-native-audit-20261029');assert sorted(os.sched_getaffinity(0))==[7]
+p=Path(__file__).parent;o=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-generic-products-native-audit-20261029');assert sorted(os.sched_getaffinity(0))==[7]
 sha=lambda f:hashlib.sha256(f.read_bytes()).hexdigest();assert sha(p/'products-source.tar.gz')=='7c7feb6e315f0433cfb6b1635ded4640c34c3191e9fe0bd385c0b752347f8596'
 d=json.loads((o/'probes.json').read_text());spec={x['id']:x for x in d['catalog']};rows=d['records'];assert len(rows)==17
 accepted=[r for r in rows if r['accepted']];assert len(accepted)==13

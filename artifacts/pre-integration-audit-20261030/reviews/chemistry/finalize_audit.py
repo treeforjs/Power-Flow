@@ -1,7 +1,7 @@
 from pathlib import Path
 import os,json,hashlib,csv,math
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)==15
-O=Path(__file__).parent;P=Path('/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029');W=Path('/home/treefor/Documents/Codex/2026-10-28/we')
+O=Path(__file__).parent;P=Path('/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029');W=Path('/home/treefor/sim-workspace/powerflow')
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 assert sha(P/'source/generic_water_bridge.hpp')=='b16d517d0d2cb9aa5da70dde60ddf7a660804ca62018058a3295d8f99189b191'
 assert sha(P/'source/generic_water_native_adapter.hpp')=='307244054950c827c57ca138ced3ed19fae9017f9c7e31177de079c91045e838'

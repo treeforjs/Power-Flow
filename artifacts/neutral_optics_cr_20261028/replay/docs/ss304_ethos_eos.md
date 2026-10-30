@@ -72,7 +72,7 @@ grid has 15 density points over 100-16000 kg/m3 and 22 temperatures over
 300-30000 K. These are requested coverage/refinement targets, not measured
 or admitted state points.
 
-The user-authorized extrapolation remains a generation step: extend a
+The authorized extrapolation remains a generation step: extend a
 source-conditioned physics model or use an existing wide-range EOS, retain
 the data-support versus model-extension regions, and propagate uncertainty.
 No numerical extrapolation rule is silently installed. A free-energy model or

@@ -2,7 +2,7 @@
 from pathlib import Path
 from decimal import Decimal,localcontext
 import json,math,os,fcntl
-ROOT=Path('<workspace>/outputs/pic-profile')
+ROOT=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile')
 OUT=ROOT/'reaction-transactions-20261029'
 assert os.sched_getaffinity(0)=={7}and os.getpriority(os.PRIO_PROCESS,0)==15
 with(ROOT/'testing-core7.lock').open('a')as h:

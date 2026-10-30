@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import metrics
 
-ROOT=Path('<workspace>/outputs/pic-profile/source-sampling-validation/coupled-preflight')
+ROOT=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/source-sampling-validation/coupled-preflight')
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('bundle',type=Path);p.add_argument('output',type=Path);args=p.parse_args()
     if os.sched_getaffinity(0)!={6} or os.getpriority(os.PRIO_PROCESS,0)!=15:raise RuntimeError('CPU6/nice15 required')

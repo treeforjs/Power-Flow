@@ -1,7 +1,7 @@
 Native magnetic field export, 2026-10-29
 
 Ready data:
-  /home/treefor/Documents/Codex/2026-10-28/we/outputs/electron-mapping-paused-26p48ns/native-b/manifest.json
+  /home/treefor/sim-workspace/powerflow/outputs/electron-mapping-paused-26p48ns/native-b/manifest.json
 
 The manifest indexes 28 existing frame times, including the paused frame at
 exact source time 26.478684721998123 ns. Each CSV contains 129600 unchanged
@@ -44,18 +44,18 @@ use binary double; the sampler used the unchanged source time_s double.
 
 Build:
   taskset -c 6 nice -n 15 \
-    flock /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock \
+    flock /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock \
     /bin/bash /home/treefor/projects/runtimes/pic-native-b-export-20261029/build.sh
 
 Run:
   taskset -c 6 nice -n 15 \
-    flock /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock \
+    flock /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock \
     /home/treefor/projects/runtimes/arch-base-20261028/run-frozen \
     /usr/bin/env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 BLIS_NUM_THREADS=1 \
     /home/treefor/projects/runtimes/pic-native-b-export-20261029/build/native_b_export \
     /home/treefor/projects/Power-Flow/runs/restore_field_mpi8_domain40mm \
     /home/treefor/projects/runtimes/pic-native-b-export-20261029/jobs.tsv \
-    /home/treefor/Documents/Codex/2026-10-28/we/outputs/electron-mapping-paused-26p48ns/native-b
+    /home/treefor/sim-workspace/powerflow/outputs/electron-mapping-paused-26p48ns/native-b
 
 No GPU workload, simulation advance, production signal, cgroup modification,
 renderer edit, or shared-source edit occurred.

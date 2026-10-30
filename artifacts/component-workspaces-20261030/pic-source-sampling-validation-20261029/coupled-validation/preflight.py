@@ -16,13 +16,13 @@ import metrics
 import budget
 
 ROOT=Path(__file__).resolve().parent
-OUT=Path('<workspace>/outputs/pic-profile/source-sampling-validation/coupled-preflight')
+OUT=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/source-sampling-validation/coupled-preflight')
 PROFILE=OUT.parent.parent
 ORIGINAL=PROFILE/'particle-audit/copied-checkpoint'
 FROZEN=Path('/home/treefor/projects/runtimes/mfem-gpu-pic-20261029')
 PROPOSAL=OUT.parent/'coupled-validation-proposal.json'
-THERMAL=Path('<workspace>/outputs/heating-history-full.bin')
-VOLTAGE=Path('<workspace>/outputs/gap-pulse-midplane110kV.csv')
+THERMAL=Path('/home/treefor/sim-workspace/powerflow/outputs/heating-history-full.bin')
+VOLTAGE=Path('/home/treefor/sim-workspace/powerflow/outputs/gap-pulse-midplane110kV.csv')
 FIELD=Path('/home/treefor/projects/Power-Flow/runs/restore_field_mpi8_domain40mm')
 CHECKPOINT='checkpoint_400040.bin'
 CHECK_SHA='957da7e1419c8ca09d844265312bef1e850a74fc93d144ca557422aad39c752a'

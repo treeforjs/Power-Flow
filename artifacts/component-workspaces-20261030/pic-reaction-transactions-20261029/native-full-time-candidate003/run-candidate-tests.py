@@ -1,6 +1,6 @@
 from pathlib import Path
 import json,subprocess,os
-P=Path(__file__).parent;R=Path('<workspace>/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003')
+P=Path(__file__).parent;R=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003')
 if os.sched_getaffinity(0)!={7}or os.getpriority(os.PRIO_PROCESS,0)!=15:raise RuntimeError('CPU7/nice15 required')
 C=json.loads((R/'legacy-commands.json').read_text());commands=[]
 cmd=[x.replace('tests/test_arena.cpp','tests/test_candidate003.cpp').replace('build/tests.o','build/candidate-tests.o')for x in C[1]];commands.append(cmd)

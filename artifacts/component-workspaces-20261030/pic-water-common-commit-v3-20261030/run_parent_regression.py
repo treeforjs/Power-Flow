@@ -3,7 +3,7 @@ import fcntl,hashlib,json,os,resource,subprocess,time
 from pathlib import Path
 P=Path(__file__).resolve().parent
 R=Path('/home/treefor/projects/runtimes')
-B=Path('<workspace>/outputs')
+B=Path('/home/treefor/sim-workspace/powerflow/outputs')
 O=B/'pic-water-common-commit-v3-20261030'
 N=R/'pic-reaction-transactions-20261029/native-full-time-candidate003'
 I=R/'pic-water-full-time-subflow-20261029/inputs'

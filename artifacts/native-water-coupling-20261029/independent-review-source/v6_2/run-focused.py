@@ -1,6 +1,6 @@
 from pathlib import Path
 import os,hashlib,json,subprocess
-p=Path(__file__).parent;o=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-native-subflow-v6_2-review-20261029');assert sorted(os.sched_getaffinity(0))==[7]
+p=Path(__file__).parent;o=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-native-subflow-v6_2-review-20261029');assert sorted(os.sched_getaffinity(0))==[7]
 sha=lambda f:hashlib.sha256(f.read_bytes()).hexdigest();assert sha(p/'driver/source/native_parent_subflow.hpp')=='ad499c5549a78bae371c5b2f72ee66085c3b141126d1931d1ec654d8a9e25675'
 binding=json.loads((o/'arena-build-binding.json').read_text());assert sha(p/'build/arena.o')==binding['arena_object_sha256'] and sha(p/'build/native.o')==binding['native_object_sha256']
 base='/home/treefor/projects/runtimes/mfem-4.10-pic-20261029';includes=['-I'+str(p/'driver/source'),'-I'+str(p/'native/source/include'),'-isystem',str(p/'driver/inputs'),'-isystem',str(p/'driver/inputs/include'),'-isystem',str(p/'native/inputs'),'-I'+str(p/'native/vendor')]

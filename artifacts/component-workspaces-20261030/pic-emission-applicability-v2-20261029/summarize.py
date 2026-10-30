@@ -1,7 +1,7 @@
 from pathlib import Path
 import csv, json, math, hashlib, os
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15
-out=Path('<workspace>/outputs/pic-emission-applicability-v2-20261029')
+out=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-emission-applicability-v2-20261029')
 rows=[r for p in sorted(out.glob('rows-*-map.csv'),key=lambda p:int(p.name.split('-')[1])) for r in csv.DictReader(p.open())]
 assert len(rows)==1056 and sorted(int(r['legacy_row']) for r in rows)==list(range(1056))
 checks=[json.loads(p.read_text()) for p in out.glob('rows-*-checks.json')]
@@ -31,7 +31,7 @@ for p in sorted(out.glob('refined-*-map.csv')):
     v={'legacy_row':int(r['legacy_row']),'admitted_fraction_absolute_difference':abs(float(r['nominal_admitted_fraction'])-float(base['nominal_admitted_fraction'])),'nominal_current_relative_difference':abs(float(r['nominal_J_A_m2'])/float(base['nominal_J_A_m2'])-1),'complete_heat_relative_difference':abs(float(r['nominal_Q_W_m2'])/float(base['nominal_Q_W_m2'])-1)}
     assert v['admitted_fraction_absolute_difference']<2e-6 and v['nominal_current_relative_difference']<1e-8 and v['complete_heat_relative_difference']<1e-8
     refinement.append(v)
-v3=Path('<workspace>/outputs/pic-electrode-heat-source-v3-20261029')
+v3=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029')
 seal=json.loads((v3/'source-seal-v3.json').read_text());snapshot=Path(seal['snapshot'])
 for f in seal['files']:assert hashlib.sha256((snapshot/f['path']).read_bytes()).hexdigest()==f['sha256']
 binding={'schema':'source-v1-phase-applicability-to-heat-source-v3-contract-v1','source_v3_seal_sha256':hashlib.sha256((v3/'source-seal-v3.json').read_bytes()).hexdigest(),'source_v3_snapshot':str(snapshot),'all_v3_manifest_files_verified':len(seal['files']),'v3_component_checks':seal['tests']['checks'],'source_kernel':'unchanged immutable usable-api-v1 evaluate/begin_layer/advance_layer','thermal':'real accepted heat begin-state/revision held at its actual time; historical reconstructed T in this diagnostic is not a replacement accepted state','field':'immutable nonlinear TOTAL midpoint E/B, validated role/revision/identity; frozen old accepted probes are not qualified midpoint data','counts':'use exact native expected binary64 and log expected count from same held flux and exposure; canonical staged count/RNG owner remains external','birth':'explicit uniform held exposure, explicit beginning-lumped first-order policy, or caller specified physical time; exposure duration never particle age','arrival':'at handoff tau advance native particle only through common_end minus tau; deposit all real paths plus zero-duration bridge with authoritative common dt','magnetic':'original 0.2 guard applies for any orientation in SN branch; v3 rechecks same guard at bridge endpoint B. This initial-probe map cannot qualify that endpoint','failure':'no phase dropping, retry-until-pass, resampling, current renormalization, guard widening or quadratic prefactor replacement; reject unresolved physical model/common trial','ownership':'one canonical arena inventory; one ID/count/RNG/accepted thermal base on retries; sampled wall heat only, mean Nottingham diagnostic not also debited','strict_tangent_extension':'unchanged scope Bn=0, Etangent=0, T<=1500 K plus its sealed explicit model bounds; all actual probes fail Bn=0','native_model_admitted':False,'production_resumed':False,'GPU_executed':False}

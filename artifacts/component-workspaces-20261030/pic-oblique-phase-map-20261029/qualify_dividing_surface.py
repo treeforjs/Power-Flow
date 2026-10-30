@@ -3,8 +3,8 @@ from pathlib import Path
 from dividing_surface_bound import ClassicalDividingSurfaceBound
 from phase_map import sm
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15
-out=Path('<workspace>/outputs/pic-oblique-phase-map-20261029')
-inp=Path('<workspace>/outputs/pic-emission-applicability-v2-20261029/frozen-probes-with-historical-temperature.csv')
+out=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-oblique-phase-map-20261029')
+inp=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-emission-applicability-v2-20261029/frozen-probes-with-historical-temperature.csv')
 rows=list(csv.DictReader(inp.open()));checks=0;states=0;products=0;max_inverse=max_energy=max_reverse=max_numeric=0.
 def test(b,s):
     global checks

@@ -1,6 +1,6 @@
 from pathlib import Path
 import os,subprocess,json
-p=Path(__file__).parent;s=p/'snapshot';o=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-native-subflow-v6_1-review-20261029');assert sorted(os.sched_getaffinity(0))==[7]
+p=Path(__file__).parent;s=p/'snapshot';o=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-native-subflow-v6_1-review-20261029');assert sorted(os.sched_getaffinity(0))==[7]
 base='/home/treefor/projects/runtimes/mfem-4.10-pic-20261029'
 includes=['-I'+str(s/'source'),'-I'+str(s/'native/source/include'),'-isystem',str(s/'inputs'),'-isystem',str(s/'inputs/include'),'-isystem',str(s/'native/inputs'),'-I'+str(s/'native/vendor')]
 for n in ('install-mpi/include','tpl/hypre/include','tpl/metis/include'):includes+=['-isystem',base+'/'+n]

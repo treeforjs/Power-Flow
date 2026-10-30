@@ -5,16 +5,16 @@
   "production_resume_authorized": false,
   "deployment_authorized": false,
   "lock_order": [
-    "<workspace>/outputs/pic-profile/testing-gpu.lock",
-    "<workspace>/outputs/pic-profile/testing-core7.lock"
+    "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-gpu.lock",
+    "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core7.lock"
   ],
   "serial_policy": "Parent alone acquires GPU then core7, retains across serial runs, stops on any failure; no root production signal/resume.",
   "preparation": "After fresh accepted review and exact hash verification, create each fresh private output directory; copy (not symlink) checkpoint_437411.bin, restart.meta and history.csv from the exact seed, verify every copied SHA. Do not copy production output or write outside owned qualification-runs.",
   "seed_sha256": {
-    "<workspace>/outputs/pic-profile/seed-late-phase/checkpoint_437411.bin": "673d7af6ba12521425bb4a327eaa6d5be8e3f58b1b744362257f5467a0eba6db",
-    "<workspace>/outputs/pic-profile/seed-late-phase/restart.meta": "067d78271a237cc9cc3dc7a4e125520ff6ec6e1d04ecffb85d07fad35f3ff4d3",
-    "<workspace>/outputs/pic-profile/seed-late-phase/history.csv": "03613f21e986195419d65a0cdb83e36e49bb3a650a4e9d97fa2449563ccfcca9",
-    "<workspace>/outputs/pic-profile/seed-late-phase/seed.json": "6f9f375e9c224af518d1354691f57154e22b247bdfc00310db039ed1968e0b33"
+    "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/seed-late-phase/checkpoint_437411.bin": "673d7af6ba12521425bb4a327eaa6d5be8e3f58b1b744362257f5467a0eba6db",
+    "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/seed-late-phase/restart.meta": "067d78271a237cc9cc3dc7a4e125520ff6ec6e1d04ecffb85d07fad35f3ff4d3",
+    "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/seed-late-phase/history.csv": "03613f21e986195419d65a0cdb83e36e49bb3a650a4e9d97fa2449563ccfcca9",
+    "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/seed-late-phase/seed.json": "6f9f375e9c224af518d1354691f57154e22b247bdfc00310db039ed1968e0b33"
   },
   "end_ns": "26.479441131125729",
   "bounds": {
@@ -62,10 +62,10 @@
         "--",
         "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/build/heating_history_pic_force_candidate",
         "/home/treefor/projects/Power-Flow/runs/restore_field_mpi8_domain40mm",
-        "<workspace>/outputs/heating-history-full.bin",
+        "/home/treefor/sim-workspace/powerflow/outputs/heating-history-full.bin",
         "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off",
         "26.479441131125729",
-        "<workspace>/outputs/gap-pulse-midplane110kV.csv"
+        "/home/treefor/sim-workspace/powerflow/outputs/gap-pulse-midplane110kV.csv"
       ],
       "stdout": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off.stdout",
       "stderr": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off.stderr"
@@ -106,10 +106,10 @@
         "--",
         "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/build/heating_history_pic_force_candidate",
         "/home/treefor/projects/Power-Flow/runs/restore_field_mpi8_domain40mm",
-        "<workspace>/outputs/heating-history-full.bin",
+        "/home/treefor/sim-workspace/powerflow/outputs/heating-history-full.bin",
         "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow",
         "26.479441131125729",
-        "<workspace>/outputs/gap-pulse-midplane110kV.csv"
+        "/home/treefor/sim-workspace/powerflow/outputs/gap-pulse-midplane110kV.csv"
       ],
       "stdout": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow.stdout",
       "stderr": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow.stderr"
@@ -150,10 +150,10 @@
         "--",
         "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/build/heating_history_pic_force_candidate",
         "/home/treefor/projects/Power-Flow/runs/restore_field_mpi8_domain40mm",
-        "<workspace>/outputs/heating-history-full.bin",
+        "/home/treefor/sim-workspace/powerflow/outputs/heating-history-full.bin",
         "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized",
         "26.479441131125729",
-        "<workspace>/outputs/gap-pulse-midplane110kV.csv"
+        "/home/treefor/sim-workspace/powerflow/outputs/gap-pulse-midplane110kV.csv"
       ],
       "stdout": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized.stdout",
       "stderr": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized.stderr"
@@ -167,5 +167,5 @@
     "Failure poisons candidate, does not retry/fallback or save a half-step; no missing/partial receipt accepted.",
     "No production promotion/resume or full application speedup claim follows automatically. Late1ps replay alone does not qualify native frame boundary/epoch changes."
   ],
-  "comparison_policy": "<workspace>/outputs/pic-profile/cuda-gather-investigation/actual-capture-full-comparison.json"
+  "comparison_policy": "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cuda-gather-investigation/actual-capture-full-comparison.json"
 }

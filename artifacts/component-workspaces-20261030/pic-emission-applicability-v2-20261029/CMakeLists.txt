@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(frozen_probe_applicability_v2 LANGUAGES CXX)
 set(SOURCE_V1 "/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/snapshots/usable-api-v1" CACHE PATH "Immutable original source")
-set(GUARD_V1 "<workspace>/outputs/pic-magnetized-emission-20261029/source-backup-guard-map-v1" CACHE PATH "Immutable guard assessment")
+set(GUARD_V1 "/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029/source-backup-guard-map-v1" CACHE PATH "Immutable guard assessment")
 add_executable(map_applicability map_applicability.cpp "${GUARD_V1}/src/magnetic_guard_assessment.cpp")
 target_compile_features(map_applicability PRIVATE cxx_std_17)
 target_compile_options(map_applicability PRIVATE -O2)

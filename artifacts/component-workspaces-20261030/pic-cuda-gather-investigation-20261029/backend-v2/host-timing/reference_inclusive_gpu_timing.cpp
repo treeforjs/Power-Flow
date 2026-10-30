@@ -33,7 +33,7 @@ int main(int argc,char** argv) {
         cpu_set_t mask;CPU_ZERO(&mask);
         io::require(sched_getaffinity(0,sizeof(mask),&mask)==0 && CPU_COUNT(&mask)==1 && CPU_ISSET(7,&mask) && getpriority(PRIO_PROCESS,0)>=15,"Parent GPU timing requires CPU7/nice15 and external GPU/core7 leases");
         const auto setup_start=Clock::now();const auto snapshot=HostSnapshot::load(argv[1],true);
-        native_reference::NativeReference legacy(snapshot,argv[1],"<workspace>/outputs/gap-pulse-midplane110kV.csv");
+        native_reference::NativeReference legacy(snapshot,argv[1],"/home/treefor/sim-workspace/powerflow/outputs/gap-pulse-midplane110kV.csv");
         std::vector<gp::Outputs> fresh_reference(snapshot.particles.size()),first_result(snapshot.particles.size());
         auto live=snapshot.particles;std::vector<Sample> samples;samples.reserve(20);
         CudaBatchedForce backend(argv[2],snapshot,snapshot.particles.size(),{ContextPolicy::StandalonePrimary,&cleanup});

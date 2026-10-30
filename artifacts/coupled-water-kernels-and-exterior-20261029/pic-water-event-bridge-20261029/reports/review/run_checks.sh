@@ -1,9 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 p=/home/treefor/projects/runtimes/pic-water-event-bridge-20261029
-o=/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-water-event-bridge-20261029
+o=/home/treefor/sim-workspace/powerflow/outputs/pic-water-event-bridge-20261029
 mkdir -p "$o"
-exec flock /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core7.lock \
+exec flock /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core7.lock \
  taskset -c 7 nice -n 15 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /bin/bash -c '
   set -euo pipefail
   export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1

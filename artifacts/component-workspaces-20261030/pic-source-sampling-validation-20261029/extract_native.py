@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 FROZEN = Path('/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source')
-OUT = Path('<workspace>/outputs/pic-profile/source-sampling-validation')
+OUT = Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/source-sampling-validation')
 cpp = FROZEN / 'src/mfem_gap_pic.cpp'
 header = FROZEN / 'include/raikou/mfem_gap_pic.h'
 driver = FROZEN / 'examples/mfem_heating_history_pic.cpp'
@@ -83,8 +83,8 @@ manifest = dict(method='verbatim native routines with a storage-only host class'
     no_math_reimplementation=True, no_mfem_mpi_cuda_linkage=True,
     slices=pieces, generated_sha256=hashlib.sha256(target.read_bytes()).hexdigest(),
     frozen_sha256={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in [cpp, header, driver]})
-inputs = [Path('<workspace>/outputs/heating-history-full.bin')]
-audit = Path('<workspace>/outputs/pic-profile/particle-audit')
+inputs = [Path('/home/treefor/sim-workspace/powerflow/outputs/heating-history-full.bin')]
+audit = Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/particle-audit')
 inputs += [audit/'audit-report.txt', audit/'inventory.json', audit/'copied-checkpoint/restart.meta', audit/'copied-checkpoint/checkpoint_400040.bin']
 manifest['inputs_sha256_before'] = {str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in inputs}
 (OUT/'native-equivalence.json').write_text(json.dumps(manifest,indent=2)+'\n')

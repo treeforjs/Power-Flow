@@ -9,7 +9,7 @@ without work if busy. It has a180s cap, inside the proposed30min CPU utility
 budget. Do not wrap it in another nice15 increment. No dependencies are added.
 
 Results are fresh attempt-NNN directories under:
-  <workspace>/outputs/pic-profile/source-sampling-validation/coupled-preflight
+  /home/treefor/sim-workspace/powerflow/outputs/pic-profile/source-sampling-validation/coupled-preflight
 latest.json identifies the most recent successful attempt. Each contains
 report.json, three identical restart copies, native/source checks, negative
 fixtures, metric/budget checks, build/link logs, a disabled39-case campaign

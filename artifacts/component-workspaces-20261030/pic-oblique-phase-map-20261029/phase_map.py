@@ -6,7 +6,7 @@ The reciprocal involution is a kinematic test of a candidate reaction pairing.
 import math
 import sys
 from dataclasses import dataclass
-sys.path.insert(0,'<workspace>/outputs/pic-oblique-emission-20261029/source-backup-local-saddle-diagnostic-v1')
+sys.path.insert(0,'/home/treefor/sim-workspace/powerflow/outputs/pic-oblique-emission-20261029/source-backup-local-saddle-diagnostic-v1')
 import saddle_modes as sm
 
 @dataclass(frozen=True)

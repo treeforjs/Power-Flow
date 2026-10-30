@@ -44,7 +44,7 @@ physical launch directions and why the earlier y-enlarged view looked different.
 
 The [collection/CR work](docs/target_collection_and_cr.md) adds finite-pupil
 photon collection, foil shadowing and edge-overlap calculations using the
-user-supplied 19-inch mirror distance, approximately8-inch separation and
+stated 19-inch mirror distance, approximately8-inch separation and
 50-micrometre by1-inch slit. Initial H2O monolayers is the primary free spectral
 regression parameter in the new common-water source. Fragments come from
 chemistry; the earlier independent-pool movie remains a separate control.

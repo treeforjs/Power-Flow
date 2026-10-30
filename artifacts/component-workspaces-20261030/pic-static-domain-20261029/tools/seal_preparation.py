@@ -9,9 +9,9 @@ import subprocess
 import tarfile
 
 root=Path(__file__).resolve().parents[1]
-out=Path('<workspace>/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation')
+out=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation')
 fixture=out.parents[1]/'cuda-gather-investigation'/'actual-midpoint-fixture'
-fixture=Path('<workspace>/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture')
+fixture=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture')
 control=out/'cpu-qualified'
 gpu_base=Path('/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia')
 library_path=':'.join(str(gpu_base/p) for p in ['cu12/lib','cublas/lib','cuda_runtime/lib'])
@@ -32,7 +32,7 @@ files.update(p for folder in ['source','tools'] for p in (root/folder).iterdir()
 files.add(Path('/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source/src/mfem_gap_pic.cpp'))
 files.add(Path('/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source/src/cudss_poisson.hpp'))
 files.add(Path('/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source/src/mfem_pic_distributed.hpp'))
-files.add(Path('<workspace>/outputs/pic-profile/cpu-independent-review/checkpoint-validation/cli_pass.json'))
+files.add(Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cpu-independent-review/checkpoint-validation/cli_pass.json'))
 for target in ['static_domain_cpu','static_domain_gpu']:
     dependency_text=subprocess.check_output(['ninja','-C',str(root/'build'),'-t','deps',f'CMakeFiles/{target}.dir/source/static_domain.cpp.o'],text=True)
     for line in dependency_text.splitlines():
@@ -68,7 +68,7 @@ request=dict(schema='parent-static-domain-gpu-request-v1',status='prepared_not_e
     scope='Static field-only sensitivity, not a continuous restart, particle history or EEDF convergence run',
     production='Keep the full run and cgroup processes frozen; no resume or production edits',
     execution_owner='parent_only',environment={'PIC_STATIC_DOMAIN_PARENT_GPU':'1','LD_LIBRARY_PATH':library_path},
-    serial_locks=['<workspace>/outputs/pic-profile/testing-core.lock','<workspace>/outputs/pic-profile/testing-gpu.lock'],
+    serial_locks=['/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock','/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-gpu.lock'],
     cpu_affinity=[6],nice=15,jobs=1,cases=cases,
     limits=dict(max_nodes=1010000,max_particles=46726,host_RSS_bytes=4*1024**3,GPU_used_memory_increase_bytes=8*1024**3,wall_seconds_per_case=900,output_bytes_per_case=64*1024**2,factorizations_per_case=1,RHS_solves_per_case=2,enforcement='Parent monitors and aborts diagnostic case on a cap breach; limits are ceilings, not measured predictions'),
     validation_order=['Verify bound hashes and production hold before dispatch','Run only9mm GPU control first','Require result.passed and all control-gates plus same particle/input hashes','Only then consider13/17/25mm sequentially','Verify bound inputs unchanged after every case','Report field-only sensitivities, absolute errors and resource use; no accepted trajectory or EEDF claim'],

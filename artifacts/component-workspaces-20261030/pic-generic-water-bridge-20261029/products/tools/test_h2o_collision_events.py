@@ -11,7 +11,7 @@ import subprocess
 import time
 
 ROOT=Path(__file__).resolve().parents[1]
-OUT=Path('<workspace>/outputs/h2o-collision-data-20261029')
+OUT=Path('/home/treefor/sim-workspace/powerflow/outputs/h2o-collision-data-20261029')
 FROZEN=Path('/home/treefor/projects/runtimes/arch-base-20261028/run-frozen')
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def dump(p,v):p.write_text(json.dumps(v,indent=2,allow_nan=False)+'\n')

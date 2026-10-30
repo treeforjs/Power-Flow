@@ -1,6 +1,6 @@
 from pathlib import Path
 import os,json,hashlib,subprocess,shutil,sys
-p=Path(__file__).parent;s=p/'snapshot';o=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-native-subflow-v6_1-review-20261029')
+p=Path(__file__).parent;s=p/'snapshot';o=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-native-subflow-v6_1-review-20261029')
 assert sorted(os.sched_getaffinity(0))==[7] and os.getpriority(os.PRIO_PROCESS,0)==15
 sha=lambda f:hashlib.sha256(f.read_bytes()).hexdigest()
 for rec in json.loads((o/'input-bindings.json').read_text()):assert sha(Path(rec['snapshot']))==rec['sha256']

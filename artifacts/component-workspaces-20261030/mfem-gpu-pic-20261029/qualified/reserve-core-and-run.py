@@ -41,7 +41,7 @@ def main():
     os.setsid();write(GROUP/'cgroup.procs',str(os.getpid()))
     os.sched_setaffinity(0,{7})
     os.initgroups(account.pw_name,account.pw_gid);os.setgid(account.pw_gid);os.setuid(account.pw_uid)
-    os.chdir('<workspace>')
+    os.chdir('/home/treefor/sim-workspace/powerflow')
     frozen='/home/treefor/projects/runtimes/arch-base-20261028/run-frozen'
     os.execve(frozen,[frozen,'/usr/bin/python',SUPERVISOR],dict(os.environ,HOME=account.pw_dir))
    except Exception as exc:print('GPU child setup failed:',exc,file=sys.stderr,flush=True);os._exit(1)

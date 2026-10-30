@@ -4,8 +4,8 @@ from phase_map import ObliqueSNCoordinates
 import saddle_modes as sm
 
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15
-out=Path('<workspace>/outputs/pic-oblique-phase-map-20261029')
-inp=Path('<workspace>/outputs/pic-emission-applicability-v2-20261029/frozen-probes-with-historical-temperature.csv')
+out=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-oblique-phase-map-20261029')
+inp=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-emission-applicability-v2-20261029/frozen-probes-with-historical-temperature.csv')
 rows=list(csv.DictReader(inp.open()))
 checks=0;max_inverse=max_energy=max_pair_energy=max_current_return=max_bound_violation=0.
 max_normal_only_error=0.;max_nonlocal=0.;actual=0;total_pairs=0

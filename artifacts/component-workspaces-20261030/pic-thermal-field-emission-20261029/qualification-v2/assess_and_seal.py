@@ -1,7 +1,7 @@
 import collections, csv, hashlib, json, os, pathlib, shutil, time
 
 C = pathlib.Path('/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029')
-O = pathlib.Path('<workspace>/outputs/pic-thermal-field-emission-20261029')
+O = pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/pic-thermal-field-emission-20261029')
 S = C/'snapshots/usable-api-v1'
 Q = C/'qualification-v2'
 E = O/'qualification-v2'

@@ -11,7 +11,7 @@ import os
 import sys
 
 sys.dont_write_bytecode=True
-ROOT=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile')
+ROOT=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile')
 OUT=ROOT/'particle-motion-audit'
 SOURCE=ROOT/'cpu-independent-review/checkpoint-validation/compare_saved_pic.py'
 assert os.sched_getaffinity(0)=={6} and os.getpriority(os.PRIO_PROCESS,0)==15

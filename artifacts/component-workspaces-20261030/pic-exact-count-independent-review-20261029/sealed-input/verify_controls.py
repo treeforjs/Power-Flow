@@ -1,7 +1,7 @@
 from pathlib import Path
 import fcntl,hashlib,json,os,subprocess,math
 from fractions import Fraction
-P=Path('/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-exact-count');R=Path('<workspace>/outputs/pic-profile/reaction-transactions-20261029/native-exact-count');frozen='/home/treefor/projects/runtimes/arch-base-20261028/run-frozen';kernel=P/'control-inputs/source-kernel';B=P/'build'
+P=Path('/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-exact-count');R=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-exact-count');frozen='/home/treefor/projects/runtimes/arch-base-20261028/run-frozen';kernel=P/'control-inputs/source-kernel';B=P/'build'
 assert os.sched_getaffinity(0)=={7}and os.getpriority(os.PRIO_PROCESS,0)==15
 with(R.parent.parent/'testing-core7.lock').open('a')as h:
  try:fcntl.flock(h,fcntl.LOCK_EX|fcntl.LOCK_NB)

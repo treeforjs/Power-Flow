@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 prefix=/home/treefor/projects/runtimes/pic-collision-grid-design-20261029
-lease=<workspace>/outputs/pic-profile/testing-core7.lock
+lease=/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core7.lock
 frozen=/home/treefor/projects/runtimes/arch-base-20261028/run-frozen
 mkdir "$1"
 flock "$lease" taskset -c 7 nice -n 15 "$frozen" env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 python "$prefix/microcase.py" --out "$1/geometry"

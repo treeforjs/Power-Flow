@@ -1,6 +1,6 @@
 from pathlib import Path
 import os,json,hashlib,shutil,subprocess,tarfile,datetime
-P=Path(__file__).parent;R=Path('<workspace>/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003')
+P=Path(__file__).parent;R=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003')
 if os.sched_getaffinity(0)!={7}or os.getpriority(os.PRIO_PROCESS,0)!=15:raise RuntimeError('CPU7/nice15 required')
 m=json.loads((P/'SOURCE-SHA256.json').read_text());v=json.loads((R/'verification-result.json').read_text())
 if v['status']!='passed-bounded-components-only'or v['source_identity']!=m['source_identity']:raise RuntimeError('verification identity')

@@ -5,7 +5,7 @@ import json
 import os
 import time
 
-W = Path('/home/treefor/Documents/Codex/2026-10-28/we')
+W = Path('/home/treefor/sim-workspace/powerflow')
 G = Path('/sys/fs/cgroup/powerflow-pic-gpu-reserved')
 
 def cpus(value):

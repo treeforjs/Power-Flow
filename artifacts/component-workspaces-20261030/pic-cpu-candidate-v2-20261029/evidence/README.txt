@@ -13,6 +13,6 @@ Compiled ABI probes compare sizeof, alignof, every member offset and member size
 Every build and test command runs with logical CPU 6, nice 15, one compiler job, OMP/BLAS thread counts 1, and an exclusive testing-core.lock lease; lock exclusion is verified. CUDA_VISIBLE_DEVICES is empty for this CPU validation. commands.json records the exact frozen-runtime commands and their exit statuses. No dependency, physics, tolerance, source particle count, checkpoint structure, GPU implementation or production process was changed. No GPU execution, timing claim or deployment is included. Complete checkpoint validation and timing remain separate steps.
 
 Reproduce the CPU build and checks:
-flock <workspace>/outputs/pic-profile/testing-core.lock taskset -c 6 nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= python3 -u /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/build_and_check.py
+flock /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock taskset -c 6 nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= python3 -u /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/build_and_check.py
 
 Use handoff.json and READY as the stable review entry point. diff-from-v1.patch contains the two-file change; combined-diff-from-sealed-source.patch contains the complete candidate changes. source-manifest.json and build-manifest.json bind sources and build outputs.

@@ -1,6 +1,6 @@
 from pathlib import Path
 import os,subprocess,json
-p=Path(__file__).parent;o=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-generic-products-native-audit-20261029');assert sorted(os.sched_getaffinity(0))==[7]
+p=Path(__file__).parent;o=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-generic-products-native-audit-20261029');assert sorted(os.sched_getaffinity(0))==[7]
 n=Path('/home/treefor/projects/runtimes/pic-native-subflow-v6_2-review-20261029/native');base='/home/treefor/projects/runtimes/mfem-4.10-pic-20261029';includes=['-I'+str(n/'source/include'),'-isystem',str(p/'products/include'),'-isystem',str(n/'inputs'),'-I'+str(n/'vendor')]
 for s in ('install-mpi/include','tpl/hypre/include','tpl/metis/include'):includes+=['-isystem',base+'/'+s]
 commands=[];command=['/usr/bin/mpic++','-std=c++20','-O2','-g','-ffunction-sections','-fdata-sections','-Wall','-Wextra','-Wpedantic','-Werror']+includes+['-c',str(p/'site-capability.cpp'),'-o',str(p/'build/site.o')];commands.append(command)

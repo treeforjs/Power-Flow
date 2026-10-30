@@ -7,7 +7,7 @@
   "published_water_dataset_sha256": "bac4e1e0876caae8eec0f11c5183458561e2c92661653cdb6803310bca2f5f77",
   "published_water_contract": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-collision-port-v7.json",
   "published_water_contract_sha256": "e11cce6cf09122d5ca254cc15ba114e9e2aca7fa26f92bc5e2d197ddbd1be865",
-  "published_water_source_archive": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/source-archive/raikou-h2o-deep-valence-0f57b0427463.tar.gz",
+  "published_water_source_archive": "/home/treefor/sim-workspace/powerflow/outputs/h2o-collision-data-20261029/source-archive/raikou-h2o-deep-valence-0f57b0427463.tar.gz",
   "published_water_source_archive_sha256": "5829256a82b4c6edda82e78bad8ff67cdc180c5c4e36e92694412396f1b1627b",
   "published_water_conditional_models": 10,
   "stored_observables_including_diagnostics": 39,
@@ -18,7 +18,7 @@
     "sha256": "f9a704b920f74e350cd5a2c492bdebc876dca529a2581eda47c36b14656ab5f3",
     "checks": 515,
     "status": "uncommitted_separate_snapshot_preserved_no_integration",
-    "snapshot": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/full-audit-001/v8-working-snapshot.json"
+    "snapshot": "/home/treefor/sim-workspace/powerflow/outputs/h2o-collision-data-20261029/full-audit-001/v8-working-snapshot.json"
   },
   "at_8084_470604111418_eV": {
     "rates_m2": {
@@ -42,7 +42,7 @@
       "finding": "Generic api-handoff.json combines a v7 dataset/current_commit/current_native_checks with unprefixed v1 commit/native_checks/archive fields; outer3_coverage_warning still says Auger missing. Historical outer3 model exclusions remain correct for that subset, but the generic handoff is not a single-version import manifest.",
       "evidence": [
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/api-handoff.json",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/h2o-collision-data-20261029/api-handoff.json",
           "lines": [
             4,
             19,
@@ -53,7 +53,7 @@
           ]
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/coordination-handoff-v7.json"
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/h2o-collision-data-20261029/coordination-handoff-v7.json"
         }
       ],
       "impact": "An importer choosing unprefixed fields can bind the wrong commit, tests or archive to the current dataset.",
@@ -129,10 +129,10 @@
           "end": 67
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/full-audit-001/v8-working-snapshot.json"
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/h2o-collision-data-20261029/full-audit-001/v8-working-snapshot.json"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/fragment-continuation-research.json"
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/h2o-collision-data-20261029/fragment-continuation-research.json"
         }
       ],
       "remedy": "Preserve H as a separate target/density with oneH debit, zeroH2O debit and net electron gain1. Do not deploy this candidate during the audit. H2Oplus dissociative recombination is only a primary-source research lead; no rate/kernel was admitted. A thermal300K recombination coefficient cannot replace energy-resolved nonthermalPIC data."
@@ -166,10 +166,10 @@
       "finding": "The corrected figure recovery has50 nominal mass channels, not450 independent measurements. RGA channels include ionizer cracking and species overlap; peak16/17/18 does not establish neutralO/OH/H2O fractions. Instrument settings, sensitivity/cracking matrix, raw timing, gas temperature and independent total-gauge calibration were not recovered.",
       "evidence": [
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/rga-channel-recovery/figure_2_3_rga_recovery.json"
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/rga-channel-recovery/figure_2_3_rga_recovery.json"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/work/smith-dissertation-2025.pdf",
+          "path": "/home/treefor/sim-workspace/powerflow/work/smith-dissertation-2025.pdf",
           "PDF_page_one_based": 44,
           "printed_page": 19
         },
@@ -223,10 +223,10 @@
           "end": 199
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/full-audit-001/observable-catalog.json"
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/h2o-collision-data-20261029/full-audit-001/observable-catalog.json"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/full-audit-001/conditional-model-catalog.json"
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/h2o-collision-data-20261029/full-audit-001/conditional-model-catalog.json"
         }
       ],
       "remedy": "Select one parent model at the shared endpoint and declare a single hazard partition. Treat OHv0..4 as oneDEA family branching, not five copies of its rate. Do not add inclusiveOH plusA1B1, IAM plus molecular elastic, original fullBEB plus orbital branches, or old2a1 plus the new partition. ReducedEMT/bend export is not a completePIC or waterF0 mechanism."
@@ -261,5 +261,5 @@
   "physical_time_advanced": 0,
   "active_run_modified": false,
   "scope_boundary": "Read-only source/provenance/receipt audit; writes confined to this separate audit package. No source/model substitution, commit, push, launch or production change.",
-  "consolidation_entrypoint": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/full-audit-001/handoff.json"
+  "consolidation_entrypoint": "/home/treefor/sim-workspace/powerflow/outputs/h2o-collision-data-20261029/full-audit-001/handoff.json"
 }

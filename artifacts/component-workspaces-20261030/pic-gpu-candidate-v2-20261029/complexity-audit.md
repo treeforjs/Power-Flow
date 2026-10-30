@@ -1,6 +1,6 @@
 # Complexity and measured opportunity
 
-The baseline's 422 inferred solve spans contain 2.864 s of device activity in 3.318 s of host time, approximately 86.3% coverage. Actual application vector transfers take only 67.193 ms. Sparse triangular and TRSV kernels account for most device time. Across the wider trace, long host gaps separate solves. Evidence is preserved in [trace-review.md](<workspace>/outputs/pic-profile/gpu-independent-review/trace-review.md).
+The baseline's 422 inferred solve spans contain 2.864 s of device activity in 3.318 s of host time, approximately 86.3% coverage. Actual application vector transfers take only 67.193 ms. Sparse triangular and TRSV kernels account for most device time. Across the wider trace, long host gaps separate solves. Evidence is preserved in [trace-review.md](/home/treefor/sim-workspace/powerflow/outputs/pic-profile/gpu-independent-review/trace-review.md).
 
 If operation durations remain fixed, removing every non-device interval inside those backend spans offers about 0.454 s of schedule-only headroom in this traced replay. This is an optimistic trace-specific ceiling, not an actual graph gain or an unprofiled application prediction. Capture adds a reference solve per system, graph construction/inspection, pinned buffers, staging copies, stream/allocator lifetime obligations and unsupported-feature recovery. V2 adds a setup-only synchronization and diagnostic state bookkeeping; no file I/O is added to steady successful solves.
 

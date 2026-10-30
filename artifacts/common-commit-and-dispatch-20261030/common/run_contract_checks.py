@@ -9,7 +9,7 @@ import subprocess
 import time
 
 P = Path(__file__).resolve().parent
-O = Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-water-common-commit-v2-20261030')
+O = Path('/home/treefor/sim-workspace/powerflow/outputs/pic-water-common-commit-v2-20261030')
 R = Path('/home/treefor/projects/runtimes')
 N = R/'pic-water-full-time-subflow-20261029/native'
 M = R/'mfem-4.10-pic-20261029'

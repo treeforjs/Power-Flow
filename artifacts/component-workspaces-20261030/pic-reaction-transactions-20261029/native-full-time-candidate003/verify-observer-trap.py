@@ -1,6 +1,6 @@
 from pathlib import Path
 import sys,os,json,subprocess
-P=Path(__file__).parent;R=Path('<workspace>/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003')
+P=Path(__file__).parent;R=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003')
 if os.sched_getaffinity(0)!={7}or os.getpriority(os.PRIO_PROCESS,0)!=15:raise RuntimeError('CPU7/nice15 required')
 subprocess.run([sys.executable,str(P/'run-candidate-tests.py')],check=True)
 C=json.loads((R/'candidate-tests-commands.json').read_text());command=[('-O1'if x in['-O0','-O2']else '-g'if x=='-g0'else x)for x in C[0]];command[command.index('-c'):command.index('-c')]=['-fsanitize=address,undefined','-fno-omit-frame-pointer'];command[-1]=str(P/'build/sanitized-candidate-tests.o')

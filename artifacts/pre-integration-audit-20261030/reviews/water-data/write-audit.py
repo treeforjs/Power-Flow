@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 
 R = Path('/home/treefor/projects/runtimes/h2o-collision-data-20261029')
-W = Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029')
+W = Path('/home/treefor/sim-workspace/powerflow/outputs/h2o-collision-data-20261029')
 A = Path(__file__).resolve().parent
 O = W.parent
 

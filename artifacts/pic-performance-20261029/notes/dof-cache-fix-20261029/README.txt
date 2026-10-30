@@ -3,11 +3,11 @@ Isolated DOF cache invalidation fix
 Status: prepared and CPU-verified. Shared candidate and active GPU run untouched.
 
 Source copy:
-/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/source
+/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/source
 Base source:
 /home/treefor/projects/runtimes/pic-cpu-candidate-20261029/source
 Patch:
-/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/dof-cache-invalidation.patch
+/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/dof-cache-invalidation.patch
 Patch SHA-256: aa423ea8f3f221dcc1060d2cdb1bdcfa2498577d365461aa93509804c125f387
 
 Minimal production change
@@ -35,11 +35,11 @@ The original reproducer was rerun on CPU 6 at nice 15 and confirmed the original
 - Native field/time-cache trace: 31386 bytes, byte-identical; SHA-256 64fe3cfda218d0b1fea64b578187145544532abdba6db160ae2a646f21a794c9. The two-million-sample checksum also matches.
 
 All builds, utilities and tests used CPU 6, nice 15 and one local job; OMP/BLAS thread counts were 1 and CUDA_VISIBLE_DEVICES was empty for tests. The initial build/full checks completed before the lease update was observed. A final six-check verification was then rerun beneath exclusive flock on:
-/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock
+/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock
 The final verification confirmed lock exclusion, CPU affinity [6] and nice 15. See leased-verification.json and leased-logs/. The rerun entry point now acquires the same lease before any build or test.
 
 Reproduce all CPU checks (the script takes the lease internally):
-taskset -c 6 nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= python3 -u /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/run_cpu_checks.py
+taskset -c 6 nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= python3 -u /home/treefor/sim-workspace/powerflow/outputs/pic-profile/cpu-independent-review/dof-cache-fix-20261029/run_cpu_checks.py
 
 Evidence
 results.json: complete first-run result and trace comparisons.

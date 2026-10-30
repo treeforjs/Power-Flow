@@ -1,7 +1,7 @@
 from pathlib import Path
 import datetime,fcntl,hashlib,json,os,subprocess
 PREFIX=Path('/home/treefor/projects/runtimes/pic-reaction-transactions-20261029')
-REPORT=Path('<workspace>/outputs/pic-profile/reaction-transactions-20261029')
+REPORT=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029')
 LEASE=REPORT.parent/'testing-core7.lock'
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)==15
 with LEASE.open('a')as h:
@@ -10,7 +10,7 @@ with LEASE.open('a')as h:
  else:raise RuntimeError('CPU7 lease required')
 REPORT.mkdir(parents=True,exist_ok=True);(PREFIX/'build').mkdir(exist_ok=True)
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
-inputs=[Path('<workspace>/outputs/supplied-chicago-papers-20261029/H2O-readiness.txt'),
+inputs=[Path('/home/treefor/sim-workspace/powerflow/outputs/supplied-chicago-papers-20261029/H2O-readiness.txt'),
  REPORT.parent/'fragmentation-raikou-plan/physics-data-handoff.txt',REPORT.parent/'energy-work-ownership-audit/DESIGN-BRIEF.txt',REPORT.parent/'energy-work-ownership-audit/ENERGY-WORK-DESIGN.txt',
  Path('/home/treefor/projects/raikou-mfem/include/raikou/mfem_gap_pic.h'),Path('/home/treefor/projects/raikou-mfem/src/mfem_gap_pic.cpp'),
  Path('/home/treefor/projects/raikou/include/raikou/electron_coupling.h'),Path('/home/treefor/projects/raikou/include/raikou/json.hpp'),

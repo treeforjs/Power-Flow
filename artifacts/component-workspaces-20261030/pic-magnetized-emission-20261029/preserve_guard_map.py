@@ -1,6 +1,6 @@
 import hashlib,json,os,pathlib,shutil,time
 C=pathlib.Path('/home/treefor/projects/runtimes/pic-magnetized-emission-20261029')
-O=pathlib.Path('<workspace>/outputs/pic-magnetized-emission-20261029')
+O=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029')
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15
 P=O/'source-backup-guard-map-v1'
 assert not P.exists()

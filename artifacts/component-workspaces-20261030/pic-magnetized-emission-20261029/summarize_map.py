@@ -1,5 +1,5 @@
 import collections,csv,hashlib,json,math,os,pathlib,statistics
-base=pathlib.Path('<workspace>/outputs/pic-magnetized-emission-20261029')
+base=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029')
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15
 rows=[]
 for p in (base/'rate-map').glob('guard-rate-map-*.csv'):rows.extend(csv.DictReader(p.open()))
@@ -28,7 +28,7 @@ for key in sorted({(x['face'],float(x['T_K'])) for x in rows}):
  summary.append(item)
 with (base/'rate-weighted-admission-map.csv').open('w') as f:
  w=csv.DictWriter(f,fieldnames=rows[0].keys());w.writeheader();w.writerows(rows)
-probes=pathlib.Path('<workspace>/outputs/cathode-emission-audit-20261029/fields/probes.csv')
+probes=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/cathode-emission-audit-20261029/fields/probes.csv')
 report={'schema':'nominal-MG-rate-weighted-magnetic-applicability-map-v1',
  'coverage':{'legacy_field_probes':1056,'temperatures_K':[300,773.15,1490],'states':3168,'all_rows_retained':True},
  'source_phi_eV':4.3,'source_phi_status':'clean SS304 benchmark; no temperature/surface calibration',

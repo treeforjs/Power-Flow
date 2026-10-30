@@ -101,4 +101,4 @@ binds source, binaries, headers, libraries and every actual fixture payload.
 tools/verify_inputs.py checks these bindings without launching any computation.
 
 See the parent request and final CPU receipt in:
-<workspace>/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation
+/home/treefor/sim-workspace/powerflow/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation

@@ -1,6 +1,6 @@
 from pathlib import Path
 import os,json,hashlib
-p=Path(__file__).parent;o=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-native-subflow-v6_2-review-20261029');assert sorted(os.sched_getaffinity(0))==[7]
+p=Path(__file__).parent;o=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-native-subflow-v6_2-review-20261029');assert sorted(os.sched_getaffinity(0))==[7]
 sha=lambda f:hashlib.sha256(f.read_bytes()).hexdigest();identity=json.loads((o/'native-source-identity.json').read_text())
 assert identity['sha256']=='5fa3a59f863e98f21e20af698b9c16417f3749344b555f18e3d2cba1e4f5a705'
 assert sha(p/'native-source.tar.gz')=='d14f1e229bbd8a84cf75b782f49562217972d4cd55b086fd8f932cc4f0e37db4'

@@ -1,6 +1,6 @@
 from pathlib import Path
 import json,os,hashlib,subprocess,resource,time
-P=Path(__file__).parent;O=Path('<workspace>/outputs/pic-streaming-chemistry-evidence-20261030');G=Path('/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029')
+P=Path(__file__).parent;O=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-streaming-chemistry-evidence-20261030');G=Path('/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029')
 def need(x,s):
  if not x:raise RuntimeError(s)
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()

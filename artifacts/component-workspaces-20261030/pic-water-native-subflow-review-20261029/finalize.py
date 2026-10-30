@@ -1,7 +1,7 @@
 from pathlib import Path
 from fractions import Fraction as F
 import os,json,hashlib,math
-p=Path(__file__).parent;s=p/'snapshot';o=Path('<workspace>/outputs/pic-water-native-subflow-review-20261029')
+p=Path(__file__).parent;s=p/'snapshot';o=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-water-native-subflow-review-20261029')
 assert sorted(os.sched_getaffinity(0))==[7]
 sha=lambda f:hashlib.sha256(f.read_bytes()).hexdigest()
 for rec in json.loads((o/'input-bindings.json').read_text()):assert sha(Path(rec['snapshot']))==rec['sha256']

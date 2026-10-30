@@ -4,7 +4,7 @@ from pathlib import Path
 
 P=Path(__file__).resolve().parent
 R=Path('/home/treefor/projects/runtimes')
-O=Path('<workspace>/outputs/pic-water-common-commit-v3-20261030')
+O=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-water-common-commit-v3-20261030')
 N=R/'pic-reaction-transactions-20261029/native-full-time-candidate003'
 H=R/'hall-coupled-transport-20261029/source'
 I=R/'pic-water-full-time-subflow-20261029/inputs'

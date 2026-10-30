@@ -113,8 +113,8 @@ Physical gates
 
 Reproduce under the existing resource agreement
   From the private source checkout, run each command sequentially:
-  env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= taskset -c6 nice -n15 flock /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock python development/hall-finite-foil-em-20261029/run.py NEW-2D-RUN
-  env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= taskset -c6 nice -n15 flock /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock python development/hall-finite-foil-em-20261029/run_axial.py NEW-AXIAL-RUN
+  env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= taskset -c6 nice -n15 flock /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock python development/hall-finite-foil-em-20261029/run.py NEW-2D-RUN
+  env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= taskset -c6 nice -n15 flock /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock python development/hall-finite-foil-em-20261029/run_axial.py NEW-AXIAL-RUN
   Each build/run uses frozen userspace/dependencies, CPU 6/nice 15, one thread,
  2 GiB,180 CPU seconds and240 wall seconds per native command. New run names prevent
   overwriting evidence. No GPU, dependency upgrades, shared-repository edits,

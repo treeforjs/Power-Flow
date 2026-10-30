@@ -140,7 +140,7 @@ Native accepted case execution: CPU7 only, nice15, OMP_NUM_THREADS=1, frozen
 userspace, 0.252 s native wall time. Resource details are in evidence-003.
 Build/run with a NEW output directory (no production state is touched):
   /home/treefor/projects/runtimes/pic-plasma-screening-20261029/build-and-run.sh \
-    /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-plasma-screening-20261029/evidence-review
+    /home/treefor/sim-workspace/powerflow/outputs/pic-plasma-screening-20261029/evidence-review
 The wrapper holds testing-core7.lock, compiles -j1 and uses the frozen userspace.
 Maximum diagnostic mesh is 3x129 nodes and 2048 macros; each response has at
 most 160 iterations; there are exactly 12 slab cases and 32 neutral transport

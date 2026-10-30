@@ -1,7 +1,7 @@
 from pathlib import Path
 import os,json,hashlib,struct,math,csv
 from fractions import Fraction
-P=Path(__file__).parent;O=Path('<workspace>/outputs/pic-streaming-chemistry-evidence-20261030')
+P=Path(__file__).parent;O=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-streaming-chemistry-evidence-20261030')
 def need(x,s):
  if not x:raise RuntimeError(s)
 need(os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)==15,'CPU7/nice15 required')

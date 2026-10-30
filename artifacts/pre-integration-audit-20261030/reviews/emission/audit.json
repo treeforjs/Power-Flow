@@ -21,7 +21,7 @@
           "line_text": "    need(state.quantum_magnetic_energy_fraction<=p.maximum_quantum_magnetic_energy_fraction,"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-emission-applicability-v2-20261029/source-backup-applicability-v2/phase_guard.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-emission-applicability-v2-20261029/source-backup-applicability-v2/phase_guard.hpp",
           "line": 12,
           "file_sha256": "6c34e7bcc645b81bcf4d2f780332f81dcc910d84930b43eba6cfc7f03d15ebbc",
           "line_text": " PhaseBoundary p;p.thermal_step=d.extraction_field_V_m<=0;if(p.thermal_step){p.all_transverse=true;p.maximum_transverse_eV=INFINITY;return p;}"
@@ -44,25 +44,25 @@
           "line_text": "        if(return_crossing) {"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
           "line": 98,
           "file_sha256": "171d1837e502bc6cba2744d46df6ff337d9486eac53926cce73461d8500ed054",
           "line_text": " while(out.state.native.status==se::LayerStatus::Active&&out.state.native.current_time_s<target){const auto base=out.state.native;double h=target-base.current_time_s;bool admitted=false;for(int refine=0;refine<=controls.maximum_refinements&&!admitted;++refine){PrecisionPath at;at.origin_m=p.origin_m;at.from_relative_m=at.to_relative_m=base.position_from_surface_m;auto guess=p.field->sample(at);bool shrink=false;for(int iteration=0;iteration<controls.maximum_field_iterations;++iteration){eh::need(out.kernel_calls<controls.maximum_kernel_calls,\"source path-field kernel-call budget exceeded; reject/refine common trial\");auto stage=p.native.stage;stage.stage_time=stage.field_time=frame.field_stage_s;stage.total_E=guess.E;stage.total_B_T=guess.B;auto trial=se::advance_layer(base,stage,policy,h);++out.kernel_calls;++out.field_iterations;const se::CurrentPath* moving=nullptr;int moves=0;for(const auto&path:trial.paths)if(path.end_time_s>path.start_time_s){moving=&path;++moves;}if(moves!=1){shrink=true;break;}auto actual=p.field->sample(precision_path(*moving,p.origin_m));eh::need(frame.dt_s*se::qe/se::me*norm(actual.B)<=.05,\"active source full-common-interval gyro guard failed\");if(!field_close(guess.E,actual.E)||!field_close(guess.B,actual.B)){guess=actual;continue;}std::vector<PrecisionPath> paths;bool work_ok=true;for(const auto&path:trial.paths){paths.push_back(precision_path(path,p.origin_m));work_ok=work_ok&&path_work_matches(*p.field,paths.back());}if(!work_ok){shrink=true;break;}out.state.native=trial.state;add(out.exchange,trial.exchange);out.paths.insert(out.paths.end(),paths.begin(),paths.end());admitted=true;break;}"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
           "line": 176,
           "file_sha256": "16981dd558bd344d6179db1348442de7bc86f32b9e884fb9b2dd9696d453514a",
           "line_text": "QuantumReturn resolve_quantum_return(const se::Stage& stage,const Config& cfg,const se::LayerPolicy& policy,const se::LayerTrial& incoming,double uniform) {"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
           "line": 200,
           "file_sha256": "16981dd558bd344d6179db1348442de7bc86f32b9e884fb9b2dd9696d453514a",
           "line_text": "    const double logarithm=logD(barrier.gamow(E,legendre(cfg.action_nodes)));"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
           "line": 203,
           "file_sha256": "16981dd558bd344d6179db1348442de7bc86f32b9e884fb9b2dd9696d453514a",
           "line_text": "    // Subtract the provisional reverse-quantum bridge exactly, retaining all"
@@ -79,67 +79,67 @@
       "title": "Strict tangent and oblique diagnostics do not qualify a full oblique emitter",
       "code_references": [
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
           "line": 106,
           "file_sha256": "16981dd558bd344d6179db1348442de7bc86f32b9e884fb9b2dd9696d453514a",
           "line_text": "    need(cfg.continuum_free_electron_reservoir_selected && cfg.incoherent_onepass_matching_selected,\"Conditional continuum-reservoir/one-pass assumptions must be selected\");"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
           "line": 113,
           "file_sha256": "16981dd558bd344d6179db1348442de7bc86f32b9e884fb9b2dd9696d453514a",
           "line_text": "    need(F>=5e7 && F<=1e8 && std::abs(Bn)<=1e-12*std::max(1.,B) && B<=40,\"Tangent-only prototype does not cover oblique B or this field range\");"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
           "line": 115,
           "file_sha256": "16981dd558bd344d6179db1348442de7bc86f32b9e884fb9b2dd9696d453514a",
           "line_text": "    need(norm(Etangent)<=1e-12*F,\"Tangent-only prototype requires normal E\");"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
           "line": 151,
           "file_sha256": "16981dd558bd344d6179db1348442de7bc86f32b9e884fb9b2dd9696d453514a",
           "line_text": "    const auto bound=unknown_bounds(cfg.work_function_eV,F,B,t,emin,emax,r,delta);out.unresolved_current_upper_A_m2=bound.current;out.unresolved_absolute_heat_upper_W_m2=bound.heat;"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/phase_map.py",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/phase_map.py",
           "line": 55,
           "file_sha256": "b65f2b2b67036c7e5f3a65eeba6956cf4fb0973cc0666f156c0114f052bf400c",
           "line_text": "    def anharmonic_remainder_eV(self,x):"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/phase_map.py",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/phase_map.py",
           "line": 68,
           "file_sha256": "b65f2b2b67036c7e5f3a65eeba6956cf4fb0973cc0666f156c0114f052bf400c",
           "line_text": "    def transformed_full_SN_energy_eV(self,Z):"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/phase_map.py",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/phase_map.py",
           "line": 74,
           "file_sha256": "b65f2b2b67036c7e5f3a65eeba6956cf4fb0973cc0666f156c0114f052bf400c",
           "line_text": "    def reciprocal_kinematic_pair(self,phase,charge_C,*,tangential_E_V_m=(0.,0.),uniform_static_field_admitted=False):"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/phase_map.py",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/phase_map.py",
           "line": 86,
           "file_sha256": "b65f2b2b67036c7e5f3a65eeba6956cf4fb0973cc0666f156c0114f052bf400c",
           "line_text": "    def emit(self,*args,**kwargs):"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/dividing_surface_bound.py",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/dividing_surface_bound.py",
           "line": 68,
           "file_sha256": "b34b0c3c90fdb25f85d022f104a3934c1ef00c7be16bcd92701d69cdce2e001b",
           "line_text": "    def crossing(self,energy_uniform,partition_uniform,azimuth_uniform,physical_weight=1.):"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/dividing_surface_bound.py",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/dividing_surface_bound.py",
           "line": 78,
           "file_sha256": "b34b0c3c90fdb25f85d022f104a3934c1ef00c7be16bcd92701d69cdce2e001b",
           "line_text": "    def bounds(self):"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/dividing_surface_bound.py",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1/dividing_surface_bound.py",
           "line": 81,
           "file_sha256": "b34b0c3c90fdb25f85d022f104a3934c1ef00c7be16bcd92701d69cdce2e001b",
           "line_text": "    def emit(self,*args,**kwargs):"
@@ -163,43 +163,43 @@
           "line_text": "PreparedFlux prepare(const Stage& s,const Config& c) {"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/axial_trial_field.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/axial_trial_field.hpp",
           "line": 12,
           "file_sha256": "d5aba2d4bdbb4bdb35535a357f3474f6d649d769e18a505bd80c2af21a53c85e",
           "line_text": " AxialTrialField(std::shared_ptr<const axial::Mesh>g,TrialFrame f,foil::Vec E,foil::Vec B):TrialField(std::move(f)),mesh_(std::move(g)),E_(std::move(E)),B_(std::move(B)){eh::need(mesh_&&E_.size()==std::size_t(mesh_->ne)&&B_.size()==std::size_t(mesh_->nb)&&foil::finite(E_)&&foil::finite(B_),\"actual immutable Hall midpoint arrays required\");values_hash_=fingerprint(E_)+\"/\"+fingerprint(B_);}"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/axial_trial_field.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/axial_trial_field.hpp",
           "line": 17,
           "file_sha256": "d5aba2d4bdbb4bdb35535a357f3474f6d649d769e18a505bd80c2af21a53c85e",
           "line_text": " FieldSample surface(V3 x,V3 n)const override{int axes=0;V3 grid_origin{-mesh_->side/2,-mesh_->side/2,mesh_->zmin},spacing{mesh_->dx,mesh_->dy,mesh_->dz};for(int d=0;d<3;++d){eh::need(n[d]==0||std::abs(n[d])==1,\"axis-aligned admitted material normal required\");if(n[d]){++axes;double coordinate=(x[d]-grid_origin[d])/spacing[d],plane=std::round(coordinate);if(std::abs(coordinate-plane)<=64*eh::eps*std::max(1.,std::abs(coordinate))){bool entered=false;for(int step=0;step<64;++step){x[d]=std::nextafter(x[d],n[d]>0?INFINITY:-INFINITY);double a=(x[d]-grid_origin[d])/spacing[d];if(n[d]>0?a>plane:a<plane){entered=true;break;}}eh::need(entered,\"one-sided field limit unresolved at coordinate precision\");}}}eh::need(axes==1,\"one material normal axis required\");return at(x,{});}"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/axial_trial_field.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/axial_trial_field.hpp",
           "line": 18,
           "file_sha256": "d5aba2d4bdbb4bdb35535a357f3474f6d649d769e18a505bd80c2af21a53c85e",
           "line_text": " bool admits_normal_quantum_bridge(const PrecisionPath&p,V3 n)const override{int axis=-1;for(int d=0;d<3;++d)if(p.displacement_m[d]!=0){if(axis>=0||std::abs(n[d])!=1||p.displacement_m[d]*n[d]<=0)return false;axis=d;}if(axis<0)return false;V3 grid_origin{-mesh_->side/2,-mesh_->side/2,mesh_->zmin},spacing{mesh_->dx,mesh_->dy,mesh_->dz};double a=(p.absolute_from()[axis]-grid_origin[axis])/spacing[axis],nearest=std::round(a);if(std::abs(a-nearest)<=64*eh::eps*std::max(1.,std::abs(a)))a=nearest;double b=a+p.displacement_m[axis]/spacing[axis];int cell=p.displacement_m[axis]>0?int(std::floor(a)):int(std::ceil(a))-1;return p.displacement_m[axis]>0?b<cell+1:b>cell;}"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
           "line": 58,
           "file_sha256": "171d1837e502bc6cba2744d46df6ff337d9486eac53926cce73461d8500ed054",
           "line_text": " PreparedPatch p;p.heat=&heat;p.epoch=epoch;p.patch_index=patch;p.binding=std::move(bind);p.field=std::move(field);p.origin_m=origin;p.exposure=exposure;p.thermal_signature=heat.config_signature();auto n=heat.normal(patch);auto sample=p.field->surface(origin,n);eh::need(f.dt_s*se::qe/se::me*norm(sample.B)<=.05,\"source full-common-interval gyro guard failed\");eh::need(finite(sample.E)&&finite(sample.B),\"nonfinite one-sided trial fields\");"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
           "line": 91,
           "file_sha256": "171d1837e502bc6cba2744d46df6ff337d9486eac53926cce73461d8500ed054",
           "line_text": " if(!c.paths.empty()){eh::need(p.field->admits_normal_quantum_bridge(c.paths.front(),p.native.stage.outward_normal),\"source-v1 constant-normal-field barrier not admitted across trial-field cells\");auto endpoint=c.paths.back();endpoint.from_relative_m=endpoint.to_relative_m;endpoint.displacement_m={};auto far=p.field->sample(endpoint);auto check_flux=flux;check_flux.stage.total_B_T=far.B;auto guard=se::begin_layer(check_flux,policy,sample.physical_weight,sample.normal_uniform,sample.transverse_uniform,sample.azimuth_uniform,sample.event_id);++c.kernel_calls;c.maximum_quantum_magnetic_fraction=std::max(c.maximum_quantum_magnetic_fraction,guard.state.quantum_magnetic_energy_fraction);}"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-emission-applicability-v2-20261029/source-backup-applicability-v2/extract_frozen_temperature.py",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-emission-applicability-v2-20261029/source-backup-applicability-v2/extract_frozen_temperature.py",
           "line": 21,
           "file_sha256": "66af6809bee173a8d248aab443860b6797fc6e74421ba1f761db265d135b2455",
           "line_text": "t=field['time_s'];k=max(0,min(count-2,bisect.bisect_right(times,t)-1));q=max(0.,min(1.,(t-times[k])/(times[k+1]-times[k])))"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-emission-applicability-v2-20261029/source-backup-applicability-v2/extract_frozen_temperature.py",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-emission-applicability-v2-20261029/source-backup-applicability-v2/extract_frozen_temperature.py",
           "line": 42,
           "file_sha256": "66af6809bee173a8d248aab443860b6797fc6e74421ba1f761db265d135b2455",
           "line_text": "summary={'schema':'frozen-field-instantaneous-historical-temperature-binding-v1','field_time_s':t,"
@@ -241,7 +241,7 @@
           "line_text": "    require(s.locally_planar_barrier_admitted && s.local_equilibrium_electron_supply_admitted,\"Planar barrier/local equilibrium supply approximation must be admitted\");"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
           "line": 56,
           "file_sha256": "171d1837e502bc6cba2744d46df6ff337d9486eac53926cce73461d8500ed054",
           "line_text": " eh::need(bind.material_phase_admitted&&bind.planar_barrier_admitted&&bind.electron_supply_admitted&&(bind.temperature==HeldTemperature::AcceptedPatchMean||bind.temperature==HeldTemperature::AcceptedPointTrace),\"explicit source/held-temperature regime admission required\");eh::need(std::isfinite(bind.extrusion_center_z_m)&&std::isfinite(bind.extrusion_height_m)&&bind.extrusion_height_m==heat.geometry().height,\"explicit physical axial slice mapping must use thermal height once\");V3 local_origin=origin;local_origin[2]-=bind.extrusion_center_z_m;eh::admit_origin(heat,patch,local_origin);"
@@ -258,49 +258,49 @@
       "title": "Held accepted temperature and component closure are not complete source midpoint qualification",
       "code_references": [
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
           "line": 53,
           "file_sha256": "171d1837e502bc6cba2744d46df6ff337d9486eac53926cce73461d8500ed054",
           "line_text": "inline PreparedPatch prepare_patch(const eh::Coupler&heat,const eh::Epoch&epoch,std::size_t patch,PatchBinding bind,std::shared_ptr<const TrialField>field,V3 origin,const Exposure&exposure,const se::Config&config){"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
           "line": 59,
           "file_sha256": "171d1837e502bc6cba2744d46df6ff337d9486eac53926cce73461d8500ed054",
           "line_text": " se::Stage s;s.accepted_state=p.binding.source_accepted_state;s.field_accepted_state=s.accepted_state;s.thermal_accepted_state=s.accepted_state;s.mesh_revision=f.mesh_revision;s.material_revision=f.material_revision;s.patch_id=p.binding.patch_id;s.t=f.begin_s;s.dt=f.dt_s;s.stage_time=exposure.begin_s;s.field_time=f.field_stage_s;s.thermal_time=heat.state().time;s.total_E=sample.E;s.total_B_T=sample.B;s.outward_normal=n;s.area_m2=heat.area(patch)*exposure.area_fraction;s.T_K=p.binding.temperature==HeldTemperature::AcceptedPatchMean?heat.surface_temperatures().at(patch):heat.temperature_at(origin[0],origin[1]);s.material_temperature_phase_admitted=s.locally_planar_barrier_admitted=s.local_equilibrium_electron_supply_admitted=true;"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
           "line": 63,
           "file_sha256": "171d1837e502bc6cba2744d46df6ff337d9486eac53926cce73461d8500ed054",
           "line_text": " double number=d.current_A_m2*s.area_m2*exposure.duration_s/se::qe,diagnostic=d.wall_heat_W_m2*s.area_m2*exposure.duration_s;eh::need(std::isfinite(number)&&std::isfinite(diagnostic),\"exposure product overflow\");p.current_underflow=d.current_underflow;p.has_log_expected_number=d.has_log_current;if(d.has_log_current)p.log_expected_number=d.log_current_A_m2+std::log(s.area_m2)+std::log(exposure.duration_s)-std::log(se::qe);p.native={s,std::move(d),number,diagnostic};p.exposure_key=exposure_key(f,p.binding,exposure,origin,s.T_K,config);for(const std::string&x:{p.thermal_signature,epoch.source_hash,std::string(eh::source_kernel_sha256)})p.exposure_key+=std::to_string(x.size())+\":\"+x;return p;"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
           "line": 88,
           "file_sha256": "171d1837e502bc6cba2744d46df6ff337d9486eac53926cce73461d8500ed054",
           "line_text": " admit_policy(policy);const auto&frame=p.field->frame();eh::need((sample.weight_provenance==WeightProvenance::StagedCanonicalOwner||sample.weight_provenance==WeightProvenance::QualificationOnly)&&sample.event_id>0&&sample.canonical_particle_id>0&&std::isfinite(sample.physical_weight)&&sample.physical_weight>0&&sample.exposure_key==p.exposure_key&&!sample.count_owner_token.empty()&&!sample.count_owner_base_hash.empty()&&sample.count_owner_revision==frame.accepted_revision,\"explicit staged count-owner receipt/positive representable packet weight required\");double birth=0;if(sample.time_policy==BirthTime::UniformHeldExposure){eh::need(sample.time_uniform>0&&sample.time_uniform<1,\"caller-owned open birth-time draw required\");birth=p.exposure.begin_s+sample.time_uniform*p.exposure.duration_s;}else if(sample.time_policy==BirthTime::ExposureBeginLumped)birth=p.exposure.begin_s;else if(sample.time_policy==BirthTime::SpecifiedPhysicalTime)birth=sample.specified_birth_s;else eh::need(false,\"explicit microscopic birth-time policy required\");eh::need(std::isfinite(birth)&&birth>=p.exposure.begin_s&&birth<=p.exposure.begin_s+p.exposure.duration_s,\"birth outside sealed exposure\");auto flux=p.native;flux.stage.stage_time=birth;auto trial=se::begin_layer(flux,policy,sample.physical_weight,sample.normal_uniform,sample.transverse_uniform,sample.azimuth_uniform,sample.event_id);Candidate c=candidate_base(p,sample.canonical_particle_id);c.kernel_calls=1;c.qualification_only=sample.weight_provenance==WeightProvenance::QualificationOnly;c.count_owner_token=sample.count_owner_token;c.birth_sample=sample;c.state={trial.state,p.origin_m,p.patch_index,p.binding.thermal_mesh_identity,p.binding.thermal_material_hash};c.exchange=trial.exchange;c.maximum_quantum_magnetic_fraction=trial.state.quantum_magnetic_energy_fraction;for(const auto&path:trial.paths)c.paths.push_back(precision_path(path,p.origin_m));"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
           "line": 98,
           "file_sha256": "171d1837e502bc6cba2744d46df6ff337d9486eac53926cce73461d8500ed054",
           "line_text": " while(out.state.native.status==se::LayerStatus::Active&&out.state.native.current_time_s<target){const auto base=out.state.native;double h=target-base.current_time_s;bool admitted=false;for(int refine=0;refine<=controls.maximum_refinements&&!admitted;++refine){PrecisionPath at;at.origin_m=p.origin_m;at.from_relative_m=at.to_relative_m=base.position_from_surface_m;auto guess=p.field->sample(at);bool shrink=false;for(int iteration=0;iteration<controls.maximum_field_iterations;++iteration){eh::need(out.kernel_calls<controls.maximum_kernel_calls,\"source path-field kernel-call budget exceeded; reject/refine common trial\");auto stage=p.native.stage;stage.stage_time=stage.field_time=frame.field_stage_s;stage.total_E=guess.E;stage.total_B_T=guess.B;auto trial=se::advance_layer(base,stage,policy,h);++out.kernel_calls;++out.field_iterations;const se::CurrentPath* moving=nullptr;int moves=0;for(const auto&path:trial.paths)if(path.end_time_s>path.start_time_s){moving=&path;++moves;}if(moves!=1){shrink=true;break;}auto actual=p.field->sample(precision_path(*moving,p.origin_m));eh::need(frame.dt_s*se::qe/se::me*norm(actual.B)<=.05,\"active source full-common-interval gyro guard failed\");if(!field_close(guess.E,actual.E)||!field_close(guess.B,actual.B)){guess=actual;continue;}std::vector<PrecisionPath> paths;bool work_ok=true;for(const auto&path:trial.paths){paths.push_back(precision_path(path,p.origin_m));work_ok=work_ok&&path_work_matches(*p.field,paths.back());}if(!work_ok){shrink=true;break;}out.state.native=trial.state;add(out.exchange,trial.exchange);out.paths.insert(out.paths.end(),paths.begin(),paths.end());admitted=true;break;}"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/axial_trial_field.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/axial_trial_field.hpp",
           "line": 19,
           "file_sha256": "d5aba2d4bdbb4bdb35535a357f3474f6d649d769e18a505bd80c2af21a53c85e",
           "line_text": " HandoffTrial handoff_remainder(const Candidate&source,const GapParticle&canonical,bool qualification=false)const {"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/axial_trial_field.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/axial_trial_field.hpp",
           "line": 27,
           "file_sha256": "d5aba2d4bdbb4bdb35535a357f3474f6d649d769e18a505bd80c2af21a53c85e",
           "line_text": "    auto fields=sample(p);axial::Path path(*mesh_,p.absolute_from(),p.displacement_m);path.deposit(r.current_load_C_m_s,p.charge_C,p.displacement_m,frame().dt_s);axial::point_deposit(*mesh_,r.endpoint_charge_impulse_C,p.absolute_from(),-p.charge_C);axial::point_deposit(*mesh_,r.endpoint_charge_impulse_C,p.absolute_to(),p.charge_C);double W=p.charge_C*dot(fields.E,p.displacement_m);r.field_work_J+=W;r.claimed_field_work_J+=p.field_work_J;work_scale+=std::abs(p.field_work_J);for(int d=0;d<3;++d)work_scale+=std::abs(p.charge_C*fields.E[d]*p.displacement_m[d]);gross+=std::abs(p.charge_C);if(p.start_s==p.end_s)++r.zero_duration_bridges;"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/axial_trial_field.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/axial_trial_field.hpp",
           "line": 30,
           "file_sha256": "d5aba2d4bdbb4bdb35535a357f3474f6d649d769e18a505bd80c2af21a53c85e",
           "line_text": "  auto div=mesh_->gradient_transpose(r.current_load_C_m_s);for(int n=0;n<mesh_->nn;++n)r.continuity_C=std::max(r.continuity_C,std::abs(r.endpoint_charge_impulse_C[n]-frame().dt_s*div[n]));r.work_defect_J=frame().dt_s*foil::dot(E_,r.current_load_C_m_s)-r.claimed_field_work_J;eh::need(r.continuity_C<=1e-12*gross,\"precise source charge continuity failed\");eh::need(std::abs(r.work_defect_J)<=1e-10*work_scale,\"Hall midpoint current/work differs from actual source work; reject, never repair energy\");return r;"
@@ -345,31 +345,31 @@
           "line_text": "    Ledger ledger{weight,-scale,scale,-(E+transverse)*scale,K*weight,0,f.spectrum.config.work_function_eV*scale,state.image_energy*scale,state.field_work*scale};"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
           "line": 151,
           "file_sha256": "16981dd558bd344d6179db1348442de7bc86f32b9e884fb9b2dd9696d453514a",
           "line_text": "    const auto bound=unknown_bounds(cfg.work_function_eV,F,B,t,emin,emax,r,delta);out.unresolved_current_upper_A_m2=bound.current;out.unresolved_absolute_heat_upper_W_m2=bound.heat;"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass/tangential_joint.cpp",
           "line": 157,
           "file_sha256": "16981dd558bd344d6179db1348442de7bc86f32b9e884fb9b2dd9696d453514a",
           "line_text": "    need(d.truncation_bounds_within_declared_budget && u>0 && u<1 && weight>0 && std::isfinite(weight) && id>0,\"Known component sampling requires explicit small unresolved bound and caller draws/weight\");"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
           "line": 63,
           "file_sha256": "171d1837e502bc6cba2744d46df6ff337d9486eac53926cce73461d8500ed054",
           "line_text": " double number=d.current_A_m2*s.area_m2*exposure.duration_s/se::qe,diagnostic=d.wall_heat_W_m2*s.area_m2*exposure.duration_s;eh::need(std::isfinite(number)&&std::isfinite(diagnostic),\"exposure product overflow\");p.current_underflow=d.current_underflow;p.has_log_expected_number=d.has_log_current;if(d.has_log_current)p.log_expected_number=d.log_current_A_m2+std::log(s.area_m2)+std::log(exposure.duration_s)-std::log(se::qe);p.native={s,std::move(d),number,diagnostic};p.exposure_key=exposure_key(f,p.binding,exposure,origin,s.T_K,config);for(const std::string&x:{p.thermal_signature,epoch.source_hash,std::string(eh::source_kernel_sha256)})p.exposure_key+=std::to_string(x.size())+\":\"+x;return p;"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
           "line": 86,
           "file_sha256": "171d1837e502bc6cba2744d46df6ff337d9486eac53926cce73461d8500ed054",
           "line_text": "inline void finalize(Candidate&c,const PreparedPatch&p,const eh::SourceEventIdentity&id,double time){V3 wall=c.state.surface_origin_m;if(c.state.native.status==se::LayerStatus::Recollected)for(int i=0;i<3;++i)wall[i]+=c.state.native.position_from_surface_m[i];c.heat=eh::source_heat(c.exchange,id,wall,time);double scale=0;for(double x:{c.exchange.wall_heat_J,c.exchange.particle_K_change_J,c.exchange.electron_reference_change_J,c.exchange.image_energy_change_J,c.exchange.field_work_J})scale+=std::abs(x);eh::need(std::abs(c.exchange.residual_J())<=1e-10*scale,\"source incremental aggregate energy failed\");for(const auto&path:c.paths)eh::need(path.start_s>=p.field->frame().begin_s&&path.end_s<=p.field->frame().end_s&&path.end_s>=path.start_s&&path_work_matches(*p.field,path),\"source path/common-stage work unresolved\");}"
         },
         {
-          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
+          "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3/trial_source_binding.hpp",
           "line": 103,
           "file_sha256": "171d1837e502bc6cba2744d46df6ff337d9486eac53926cce73461d8500ed054",
           "line_text": "inline eh::Trial prepare_heat(eh::Coupler&heat,const eh::Epoch&epoch,const std::shared_ptr<const TrialField>&field,mfem::Coefficient&joule,std::span<const Candidate>sources,const std::vector<eh::Transfer>&other,const std::vector<std::vector<eh::Draw>>&draws,bool qualification=false){auto transfers=other;for(const auto&c:sources){eh::need(preflight(c,heat,field,qualification),\"source receipt does not bind this accepted thermal state and nonlinear trial\");transfers.push_back(c.heat);}return heat.prepare(epoch,joule,transfers,draws);}"

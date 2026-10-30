@@ -1,6 +1,6 @@
 from pathlib import Path
 import os,json,hashlib,subprocess,resource
-P=Path(__file__).resolve().parent;O=Path(os.environ.get('PIC_STREAMING_WRAPPER_OUTPUT','<workspace>/outputs/pic-generic-water-streaming-wrapper-20261030'));G=P/'provider'
+P=Path(__file__).resolve().parent;O=Path(os.environ.get('PIC_STREAMING_WRAPPER_OUTPUT','/home/treefor/sim-workspace/powerflow/outputs/pic-generic-water-streaming-wrapper-20261030'));G=P/'provider'
 O.mkdir(parents=True,exist_ok=True)
 (P/'build').mkdir(exist_ok=True)
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()

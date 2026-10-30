@@ -136,7 +136,7 @@ int main(int argc,char** argv) {
     }
     require(std::string(argv[1])=="make" && argc<=4,"Unknown fixture command");
     boris_tests();geometry_tests();validate_result_gate();
-    const auto state=saved(argc==4?argv[3]:"/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-current/checkpoint_403642.bin");
+    const auto state=saved(argc==4?argv[3]:"/home/treefor/sim-workspace/powerflow/outputs/pic-profile/seed-current/checkpoint_403642.bin");
     const auto& o=state.options;
     require(o.nx>0 && o.nx<=4096 && o.ny>0 && o.ny<=4096 && std::isfinite(o.width_m) && o.width_m>0 &&
             std::isfinite(o.gap_m) && o.gap_m>0 && std::isfinite(o.depth_m) && o.depth_m>0 && std::isfinite(o.short_z_m),"Invalid saved geometry");

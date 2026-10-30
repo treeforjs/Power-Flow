@@ -32,7 +32,7 @@ int main(int argc,char** argv) {
     cpu_set_t mask;CPU_ZERO(&mask);
     io::require(sched_getaffinity(0,sizeof(mask),&mask)==0 && CPU_COUNT(&mask)==1 && CPU_ISSET(6,&mask) && getpriority(PRIO_PROCESS,0)>=15,"CPU timing requires CPU6/nice15 and caller-held testing-core.lock");
     const auto setup_begin=Clock::now();const auto s=pic_batch::HostSnapshot::load(argv[1],true);
-    native_reference::NativeReference legacy(s,argv[1],"<workspace>/outputs/gap-pulse-midplane110kV.csv");
+    native_reference::NativeReference legacy(s,argv[1],"/home/treefor/sim-workspace/powerflow/outputs/gap-pulse-midplane110kV.csv");
     const auto table=s.tables();const auto n=s.particles.size();
     std::vector<gp::Outputs> native(n),shared(n),fresh(n);
     std::vector<gp::Inputs> packed(n);std::vector<GapParticle> work=s.particles;

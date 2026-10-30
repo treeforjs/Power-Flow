@@ -2,12 +2,12 @@ from pathlib import Path
 import fcntl,hashlib,json,os,shutil,subprocess,sys,time
 
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[1]
-OUT=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver')
+OUT=Path('/home/treefor/sim-workspace/powerflow/outputs/hall-coupled-transport-20261029/canonical-driver')
 NATIVE=Path('/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time')
 PARENT=Path('/home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029')
 DEP=Path('/home/treefor/projects/runtimes/mfem-4.10-pic-20261029')
 FROZEN='/home/treefor/projects/runtimes/arch-base-20261028/run-frozen'
-LEASE='/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock'
+LEASE='/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock'
 assert os.sched_getaffinity(0)=={6} and os.getpriority(os.PRIO_PROCESS,0)==15
 assert all(os.getenv(k)=='1' for k in ['OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS']) and os.getenv('CUDA_VISIBLE_DEVICES')==''
 with open(LEASE,'a') as f:

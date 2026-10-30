@@ -10,7 +10,7 @@ populations to photons at a declared detector reference plane.
 
 ## Confirmed geometry and remaining optical prescription
 
-The user supplied an approximately 19-inch (482.6 mm) target-to-first-mirror
+The supplied geometry is an approximately 19-inch (482.6 mm) target-to-first-mirror
 distance, approximately 8-inch (203.2 mm) mirror separation, and a 50-micrometre
 by 1-inch-height slit. Slit height is parallel to foil thickness/gap normal y.
 The first mirror is a few inches in **straight-line distance** from the slit;

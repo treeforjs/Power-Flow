@@ -2,7 +2,7 @@ from pathlib import Path
 import hashlib, json, shutil, csv, os
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15
 src=Path('/home/treefor/projects/runtimes/pic-emission-applicability-v2-20261029')
-out=Path('<workspace>/outputs/pic-emission-applicability-v2-20261029')
+out=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-emission-applicability-v2-20261029')
 backup=out/'source-backup-applicability-v2'
 backup.mkdir(exist_ok=False)
 for p in src.iterdir():
@@ -11,7 +11,7 @@ for p in src.iterdir():
 for p in out.iterdir():
     if p.is_file():shutil.copy2(p,backup/'evidence'/p.name)
 inputs={}
-for name,root in [('source_v1',Path('/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/snapshots/usable-api-v1')),('guard_v1',Path('<workspace>/outputs/pic-magnetized-emission-20261029/source-backup-guard-map-v1'))]:
+for name,root in [('source_v1',Path('/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/snapshots/usable-api-v1')),('guard_v1',Path('/home/treefor/sim-workspace/powerflow/outputs/pic-magnetized-emission-20261029/source-backup-guard-map-v1'))]:
     manifest=root/'SOURCE-SHA256.json'
     for rel,sha in json.loads(manifest.read_text()).items():assert hashlib.sha256((root/rel).read_bytes()).hexdigest()==sha
     inputs[name]={'root':str(root),'manifest_sha256':hashlib.sha256(manifest.read_bytes()).hexdigest(),'all_manifest_files_verified':True}

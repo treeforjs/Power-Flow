@@ -3,7 +3,7 @@
 import argparse,hashlib,json,os,pathlib,resource,subprocess,time
 P=pathlib.Path(__file__).resolve().parent
 ROOT=pathlib.Path('/home/treefor/projects/runtimes/pic-water-native-subflow-20261029')
-FIX=pathlib.Path('<workspace>/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture')
+FIX=pathlib.Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture')
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def main():
  p=argparse.ArgumentParser();p.add_argument('--out',type=pathlib.Path,required=True);a=p.parse_args();assert not a.out.exists() and os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15;resource.setrlimit(resource.RLIMIT_AS,(4*1024**3,4*1024**3));a.out.mkdir()

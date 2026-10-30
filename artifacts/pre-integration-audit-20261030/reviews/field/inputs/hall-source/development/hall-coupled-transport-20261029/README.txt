@@ -164,7 +164,7 @@ and create secondary charge and ion charge in the same accepted transaction.
 
 Reproduce using the pinned machine paths (fresh output name each time)
 
-flock -n /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock taskset -c 6 nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= PYTHONDONTWRITEBYTECODE=1 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python /home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-coupled-transport-20261029/run.py run-new
+flock -n /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock taskset -c 6 nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= PYTHONDONTWRITEBYTECODE=1 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python /home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-coupled-transport-20261029/run.py run-new
 
 run.py compiles against the frozen MFEM/HYPRE/METIS/GKlib/MPI CPU libraries, runs
 the benchmark and original PIC foundation suite, applies controls.json limits,

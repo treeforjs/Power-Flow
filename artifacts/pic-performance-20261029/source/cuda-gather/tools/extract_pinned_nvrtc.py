@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extract the user-authorized pinned NVRTC wheel only into this investigation."""
+"""Extract the authorized pinned NVRTC wheel only into this investigation."""
 import hashlib
 import json
 import os
@@ -11,7 +11,7 @@ import urllib.request
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-RESULTS = Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cuda-gather-investigation')
+RESULTS = Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/cuda-gather-investigation')
 proposal = json.loads((RESULTS / 'toolchain-proposal.json').read_text())
 package = proposal['nvrtc_wheel']
 assert os.sched_getaffinity(0) == {6} and os.getpriority(os.PRIO_PROCESS, 0) >= 15

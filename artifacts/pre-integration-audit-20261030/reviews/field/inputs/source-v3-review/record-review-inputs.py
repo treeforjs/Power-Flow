@@ -13,7 +13,7 @@ resource.setrlimit(resource.RLIMIT_CPU, (180, 180))
 HERE = Path(__file__).resolve().parent
 REPO = Path('/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source')
 MODULE = REPO / 'development/hall-canonical-driver-20261029'
-OWNER = Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029')
+OWNER = Path('/home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v3-20261029')
 SNAPSHOT = OWNER / 'source-snapshot-v3'
 NATIVE = Path('/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time')
 EXPECTED_COMMIT = 'c2f81ab87ddc295e7bdad808d33135fa781b3942'
