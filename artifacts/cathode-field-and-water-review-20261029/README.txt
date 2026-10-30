@@ -1,0 +1,5 @@
+Surface source/cloud audit, fixed-state electric exterior sensitivity, water-data readiness and supplied CHICAGO paper scope.
+
+The original9mm strict-capture comparison remains FAILED and preserved. The separate CPU causal audit explains its fresh-solve nodal differences, without changing solver/source/physical guards. Larger static domains ran under a separately documented continuation; no particles advanced.9-to25mm fixed-state vector E differences are14.03% inside the finite gap and39.90% overall. Field-domain/sheath/material/full3D convergence and full H2O kinetics are not established.
+
+The archive retains own simulation fixtures, source, receipts, ledgers, plots, source-data hashes and authored literature/data summaries. Full external PDFs/text/page renders and compiled libraries are excluded. Join the numbered gzip-tar parts in order to restore the archive. Every archive member was reopened and hash-verified; the joined part stream reproduces the original archive hash. The run remains explicitly paused, dependencies remain frozen, and changed source/field inputs require a new supported-start history.
