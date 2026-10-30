@@ -1,0 +1,1280 @@
+{
+  "status": "passed",
+  "comparison_complete": true,
+  "manufactured_fixture": false,
+  "steps_compared": 210,
+  "first_step": 437412,
+  "last_step": 437621,
+  "exact_checks": [
+    "every dt/local clock/step",
+    "ordered IDs and count",
+    "q/mass/weight",
+    "source spans/integrals/weighted temperatures",
+    "force clocks",
+    "shadow/optimized selected frame/voltage/fraction"
+  ],
+  "policy": {
+    "position_atol_m": 1e-12,
+    "velocity_rtol_global": 1e-10,
+    "field_rtol_global": 1e-10,
+    "ledger_roundoff_factor": 1024,
+    "density_roundoff_factor": 256,
+    "time_roundoff_factor": 64,
+    "rationale": {
+      "position": "Existing checkpoint regression budget; 4e-8 of a 25 um cell. Record measured differences and bin-boundary crossings separately.",
+      "velocity": "Existing global proper-velocity regression budget. Mass, charge, weights and identity remain exact.",
+      "fields": "Conservative integration regression budget, not a production solver tolerance. 1e-10 of each global component plus 256 epsilon V_scale/h for derivative cancellation. The corresponding e/m E_error window impulse is reported against the velocity budget.",
+      "ledger": "1024 epsilon times the appropriate full charge/energy scale, rather than relative error of a cancellation residual near zero.",
+      "density": "Validate each CSV against that checkpoint particle deposition; permit only roundoff or particle-bin/slab-boundary changes explained by matched, position-qualified particles. No blanket absolute density threshold.",
+      "time": "64 epsilon times the global clock scale, with a 1e-23 s floor reflecting the existing nonprogress guard. Pairwise clocks/options/counts remain exact."
+    }
+  },
+  "residual_comparison_limits": {
+    "off_vs_shadow": 1.6454812032885355e-17,
+    "off_vs_optimized": 1.6454812032885355e-17,
+    "shadow_vs_optimized": 1.6454812032885355e-17
+  },
+  "edge_transfer_budget": "Same 1024*epsilon*particle/ledger charge scale as established continuity diagnostic; per pair/step with seed included.",
+  "nodal_phi_budget": "Same established potential budget: 1e-10*global potential scale + 256*epsilon*potential scale.",
+  "metric_summary": {
+    "off_vs_shadow.position_m": {
+      "values_compared": 29494149,
+      "max_absolute_difference": 6.938893903907228e-18,
+      "max_observed_scale": 0.012499733181587695,
+      "min_absolute_limit": 1e-12,
+      "max_absolute_limit": 1e-12,
+      "worst_step": 437553,
+      "max_fraction_of_limit": 6.938893903907228e-06
+    },
+    "off_vs_shadow.proper_velocity_m_s": {
+      "values_compared": 29494149,
+      "max_absolute_difference": 7.310882210731506e-07,
+      "max_observed_scale": 53089875.25353949,
+      "min_absolute_limit": 0.005303101019387845,
+      "max_absolute_limit": 0.005308987525353949,
+      "worst_step": 437621,
+      "max_fraction_of_limit": 0.00013782377035878541
+    },
+    "off_vs_shadow.nodal_phi_V": {
+      "values_compared": 27367410,
+      "max_absolute_difference": 4.6566128730773926e-09,
+      "max_observed_scale": 80633.43519123226,
+      "min_absolute_limit": 8.067926999253988e-06,
+      "max_absolute_limit": 8.067926999253988e-06,
+      "worst_step": 437605,
+      "max_fraction_of_limit": 0.0005771758809305008
+    },
+    "off_vs_shadow.edge_transfers_h_C": {
+      "values_compared": 27291600,
+      "max_absolute_difference": 6.754390539824864e-34,
+      "max_observed_scale": 9.747775258657977e-22,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437572,
+      "max_fraction_of_limit": 2.0945532756691487e-06
+    },
+    "off_vs_shadow.edge_transfers_v_C": {
+      "values_compared": 27291600,
+      "max_absolute_difference": 6.180044000013094e-34,
+      "max_observed_scale": 1.2590147633941526e-21,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437602,
+      "max_fraction_of_limit": 1.916480920434101e-06
+    },
+    "off_vs_shadow.diagnostics.time_s": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.572965307563373e-08,
+      "min_absolute_limit": 0.0,
+      "max_absolute_limit": 0.0,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.particle_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.deposited_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 1.9721522630525295e-31,
+      "max_observed_scale": 2.3542178140642107e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437585,
+      "max_fraction_of_limit": 0.0006115758046481256
+    },
+    "off_vs_shadow.diagnostics.lower_field_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 1.078643518769148e-21,
+      "max_observed_scale": 2.816855358314867e-08,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750192e-20,
+      "worst_step": 437501,
+      "max_fraction_of_limit": 0.0842060344039004
+    },
+    "off_vs_shadow.diagnostics.upper_field_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 2.567568621364598e-21,
+      "max_observed_scale": 2.8168553348280485e-08,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750192e-20,
+      "worst_step": 437541,
+      "max_fraction_of_limit": 0.2004413579675666
+    },
+    "off_vs_shadow.diagnostics.gauss_defect_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 3.202843331805323e-21,
+      "max_observed_scale": 2.881566381889727e-20,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750192e-20,
+      "worst_step": 437541,
+      "max_fraction_of_limit": 0.2500350960213975
+    },
+    "off_vs_shadow.diagnostics.particle_charge_defect_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 1.6544950203981828e-29,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.field_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 1.0321604682062002e-16,
+      "max_observed_scale": 0.0011356636196668405,
+      "min_absolute_limit": 2.5822001127079593e-16,
+      "max_absolute_limit": 2.582200112708143e-16,
+      "worst_step": 437543,
+      "max_fraction_of_limit": 0.3997213318698735
+    },
+    "off_vs_shadow.diagnostics.particle_kinetic_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 5.048709793414476e-28,
+      "max_observed_scale": 4.0701932571665353e-13,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": 437621,
+      "max_fraction_of_limit": 0.005342511325092326
+    },
+    "off_vs_shadow.diagnostics.lower_absorbed_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.957095667431326e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.upper_absorbed_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 6.072929377809059e-17,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.lower_absorbed_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 8.62178378650641e-17,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.upper_absorbed_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 8.342427193508008e-15,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.lower_injected_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.9577491828856964e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.upper_injected_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.957749182885629e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.injected_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 1.7043419448130413e-16,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.authored_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 0.0,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.authored_kinetic_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 0.0,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.maximum_nodal_continuity_defect_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 1.279915864994533e-32,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.escaped_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 5.0119168693974896e-21,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.escaped_kinetic_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.6070428967782895e-21,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.short_absorbed_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 0.0,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.short_absorbed_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 0.0,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.axial_escaped_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 5.0119168693974896e-21,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.diagnostics.poisson_residual_C_per_m": {
+      "values_compared": 210,
+      "max_absolute_difference": 5.292115650448225e-22,
+      "max_observed_scale": 4.973708619779985e-20,
+      "min_absolute_limit": 1.6454812032885355e-17,
+      "max_absolute_limit": 1.6454812032885355e-17,
+      "worst_step": 437561,
+      "max_fraction_of_limit": 3.21615077697138e-05
+    },
+    "off_vs_shadow.a.particle_charge_reconstruction": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.564938475804768e-30,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437548,
+      "max_fraction_of_limit": 0.029657442774510257
+    },
+    "off_vs_shadow.a.deposition_charge": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.860761315262648e-30,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437552,
+      "max_fraction_of_limit": 0.030575547494545306
+    },
+    "off_vs_shadow.a.gauss_identity": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.881566381889727e-20,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750192e-20,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_shadow.b.particle_charge_reconstruction": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.564938475804768e-30,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437548,
+      "max_fraction_of_limit": 0.029657442774510257
+    },
+    "off_vs_shadow.b.deposition_charge": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.910065121838961e-30,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437552,
+      "max_fraction_of_limit": 0.030728425232018033
+    },
+    "off_vs_shadow.b.gauss_identity": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.8537731133079455e-20,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750192e-20,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.position_m": {
+      "values_compared": 29494149,
+      "max_absolute_difference": 6.938893903907228e-18,
+      "max_observed_scale": 0.012499733181587695,
+      "min_absolute_limit": 1e-12,
+      "max_absolute_limit": 1e-12,
+      "worst_step": 437593,
+      "max_fraction_of_limit": 6.938893903907228e-06
+    },
+    "off_vs_optimized.proper_velocity_m_s": {
+      "values_compared": 29494149,
+      "max_absolute_difference": 6.200789357535541e-07,
+      "max_observed_scale": 53089875.25353949,
+      "min_absolute_limit": 0.005303101019387845,
+      "max_absolute_limit": 0.005308987525353949,
+      "worst_step": 437621,
+      "max_fraction_of_limit": 0.00011689644885834761
+    },
+    "off_vs_optimized.nodal_phi_V": {
+      "values_compared": 27367410,
+      "max_absolute_difference": 3.899913281202316e-09,
+      "max_observed_scale": 80633.43519123226,
+      "min_absolute_limit": 8.067926999253988e-06,
+      "max_absolute_limit": 8.067926999253988e-06,
+      "worst_step": 437440,
+      "max_fraction_of_limit": 0.00048338480027929444
+    },
+    "off_vs_optimized.edge_transfers_h_C": {
+      "values_compared": 27291600,
+      "max_absolute_difference": 3.81800565147079e-34,
+      "max_observed_scale": 9.747775258657977e-22,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": 437613,
+      "max_fraction_of_limit": 1.1839981787058954e-06
+    },
+    "off_vs_optimized.edge_transfers_v_C": {
+      "values_compared": 27291600,
+      "max_absolute_difference": 5.871476732922244e-34,
+      "max_observed_scale": 1.2590147633941533e-21,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": 437588,
+      "max_fraction_of_limit": 1.8207917505756253e-06
+    },
+    "off_vs_optimized.diagnostics.time_s": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.572965307563373e-08,
+      "min_absolute_limit": 0.0,
+      "max_absolute_limit": 0.0,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.particle_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.deposited_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 1.9721522630525295e-31,
+      "max_observed_scale": 2.35421781406421e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": 437574,
+      "max_fraction_of_limit": 0.0006115801415528919
+    },
+    "off_vs_optimized.diagnostics.lower_field_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.529120656610879e-22,
+      "max_observed_scale": 2.8168553583148924e-08,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750216e-20,
+      "worst_step": 437542,
+      "max_fraction_of_limit": 0.07439060708074637
+    },
+    "off_vs_optimized.diagnostics.upper_field_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 2.8289576949313546e-21,
+      "max_observed_scale": 2.816855334828055e-08,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750216e-20,
+      "worst_step": 437505,
+      "max_fraction_of_limit": 0.22084711477096575
+    },
+    "off_vs_optimized.diagnostics.gauss_defect_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 3.0043199847925965e-21,
+      "max_observed_scale": 2.881566381889727e-20,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750216e-20,
+      "worst_step": 437505,
+      "max_fraction_of_limit": 0.23453705287957533
+    },
+    "off_vs_optimized.diagnostics.particle_charge_defect_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 1.6544950203981828e-29,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.field_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 1.1015494072452725e-16,
+      "max_observed_scale": 0.0011356636196668405,
+      "min_absolute_limit": 2.5822001127079593e-16,
+      "max_absolute_limit": 2.582200112708143e-16,
+      "worst_step": 437616,
+      "max_fraction_of_limit": 0.42659335418045463
+    },
+    "off_vs_optimized.diagnostics.particle_kinetic_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 5.048709793414476e-28,
+      "max_observed_scale": 4.0701932571665353e-13,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": 437559,
+      "max_fraction_of_limit": 0.005347769550090362
+    },
+    "off_vs_optimized.diagnostics.lower_absorbed_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.957095667431326e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.upper_absorbed_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 6.072929377809059e-17,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.lower_absorbed_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 1.232595164407831e-32,
+      "max_observed_scale": 8.62178378650641e-17,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": 437515,
+      "max_fraction_of_limit": 1.3065402233156316e-07
+    },
+    "off_vs_optimized.diagnostics.upper_absorbed_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 8.342427193508008e-15,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.lower_injected_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.9577491828856964e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.upper_injected_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.957749182885629e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.injected_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 1.7043419448130413e-16,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.authored_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 0.0,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.authored_kinetic_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 0.0,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.maximum_nodal_continuity_defect_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 1.279915864994533e-32,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.escaped_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 5.0119168693974896e-21,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.escaped_kinetic_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.6070428967782895e-21,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.short_absorbed_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 0.0,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.short_absorbed_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 0.0,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.450068490640452e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.axial_escaped_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 5.0119168693974896e-21,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.diagnostics.poisson_residual_C_per_m": {
+      "values_compared": 210,
+      "max_absolute_difference": 5.654480163414034e-22,
+      "max_observed_scale": 4.973708619779985e-20,
+      "min_absolute_limit": 1.6454812032885355e-17,
+      "max_absolute_limit": 1.6454812032885355e-17,
+      "worst_step": 437542,
+      "max_fraction_of_limit": 3.4363687364604426e-05
+    },
+    "off_vs_optimized.a.particle_charge_reconstruction": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.564938475804768e-30,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": 437548,
+      "max_fraction_of_limit": 0.02965744277451026
+    },
+    "off_vs_optimized.a.deposition_charge": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.860761315262648e-30,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": 437552,
+      "max_fraction_of_limit": 0.030575547494545306
+    },
+    "off_vs_optimized.a.gauss_identity": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.881566381889727e-20,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750216e-20,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "off_vs_optimized.b.particle_charge_reconstruction": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.564938475804768e-30,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": 437548,
+      "max_fraction_of_limit": 0.02965744277451026
+    },
+    "off_vs_optimized.b.deposition_charge": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.762153702110021e-30,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": 437552,
+      "max_fraction_of_limit": 0.030269792019599853
+    },
+    "off_vs_optimized.b.gauss_identity": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.862706663923518e-20,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750216e-20,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.position_m": {
+      "values_compared": 29494149,
+      "max_absolute_difference": 6.938893903907228e-18,
+      "max_observed_scale": 0.012499733181587695,
+      "min_absolute_limit": 1e-12,
+      "max_absolute_limit": 1e-12,
+      "worst_step": 437553,
+      "max_fraction_of_limit": 6.938893903907228e-06
+    },
+    "shadow_vs_optimized.proper_velocity_m_s": {
+      "values_compared": 29494149,
+      "max_absolute_difference": 8.009374141693115e-07,
+      "max_observed_scale": 53089875.25353949,
+      "min_absolute_limit": 0.005303101019387845,
+      "max_absolute_limit": 0.005308987525353949,
+      "worst_step": 437621,
+      "max_fraction_of_limit": 0.00015099164650771393
+    },
+    "shadow_vs_optimized.nodal_phi_V": {
+      "values_compared": 27367410,
+      "max_absolute_difference": 3.8853613659739494e-09,
+      "max_observed_scale": 80633.43519123226,
+      "min_absolute_limit": 8.067926999253988e-06,
+      "max_absolute_limit": 8.067926999253988e-06,
+      "worst_step": 437532,
+      "max_fraction_of_limit": 0.00048158112565138667
+    },
+    "shadow_vs_optimized.edge_transfers_h_C": {
+      "values_compared": 27291600,
+      "max_absolute_difference": 3.827409606277368e-34,
+      "max_observed_scale": 9.747775258657977e-22,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437613,
+      "max_fraction_of_limit": 1.1869144303775847e-06
+    },
+    "shadow_vs_optimized.edge_transfers_v_C": {
+      "values_compared": 27291600,
+      "max_absolute_difference": 6.17769301131145e-34,
+      "max_observed_scale": 1.2590147633941533e-21,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437602,
+      "max_fraction_of_limit": 1.915751860092322e-06
+    },
+    "shadow_vs_optimized.diagnostics.time_s": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.572965307563373e-08,
+      "min_absolute_limit": 0.0,
+      "max_absolute_limit": 0.0,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.particle_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.deposited_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 2.465190328815662e-31,
+      "max_observed_scale": 2.3542178140642107e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437543,
+      "max_fraction_of_limit": 0.0007648751085153696
+    },
+    "shadow_vs_optimized.diagnostics.lower_field_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 1.2043749718772083e-21,
+      "max_observed_scale": 2.8168553583148924e-08,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750216e-20,
+      "worst_step": 437505,
+      "max_fraction_of_limit": 0.09402146172705443
+    },
+    "shadow_vs_optimized.diagnostics.upper_field_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 4.7347818262535304e-21,
+      "max_observed_scale": 2.816855334828055e-08,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750216e-20,
+      "worst_step": 437505,
+      "max_fraction_of_limit": 0.3696283289324585
+    },
+    "shadow_vs_optimized.diagnostics.gauss_defect_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 5.939156798130739e-21,
+      "max_observed_scale": 2.862706663923518e-20,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750216e-20,
+      "worst_step": 437505,
+      "max_fraction_of_limit": 0.4636497906595129
+    },
+    "shadow_vs_optimized.diagnostics.particle_charge_defect_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 1.6544950203981828e-29,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.field_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.063930161978817e-17,
+      "max_observed_scale": 0.001135663619666825,
+      "min_absolute_limit": 2.5822001127079593e-16,
+      "max_absolute_limit": 2.582200112708108e-16,
+      "worst_step": 437488,
+      "max_fraction_of_limit": 0.3510157914319585
+    },
+    "shadow_vs_optimized.diagnostics.particle_kinetic_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 6.563322731438818e-28,
+      "max_observed_scale": 4.070193257166535e-13,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.45006849064045e-26,
+      "worst_step": 437559,
+      "max_fraction_of_limit": 0.00695210041511747
+    },
+    "shadow_vs_optimized.diagnostics.lower_absorbed_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.957095667431326e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.upper_absorbed_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 6.072929377809059e-17,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.lower_absorbed_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 1.232595164407831e-32,
+      "max_observed_scale": 8.62178378650641e-17,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.45006849064045e-26,
+      "worst_step": 437515,
+      "max_fraction_of_limit": 1.3065402233156316e-07
+    },
+    "shadow_vs_optimized.diagnostics.upper_absorbed_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 8.342427193508008e-15,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.45006849064045e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.lower_injected_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.9577491828856964e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.upper_injected_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.957749182885629e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.injected_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 1.7043419448130413e-16,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.45006849064045e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.authored_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 0.0,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.authored_kinetic_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 0.0,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.45006849064045e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.maximum_nodal_continuity_defect_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 1.279915864994533e-32,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.escaped_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 5.0119168693974896e-21,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.escaped_kinetic_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.6070428967782895e-21,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.45006849064045e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.short_absorbed_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 0.0,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.short_absorbed_energy_J": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 0.0,
+      "min_absolute_limit": 9.421499694176249e-26,
+      "max_absolute_limit": 9.45006849064045e-26,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.axial_escaped_charge_C": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 5.0119168693974896e-21,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.diagnostics.poisson_residual_C_per_m": {
+      "values_compared": 210,
+      "max_absolute_difference": 5.101731463288275e-22,
+      "max_observed_scale": 4.9729127615598486e-20,
+      "min_absolute_limit": 1.6454812032885355e-17,
+      "max_absolute_limit": 1.6454812032885355e-17,
+      "worst_step": 437515,
+      "max_fraction_of_limit": 3.100449554265546e-05
+    },
+    "shadow_vs_optimized.a.particle_charge_reconstruction": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.564938475804768e-30,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437548,
+      "max_fraction_of_limit": 0.029657442774510257
+    },
+    "shadow_vs_optimized.a.deposition_charge": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.910065121838961e-30,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437552,
+      "max_fraction_of_limit": 0.030728425232018033
+    },
+    "shadow_vs_optimized.a.gauss_identity": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.8537731133079455e-20,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750216e-20,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    },
+    "shadow_vs_optimized.b.particle_charge_reconstruction": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.564938475804768e-30,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437548,
+      "max_fraction_of_limit": 0.029657442774510257
+    },
+    "shadow_vs_optimized.b.deposition_charge": {
+      "values_compared": 210,
+      "max_absolute_difference": 9.762153702110021e-30,
+      "max_observed_scale": 2.35421781406429e-16,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192577e-28,
+      "worst_step": 437552,
+      "max_fraction_of_limit": 0.030269792019599853
+    },
+    "shadow_vs_optimized.b.gauss_identity": {
+      "values_compared": 210,
+      "max_absolute_difference": 0.0,
+      "max_observed_scale": 2.862706663923518e-20,
+      "min_absolute_limit": 1.2809575066738753e-20,
+      "max_absolute_limit": 1.2809575066750216e-20,
+      "worst_step": null,
+      "max_fraction_of_limit": 0.0
+    }
+  },
+  "checked_scalar_values": 422836254,
+  "failure_count": 0,
+  "failures": [],
+  "input_manifest": [
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/abi-schema.json",
+      "bytes": 3251,
+      "sha256": "0a9c8e39fb2d5d85770955114c9a9a10fbf0d25b6371d3d2614f8533b19b7f3e"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/compare_saved_pic.py",
+      "bytes": 38057,
+      "sha256": "6ae81c926725aab2a48f3afda01c415ccd10f4aee1d49cd876d374600593e22e"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cuda-evolving-trace-comparator/reference-lock.json",
+      "bytes": 1516,
+      "sha256": "373c04058004e4e38f5eb6712db7b042f47fed98b0e9acbcd0eafef300a9b25b"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-late-phase/checkpoint_437411.bin",
+      "bytes": 3738472,
+      "sha256": "673d7af6ba12521425bb4a327eaa6d5be8e3f58b1b744362257f5467a0eba6db"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-late-phase/history.csv",
+      "bytes": 224,
+      "sha256": "03613f21e986195419d65a0cdb83e36e49bb3a650a4e9d97fa2449563ccfcca9"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-late-phase/restart.meta",
+      "bytes": 211149,
+      "sha256": "067d78271a237cc9cc3dc7a4e125520ff6ec6e1d04ecffb85d07fad35f3ff4d3"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/seed-late-phase/seed.json",
+      "bytes": 304,
+      "sha256": "6f9f375e9c224af518d1354691f57154e22b247bdfc00310db039ed1968e0b33"
+    },
+    {
+      "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-testing-allocation.json",
+      "bytes": 1618,
+      "sha256": "344c8b62d7bcf312536f56410ca5152d51035ae3f609a7759354770a45cad873"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/checkpoint_437621.bin",
+      "bytes": 3747752,
+      "sha256": "4f5ab008fd7cce9edc29c7e9c4ce40e98a0d161e4b42db03d8d99814d29802c4"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/evolving-state.bin",
+      "bytes": 1457665600,
+      "sha256": "fbad9b2a1e627f1eb63d0e2a192ec67c4d98288512ad1cbe959c81481cbc354b"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/force-cleanup.json",
+      "bytes": 442,
+      "sha256": "42a30f4c43295aebb4c7b1850ff7ef0abf384efe00fa4d489ede35d1c3cc1631"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/force-stages.csv",
+      "bytes": 19234,
+      "sha256": "5e0e06e2ba93b0d67d167961a26d31bd214c03abb53fa5cee517a894a6d60f2b"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/frame_27.csv",
+      "bytes": 16646360,
+      "sha256": "c69fa86baad8f90f8ae6af0d973a7eca3473a3e959508287e14b24b830828037"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/history.csv",
+      "bytes": 812,
+      "sha256": "e0fa89bcd7baf1c461bce3049814d68b9a0bd71d38011bb3ea71ab7f9eb65771"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/parallel_execution.json",
+      "bytes": 202,
+      "sha256": "9d58061eadbab9201559c49014058160f2a68174064f35769fb501d70f163775"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/progress.json",
+      "bytes": 384,
+      "sha256": "dd8fc2ae7fc0056e5a078c0871be0c37d45f9132057f6c5ea2095af13c4d371e"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/restart.meta",
+      "bytes": 211103,
+      "sha256": "f2f66b2f09ef3c0a88d09f268ddef43b4852357133302614f59e0365b77b16ee"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/run-receipt.json",
+      "bytes": 3678,
+      "sha256": "20bb7904f5ffc1eed174c6bbf1f9f7200c9a4c08903a11ce2649961e5372b9f0"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/scope.json",
+      "bytes": 1905,
+      "sha256": "54ed1268fbf345a1718c091cccf1338ed2996a60296ff54f23af697b9f64fdc4"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/seed.json",
+      "bytes": 304,
+      "sha256": "6f9f375e9c224af518d1354691f57154e22b247bdfc00310db039ed1968e0b33"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/trace-schema.json",
+      "bytes": 405,
+      "sha256": "0ee1e15afd460624bb040d353191eaf52b8fecbd1031d21b6937737801ece413"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/checkpoint_437621.bin",
+      "bytes": 3747752,
+      "sha256": "a9ce1a244565f67ad77114c99442738fae765884026f821471382e189e7c9bfe"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/evolving-state.bin",
+      "bytes": 1457665600,
+      "sha256": "aad1d62ec5cc81d52db61f7c0622a72c73f767dcd14f2885b7ba720b02542ed1"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/force-cleanup.json",
+      "bytes": 436,
+      "sha256": "aa2dc26c0be8c5f9ae525b6be704ff8d99b0b7fad71a3f047ace2944e7751b4d"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/force-stages.csv",
+      "bytes": 32136,
+      "sha256": "47bdd13ac46429e612b7c5c89ca4b0b2f83e70cb7866468427515cdd7bad84e2"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/frame_27.csv",
+      "bytes": 16646003,
+      "sha256": "ad2d1fbc8242632f94605c8589aeb14831eccd5fac52ac2446eda83d8f2385e1"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/full-comparison.json",
+      "bytes": 135527,
+      "sha256": "e0ada62bdbc785dd2e97407673845b891a1b3d63909bcf196c57bc5063e716a8"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/history.csv",
+      "bytes": 615,
+      "sha256": "7a86a1a5a12a5cf0704e0f93a737c01d7a17d91609afcc21c8344833b3a2a0c8"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/parallel_execution.json",
+      "bytes": 202,
+      "sha256": "9d58061eadbab9201559c49014058160f2a68174064f35769fb501d70f163775"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/progress.json",
+      "bytes": 384,
+      "sha256": "754f54a7bd82495a40d180a21ed36a305de137f2a9b342a2d22bc9df409f7eff"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/restart.meta",
+      "bytes": 211103,
+      "sha256": "f2f66b2f09ef3c0a88d09f268ddef43b4852357133302614f59e0365b77b16ee"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/run-receipt.json",
+      "bytes": 3713,
+      "sha256": "5b2e952b73b57c665d2c58ea27ba93777d1c2a4ceaf4cf8c1380c33a5f7f3d42"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/scope.json",
+      "bytes": 1905,
+      "sha256": "54ed1268fbf345a1718c091cccf1338ed2996a60296ff54f23af697b9f64fdc4"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/seed.json",
+      "bytes": 304,
+      "sha256": "6f9f375e9c224af518d1354691f57154e22b247bdfc00310db039ed1968e0b33"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-optimized/trace-schema.json",
+      "bytes": 405,
+      "sha256": "0ee1e15afd460624bb040d353191eaf52b8fecbd1031d21b6937737801ece413"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/checkpoint_437621.bin",
+      "bytes": 3747752,
+      "sha256": "debfc9c5ad0921ca865f450c4da3e5c36fa38a0048c1f251e7951e8c18dc8517"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/evolving-state.bin",
+      "bytes": 1457665600,
+      "sha256": "2cde2c1b44758194e75697e7ddeb3d06237ba1b82f6677d6940ef2d09d5d5b9b"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/force-cleanup.json",
+      "bytes": 436,
+      "sha256": "bbb620b827071cb3417a4c9ad503e646511d7e6aace6f62ff7269eeaec9bd9ac"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/force-stages.csv",
+      "bytes": 35560,
+      "sha256": "30b774b808c6420cc66c4fb43af54e7a2f1faad716a719064a5540845c3b513b"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/frame_27.csv",
+      "bytes": 16646260,
+      "sha256": "6684ff1bd3b7e6c48b4d418a8caccedb37c06b98005869aa7bdd6c14c347f82c"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/full-comparison.json",
+      "bytes": 135749,
+      "sha256": "f344e157ce918dda39268165571f9832c6d0b0916d0fbbf09f4c6fb39e39fa74"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/history.csv",
+      "bytes": 812,
+      "sha256": "494c0a3b4d053ca096927b4fd63fe49ffb94b5e0fe0c4fc96f18d021fa9179f5"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/parallel_execution.json",
+      "bytes": 202,
+      "sha256": "9d58061eadbab9201559c49014058160f2a68174064f35769fb501d70f163775"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/progress.json",
+      "bytes": 384,
+      "sha256": "e908c64cab6678310d665eab7eed49104e6bc4b1a89e9807d189e73c2ce9aa11"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/restart.meta",
+      "bytes": 211103,
+      "sha256": "f2f66b2f09ef3c0a88d09f268ddef43b4852357133302614f59e0365b77b16ee"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/run-receipt.json",
+      "bytes": 3696,
+      "sha256": "b277daa32e2a59f6e206a975c13e90fcdffe81448ab01e556dc215eac85e219c"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/scope.json",
+      "bytes": 1905,
+      "sha256": "54ed1268fbf345a1718c091cccf1338ed2996a60296ff54f23af697b9f64fdc4"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/seed.json",
+      "bytes": 304,
+      "sha256": "6f9f375e9c224af518d1354691f57154e22b247bdfc00310db039ed1968e0b33"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-shadow/trace-schema.json",
+      "bytes": 405,
+      "sha256": "0ee1e15afd460624bb040d353191eaf52b8fecbd1031d21b6937737801ece413"
+    }
+  ],
+  "limits": [
+    "Full traces contain public diagnostics(), not checkpoint raw ledgers; no kinetic energy is added twice.",
+    "Per-step RHS norms/guard limits are absent. Residual differences use original guard limits recorded in the passed final saved-state comparisons, as the established comparator does. This does not independently reconstruct each step residual guard.",
+    "No unrecorded midpoint E/B, source temperature samples, next_id, source work, or crossing-event log is inferred.",
+    "Nodal phi is compared directly. Full final checkpoint/frame and their original guards must pass separately through the required saved-state receipts.",
+    "This short-window regression result cannot qualify later native-frame refreshes, physical convergence, deployment, or production resume."
+  ],
+  "execution": {
+    "affinity": [
+      6
+    ],
+    "nice": 15,
+    "wall_s": 6.563882981005008,
+    "max_RSS_KiB": 89484,
+    "GPU_execution": false
+  },
+  "created_utc": "2026-10-30T01:20:45.596372+00:00"
+}

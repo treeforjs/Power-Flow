@@ -1,0 +1,100 @@
+{
+  "status": "passed_fixed_seed_1ps_regression_with_observed_single_trial_instrumented_speed_improvement",
+  "runtime_or_deployment_qualified": false,
+  "review_complete": true,
+  "blocking_findings": [],
+  "trace_comparator_sha256": "364070ea2f3c2b960a40e6fa79d6b748c2f598542a1cbbd9787615bade0da322",
+  "real_trace_comparison_receipt_sha256": "8cbb59e8d70b714fa6be263f3caf5fa85f7743bdc25a559d4a92d7c88782c7b9",
+  "trace_steps_compared": 210,
+  "scalar_values_compared": 422836254,
+  "trace_failures": 0,
+  "final_saved_state_reports": {
+    "off_vs_native": 164,
+    "shadow_vs_off": 164,
+    "optimized_vs_off": 164
+  },
+  "all_final_reports_passed_unchanged_policy": true,
+  "corruption_fixture_cases_inspected": 34,
+  "comparison_rerun_by_reviewer": false,
+  "metadata_hashes_reverified": 46,
+  "timing": {
+    "instrumented_wall_s": {
+      "off": 13.079083977005212,
+      "shadow": 14.282558577004238,
+      "optimized": 9.225693111002329
+    },
+    "optimized_wall_reduction_fraction": 0.2946223812598544,
+    "optimized_speed_factor": 1.4176803650023244,
+    "shadow_wall_increase_fraction": 0.09201520550788556,
+    "scope": "One fixed-seed instrumented1ps trial, includes full trace I/O, not a replicated/uninstrumented production benchmark."
+  },
+  "off_vs_optimized_maxima": {
+    "position_m": {
+      "values_compared": 29494149,
+      "max_absolute_difference": 6.938893903907228e-18,
+      "max_observed_scale": 0.012499733181587695,
+      "min_absolute_limit": 1e-12,
+      "max_absolute_limit": 1e-12,
+      "worst_step": 437593,
+      "max_fraction_of_limit": 6.938893903907228e-06
+    },
+    "proper_velocity_m_s": {
+      "values_compared": 29494149,
+      "max_absolute_difference": 6.200789357535541e-07,
+      "max_observed_scale": 53089875.25353949,
+      "min_absolute_limit": 0.005303101019387845,
+      "max_absolute_limit": 0.005308987525353949,
+      "worst_step": 437621,
+      "max_fraction_of_limit": 0.00011689644885834761
+    },
+    "nodal_phi_V": {
+      "values_compared": 27367410,
+      "max_absolute_difference": 3.899913281202316e-09,
+      "max_observed_scale": 80633.43519123226,
+      "min_absolute_limit": 8.067926999253988e-06,
+      "max_absolute_limit": 8.067926999253988e-06,
+      "worst_step": 437440,
+      "max_fraction_of_limit": 0.00048338480027929444
+    },
+    "edge_transfers_h_C": {
+      "values_compared": 27291600,
+      "max_absolute_difference": 3.81800565147079e-34,
+      "max_observed_scale": 9.747775258657977e-22,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": 437613,
+      "max_fraction_of_limit": 1.1839981787058954e-06
+    },
+    "edge_transfers_v_C": {
+      "values_compared": 27291600,
+      "max_absolute_difference": 5.871476732922244e-34,
+      "max_observed_scale": 1.2590147633941533e-21,
+      "min_absolute_limit": 3.2160114808291183e-28,
+      "max_absolute_limit": 3.2251393178192572e-28,
+      "worst_step": 437588,
+      "max_fraction_of_limit": 1.8207917505756253e-06
+    }
+  },
+  "limits": [
+    "Full traces contain public diagnostics(), not checkpoint raw ledgers; no kinetic energy is added twice.",
+    "Per-step RHS norms/guard limits are absent. Residual differences use original guard limits recorded in the passed final saved-state comparisons, as the established comparator does. This does not independently reconstruct each step residual guard.",
+    "No unrecorded midpoint E/B, source temperature samples, next_id, source work, or crossing-event log is inferred.",
+    "Nodal phi is compared directly. Full final checkpoint/frame and their original guards must pass separately through the required saved-state receipts.",
+    "This short-window regression result cannot qualify later native-frame refreshes, physical convergence, deployment, or production resume.",
+    "One instrumented1ps timing trial; no replication, reversed order, uninstrumented or60ns production claim."
+  ],
+  "scientific_guards_changed": false,
+  "accepted_v2_changed": false,
+  "production_resume_authorized": false,
+  "deployment_authorized": false,
+  "GPU_executed_by_reviewer": false,
+  "solver_changes": false,
+  "production_signals_sent": false,
+  "production_hold": {
+    "pid": 278902,
+    "state": "T",
+    "start_ticks": "5288339",
+    "cgroup_events": "populated 1\nfrozen 1\n"
+  },
+  "created_unix_s": 1793323456.0445194
+}
