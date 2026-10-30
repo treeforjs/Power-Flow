@@ -1,0 +1,89 @@
+Stable native electrode-heat API v1
+
+Include electrode_heat_feedback.hpp; ss304_heat_material.hpp binds the supplied
+conditional property owner directly. CMake interface: electrode-heat-feedback.
+Parent owns all PIC/neutral/field advancement and launch. This is the evolving
+thermal/adsorbed-inventory component; it does not create another electron solver.
+
+Construct one noncopyable/nonmovable Coupler per electrode (or stable unique_ptr).
+Geometry is physical reference xy with explicit invariant height, immutable mesh
+revision and electrode ID. For the initial pilot geometry remains fixed. Material
+is bounded h_vol(T),Cv,k,sigma with explicit phase/data/volume convention.
+conditional_ss304 requires qualification enum, density convention, rho_ref and
+source seal hash; no mode or density default. The tested nominal synthesis mode
+is300..1800K, rho_ref8000kg/m3 as an explicit source-model assumption, not measured
+foil density. Fixed-reference-volume Cp-as-Cv approximation; no vapor or flow.
+Mechanics773.15K admission is separate and is not lifted.
+
+A Patch is a physical face partition (LowY,HighY,LowX,HighX; begin/end fractions).
+It returns accepted one-sided boundary T, outward normal and actual area. A
+geometry-only patch defaults desorption_enabled=false and must have zero parent
+inventory; it requires no fictitious gas/source law. Enabled desorption requires
+all state/parent/mass/rate/activation/reference/internal data explicitly. A rate
+barrier is not an additional heat debit. Initial inventory is the CANONICAL
+two-limb pair initial_particles/initial_low_particles; State.inventory preserves
+hi and lo. rounded_for_rate() is only a propensity evaluation, NOT a transport
+or committed-inventory conversion. No second adsorbed pool may be evolved by a
+neutral adapter. Geometry masks/coverage to particle count are caller-owned.
+
+prepare(Epoch, admitted_solid_Joule_Coefficient, Transfers, perpatch_Draws) is pure
+with respect to accepted state. Epoch binds t,dt,base revision, mesh/material/
+source hashes and EM state hash. Each Transfer has event_time_s within that
+interval, producer/sequence, species-state/parent/channel IDs, and independent
+canonical energy_owner/owner_sequence. The canonical key must be shared by all
+providers of the SAME physical heat transaction; otherwise the root coordinator
+would be inventing two distinct events. Both producer and energy-owner sequence
+watermarks are persisted and reject replay, including across different providers.
+
+Incoming/outgoing K are actual weighted J (do not multiply weight/height again).
+reference_out_J is signed material/electronic reference exchange. Without a full
+Nottingham partition wall heat is Kin-Kout-reference; with complete_nottingham,
+nottingham_wall_J must close that same partition and REPLACES it, never adds to
+it. work_function_reference_part_J is diagnostic, already included in reference.
+Solid-volume collision heat is signed and must be located in the solid. Plasma
+recoil is not automatically solid heat. Authored heat is separate. Electric PIC
+work or an electrostatic barrier is not another Joule/particle heat source.
+
+Joule is irreversible solid W/m3 from the matching admitted EM/current and
+conductivity state. The adapter performs native MFEM load quadrature, integrated
+J/H point loads, mass-lumped nodal enthalpy and harmonic-k orthogonal dual-cell
+conduction, insulated boundaries, backward Euler with k frozen at accepted T.
+This differs from the old consistent-mass thermal discretization, to preserve
+monotonicity of point heating. Boundary means integrate every intersected mesh
+segment. Only coordinate roundoff within32eps times geometry scale is projected
+to a known surface; no material temperature clamp/extrapolation is used.
+
+Trial exposes immutable state(), budget(), packets(), next_surface_T(). Uniforms
+are caller-owned; no RNG is advanced here. Source temperature is accepted startT
+for the declared interval; returned endT drives the next interval. Actual
+weighted packet K/internal/reference energy is debited once; mean2kT is diagnostic
+only. Packets carry physical v AND native proper_velocity_m_s, mass, zero neutral
+charge and EXACT native stable relativistic K=m*u2/(sqrt(1+u2/c2)+1)*weight.
+The thermal distribution is explicitly nonrelativistic, not Maxwell-Juttner;
+v>=c rejects. classical_sample_K_J and relativistic_conversion_J are diagnostic
+decomposition of the same actual energy, not extra heat. Packet channel/event
+IDs and source_revision are deterministic component-local lineage; root prefixes
+the common run identity when assigning global gas/particle IDs at atomic commit.
+
+Root preflights ALL participants, then calls commit(Trial&&) only after the common
+barrier. preflight is allocation-free; commit is noexcept State swap plus fixed
+field update and refuses stale proposals. A shared lifetime token retained by
+Trial prevents owner-address ABA; a generation also invalidates initialization/
+restart proposals. Placement reconstruction is tested. No gas packets may enter
+accepted transport before the global barrier. save/load bind full numerical
+config, material/source signatures and two-limb inventory/producer watermarks;
+root still coordinates multi-component crash/restart metadata and binary seals.
+
+temperature_field(), surface_temperatures(), normal(i),area(i),
+electrical_conductivity_at(x,y), phase_at(x,y), stored_energy_J() expose accepted
+state. AcceptedSolidConductivity is for marked SOLID quadrature only.
+AcceptedMetalConductivity accepts the electrode instances, returns exactly zero
+in vacuum, and rejects mixed accepted clocks/revisions or overlapping bodies.
+The field owner must actually assemble/recompute using this accepted sigma and
+return its matching Joule port. The heat adapter does not independently solve EM.
+
+All source-only/deposition/Joule/combined/refinement/restart tests and the supplied
+conditional caloric/phase callbacks are component checks, not a fully coupled
+water-breakdown run. Initial pilot remains fixed geometry. Changing geometry
+requires an admitted mass/enthalpy/work remap and new mesh revision. Phase/data
+limits, surface-source support and root scientific/resource gates remain active.
