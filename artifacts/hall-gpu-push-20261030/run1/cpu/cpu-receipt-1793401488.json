@@ -1,0 +1,88 @@
+{
+  "admission": {
+    "stage": "cpu",
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "core_leases_held": {
+      "6": true,
+      "7": false
+    },
+    "gpu_lease_held": false,
+    "PF_CORE": "6",
+    "hall_commit": "8dddec0610982778bf02bdfe697b70a37129c012",
+    "hall_clean": true,
+    "kernel_release": "7.2.11-arch1-1",
+    "frozen_launcher_sha256": "d149ac9c013dd630ca11ba69a6d91b603dd715e0ca3ee41e03e00d51122faa5c",
+    "runtime_pins_sha256": "d1a6be483171116a123a25565cde1c93817e0d4b1795613a9e7614344db4567c",
+    "python": "/usr/bin/python",
+    "python_version": "3.14.8",
+    "runner_sha256": "7002c47a3864a40710366670e072fd145c4759318924c0097bb4bf4de8930110",
+    "argv": [
+      "tests/run_parity.py",
+      "cpu",
+      "run1"
+    ],
+    "time_unix": 1793401466.6114945
+  },
+  "inputs_verified_before": 588,
+  "steps": [
+    {
+      "name": "cpu-selftest",
+      "argv": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "prlimit",
+        "--cpu=1800",
+        "--as=8589934592",
+        "--",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/push/run1/build/cpu_reference",
+        "selftest",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/push/run1/cpu"
+      ],
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C.UTF-8",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "PYTHONNOUSERSITE": "1",
+        "CUDA_VISIBLE_DEVICES": ""
+      },
+      "returncode": 0,
+      "expected_returncode": 0,
+      "elapsed_s": 1.4683298280001509,
+      "log": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/push/run1/cpu/cpu-selftest.log",
+      "log_sha256": "f2b3d489a2a013c1bb1d0de1d1def021615caa6bf0267601105566740f755376"
+    },
+    {
+      "name": "cpu-reference",
+      "argv": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "prlimit",
+        "--cpu=7200",
+        "--as=25769803776",
+        "--",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/push/run1/build/cpu_reference",
+        "run",
+        "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/data/shot_17133_current.csv",
+        "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/push/run1/cpu"
+      ],
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C.UTF-8",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "PYTHONNOUSERSITE": "1",
+        "CUDA_VISIBLE_DEVICES": ""
+      },
+      "returncode": 0,
+      "expected_returncode": 0,
+      "elapsed_s": 19.80688508000003,
+      "log": "/home/treefor/sim-workspace/powerflow/outputs/hall-gpu-resident-v1-20261030/push/run1/cpu/cpu-reference.log",
+      "log_sha256": "c983df889785e21a1f7aae7b1b713b1bd140931a65e0671c002df1d99ee8c20f"
+    }
+  ],
+  "inputs_verified_after": 588
+}

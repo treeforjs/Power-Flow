@@ -1,0 +1,90 @@
+GPU push backend for the corrected Hall motion path -- parity and timing, run1 (2026-10-30)
+
+Code: /home/treefor/projects/runtimes/hall-gpu-resident-v1-20261030/{common,push,tests} (field/ untouched)
+Reference: Hall commit 8dddec0 (clean, unchanged): hall_driver::prepare_canonical_motion
+(native_arena_motion.cpp), kinetic_boundary.cpp, axial::push/Path/point_deposit/intersection,
+foil::work_kick, native-v6.2 pic_boris/pic_kinetic_energy_J, hall_corrective::charge_of_endpoints.
+Device: NVIDIA GeForce RTX 3080 Ti, GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9, cc 8.6, 80 SMs,
+driver 615.78.08 (driver API 13040), libcuda sha256 f73320931be3c4ea...
+NVRTC 12.8 (libnvrtc.so.12 sha256 43731e24cd89e374...), options --gpu-architecture=sm_86 (from the
+device cc at run time; cubin, no JIT) --fmad=false --prec-div=true --prec-sqrt=true --ftz=false --std=c++17.
+
+What the motion record contains (and is compared bit for bit)
+  endpoints: native_id, position_m, proper_velocity_m_s, charge_C, mass_kg, weight (ID order)
+  paths: native_id, field_start_m, field_displacement_m (rounded canonical D'), flight_s
+  current_A_m[ne], initial_charge_C[nn], endpoint_charge_C[nn]
+  budget: kinetic_change_J, field_work_J, work_defect_J, continuity_C, plasma_dt, maximum_gyro,
+          maximum_displacement_cells; refusal text and refusal order
+  corrected path: charge_of_endpoints net words (hi, lo)[nn] and gross_C[nn]
+  Sum orders reproduced: each edge/node value is a sequential sum over carriers in ID order and,
+  within a carrier, in Path electric-list order (segment, Gauss point, r, s); net charge uses
+  Words two_sum/fma arithmetic; gross uses the x87 sequence long double(g)+(|hi|+|lo|), round to
+  double, nextafter up if below (emulated exactly on the device); kinetic change is the x87 long
+  double fold in ID order and field work is foil::dot (both host folds over downloaded arrays).
+
+Method
+  sealed.bin   sealed functions called unchanged (cap 100000 carriers)
+  replica.bin  loop bodies transcribed, calling the same sealed functions, no cap, per-carrier
+               diagnostics; identical to sealed.bin on every fixture where the sealed path runs
+  hostport.bin device kernel bodies compiled for the host; identical to replica on every fixture
+  gpu runN.bin GPU engine, 3 fresh processes x 5 in-process repeats per fixture
+  Self-test: 2,000,000 x87 gross-step cases and 1,000,000 Words cases vs native long double /
+  field_contract.hpp: 0 mismatches.
+
+Parity (parity.json, parity-summary.json): every array of every fixture bit-identical
+  port_pair_w1e+09/1e+11/1e+12 _seed (Model::at(dc_seed)) and _final (authoritative midpoint of
+    prepare_closed_proposal; reference = the proposal's own MotionReceipt): identical; record seal
+    rebuilt from GPU arrays equals the sealed seal_sha256.
+  syn_record_1e3/1e4/1e5: identical to sealed and replica; seals equal.
+  syn_record_1e6: sealed path refuses ("motion census exceeds sealed native carrier cap");
+    identical to replica and host port; seal from GPU arrays equals replica seal.
+  syn_boundary_1e3/1e4/1e5/1e6 (2% boundary approachers): refusal text and first refusing rank
+    identical (sealed: same text up to 1e5); all per-carrier diagnostics identical (codes, moved
+    D/u, axial hit surface/fraction incl. 12,593 bisected trajectories at 1e6, flight, gyro,
+    displacement, kinetic sink/fraction/axis/plane; all sinks and surfaces occur).
+  syn_metal_1e3: census-loop refusal "particle in/on native metal" at rank 611, identical.
+  Closed loop (gpu/closed-loop.json): GPU motion substituted in the prepare_closed_proposal fixed
+    point with the sealed Model::prepare: iterations 3/4/4 equal, midpoint E/B and seal equal,
+    candidate field sha256 equal, current and free charge identical at every iteration.
+  Run-to-run: all 3 fresh processes identical per fixture (sha256 in parity.json); all 5
+    in-process repeats identical; 45/45 teardowns released, 0 quarantined.
+
+Timing (timing-table.txt; ms; GPU = median over repeats 2-5, median over 3 processes)
+  carriers  CPU sealed*   CPU numeric  GPU total   GPU resident  GPU stream  peak dev MiB
+  2               -          0.22         0.75         0.75          0.37         2.3
+  1e3           6.02         1.71         0.99         0.98          0.71         3.8
+  1e4          48.20        15.05         1.32         1.30          0.98        17.5
+  1e5         533.77       151.60         7.60         7.03          6.13       154.8
+  1e6           cap       1556.71        66.71        60.80         54.55      1527.2
+  * prepare_canonical_motion + charge_of_endpoints, incl. census hash and record JSON seal
+    (seal alone 331 ms at 1e5, 4.0 s at 1e6 on the replica arrays).
+  CPU numeric = census loop + motion + deposits + budget + free charge (1e6: 43/1059/253/0.1/201).
+  GPU total = set_carriers + set_field + run incl. every transfer and host fold; resident = carriers
+  already on the device. 1e6 GPU stream phases: h2d carriers 5.4, carrier kernel 22.7, start nodes
+  4.4, end nodes 4.5, d2h carriers/nodes 7.7, emit 6.6, sort 5.6, edge sums 4.2; host fold 1.8.
+  One-time per process: session open ~0.12 s, NVRTC compile + allocation ~0.7 s.
+  Peak device memory: own 1527 MiB at 1e6 (device-wide peak incl. other processes 3240 MiB);
+  pinned host 170 MiB.
+
+GPU access under the frozen launcher
+  arch-base-20261028/root already contains usr/lib/libcuda.so.615.78.08, byte-identical to the
+  host library and sealed in root-files.json; run-frozen binds /dev. Every GPU process ran inside
+  run-frozen with no extra bind (libcuda dlopen'ed, path and sha256 recorded). NVRTC is loaded
+  from its absolute pinned path under /home/treefor/projects (bound read-write by run-frozen).
+
+Receipts: build/build-receipt.json (argv, exit codes, binary sha256), build/input-sha256.json
+(588 inputs incl. every -MD dependency, Hall sources, libraries, NVRTC, trace), cpu/cpu-receipt-*.json,
+gpu/gpu-receipt-*.json (per-process argv, exit code, fixture input sha256, output sha256),
+gpu/<fixture>/runN.json (device, NVRTC record, options, log, image sha256, phases, memory, teardown).
+
+Open items
+  - Host-side parts: x87 long double folds (kinetic change, field work), continuity, census ordering,
+    Count2 packet check, census sha256 and JSON seal stay on the host.
+  - No device-side accept of endpoints yet: a resident multi-step loop needs an on-device commit.
+  - Boundary carriers bisect 49 trajectories in one thread (warp divergence: 1e6 boundary kernel
+    135 ms vs 23 ms); they refuse in motion v2, but first-hit truncation (plan H3) needs a better
+    schedule.
+  - Per-edge/per-node sums are serial by construction; a heavily loaded node is a serial chain.
+  - Shared-memory integer atomics count radix histograms (order independent); no floating-point
+    atomics. Device limits: 16 path cuts per carrier (the 0.2-cell guard bounds it to 3), 2^31 records.
+  - Only sm_86 measured; sm_89 / sm_120 parity remains to be shown.

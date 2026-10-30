@@ -1,0 +1,15 @@
+fixture                   carriers   cpu_sealed  cpu_numeric    gpu_total   gpu_steady   gpu_events    speedup  peak_MiB
+port_pair_w1e+09_seed            2          n/a        0.249        0.767        0.760        0.372        0.3       2.3
+port_pair_w1e+09_final           2          n/a        0.219        0.754        0.747        0.364        0.3       2.3
+port_pair_w1e+11_seed            2          n/a        0.213        0.752        0.744        0.361        0.3       2.3
+port_pair_w1e+11_final           2          n/a        0.216        0.741        0.734        0.371        0.3       2.3
+port_pair_w1e+12_seed            2          n/a        0.211        0.751        0.744        0.374        0.3       2.3
+port_pair_w1e+12_final           2          n/a        0.220        0.757        0.751        0.371        0.3       2.3
+syn_record_1e3                1000        6.019        1.711        0.985        0.979        0.719        6.1       3.8
+syn_record_1e4               10000       48.196       15.045        1.320        1.296        0.977       36.5      17.5
+syn_record_1e5              100000      533.770      151.596        7.598        7.027        6.131       70.2     154.8
+syn_record_1e6             1000000          cap     1556.705       66.714       60.797       54.554       23.3    1527.2
+ms; cpu_sealed = prepare_canonical_motion + charge_of_endpoints (sealed, includes census hash and record JSON seal);
+cpu_numeric = replica phases (census loop, motion, deposits, budget, free charge); gpu_total = median wall of
+set_carriers + set_field + run incl. all transfers and host folds; gpu_steady = set_field + run (carriers resident);
+gpu_events = stream time of run(); speedup = cpu_sealed (or cpu_numeric above the cap) / gpu_total.
