@@ -1,0 +1,59 @@
+{
+  "schema": "solid-thermoelastic-integration-v2",
+  "status": "executable_conditional_3d_mechanics_and_signed_energy_exchange; native_driver_integration_pending",
+  "thermal_owner_contract": "thermal-material-port-20261029.json",
+  "thermal_source_seal_sha256": "8fc064a3341519c8f6254f2f0e971bff6638a6d6160d69176fa00c5d1b1a17fc",
+  "thermal_library_sha256": "9d38ce17457f2b91758d6d2fce1a0a8dc17b41765037ca76efd180bd0bb1c920",
+  "entry_points": {
+    "mechanics": "mhdlab.solid_foil_mechanics.transient_foil",
+    "geometry": "mhdlab.solid_foil_geometry.deform_hex_mesh",
+    "surface_gap": "mhdlab.solid_foil_geometry.midplane_gap",
+    "energy_exchange": "mhdlab.solid_foil_coupling.thermoelastic_exchange",
+    "thermal_cell_projection": "mhdlab.solid_foil_coupling.project_exchange_to_thermal_xy",
+    "coupled_local_trial": "mhdlab.solid_foil_coupling.coupled_cell_heat_step"
+  },
+  "common_state": {
+    "clock": "accepted interval[t,t+dt], mechanics may subcycle; end T produces trial geometry at t+dt; emission uses accepted start state",
+    "identities": ["state revision", "mesh revision", "reference mesh SHA256", "mechanics material provenance and stress-free T", "caloric source seal/scenario/library SHA256", "source history SHA256", "transaction id", "immutable payload SHA256"],
+    "species": "empty event/parent lists; no electron/heavy inventory mutation",
+    "reference_measure": "each cell value is full3D joules over fixed reference material volume",
+    "density": "same rho_ref as mechanics; current density is rho_ref*Vref/Vcurrent"
+  },
+  "thermodynamic_model": {
+    "base": "separate owner's stress-free reference caloric U0(T); explicit nominal Cp-as-Cv proxy retained",
+    "free_energy_density": "Phi=0.5*(epsilon-epsilon_th):C(T):(epsilon-epsilon_th)",
+    "elastic_internal_density": "Uel=Phi-T*dPhi/dT; signed excess, not constrained nonnegative",
+    "stress_work": "sum of every subcycle sigma_average:Delta_epsilon*dVref",
+    "thermal_base_debit_J": "DeltaUel-Wstress; positive means remove base thermal energy",
+    "native_heat_load_J": "negative of thermal_base_debit_J",
+    "closure": "DeltaK+DeltaUel+DeltaU0 = supplied_external_heat + support_work; homogeneous immobile supports have zero support work",
+    "separate_algorithmic_quantity": "DeltaPhi-Wstress is a strain-energy reservoir debit and must NOT replace thermodynamic debit",
+    "range": "retain293.15..773.15K mechanics support and caloric lower300K; thermodynamic transactions additionally remain inside one open smooth coefficient segment",
+    "knots": "reject crossing/landing at derivative discontinuities rather than invent latent heat",
+    "plasticity": "nominal vonMises/proof-stress screen rejects unsupported elastic trials",
+    "physical_EOS_ready": false
+  },
+  "consumer_sequence": [
+    "Freeze accepted thermal/geometry/material/source revisions and reference masses.",
+    "Prepare trial endT and mechanical subcycles against the same accepted state; reject temperature, derivative-segment, stress or geometry failures.",
+    "Build signed cellJ exchange with the full subcycle stress-work path and verify its mesh/material/payload bindings.",
+    "Collapse axial cellJ once and conservatively remap onto the thermal XY reference cells with project_exchange_to_thermal_xy.",
+    "Native2D FE assembly divides full3D cellJ by the reference axial extent exactly once and records the dedicated internal thermoelastic exchange ledger.",
+    "Recompute thermal endT and mechanics until local/global energy residuals and interface stages converge; the local-cell prototype demonstrates this corrector but omits native conduction.",
+    "Parent preflights and commits all thermal/geometry/field/source ports together, retaining replay/restart identities. No component independently commits a partial trial."
+  ],
+  "concrete_native_api_gap": {
+    "current_heat_Transfer": "does not expose a dedicated reversible mechanical internal-exchange entry",
+    "required_addition": "signed reference cellJ mechanical exchange plus transaction/mesh/material/stage identity and a separate internal ledger category",
+    "forbidden_substitution": "do not encode this debit as authored_heat_J, solid Joule heat, PIC electric work, or a duplicated wall collection term",
+    "mesh": "reference energy remap and deformed surfaces exist; native moving-domain conductivity/EM operators and boundary/circuit work remain unqualified"
+  },
+  "supports": {
+    "implemented": ["free", "short_plane_clamped", "both_end_clamped"],
+    "meaning": "explicit sensitivity scenarios, not measured constraints or rigorous response bounds",
+    "missing": "short structural thickness, bridge/joint stiffness and mechanical anchoring; none inferred from electrical BCs"
+  },
+  "physical_field_solve_authorized": false,
+  "old_run_action": "none",
+  "production_owner": "parent"
+}
