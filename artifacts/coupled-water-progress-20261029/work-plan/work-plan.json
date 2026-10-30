@@ -1,0 +1,115 @@
+{
+  "schema": "coupled-water-work-plan-v1",
+  "created_local": "2026-10-29T21:15:53.437526-06:00",
+  "status": "active_implementation",
+  "deadline_target_local": "2026-10-29 tonight, America/Denver",
+  "deadline_overrides_validation": false,
+  "target_end_ns": 60,
+  "supported_start_ns": 0.749788055492,
+  "geometry": {
+    "foil_width_mm": 5,
+    "foil_thickness_mm": 0.2,
+    "gap_mm": 5,
+    "height_mm": 25,
+    "material": "SS304"
+  },
+  "old_electron_only_run": {
+    "preserve_paused": true,
+    "resume_authorized": false,
+    "checkpoint_ns": 26.47868472199812
+  },
+  "new_coupled_run": {
+    "launch_authorized_after_short_test_and_scientific_resource_gates": true,
+    "must_start_new_consistent_history": true,
+    "runtime_prediction": "not established",
+    "physical_full_H2O_mechanism_ready": false,
+    "fully_coupled_application_ready": false
+  },
+  "resource_policy": {
+    "Hall_CPU": 6,
+    "bounded_tests_CPU": 7,
+    "CPU7_lease": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core7.lock",
+    "GPU_owner": "parent",
+    "numerical_dependencies": "frozen",
+    "CPU0_through5": "not allocated to this goal"
+  },
+  "work_packages": {
+    "water_data": {
+      "chat": "01a189c9-0f4f-7790-970b-18dbb1a703c0",
+      "prefix": "/home/treefor/projects/runtimes/h2o-collision-data-20261029",
+      "status": "dispatched"
+    },
+    "reaction_transactions": {
+      "agent": "/root/cpu_hotpaths",
+      "prefix": "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029",
+      "status": "126 manufactured checks passed; native commit integration dispatched"
+    },
+    "electrode_heat_feedback": {
+      "chat": "01a189c9-0c4e-7741-83fd-dac41fd91b52",
+      "prefix": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029",
+      "status": "dispatched"
+    },
+    "electromagnetic_feedback": {
+      "chat": "01a18aa3-937f-7f81-a441-2350af9121d1",
+      "prefix": "/home/treefor/projects/runtimes/hall-coupled-transport-20261029",
+      "status": "162 initial manufactured checks passed; compatible vector field/current adapter ongoing"
+    },
+    "thermal_expansion": {
+      "chat": "01a18acb-5da2-7ad2-a91e-d3c1e6a39437",
+      "title": "Implement SS304 electrode thermal expansion",
+      "prefix": "/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029",
+      "status": "new chat dispatched"
+    },
+    "electric_exterior": {
+      "agent": "/root/gpu_profiler_setup",
+      "prefix": "/home/treefor/projects/runtimes/pic-electric-exterior-20261029",
+      "status": "graded/open exterior candidate preparation dispatched"
+    },
+    "integration_and_launch": {
+      "owner": "parent",
+      "status": "interfaces and readiness gating"
+    },
+    "thermal_field_emission": {
+      "chat": "01a189e4-9a5d-72d0-8b1e-eb1a93290165",
+      "prefix": "/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029",
+      "status": "dispatched_unified_thermal_field_source"
+    },
+    "thermal_properties": {
+      "chat": "01a189c9-0920-71c2-95e1-2ab739fd6f62",
+      "prefix": "/home/treefor/projects/runtimes/ss304-thermal-properties-20261029",
+      "status": "dispatched_bounded_high_temperature_thermal_transport_and_phase_inputs"
+    },
+    "plasma_screening_verification": {
+      "agent": "/root/particle_sampling",
+      "prefix": "/home/treefor/projects/runtimes/pic-plasma-screening-20261029",
+      "status": "native_charge_and_screening_verification_in_progress"
+    }
+  },
+  "acceptance": {
+    "reaction_data": "strict incident-energy support, thresholds, units, exclusive event multiplicity and energy conventions; no silent extrapolation",
+    "events": "one parent debit and atomic all-species products, charge/H/O/momentum/event-energy closure, repeat/restart protection",
+    "fields": "same accepted interval species charge/current feedback, compatible current/gather/divergence/work, admitted exterior and boundary/circuit ports",
+    "thermal": "actual evolving electrode thermal state, Joule and deposited energy plus desorption exchange, returned T source feedback; no double accounting",
+    "material": "valid SS304 property/phase domain and deformation assumption",
+    "coupled_pilot": "common clock/volumes/geometry, conservation, rollback/restart and coupling-interval refinement",
+    "long_run": "continuous accepted supported-start history to60ns, recorded resource participation, no guard relaxation, whitecm^-3GIF and limitations",
+    "electrode_electron_source": "Retain thermal and strong-field emission on both electrodes via a unified supported law; use signed one-sided screened local surface E and evolved T, no imposed shielding factor, no overlapping source populations or duplicated space-charge cap; emitted charge/energy/material-work ports must close.",
+    "screening": "Compare electron, ion and net charge, solved surface/potential field, emission and near-surface residence; document cell/Debye/time resolution and current/heating feedback. No proof of physical shielding from a visually tight cloud."
+  },
+  "known_risks": [
+    "Full exclusive water branching and high-energy differential product data not yet bound",
+    "Original halo has large electric exterior sensitivity",
+    "Original heating has no phase transition and very hot corner values",
+    "A manufactured Hall mode is not the fully coupled foil application",
+    "Long coupled runtime is unmeasured"
+  ],
+  "updated_local": "2026-10-29T21:22:06.158847-06:00",
+  "scientific_hypothesis": {
+    "missing_breakdown_screening": "priority hypothesis, not established sole cause of the old halo",
+    "established_confounder": "substantial old electric exterior sensitivity",
+    "no_imposed_shielding_factor": true,
+    "electrode_emission_remains_active": true,
+    "ionization_electrons_augment_electrode_sources": true
+  },
+  "model_scenario_policy": "Source-grounded nominal material/surface scenarios with explicit assumptions are allowed. Exact experimental calibration is distinct from internal model support, conservation, numerical qualification and quantified omitted-physics limits."
+}
