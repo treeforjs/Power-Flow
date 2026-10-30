@@ -148,6 +148,12 @@ Must be built first:
 | H | practical | Per-step JSON hashing (~0.4-0.7 s/step) | Binary canonical encodings hashed once per immutable object (Hall `state_sha256` dumps the field ~10x per step, `field_model.hpp:65-66`; native `frame_prefix`, inc:232-240). |
 | - | binding | Source v4 field view | Build `FinalFieldView{v3::TrialFrame, axial::Mesh, E, B}` (`source_owner.hpp:41,47`) from Hall's actual midpoint arrays. |
 
+Source owner v5 (one version, after Stage 1 proves the joint interfaces): close A08 defects G1 (handoff zeroes representable current
+loads, charge impulses and continuity for tiny admitted births) and G2 (subnormal expected-count scalar admitted with up to ~2x error;
+admit through the finite log or refuse with scope), typed scoped refusals for stock drain and the v2 energy-closure path, H5 (consume
+Hall temperature, no private Joule), the FinalFieldView binding to Hall midpoint arrays, and a decision on two-limb export for the
+SS304 melt proposal. Evidence: artifacts/audit-reproducer-ports-20261030/source-v4.
+
 Per step: first exposure (qualified parent channel only) -> source v4 prepare (emission + desorption births, exact debit = native credit)
 -> Hall motion with first-hit sinks, ions as moving carriers (screening only from the Hall EM solve) -> field and heat proposal ->
 second exposure -> seal -> preflight every owner -> allocation-free publication native -> chemistry -> Hall -> source.
