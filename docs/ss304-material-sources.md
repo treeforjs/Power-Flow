@@ -1,0 +1,13 @@
+# SS304 material record v1
+
+The machine-readable record is `data/materials/ss304-v1.json`. It uses **Type 304 / UNS S30400 / EN 1.4301**, explicitly mapped by the producer. It does not replace 304 with 304L. The actual foil batch, temper and residual stress remain unknown.
+
+[Deutsche Edelstahlwerke / Swiss Steel, Acidur 4301 (2015)](https://swisssteel-group.com/content-media/documents/Data-Sheets/Stainless-Steel/1.4301_de.pdf), printed pages 1, 2 and 4, supplies grade identity, modulus, expansion, reference density, room-temperature conductivity/heat capacity and annealed-bar proof stress. Expansion and modulus support is **293.15-773.15 K**. The density table omits temperature; assigning its 7900 kg/m3 value to 293.15 K is explicit. Heat capacity and conductivity are single-temperature facts, not hot-material laws. Bar proof stress can only screen a benchmark; it does not certify the foil's elastic limit.
+
+The expansion entries are mean coefficients from 20 degC, not tangent coefficients. Define `s_i = alpha_mean_i (T_i - 293.15 K)` and interpolate `s(T)` linearly between the recorded knots. The implemented stretch must be `(1+s(T))/(1+s(T_ref))`, with an explicit stress-free reference. Equivalently integrate `alpha=(ds/dT)/(1+s)` and exponentiate. The engineering eigenstrain is stretch minus one. This preserves the measured secants and zero change at any admissible reference. Interpolation is a declared approximation without a source uncertainty band; it is not new measurement data.
+
+Mass follows total geometry: `rho = rho_ref / det(F)`. For stress-free reference geometry at another temperature, first set `rho_ref = 7900/(1+s(T_ref))^3`. Applying thermal density again after total deformation would count expansion twice.
+
+[Nippon Steel, Stainless Steel Shapes (2020)](https://www.nipponsteel.com/product/catalog_download/pdf/S006en.pdf), printed page10, reports the **TP304** melting interval 1399-1454 degC (1672.15-1727.15 K). It is a phase warning, not permission to extend the 500 degC elastic model. Melting, vaporization, plasticity, Lorentz loads and strain-rate calibration are absent. No Poisson ratio is supplied in v1; a 3D isotropic benchmark must state its assumption separately.
+
+The downloaded PDFs and rendered table evidence live in the report's `material-sources/` directory, outside the source patch. Their SHA256 hashes, editions, source URLs and page locators are frozen in the JSON record. Source-table visuals were checked with the frozen userspace renderer on CPU7 under the shared test lock. Preserve those PDFs as local research evidence; do not commit their full text or page renders.

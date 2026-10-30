@@ -1,0 +1,76 @@
+{
+  "schema": "ss304-geometry-port-binding-v1",
+  "status": "executable_affine_benchmark_transactions; physical_deformation_blocked",
+  "parent_requirements_sha256": "8c71d1ef813be3df78a4e7e913601c62f35747aa6fd61027f8fe3186921c0b6c",
+  "heat_feedback_interface_sha256": "0bb815cd7c09c933f9c626a8df004c6e49aeb22395c0124bfae48757a2321192",
+  "contract_snapshots": ["parent-coupling-port-requirements-20261029.json", "heat-feedback-port-20261029.json"],
+  "mechanics_material_sha256": "ef08fafdd9f61f83dae2b721f72b09ab399521bfe311d4bc8564586f90116f56",
+  "matched_source_run_sha256": "df79133957684abbe5678b10b0c4b7625cbb0c8b7e17d31712410decd5efca05",
+  "api": {
+    "mechanics": "mhdlab.thermal_expansion: load_ss304_material, static_bar, transient_bar, isotropic_elastic_stress",
+    "geometry": "mhdlab.thermal_expansion_mapping: affine_foil_geometry, projected_gap_y_m",
+    "mapping": "conservative_remap_1d, transform_field, qualify_field_handoff",
+    "transactions": "mhdlab.thermal_expansion_port.GeometryPort: prepare, commit, rollback",
+    "input": "mhdlab.thermal_expansion_source.load_matched_history"
+  },
+  "clock": {
+    "interval": "immutable accepted base revision at t; prepare interval [t,t+dt]",
+    "temperature_input_stage": "trial interval-end thermal state; stage_time_s must equal t+dt",
+    "source_emission_stage": "accepted interval-start temperature remains canonical during [t,t+dt]",
+    "geometry_commit": "candidate accepted at t+dt only after parent preflights all ports",
+    "rollback": "discard prepared proposal; accepted commit rollback not provided",
+    "subcycling": "mechanics may subcycle inside interval without committing partial geometry"
+  },
+  "units_and_reference": {
+    "coordinates": "m, reference physical xyz; x width, y gap, z axial",
+    "geometry_m": {"width": 0.005, "thickness": 0.0002, "gap": 0.005, "height": 0.025},
+    "feed_z_m": 0.0125,
+    "short_z_m": -0.0125,
+    "observation_z_m": 0.0,
+    "stress_free_temperature_K": "required scalar; source benchmark declares 300 K",
+    "reference_density": "7900 kg/m3 at 293.15 K assigned room reference; rho_ref(T_ref)=7900/(1+s(T_ref))^3",
+    "current_density": "rho_ref/det(F); do not multiply by a second thermal-density correction",
+    "area_and_volume": "full 3D m2 and m3; height included once; deposited energy is integrated J",
+    "two_foil_perimeter_area_m2": 0.00052,
+    "two_foil_six_face_area_m2": 0.000524,
+    "endcap_mask": "z faces are explicit and must not silently enter perimeter-only source inventories"
+  },
+  "ownership": {
+    "mechanics_material": "this component owns bounded expansion/E/rho provenance",
+    "high_temperature_caloric_transport_phase": "separate ss304-thermal-properties-20261029 component owns enthalpy/k/sigma/phase laws",
+    "thermal_inventory": "heat-feedback component owns electrode enthalpy/T and canonical adsorbate inventory",
+    "species": "no species mutation, no second electron/heavy evolution, empty species parent/event IDs",
+    "electron_emission": "pic-thermal-field-emission-20261029 owns unified law and heat partition; geometry exports signed material-outward normals/areas with same accepted surface/mesh revision",
+    "geometry": "reference/deformed coordinates, areas/normals, mass mapping and mechanical work interface",
+    "global_commit": "parent owns all-port atomic acceptance and physical launch"
+  },
+  "range": {
+    "mechanics_data_temperature_K": [293.15, 773.15],
+    "interpretation": "selected source-data domain, NOT physical melting temperature",
+    "separate_nominal_304_melting_interval_K": [1672.15, 1727.15],
+    "no_automatic_extension": "a new thermal/phase property range does not qualify solid expansion or elasticity above773.15 K"
+  },
+  "energy": {
+    "kinetic_energy_J": "diagnostic of reduced mechanical state",
+    "elastic_trial_energy_J": "diagnostic, not a heat-debit prescription",
+    "heat_debit_J": null,
+    "mechanical_work_J": null,
+    "missing": "qualified thermoelastic caloric/work exchange including changing E/eigenstrain; cannot silently set deformation work to zero"
+  },
+  "readiness": {
+    "solid_eigenstrain_and_reduced_mechanics": true,
+    "affine_conservative_geometry_benchmarks": true,
+    "local_prepare_commit_rollback": true,
+    "persistent_restart_replay": false,
+    "nonuniform_full_foil_mechanics": false,
+    "moving_thermal_em_mesh": false,
+    "physical_deformation": false,
+    "fixed_geometry_heat_pilot": "may consume unchanged mesh after independent parent qualification; this component does not authorize it"
+  },
+  "concrete_conflicts": [
+    "Thermal v1 keeps fixed mesh; available conservative overlap/affine map is benchmark-only and cannot move the native nonuniform field mesh.",
+    "No actual mechanical feed/short support law is specified. Nominal free/restraint cases are implemented but not a connected-assembly solution.",
+    "Thermal work cannot be debited when deformation is active until its constitutive/work law is supplied.",
+    "Existing matched source is outside the selected mechanics-data range after the admitted early prefix; no clipping or unchanged-history restart is allowed."
+  ]
+}
