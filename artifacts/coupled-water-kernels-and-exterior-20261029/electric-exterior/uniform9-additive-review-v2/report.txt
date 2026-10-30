@@ -1,0 +1,84 @@
+Uniform 9 exact-output failure — additive CPU causal review
+
+The original exact fresh-output recipe remains FAILED. The new uniform GPU
+run returned 3 with 2203 original strict captured-field failures; the earlier
+fresh run had 2733. All original failures, outputs, resource/hold receipts,
+GPU request and dispatcher tools remain intact. No new GPU run was needed
+for this review. No numerical guard or scientific source has changed.
+
+Both new nodal solutions differ from the older fresh solve: max differences
+are 1.5352271e-9 V(phi) and 1.6653345e-14(psi). B is byte-identical. New versus
+old fresh particle fields differ by at most 8.6426735e-6 V/m in Ex,
+7.6591969e-6 V/m in Ey and 7.4505806e-8 V/m in Ez. This is a nodal-solution
+difference; it is not explained by changing only gather operation order.
+
+The CPU counterfactual proof is stronger than a norm comparison:
+
+1. The original captured nodes reproduce original captured fields exactly.
+2. The unchanged old gather, fed old fresh nodes, reproduces the old saved
+   fresh particle_fields.bin byte-for-byte.
+3. The same unchanged old gather, fed new fresh nodes, reproduces the new
+   saved particle_fields.bin byte-for-byte.
+4. Every component of the old → new field difference is accounted for by
+   linear propagation of delta phi/delta psi plus the pre-existing local
+   gamma 64 floating-evaluation bound. Ex/Ey/Ez maximum remainders are
+   1.52680e-6,1.83910e-6,2.63467e-9 V/m; maximum fractions of the respective
+   a-priori local bounds are 0.00646,0.00909,0.00764. No bound was selected
+   from the measured difference. Existing checkpoint regression and sampled
+   potential limits also pass; the original strict comparisons stay failed.
+
+The nine reconstructed full/constrained CSR and RHS arrays are byte-identical
+to the earlier qualified control. The solver wrapper and linked cuDSS/CUDA/
+cuBLAS pins are unchanged. The old and new source paths assemble the same
+uniform system; physical core coordinates, source and finite-foil ownership
+match. Source conservation, original FP 64 residual/nodal guards and source-
+work/energy/complete-residual Gauss checks independently pass. The new GPU
+run's phi residual is 4.9387433e-20 C/m vs original limit 1.6454812e-17;
+psi residual 6.2800983e-25 C/m vs 2.0406934e-22. Factorization 1,solves 2,
+advance 0 and default 2 IR remain unchanged. No actual GPU CSR dump exists;
+the byte evidence is the shared-path CPU reconstruction plus sealed source,
+binary, input and library bindings, not a separately stored device dump.
+
+NVIDIA's primary general documentation states that default cuDSS atomics
+do not guarantee bitwise repeatability, including within a fixed environment:
+https://docs.nvidia.com/cuda/cudss/0.7.1/general.html#results-reproducibility
+The installed 0.6.0.5 public configuration enum has no deterministic entry;
+the wrapper enables host_threads 1,hybrid 0,execute_hybrid 0,IR 2 only. The old
+0.6 documentation URL was unavailable. The quoted documentation describes
+0.7.1 and is contextual evidence, not proof identifying a particular atomic
+schedule inside this 0.6 run. No deterministic option, dependency update,
+reordering change or refinement change is proposed. The exact internal cause
+of the new GPU nodal rounding is not directly observed; the results fit
+documented default non-repeatability. No semantic source/operator/coordinate/
+gather regression was found. Bitwise equality was an unsupported assumption
+for that cross-run control; its failure is preserved, not reclassified.
+
+Scale relative to an actual domain effect (descriptive, not acceptance limits)
+
+Weighted RMS old-fresh → new-fresh delta E is 1.5718724e-6 V/m across all 46726
+particles. The earlier actual 9 → 13 mm static domain change was 3.5522858e 6 V/m,
+giving a ratio 4.42496e-13. Ratios are 7.94352e-13 in the finite-width gap,
+4.39867e-13 above the upper back and 3.59298e-13 in the explicit 250 um corner
+vacuum mask. Against 9 → 25 mm the all-particle ratio is 2.36408e-13. These
+ratios establish separation from that measured static domain effect; they
+are not fitted residual tolerances or infinite-domain error bounds.
+
+Tiny charge contribution remains distinct from driven bias. The actual free
+charge RHS norm is 3.0369888e-16 C/m. Reconstructing rounded phi−Vpsi gives
+max charge potential 7.15989e-5 V(old) and 7.15996e-5 V(new). Its independent
+CSR residual/source norm ratios are 0.02005% and 0.01997%. This is a separate
+subtractive diagnostic, not an additional solve or a new physical guard.
+The driven-bias residual alone is not evidence for tiny space-charge accuracy.
+
+Disposition and continuation boundary
+
+The additive CPU control is qualified for review using the existing numerical
+policy, unchanged original guards, exact input/source parity and complete
+nodal-to-field causal reconstruction. This does not make the strict/exact
+recipe pass and does not authorize GPU continuation. A separately versioned
+follow-up dispatcher binds this report and all evidence, retains the failed
+uniform attempt, and requires a new explicit approval file plus selected
+case ids. It cannot launch another uniform control or approve itself.
+
+No trajectory, source callback, new Poisson solve, guard relaxation, frozen
+production action or dependency change occurred during this CPU review.

@@ -1,0 +1,67 @@
+{
+  "status": "fixes_requested_original_v1",
+  "reviewed_header_sha256": "f8e920e39c9db5019c078216402946d90c52c6c6829d6182e7a51358e4d70da6",
+  "findings": [
+    {
+      "id": "R1",
+      "priority": 1,
+      "title": "Preserve or reject unrepresentable unequal-weight remainders",
+      "file": "reviewed-collision_scheduler.hpp",
+      "line": 113,
+      "probe": "Wtarget=1e20,Wprojectile=1; remainder=1e20; actual debit=0; event_weight=1; prepare admits",
+      "requested_fix": "Bind originals and error-free count/remainder, with explicit downstream one-double admission; no gross-inventory tolerance masking."
+    },
+    {
+      "id": "R2",
+      "priority": 1,
+      "title": "Bound queries/work/candidate rows independently of packet pairs",
+      "file": "reviewed-collision_scheduler.hpp",
+      "line": 103,
+      "probe": "pair_limit=1, one colocated pair,128 matching channels ->128 queries/rows",
+      "requested_fix": "Independent checked budgets, before query/allocation and before prepare copy/sort."
+    },
+    {
+      "id": "R3",
+      "priority": 1,
+      "title": "Distinguish collision-subflow time and frozen physical stage",
+      "file": "reviewed-collision_scheduler.hpp",
+      "line": 42,
+      "evidence": "Clock/event_time expose accepted global interval but no spatial-stage time/identity; native adapter integration is not implemented.",
+      "requested_fix": "Encode/validate accepted interval, frozen spatial stage time/binding and separately named subflow coordinate; no inferred orbit advance."
+    },
+    {
+      "id": "R4",
+      "priority": 2,
+      "title": "Qualify target-rest energy for high common boosts",
+      "file": "reviewed-collision_scheduler.hpp",
+      "line": 61,
+      "probe": "Identical proper velocities (1e20,.37e20,-.21e20): E_target=5519937523.33245 eV with flux0; exactE=0",
+      "requested_fix": "Stable nonnegative gamma_rel-1 or fail-closed admitted numeric range; cover low/nearly-comoving/high-boost/noncollinear cases."
+    },
+    {
+      "id": "R5",
+      "priority": 2,
+      "title": "Bind proposals to owner lifetime rather than address reuse",
+      "file": "reviewed-collision_scheduler.hpp",
+      "line": 176,
+      "probe": "optional owner reset/emplace at same storage, generation0; new owner can_publish(old proposal)==true",
+      "requested_fix": "Unique retained per-instance lifetime token; restored owner invalidates pending proposals."
+    }
+  ],
+  "first_moment_rate_identity": "correct in real arithmetic; binary remainder issue separate",
+  "physical_noise_equivalence_claimed": false,
+  "positive_focused_checks": [
+    "propensity overflow rejected",
+    "propensity underflow rejected",
+    "unrepresentable event timestamp rejected",
+    "low-energy stationary-target kinetic energy matches reference"
+  ],
+  "root_source_modified": false,
+  "no_native_or_GPU_execution": true,
+  "CPU": 7,
+  "nice": 15,
+  "threads": 1,
+  "frozen_userspace": true,
+  "owner_fix_plan_received": true,
+  "later_revision_reviewed": false
+}

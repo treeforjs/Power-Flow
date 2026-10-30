@@ -1,0 +1,106 @@
+Independent scheduler v3 review — 2026-10-29
+
+Reviewed live-source snapshot SHA256:
+803e4cdc43981b51d1d0e9c8293ed9e4103a1b6763ecf91bf6682b9ba71e29b1
+Disposition: v3 kinematics and the five structural fixes pass the bounded
+independent tests. The direct-prepare size guard is implemented/tested only in
+the review copy and supplied as prepare-size-guard.patch for owner adoption.
+This is scheduling machinery. Canonical compensated native/neutral storage,
+product kinematics and native/coupled mutation are not accepted or implemented.
+V1/v2 review artifacts are preserved; no owner source was edited.
+
+Independent evidence
+60 kinematic cases were compared with a900-decimal-digit oracle using the
+direct four-vector invariant gamma_p*gamma_n-u_p dot u_n/c²-1 on exact binary64
+input values. This oracle does not copy the implementation's rationalized radial
+or FMA cross-product formulas. Cases include zero/stationary low speeds,8keV
+common boosts through gamma~1e200, exact comoving proper velocities through
+1e300m/s, parallel/opposite/skew ultrarelativistic inputs, one-ULP nearly
+comoving cases and20 seeded mixed-vector cases.
+
+All54 admitted cases match the correctly rounded binary64 energy AND Moller
+flux exactly (0ULP difference), including the nearly comoving cases that failed
+v2. Three true energy-overflow cases and three conversion-underflow cases
+reject; there are no unexpected rejections or silently zeroed positive energy/
+flux values in the suite. The representable subnormal flux case has an apparent
+relative discrepancy4.4e-12 only because of unavoidable binary64 output
+quantization; it matches the correctly rounded reference exactly. This is a
+bounded adversarial qualification, not a proof for every possible float input.
+
+The v2 counterexample (common-boost8keV pair with positive Moller flux~4.46e-393
+m/s, whose later scaled propensity could be representable) now rejects with
+"relative kinematics conversion underflow" before candidate creation. It no
+longer silently suppresses that reaction. This explicit refusal is necessary;
+correct rounding of a factor to0 is insufficient when a later product can be
+representable. Native/data owners must retain this refusal rather than replace
+it with a clamp or a zero cross section.
+
+The original149 independent adversarial assertions pass against the unpatched
+v3 snapshot. They include original-beforeweight/propensity consistency,
+remainder tamper rejection, pair/query/candidate limits, strict eligibility and
+zero-flux support queries, invalid stage/elapsed rejection, deterministic RNG,
+restore/publication, and shared-lifetime token rejection after same-address
+owner destruction/replacement. An independent900-digit difference oracle
+confirms all110 two-limb subtractions exactly, including maximum finite and
+subnormal inputs; all69 nonzero low limbs reject one-double conversion.
+
+Direct-prepare guard patch
+The live v3 snapshot still has no bound before canonical=input. The supplied
+patch adds an optional candidate_limit=1,000,000 to prepare() and rejects
+input.size()>candidate_limit before copying or sorting. Existing call sites
+retain their default behavior. Fourteen focused checks pass in the patched
+review copy: eight size-boundary/RNG/determinism checks and six forced-event
+stage/progress checks. An over-budget poisoned vector is rejected with the
+size-budget error before candidate validation. Empty input fits a zero limit;
+exact-size input is admitted; size refusal leaves RNG unchanged.
+
+The forced stage controls use accepted interval[10,11]s, physical stage10.5s
+and consumed subflow elapsed0.6s. Successive sampled subflow coordinates
+increase beyond0.6 while frozen physical stage stays10.5. No particle drift or
+physical product birth is implied by those manufactured SSA clock samples.
+The patch does not add a new field/chemistry model or relax any rate check.
+Owner must apply it and bind the resulting source/test receipt before claiming
+the live direct-vector entry is size-bounded.
+
+Five-fix disposition
+- Original weights plus error-free {high,low} remainders: verified at candidate
+  representation and guarded conversion boundary, not as general inventory.
+- Independent pair/query/candidate budgets: verified in builder; direct prepare
+  budget is supplied/tested as an isolated patch.
+- Frozen physical stage distinct from collision elapsed: verified, including
+  invalid inputs and successive consumed subflow progress. Parent still owns
+  the actual stage state/revision, orbit/deposition and accepted interval.
+- Stable gamma_rel-1/Moller evaluation: v2 cancellation and silent-underflow
+  reproductions resolved in the60-case high-precision suite.
+- Shared lifetime identity: stale proposals reject after storage reuse or
+  restoration, while accepted RNG/generation continuation is deterministic.
+
+Concrete remaining conversion/integration requirements
+Packet.weight still accepts one double. A two-limb remainder cannot be fed back
+as a general compensated count for the next event. The illustrative target1e6
+minus event0.031334406939830223 gives high999999.96866559307 and
+low-1.0739603650833374e-11. require_single_weight() correctly rejects it. Passing
+only.high bypasses the helper and loses the debit. A canonical owner must carry
+both limbs through depletion, subsequent rate inputs, count/H/O/charge/energy
+ledgers, identities and restart, or fail before physical/RNG publication. It
+must not silently skip such selected events or resample around the refusal.
+No general compensated-neutral storage implementation is qualified here.
+
+The parent must also bind current original weights and channel queries to the
+actual immutable state/mesh/mechanism revision; candidate syntactic hashes do
+not establish that coherence alone. The collision clock remains a subflow:
+a native D-K-D insertion stage, pre/post trajectory-current deposition, all
+products/primary replacement, physical thresholds/support and product laws,
+material/EM work and atomic coupled rollback/publication remain external work.
+Manufactured constant sigma and placeholder product hashes are not H2O data.
+No physical packet-noise/depletion convergence, screening, foil trajectory,
+water-ion formation or continuous coupled-history claim follows from these tests.
+
+Artifacts and execution
+high-precision-oracle.json, remainder-oracle.json, adversarial.txt,
+guard-checks.txt and underflow.txt contain the results. reviewed-* files bind
+the immutable live v3 snapshot; patched-collision_scheduler.hpp and
+prepare-size-guard.patch contain the proposed guard only. All accepted tests
+used frozen userspace, CPU7/nice15/one thread and testing-core7.lock. No GPU,
+PIC/field solve, native mutation, production action, new dependency or root
+source change occurred. Review applies only to the named snapshot and patch.

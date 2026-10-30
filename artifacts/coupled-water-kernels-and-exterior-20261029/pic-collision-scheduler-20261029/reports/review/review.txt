@@ -1,0 +1,112 @@
+Independent review of original collision scheduler v1 — 2026-10-29
+
+Disposition: fixes requested before integration. This review is bound to the
+original header SHA256 f8e920e39c9db5019c078216402946d90c52c6c6829d6182e7a51358e4d70da6.
+The reviewed-* snapshots preserve that code even if the owner subsequently
+fixes the runtime source. No owner source was edited. Focused probes ran in
+frozen userspace, CPU7/nice15/one thread under testing-core7.lock. The original
+36 checks / 50,000 clocks were inspected as supplied; that ensemble was not
+rerun. No product kinematics, native mutation, PIC, fields or GPU were run.
+
+1. [P1] A smaller packet debit can disappear in the larger remainder.
+Header lines108–113 construct a double remainder by original_weight-w.
+The probe uses target weight1e20 and projectile weight1. It gets remainder1e20,
+actual represented target debit0, event_weight1, and prepare admits the event.
+The real-arithmetic propensity identity does not prevent this binary64 loss.
+A native transaction consuming this remainder could create products without
+representably debiting the target. Do not hide this with a tolerance scaled to
+the gross1e20 inventory. Bind original weights and preserve an error-free
+remainder/count ledger, or reject contrasts whose debit cannot be admitted by
+the downstream representation. Test both weight orderings, no-op subtraction,
+near-equal weights, subnormal counts and the native one-double conversion policy.
+
+2. [P1] Pair limit does not bound channel work or candidate memory.
+Lines97–113 limit only colocated packet pairs; the channel loop and out.push_back
+have no independent query/row budget. One pair with pair_limit1 produces128
+matching queries and128 candidate rows in the probe. A large channel catalogue
+can multiply the advertised work/memory bound. Add checked query/work and
+candidate-row limits, validate before invoking queries/push_back, and bound the
+copy/sort in prepare before allocation. Avoid overflow in budget arithmetic.
+The state eligibility check correctly precedes each cross-section query; a
+state-indexed channel catalogue can also avoid scanning every channel per pair.
+
+3. [P1] Separate the SSA subflow clock from the physical orbit/gather stage.
+Clock lines42–46 and event_time_s lines166–169 use the accepted begin/end
+interval, while positions are held fixed in a collision subflow. An SSA sample
+inside that interval is not evidence that the native orbit reached that global
+time/position. A synchronized midpoint insertion adapter must not stamp
+products, field samples, current segments or electrode sources with that
+sampled subflow time as though a drift happened. Add a frozen spatial/physical
+stage ID/time and binding, accepted interval/revision, and a separately named
+collision-subflow elapsed coordinate. Validate stage containment and binding,
+advance only the subflow coordinate between collision events, and recompute
+rates after admitted velocity/species changes. The physical driver must own
+pre/post drift deposition and one accepted clock/rollback boundary. The README
+already warns that the insertion stage is missing; the API needs to encode it.
+
+4. [P2] Target-rest energy loses cancellation at extreme common boosts.
+The boost subtraction at lines58–70 is algebraically correct, but not numerically
+qualified for all finite proper velocities currently accepted. Exactly comoving
+u=(1e20,.37e20,-.21e20) m/s yields E_target=5.519937523e9 eV with Moller flux0;
+the exact target-rest kinetic energy is0. Still higher common boosts also return
+large spurious energies. A zero-flux support query can therefore receive the
+wrong energy. Use a cancellation-resistant nonnegative gamma_rel-1 invariant,
+or explicitly fail closed outside an admitted kinematic range; test identical,
+nearly comoving, radial and non-collinear velocities under large common boosts.
+Do not clamp a negative radicand or a false positive energy into support.
+The ordinary stationary-target8keV and modest common-boost tests are sound;
+this finding does not assert a water-range rate error.
+
+5. [P2] Raw owner address plus generation does not identify owner lifetime.
+Proposal lines123–124 and can_publish line176 accept a token when its owner
+address and generation match. In the probe, optional<Scheduler> is emplaced,
+a proposal is prepared, then the owner is reset and emplaced with another seed
+in the same storage. The new owner accepts the old token (generation0/address
+match), permitting stale RNG publication. Use an independent per-instance
+lifetime token retained by proposals; restart must create a fresh lifetime and
+invalidate pending proposals while preserving accepted RNG/generation state.
+Retain current double-publication, foreign-owner and stale-generation rejection.
+Physical state/mesh/mechanism validation remains a separate parent obligation;
+can_publish currently validates neither a changed physical revision nor stage.
+
+What is correct and what is established
+For weights Wp,Wt and event weight w=min(Wp,Wt), the propensity
+  a=max(Wp,Wt)*sigma(E_target)*g_Moller/V
+satisfies w*a=Wp*Wt*sigma*g/V in exact arithmetic. This is the correct
+instantaneous represented reaction-count expectation for the proposed weighted
+jump construction. The conditional branch ratio is correct for competing
+exclusive channels of the same pair. It does not prove physical fluctuation
+statistics or finite-packet convergence: an event contributes variance w^2*a*dt,
+so the packet-weight choice controls noise. The README correctly retains that
+limit and requires rates rebuilt after each admitted event/depletion.
+
+Target-rest projectile kinetic energy and simulation-frame Moller flux are the
+appropriate distinct inputs for a target-rest cross section with lab-frame
+packet densities/volume. The code's formulas are mathematically consistent;
+Moller flux may exceed c and is not an individual particle speed. Extrusion
+volume is used once. No plotting slab is duplicated as a reacting population.
+
+Channel state matching, exclusive-event classification, identity uniqueness,
+syntactic data/kernel hashes, same-cell locality, and mandatory support query
+even at zero flux are useful fail-closed controls. Query functions own thresholds,
+gaps and valid incident-energy ranges; hash-shaped strings do not prove a
+qualified differential product law. The manufactured constant cross sections
+and placeholder hashes remain correctly labeled nonphysical H2O evidence.
+
+The focused probe also confirms propensity overflow rejection, nonzero
+propensity underflow rejection, and rejection when event time rounds onto an
+interval endpoint. The stable low-energy stationary-target calculation at
+u=1e-4 m/s matches its reference exactly. Open uniforms, canonical candidate
+ordering, copied RNG during prepare and accepted RNG/generation checkpointing
+are coherent within the frozen standard-library implementation. Preparation
+alone does not publish RNG. A no-event interval still needs common acceptance
+through its endpoint; the physical restart must bind all owners together.
+
+Evidence
+probe.cpp / run_probe.sh / probe.txt reproduce the findings and positive edge
+checks against the reviewed header snapshot. findings.json gives machine-readable
+requests, exact line references and disposition. input-bindings.json records
+original source hashes. No claim of a completed native collision transaction,
+product kinematics, field coupling, water rates or continuous accepted history.
+The source owner has acknowledged all requests and is preparing fixes; this v1
+review is not an approval of any later revision.

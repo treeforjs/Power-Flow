@@ -1,0 +1,13 @@
+--- a/source/collision_scheduler.hpp
++++ b/source/collision_scheduler.hpp
+@@ -176,7 +176,9 @@
+ public:
+     explicit Scheduler(std::uint64_t seed):random_(seed){}
+     Scheduler(const Scheduler&)=delete;Scheduler& operator=(const Scheduler&)=delete;
+-    Proposal prepare(const Clock& clock,const std::vector<Candidate>& input)const {
++    Proposal prepare(const Clock& clock,const std::vector<Candidate>& input,
++        std::size_t candidate_limit=1000000)const {
++        require(input.size()<=candidate_limit,"scheduler candidate input limit");
+         require(std::isfinite(clock.begin_s)&&clock.begin_s>=0&&std::isfinite(clock.end_s)&&clock.end_s>clock.begin_s,"invalid accepted interval");
+         require(digest(clock.state_sha256)&&digest(clock.mesh_sha256)&&digest(clock.mechanism_sha256),"unbound input revision");
+         require(std::isfinite(clock.frozen_physical_stage_s)&&clock.frozen_physical_stage_s>=clock.begin_s&&clock.frozen_physical_stage_s<=clock.end_s,"frozen physical stage outside accepted interval");

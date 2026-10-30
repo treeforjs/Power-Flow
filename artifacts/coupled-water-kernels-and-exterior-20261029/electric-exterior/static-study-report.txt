@@ -1,0 +1,89 @@
+Frozen-charge electric exterior study, 26.478443519 ns
+
+All twelve separately approved static cases passed the unchanged source,
+charge, work, FP 64 residual, resource and zero-advance guards. B stayed
+bitwise identical. The original uniform strict/exact failures remain failed;
+the additive CPU reconstruction and continuation are separate evidence.
+This study changes electrostatic boundary distance or exterior discretization
+at one fixed charge state. It does not evolve plasma or establish convergence.
+
+The nested family has exact full widths 15.039989,26.679186,57.561441,
+116.186410,222.201692,356.911986 mm. The first exterior cell is 25 µm and
+successive exterior cells grow 5%. Both x and y shared interior coordinates
+are independently checked bitwise across this family. Every plotted extent
+point is the difference from the PRECEDING extent, placed at the actual new
+numeric width on a logarithmic x axis. Extent and mesh refinement are separate.
+
+Observed successive extent changes
+
+The all-particle weighted RMS delta E decreases from 2.280 MV/m(15.04→26.68)
+to 0.9383,0.2014,0.04800 and 0.01108 MV/m. For the final 222.202→356.912 mm
+extension, weighted RMS delta E is:
+
+ region                 RMS delta E    relative L2 of total E    sampled max
+ all                    11.084 kV/m       0.04905%                85.388 kV/m
+ finite-width gap        3.943 kV/m        0.01531%                34.432 kV/m
+ above upper back       11.656 kV/m        0.09729%                64.819 kV/m
+ 250 µm corner vacuum    18.164 kV/m        0.04079%                85.388 kV/m
+
+Final-pair parallel RMS differences are 2.043 kV/m(gap),3.062 kV/m(back),
+7.582 kV/m(corners). These absolute quantities matter alongside total-E
+relative norms; a driven total field can hide a small parallel/charge field.
+The final differences are finite sensitivity measures, not proven error bounds
+to an infinite domain. The 25 µm core and native magnetic mesh were not refined.
+
+Exterior discretization is much smaller than this observed extent tail
+
+At the SAME 80 mm full width, increasing margin cells 120→160 changes weighted
+RMS E by 89.48 V/m(all),35.80 V/m(gap),92.31 V/m(back),149.04 V/m(corners).
+The preceding 80→120 refinement is 295.95 V/m(all),117.41 V/m(gap),305.83 V/m
+(back). Same-extent old uniform 25 mm versus graded 25 mm differs by 551.61 V/m
+(all),218.90 V/m(gap),573.21 V/m(back). This independently isolates the graded
+approximation from moving the boundary. No residual guard was loosened.
+
+An 80 mm box is not equivalent to the farthest tested box: with 160 margin
+cells at 80 mm, comparison against 356.912 mm gives 132.37 kV/m RMS(all),
+47.20 kV/m(gap),139.09 kV/m(back),217.19 kV/m(corners). Relative L2 changes
+are 0.5882%,0.1836%,1.1729%,0.4898%, respectively. It is inappropriate to
+claim negligible exterior sensitivity merely because 80 mm is larger than 9 mm.
+
+Scientific comparator audit
+
+The weighted norms use positive captured particle weights. Relative L2 is
+sqrt(sum(w|delta E|²)/sum(w|Ebaseline|²)); parallel and perpendicular use the
+same per-particle B direction. A separate math.fsum calculation, using
+delta E dot B and the perpendicular norm identity, reproduces final-pair
+statistics within operation-scale roundoff. There are no zero-B samples.
+Both x/y nested-axis overlap checks pass. Missing/truncated/nonfinite arrays
+and any B-byte difference fail closed. Inputs are hashed before/after reading.
+
+Gap means x 2..7 mm,y 2..7 mm; back means x 2..7 mm,y>7.2 mm. Corner vacuum
+means outside both finite foil rectangles and within 250 µm of one of their
+eight 2Dcorners. It is not an all-face or 3Daxial-edge mask. These masks overlap
+and include ALL z positions; the separate midplane mask is abs(z)<0.5 mm.
+They do not establish emission origin. A midplane density image is not the
+same sampling population as these full-height gap/back norms. No density was
+generated, relabeled or normalized. Field plots use exact V/m→MV/m conversion.
+
+Conditional pilot assessment
+
+The tests provide a controlled static sensitivity sequence: the last three
+extent changes decrease, exterior-refinement changes are much smaller, source
+coordinates/deposition/gathers remain consistent, and original guards pass.
+For an explicitly conditional first integration pilot, the widest tested
+356.912 mm/120-margin mesh is the conservative tested field choice; it has
+361201 nodes and preserves the original 25 µm near-foil region. This does not
+change the kinetic escape box or imply a physically known open boundary.
+
+Report the final-pair envelope and maxima as remaining static sensitivity.
+Do not invent a residual/percentage threshold from these measurements or call
+the field converged. Before physical breakdown conclusions, compare observable
+event/energy changes over the last extents, retain the separate tiny-charge
+diagnostics, and test core/native/source resolution. Water ionization and
+feedback may amplify a small field difference, and the charge distribution
+will change once coupled transport begins. The current fixed-state evidence
+does not qualify that evolving case or remove finite-geometry/closure limits.
+
+Evidence: field-comparison.json, scientific-comparison-audit.json,
+pilot-extra-static-comparisons.json and white-static-plots-v2/plot-receipt.json.
+All plotting and additional checks were CPU-only; no new solve or trajectory.

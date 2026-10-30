@@ -1,0 +1,1292 @@
+{
+  "summary": {
+    "cases": 108,
+    "accepted": 12,
+    "rejected": 96,
+    "max_direction_error_accepted": {
+      "index": 2,
+      "input_eV": 14,
+      "boost_u_over_c": 0,
+      "shape": 2,
+      "accepted": true,
+      "oracle_target_rest_eV": 13.999999999999998,
+      "exception": null,
+      "direction_vector_error": 2.892793835321093e-17,
+      "direction_norm_error": 2.2204460492503132e-17,
+      "oracle_energy_defect_J": 4.2315807796988744e-36,
+      "oracle_energy_defect_eV": 1.056457993432171e-16,
+      "oracle_energy_bound_fraction": 6.637644845917561e-05,
+      "oracle_momentum_bound_fraction": 0.0007834604983338541,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": 4.325819211026018e-36,
+      "energy_bound_eV_per_reaction": 1.5916157281026242e-12
+    },
+    "max_direction_error_returned": {
+      "index": 12,
+      "input_eV": 14,
+      "boost_u_over_c": 1000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.0,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 7.465855626102672e-15,
+      "direction_norm_error": 1.588817563145117e-30
+    },
+    "oracle_energy_outside_reported_bound": [],
+    "oracle_momentum_outside_reported_bound": [],
+    "max_energy_bound_eV_per_reaction": {
+      "index": 72,
+      "input_eV": 999,
+      "boost_u_over_c": 0,
+      "shape": 0,
+      "accepted": true,
+      "oracle_target_rest_eV": 998.9999999999999,
+      "exception": null,
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0,
+      "oracle_energy_defect_J": 7.102363520053001e-33,
+      "oracle_energy_defect_eV": 1.7731786544211958e-13,
+      "oracle_energy_bound_fraction": 0.0015612657046328781,
+      "oracle_momentum_bound_fraction": 0.0017878741091423948,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": 7.107885201004142e-33,
+      "energy_bound_eV_per_reaction": 1.135731508838944e-10
+    },
+    "mutation_cases": [
+      {
+        "mutation": "rotated_projectile_same_rate",
+        "accepted": true,
+        "energy_bound_J": 4.553659874773075e-31,
+        "energy_defect_J": -6.966449720713205e-34,
+        "momentum_bound": 2.5506029149997505e-37,
+        "momentum_defect": [
+          0,
+          2.350594095997021e-40,
+          0
+        ]
+      },
+      {
+        "mutation": "changed_target_mass_same_rate",
+        "accepted": false,
+        "exception": "parent bridge species/catalog mass mismatch"
+      },
+      {
+        "mutation": "changed_volume_without_rate",
+        "accepted": false,
+        "exception": "stale or inconsistent rate candidate"
+      },
+      {
+        "mutation": "changed_volume_with_rate",
+        "accepted": true,
+        "energy_bound_J": 4.553659874773075e-31,
+        "energy_defect_J": -6.966449720713205e-34,
+        "momentum_bound": 2.5506029149997505e-37,
+        "momentum_defect": [
+          2.350594095997021e-40,
+          0,
+          0
+        ]
+      },
+      {
+        "mutation": "tiny_weight",
+        "accepted": false,
+        "exception": "parent weighted energy receipt overflow/underflow"
+      },
+      {
+        "mutation": "near_unit_axis_ordinary_weight",
+        "accepted": false,
+        "exception": "unweighted parent lab energy closure"
+      },
+      {
+        "mutation": "near_unit_axis_tiny_weight",
+        "accepted": false,
+        "exception": "unweighted parent lab energy closure"
+      },
+      {
+        "mutation": "valid_weight_-292",
+        "accepted": false,
+        "exception": "parent weighted momentum receipt overflow/underflow"
+      },
+      {
+        "mutation": "valid_weight_-289",
+        "accepted": false,
+        "exception": "parent weighted momentum receipt overflow/underflow"
+      },
+      {
+        "mutation": "valid_weight_-284",
+        "accepted": true,
+        "energy_bound_J": 1.82146395e-314,
+        "energy_defect_J": -2.7865796e-317,
+        "momentum_bound": 1.02e-320,
+        "momentum_defect": [
+          1e-323,
+          0,
+          0
+        ]
+      },
+      {
+        "mutation": "valid_weight_-280",
+        "accepted": true,
+        "energy_bound_J": 1.8214639499092e-310,
+        "energy_defect_J": -2.7865798883e-313,
+        "momentum_bound": 1.02024116e-316,
+        "momentum_defect": [
+          9.4026e-320,
+          0,
+          0
+        ]
+      }
+    ],
+    "oracle": "120-digit Decimal direct Lorentz four-vectors from exact binary64 input values; independent inverse boost and K+reference/product momentum closure"
+  },
+  "cases": [
+    {
+      "index": 0,
+      "input_eV": 14,
+      "boost_u_over_c": 0,
+      "shape": 0,
+      "accepted": true,
+      "oracle_target_rest_eV": 14.0,
+      "exception": null,
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0,
+      "oracle_energy_defect_J": 7.208224949627488e-35,
+      "oracle_energy_defect_eV": 1.7996080573541775e-15,
+      "oracle_energy_bound_fraction": 0.0011306799911430267,
+      "oracle_momentum_bound_fraction": 0.0014826012054985612,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": 7.203429381838978e-35,
+      "energy_bound_eV_per_reaction": 1.5916157281026246e-12
+    },
+    {
+      "index": 1,
+      "input_eV": 14,
+      "boost_u_over_c": 0,
+      "shape": 1,
+      "accepted": true,
+      "oracle_target_rest_eV": 14.0,
+      "exception": null,
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0,
+      "oracle_energy_defect_J": 7.208224949627488e-35,
+      "oracle_energy_defect_eV": 1.7996080573541775e-15,
+      "oracle_energy_bound_fraction": 0.0011306799911430267,
+      "oracle_momentum_bound_fraction": 0.0014826012054985612,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": 7.203429381838978e-35,
+      "energy_bound_eV_per_reaction": 1.5916157281026246e-12
+    },
+    {
+      "index": 2,
+      "input_eV": 14,
+      "boost_u_over_c": 0,
+      "shape": 2,
+      "accepted": true,
+      "oracle_target_rest_eV": 13.999999999999998,
+      "exception": null,
+      "direction_vector_error": 2.892793835321093e-17,
+      "direction_norm_error": 2.2204460492503132e-17,
+      "oracle_energy_defect_J": 4.2315807796988744e-36,
+      "oracle_energy_defect_eV": 1.056457993432171e-16,
+      "oracle_energy_bound_fraction": 6.637644845917561e-05,
+      "oracle_momentum_bound_fraction": 0.0007834604983338541,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": 4.325819211026018e-36,
+      "energy_bound_eV_per_reaction": 1.5916157281026242e-12
+    },
+    {
+      "index": 3,
+      "input_eV": 14,
+      "boost_u_over_c": 0,
+      "shape": 3,
+      "accepted": true,
+      "oracle_target_rest_eV": 14.0,
+      "exception": null,
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0,
+      "oracle_energy_defect_J": 7.208224949627488e-35,
+      "oracle_energy_defect_eV": 1.7996080573541775e-15,
+      "oracle_energy_bound_fraction": 0.0011306799911430267,
+      "oracle_momentum_bound_fraction": 0.0014826012054985612,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": 7.203429381838978e-35,
+      "energy_bound_eV_per_reaction": 1.5916157281026246e-12
+    },
+    {
+      "index": 4,
+      "input_eV": 14,
+      "boost_u_over_c": 0.8,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.0,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 9.272624730690002e-18,
+      "direction_norm_error": 3.3364802445076056e-30
+    },
+    {
+      "index": 5,
+      "input_eV": 14,
+      "boost_u_over_c": 0.8,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 13.999999999999872,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0
+    },
+    {
+      "index": 6,
+      "input_eV": 14,
+      "boost_u_over_c": 0.8,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.000000000000018,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 4.5614511248732656e-17,
+      "direction_norm_error": 4.440892098499287e-17
+    },
+    {
+      "index": 7,
+      "input_eV": 14,
+      "boost_u_over_c": 0.8,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.000000000000043,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 5.803821290359276e-18,
+      "direction_norm_error": 1.5907825460106924e-29
+    },
+    {
+      "index": 8,
+      "input_eV": 14,
+      "boost_u_over_c": 100,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.0,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 2.581525728949932e-18,
+      "direction_norm_error": 1.613347520977269e-29
+    },
+    {
+      "index": 9,
+      "input_eV": 14,
+      "boost_u_over_c": 100,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 13.999999999999762,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0
+    },
+    {
+      "index": 10,
+      "input_eV": 14,
+      "boost_u_over_c": 100,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 13.99999999999341,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 2.3588328423564383e-16,
+      "direction_norm_error": 4.440892102256013e-17
+    },
+    {
+      "index": 11,
+      "input_eV": 14,
+      "boost_u_over_c": 100,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.000000000007544,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 2.298783630541555e-16,
+      "direction_norm_error": 6.931763428196978e-26
+    },
+    {
+      "index": 12,
+      "input_eV": 14,
+      "boost_u_over_c": 1000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.0,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 7.465855626102672e-15,
+      "direction_norm_error": 1.588817563145117e-30
+    },
+    {
+      "index": 13,
+      "input_eV": 14,
+      "boost_u_over_c": 1000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.00000000000002,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0
+    },
+    {
+      "index": 14,
+      "input_eV": 14,
+      "boost_u_over_c": 1000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.00000000002033,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 15,
+      "input_eV": 14,
+      "boost_u_over_c": 1000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 13.999999999927388,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 16,
+      "input_eV": 14,
+      "boost_u_over_c": 10000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.0,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 17,
+      "input_eV": 14,
+      "boost_u_over_c": 10000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.000000000000014,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 18,
+      "input_eV": 14,
+      "boost_u_over_c": 10000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.000000000633364,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 19,
+      "input_eV": 14,
+      "boost_u_over_c": 10000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 13.999999999881389,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 20,
+      "input_eV": 14,
+      "boost_u_over_c": 100000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.0,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 21,
+      "input_eV": 14,
+      "boost_u_over_c": 100000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.000000000000181,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 22,
+      "input_eV": 14,
+      "boost_u_over_c": 100000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.000000001725153,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 23,
+      "input_eV": 14,
+      "boost_u_over_c": 100000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 13.999999999146429,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 24,
+      "input_eV": 14,
+      "boost_u_over_c": 1000000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.0,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 25,
+      "input_eV": 14,
+      "boost_u_over_c": 1000000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.000000000000057,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 26,
+      "input_eV": 14,
+      "boost_u_over_c": 1000000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 13.999999893841963,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 27,
+      "input_eV": 14,
+      "boost_u_over_c": 1000000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 13.99999989919583,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 28,
+      "input_eV": 14,
+      "boost_u_over_c": 10000000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.0,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 29,
+      "input_eV": 14,
+      "boost_u_over_c": 10000000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.000000000000194,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 30,
+      "input_eV": 14,
+      "boost_u_over_c": 10000000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 13.999999956527038,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 31,
+      "input_eV": 14,
+      "boost_u_over_c": 10000000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.000000839907338,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 32,
+      "input_eV": 14,
+      "boost_u_over_c": 100000000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.0,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 33,
+      "input_eV": 14,
+      "boost_u_over_c": 100000000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 14.000000000000082,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 34,
+      "input_eV": 14,
+      "boost_u_over_c": 100000000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 13.999995370898919,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 35,
+      "input_eV": 14,
+      "boost_u_over_c": 100000000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 13.999996324492665,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 36,
+      "input_eV": 100,
+      "boost_u_over_c": 0,
+      "shape": 0,
+      "accepted": true,
+      "oracle_target_rest_eV": 100.0,
+      "exception": null,
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0,
+      "oracle_energy_defect_J": -6.966964170226574e-34,
+      "oracle_energy_defect_eV": -1.7393748035964865e-14,
+      "oracle_energy_bound_fraction": 0.0015299702572919465,
+      "oracle_momentum_bound_fraction": 0.0009219602233077229,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": -6.966449720713205e-34,
+      "energy_bound_eV_per_reaction": 1.1368683772161603e-11
+    },
+    {
+      "index": 37,
+      "input_eV": 100,
+      "boost_u_over_c": 0,
+      "shape": 1,
+      "accepted": true,
+      "oracle_target_rest_eV": 100.0,
+      "exception": null,
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0,
+      "oracle_energy_defect_J": -6.966964170226574e-34,
+      "oracle_energy_defect_eV": -1.7393748035964865e-14,
+      "oracle_energy_bound_fraction": 0.0015299702572919465,
+      "oracle_momentum_bound_fraction": 0.0009219602233077229,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": -6.966449720713205e-34,
+      "energy_bound_eV_per_reaction": 1.1368683772161603e-11
+    },
+    {
+      "index": 38,
+      "input_eV": 100,
+      "boost_u_over_c": 0,
+      "shape": 2,
+      "accepted": true,
+      "oracle_target_rest_eV": 100.0,
+      "exception": null,
+      "direction_vector_error": 2.5732652299020515e-17,
+      "direction_norm_error": 2.2204460492503132e-17,
+      "oracle_energy_defect_J": -8.224589643943048e-34,
+      "oracle_energy_defect_eV": -2.053354035855462e-14,
+      "oracle_energy_bound_fraction": 0.0018061493106910863,
+      "oracle_momentum_bound_fraction": 0.0008633802567910821,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": -8.226579664794697e-34,
+      "energy_bound_eV_per_reaction": 1.1368683772161603e-11
+    },
+    {
+      "index": 39,
+      "input_eV": 100,
+      "boost_u_over_c": 0,
+      "shape": 3,
+      "accepted": true,
+      "oracle_target_rest_eV": 100.0,
+      "exception": null,
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0,
+      "oracle_energy_defect_J": -6.966964170226574e-34,
+      "oracle_energy_defect_eV": -1.7393748035964865e-14,
+      "oracle_energy_bound_fraction": 0.0015299702572919465,
+      "oracle_momentum_bound_fraction": 0.0009219602233077229,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": -6.966449720713205e-34,
+      "energy_bound_eV_per_reaction": 1.1368683772161603e-11
+    },
+    {
+      "index": 40,
+      "input_eV": 100,
+      "boost_u_over_c": 0.8,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.0,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 1.7813531407563436e-19,
+      "direction_norm_error": 2.5476041466195124e-31
+    },
+    {
+      "index": 41,
+      "input_eV": 100,
+      "boost_u_over_c": 0.8,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.00000000000014,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0
+    },
+    {
+      "index": 42,
+      "input_eV": 100,
+      "boost_u_over_c": 0.8,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 99.99999999999994,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 5.86084934102759e-17,
+      "direction_norm_error": 8.188737686948069e-31
+    },
+    {
+      "index": 43,
+      "input_eV": 100,
+      "boost_u_over_c": 0.8,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 99.99999999999956,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 1.837906851570144e-18,
+      "direction_norm_error": 2.7866862982386075e-30
+    },
+    {
+      "index": 44,
+      "input_eV": 100,
+      "boost_u_over_c": 100,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.0,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 3.5061531821675643e-16,
+      "direction_norm_error": 3.578797600202836e-30
+    },
+    {
+      "index": 45,
+      "input_eV": 100,
+      "boost_u_over_c": 100,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 99.99999999999969,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0
+    },
+    {
+      "index": 46,
+      "input_eV": 100,
+      "boost_u_over_c": 100,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.0000000000212,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 3.1537290788390636e-16,
+      "direction_norm_error": 1.302805250787291e-26
+    },
+    {
+      "index": 47,
+      "input_eV": 100,
+      "boost_u_over_c": 100,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 99.99999999997644,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 1.0578420629821955e-17,
+      "direction_norm_error": 1.3092893798061075e-26
+    },
+    {
+      "index": 48,
+      "input_eV": 100,
+      "boost_u_over_c": 1000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.0,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 2.4005733082263942e-15,
+      "direction_norm_error": 2.663073124173986e-29
+    },
+    {
+      "index": 49,
+      "input_eV": 100,
+      "boost_u_over_c": 1000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.00000000000018,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0
+    },
+    {
+      "index": 50,
+      "input_eV": 100,
+      "boost_u_over_c": 1000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 99.99999999979818,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 1.1360616913456036e-16,
+      "direction_norm_error": 2.2204460276510033e-17
+    },
+    {
+      "index": 51,
+      "input_eV": 100,
+      "boost_u_over_c": 1000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 99.99999999979399,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 1.110910759817029e-15,
+      "direction_norm_error": 9.913836061881326e-25
+    },
+    {
+      "index": 52,
+      "input_eV": 100,
+      "boost_u_over_c": 10000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.0,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 53,
+      "input_eV": 100,
+      "boost_u_over_c": 10000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.00000000000026,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 54,
+      "input_eV": 100,
+      "boost_u_over_c": 10000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 99.99999999743515,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 55,
+      "input_eV": 100,
+      "boost_u_over_c": 10000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.00000000404852,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 56,
+      "input_eV": 100,
+      "boost_u_over_c": 100000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.0,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 57,
+      "input_eV": 100,
+      "boost_u_over_c": 100000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.00000000000055,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 58,
+      "input_eV": 100,
+      "boost_u_over_c": 100000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 99.99999997287516,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 59,
+      "input_eV": 100,
+      "boost_u_over_c": 100000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.00000000599255,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 60,
+      "input_eV": 100,
+      "boost_u_over_c": 1000000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.0,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 61,
+      "input_eV": 100,
+      "boost_u_over_c": 1000000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 99.99999999999913,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 62,
+      "input_eV": 100,
+      "boost_u_over_c": 1000000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.00000009422612,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 63,
+      "input_eV": 100,
+      "boost_u_over_c": 1000000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.00000013045981,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 64,
+      "input_eV": 100,
+      "boost_u_over_c": 10000000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.0,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 65,
+      "input_eV": 100,
+      "boost_u_over_c": 10000000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 99.9999999999999,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 66,
+      "input_eV": 100,
+      "boost_u_over_c": 10000000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.00000307577152,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 67,
+      "input_eV": 100,
+      "boost_u_over_c": 10000000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.0000031176605,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 68,
+      "input_eV": 100,
+      "boost_u_over_c": 100000000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.0,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 69,
+      "input_eV": 100,
+      "boost_u_over_c": 100000000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.00000000000021,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 70,
+      "input_eV": 100,
+      "boost_u_over_c": 100000000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 100.00001689128253,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 71,
+      "input_eV": 100,
+      "boost_u_over_c": 100000000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 99.99998718592592,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 72,
+      "input_eV": 999,
+      "boost_u_over_c": 0,
+      "shape": 0,
+      "accepted": true,
+      "oracle_target_rest_eV": 998.9999999999999,
+      "exception": null,
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0,
+      "oracle_energy_defect_J": 7.102363520053001e-33,
+      "oracle_energy_defect_eV": 1.7731786544211958e-13,
+      "oracle_energy_bound_fraction": 0.0015612657046328781,
+      "oracle_momentum_bound_fraction": 0.0017878741091423948,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": 7.107885201004142e-33,
+      "energy_bound_eV_per_reaction": 1.135731508838944e-10
+    },
+    {
+      "index": 73,
+      "input_eV": 999,
+      "boost_u_over_c": 0,
+      "shape": 1,
+      "accepted": true,
+      "oracle_target_rest_eV": 998.9999999999999,
+      "exception": null,
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0,
+      "oracle_energy_defect_J": 7.102363520053001e-33,
+      "oracle_energy_defect_eV": 1.7731786544211958e-13,
+      "oracle_energy_bound_fraction": 0.0015612657046328781,
+      "oracle_momentum_bound_fraction": 0.0017878741091423948,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": 7.107885201004142e-33,
+      "energy_bound_eV_per_reaction": 1.135731508838944e-10
+    },
+    {
+      "index": 74,
+      "input_eV": 999,
+      "boost_u_over_c": 0,
+      "shape": 2,
+      "accepted": true,
+      "oracle_target_rest_eV": 998.9999999999999,
+      "exception": null,
+      "direction_vector_error": 2.269300270616574e-17,
+      "direction_norm_error": 2.2204460492503132e-17,
+      "oracle_energy_defect_J": 5.5143232552510595e-33,
+      "oracle_energy_defect_eV": 1.3767079454863802e-13,
+      "oracle_energy_bound_fraction": 0.0012121772925836897,
+      "oracle_momentum_bound_fraction": 0.0009919759886841178,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": 5.518992996884673e-33,
+      "energy_bound_eV_per_reaction": 1.135731508838944e-10
+    },
+    {
+      "index": 75,
+      "input_eV": 999,
+      "boost_u_over_c": 0,
+      "shape": 3,
+      "accepted": true,
+      "oracle_target_rest_eV": 998.9999999999999,
+      "exception": null,
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0,
+      "oracle_energy_defect_J": 7.102363520053001e-33,
+      "oracle_energy_defect_eV": 1.7731786544211958e-13,
+      "oracle_energy_bound_fraction": 0.0015612657046328781,
+      "oracle_momentum_bound_fraction": 0.0017878741091423948,
+      "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+      "declared_energy_defect_J": 7.107885201004142e-33,
+      "energy_bound_eV_per_reaction": 1.135731508838944e-10
+    },
+    {
+      "index": 76,
+      "input_eV": 999,
+      "boost_u_over_c": 0.8,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999999999,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 1.3035842097663026e-20,
+      "direction_norm_error": 1.3332580618361489e-31
+    },
+    {
+      "index": 77,
+      "input_eV": 999,
+      "boost_u_over_c": 0.8,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999999992,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0
+    },
+    {
+      "index": 78,
+      "input_eV": 999,
+      "boost_u_over_c": 0.8,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 999.0000000000001,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 3.73714741602886e-17,
+      "direction_norm_error": 2.2204460492503292e-17
+    },
+    {
+      "index": 79,
+      "input_eV": 999,
+      "boost_u_over_c": 0.8,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 999.0000000000003,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 3.016215529702789e-19,
+      "direction_norm_error": 2.3881500204963797e-31
+    },
+    {
+      "index": 80,
+      "input_eV": 999,
+      "boost_u_over_c": 100,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999999999,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 1.6069487857657238e-17,
+      "direction_norm_error": 3.272863451616246e-31
+    },
+    {
+      "index": 81,
+      "input_eV": 999,
+      "boost_u_over_c": 100,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999999981,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0
+    },
+    {
+      "index": 82,
+      "input_eV": 999,
+      "boost_u_over_c": 100,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999999972,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 7.87573457445362e-17,
+      "direction_norm_error": 6.66133814774947e-17
+    },
+    {
+      "index": 83,
+      "input_eV": 999,
+      "boost_u_over_c": 100,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 999.000000000078,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 4.01027850339591e-17,
+      "direction_norm_error": 1.5951224567836917e-27
+    },
+    {
+      "index": 84,
+      "input_eV": 999,
+      "boost_u_over_c": 1000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999999999,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 3.332110752055115e-16,
+      "direction_norm_error": 6.709198796539132e-31
+    },
+    {
+      "index": 85,
+      "input_eV": 999,
+      "boost_u_over_c": 1000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999999974,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 0.0,
+      "direction_norm_error": 0.0
+    },
+    {
+      "index": 86,
+      "input_eV": 999,
+      "boost_u_over_c": 1000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999994081,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 5.024685705996161e-16,
+      "direction_norm_error": 2.2204460400635365e-17
+    },
+    {
+      "index": 87,
+      "input_eV": 999,
+      "boost_u_over_c": 1000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 999.000000000032,
+      "exception": "lab representation cannot resolve reaction energy",
+      "direction_vector_error": 1.6585612420209316e-16,
+      "direction_norm_error": 2.602810444418535e-28
+    },
+    {
+      "index": 88,
+      "input_eV": 999,
+      "boost_u_over_c": 10000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999999999,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 89,
+      "input_eV": 999,
+      "boost_u_over_c": 10000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.999999999998,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 90,
+      "input_eV": 999,
+      "boost_u_over_c": 10000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 999.0000000062702,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 91,
+      "input_eV": 999,
+      "boost_u_over_c": 10000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 999.0000000070846,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 92,
+      "input_eV": 999,
+      "boost_u_over_c": 100000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999999999,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 93,
+      "input_eV": 999,
+      "boost_u_over_c": 100000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 999.0000000000015,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 94,
+      "input_eV": 999,
+      "boost_u_over_c": 100000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999157423,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 95,
+      "input_eV": 999,
+      "boost_u_over_c": 100000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 999.0000000961734,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 96,
+      "input_eV": 999,
+      "boost_u_over_c": 1000000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999999999,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 97,
+      "input_eV": 999,
+      "boost_u_over_c": 1000000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 999.0000000000005,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 98,
+      "input_eV": 999,
+      "boost_u_over_c": 1000000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 999.000000407806,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 99,
+      "input_eV": 999,
+      "boost_u_over_c": 1000000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999996685467,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 100,
+      "input_eV": 999,
+      "boost_u_over_c": 10000000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999999999,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 101,
+      "input_eV": 999,
+      "boost_u_over_c": 10000000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 999.0000000000014,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 102,
+      "input_eV": 999,
+      "boost_u_over_c": 10000000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999922287544,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 103,
+      "input_eV": 999,
+      "boost_u_over_c": 10000000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 999.0000030895698,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 104,
+      "input_eV": 999,
+      "boost_u_over_c": 100000000,
+      "shape": 0,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999999999,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 105,
+      "input_eV": 999,
+      "boost_u_over_c": 100000000,
+      "shape": 1,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.9999999999986,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 106,
+      "input_eV": 999,
+      "boost_u_over_c": 100000000,
+      "shape": 2,
+      "accepted": false,
+      "oracle_target_rest_eV": 999.000119507377,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    },
+    {
+      "index": 107,
+      "input_eV": 999,
+      "boost_u_over_c": 100000000,
+      "shape": 3,
+      "accepted": false,
+      "oracle_target_rest_eV": 998.999936189589,
+      "exception": "target-rest normalized direction conditioning unavailable"
+    }
+  ]
+}

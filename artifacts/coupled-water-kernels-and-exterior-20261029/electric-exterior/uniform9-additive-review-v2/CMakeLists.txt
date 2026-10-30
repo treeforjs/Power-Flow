@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.24)
+project(NodeDeltaAudit LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+find_package(MFEM 4.10 CONFIG REQUIRED)
+add_executable(node_delta_audit node_delta_audit.cpp /home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/source/batch_snapshot.cpp)
+target_include_directories(node_delta_audit PRIVATE /home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/source /home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source/include)
+target_link_libraries(node_delta_audit PRIVATE mfem)
+target_compile_options(node_delta_audit PRIVATE -ffp-contract=off)

@@ -1,0 +1,110 @@
+Independent rereview of the conditional H2O parent event bridge, revision 2
+
+Outcome: the two original actionable numerical failures are fixed in the reviewed
+snapshot 5a3ef505ab8bce21b5f6c0a05e1b9718b2e180535c0b646b2a5ba1a1fe577473.
+No additional actionable error was found in the declared, tested numerical domain.
+This is bounded component verification, not native/full-water acceptance.
+Original findings, source, owner's 5514 checks and all independent evidence remain
+unchanged in ../review. The owner's new 5519-check receipt is owner-checks.json.
+
+Independent replay and oracle
+
+Exact replay of the original108-case sweep admits12 stationary-target cases and
+rejects96. The original14eV, U=(0,1e5*c,0) inaccurate-direction example now rejects
+the direction-conditioning guard. Shared-bulk cases at0.8c reject the declared lab
+reaction-resolution policy, rather than claim precision hidden by bulk energy.
+
+An additional72-case sweep at14,100,999eV and four incident/boost geometries admits
+all48 cases with |U|/c=0,1e-6,1e-4,1e-3. The24 cases at0.8 and1e5 reject as expected.
+The two sweeps overlap; they are180 executions,144 distinct kinematic inputs.
+The independent120-digit Decimal direct-four-vector oracle finds max admitted
+direction-vector error5.569724723277073e-17. Every admitted product energy and
+momentum defect obeys the unchanged original256-epsilon lab closure bounds.
+The declared lab energy roundoff bound also remains <=1e-10 times the incoming
+target-frame reaction energy in every admitted case. These are manufactured
+kinematic/conditioning checks, not measurements of a physical product spectrum.
+
+All seven original mutation/scale probes and four additional valid tiny-weight
+probes are replayed. The malformed near-unit axis (0,0,1+4e-13) rejects before
+weight multiplication at BOTH ordinary and1e-300 weights. A valid1e-300-weight
+event rejects unsupported weighted energy receipt conversion. A changed target
+mass now rejects the constructor-bound catalog mass check. Inconsistent volume
+without corresponding rate still rejects. Coherent volume/rate changes and a
+same-rate projectile rotation remain host epoch/mesh responsibilities, documented
+below. The original acceptance bypass is fixed; no threshold was relaxed.
+
+What changed and what the guards establish
+
+The inverse Lorentz boost now uses u_rest=u_e-k*U,
+k=(gamma_e+gamma_rel)/(Gamma+1), with long-double FMA per component. This is exactly
+the original Lorentz transformation in real arithmetic. A component-error estimate
+includes coefficient arithmetic and relative-energy rounding; its ratio to |rest|
+must satisfy b<|rest| and2b/(|rest|-b)<=1e-12 in the final reviewed source,
+accounting conservatively for vector normalization. The original magnitude check
+remains. The final binary64 direction cast has an additional ordinary rounding
+error; the actual admitted oracle errors here are far below the declared bound.
+The preceding b014 header is preserved in source-before-normalization.hpp.
+
+Unweighted long-double energy AND momentum closure now run before weighting and
+narrowing. A separate lab-representation requirement limits the original energy
+roundoff bound to1e-10 of incoming target-rest energy; the original256-epsilon lab
+guard remains. Thus enormous shared bulk energy no longer silently admits a
+poorly resolved reaction. The policy deliberately narrows numerical support and
+does not assert arbitrary-boost coverage for thermal gas physics.
+
+Weighted receipts require finite defects and finite positive bounds. This rejects
+the original zero-bound underflow path. It does not provide a lossless decimal or
+compensated receipt representation: accepted subnormal defect components can be
+quantized or round to zero while their bound remains nonzero. For example at
+W=1e-284 the reported momentum bound is about1.02e-320 and a component is1e-323.
+Unweighted closure remains authoritative, so this receipt quantization cannot
+recreate the original acceptance bypass. Do not claim that every nonzero defect
+component is preserved or that the receipt is exactly zero before rounding.
+
+Mass/reference and physical scope
+
+The exact mass/reference argument from ../review/review.txt is unchanged.
+M_ion=M_neutral-m_e+12.621eV/c^2; the kinetic-energy ledger adds the same12.621eV
+once per reacting pair. It is a chemical reference, not a second heat source.
+Total mc^2*gamma accounting must not add it again. Product.reference_J is per
+physical particle; returned defect/limit receipts are already weighted. Catalog
+neutral mass is now bound at construction and checked against the target packet.
+The reviewed native electron mass constant matches the bridge's9.1093837139e-31kg.
+
+The only physical data admitted are the explicitly selected intact-parent partial
+cross section and conditional parent_ground_equal_pair_CM_v1 product comparison.
+The supported curve is13.5..1000eV; below12.621eV is zero, the12.621..13.5eV gap and
+above1keV are rejected. The two electrons are equal-energy/back-to-back in CM and
+the parent ion is at rest in CM, with an isotropic pair axis supplied by the host.
+This is not a measured secondary/internal/recoil distribution. It supplies no
+dissociative/double/core ionization, neutral fragmentation, complete H2O chemistry
+or high-energy product closure. A retained~8keV tail remains unsupported. These
+tests prove neither EEDF convergence, the foil halo explanation, nor breakdown.
+
+Remaining integration boundaries
+
+Pair recomputation binds species/catalog masses, identities, cells, original
+weights, relative E/flux, cross section/rate, data/kernel hashes and both remainder
+limbs. It does not own an authoritative mesh/volume, packet epoch, accepted state
+hash or frozen physical stage. The host must validate those against the selected
+Clock/proposal and actual complete packet state before common publication. A
+coherent forged volume/rate and a same-rate rotated projectile demonstrate why
+pair consistency alone is insufficient. Collision-subflow elapsed time is separate
+from frozen physical stage; no trajectories are advanced to each sampled SSA time.
+
+The bridge owns no RNG, canonical neutral/electron inventory, product IDs/placement,
+field deposition, collection, heat, or accepted-step commit. Parent publication
+must atomically preflight/debit both reactants, create products, update compatible
+charge/current and reference/energy ledgers, and publish RNG/state with rollback
+or a no-fail commit. The compensated remainder is retained, but Packet input still
+has one-double weight. Iterative compensated native/neutral storage and its rate,
+count, charge, ledger and restart integration remain unimplemented. Preserve the
+low limb end to end or reject the whole event/step before publication; never drop
+it or resample around refusal. The cell-indexed scheduler join and instrumented
+total-work/budget equivalence tests proposed in ../review/review.txt remain a
+separate performance preparation, with all physical rates unchanged.
+
+Execution: frozen userspace, CPU7, nice15, one thread, testing-core7.lock. No new
+dependencies, GPU, field/particle/chemistry evolution, native mutation, production
+source edit or paused-run alteration. Both reviewed source snapshots and all input
+hashes are bound; the report does not qualify a later changed source automatically.

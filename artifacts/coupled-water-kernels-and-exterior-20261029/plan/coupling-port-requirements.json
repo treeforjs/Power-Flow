@@ -1,0 +1,65 @@
+{
+  "schema": "coupled-water-port-requirements-v1",
+  "status": "interface_requirements_not_implemented_full_driver",
+  "clock": "One accepted interval [t,t+dt] and immutable state revision; components can subcycle but commit/rollback together",
+  "identity": [
+    "mesh revision",
+    "material/data hashes",
+    "species/state IDs",
+    "source/parent/channel/event IDs"
+  ],
+  "particle_and_neutral_owner": "One PIC electron inventory, one ion/anion/neutral inventory; Raikou rates/heavy-state kinetics must not duplicate the same electron F0 evolution",
+  "reaction_port": [
+    "parent inventory debit",
+    "scattered primary replacement",
+    "all products and represented multiplicity/weights",
+    "reaction momentum and translation/internal/reference/radiation energy change",
+    "charge/current deposition inputs on actual physical volumes"
+  ],
+  "field_port": [
+    "electric and magnetic field state and stage time",
+    "compatible total signed current and charge from all species",
+    "induced, self/bias and external driver work ownership",
+    "boundary/circuit/Poynting power ports",
+    "Gauss/divB/continuity diagnostics"
+  ],
+  "heat_port": [
+    "weighted energy transferred to electrode patch/cell in joules",
+    "Joule power from admitted solid EM/conductivity state",
+    "adsorbate release/binding/internal/translation energy and finite inventory debit",
+    "updated electrode enthalpy/temperature and material-phase admission",
+    "new source temperatures at declared stage"
+  ],
+  "geometry_port": [
+    "material/reference coordinates",
+    "deformed electrode and gap geometry",
+    "patch areas/normals and species-boundary collection",
+    "mass-conserving map and field/thermal mesh transfer",
+    "mechanical work if deformation active"
+  ],
+  "conservation": "Atomic coupled ledger with explicit external driving work; internal reaction products are not authored external injection",
+  "dimensions": "Internal SI with explicit depth/3D cell volume exactly once; displayed number densities cm^-3; numerical midplane observation slab is not another reacting population",
+  "completion_forbidden_for": [
+    "prescribed T history only",
+    "prescribed fields without current feedback only",
+    "forced instantaneous full water conversion without qualified kinetics",
+    "manufactured tests without physical run"
+  ],
+  "electrode_emission_port": [
+    "same accepted surface patch and material state revision",
+    "signed material-outward normal and one-sided vacuum total electric field",
+    "updated local temperature and supported work function/material regime",
+    "one unified temperature-field emission current and phase-space distribution",
+    "distinct surface injection charge, kinetic/internal/reference/electrode heat and circuit work ownership",
+    "thermal supply at both electrodes retained, return collection evolved, no duplicated analytical space-charge cap",
+    "unresolved microscopic field enhancement documented; baseline beta=1 rather than invented calibration"
+  ],
+  "screening_observables": [
+    "electron and each ion/anion density in cm^-3",
+    "net charge density separately from electron density",
+    "surface-normal total electric field and potential/sheath profile",
+    "emitted, returned and collected species currents",
+    "near-surface residence/flux and neutral depletion",
+    "mesh relative to kinetic shielding scale and timestep relative to plasma/gyro response"
+  ]
+}

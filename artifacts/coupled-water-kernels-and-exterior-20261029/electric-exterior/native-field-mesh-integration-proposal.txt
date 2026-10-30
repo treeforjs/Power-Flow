@@ -1,0 +1,118 @@
+Isolated native GapPic field-mesh integration proposal — no implementation
+
+Scope: extend the electrostatic field mesh using the qualified axes while
+retaining the original physical particle/source/foil coordinates. Do not edit
+the active runtime or shared repository. A new implementation prefix and
+explicit integration scope must be coordinated before changes beyond the
+owned exterior preparation. Plasma chemistry, heat feedback and deformation
+remain separate interfaces. The sealed static candidate stays unchanged.
+
+Four geometries must remain distinct
+
+1. Field mesh: original 9 mm/360 x 360 fine core plus graded vacuum; suggested
+   first conditional pilot is the tested 356.912 mm full width,120 cells per
+   margin,5% growth. Natural remote Neumann remains a truncation approximation,
+   not a derived open condition. Both phi and unit-bias psi use the SAME axes,
+   MFEM space, foil ownership and solver configuration.
+2. Kinetic/neutral escape domain: keep the original physical 0..9 mm x/y box
+   for the first integration. Existing absorbing exits, conductor interception,
+   path splitting and continuity edges remain on the original 25 µm grid.
+   Extending this domain is a separate transport change requiring new native
+   field coverage and boundary tests; do not substitute the electric bounds.
+3. Finite axial geometry: preserve 25 mm represented depth, z short/feed
+   ±12.5 mm, short-bridge absorption and existing imposed axial bias closure.
+   A larger transverse Poisson mesh supplies no 3Daxial fringing or new sheath.
+4. Surface/source geometry: keep the physical lower/upper foil rectangles,
+   all emitting faces, normals, owner ids, areas, thermal clocks and source
+   reservoirs. Signed active voltage remains lower 0/upper negative. Mesh
+   extent must not relabel a face or alter desorbed inventory/represented depth.
+
+Why a global replacement of locate() is incorrect
+
+The sealed src/mfem_gap_pic.cpp uses locate() in add_particle(), solve_fields(),
+electric_field() AND drift(). The drift code derives ix=e%nx,iy=e/nx, splits
+paths at uniform hx/hy, and indexes original horizontal/vertical transfer and
+nodal-continuity arrays. Returning graded field-element indices there would
+corrupt those ledgers. GapPicOptions nx/ny/width/gap also own collision exits,
+source areas, foil-alignment checks, timestep resolution and snapshot density.
+Do not enlarge these values merely to construct the field mesh.
+
+Minimal split
+
+Retain kinetic_locate() with the original normalized arithmetic for transport,
+insertion, current/continuity and escape checks. Add field_locate(ElectricPoint)
+backed by the qualified physical axes for Poisson deposition and potential/
+gradient gathering. Introduce a separate immutable FieldLayout configuration;
+do not overload existing kinetic options. Preserve the 25 µm core verbatim.
+
+Construct an explicit CoreDofMap from physical cell/vertex correspondence,
+never assumed row numbering. Core point-charge shape weights and the field
+mapped source must match the original kinetic grid bitwise. Exterior nodal
+source starts at zero when particles remain in the kinetic core. Keep actual
+MFEM element Jacobians outside the core. Foil essential nodes and owner ids
+are checked by physical coordinates; retain all 3618 nodes on the tested grid.
+Preserve cached matrix identity, FP 64, default two IR and original residual
+guards. The zero-extension branch must preserve existing initialization and
+FormLinearSystem copy_interior behavior; no warm-start change is included.
+
+Driver and force interfaces that must be changed deliberately
+
+The heating driver has TWO raw Cartesian potential accesses: snapshot() uses
+potential().GetValue(j*nx+i,ip), and its unit-bias psi lambda uses the same
+formula. Add potential_value(x,y) or a typed scalar sampler and route both
+through field_locate; retain the old 360 x 360 snapshot sampling grid and exact
+cm^-3 volume/slab conversion. Updating electric_field() alone is insufficient.
+Both main phi and unit_bias require identical field-layout bindings.
+
+For a first force-backend integration, an exact gather/export CoreDofMap can
+copy full-field core node VALUES into the existing 130321-node force snapshot;
+this is a byte mapping, not interpolation. Core physical cells/particle coords
+then remain the same for CPU/off/shadow/optimized comparisons. This avoids
+silently feeding a nonuniform full grid to a kernel/HostSnapshot validator
+that assumes the original uniform self-grid. Its copy/performance cost must
+be measured. Alternatively, explicitly qualify nonuniform GPU tables before
+use; do not assume the existing validated kernel already accepts them.
+
+Native coordinates are provider-specific. Existing Fields::value expects
+original PIC coordinates: NativeField::electric/magnetic subtract 4.5 mm
+internally. The raw exported native-grid helper instead takes NativePoint
+(xPIC-4.5 mm,yPIC-4.5 mm). Do not pass that shifted point into Fields::value
+again. Preserve the exact native interpolation, B curl signs and time pair;
+larger electric axes never move the particles or expand native coverage.
+
+Restart and coupled-source contracts
+
+Current binary checkpoints bind kinetic options and reload particles/ledgers,
+then solve again. Add a separate field-layout/axes/essential-mask hash and
+scope version to a new isolated restart contract; do not let unchanged kinetic
+options silently authorize a different electric model under the old ABI.
+Zero-extension saved-state replay must retain established tolerances.
+
+Mixed electrons/ions make net-charge cancellation important. Preserve existing
+production guards; add separately reviewed diagnostic sums of absolute charge,
+species/source reservoirs and the actual constrained free-charge RHS. Do not
+accept a driven-bias residual alone as proof of small space-charge accuracy,
+or change a roundoff scale based on the observed failure. Source chemistry
+events must enter both charge and continuity ledgers with explicit ownership.
+No source/tolerance/refinement reduction is part of this field integration.
+
+Qualification stages before any evolving dispatch
+
+A. CPU uniform-limit matrix/RHS/coordinate/source/owner parity and manufactured
+   fields; unchanged original drift/current outputs on authored CPU paths.
+B. Static captured-state parity against the already guarded graded phi/psi/
+   fields, with the separate default-cuDSS additive reproducibility policy.
+C. Review a sealed new candidate and explicit bounded saved-checkpoint replay:
+   first zero-extension full-state parity; then graded-domain CPU-force versus
+   shadow/optimized per-step trace parity on the SAME intended field model.
+   Root alone dispatches GPU/evolution. A graded model is not expected to give
+   identical trajectories to the intentionally different old 9 mm field model.
+D. Verify exact clocks/IDs/source/escape/surface ledgers, nodal continuity,
+   charge/work/residual/timestep guards, cache lifecycle, resource limits and
+   abort cleanup. Record the chosen extent's remaining static sensitivity.
+
+Source anchors: GapPic constructor/locate 146..164; solve_fields 309..399;
+electric_field 402..409; drift 412..537; advance 540..565; restart 576..605 in
+sealed src/mfem_gap_pic.cpp. Driver snapshot 87..96, unit_bias 123..136, and
+native_heating_fields.hpp electric/magnetic 42..57. Source hashes accompany
+the final evidence manifest; no integration source has been edited.

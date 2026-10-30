@@ -1,0 +1,5 @@
+Coupled water implementation and static electric exterior progress, 2026-10-29
+
+Preserves the reviewed finite-rate scheduler, actual conditional parent-water event bridge, native manufactured reaction integration, stable heat and thermal/field-emission interfaces, current-drive choice, and twelve graded exterior GPU static cases. Component validation is not a full coupled water breakdown run. The original electron-only production remains paused. Full 8 keV fragmentation data, canonical all-species inventory/current, evolving EM/thermal/source integration and a qualified physical pilot remain unfinished.
+
+The original strict/exact uniform GPU control failed and is retained. Additive CPU evidence separately verifies unchanged reconstructed operator/source and exactly explains field changes from nodal rounding; no physical residual guards were loosened. Raw static fields/nodes are archived in ordered parts. Source/build/library bindings retain the exact frozen environment paths and hashes. All units and conditional model limits are in the preserved handoffs.

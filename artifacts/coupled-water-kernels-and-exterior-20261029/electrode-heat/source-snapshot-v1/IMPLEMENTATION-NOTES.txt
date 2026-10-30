@@ -1,0 +1,23 @@
+Native bounded thermal adapter implementation plan
+
+Use the existing MFEM Q1 mass/conduction formulation on one foil, two instances
+for upper/lower. Solve nonlinear volumetric enthalpy change with lagged accepted
+conductivity k(T0), same actual admitted solid J^2/sigma load. Bounded supplied
+material table with positive Cv, explicit phase/provenance; reject out of range.
+Native source terms are integrated J events on surface or solid volume (shape
+loads divided by invariant height exactly once). Adsorbed inventory is canonical
+inside this component; source sampler uses provided uniforms, actual weighted
+packet K/internal/adsorbed-to-gas-reference energy, no extra mean2kT heat debit.
+Prepare works in copies; sourceT frozen at interval start, returnedT at end is
+used by next neutral/electron interval. Epoch/revision/data hashes must match.
+Producer sequence watermarks prevent duplicate heat events; restart stores
+T/inventory/ledger/watermarks and binds full config. Parent preflights all trials
+then commits/discards together. Fixed geometry only until expansion owner
+provides admitted mass/enthalpy remap and mechanical-work accounting.
+
+Tests: no source, constant Joule, actual native MQS Joule reference, surface/
+volume deposition, signed cooling, desorption-driven cooling/sourceT feedback,
+combined ledger, rollback invalid phase/negative inventory, duplicate producer
+IDs, split/restart exact, table Cp nonlinear, spatial cosine conduction/time
+refinement, one bounded matched256x32 native EM step. Full physical60ns needs
+valid SS304 phase/transport and physical H2O desorption inputs; not invented.

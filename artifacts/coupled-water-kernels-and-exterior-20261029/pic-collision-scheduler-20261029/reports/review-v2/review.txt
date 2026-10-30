@@ -1,0 +1,120 @@
+Independent updated-scheduler review — 2026-10-29
+
+Reviewed header SHA256:
+0c6f01ec165601bfed7db3a747bf92fd122656d3bf538f2c7293374b0a44ed15
+The original v1 review and snapshots remain preserved in ../review.
+Disposition: the five changes are structurally implemented, but numeric and
+resource qualifications below remain before general integration. No product
+kinematics, native mutation, H2O rates, PIC, fields or GPU were executed.
+All accepted probes/oracles used CPU7/nice15, one thread and frozen userspace
+under testing-core7.lock. No owner source was edited.
+
+Five requested fixes
+1. Lossless remainder and original weights: verified at the proposal boundary.
+   The new {high,low} subtraction equals the exact difference of its binary64
+   inputs in all110 independent 900-decimal-digit cases, including subnormals,
+   adjacent values, maximum finite weights and severe contrasts. All69 nonzero
+   low limbs reject require_single_weight(). Candidate preparation rejects
+   tampered original counts, event weight, either remainder limb and propensity.
+   The rate is now reconstructed from the bound original beforeweights, rather
+   than rounded event_weight+remainder. This resolves v1's silent lost debit as
+   a candidate representation, not as a complete native inventory implementation.
+
+2. Pair/query/candidate limits: builder limits are independent and enforced.
+   Zero pair/query budgets reject before callbacks; query limit1 invokes exactly
+   one query; candidate limit0 permits its allowed query then refuses append;
+   zero sigma creates no candidate allocation; ineligible states do not query.
+   prepare() still copies/sorts an arbitrary supplied vector without its own
+   size guard. A caller bypassing the bounded builder is not bounded by this
+   class API. Add an input-size/work admission before canonical=input, or make
+   the bounded-builder provenance a checked precondition. Channel scans of
+   ineligible catalogue entries are also not counted by query_limit; a bounded
+   catalogue/state index remains part of the caller/work contract.
+
+3. Frozen physical stage versus SSA elapsed time: metadata separation verified.
+   frozen_physical_stage_s remains10.5s while the independent collision elapsed
+   coordinate lies in[0,1)s for accepted interval[10,11]s. Invalid physical
+   stage, NaN stage, negative/NaN/exhausted elapsed coordinates reject. Empty
+   proposals retain the supplied stage/consumed-time metadata. The physical
+   integrator must still bind the actual frozen positions/fields/state revision,
+   advance collision_elapsed after each admitted event and accept the remaining
+   subflow through its endpoint. The scheduler does not store or enforce the
+   physical owner's consumed elapsed state across commits/checkpoints. Its
+   sampled elapsed coordinate does not advance an orbit or native deposition.
+
+4. Stable invariant kinematics: major improvement, with residual limits.
+   All48 ordinary representable oracle cases match the correctly rounded
+   binary64 energy AND Moller flux exactly. These include stationary, common-
+   boosted8keV, opposite, skew and seeded mixed velocities; exact comoving
+   identities are zero. Three expected energy overflows reject, and no
+   unexpected kinematic rejection occurred in the60-case suite.
+
+   The oracle independently uses gamma_p*gamma_n-u_p dot u_n/c²-1 at900 decimal
+   digits on the exact input binary64 values, rather than copying the new norm/
+   angle rationalization. High precision is necessary because products can be
+   ~1e600 while a nearly comoving relative invariant is ~1e-32. ULP differences
+   and correctly rounded references distinguish internal error from unavoidable
+   subnormal output quantization.
+
+   [P2] Nonzero conversion underflow remains silent. A common boost with
+   gamma≈1e200 leaves target-rest energy8000.000000000022eV but Moller flux
+   ≈4.462882568429323e-393m/s, which casts to0. With each weight1e200, volume1m³
+   and sigma1e-20m², the true propensity4.462882568429323e-213/s is representable,
+   yet candidates() emits0 rows. Reject nonzero energy/flux conversion underflow,
+   or retain a scaled/wider factor through the final rate admission. A separate
+   very-low-speed case also silently casts positive energy to0. Correct output
+   rounding alone does not make later propensity multiplication safe.
+
+   [P2] Nearly comoving one-ULP inputs retain precision loss in an-bn and unit-
+   vector subtraction. For parallel u=1e8m/s versus nextafter(u,+inf), energy
+   relative error is8.592e-4 and flux relative error4.297e-4; absolute energy is
+   only~5.68e-28eV. At high-boost skew near-coincidence, relative errors reach
+   ~1.16e-4 for energy~1.17e-4eV. These are ill-conditioned residual cases, not
+   evidence of an ordinary water-range rate error. Stabilize radial/angular
+   differences further or declare/fail closed on an unqualified numeric domain;
+   qualify both absolute and relative error budgets. Do not claim all finite
+   proper velocities are accurate based solely on exactly identical vectors.
+
+5. Proposal owner lifetime: verified fixed.
+   A shared retained per-instance lifetime rejects proposals after owner
+   destruction and replacement at the same address. Restored owners have fresh
+   lifetimes and reject old proposals while preserving deterministic accepted
+   RNG/generation continuation. Exactly-once publication and no-RNG-change after
+   failed preparations remain intact. Physical state revision admission is
+   still the parent transaction's obligation, not supplied by token lifetime.
+
+Concrete compensated-storage integration limit
+Packet.weight remains one double. The scheduler can emit a two-limb remainder
+but cannot accept that general compensated count as a subsequent Packet input.
+For event weight0.031334406939830223 and illustrative target count1e6, the
+remainder is high999999.96866559307, low-1.0739603650833374e-11. The required
+single-weight conversion correctly refuses it. This can occur at ordinary
+unequal counts, not only1e20 versus1.
+
+A canonical native/neutral owner must preserve both limbs through subsequent
+rate construction, count/mass/charge ledgers, depletion, identities and restart,
+or reject that representation before physical and RNG publication. Passing only
+.high bypasses the helper and loses the debit. Silently skipping such selected
+events and resampling would change the clock/physical rates. A truthful current
+milestone is scheduling machinery with lossless remainder metadata and explicit
+conversion refusal; iterative compensated-neutral storage is not implemented.
+
+Other retained scope
+The instantaneous represented-count identity w*a=Wp*Wt*sigma*g/V remains correct
+for the supplied beforeweights. Packet-weight noise and finite-depletion/
+splitting convergence remain separate from that identity. Data/kernel digest
+syntax and an ExclusiveEvent tag do not bind physical product kinematics or
+make manufactured constant sigma a water law. Support queries remain strict,
+including zero-flux queries. Native parent debit, scattered-primary replacement,
+all products, energy/momentum, signed current and coupled rollback/publication
+are still outside this component.
+
+Evidence
+adversarial.txt:149 independent assertions, including110 remainder cases.
+remainder-oracle.json: exact input/output difference and conversion proof.
+high-precision-oracle.json:60-case independent900-digit energy/flux reference,
+correctly rounded outputs, ULP/absolute/relative comparisons and overflow limits.
+underflow.txt: direct positive-propensity suppression reproduction.
+Owner's46-test/50,000-clock suite was read as supplied, not represented as an
+independent rerun. The owner received the remaining findings before source edits.
+This report binds the above header hash and approves no later revision.

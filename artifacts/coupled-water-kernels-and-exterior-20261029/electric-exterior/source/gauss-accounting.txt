@@ -1,0 +1,41 @@
+Complete finite-vector Gauss accounting
+
+Let H be represented depth, q the pre-constraint assembled charge RHS,
+a=round(K*phi) the computed full FEM action, and r=round(a-q). Essential
+indices are precisely the existing finite-foil nodes; F are all other nodes.
+Using exact sums of these finite double inputs before accounting for rounded
+subtraction and accumulation:
+
+ G=Qdirect+H sum_essential(r)
+  =(Qdirect-H sum(q))+H sum(a)-H sum_F(r).
+
+The residual contribution is bounded by
+ H |sum_F(r)| <= H sqrt(number of free DOFs) ||r_F||_2.
+
+The code uses long-double accumulation for this diagnostic only. It bounds
+the discrepancy from the actually reported double G using gamma_n=n*u/(1-n*u):
+
+ H gamma_1(u) sum_all(|a|+|q|)
+ +(gamma_Nessential(u)+gamma_1(u)) H sum_essential |r|
+ +gamma_2(u)(|Qdirect|+|Qlower|+|Qupper|)
+ +H gamma_(Nall+4)(u_long) sum_all(|q|+|a|+free |r|)
+ +gamma_8(u_long)(|Qdirect|+H sum_all(|q|+|a|+free |r|)).
+
+The first term covers rounded r subtraction; the second covers reaction
+products and electrode summation; the third covers final G additions. The
+last terms cover the diagnostic's own long-double sums/arithmetic. Here u
+uses numeric_limits<T>::epsilon(), a conservative bound on unit roundoff.
+No coefficient is selected from the observed defect. Division by(1-u)
+outward-pads conversion of the total bound to double.
+
+The new diagnostic requires the computed finite-vector identity discrepancy
+to lie inside its roundoff bound, and |G| inside source-deposition mismatch
++ absolute full-action null-mode sum + Cauchy-Schwarz free-residual bound
++ roundoff. Original constrained phi and psi residual tests are independently
+required, unchanged, with max(1e-30,2e-13*||b||_2).
+
+This is an accounting identity and forward-error bound. A nonzero full-action
+sum measures floating cancellation of the discrete constant mode; it must
+not be presented as exact physical boundary flux. A driven-bias residual
+alone is not a proof of tiny charge/self-field accuracy. The failed initial
+1024-epsilon ledger test is retained as a separate observed diagnostic.

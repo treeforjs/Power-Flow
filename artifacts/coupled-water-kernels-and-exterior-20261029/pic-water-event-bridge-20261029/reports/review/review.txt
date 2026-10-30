@@ -1,0 +1,141 @@
+Independent review of the conditional H2O parent event bridge
+Reviewed snapshot: source/water_parent_bridge.hpp and its pinned inputs in this directory.
+Status: findings returned; this snapshot is not accepted for arbitrary numerical input.
+No production/shared source, native inventory, fields, GPU, or physical history was changed.
+
+Two actionable numerical findings
+
+1. [P2] A magnitude-only inverse-boost guard does not certify the incident direction
+   (snapshot source/water_parent_bridge.hpp:33-45, especially 43).
+   At 14 eV target-rest incidence along x, target proper velocity U=(0,1e5*c,0),
+   sample() accepts. An independent 120-digit direct four-vector inverse boost,
+   using exact binary64 inputs, gives direction-vector error 4.934636106675324e-8.
+   Its returned unit-vector norm error is only 3.713280816981546e-18, so a norm
+   check cannot detect this transverse error. The lab K+reference defect is
+   -18.579443877060733 eV per reacting physical electron/target pair. The reported
+   lab tolerance is 190.78274256250583 eV per pair because it scales with the
+   enormous common translational kinetic energy. Thus its original lab bound is
+   obeyed, while reaction-scale accuracy is unqualified. This is an extreme
+   manufactured boost; it is not evidence of a failure for thermal water.
+
+   Request: remove the ill-conditioned coefficient subtraction, bound component
+   errors, and explicitly reject when the represented lab state cannot resolve
+   the declared reaction-energy precision. Retain the original lab closure bound.
+   A useful exact identity is u_rest=u_e-k*U, k=(gamma_e+gamma_rel)/(Gamma+1),
+   gamma_rel=1+K_rest/(m_e*c^2). It follows from
+   u_e dot U/c^2=gamma_e*Gamma-gamma_rel. Use a long-double FMA for each vector
+   component. The error bound must include gamma, gamma_rel/energy rounding,
+   division and coefficient errors, as well as final vector subtraction. This
+   identity alone is not an admission/conditioning policy.
+
+2. [P2] Weighted double conversion can bypass a failed conservation check
+   (snapshot source/water_parent_bridge.hpp:105-111).
+   At W_e=1e-300 and W_H2O=64e-300, a finite positive candidate rate exists.
+   Both the weighted defect and tolerance narrow to binary64 zero. With axis
+   (0,0,1+4e-13), which the kernel's <1e-12 axis-norm policy admits, the ordinary
+   W_e=0.25 event rejects with 'parent lab energy closure'; the identical
+   per-particle kinematics at tiny weight accepts with defect=bound=0.
+   Acceptance therefore depends on packet scale after receipt underflow.
+   Request: test unweighted long-double conservation before multiplying by the
+   common event weight; reject unsupported weighted receipt conversion explicitly.
+   Do not relax the original conservation threshold to pass this probe.
+
+Evidence and scope
+
+The independent sweep covers 108 input cases: 14,100,999 eV, four incident/boost
+geometries, and target proper-velocity magnitude/c=0,0.8,1e2,...,1e8. It admits
+46 and rejects 62. All 24 cases with magnitude/c <=0.8 admit. The independent
+oracle finds no admitted energy or momentum defect outside the ORIGINAL reported
+lab bounds. Those bounds alone do not guarantee reaction-scale precision under
+large boosts, as finding 1 demonstrates. Seven additional mutation/scale probes
+are recorded. Every original source/data/header snapshot is preserved, including
+the owner's original 5,514-check result (500 conditional product events and
+20,000 constant-population rate clocks). Those original checks are not additional
+independent validation. No collision/chemistry evolution was performed.
+
+Independent-oracle.json uses 120-digit Decimal arithmetic from exact binary64
+input values. It evaluates gamma, inverse Lorentz transformation, product kinetic
+energy plus the reference ledger, and three-component momentum directly. Its
+formula for the inverse boost is the direct four-vector map, independent of the
+proposed stable coefficient identity. Probe sources and replay wrapper are local.
+Build/oracle execution uses frozen userspace, CPU7, nice15, one thread, shared
+testing-core7.lock. No dependency installation or shared source edit occurred.
+
+Physical model and mass/reference accounting
+
+The target-rest-to-lab map to_lab() is the proper-velocity Lorentz boost. The
+conditional kernel's CM model is internally consistent in exact arithmetic:
+sqrt(s)=sqrt(((M+m_e)c^2)^2+2*M*c^2*K), available CM kinetic energy is
+sqrt(s)-(M+m_e)c^2, and Q=available-I. The two electrons have opposite CM momenta
+and equal CM kinetic energies Q/2; the ion is at rest in CM. Its rest mass is
+M_ion=M-m_e+I/c^2, I=12.621 eV. The CM boost returns the total incoming momentum.
+The lab bridge boosts all three products with the target's lab proper velocity.
+
+Kinetic-only accounting requires sum(K_after)+I=K_before per reacting pair.
+The chemical reference is already the added rest-mass energy, not an additional
+heat deposit. A full total-energy mc^2*gamma ledger must not add I a second time.
+Product.reference_J is per physical particle; bridge defect/limit receipts are
+already multiplied by event_weight. The canonical native owner must retain the
+declared product mass and apply the same reference convention. Binary64 rest-mass
+rounding leaves a small difference between the exact stored mass difference and I
+(this fixture: -1.6933563728743732e-8 eV); this is a quantified representation
+effect, not evidence of double counting. The sealed native electron constant
+matches bridge me=9.1093837139e-31 kg.
+
+Support and missing physics remain explicit. The pinned parent partial-ion curve
+is 13.5..1000 eV with zero below12.621 eV and a rejected12.621..13.5 eV gap.
+The only selected model is parent_ground_equal_pair_CM_v1. One intact surviving
+singly charged parent is interpreted as one such event; the differential closure
+is an explicit equal-pair/isotropic comparison, not a measured secondary spectrum.
+No dissociative/double/core ionization, neutral fragmentation, vibrational/internal
+branching, or above1keV product closure is supplied. A retained~8keV tail remains
+unsupported. No EEDF, breakdown, foil halo, or full-water acceptance follows.
+
+Stale-state and native integration gaps (caller ownership, not extra bridge claims)
+
+sample() binds IDs, states, co-cell membership, original weights, selected data and
+kernel hashes, compensated remainders, and recomputed E/flux/sigma/rate. It correctly
+rejects an inconsistent changed volume without the corresponding rate. However it
+reconstructs the authoritative cell from event.volume_m3 itself: coherently changing
+volume and rate passes. Rotating a stationary-target projectile at unchanged speed
+passes, as does changing only target mass. These examples demonstrate that pair-rate
+consistency is not authoritative Clock/state/mesh freshness. The bridge owns no
+epoch/geometry and cannot discover these changes by itself. The host must bind
+and validate the actual frozen stage, complete packet state/revision, cell volume,
+mesh, source bytes and selected proposal before common publication. Preserve the
+separate physical stage and collision-subflow elapsed time; no orbit was advanced
+to the sampled SSA waiting time.
+
+Unequal-weight physical first moment remains min(W_e,W_n)*max(W_e,W_n)*sigma*g/V.
+Both electrons and the ion use the reacting min-weight; uncompensated reactant
+remainders are returned separately. The low limb survives the bridge. Packet input
+still has one-double weight: iterative compensated neutral/native storage, its
+propensity input, count/charge/chemical ledgers and restart are not implemented.
+The native owner must preserve low limbs end to end or fail the whole event/step
+before physical/RNG publication. Silently dropping a low limb or resampling around
+the failed event is not acceptable. Product IDs/positions/cell placement, compatible
+charge/current deposition, species ownership, boundary collection, field work,
+native rollback and atomic publication remain integration work.
+
+Separate scheduler work-budget recommendation
+
+The pinned candidates() loops every projectile x target before skipping unequal
+cells. pair_limit counts only same-cell pairs. Sparse disjoint populations can
+perform O(N_e*N_n) uncounted comparisons even with pair_limit=0 and no candidate.
+Matching-state channel queries and output allocations are independently bounded,
+but unmatched-channel traversal and the linear cell-volume lookup also cost work.
+Use a cell-indexed join with authoritative cell-volume lookup and per-state channel
+groups, preserving canonical output sort and unchanged relative/rate/remainder
+calculations. Count index/input work, visited local pairs, actual queries, channel
+traversal if retained, and allocated rows explicitly. Do not benchmark this by
+merely checking an empty result or a small wall time.
+
+Suggested regression contract: compare all Candidate fields bitwise against the
+original builder for bounded seeded multi-cell/state/channel inputs and input
+permutations, with threshold/coverage errors and zero-flux queries unchanged.
+Test exact/one-below pair, query and row budgets independently. Instrument visits:
+for e.g.1000 projectile and1000 neutral packets in disjoint cells, zero local-pair
+visits and zero queries must occur after bounded linear/index work, rather than
+one million hidden pair comparisons. Include dense one-cell inputs where the local
+pair budget still rejects before excess kinematics/query work. This is a scheduling
+performance correction only; no cross section, rate or physical scope change.

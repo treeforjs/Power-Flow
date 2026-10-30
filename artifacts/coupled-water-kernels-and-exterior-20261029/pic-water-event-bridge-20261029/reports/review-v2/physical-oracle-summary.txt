@@ -1,0 +1,140 @@
+{
+  "cases": 72,
+  "accepted": 48,
+  "rejected": 24,
+  "max_direction_error_accepted": {
+    "index": 14,
+    "input_eV": 14,
+    "boost_u_over_c": 0.001,
+    "shape": 2,
+    "accepted": true,
+    "oracle_target_rest_eV": 14.0,
+    "exception": null,
+    "direction_vector_error": 5.569724723277073e-17,
+    "direction_norm_error": 4.440892098500625e-17,
+    "oracle_energy_defect_J": 2.1542653616153842e-32,
+    "oracle_energy_defect_eV": 5.378346721327567e-13,
+    "oracle_energy_bound_fraction": 0.0005629098136993444,
+    "oracle_momentum_bound_fraction": 0.00024113579418821092,
+    "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+    "declared_energy_defect_J": 2.1594489501441882e-32,
+    "energy_bound_eV_per_reaction": 9.554544245697222e-10
+  },
+  "max_direction_error_returned": {
+    "index": 42,
+    "input_eV": 100,
+    "boost_u_over_c": 0.8,
+    "shape": 2,
+    "accepted": false,
+    "oracle_target_rest_eV": 99.99999999999994,
+    "exception": "lab representation cannot resolve reaction energy",
+    "direction_vector_error": 5.86084934102759e-17,
+    "direction_norm_error": 8.188737686948069e-31
+  },
+  "oracle_energy_outside_reported_bound": [],
+  "oracle_momentum_outside_reported_bound": [],
+  "max_energy_bound_eV_per_reaction": {
+    "index": 61,
+    "input_eV": 999,
+    "boost_u_over_c": 0.001,
+    "shape": 1,
+    "accepted": true,
+    "oracle_target_rest_eV": 998.9999999999997,
+    "exception": null,
+    "direction_vector_error": 0.0,
+    "direction_norm_error": 0.0,
+    "oracle_energy_defect_J": -2.7650149409691345e-32,
+    "oracle_energy_defect_eV": -6.903146338031378e-13,
+    "oracle_energy_bound_fraction": 0.0006444728914177139,
+    "oracle_momentum_bound_fraction": 0.0002655834381722167,
+    "invariant_mass_reference_rounding_eV": -1.6933563728743732e-08,
+    "declared_energy_defect_J": -2.7637094701956834e-32,
+    "energy_bound_eV_per_reaction": 1.0711305983477148e-09
+  },
+  "mutation_cases": [
+    {
+      "mutation": "rotated_projectile_same_rate",
+      "accepted": true,
+      "energy_bound_J": 4.553659874773075e-31,
+      "energy_defect_J": -6.966449720713205e-34,
+      "momentum_bound": 2.5506029149997505e-37,
+      "momentum_defect": [
+        0,
+        2.350594095997021e-40,
+        0
+      ]
+    },
+    {
+      "mutation": "changed_target_mass_same_rate",
+      "accepted": false,
+      "exception": "parent bridge species/catalog mass mismatch"
+    },
+    {
+      "mutation": "changed_volume_without_rate",
+      "accepted": false,
+      "exception": "stale or inconsistent rate candidate"
+    },
+    {
+      "mutation": "changed_volume_with_rate",
+      "accepted": true,
+      "energy_bound_J": 4.553659874773075e-31,
+      "energy_defect_J": -6.966449720713205e-34,
+      "momentum_bound": 2.5506029149997505e-37,
+      "momentum_defect": [
+        2.350594095997021e-40,
+        0,
+        0
+      ]
+    },
+    {
+      "mutation": "tiny_weight",
+      "accepted": false,
+      "exception": "parent weighted energy receipt overflow/underflow"
+    },
+    {
+      "mutation": "near_unit_axis_ordinary_weight",
+      "accepted": false,
+      "exception": "unweighted parent lab energy closure"
+    },
+    {
+      "mutation": "near_unit_axis_tiny_weight",
+      "accepted": false,
+      "exception": "unweighted parent lab energy closure"
+    },
+    {
+      "mutation": "valid_weight_-292",
+      "accepted": false,
+      "exception": "parent weighted momentum receipt overflow/underflow"
+    },
+    {
+      "mutation": "valid_weight_-289",
+      "accepted": false,
+      "exception": "parent weighted momentum receipt overflow/underflow"
+    },
+    {
+      "mutation": "valid_weight_-284",
+      "accepted": true,
+      "energy_bound_J": 1.82146395e-314,
+      "energy_defect_J": -2.7865796e-317,
+      "momentum_bound": 1.02e-320,
+      "momentum_defect": [
+        1e-323,
+        0,
+        0
+      ]
+    },
+    {
+      "mutation": "valid_weight_-280",
+      "accepted": true,
+      "energy_bound_J": 1.8214639499092e-310,
+      "energy_defect_J": -2.7865798883e-313,
+      "momentum_bound": 1.02024116e-316,
+      "momentum_defect": [
+        9.4026e-320,
+        0,
+        0
+      ]
+    }
+  ],
+  "oracle": "120-digit Decimal direct Lorentz four-vectors from exact binary64 input values; independent inverse boost and K+reference/product momentum closure"
+}
