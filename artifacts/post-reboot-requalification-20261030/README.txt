@@ -13,8 +13,11 @@ not authorized. paused-production-state.json supersedes the audit's
 preserved-production.json.
 
 Every re-runnable corrective suite passes again on the current host with
-identical scientific outputs (results.json). The SS304 melt runner was not run
-because it asserts the pre-reboot process state. reruns/ holds the logs and
+identical scientific outputs (results.json). The SS304 melt v1 runner asserts
+the pre-reboot process state, so a versioned runner (reruns/melt-runner-v2) with
+explicit guards ran the unchanged v1 sources instead; its test output is
+byte-identical to the original runs. A second reboot at 14:31 MDT left the host
+identity, frozen launcher and paused checkpoint unchanged. reruns/ holds the logs and
 re-run evidence; reruns/run-cpu7-serial.sh is the serial CPU7 driver, shown
 with workspace paths normalized (inside the frozen sandbox the physical
 workspace path was used). This confirms existing evidence only; no further

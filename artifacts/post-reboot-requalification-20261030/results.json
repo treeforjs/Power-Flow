@@ -53,8 +53,10 @@
   },
   {
    "component": "SS304 melt proposal 1c11656",
-   "result": "not run",
-   "reason": "build_check.py asserts the pre-reboot stopped production PID and frozen cgroup, both gone after the reboot, and uses assert-based affinity guards; needs a versioned runner with explicit guards (audit A18 E1)"
+   "runner": "reruns/melt-runner-v2/build_check.py (versioned successor; v1 sources untouched)",
+   "result": "passed: 74 checks normal and UBSan, attempts runner-v2-001 (before the 14:31 reboot) and runner-v2-002 (after)",
+   "parity": "tests.json byte-identical to the original normal-002 and ubsan-001 runs; source identity 908fec54... unchanged",
+   "guard_changes": "process/cgroup assertions replaced by a paused-checkpoint sha256 guard and a refusal while any production PIC process runs; all checks raise instead of assert"
   }
  ],
  "not_changed": [
@@ -63,5 +65,13 @@
   "no physical time advanced",
   "paused run not resumed"
  ],
- "audit_status_unchanged": "Re-qualification confirms existing component evidence on the current host only; it does not close additional audit findings."
+ "audit_status_unchanged": "Re-qualification confirms existing component evidence on the current host only; it does not close additional audit findings.",
+ "second_reboot": {
+  "boot_local": "2026-10-30 14:31:15",
+  "kernel": "7.2.11-arch1-1",
+  "nvidia_srcversion": "4200B1C66D4D12038311105",
+  "frozen_launcher_sha256_prefix": "d149ac9c013dd630",
+  "paused_checkpoint_sha256_prefix": "0a5a91ed93821e24",
+  "identity_unchanged": true
+ }
 }
