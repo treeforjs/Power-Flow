@@ -1,0 +1,16 @@
+# Audit reproducer port (A07/A08/A02 rows of the source-v4 port) and the A08
+# minimal reproducer, built against owner v5 with the component test flags.
+foreach(NAME IN ITEMS source_v5_port min_repro_a08_gaps_v5)
+ foreach(VARIANT IN ITEMS normal sanitized)
+  set(TARGET ${NAME}_${VARIANT})
+  add_executable(${TARGET} ${NAME}.cpp)
+  target_include_directories(${TARGET} PRIVATE ${ELECTRODE_HEAT_SOURCE_V3_DIR}/hall-owner/include ${ELECTRODE_HEAT_SOURCE_V3_DIR}/hall-owner/src)
+  target_link_libraries(${TARGET} PRIVATE electrode-heat-source-v5 source-v5-native-support)
+  if(VARIANT STREQUAL "normal")
+   target_compile_options(${TARGET} PRIVATE -O2 -ffp-contract=off -fno-fast-math)
+  else()
+   target_compile_options(${TARGET} PRIVATE -O1 -g0 -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all)
+   target_link_options(${TARGET} PRIVATE -fsanitize=address,undefined)
+  endif()
+ endforeach()
+endforeach()

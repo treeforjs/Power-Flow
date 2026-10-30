@@ -1,0 +1,165 @@
+Heat/source owner v5 — component contract, 2026-10-30
+
+Status: separate corrective component derived from owner v4 (commit c65ac51,
+native/mfem_electrode_heat_source_v4, sealed and unmodified). v5 closes the
+residual A08 defects G1 and G2 found by the source-v4 audit port and replaces the
+untyped stock-drain and sealed energy-closure errors with typed scoped refusals.
+Everything else is the v4 contract (API-v4.txt), unchanged in behavior: same
+physics, same exact stock, same publication protocol, same checkpoint layout (with
+a v5 tag), same caps. Full joint integration and production remain held.
+Not in this version: Hall temperature ownership (H5), binding FinalFieldView to the
+Hall midpoint arrays, two-limb export for the SS304 melt proposal, and any exact or
+extended representation of weighted current/charge arrays (the Hall field owner
+consumes binary64 SurfacePathReceipt arrays; changing that needs a new Hall version).
+
+Dependencies and build
+As v4: C++20, IEEE binary64 arithmetic, -ffp-contract=off, no fast math. The sealed
+v3/v2 prerequisites are used in place from the v4 worktree (ELECTRODE_HEAT_SOURCE_V3_DIR)
+and all 54 prerequisite file hashes are verified at configure time. The existing
+ExactParticleCount header (SHA256 46e01fe2...) is required. Admission references
+use x87 extended long double (64-bit significand); a static_assert enforces it.
+Namespace electrode_heat_v5; owner signature, hashes, exposure keys and the
+checkpoint tag carry v5 labels, so v4 and v5 proposals/checkpoints never mix.
+
+Typed scoped refusals
+electrode_heat_v5::Refusal (derives std::invalid_argument) carries:
+ quantity          the unresolved quantity, e.g. "particle charge C",
+                   "ordinary handoff current load C m/s", "neutral release count";
+ log_abs_scope     log(|exact magnitude|) of that quantity;
+ identity          patch index/id, physical surface and layer, plus the exact stock
+                   hash and accepted revision (stock refusals), the canonical particle,
+                   event and hexadecimal weight (packet refusals), or the exposure
+                   begin/duration/area fraction/quadrature/log current (exposure);
+ kind              weighted_representation | sealed_guard_at_weight | exposure_scalar |
+                   release_scalar | stock_drain;
+ relative_error, tolerance, detail (array entry index, sealed message, values);
+ observed, reference, binary_exponent: the value obtained and the exact value it
+                   had to equal (reference*2^binary_exponent for weighted values,
+                   the extended-precision exact value for exposure scalars, the rate
+                   view for stock drain), so every refusal can be re-checked exactly.
+Every refusal leaves all accepted state unchanged (proposals are pure).
+The v4 refusal names and log scopes are kept where v4 refused (e.g. the audit 1e-310
+birth still refuses on "particle charge C" with log scope log(qe)+log(w)).
+
+G2: finite-log exposure admission
+prepare_patch admits an exposure with a defined finite log count only if
+ (1) the log count is finite and the scalar expected count is positive and finite;
+ (2) |n - N| <= T*N, N = exp(L_current)*A*f*dt/qe, the exact count defined by the
+     kernel's finite log current L_current, the patch area A, the area fraction f and
+     the duration dt (all binary64 operands taken exactly);
+ (3) the mean wall-heat diagnostic d satisfies |d - H| <= T*|H|,
+     H = -exp(L_current)*E_mean*A*f*dt (zero exactly when E_mean is zero).
+Otherwise it raises Refusal(kind exposure_scalar) whose log_abs_scope is the v3 log
+count (or the extended-precision exact log when A*f is not a normal number). No
+floor, resampling or zero-flux substitution is made. An exposure with no defined
+flux (T=0 and F<=0, no log count) keeps its exact zero as in v4.
+Two read-only accessors were added: PreparedPatch::log_current_A_m2() and
+mean_metal_energy_eV() (plus mean_wall_heat_diagnostic_J()).
+
+Tolerance T = 2^-40 (about 9.09e-13): derivation
+ Lower bound. In the normal range v3 forms the count as
+ fl(fl(fl(fl(exp L)*fl(A*f))*dt)/qe): five binary64 roundings, the exponential
+ being accurate to < 1 ulp, so its relative error is at most about 6u = 6.7e-16
+ (u = 2^-53); the diagnostic has the same five-rounding structure. T/u = 2^13, so a
+ correctly computed normal-range scalar is never refused (margin > 1000).
+ Upper bound. T is below every relative guard of the sealed consumers of these
+ values (continuity 1e-12, path/closure work 1e-10, discrete work 3e-11), so an
+ admitted scalar cannot consume a guard's margin; a 1e-12 relative error in an
+ expected count is far below any statistical meaning of the count.
+ Evaluation. The exact reference is evaluated in extended precision; its error
+ (at most six extended roundings plus expl, < 2^-60) is covered by the bound
+ evaluation_bound = 2^-58. Admission tests rel <= T - 2^-58, so the EXACT relative
+ error of every admitted scalar is <= T; refusals can occur only for exact errors
+ above T - 2^-57. T and the guard band are powers of two, so the band is exact.
+ An underflowing intermediate (A*f*current below 2^-1022) produces errors up to
+ 100% (the audit's ratio 1.994 at f = 3.1622776601683792e-245); such scalars are
+ refused unless their actual error is within T.
+
+G1 and weighted packet values: exact binary rescaling
+Every weighted value of a packet evaluation is admitted only if it is exactly what
+the same sealed evaluation gives at the binade-normalized weight, rescaled exactly:
+write w = w~*2^e with w~ in [1,2); evaluate with identical marks and inputs at w~;
+require each value at w to equal (value at w~)*2^e as a finite binary64 number with
+no rounding. In the normal range every operation of the weighted kernels is
+homogeneous in the weight (x*w, sums of weighted terms, deposits charge*D*s/dt,
+point deposits, divergences, residuals, scale-invariant guards), so the test passes
+for every weight whose evaluation neither underflows nor overflows, and v4
+behavior is unchanged there. Any rounding caused by the magnitude of the weight
+(gradual underflow, flush to zero, overflow) breaks the equality and refuses.
+ Consequence: an admitted weighted value has exactly the relative error of a
+ normal-range evaluation of the sealed kernel (weighting adds no error). For
+ single-chain values (charges, energies, ledger, path charge/work) that is at most
+ about 8u relative to w times the unit-weight value; for sums and deposited arrays
+ it is at most (8+2n)u relative to w times the gross unit magnitude (sum of absolute
+ contributions; n contributions per entry), below T for n <= 4092. The independent
+ Fraction oracle verifies |a - w*u| <= T*w*g exactly for every admitted value of the
+ sweeps (g = |u| for scalars, the gross magnitude for array entries).
+ Before the actual-weight evaluation runs, the rescaled values of the w~ evaluation
+ must already be exactly representable ("predicted" test); afterwards the actual
+ values must equal them ("consistent" test).
+Checked quantities:
+ begin_source / advance_active / advance_birth: the 8 exchange operands, source
+   charge and endpoint kinetic energy, the 9 particle-ledger entries, the 5 heat
+   receipt source energies, every new path's charge and work (geometry identical),
+   the per-candidate deposit of the new paths exactly as the sealed import performs
+   it (current load, endpoint charge impulses, per-node continuity residual), the
+   combined birth+continuation exchange and heat receipt, and — when the candidate is
+   PICHandedOff — the full ordinary-handoff remainder below;
+ handoff (and the handoff probe of every handed-off candidate): all current-load
+   entries, all endpoint charge impulses, field work, claimed work, work defect,
+   continuity, kinetic increment and endpoint kinetic energy; phase space, path,
+   boundary and times must be identical at both weights;
+ neutral leaves in prepare: kinetic, classical kinetic, relativistic conversion,
+   internal and adsorbed-reference energies, the three wall-support impulse components
+   and the expected kinetic term;
+ component load: restored layer charge and kinetic energy.
+Thus an admitted birth can never hand off representable current-load entries,
+charge impulses or a continuity value that are zero or carry weight-induced error:
+those values are exact rescalings of the normal-range values. The v4 zero/nonfinite
+checks are kept in addition. Equivalent formulation: no weighted value may be
+produced through underflow; refusal is the only outcome when one would be.
+
+Typed refusals for the sealed guards and the stock
+ Sealed energy closure and similar guards. After the w~ evaluation has passed, the
+ actual-weight evaluation differs only in the weight value, so a sealed numerical
+ guard failing there ("source incremental aggregate energy failed", "Micro-layer
+ aggregate energy closure failed", handoff work/continuity, path work) fails only
+ because of the weight's magnitude; it is re-raised as Refusal(kind
+ sealed_guard_at_weight) naming the guard quantity, log scope log(unit energy
+ scale)+log(w), identity and the sealed message. Allocation failures and refusals
+ pass through unchanged. In practice the predicted test refuses first.
+ Stock drain. release_quotes/prepare compare the rounded release with the exact
+ stock (first positive carrier = stock truncated to 53 bits, so stock >= x iff
+ carrier >= x for binary64 x) and raise Refusal(kind stock_drain, "neutral release
+ count", log scope log(release), identity with the exact-stock SHA256 and accepted
+ revision) instead of the untyped "insufficient exact inventory". The stock is never
+ rounded, retreated or partially released. A nonrepresentable positive release
+ refuses as kind release_scalar (v4 behavior, now typed with stock identity).
+
+Unchanged from v4 (normative text in API-v4.txt)
+Exact canonical stock and exact-sum leaves (A07), immutable proposals and lifetime
+binding (A02 source side), FinalFieldView checks, Active-layer ownership, pure
+prepare/preflight/commit and allocation-free publish_prevalidated, component
+checkpoint content and caps. Remaining holds of v4 remain (arrival policy, external
+count/RNG/ID truth, native composition, joint integration).
+
+Known limits
+ - The exact rescaling test refuses whenever a weighted value is produced through
+   underflow, even when the rounding happens to be small. Measured on the test
+   fixtures: 300 K/F=0 cold births with handoff are admitted down to w = 1e-267 and
+   refused from 1e-268 (first refusal: a handoff current-load entry whose
+   intermediate charge*D*s underflows before the division by dt; the entry itself is
+   normal with a 2-ulp weight-induced error); 1500 K/F=1e8 births with continuation
+   are admitted down to 1e-266 and refused from 1e-268 (source path deposit). v4
+   admitted births down to about 1e-304 with up to 59% error and zeroed arrays.
+   A tolerance-based relaxation (admit weight-induced error <= T) would move these
+   thresholds down by roughly fifteen decades; it is not implemented.
+ - Exposure (300 K, F=0, A = 1.25e-4 m2, dt = 1e-14 s): area fractions >= 1e-233
+   are admitted (worst exact relative error 2.6e-13 < T); from 3.16e-234 down the
+   count's intermediate (current*A*f)*dt underflows and the exposure refuses.
+ - Neutral leaves: a leaf of weight 2^-901 with a near-zero velocity component
+   refuses on its wall-support impulse; normal-range leaves are unchanged.
+ - Normal-range rounding of the sealed kernels themselves (e.g. cancellation in
+   endpoint charge impulses) is unchanged and not re-qualified by v5.
+ - The aggregate import of several candidates of different weights is not
+   rescaling-checked as a whole; each candidate's deposit is.

@@ -1,0 +1,207 @@
+{
+ "schema": "source-v5-precision-oracle-v1",
+ "oracle": "Python fractions.Fraction; decimal (80 digits) for exp only; owner not imported",
+ "tolerance": "1/1099511627776",
+ "stats": {
+  "300K-F0-cold-handoff": {
+   "admitted_weights": 21,
+   "refused_weights": 96,
+   "admitted_values_checked": 840,
+   "worst_exact_relative_error": 3.6022917648405206e-16
+  },
+  "1500K-F1e8-active-continuation": {
+   "admitted_weights": 15,
+   "refused_weights": 68,
+   "admitted_values_checked": 2130,
+   "worst_exact_relative_error": 9.259515459260228e-16
+  },
+  "exposure": {
+   "admitted": 24,
+   "refused": 52,
+   "worst_exact_relative_error": 2.6207962401328926e-13
+  },
+  "neutral": [
+   [
+    "chain to 2^-1060",
+    false
+   ],
+   [
+    "normal-range leaves",
+    true
+   ],
+   [
+    "chain to 2^-954",
+    false
+   ]
+  ]
+ },
+ "checks": [
+  {
+   "name": "tolerance is 2^-40",
+   "passed": true,
+   "detail": "1/1099511627776"
+  },
+  {
+   "name": "evaluation bound is 2^-58",
+   "passed": true,
+   "detail": "1/288230376151711744"
+  },
+  {
+   "name": "G1 w=1e-301 birth refused with typed scope",
+   "passed": true,
+   "detail": "particle charge C"
+  },
+  {
+   "name": "G1 refusal justified exactly",
+   "passed": true,
+   "detail": {
+    "quantity": "particle charge C",
+    "observed": "-0x0.0000000000cabp-1022",
+    "reference": "-0x1.955aee765f98dp-63",
+    "e": -1000
+   }
+  },
+  {
+   "name": "G2 area 3.1622776601683792e-245 refused as exposure-scalar with typed scope",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "name": "G2 refused scalar has exact relative error above tolerance",
+   "passed": true,
+   "detail": "0.99363229351353450838638626362908716780040850643963873400160538663238814382415538"
+  },
+  {
+   "name": "300K-F0-cold-handoff: every admitted weighted value within T exactly (840 values, 21 weights)",
+   "passed": true,
+   "detail": []
+  },
+  {
+   "name": "300K-F0-cold-handoff: every refusal typed with quantity, finite log scope and identity (96)",
+   "passed": true,
+   "detail": []
+  },
+  {
+   "name": "300K-F0-cold-handoff: every weighted-representation refusal justified exactly",
+   "passed": true,
+   "detail": []
+  },
+  {
+   "name": "300K-F0-cold-handoff: sweep covers admitted and refused weights",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "name": "1500K-F1e8-active-continuation: every admitted weighted value within T exactly (2130 values, 15 weights)",
+   "passed": true,
+   "detail": []
+  },
+  {
+   "name": "1500K-F1e8-active-continuation: every refusal typed with quantity, finite log scope and identity (68)",
+   "passed": true,
+   "detail": []
+  },
+  {
+   "name": "1500K-F1e8-active-continuation: every weighted-representation refusal justified exactly",
+   "passed": true,
+   "detail": []
+  },
+  {
+   "name": "1500K-F1e8-active-continuation: sweep covers admitted and refused weights",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "name": "exposure: every admitted count and diagnostic within T of the exact finite-log value (24)",
+   "passed": true,
+   "detail": []
+  },
+  {
+   "name": "exposure: every refusal typed and its scalar outside T - 2*evaluation_bound (52)",
+   "passed": true,
+   "detail": []
+  },
+  {
+   "name": "exposure: sweep covers admitted and refused areas",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "name": "neutral 'chain to 2^-1060': leaves are an exact partition of 1",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "name": "neutral 'chain to 2^-1060': refusal typed and justified exactly",
+   "passed": true,
+   "detail": {
+    "quantity": "neutral wall support impulse z N s",
+    "identity": "patch-index=0;patch=lower-face;surface=upper-foil-lower-surface;layer=conditional-single-layer;accepted-revision=0;exact-stock-sha256=718c354638f93c00822c1dad66c4bbe458372ac9e9e6f60f8f29bd25eac32c2b;neutral-leaf=17;weight=0x1.fffffffffffffp-902"
+   }
+  },
+  {
+   "name": "neutral 'normal-range leaves': leaves are an exact partition of 1",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "name": "neutral 'normal-range leaves': admitted values within T exactly (24)",
+   "passed": true,
+   "detail": []
+  },
+  {
+   "name": "neutral 'chain to 2^-954': leaves are an exact partition of 1",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "name": "neutral 'chain to 2^-954': refusal typed and justified exactly",
+   "passed": true,
+   "detail": {
+    "quantity": "neutral wall support impulse z N s",
+    "identity": "patch-index=0;patch=lower-face;surface=upper-foil-lower-surface;layer=conditional-single-layer;accepted-revision=0;exact-stock-sha256=718c354638f93c00822c1dad66c4bbe458372ac9e9e6f60f8f29bd25eac32c2b;neutral-leaf=17;weight=0x1.fffffffffffffp-902"
+   }
+  },
+  {
+   "name": "neutral: the subnormal-reaching partition is refused and the normal-range one admitted",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "name": "stock drain: quote refusal typed as stock-drain with stock identity",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "name": "stock drain: rounded release exceeds the exact stock (Fraction)",
+   "passed": true,
+   "detail": "5764607523034235/576460752303423488"
+  },
+  {
+   "name": "stock drain: exact stock equals Count2 input {1e15,-0.01}",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "name": "stock drain: prepare refusal typed as stock-drain, owner unchanged",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "name": "sealed energy-closure guards convert to typed sealed-guard-at-weight refusals",
+   "passed": true,
+   "detail": [
+    "source incremental aggregate energy closure J",
+    "micro-layer aggregate energy closure J",
+    "ordinary handoff work/continuity closure"
+   ]
+  },
+  {
+   "name": "normal-range weights all admitted (26)",
+   "passed": true,
+   "detail": null
+  }
+ ],
+ "passed": 30,
+ "failed": 0
+}

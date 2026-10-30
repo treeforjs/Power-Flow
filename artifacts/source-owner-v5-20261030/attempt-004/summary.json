@@ -1,0 +1,111 @@
+{
+ "tests_normal": {
+  "status": "passed",
+  "checks": 677,
+  "ported_v4_checks": 97,
+  "new_v5_checks": 580,
+  "nice": 15,
+  "full_joint_test": false,
+  "arrival_policy_implemented": false
+ },
+ "tests_sanitized": {
+  "status": "passed",
+  "checks": 677,
+  "ported_v4_checks": 97,
+  "new_v5_checks": 580,
+  "nice": 15,
+  "full_joint_test": false,
+  "arrival_policy_implemented": false
+ },
+ "byte_parity": {
+  "checks-normal": {
+   "active-source.bin": true,
+   "corrupt.bin": true,
+   "count-oracle.csv": true,
+   "exact-stock.bin": true,
+   "precision-dump.json": true,
+   "results.json": true
+  },
+  "port-normal": {
+   "exact-counts.json": true,
+   "port-results.json": true
+  },
+  "minrepro-stdout": true
+ },
+ "compile_reject_all_as_expected": true,
+ "precision_oracle": {
+  "passed": 30,
+  "failed": 0,
+  "stats": {
+   "300K-F0-cold-handoff": {
+    "admitted_weights": 21,
+    "refused_weights": 96,
+    "admitted_values_checked": 840,
+    "worst_exact_relative_error": 3.6022917648405206e-16
+   },
+   "1500K-F1e8-active-continuation": {
+    "admitted_weights": 15,
+    "refused_weights": 68,
+    "admitted_values_checked": 2130,
+    "worst_exact_relative_error": 9.259515459260228e-16
+   },
+   "exposure": {
+    "admitted": 24,
+    "refused": 52,
+    "worst_exact_relative_error": 2.6207962401328926e-13
+   },
+   "neutral": [
+    [
+     "chain to 2^-1060",
+     false
+    ],
+    [
+     "normal-range leaves",
+     true
+    ],
+    [
+     "chain to 2^-954",
+     false
+    ]
+   ]
+  }
+ },
+ "port_fraction_oracle": {
+  "passed": 20,
+  "failed": 0
+ },
+ "count_oracle": {
+  "status": "passed",
+  "checks": 49,
+  "source_plus_gas_equals_initial_exactly": true,
+  "oracle": "Python fractions.Fraction; production backend not imported",
+  "final_gas_exact": "17126972312471559/1427247692705959881058285969449495136382746624"
+ },
+ "minrepro_normal": [
+  "gap1 typed_refusal quantity=\"particle charge C\" kind=weighted-representation log_abs_scope=-736.35586665709945 relative_error=4.8843218345553111e-05 identity=\"patch-index=0;patch=lower-face;surface=upper-foil-lower-surface;layer=conditional-single-layer;canonical-particle=42;event=birth/123/source-v3/canonical-electron-42/1;weight=0x1.124e63593f5e1p-1000\"",
+  "gap1 weight=1.0000000000000001e-301 handoff_current_entries_nonzero_at_unit_weight=12 owner_unchanged=1",
+  "NOT-REPRODUCED gap1 tiny-weight birth refused with typed scope",
+  "gap2 typed_refusal quantity=\"electron expected exposure count\" kind=exposure-scalar log_abs_scope=-701.8522765035616 relative_error=0.99363229351353455 identity=\"patch-index=0;patch=lower-face;surface=upper-foil-lower-surface;layer=conditional-single-layer;exposure-begin=0x1.5798ee2308c3ap-28;duration=0x1.6849b86a12b9bp-47;area-fraction=0x1.ba353524b5617p-813;quadrature=tiny-positive-area;log-current=-0x1.19d963713d12p+7\"",
+  "gap2 area_fraction=3.1622776601683792e-245 refused_scalar_count=3.0837152118974579e-305 area1_count_times_fraction=1.5467823338990885e-305 owner_unchanged=1",
+  "NOT-REPRODUCED gap2 imprecise exposure scalar refused with typed scope"
+ ],
+ "weight_sweep": {
+  "admitted_weights": 73,
+  "refused_weights": 172,
+  "typed_scoped_refusals": 172,
+  "smallest_admitted_weight": "9.9999999999999996e-269",
+  "admitted_with_subnormal_weighted_operand": 0,
+  "worst_admitted_relative_exchange_error": "1.7413471745974896e-16",
+  "worst_admitted_current_entry_error_relative_to_gross": "4.6283941090088709e-16",
+  "admitted_current_entries_zeroed": 0
+ },
+ "exposure_sweep": {
+  "admitted_area_fractions": 67,
+  "refused_area_fractions": 38,
+  "typed_scoped_refusals": 38,
+  "admitted_with_relative_error_above_tolerance": 0,
+  "worst_admitted_relative_error": "2.6207951543916098e-13",
+  "worst_area_fraction": "0x1.922f8959355a8p-773"
+ },
+ "v4_unchanged": true
+}

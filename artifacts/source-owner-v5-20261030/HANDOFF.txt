@@ -1,0 +1,71 @@
+Heat/source owner v5 — ready for component review, 2026-10-30
+
+Source (plain directory, no Git branch/worktree, nothing committed):
+  /home/treefor/projects/runtimes/pic-electrode-heat-source-v5-20261030
+  native/mfem_electrode_heat_source_v5/  admission.hpp, source_owner.hpp, component_checkpoint.hpp,
+                                         API-v5.txt (normative), tests, count/precision oracles
+  audit-port/                            source-v4 audit port re-targeted to v5, A08 minimal reproducer,
+                                         compile-reject cases, port Fraction oracle
+  scripts/run_v5.py                      leased build/run driver writing the receipts below
+Derived from owner v4 (worktree pic-electrode-heat-feedback-20261029, branch electrode-heat-source-v4-20261030,
+c65ac51). v4 sources, its build tree and all sealed evidence are unchanged (tree hash ed2de0bc... before and after,
+recorded in each receipt). Sealed v3/v2 prerequisites are read in place; their 54 hashes are verified at configure.
+Source seal: source-seal-v5.json (this directory), source identity 38aacb38f960fc29...
+
+Scope closed (A08 G1/G2, typed refusals); everything else is v4 behavior
+G1  Weighted packet values are admitted only as exact binary rescalings of the same sealed evaluation at the
+    binade-normalized weight w~ = w*2^-e in [1,2): exchange, ledger, heat receipt, path charge/work, the per-candidate
+    path deposit (current load, endpoint charge impulses, per-node continuity residual) and the full ordinary-handoff
+    remainder (every current-load entry, every charge impulse, work, defect, continuity, kinetic terms). Handed-off
+    births are checked at begin_source, so an admitted birth can never hand off zeroed or weight-rounded arrays or
+    continuity. In the normal range the kernels are homogeneous in w, so nothing changes there.
+G2  prepare_patch admits the expected count only within T of N = exp(L_current)*A*f*dt/qe (finite-log value) and the
+    wall-heat diagnostic within T of its exact value; otherwise a typed exposure-scalar refusal with the log scope.
+    T = 2^-40 (9.09e-13): >= 2^13 roundings above the five-rounding normal-range error of the scalar, below every
+    relative guard of the sealed consumers (continuity 1e-12, work/closure 1e-10); extended-precision evaluation
+    error <= 2^-58 is subtracted, so admitted exact error <= T. Derivation in API-v5.txt.
+Typed scoped refusals: Refusal{quantity, log_abs_scope, identity (patch/surface/layer + exact-stock SHA256 and
+    revision, or canonical particle/event/weight, or exposure), kind, relative_error, tolerance, observed, reference,
+    binary_exponent}. Stock drain (rounded release above the exact stock) -> kind stock-drain instead of the untyped
+    "insufficient exact inventory"; sealed energy-closure/work/continuity guards failing only at the actual weight ->
+    kind sealed-guard-at-weight.
+
+Results (final attempt: attempt-004/receipt.json; logs, outputs and oracle files in attempt-004/; the full
+compile is logged in attempt-001 (72 s, -j2); attempt-004 rebuilt with all targets up to date)
+  Focused tests: 677 checks = 97 ported v4 (unchanged) + 580 new v5, normal and ASan/UBSan, CPU6/7 nice 15, one
+  thread, no GPU, frozen launcher; no sanitizer reports. Normal/sanitized byte-identical: results.json,
+  precision-dump.json, count-oracle.csv, exact-stock.bin, active-source.bin, corrupt.bin, port-results.json,
+  exact-counts.json and the minimal-reproducer output.
+  Independent oracles: v4 count oracle 49/49; v5 precision oracle (Fraction; decimal-80 for exp only) 30/30;
+  port Fraction oracle 20/20 (the v4 port's 13 checks plus drain, G1, G2, both A08 sweeps).
+  Compile-reject cases 0..11 as expected (A02 rows).
+  Port table v4 -> v5 (PORT-TABLE.txt): A07 C1 release, C1 arithmetic, C2 allocation exact as in v4 (weights,
+  carriers and stock bit-identical); A07 multiscale-stock drain now a typed stock-drain refusal with stock identity;
+  A08 C4 (1e-310) and L1 (1e-250) refused typed with log scopes bit-identical to v4; handoff control identical;
+  A02 rows unchanged; G1 (1e-301 birth) refused at birth on "particle charge C"; G2 (3.1622776601683792e-245)
+  refused, scalar 3.08e-305 vs exact 1.547e-305 (relative error 0.994).
+  Minimal reproducer: NOT-REPRODUCED for gap1 and gap2 (typed refusals, owner unchanged).
+  Sweeps (no admitted value above T, no admitted zeroing, every refusal typed, owner unchanged):
+    300 K/F=0 cold births with handoff: 21 admitted (down to 1e-267), 96 refused; worst exact error 3.6e-16.
+    1500 K/F=1e8 births with continuation and import: 15 admitted (down to 1e-266), 68 refused; worst 9.3e-16
+    (relative to the gross magnitude for array entries).
+    Port weight sweep 1e-250..1e-311: 73 admitted (down to 1e-268), 172 refused, worst 4.6e-16.
+    Exposure: test 24 admitted / 52 refused, port 67 admitted / 38 refused; admitted down to f = 1e-233,
+    worst exact error 2.6e-13 (< T).
+    Neutral leaves: exact partition of 1 reaching 2^-1060 refused (leaf 2^-901 wall-support impulse); normal-range
+    partition admitted.
+
+Open issues
+- Conservative threshold: exact rescaling refuses any weight-induced rounding, e.g. a 2-ulp current-load entry at
+  w = 1e-268 (an intermediate charge*D*s underflows before /dt). Admitting weight-induced error <= T instead would
+  lower the refusal threshold by roughly fifteen decades; not implemented.
+- Not in this version: Hall temperature ownership (H5), FinalFieldView bound to the Hall midpoint arrays, the
+  two-limb export decision for the SS304 melt proposal, any exact representation of weighted current arrays (needs a
+  Hall version), binding returned neutral leaves to native gas credits (root work).
+- Other untyped errors remain untyped (outside this scope): caller leaf-sum mismatch, source-law/coverage domain.
+- The aggregate import of several candidates of different weights is not rescaling-checked as a whole (each
+  candidate's deposit is). No full joint test ran.
+- Builds and runs shared cores 6-7 with other leased jobs; the first build waited about 20 minutes for the leases.
+- sealed-evidence-after.txt: the source-v4 port artifacts, v4 handoff evidence and v3/v2 sources are unchanged;
+  in pre-integration-audit-20261030 only CLOSURE-STATUS.md changed (17:04, another process). Its A08 row is not
+  updated by this work.

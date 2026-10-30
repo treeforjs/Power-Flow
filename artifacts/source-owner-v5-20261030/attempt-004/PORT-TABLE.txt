@@ -1,0 +1,51 @@
+Source-v4 audit port table re-run against owner v5
+attempt: /home/treefor/sim-workspace/powerflow/outputs/pic-electrode-heat-source-v5-20261030/attempt-004
+
+A07-C1-actual-release [A07 (source review C1)]
+  v4: exact
+  v5: exact
+A07-C1-count-arithmetic [A07 (source review C1, reproducer line source_count_debit_lost)]
+  v4: exact (legacy two-word function unchanged but not the v4 stock)
+  v5: exact (legacy two-word function unchanged but not the v5 stock)
+A07-C2-ten-packet-allocation [A07 (source review C2)]
+  v4: refused (audit leaves); exact (explicit exact partition)
+  v5: refused (audit leaves); exact (explicit exact partition)
+EXT-A07-full-release-of-multiscale-stock [A07 extension: audit inventory {1e15,-0.01} with the audit full-release rate 1e300]
+  v4: refused (untyped exception; no Refusal scope; stock cannot be fully released in one quote)
+  v5: refused (typed stock-drain refusal with log scope and stock identity; stock unchanged)
+A08-C4-tiny-weight-birth [A08 (source review C4)]
+  v4: refused (typed, with log scope)
+  v5: refused (typed, with log scope)
+A08-L1-exposure-underflow [A08 (source review L1)]
+  v4: refused (typed, with log scope; no finite-log admission path)
+  v5: refused (typed, with log scope; finite-log admission refuses the unrepresented scalar)
+CONTROL-thermal-surface-handoff [positive control from the audit reproducer (not a defect)]
+  v4: positive-control-passed (identical to v3)
+  v5: positive-control-passed (identical to v3)
+A02-C3-changed-particle-weight [A02 (source review C3: changed particle weight)]
+  v4: not-expressible (compile-reject) + runtime analogue refused
+  v5: not-expressible (compile-reject) + runtime analogue refused
+A02-C3-changed-spectrum [A02 (source review C3: substituted spectrum with old exposure key)]
+  v4: not-expressible (compile-reject) + runtime analogues refused
+  v5: not-expressible (compile-reject) + runtime analogues refused
+A02-C3-reused-owner-address [A02 (source review C3: reused owner address)]
+  v4: refused
+  v5: refused
+A02-C3-mutated-mesh-old-metadata [A02 (source review C3: mutated mesh with old metadata)]
+  v4: refused (mutation detected, owner unchanged; positive control commits)
+  v5: refused (mutation detected, owner unchanged; positive control commits)
+EXT-A02-mutation-between-preflight-and-publish [A02 extension: scope boundary of the final check]
+  v4: observation: undetected after preflight (root critical-section contract, not a component check)
+  v5: observation: undetected after preflight (root critical-section contract, not a component check)
+EXT-A08-weight-precision-sweep [A08 extension around the audit 1e-310 input (same 300 K, F=0 fixture)]
+  v4: defect: admitted proposal with silently zeroed weighted current entries
+  v5: no admitted zeroing or value outside tolerance; every refusal typed with scope; owner unchanged
+EXT-A08-exposure-scalar-precision-sweep [A08 extension around the audit area 1e-250 input (same 300 K, F=0 fixture)]
+  v4: gap: nonzero scalar count admitted with large underflow error while the finite log is exact
+  v5: every admitted scalar within tolerance of the exact finite-log count; every refusal typed with scope
+EXT-A08-handoff-current-underflow [A08 extension: weighted ordinary-handoff current of an ADMITTED tiny-weight birth (same 300 K, F=0 audit fixture)]
+  v4: defect: admitted handoff with weighted current entries silently zeroed
+  v5: refused at birth (typed, with log scope and identity; no handoff admitted)
+EXT-A08-exposure-scalar-admitted-imprecise [A08 extension: single area fraction from the sweep (same 300 K, F=0 audit fixture)]
+  v4: gap: admitted positive scalar count differs from the exact finite-log exposure
+  v5: refused (typed exposure-scalar refusal with finite log scope)
