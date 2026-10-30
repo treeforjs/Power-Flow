@@ -1,0 +1,131 @@
+Independent review of canonical native arena v3
+
+Status: material findings returned; this snapshot is not accepted for joint-driver
+restart/publication qualification. The sealed source identity is
+bb99d07bd807781d3e5bf1efdf3689be7d9957d2ee8e9d2523eb8b7459995940;
+archive SHA25652b758294d157b510757dd0447048c43d00d802d62c738beef45bc6cf60084c8.
+The original190-check receipt and immutable source are retained. No live source
+was edited. All findings below are against the sealed v3 copy, not a later fix.
+
+Actionable findings
+
+1. [P1] Exclusive native owner is copyable/movable (mfem_pic_arena.h:87).
+   PicArena's implicit special members copy its native pointer and accepted shared
+   snapshot. This is more than a type-policy concern: copy an arena containing one
+   neutral packet, publish a1ps native transport through the first owner, then
+   prepare/publish another1ps transport through the copy. Both succeed. Native
+   time is2ps, but the copy has accepted_steps=1 and only the second interval in
+   its journal. The first owner's snapshot is also stale. Its metadata remains a
+   plausible one-step prefix while the common native state has advanced twice.
+   Request: delete copy/move construction and assignment, and retain explicit
+   exclusive native ownership at the parent broker. Static traits plus a negative
+   copy/move compile test should enforce this before integration.
+
+2. [P1] Restart accepts sink records inconsistent with its own journal/catalog
+   (mfem_pic_arena.cpp:340,363,1085).
+   Independently alter metadata.sinks while leaving native_transport's sink
+   receipts unchanged, recompute only the outer envelope digest, and restore.
+   All of these pass: change a neutral count to1e30; change its species to electron;
+   change per-particle reference to1e20J; append an arbitrary fake sink object.
+   These change closed species/energy ledgers without changing the accepted native
+   state or the journal's original receipt. Hashes detect byte corruption but this
+   source never requires the two sink representations to agree or validates the
+   sink schema against catalog/count/native-carrier receipts. This is a detectable
+   internal inconsistency, independent of cryptographic authentication.
+   Request: require the sink list to equal the ordered journal sink receipts and
+   validate species/catalog reference/internal energy, exact carrier/count sum,
+   incident kinetic energy and required time/position/identity fields before
+   publishing a restored arena. Preserve unchanged-state refusal.
+
+3. [P1] Restart chain/provenance checks do not validate local event semantics
+   (mfem_pic_arena.cpp:363-392,1085-1105).
+   Rehash a one-event journal and the outer envelope after changing event_weight
+   to123 while retaining the original0.25 before/remainder/products. Restore passes.
+   A negative target remainder, unsupported selection_method, or negative collision
+   elapsed clock also passes independently. A valid digest chain plus matching
+   model/data strings is insufficient to make those accepted receipts coherent.
+   Request: replay each event's exact Count debit/product identities, allowed phase/
+   selection/time/provenance and conservation schema, then check available logical
+   history continuity and its final packet/sink state. Native transport start/end/
+   dt/step prefixes also need consistency with the restored native clock. This
+   should establish local semantic consistency; it cannot authenticate an arbitrary
+   fully self-consistent alternate history without a trusted external prefix, and
+   it is not a replay of all historical field solves.
+
+4. [P2] int stoichiometric sums can wrap and admit an unbalanced catalog
+   (mfem_pic_arena.cpp:487).
+   With state A.H=INT_MAX and B.H=2, the declared A+A ->4A+B channel is accepted.
+   Input H=4,294,967,294; output H=8,589,934,590. The difference is2^32 and the
+   signed-int accumulator overflows. Request bounded catalog nucleon counts,
+   bounded constructor product lists consistent with the event's8-product limit,
+   and checked int64 sums. Replace abs(charge_e)<=8 with explicit -8<=q<=8 too:
+   abs(INT_MIN) has undefined behavior even though this normal build rejects the
+   independent INT_MIN probe.
+
+Numerical-domain admission gap
+
+A native electron weight equal to the smallest positive binary64 value is admitted
+by the arena and remains an exact positive number carrier. Its charge*weight and
+native particle/deposited charge diagnostics are all zero after underflow. Exact
+number representation therefore does not prove resolvable charge/energy deposition
+over every accepted binary64 weight. This is an extreme manufactured input, not
+evidence about the current physical foil population. The authoritative arena/driver
+should explicitly reject unsupported charged/energy carrier conversions or state
+their numerical applicability limit before calling them physically resolved. Do
+not replace a small physical count by a larger carrier or silently skip it.
+
+What passes independently
+
+377 count/debit input executions span subnormals, power-of-two boundaries, very
+separated residuals, maximum finite values and near cancellations.353 carrier
+admissions and215 debit admissions are checked using Python Fraction from exact
+binary64 values. Every admitted carrier is positive/finite; their exact sum equals
+the two-word Count. Every admitted debit equals exact before-minus-event weight,
+and no overdraw is admitted. The maximum decomposition uses40 carriers, within the
+declared42 bound. Near cancellation at maximum finite hi is admitted by the
+inherited heat Count guard because its forward ULP becomes infinite; its exact
+number sum still passes. That is a normalization-policy observation, not evidence
+of count loss. Unsupported third residuals are refused rather than discarded.
+
+An additional actual100eV conditional-parent transaction uses electron cohort
+0.031334406939830223 and target64, publishes and rolls back through native GapPic.
+The exact canonical two-word counts equal sums of the actual positive native
+carrier weights. Exact charge_e=-1128940987344759/36028797018963968, H=128, O=64
+are conserved. A120-digit independent direct kinetic/reference/momentum ledger
+gives weighted energy defect-8.183450445393317e-35J against original bound
+5.707449263268633e-32J; momentum defect is[2.947382541894751e-41,0,0]kgm/s.
+Native carrier mass tampering rejects, and a doubled ion catalog mass with the
+unchanged actual sampled products rejects conservation. These passing checks do
+not remove the restart or ownership findings.
+
+Interfaces and physical scope
+
+rate_carriers() supplies exact positive native leaves mapped to each logical
+packet. view().weight is rounded diagnostic data; do not use it to select rates
+after compensated debits. A finite-rate adapter must bind each selected leaf,
+logical parent, immutable data/product source and current state/mesh/clock prefix,
+and preserve any unsupported-debit refusal atomically with the two RNG owners.
+The arena validates conservation and typed provenance strings, but it does not
+query cross sections or regenerate differential products. The actual conditional
+bridge/driver remains responsible for support and product-model provenance.
+
+The H2O fixture is explicit forced_kernel_integration_only at100eV, with one intact
+parent ion and the declared equal-pair CM comparison. It is not an actual-rate
+breakdown selection, measured EEDF/product distribution, complete8keV mechanism,
+MCC heating convergence or Maxwell current/work qualification. It checks serial
+native electrostatic staging and separate per-position charge balance. Native
+neutral motion/collection is actual q=0 drift, with sink kinetic energy separate
+from assumed wall heat. Common source/material/EM state and synchronized physical
+stage remain parent integrations. No old paused run was changed.
+
+Reproducibility
+
+Independent runtime: /home/treefor/projects/runtimes/pic-native-arena-review-20261029.
+probe.cpp imports only the sealed test fixture helpers and adds the new adversarial
+cases. run-review.py recompiles both native and arena translation units from the
+immutable archive and links the pinned frozen MFEM/Hypre/Metis/GKlib/libcrypto
+runtime. oracle.py uses Fraction and120-digit Decimal independent of BIGNUM/EFT
+implementation formulas. Commands, source/library bindings, original receipts,
+all rehashed probe bundles, results and input/output manifests are retained.
+CPU7/nice15/one thread/shared lease/frozen userspace;1.5GiB address and180CPU-s
+build/run cap. Probe execution0.10s wall,19,956KiB peak RSS, no GPU or dependencies.

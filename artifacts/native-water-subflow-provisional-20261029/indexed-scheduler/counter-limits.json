@@ -1,0 +1,25 @@
+{
+  "default_limits": {
+    "projectiles": 1000000,
+    "targets": 1000000,
+    "cells": 1000000,
+    "channels": 16384,
+    "input_string_bytes": 268435456,
+    "candidate_string_bytes": 268435456,
+    "local_pairs": 1000000,
+    "matching_queries": 1000000,
+    "candidate_rows": 1000000
+  },
+  "count_byte_preflight_before_internal_allocation": true,
+  "input_strings": "packet id/state and channel id/reactant states/data/kernel hashes, content bytes",
+  "candidate_strings": "five copied strings plus five terminators per row; logical payload, not allocator overhead",
+  "pair_budget": "every co-cell pair, including no matching channel; tested before kinematics",
+  "query_budget": "each matching-channel callback, including zero flux; tested before query",
+  "row_budget": "each positive propensity row; tested before row allocation",
+  "no_dropped_physical_pairs_or_channels": true,
+  "query_order": "projectile input order, original per-cell target input order, original matching-channel input order",
+  "counter_meaning": "permitted work prefix, not physical mutation; map comparator and arbitrary callback cost are not instruction-budgeted",
+  "address_space_limit_KiB": 1048576,
+  "CPU_time_limit_s": 60,
+  "resource_scope": "limits include failure/abort policy; never partial physical input truncation"
+}

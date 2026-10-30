@@ -1,0 +1,33 @@
+The isolated indexed candidate builder passes the unchanged47-check scheduler suite
+and9,198 independent assertions, including618 exact frozen-legacy comparisons.
+Every candidate field (identity, canonical order, binary64 weight/remainder/E/flux/
+sigma/rate/volume) and support-query sequence matches within the new explicit
+resource caps. No relative kinematics, weight law, physical kernel or clock changed.
+
+The100k-by100k disjoint case admits zero pair/query/row budgets, has no local-pair,
+kinematics or query visits, and finishes in19.601ms median; a global scan would visit
+10^10 pairs. That large legacy scan was intentionally not executed. The10k-by10k
+measured legacy control takes43.298ms vs1.860ms indexed (23.27x). Sparse matched5k is
+10.455ms vs2.483ms (4.21x). Dense256-by256/two channels is49.421ms vs49.177ms: essentially
+unchanged. The small16-by16/4096-unmatched-channel case is1.547ms vs1.606ms, slightly
+slower from index setup; at64-by64 it is7.970ms vs2.633ms (3.03x). These are medians of
+three bounded builder runs, with inputs/adapters constructed before timing, query
+tracing/counter writes disabled in timed calls, and full output checksums verified.
+They do not establish full-driver speedup or actual water collision throughput.
+
+Input population/cell/channel/aggregate-string caps precede internal allocation.
+Local-pair/query/row budgets retain their old meanings, including unmatched pairs
+and zero-flux support queries. A new copied-string payload cap prevents large ID/
+digest duplication from bypassing row-count budgeting. Exact/one-below caps reject
+the entire request; nothing is silently dropped. See counter-limits.json and README
+for defaults, diagnostic counter meanings, allocator/RSS caveats and callback scope.
+The whole independent suite uses149876KiB peak RSS and1.172 CPU seconds under1GiB/60CPU-s
+caps, CPU7/nice15/one-thread/frozen userspace/shared lease. Resource measurements
+include the harness/verification and are separate from individual builder timings.
+
+The unified patch applies byte-exactly to an isolated copy of the frozen legacy
+header. Root source/bridge snapshots remain unchanged. Integrate only into a new
+prefix and rebuild/rebind the dependent kernel manifest; do not rewrite frozen
+bridge inputs/receipts. Host authoritative state/mesh/stage, iterative compensated
+reservoir, product/native current publication remain separate integration work.
+No simulation, GPU, physical field/kernel or accepted-history change occurred.
