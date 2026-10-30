@@ -1,0 +1,43 @@
+diff --git a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/snapshots/candidate003/source/include/raikou/mfem_pic_full_time.h b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/include/raikou/mfem_pic_full_time.h
+index b236731..d342138 100644
+--- a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/snapshots/candidate003/source/include/raikou/mfem_pic_full_time.h
++++ b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/include/raikou/mfem_pic_full_time.h
+@@ -63,6 +63,8 @@ struct FullTimeAcceptedBoundary {
+   std::string mesh_sha256, material_sha256, frame_sha256, common_clock_sha256;
+   bool authored_full_time_genesis = false;
+ };
++// Moved-from handles support destruction and move assignment only, except
++// publication predicates below, which return false for an empty handle.
+ class CollisionScope {
+ public:
+   CollisionScope(CollisionScope &&) noexcept;
+@@ -135,6 +137,7 @@ private:
+ FullTimeMotionAdmission
+ bind_hall_total_field_motion(const hall_driver::MotionReceipt &);
+ 
++// Moved-from trial/outer handles support destruction and move assignment only.
+ class PrivateTransportTrial {
+ public:
+   PrivateTransportTrial(PrivateTransportTrial &&) noexcept;
+diff --git a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/snapshots/candidate003/source/src/mfem_pic_full_time.inc b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/src/mfem_pic_full_time.inc
+index 969e375..cfb25ac 100644
+--- a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/snapshots/candidate003/source/src/mfem_pic_full_time.inc
++++ b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/src/mfem_pic_full_time.inc
+@@ -1154,6 +1154,8 @@ PreparedArena CollisionScope::prepare_compound_with_completion(
+   return FullTimeAccess::compound(*scope, cap, f, *this);
+ }
+ bool CollisionScope::can_publish(const PreparedArena &t) const noexcept {
++  if (!impl_ || !impl_->scope)
++    return false;
+   try {
+     return FullTimeAccess::publishable(*impl_->scope, t);
+   } catch (...) {
+@@ -1161,6 +1163,8 @@ bool CollisionScope::can_publish(const PreparedArena &t) const noexcept {
+   }
+ }
+ bool CollisionScope::try_publish(PreparedArena &t) noexcept {
++  if (!impl_ || !impl_->scope)
++    return false;
+   try {
+     return FullTimeAccess::publish(*impl_->scope, t);
+   } catch (...) {

@@ -1,0 +1,95 @@
+{
+  "status": "ready_for_read_only_component_review",
+  "source_identity": "c045c42d2f57082e3fb5e12172c440d2470e681a38df9ac406bd7e063609a08d",
+  "candidate_prefix": "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003",
+  "immutable_snapshot": "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/snapshots/candidate003-c045",
+  "source_archive": "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003/native-full-time-candidate003-source.tar.gz",
+  "archive_sha256": "81a52d05884d08b31bf30fd9316e3fdd8ce0dc191fff9d5d7ef5ec35b4652968",
+  "changed_runtime_files": [
+    "source/include/raikou/mfem_pic_arena.h",
+    "source/include/raikou/mfem_pic_full_time.h",
+    "source/src/mfem_pic_arena.cpp",
+    "source/src/mfem_pic_full_time.inc",
+    "source/src/full_time_contract_validation.hpp",
+    "source/src/mfem_pic_hall_motion_adapter.cpp"
+  ],
+  "public_headers": [
+    "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/snapshots/candidate003-c045/source/include/raikou/mfem_pic_arena.h",
+    "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/snapshots/candidate003-c045/source/include/raikou/mfem_pic_full_time.h"
+  ],
+  "API_contract": "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/snapshots/candidate003-c045/API-003.txt",
+  "correction_matrix": "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003/CORRECTION-MATRIX.txt",
+  "build_commands": [
+    "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003/legacy-commands.json",
+    "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003/candidate-tests-commands.json",
+    "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003/final-commands.json"
+  ],
+  "verification": {
+    "status": "passed-bounded-components-only",
+    "source_identity": "c045c42d2f57082e3fb5e12172c440d2470e681a38df9ac406bd7e063609a08d",
+    "legacy_recorded_checks": 368,
+    "legacy_results_and_proofs_identical_to_exact_count": true,
+    "legacy_normal_sanitized_identical": true,
+    "candidate_component_checks": 147,
+    "candidate_normal_sanitized_identical": true,
+    "allocation_failure_sweep": {
+      "cases": 48,
+      "refusals": 27,
+      "successes": 21
+    },
+    "forbidden_native_solver_calls": 0,
+    "forbidden_native_advance_calls": 0,
+    "sanitizers": "address/undefined/leak clean for changed arena and tests; frozen native/MFEM uninstrumented",
+    "native_ABI": [
+      80,
+      168,
+      200,
+      8448
+    ],
+    "separate_Hall_adapter_header_compile": "passed; core has no Hall symbol dependency",
+    "genuine_motion_or_joint_execution": false,
+    "completed_full_time_restart_qualified": false,
+    "GPU": false,
+    "resource": {
+      "cpu": 7,
+      "nice": 15,
+      "threads": 1,
+      "jobs": 1,
+      "external_flock": "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core7.lock"
+    },
+    "utc": "2026-10-30T06:32:08.357243+00:00",
+    "forbidden_trapped_functions": [
+      "solve_fields",
+      "advance",
+      "advance_empty",
+      "advance_observed"
+    ]
+  },
+  "separate_libraries": {
+    "core": "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/build/libpic_native_candidate003.a",
+    "Hall_adapter": "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/build/libpic_hall_motion_adapter003.a",
+    "note": "Core uses frozen MFEM/MPI/HYPRE/METIS/GKlib/OpenSSL. Link Hall adapter separately with genuine qualified motion_record provider; core has no Hall runtime dependency."
+  },
+  "stable_previous_versions": {
+    "001": "bc44576f9115e79e7c7978796ed95f8075613a3a09d3044325842516fa137306",
+    "002": "eccf8960d420e4b24fc8dedb1ee5ed8a89a8024f241a0f99fdc386c4283d31df",
+    "reviewed003_7bbe": "7bbe50681a6adc0f2dc4041f5f2ee82196156b9536a427d457e67767b6942300",
+    "7bbe_evidence": "/home/treefor/sim-workspace/powerflow/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate003/qualification-7bbe"
+  },
+  "remaining_unqualified": [
+    "Genuine positive Hall receipt/native motion acceptance",
+    "Completed nonempty full-time step save/restore and split/full restart corruption matrix with genuine provider data",
+    "All-owner atomic disk restart and bounded long-run history anchors",
+    "Absolute initial field constraints, source/active-layer/collection and full competing chemistry are separate owners/unimplemented gates",
+    "Physical pilot/convergence and production performance"
+  ],
+  "controls": {
+    "joint_steps": 0,
+    "fabricated_positive_Hall_JSON": false,
+    "GPU": false,
+    "production_changes_or_signals": false,
+    "shared_checkout_edits": false,
+    "permission_for_integration": "None; full integration remains held"
+  },
+  "UTC": "2026-10-30T06:33:19.829375+00:00"
+}

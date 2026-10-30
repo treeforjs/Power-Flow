@@ -1,0 +1,67 @@
+{
+ "schema": "post-reboot-corrective-rerun-v1",
+ "host": "host-identity.json",
+ "paused_run": "paused-production-state.json",
+ "cpu": {
+  "hall": 6,
+  "others": 7
+ },
+ "nice": 15,
+ "threads": 1,
+ "launcher": "projects/runtimes/arch-base-20261028/run-frozen (sha256 unchanged)",
+ "suites": [
+  {
+   "component": "Hall field correction 8dddec0",
+   "command": "run_components.py post-reboot-rerun-001 --ubsan",
+   "result": "passed: field checks, 38 owner checks, 5 compile rejects rc=1",
+   "parity": "field-validation.json and owner-validation.json byte-identical to component-007-ubsan"
+  },
+  {
+   "component": "common coordinator v3 declaration",
+   "result": "passed: 22 checks, accepted_owners_constructed 0",
+   "new_attempt": "declaration-003"
+  },
+  {
+   "component": "common coordinator v3 parent regression",
+   "result": "passed: 442 checks, all check results equal",
+   "new_attempt": "parent-regression-002"
+  },
+  {
+   "component": "source v4 c65ac51",
+   "result": "passed: 97 checks normal and ASan/UBSan",
+   "new_output": "checks-post-reboot-rerun-001, checks-sanitized-post-reboot-rerun-001"
+  },
+  {
+   "component": "native candidate003 c045c42d",
+   "result": "passed: 147 component checks, 368 legacy checks identical, normal/sanitized identical, 0 forbidden solver/advance calls",
+   "parity": "rebuilt libpic_native_candidate003.a sha256 d2568af9... equals the library pinned by v3; candidate003-tests.json byte-identical",
+   "provenance_note": "core/adapter undefined-symbol listings and verification-result.json fields differ from the stored evidence while the rebuilt library is identical, so the stored listings were produced by a different script revision than verify-final.py as it now stands. Original evidence restored in place; re-run copy under reruns/."
+  },
+  {
+   "component": "streaming chemistry primitive",
+   "result": "passed: 6931 oracle assertions; capture and replay receipts byte-identical",
+   "differences": "build receipt timestamps, memory checkpoints and resource timings only"
+  },
+  {
+   "component": "streaming wrapper v1",
+   "result": "passed: 3597 small and 184 broad assertions",
+   "parity": "210830 recorded values identical except wrapper_wall_seconds and peak_RSS_KiB"
+  },
+  {
+   "component": "dispatcher v1",
+   "result": "passed: 172 injected primitive checks, 0 real child dispatches"
+  },
+  {
+   "component": "SS304 melt proposal 1c11656",
+   "result": "not run",
+   "reason": "build_check.py asserts the pre-reboot stopped production PID and frozen cgroup, both gone after the reboot, and uses assert-based affinity guards; needs a versioned runner with explicit guards (audit A18 E1)"
+  }
+ ],
+ "not_changed": [
+  "no source edits",
+  "no guard changes",
+  "no physical time advanced",
+  "paused run not resumed"
+ ],
+ "audit_status_unchanged": "Re-qualification confirms existing component evidence on the current host only; it does not close additional audit findings."
+}

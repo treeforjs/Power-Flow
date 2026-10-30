@@ -1,0 +1,1855 @@
+diff --git a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time/audit-candidate-002/source/include/raikou/mfem_pic_arena.h b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/include/raikou/mfem_pic_arena.h
+index 80b069e..d0b51c5 100644
+--- a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time/audit-candidate-002/source/include/raikou/mfem_pic_arena.h
++++ b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/include/raikou/mfem_pic_arena.h
+@@ -16,8 +16,9 @@ struct FullTimeAuthoredPacket;
+ struct FullTimeAcceptedBoundary;
+ struct FullTimeCandidateExposures;
+ using ArenaJson = nlohmann::json;
+-// Reuses the heat owner's public inventory type. This is the gas inventory
+-// after an accepted surface transfer, not a second owner of solid inventory.
++// Immutable exact dyadic gas inventory. Surface/solid inventory has one
++// separate owner and is transferred exactly; no rounded conversion is implied
++// here.
+ using ArenaCount = ExactParticleCount;
+ struct ArenaStateSpec {
+   std::string id;
+@@ -88,6 +89,7 @@ struct ArenaStochasticCompletion {
+          common_interval_end_s = 0;
+ };
+ struct ArenaSnapshot {
++  ~ArenaSnapshot() noexcept;
+   std::map<std::string, ArenaPacket> packets;
+   std::set<std::string> ever_packet_ids, event_ids;
+   ArenaJson journal = ArenaJson::array(), sinks = ArenaJson::array();
+@@ -111,6 +113,8 @@ public:
+   candidate_stochastic_completion(const std::string &owner) const;
+   std::shared_ptr<const FullTimeCandidateExposures>
+   candidate_full_time_exposures() const;
++  std::shared_ptr<const FullTimeAcceptedBoundary>
++  candidate_full_time_boundary() const;
+ 
+ private:
+   friend class PicArena;
+@@ -196,7 +200,9 @@ private:
+            std::vector<ArenaPacket>, std::string, bool);
+   void save_full_time(const std::string &) const;
+   void validate_full_time_history() const;
+-  std::shared_ptr<void> full_time_lifetime_=std::make_shared<int>(0);
++  std::shared_ptr<void> full_time_lifetime_ = std::make_shared<int>(0);
++  std::weak_ptr<void> active_full_time_outer_;
++  bool full_time_builder_active_ = false;
+   std::unique_ptr<GapPic> owned_pic_;
+   std::shared_ptr<const FullTimeAcceptedBoundary> full_time_boundary_;
+   GapPic *pic_;
+diff --git a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time/audit-candidate-002/source/include/raikou/mfem_pic_full_time.h b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/include/raikou/mfem_pic_full_time.h
+index 5f3f53a..d342138 100644
+--- a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time/audit-candidate-002/source/include/raikou/mfem_pic_full_time.h
++++ b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/include/raikou/mfem_pic_full_time.h
+@@ -2,6 +2,10 @@
+ #include "raikou/mfem_pic_arena.h"
+ #include <functional>
+ #include <memory>
++namespace hall_driver {
++class MotionReceipt;
++}
++
+ namespace raikou::mfem_backend {
+ enum class FullTimeSlot { before_transport, after_transport };
+ struct FullTimeStepBinding {
+@@ -33,6 +37,8 @@ struct FullTimeMotionBinding {
+   std::string transport_trial_sha256, field_before_sha256, field_after_sha256;
+   std::string heat_after_sha256, source_after_sha256;
+ };
++// rng_sha256 binds chemistry scheduler/product RNG + configuration only.
++// Future source arrival RNG/count/layer state belongs in source_sha256.
+ struct FullTimeCommitSeals {
+   std::string field_sha256, heat_sha256, source_sha256, rng_sha256;
+ };
+@@ -46,7 +52,7 @@ struct FullTimeExposureReceipt {
+ };
+ struct FullTimeCandidateExposures {
+   FullTimeStepBinding common;
+-  std::string outer_step_sha256;
++  std::string outer_step_sha256, transport_trial_sha256;
+   FullTimeExposureReceipt first, second;
+ };
+ struct FullTimeAcceptedBoundary {
+@@ -57,6 +63,8 @@ struct FullTimeAcceptedBoundary {
+   std::string mesh_sha256, material_sha256, frame_sha256, common_clock_sha256;
+   bool authored_full_time_genesis = false;
+ };
++// Moved-from handles support destruction and move assignment only, except
++// publication predicates below, which return false for an empty handle.
+ class CollisionScope {
+ public:
+   CollisionScope(CollisionScope &&) noexcept;
+@@ -84,6 +92,7 @@ public:
+ 
+ private:
+   friend class FullTimeAccess;
++  friend class PicArena;
+   friend class PrivateFullTimeStep;
+   struct Impl;
+   explicit CollisionScope(std::unique_ptr<Impl>);
+@@ -101,11 +110,34 @@ public:
+ private:
+   friend class PrivateTransportTrial;
+   friend class FullTimeAccess;
++  friend class PicArena;
+   friend class PrivateFullTimeStep;
+   struct Impl;
+   explicit PreparedPrivateMotion(std::unique_ptr<Impl>);
+   std::unique_ptr<Impl> impl_;
+ };
++// Only a genuine immutable Hall MotionReceipt can create live admission. JSON
++// is a restart receipt, not an authority to propose new motion.
++class FullTimeMotionAdmission {
++public:
++  ~FullTimeMotionAdmission() noexcept;
++  FullTimeMotionAdmission(FullTimeMotionAdmission &&) noexcept = default;
++  FullTimeMotionAdmission &operator=(FullTimeMotionAdmission &&) noexcept;
++  FullTimeMotionAdmission(const FullTimeMotionAdmission &) = delete;
++  FullTimeMotionAdmission &operator=(const FullTimeMotionAdmission &) = delete;
++
++private:
++  friend FullTimeMotionAdmission
++  bind_hall_total_field_motion(const hall_driver::MotionReceipt &);
++  friend class PrivateTransportTrial;
++  explicit FullTimeMotionAdmission(ArenaJson record)
++      : record_(std::move(record)) {}
++  ArenaJson record_;
++};
++FullTimeMotionAdmission
++bind_hall_total_field_motion(const hall_driver::MotionReceipt &);
++
++// Moved-from trial/outer handles support destruction and move assignment only.
+ class PrivateTransportTrial {
+ public:
+   PrivateTransportTrial(PrivateTransportTrial &&) noexcept;
+@@ -117,6 +149,10 @@ public:
+   std::shared_ptr<const ArenaSnapshot> snapshot() const;
+   std::uint64_t staged_arena_revision() const;
+   std::string state_prefix() const;
++  PreparedPrivateMotion
++  prepare_total_field_motion(const FullTimeMotionBinding &,
++                             FullTimeMotionAdmission);
++  // Compatibility refusal only: JSON cannot authorize live motion.
+   PreparedPrivateMotion prepare_total_field_motion(
+       const FullTimeMotionBinding &, const std::vector<GapParticle> &endpoints,
+       const ArenaJson &transport_receipts,
+@@ -125,6 +161,7 @@ public:
+ 
+ private:
+   friend class FullTimeAccess;
++  friend class PicArena;
+   friend class PrivateFullTimeStep;
+   struct Impl;
+   explicit PrivateTransportTrial(std::unique_ptr<Impl>);
+@@ -138,6 +175,7 @@ public:
+   PrivateFullTimeStep(const PrivateFullTimeStep &) = delete;
+   PrivateFullTimeStep &operator=(const PrivateFullTimeStep &) = delete;
+   CollisionScope first_exposure(const ExposureBinding &);
++  // Four total forks per outer reservation. Each starts the exact first frame.
+   PrivateTransportTrial fork_transport_trial();
+   void accept_transport_trial(PreparedPrivateMotion &&);
+   CollisionScope second_exposure(const ExposureBinding &);
+diff --git a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/src/full_time_contract_validation.hpp b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/src/full_time_contract_validation.hpp
+new file mode 100644
+index 0000000..4d9d0ab
+--- /dev/null
++++ b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/src/full_time_contract_validation.hpp
+@@ -0,0 +1,46 @@
++#pragma once
++#include "raikou/mfem_pic_full_time.h"
++#include <limits>
++#include <stdexcept>
++namespace raikou::mfem_backend::full_time_detail {
++// Pure contracts shared by live admission, serialized replay and component
++// tests.
++inline void
++completion_chain_guard(const ExposureBinding &e,
++                       const ArenaStochasticCompletion &c,
++                       const FullTimeAcceptedBoundary &accepted,
++                       const std::optional<ArenaStochasticCompletion> &first) {
++  auto need = [](bool ok, const char *message) {
++    if (!ok)
++      throw std::invalid_argument(message);
++  };
++  need(c.common_clock_sha256 == e.common.common_clock_sha256 &&
++           c.stage_sequence == e.owner_stage_sequence &&
++           c.common_interval_begin_s == e.common.begin_s &&
++           c.common_interval_end_s == e.common.end_s &&
++           c.frozen_physical_stage_s == e.frozen_physical_stage_s,
++       "native completion exact common exposure binding");
++  if (e.slot == FullTimeSlot::before_transport)
++    need(!first && c.before_rng_clock_sha256 == accepted.rng_sha256,
++         "first native completion differs from accepted chemistry RNG seal");
++  else
++    need(
++        first && c.integration_owner_id == first->integration_owner_id &&
++            c.channel_id == first->channel_id &&
++            c.dataset_sha256 == first->dataset_sha256 &&
++            c.kernel_manifest_sha256 == first->kernel_manifest_sha256 &&
++            c.kernel_binding_file_sha256 == first->kernel_binding_file_sha256 &&
++            c.model == first->model &&
++            first->stage_sequence < std::numeric_limits<std::uint64_t>::max() &&
++            c.stage_sequence == first->stage_sequence + 1 &&
++            c.before_rng_clock_sha256 == first->after_rng_clock_sha256,
++        "native second completion must continue same first "
++        "owner/channel/data/kernel/model/RNG");
++}
++inline void final_rng_guard(const FullTimeCommitSeals &seals,
++                            const ArenaStochasticCompletion &second) {
++  if (seals.rng_sha256 != second.after_rng_clock_sha256)
++    throw std::invalid_argument(
++        "final native RNG seal differs from actual second completion");
++}
++} // namespace raikou::mfem_backend::full_time_detail
+diff --git a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time/audit-candidate-002/source/src/mfem_pic_arena.cpp b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/src/mfem_pic_arena.cpp
+index fed4b61..9f4021f 100644
+--- a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time/audit-candidate-002/source/src/mfem_pic_arena.cpp
++++ b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/src/mfem_pic_arena.cpp
+@@ -1,4 +1,5 @@
+ #include "raikou/mfem_pic_arena.h"
++#include "full_time_contract_validation.hpp"
+ #include "raikou/mfem_pic_full_time.h"
+ #include <algorithm>
+ #include <cmath>
+@@ -13,6 +14,7 @@
+ #include <openssl/sha.h>
+ #include <sstream>
+ #include <system_error>
++#include <type_traits>
+ #include <unistd.h>
+ #ifndef PIC_REACTION_NATIVE_SOURCE_SHA256
+ #error "native source identity must be supplied"
+@@ -35,6 +37,113 @@ void require(bool condition, const char *message) {
+   if (!condition)
+     throw std::invalid_argument(message);
+ }
++std::uint64_t json_u64(const ArenaJson &j) {
++  require(j.is_number_integer(), "exact nonnegative integer JSON required");
++  if (j.is_number_unsigned())
++    return j.get<std::uint64_t>();
++  auto n = j.get<std::int64_t>();
++  require(n >= 0, "negative integer JSON refused");
++  return static_cast<std::uint64_t>(n);
++}
++std::size_t json_size(const ArenaJson &j, std::size_t cap) {
++  auto n = json_u64(j);
++  require(n <= cap, "bounded JSON integer required");
++  return static_cast<std::size_t>(n);
++}
++double json_scalar(const ArenaJson &j) {
++  require(j.is_number(), "numeric JSON operand required");
++  double d = j.get<double>();
++  require(std::isfinite(d), "finite JSON operand required");
++  if (j.is_number_integer()) {
++    long double exact = j.is_number_unsigned()
++                            ? static_cast<long double>(j.get<std::uint64_t>())
++                            : static_cast<long double>(j.get<std::int64_t>());
++    require(exact == static_cast<long double>(d),
++            "integer JSON is not exactly representable as binary64");
++  }
++  return d;
++}
++bool json_boolean(const ArenaJson &j) {
++  require(j.is_boolean(), "boolean JSON operand required");
++  return j.get<bool>();
++}
++std::string json_text(const ArenaJson &j) {
++  require(j.is_string() && j.get_ref<const std::string &>().size() < 1024,
++          "bounded string JSON required");
++  return j.get<std::string>();
++}
++PicVector json_vector(const ArenaJson &j) {
++  require(j.is_array() && j.size() == 3,
++          "three-component JSON vector required");
++  return {json_scalar(j[0]), json_scalar(j[1]), json_scalar(j[2])};
++}
++std::set<std::string> json_id_set(const ArenaJson &j, std::size_t cap) {
++  require(j.is_array() && j.size() <= cap, "bounded identity array required");
++  std::set<std::string> r;
++  for (const auto &v : j)
++    require(r.insert(json_text(v)).second, "duplicate JSON identity");
++  return r;
++}
++ArenaJson read_full_json(const std::string &path) {
++  require(std::filesystem::file_size(path) <= 64 * 1024 * 1024,
++          "bounded full-time restart size");
++  std::ifstream input(path);
++  require(bool(input), "restart open failed");
++  std::size_t nodes = 0;
++  std::vector<std::optional<std::set<std::string>>> nesting;
++  auto callback = [&](int depth, ArenaJson::parse_event_t event,
++                      ArenaJson &parsed) {
++    require(depth <= 32 && ++nodes <= 8000000,
++            "bounded restart JSON depth/nodes");
++    if (event == ArenaJson::parse_event_t::object_start)
++      nesting.emplace_back(std::set<std::string>{});
++    else if (event == ArenaJson::parse_event_t::array_start)
++      nesting.emplace_back(std::nullopt);
++    else if (event == ArenaJson::parse_event_t::key) {
++      require(!nesting.empty() && bool(nesting.back()), "JSON key context");
++      require(nesting.back()->insert(json_text(parsed)).second,
++              "duplicate restart JSON key");
++    } else if (event == ArenaJson::parse_event_t::object_end ||
++               event == ArenaJson::parse_event_t::array_end) {
++      require(!nesting.empty(), "JSON nesting");
++      nesting.pop_back();
++    } else if (event == ArenaJson::parse_event_t::value) {
++      if (parsed.is_string())
++        (void)json_text(parsed);
++      if (parsed.is_number_float())
++        (void)json_scalar(parsed);
++    }
++    return true;
++  };
++  auto doc = ArenaJson::parse(input, callback);
++  input >> std::ws;
++  require(input.eof() && nesting.empty(), "trailing restart JSON data");
++  return doc;
++}
++// The frozen JSON destructor uses an allocating flattening stack. Empty bounded
++// trees bottom-up so snapshot retirement cannot allocate during publication.
++void drain_json(ArenaJson &j) noexcept {
++  if (j.is_object()) {
++    auto &object = j.get_ref<ArenaJson::object_t &>();
++    for (auto &item : object)
++      drain_json(item.second);
++    object.clear();
++  } else if (j.is_array()) {
++    auto &array = j.get_ref<ArenaJson::array_t &>();
++    for (auto &item : array)
++      drain_json(item);
++    array.clear();
++  }
++}
++void json_depth_guard(const ArenaJson &j, unsigned depth = 0) {
++  require(depth <= 32, "bounded metadata JSON depth");
++  if (j.is_object())
++    for (const auto &item : j.items())
++      json_depth_guard(item.value(), depth + 1);
++  else if (j.is_array())
++    for (const auto &item : j)
++      json_depth_guard(item, depth + 1);
++}
+ bool particle_equal(const GapParticle &a, const GapParticle &b) noexcept {
+   return a.id == b.id && a.position_m == b.position_m &&
+          a.proper_velocity_m_s == b.proper_velocity_m_s &&
+@@ -169,6 +278,12 @@ void atomic_json(const ArenaJson &document, const std::string &path) {
+ }
+ 
+ } // namespace
++ArenaSnapshot::~ArenaSnapshot() noexcept {
++  drain_json(journal);
++  drain_json(sinks);
++  drain_json(stochastic_completions);
++  drain_json(full_time_context);
++}
+ struct PicArena::NativeState {
+   GapPicOptions options;
+   std::vector<GapParticle> particles;
+@@ -293,12 +408,16 @@ ArenaJson count_json(ArenaCount n) {
+           {"positive_carriers", n.positive_carriers()}};
+ }
+ ArenaCount read_count(const ArenaJson &j) {
+-  require(j.is_object() && j.size() == 2 && j.at("unit_exponent") == -1074,
++  require(j.is_object() && j.size() == 2 &&
++              j.at("unit_exponent").is_number_integer() &&
++              j.at("unit_exponent") == -1074,
+           "exact count schema");
+   require(j.at("positive_carriers").is_array() &&
+               j.at("positive_carriers").size() <= ArenaCount::maximum_carriers,
+           "bounded exact count codec");
+-  auto weights = j.at("positive_carriers").get<std::vector<double>>();
++  std::vector<double> weights;
++  for (const auto &v : j.at("positive_carriers"))
++    weights.push_back(json_scalar(v));
+   auto count = ArenaCount::from_positive_carriers(weights);
+   require(weights == count.positive_carriers(),
+           "exact count canonical positive representation");
+@@ -345,12 +464,12 @@ std::vector<GapParticle> native_rows_read(const ArenaJson &j) {
+   for (const auto &x : j) {
+     require(x.size() == 6, "native history row schema");
+     GapParticle p;
+-    p.id = x.at("id");
+-    p.position_m = x.at("position_m").get<PicVector>();
+-    p.proper_velocity_m_s = x.at("u").get<PicVector>();
+-    p.charge_C = x.at("q");
+-    p.mass_kg = x.at("m");
+-    p.weight = x.at("weight");
++    p.id = json_u64(x.at("id"));
++    p.position_m = json_vector(x.at("position_m"));
++    p.proper_velocity_m_s = json_vector(x.at("u"));
++    p.charge_C = json_scalar(x.at("q"));
++    p.mass_kg = json_scalar(x.at("m"));
++    p.weight = json_scalar(x.at("weight"));
+     native_particle_guard(p);
+     out.push_back(p);
+   }
+@@ -378,32 +497,68 @@ ArenaJson metadata(const ArenaSnapshot &s) {
+   return result;
+ }
+ ArenaSnapshot read_metadata(const ArenaJson &j) {
++  json_depth_guard(j);
+   require(j.size() == 11 || (j.size() == 12 && j.contains("full_time_context")),
+           "metadata schema");
++  require(j.is_object() && j.at("packets").is_array() &&
++              j.at("packets").size() <= maximum_native_carriers &&
++              j.at("journal").is_array() &&
++              j.at("journal").size() <= maximum_journal_entries &&
++              j.at("sinks").is_array() &&
++              j.at("sinks").size() <= maximum_native_carriers,
++          "bounded metadata collections");
++  require(j.at("stochastic_completions").is_object() &&
++              j.at("stochastic_completions").size() <= 128,
++          "bounded stochastic owner collection");
++  const auto declared_bytes =
++      json_size(j.at("journal_bytes"), maximum_journal_bytes);
++  std::size_t measured_bytes = 0, total_native_ids = 0;
++  for (const auto &row : j.at("journal")) {
++    const auto n = row.dump().size();
++    require(n <= maximum_journal_bytes - measured_bytes,
++            "metadata journal byte cap before copy");
++    measured_bytes += n;
++  }
++  require(measured_bytes == declared_bytes,
++          "metadata declared journal byte count");
++  for (const auto &packet : j.at("packets")) {
++    require(packet.is_object() && packet.at("native_ids").is_array() &&
++                packet.at("native_ids").size() <=
++                    maximum_native_carriers - total_native_ids,
++            "canonical native ID cap before copy");
++    total_native_ids += packet.at("native_ids").size();
++  }
++  (void)json_size(j.at("revision"), maximum_journal_entries);
++  (void)json_size(j.at("accepted_steps"), maximum_journal_entries);
+   ArenaSnapshot s;
+   if (j.contains("full_time_context"))
+     s.full_time_context = j.at("full_time_context");
+-  s.ever_packet_ids = j.at("ever_packet_ids").get<std::set<std::string>>();
+-  s.event_ids = j.at("event_ids").get<std::set<std::string>>();
++  s.ever_packet_ids =
++      json_id_set(j.at("ever_packet_ids"),
++                  maximum_native_carriers + 8 * maximum_journal_entries);
++  s.event_ids = json_id_set(j.at("event_ids"), maximum_journal_entries);
+   s.journal = j.at("journal");
+   s.sinks = j.at("sinks");
+   s.chain = j.at("chain");
+-  s.revision = j.at("revision");
+-  s.accepted_steps = j.at("accepted_steps");
+-  s.previous_dt_s = j.at("previous_dt_s");
++  s.revision = json_u64(j.at("revision"));
++  s.accepted_steps = json_u64(j.at("accepted_steps"));
++  s.previous_dt_s = json_scalar(j.at("previous_dt_s"));
+   s.stochastic_completions = j.at("stochastic_completions");
+-  s.journal_bytes = j.at("journal_bytes");
++  s.journal_bytes = json_size(j.at("journal_bytes"), maximum_journal_bytes);
+   require(s.stochastic_completions.is_object() &&
+               s.journal_bytes <= maximum_journal_bytes,
+           "completion/history byte schema");
+   for (const auto &x : j.at("packets")) {
+     require(x.size() == 6, "packet schema");
+-    ArenaPacket p{x.at("id"),
+-                  x.at("state"),
+-                  x.at("origin"),
+-                  x.at("last_event"),
+-                  read_count(x.at("count")),
+-                  x.at("native_ids").get<std::vector<std::uint64_t>>()};
++    require(x.at("native_ids").is_array() && !x.at("native_ids").empty() &&
++                x.at("native_ids").size() <= ArenaCount::maximum_carriers,
++            "bounded canonical native ID array");
++    std::vector<std::uint64_t> ids;
++    for (const auto &id : x.at("native_ids"))
++      ids.push_back(json_u64(id));
++    ArenaPacket p{json_text(x.at("id")),     json_text(x.at("state")),
++                  json_text(x.at("origin")), json_text(x.at("last_event")),
++                  read_count(x.at("count")), std::move(ids)};
+     require(s.packets.emplace(p.id, p).second, "duplicate logical packet");
+   }
+   return s;
+@@ -468,6 +623,7 @@ std::vector<double> PicArena::positive_carriers(ArenaCount n) {
+   return n.positive_carriers();
+ }
+ struct PreparedArena::Impl {
++  ~Impl() noexcept { drain_json(audit); }
+   PicArena *owner = nullptr;
+   std::uint64_t scope = 0;
+   std::shared_ptr<const ArenaSnapshot> before, after;
+@@ -477,7 +633,8 @@ struct PreparedArena::Impl {
+   std::shared_ptr<const FullTimeCandidateExposures> exposures;
+   std::shared_ptr<const FullTimeAcceptedBoundary> boundary_before,
+       boundary_after;
+-  std::shared_ptr<void> private_identity;
++  std::shared_ptr<void> private_identity, private_memory_lease,
++      full_outer_identity;
+   std::uint64_t private_generation = 0;
+   enum class Status { Staged, Published, RolledBack };
+   Status status = Status::Staged;
+@@ -697,6 +854,8 @@ PicArena::rate_population(std::size_t maximum_entries) const {
+ PreparedArena PicArena::stage(std::shared_ptr<ArenaSnapshot> next,
+                               NativeState &candidate, ArenaJson audit,
+                               int fault) {
++  require(!full_time_boundary_,
++          "legacy stage forbidden in full-time total-field mode");
+   auto token = std::make_unique<PreparedArena::Impl>();
+   token->owner = this;
+   token->scope = active_scope_;
+@@ -734,8 +893,9 @@ PreparedArena PicArena::stage(std::shared_ptr<ArenaSnapshot> next,
+   }
+ }
+ bool PicArena::can_publish(const PreparedArena &t) const noexcept {
+-  return t.impl_ && !t.impl_->private_identity && t.impl_->owner == this &&
+-         t.impl_->scope == active_scope_ &&
++  return !full_time_builder_active_ && t.impl_ && !t.impl_->private_identity &&
++         t.impl_->owner == this && t.impl_->scope == active_scope_ &&
++         bool(full_time_boundary_) == bool(t.impl_->boundary_after) &&
+          t.impl_->status == PreparedArena::Impl::Status::Staged &&
+          accepted_ == t.impl_->before && matches(*pic_, t.impl_->native_before);
+ }
+@@ -934,8 +1094,22 @@ PicArena::ReactionBuild PicArena::build_reaction(const ArenaEvent &e,
+     pscale += v;
+   for (auto v : dp)
+     require(std::abs(v) <= eps * pscale, "event momentum closure");
++  std::size_t result_count = native.particles.size() -
++                             primary.native_ids.size() -
++                             target.native_ids.size();
++  auto reserve_count = [&](std::size_t amount) {
++    require(amount <= maximum_native_carriers - result_count,
++            "reaction result native carrier cap");
++    result_count += amount;
++  };
++  if (!zero(target_remaining))
++    reserve_count(positive_carriers(target_remaining).size());
++  if (!zero(primary_remaining))
++    reserve_count(positive_carriers(primary_remaining).size());
++  reserve_count(e.products.size());
+   auto next = std::make_shared<ArenaSnapshot>(base);
+   auto candidate = native;
++  candidate.particles.reserve(result_count);
+   std::set<std::uint64_t> remove;
+   remove.insert(primary.native_ids.begin(), primary.native_ids.end());
+   remove.insert(target.native_ids.begin(), target.native_ids.end());
+@@ -1336,6 +1510,8 @@ PreparedArena
+ PicArena::compound_impl(std::size_t maximum_reactions,
+                         const std::function<void(PicArena &)> &builder,
+                         bool with_completion) {
++  require(!full_time_boundary_,
++          "legacy compound forbidden in full-time total-field mode");
+   require(!active_scope_, "nested compound preparation forbidden");
+   require(bool(builder) && maximum_reactions > 0 && maximum_reactions <= 4096,
+           "explicit bounded compound resource cap required");
+@@ -1464,10 +1640,10 @@ ArenaStochasticCompletion completion_read(const ArenaJson &j) {
+   c.kernel_manifest_sha256 = j.at("kernel_manifest_sha256");
+   c.kernel_binding_file_sha256 = j.at("kernel_binding_file_sha256");
+   c.model = j.at("model");
+-  c.stage_sequence = j.at("stage_sequence");
+-  c.frozen_physical_stage_s = j.at("frozen_physical_stage_s");
+-  c.common_interval_begin_s = j.at("common_interval_begin_s");
+-  c.common_interval_end_s = j.at("common_interval_end_s");
++  c.stage_sequence = json_u64(j.at("stage_sequence"));
++  c.frozen_physical_stage_s = json_scalar(j.at("frozen_physical_stage_s"));
++  c.common_interval_begin_s = json_scalar(j.at("common_interval_begin_s"));
++  c.common_interval_end_s = json_scalar(j.at("common_interval_end_s"));
+   return c;
+ }
+ void completion_validate(
+@@ -1553,6 +1729,8 @@ void validate_scoped_ssa(const ArenaJson &journal, std::size_t start,
+ }
+ } // namespace
+ void PicArena::complete_stochastic(const ArenaStochasticCompletion &c) {
++  require(!full_time_boundary_,
++          "legacy completion forbidden in full-time total-field mode");
+   require(active_scope_ && completion_compound_,
+           "stochastic completion only inside its private compound");
+   completion_validate(c, channels_.at(c.channel_id),
+diff --git a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time/audit-candidate-002/source/src/mfem_pic_full_time.inc b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/src/mfem_pic_full_time.inc
+index b789194..cfb25ac 100644
+--- a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time/audit-candidate-002/source/src/mfem_pic_full_time.inc
++++ b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/src/mfem_pic_full_time.inc
+@@ -3,10 +3,113 @@
+ class FullTimeExposureKey {};
+ struct FullTimePhaseKey {};
+ namespace full_time_detail {
++ArenaJson options_json(const GapPicOptions &o) {
++  return {{"nx", o.nx},
++          {"ny", o.ny},
++          {"width_m", o.width_m},
++          {"gap_m", o.gap_m},
++          {"depth_m", o.depth_m},
++          {"lower_potential_V", o.lower_potential_V},
++          {"upper_potential_V", o.upper_potential_V},
++          {"magnetic_field_T", o.magnetic_field_T},
++          {"distributed_fields", o.distributed_fields},
++          {"finite_foils", o.finite_foils},
++          {"finite_axial_extent", o.finite_axial_extent},
++          {"short_z_m", o.short_z_m},
++          {"feed_z_m", o.feed_z_m},
++          {"lower_foil",
++           {o.lower_foil.left_m, o.lower_foil.right_m, o.lower_foil.bottom_m,
++            o.lower_foil.top_m}},
++          {"upper_foil",
++           {o.upper_foil.left_m, o.upper_foil.right_m, o.upper_foil.bottom_m,
++            o.upper_foil.top_m}}};
++}
++void options_guard(const GapPicOptions &o) {
++  require(o.nx > 0 && o.nx <= 4096 && o.ny > 0 && o.ny <= 4096 &&
++              std::size_t(o.nx) * std::size_t(o.ny) <= 262144,
++          "bounded full-time immutable native mesh");
++  require(!o.distributed_fields && std::isfinite(o.width_m) && o.width_m > 0 &&
++              std::isfinite(o.gap_m) && o.gap_m > 0 &&
++              std::isfinite(o.depth_m) && o.depth_m > 0 &&
++              std::isfinite(o.lower_potential_V) &&
++              std::isfinite(o.upper_potential_V) &&
++              std::isfinite(o.short_z_m) && std::isfinite(o.feed_z_m),
++          "finite full-time native options");
++  for (double v : o.magnetic_field_T)
++    require(std::isfinite(v), "finite prescribed-field option");
++  for (const auto &f : {o.lower_foil, o.upper_foil})
++    for (double v : {f.left_m, f.right_m, f.bottom_m, f.top_m})
++      require(std::isfinite(v), "finite foil option");
++  if (o.finite_foils) {
++    for (const auto &f : {o.lower_foil, o.upper_foil}) {
++      require(0 < f.left_m && f.left_m < f.right_m && f.right_m < o.width_m &&
++                  0 < f.bottom_m && f.bottom_m < f.top_m && f.top_m < o.gap_m,
++              "full-time native foil bounds");
++      for (double x : {f.left_m, f.right_m})
++        require(std::abs(x / o.width_m * o.nx -
++                         std::round(x / o.width_m * o.nx)) <= 1e-9,
++                "native foil x alignment");
++      for (double y : {f.bottom_m, f.top_m})
++        require(std::abs(y / o.gap_m * o.ny - std::round(y / o.gap_m * o.ny)) <=
++                    1e-9,
++                "native foil y alignment");
++    }
++    require(o.lower_foil.top_m < o.upper_foil.bottom_m, "native electrode gap");
++  }
++  if (o.finite_axial_extent)
++    require(o.finite_foils && o.feed_z_m > o.short_z_m &&
++                std::abs(o.feed_z_m - o.short_z_m - o.depth_m) <=
++                    1e-12 * o.depth_m,
++            "native axial geometry");
++}
++GapPicOptions read_options(const ArenaJson &j) {
++  require(j.is_object() && j.size() == 15, "typed native option schema");
++  GapPicOptions o;
++  o.nx = static_cast<int>(json_size(j.at("nx"), 4096));
++  o.ny = static_cast<int>(json_size(j.at("ny"), 4096));
++  o.width_m = json_scalar(j.at("width_m"));
++  o.gap_m = json_scalar(j.at("gap_m"));
++  o.depth_m = json_scalar(j.at("depth_m"));
++  o.lower_potential_V = json_scalar(j.at("lower_potential_V"));
++  o.upper_potential_V = json_scalar(j.at("upper_potential_V"));
++  o.magnetic_field_T = json_vector(j.at("magnetic_field_T"));
++  o.distributed_fields = json_boolean(j.at("distributed_fields"));
++  o.finite_foils = json_boolean(j.at("finite_foils"));
++  o.finite_axial_extent = json_boolean(j.at("finite_axial_extent"));
++  o.short_z_m = json_scalar(j.at("short_z_m"));
++  o.feed_z_m = json_scalar(j.at("feed_z_m"));
++  auto foil = [](const ArenaJson &a) {
++    require(a.is_array() && a.size() == 4, "four-coordinate foil required");
++    return GapFoil{json_scalar(a[0]), json_scalar(a[1]), json_scalar(a[2]),
++                   json_scalar(a[3])};
++  };
++  o.lower_foil = foil(j.at("lower_foil"));
++  o.upper_foil = foil(j.at("upper_foil"));
++  options_guard(o);
++  return o;
++}
+ struct FullFrame {
+   std::shared_ptr<const ArenaSnapshot> snapshot;
+   PicArena::NativeState native;
+ };
++void swap_frame(FullFrame &a, FullFrame &b) noexcept {
++  a.snapshot.swap(b.snapshot);
++  std::swap(a.native.options, b.native.options);
++  a.native.particles.swap(b.native.particles);
++  a.native.horizontal.swap(b.native.horizontal);
++  a.native.vertical.swap(b.native.vertical);
++  a.native.potential.Swap(b.native.potential);
++  std::swap(a.native.ledger, b.native.ledger);
++  std::swap(a.native.next_id, b.native.next_id);
++  std::swap(a.native.fields_current, b.native.fields_current);
++}
++void release_native(PicArena::NativeState &n) noexcept {
++  std::vector<GapParticle>().swap(n.particles);
++  std::vector<double>().swap(n.horizontal);
++  std::vector<double>().swap(n.vertical);
++  mfem::Vector empty;
++  n.potential.Swap(empty);
++}
+ ArenaJson common_json(const FullTimeStepBinding &b) {
+   return {{"accepted_step", b.accepted_step},
+           {"accepted_arena_revision", b.accepted_arena_revision},
+@@ -22,11 +125,11 @@ ArenaJson common_json(const FullTimeStepBinding &b) {
+ FullTimeStepBinding read_common(const ArenaJson &j) {
+   require(j.size() == 10, "full-time common schema");
+   FullTimeStepBinding b;
+-  b.accepted_step = j.at("accepted_step");
+-  b.accepted_arena_revision = j.at("accepted_arena_revision");
+-  b.begin_s = j.at("begin_s");
+-  b.end_s = j.at("end_s");
+-  b.dt_s = j.at("dt_s");
++  b.accepted_step = json_u64(j.at("accepted_step"));
++  b.accepted_arena_revision = json_u64(j.at("accepted_arena_revision"));
++  b.begin_s = json_scalar(j.at("begin_s"));
++  b.end_s = json_scalar(j.at("end_s"));
++  b.dt_s = json_scalar(j.at("dt_s"));
+   b.accepted_arena_sha256 = j.at("accepted_arena_sha256");
+   b.accepted_field_sha256 = j.at("accepted_field_sha256");
+   b.mesh_sha256 = j.at("mesh_sha256");
+@@ -53,9 +156,9 @@ ExposureBinding read_exposure(const ArenaJson &j) {
+           "full-time slot");
+   b.slot = slot == "before_transport" ? FullTimeSlot::before_transport
+                                       : FullTimeSlot::after_transport;
+-  b.frozen_physical_stage_s = j.at("frozen_physical_stage_s");
+-  b.collision_duration_s = j.at("collision_duration_s");
+-  b.owner_stage_sequence = j.at("owner_stage_sequence");
++  b.frozen_physical_stage_s = json_scalar(j.at("frozen_physical_stage_s"));
++  b.collision_duration_s = json_scalar(j.at("collision_duration_s"));
++  b.owner_stage_sequence = json_u64(j.at("owner_stage_sequence"));
+   b.frozen_field_sha256 = j.at("frozen_field_sha256");
+   return b;
+ }
+@@ -80,9 +183,9 @@ ArenaJson boundary_json(const FullTimeAcceptedBoundary &b,
+ FullTimeAcceptedBoundary read_boundary(const ArenaJson &j) {
+   require(j.size() == 13, "full-time boundary schema");
+   FullTimeAcceptedBoundary b;
+-  b.accepted_step = j.at("accepted_step");
+-  b.accepted_arena_revision = j.at("accepted_arena_revision");
+-  b.time_s = j.at("time_s");
++  b.accepted_step = json_u64(j.at("accepted_step"));
++  b.accepted_arena_revision = json_u64(j.at("accepted_arena_revision"));
++  b.time_s = json_scalar(j.at("time_s"));
+   b.accepted_arena_sha256 = j.at("accepted_arena_sha256");
+   b.field_sha256 = j.at("field_sha256");
+   b.heat_sha256 = j.at("heat_sha256");
+@@ -92,7 +195,8 @@ FullTimeAcceptedBoundary read_boundary(const ArenaJson &j) {
+   b.material_sha256 = j.at("material_sha256");
+   b.frame_sha256 = j.at("frame_sha256");
+   b.common_clock_sha256 = j.at("common_clock_sha256");
+-  b.authored_full_time_genesis = j.at("authored_full_time_genesis");
++  b.authored_full_time_genesis =
++      json_boolean(j.at("authored_full_time_genesis"));
+   return b;
+ }
+ void common_guard(const FullTimeStepBinding &b,
+@@ -127,7 +231,9 @@ void closed_position(const GapPicOptions &o, const GapParticle &p) {
+ }
+ std::string frame_prefix(const std::string &initial,
+                          const std::string &registry, const FullFrame &f) {
+-  return sha_bytes(initial + registry + metadata(*f.snapshot).dump() +
++  return sha_bytes("native-full-time-exact-config-v2" + initial + registry +
++                   options_json(f.native.options).dump() +
++                   metadata(*f.snapshot).dump() +
+                    native_rows_json(f.native.particles).dump() +
+                    std::to_string(f.native.next_id) +
+                    ArenaJson(f.native.ledger.time_s).dump());
+@@ -163,15 +269,20 @@ void exposure_guard(const ExposureBinding &e, const FullTimeStepBinding &common,
+           "full-time explicit half-exposure binding");
+ }
+ void full_ssa(const ArenaJson &journal, std::size_t start,
+-              const ArenaStochasticCompletion &c, const ExposureBinding &e) {
++              const ArenaStochasticCompletion &c, const ExposureBinding &e,
++              std::size_t end = std::numeric_limits<std::size_t>::max()) {
+   require(c.stage_sequence == e.owner_stage_sequence &&
+               c.common_clock_sha256 == e.common.common_clock_sha256 &&
+               c.common_interval_begin_s == e.common.begin_s &&
+               c.common_interval_end_s == e.common.end_s &&
+               c.frozen_physical_stage_s == e.frozen_physical_stage_s,
+           "full-time completion envelope");
++  if (end == std::numeric_limits<std::size_t>::max())
++    end = journal.size();
++  require(journal.is_array() && start <= end && end <= journal.size(),
++          "full-time SSA journal bounds");
+   double previous = 0;
+-  for (std::size_t i = start; i < journal.size(); ++i) {
++  for (std::size_t i = start; i < end; ++i) {
+     const auto &a = journal[i].at("payload");
+     require(a.at("kind") == "reaction", "full-time collision children only");
+     require(a.at("phase") == "full_time_endpoint" &&
+@@ -205,6 +316,204 @@ frame_completion(const FullFrame &f, const std::string &owner) {
+   require(c.integration_owner_id == owner, "completion owner key");
+   return c;
+ }
++FullTimeAcceptedBoundary boundary_payload(const ArenaJson &j) {
++  require(j.is_object() && j.size() == 12 &&
++              !j.contains("accepted_arena_sha256"),
++          "full-time boundary payload schema");
++  auto full = j;
++  full["accepted_arena_sha256"] = std::string(64, '0');
++  return read_boundary(full);
++}
++void full_journal_validate(
++    const ArenaSnapshot &s, const ArenaSnapshot &genesis,
++    const std::map<std::string, ArenaChannel> &channels) {
++  require(s.journal.is_array() && s.journal.size() <= maximum_journal_entries &&
++              s.revision == s.journal.size() && s.sinks == ArenaJson::array(),
++          "bounded closed full-time journal dimensions");
++  auto boundary = boundary_payload(genesis.full_time_context.at("boundary"));
++  require(boundary.accepted_step == 0 &&
++              boundary.accepted_arena_revision == 0 &&
++              boundary.authored_full_time_genesis,
++          "full-time journal genesis marker");
++  std::string chain = genesis.chain, outer_sha, range_before_chain, motion_sha;
++  std::set<std::string> events;
++  std::size_t bytes = 0, start = 0;
++  unsigned state = 0;
++  std::uint64_t steps = 0;
++  double previous_dt = 0;
++  FullTimeStepBinding common;
++  std::optional<ArenaStochasticCompletion> first, second;
++  ArenaJson completions = ArenaJson::object();
++  std::string field = boundary.field_sha256, heat = boundary.heat_sha256,
++              source = boundary.source_sha256;
++  for (std::size_t i = 0; i < s.journal.size(); ++i) {
++    const auto &row = s.journal[i];
++    require(row.is_object() && row.size() == 2, "full-time journal row schema");
++    const auto &a = row.at("payload");
++    const auto prior = chain;
++    const auto n = row.dump().size();
++    require(n <= maximum_journal_bytes - bytes,
++            "bounded full-time journal bytes");
++    bytes += n;
++    require(a.is_object() && a.at("previous_chain") == chain &&
++                row.at("sha256") == sha_bytes(a.dump()),
++            "full-time journal hash chain");
++    chain = json_text(row.at("sha256"));
++    const auto kind = json_text(a.at("kind"));
++    if (state == 0) {
++      require(kind == "full_time_outer_begin" && a.size() == 4,
++              "full-time journal requires outer begin");
++      common = read_common(a.at("common"));
++      require(std::isfinite(common.dt_s) && common.dt_s > 0 &&
++                  common.end_s > common.begin_s &&
++                  common.end_s == common.begin_s + common.dt_s &&
++                  common.begin_s == boundary.time_s &&
++                  common.accepted_step == steps &&
++                  common.accepted_arena_revision == i &&
++                  common.accepted_field_sha256 == field &&
++                  common.mesh_sha256 == boundary.mesh_sha256 &&
++                  common.material_sha256 == boundary.material_sha256 &&
++                  digest(common.accepted_arena_sha256) &&
++                  digest(common.common_clock_sha256),
++              "full-time journal common continuity");
++      outer_sha = json_text(a.at("outer_step_sha256"));
++      require(digest(outer_sha), "full-time outer commitment");
++      state = 1;
++      start = i + 1;
++      range_before_chain = chain;
++      first.reset();
++      second.reset();
++      continue;
++    }
++    if ((state == 1 || state == 3) && kind == "reaction") {
++      const auto event = json_text(a.at("event_id"));
++      nonempty(event);
++      require(events.insert(event).second, "duplicate full-time event");
++      require(a.at("phase") == "full_time_endpoint" &&
++                  json_u64(a.at("accepted_step")) == steps &&
++                  json_scalar(a.at("physical_stage_s")) ==
++                      (state == 1 ? common.begin_s : common.end_s) &&
++                  json_scalar(a.at("previous_dt_s")) == previous_dt &&
++                  json_scalar(a.at("next_dt_s")) == common.dt_s,
++              "full-time journal reaction phase");
++      require(a.at("products").is_array() && !a.at("products").empty() &&
++                  a.at("products").size() <= 8,
++              "full-time journal product cap");
++      for (const auto &p : a.at("products")) {
++        require(p.is_object() && p.size() == 4, "full-time product schema");
++        (void)json_vector(p.at("u"));
++      }
++      require(digest(json_text(a.at("state_prefix"))) &&
++                  a.at("selection_state_prefix") == a.at("state_prefix"),
++              "full-time selection prefix");
++      (void)json_scalar(a.at("event_weight"));
++      (void)json_scalar(a.at("collision_elapsed_s"));
++      continue;
++    }
++    if (state == 1 || state == 3) {
++      require(kind == "full_time_exposure" && a.size() == 6,
++              "full-time journal requires scoped exposure");
++      auto e = read_exposure(a.at("exposure"));
++      exposure_guard(e, common,
++                     state == 1 ? FullTimeSlot::before_transport
++                                : FullTimeSlot::after_transport,
++                     field);
++      auto c = completion_read(a.at("completion"));
++      std::optional<ArenaStochasticCompletion> previous;
++      auto found = completions.find(c.integration_owner_id);
++      if (found != completions.end())
++        previous = completion_read(*found);
++      completion_validate(c, channels.at(c.channel_id), previous,
++                          e.frozen_physical_stage_s);
++      completion_chain_guard(e, c, boundary, state == 1 ? std::nullopt : first);
++      full_ssa(s.journal, start, c, e, i);
++      require(a.at("stage_before_chain") == range_before_chain &&
++                  a.at("stage_after_reaction_chain") == prior,
++              "full-time journal scoped reaction range");
++      if (state == 1) {
++        require(c.before_rng_clock_sha256 == boundary.rng_sha256,
++                "full-time journal accepted chemistry RNG binding");
++        first = c;
++        state = 2;
++      } else {
++        require(first &&
++                    c.integration_owner_id == first->integration_owner_id &&
++                    c.channel_id == first->channel_id &&
++                    first->stage_sequence <
++                        std::numeric_limits<std::uint64_t>::max() &&
++                    c.stage_sequence == first->stage_sequence + 1 &&
++                    c.before_rng_clock_sha256 == first->after_rng_clock_sha256,
++                "full-time journal second chemistry chain");
++        second = c;
++        state = 4;
++      }
++      completions[c.integration_owner_id] = completion_json(c);
++      continue;
++    }
++    if (state == 2) {
++      require(kind == "full_time_motion" && a.size() == 7,
++              "full-time journal requires one motion");
++      const auto &r = a.at("receipt");
++      require(r.is_object() && r.size() == 10 &&
++                  r.at("schema") == "arena_total_field_motion_receipt_v1" &&
++                  json_scalar(r.at("begin_s")) == common.begin_s &&
++                  json_scalar(r.at("end_s")) == common.end_s &&
++                  json_scalar(r.at("dt_s")) == common.dt_s &&
++                  r.at("common_clock_sha256") == common.common_clock_sha256 &&
++                  r.at("mesh_sha256") == common.mesh_sha256 &&
++                  r.at("field_before_sha256") == field,
++              "full-time journal motion envelope");
++      motion_sha = json_text(r.at("transport_trial_sha256"));
++      require(digest(motion_sha), "full-time journal motion identity");
++      field = json_text(a.at("field_after_sha256"));
++      heat = json_text(a.at("heat_after_sha256"));
++      require(digest(field) && digest(heat) &&
++                  a.at("source_after_sha256") == source &&
++                  r.at("field_after_sha256") == field,
++              "full-time journal closed owner seals");
++      require(a.at("endpoints").is_array() &&
++                  a.at("endpoints").size() <= maximum_native_carriers,
++              "full-time motion endpoint cap");
++      state = 3;
++      start = i + 1;
++      range_before_chain = chain;
++      continue;
++    }
++    require(state == 4 && kind == "full_time_boundary" && a.size() == 8 &&
++                common_json(read_common(a.at("common"))) ==
++                    common_json(common) &&
++                a.at("outer_step_sha256") == outer_sha &&
++                a.at("transport_trial_sha256") == motion_sha,
++            "full-time journal terminal boundary grammar");
++    auto next = boundary_payload(a.at("boundary"));
++    require(steps < std::numeric_limits<std::uint64_t>::max(),
++            "full-time journal step exhaustion");
++    ++steps;
++    require(first && second && next.accepted_step == steps &&
++                next.accepted_arena_revision == i + 1 &&
++                next.time_s == common.end_s &&
++                !next.authored_full_time_genesis &&
++                next.field_sha256 == field && next.heat_sha256 == heat &&
++                next.source_sha256 == source &&
++                next.rng_sha256 == second->after_rng_clock_sha256 &&
++                next.mesh_sha256 == boundary.mesh_sha256 &&
++                next.material_sha256 == boundary.material_sha256 &&
++                next.frame_sha256 == boundary.frame_sha256 &&
++                next.common_clock_sha256 == common.common_clock_sha256 &&
++                digest(json_text(a.at("first_completed_state_prefix"))) &&
++                digest(json_text(a.at("second_completed_state_prefix"))),
++            "full-time journal final owner/clock/count seals");
++    boundary = next;
++    previous_dt = common.dt_s;
++    state = 0;
++  }
++  require(state == 0, "full-time journal ends inside private step");
++  require(bytes == s.journal_bytes && chain == s.chain &&
++              events == s.event_ids && steps == s.accepted_steps &&
++              previous_dt == s.previous_dt_s &&
++              completions.dump() == s.stochastic_completions.dump(),
++          "full-time journal counters/completion replay mismatch");
++}
+ struct FullOuter {
+   PicArena *owner = nullptr;
+   std::weak_ptr<void> lifetime;
+@@ -213,8 +522,10 @@ struct FullOuter {
+   std::shared_ptr<const FullTimeAcceptedBoundary> boundary;
+   std::size_t cap = 0, records = 0;
+   unsigned phase = 0;
++  bool first_reserved = false, second_reserved = false, builder_active = false;
++  std::size_t transport_forks = 0, slot_reaction_budget = 0;
+   bool sealed = false;
+-  std::string outer_sha;
++  std::string outer_sha, motion_sha;
+   FullTimeExposureReceipt first, second;
+ };
+ struct FullCollision {
+@@ -224,7 +535,8 @@ struct FullCollision {
+       std::make_shared<FullTimeExposureKey>();
+   std::shared_ptr<const FullTimePhaseKey> phase_key =
+       std::make_shared<FullTimePhaseKey>();
+-  std::shared_ptr<void> token_identity=std::make_shared<int>(0);
++  std::shared_ptr<void> token_identity = std::make_shared<int>(0);
++  std::weak_ptr<void> outstanding_token;
+   std::string completed_prefix;
+   std::uint64_t generation = 0;
+   bool building = false, closed = false;
+@@ -253,6 +565,43 @@ struct FullEncoding {
+     bytes += s;
+   }
+ };
++std::string kinetic_policy_hash(const GapPicOptions &o) {
++  FullEncoding e;
++  e.bytes = "native-finite-target-kinetic-policy-v1";
++  e.bytes.push_back('\0');
++  for (double x :
++       {o.width_m, o.gap_m, o.short_z_m, o.feed_z_m, o.lower_foil.left_m,
++        o.lower_foil.right_m, o.lower_foil.bottom_m, o.lower_foil.top_m,
++        o.upper_foil.left_m, o.upper_foil.right_m, o.upper_foil.bottom_m,
++        o.upper_foil.top_m})
++    e.scalar(x);
++  return sha_bytes(e.bytes);
++}
++void segment_guard(const GapPicOptions &o, const PicVector &a,
++                   const PicVector &b) {
++  if (!o.finite_foils)
++    return;
++  for (const auto &f : {o.lower_foil, o.upper_foil}) {
++    double enter = 0, leave = 1;
++    bool possible = true;
++    for (int d = 0; d < 2; ++d) {
++      const double low = d ? f.bottom_m : f.left_m,
++                   high = d ? f.top_m : f.right_m, D = b[d] - a[d];
++      if (D == 0) {
++        if (a[d] < low || a[d] > high)
++          possible = false;
++        continue;
++      }
++      double l = (low - a[d]) / D, h = (high - a[d]) / D;
++      if (l > h)
++        std::swap(l, h);
++      enter = std::max(enter, l);
++      leave = std::min(leave, h);
++    }
++    require(!possible || enter > leave,
++            "closed motion path intersects native foil");
++  }
++}
+ std::string census_sha(const std::vector<ArenaRateEntry> &census) {
+   std::vector<const ArenaRateEntry *> rows;
+   for (const auto &r : census)
+@@ -289,6 +638,7 @@ struct PrivateTransportTrial::Impl {
+   std::shared_ptr<FullTrial> trial;
+ };
+ struct PreparedPrivateMotion::Impl {
++  ~Impl() noexcept { drain_json(audit); }
+   std::shared_ptr<FullTrial> trial;
+   FullFrame after;
+   ArenaJson audit;
+@@ -298,7 +648,8 @@ struct PreparedPrivateMotion::Impl {
+ class FullTimeAccess {
+ public:
+   static void live(const FullOuter &o) {
+-    require(!o.lifetime.expired() && o.owner && o.owner->full_time_boundary_ == o.boundary &&
++    require(!o.lifetime.expired() && o.owner &&
++                o.owner->full_time_boundary_ == o.boundary &&
+                 o.owner->accepted_ == o.before.snapshot &&
+                 PicArena::matches(*o.owner->pic_, o.before.native) && !o.sealed,
+             "stale full-time outer owner");
+@@ -334,6 +685,25 @@ public:
+                 e.phase.clock_prefix == phase.clock_prefix,
+             "foreign full-time collision phase");
+     auto &o = *s.outer;
++    require(s.outstanding_token.expired(),
++            "only one unconsumed private token may retain a particle frame");
++    require(e.primary != e.target && !e.products.empty() &&
++                e.products.size() <= 8,
++            "bounded distinct reactants/products before resource arithmetic");
++    const auto &primary = o.frame.snapshot->packets.at(e.primary);
++    const auto &target = o.frame.snapshot->packets.at(e.target);
++    auto pr = PicArena::debit(primary.count, e.event_weight),
++         tr = PicArena::debit(target.count, e.event_weight);
++    std::size_t n = o.frame.native.particles.size() -
++                    primary.native_ids.size() - target.native_ids.size();
++    auto add = [&](std::size_t amount) {
++      require(amount <= o.cap - n,
++              "outer reaction result carrier budget before allocation");
++      n += amount;
++    };
++    add(PicArena::positive_carriers(pr).size());
++    add(PicArena::positive_carriers(tr).size());
++    add(e.products.size());
+     auto built = o.owner->build_reaction(e, *o.frame.snapshot, o.frame.native,
+                                          prefix(o, o.frame), true);
+     require(!fault, "manufactured private reaction fault");
+@@ -348,6 +718,8 @@ public:
+     token->work = token->native_after;
+     token->audit = std::move(built.audit);
+     token->candidate_prefix = prefix(o, {token->after, token->native_after});
++    token->private_memory_lease = std::make_shared<int>(0);
++    s.outstanding_token = token->private_memory_lease;
+     return PreparedArena(std::move(token));
+   }
+   static ArenaPhase phase_for(const FullCollision &s) {
+@@ -375,28 +747,45 @@ public:
+     if (!publishable(s, t))
+       return false;
+     auto &o = *s.outer;
+-    const bool final = t.impl_->audit.at("kind") == "full_time_exposure";
+-    if (!s.building && !final)
+-      return false;
+-    if (s.building && final)
++    const bool final =
++        t.impl_->audit.at("kind").get_ref<const std::string &>() ==
++        "full_time_exposure";
++    if ((!s.building && !final) || (s.building && final))
+       return false;
+-    o.frame = {t.impl_->after, t.impl_->native_after};
+-    t.impl_->status = PreparedArena::Impl::Status::Published;
++    // All validation, hashing and allocation precede the first private swap.
++    std::optional<FullTimeExposureReceipt> receipt;
++    std::string completed;
+     if (final) {
+-      s.closed = true;
+-      s.completed_prefix=t.impl_->candidate_prefix;
+-      FullTimeExposureReceipt r{
++      receipt.emplace(FullTimeExposureReceipt{
+           s.exposure, completion_read(t.impl_->audit.at("completion")),
+           t.impl_->candidate_prefix,
+-          sha_bytes(t.impl_->audit.at("completion").dump()), s.key};
++          sha_bytes(t.impl_->audit.at("completion").dump()), s.key});
++      completed = t.impl_->candidate_prefix;
++    }
++    FullFrame prepared{t.impl_->after, t.impl_->native_after};
++    static_assert(std::is_nothrow_move_assignable_v<FullTimeExposureReceipt>);
++    swap_frame(o.frame, prepared);
++    t.impl_->status = PreparedArena::Impl::Status::Published;
++    if (final) {
++      s.closed = true;
++      s.completed_prefix.swap(completed);
+       if (s.exposure.slot == FullTimeSlot::before_transport) {
+-        o.first = std::move(r);
++        o.first = std::move(*receipt);
++        o.slot_reaction_budget = s.limit;
+         o.phase = 1;
+       } else {
+-        o.second = std::move(r);
++        o.second = std::move(*receipt);
+         o.phase = 3;
+       }
+     }
++    // Consumed private tokens retain audit/prefix only, never another
++    // population.
++    release_native(t.impl_->native_before);
++    release_native(t.impl_->native_after);
++    release_native(t.impl_->work);
++    t.impl_->before.reset();
++    t.impl_->after.reset();
++    t.impl_->private_memory_lease.reset();
+     return true;
+   }
+   static PreparedArena compound(
+@@ -404,25 +793,51 @@ public:
+       const std::function<ArenaStochasticCompletion(CollisionScope &)> &build,
+       CollisionScope &facade) {
+     live(s);
+-    require(!s.building && maximum > 0 && maximum <= 4096 && bool(build),
++    require(!s.building && !s.outer->builder_active && maximum > 0 &&
++                maximum <= 4096 && bool(build),
+             "private compound cap or reentry");
+     auto &o = *s.outer;
+-    require(maximum <= o.records &&
+-                o.frame.snapshot->journal.size() + maximum + 1 <=
+-                    maximum_journal_entries,
+-            "full-time compound history cap");
+-    const auto base = o.frame;
++    const std::size_t used =
++        o.frame.snapshot->journal.size() - o.before.snapshot->journal.size();
++    const bool first_slot = s.exposure.slot == FullTimeSlot::before_transport;
++    if (first_slot) {
++      require(used <= o.records && o.records - used >= 4 &&
++                  maximum <= (o.records - used - 4) / 2,
++              "reserve both slot reaction budgets before callbacks");
++      require(o.frame.snapshot->journal.size() <= maximum_journal_entries - 4 &&
++                  maximum <= (maximum_journal_entries -
++                              o.frame.snapshot->journal.size() - 4) /
++                                 2,
++              "reserve both slot global history budgets before callbacks");
++    } else
++      require(maximum <= o.slot_reaction_budget && used <= o.records &&
++                  o.records - used >= 2 && maximum <= o.records - used - 2,
++              "second slot exceeds reserved reaction/history budget");
++    require(s.outstanding_token.expired() &&
++                s.generation <= std::numeric_limits<std::uint64_t>::max() - 2,
++            "private token/generation resource gate");
++    auto base = o.frame;
+     s.building = true;
++    o.builder_active = true;
++    o.owner->full_time_builder_active_ = true;
+     s.limit = maximum;
+     s.base_revision = base.snapshot->revision;
+     ++s.generation;
+     try {
+       auto c = build(facade);
++      live(o);
++      completion_chain_guard(
++          s.exposure, c, *o.boundary,
++          s.exposure.slot == FullTimeSlot::before_transport
++              ? std::nullopt
++              : std::optional<ArenaStochasticCompletion>(o.first.completion));
+       completion_validate(c, o.owner->channels_.at(c.channel_id),
+                           frame_completion(base, c.integration_owner_id),
+                           o.frame.native.ledger.time_s);
+       full_ssa(o.frame.snapshot->journal, base.snapshot->journal.size(), c,
+                s.exposure);
++      require(s.outstanding_token.expired(),
++              "unconsumed private event token at completion");
+       auto next = std::make_shared<ArenaSnapshot>(*o.frame.snapshot);
+       next->stochastic_completions[c.integration_owner_id] = completion_json(c);
+       ArenaJson a = {{"kind", "full_time_exposure"},
+@@ -445,13 +860,21 @@ public:
+       t->work = t->native_after;
+       t->audit = a;
+       t->candidate_prefix = prefix(o, {next, t->native_after});
+-      o.frame = base;
++      t->private_memory_lease = std::make_shared<int>(0);
++      swap_frame(o.frame, base);
+       s.building = false;
++      o.builder_active = false;
++      if (!o.lifetime.expired())
++        o.owner->full_time_builder_active_ = false;
+       ++s.generation;
++      s.outstanding_token = t->private_memory_lease;
+       return PreparedArena(std::move(t));
+     } catch (...) {
+-      o.frame = base;
++      swap_frame(o.frame, base);
+       s.building = false;
++      o.builder_active = false;
++      if (!o.lifetime.expired())
++        o.owner->full_time_builder_active_ = false;
+       ++s.generation;
+       throw;
+     }
+@@ -469,7 +892,7 @@ public:
+                 b.field_before_sha256 == o.common.accepted_field_sha256 &&
+                 digest(b.transport_trial_sha256) &&
+                 digest(b.field_after_sha256) && digest(b.heat_after_sha256) &&
+-                digest(b.source_after_sha256),
++                b.source_after_sha256 == o.boundary->source_sha256,
+             "motion common/owner seals");
+     require(
+         receipt.is_object() && receipt.size() == 10 &&
+@@ -492,7 +915,50 @@ public:
+     require(ownerseal == b.transport_trial_sha256 &&
+                 sha_bytes(enc.bytes) == ownerseal,
+             "motion genuine owner record seal");
++    require(audit.is_object() && audit.size() == 15 &&
++                audit.at("schema") ==
++                    "canonical-full-time-total-field-motion-v2",
++            "recognized Hall v2 record schema required");
+     const auto &bind = audit.at("binding");
++    require(bind.is_object() && bind.size() == 14, "Hall v2 binding schema");
++    (void)json_u64(bind.at("accepted_step"));
++    (void)json_u64(bind.at("staged_arena_revision"));
++    (void)json_u64(bind.at("trial_stage"));
++    for (const auto *key : {"begin_s", "end_s", "dt_s"})
++      (void)json_scalar(bind.at(key));
++    require(digest(json_text(bind.at("species_sha256"))) &&
++                bind.at("kinetic_policy_sha256") ==
++                    kinetic_policy_hash(t->base.native.options),
++            "Hall native species/census and kinetic-policy identity");
++    const auto &opt = t->base.native.options;
++    require(opt.finite_foils && opt.finite_axial_extent,
++            "Hall v2 finite kinetic geometry required");
++    const auto &policy = audit.at("kinetic_policy");
++    ArenaJson expected_policy = {
++        {"schema", "native-finite-target-kinetic-policy-v1"},
++        {"width_m", opt.width_m},
++        {"gap_m", opt.gap_m},
++        {"short_z_m", opt.short_z_m},
++        {"feed_z_m", opt.feed_z_m},
++        {"lower_foil",
++         {opt.lower_foil.left_m, opt.lower_foil.right_m,
++          opt.lower_foil.bottom_m, opt.lower_foil.top_m}},
++        {"upper_foil",
++         {opt.upper_foil.left_m, opt.upper_foil.right_m,
++          opt.upper_foil.bottom_m, opt.upper_foil.top_m}},
++        {"short_bridge", "lower foil x span and inner y gap only"},
++        {"xy_policy", "absorbing escape"},
++        {"feed_policy", "axial escape"},
++        {"tie_order", "x y lower upper axial; later exact tie wins"}};
++    require(policy.dump() == expected_policy.dump(),
++            "Hall complete native kinetic policy operands");
++    const PicVector shift = {-.5 * opt.width_m, -.5 * opt.gap_m, 0};
++    require(json_vector(audit.at("native_to_field_m")) == shift,
++            "Hall translation-only frame");
++    for (const auto *key : {"current_A_m_sha256", "initial_charge_C_sha256",
++                            "endpoint_charge_C_sha256"})
++      require(digest(json_text(audit.at(key))),
++              "Hall charge/current array identity");
+     require(
+         bind.at("phase") == "full_time_position_and_proper_velocity" &&
+             bind.at("accepted_step") == o.common.accepted_step &&
+@@ -511,8 +977,8 @@ public:
+                 audit.at("coverage") ==
+                     "all_native_carriers_no_sources_no_boundaries" &&
+                 audit.at("neutral_motion_owner") == "same_full_time_q0_drift" &&
+-                audit.at("native_Poisson_called") == false &&
+-                audit.at("native_DKD_called") == false,
++                !json_boolean(audit.at("native_Poisson_called")) &&
++                !json_boolean(audit.at("native_DKD_called")),
+             "motion coverage/census/mode");
+     require(endpoints.size() == t->base.native.particles.size() &&
+                 endpoints.size() <= o.cap &&
+@@ -529,8 +995,19 @@ public:
+                   p.weight == old.weight,
+               "motion altered native species/count");
+     }
++    require(audit.at("endpoints").is_array() && audit.at("paths").is_array() &&
++                audit.at("paths").size() == endpoints.size(),
++            "Hall complete endpoint/path census");
++    std::set<std::uint64_t> audited_ids, path_ids;
+     for (const auto &p : audit.at("endpoints")) {
+-      const auto &n = actual.at(p.at("native_id"));
++      require(p.is_object() && p.size() == 6, "Hall endpoint row schema");
++      const auto id = json_u64(p.at("native_id"));
++      require(audited_ids.insert(id).second, "duplicate Hall endpoint row");
++      const auto &n = actual.at(id);
++      (void)json_vector(p.at("position_m"));
++      (void)json_vector(p.at("proper_velocity_m_s"));
++      for (const auto *k : {"charge_C", "mass_kg", "weight"})
++        (void)json_scalar(p.at(k));
+       require(p.at("position_m") == ArenaJson(n.position_m) &&
+                   p.at("proper_velocity_m_s") ==
+                       ArenaJson(n.proper_velocity_m_s) &&
+@@ -538,11 +1015,52 @@ public:
+                   p.at("mass_kg") == n.mass_kg && p.at("weight") == n.weight,
+               "motion endpoint disagrees with sealed owner");
+     }
+-    for (const auto &[key, value] : audit.at("budget").items()) {
+-      (void)key;
+-      require(value.is_number() && std::isfinite(value.get<double>()),
+-              "nonfinite motion work/current budget");
++    for (const auto &path : audit.at("paths")) {
++      require(path.is_object() && path.size() == 5 &&
++                  path.at("motion_owner") == "ordinary_total_field",
++              "Hall path row schema/owner");
++      const auto id = json_u64(path.at("native_id"));
++      require(path_ids.insert(id).second, "duplicate Hall path native ID");
++      const auto &old = previous.at(id);
++      const auto &endpoint = actual.at(id);
++      const auto start = json_vector(path.at("field_start_m")),
++                 D = json_vector(path.at("field_displacement_m"));
++      require(json_scalar(path.at("flight_s")) == o.common.dt_s,
++              "Hall complete common flight");
++      for (int d = 0; d < 3; ++d)
++        require(start[d] == old.position_m[d] + shift[d] &&
++                    D[d] == (endpoint.position_m[d] + shift[d]) - start[d],
++                "Hall canonical path start/endpoint operands");
++      segment_guard(opt, old.position_m, endpoint.position_m);
+     }
++    require(audited_ids.size() == actual.size() && path_ids == audited_ids,
++            "Hall endpoint/path ID bijection");
++    const auto &budget = audit.at("budget");
++    require(budget.is_object() && budget.size() == 7,
++            "Hall complete budget schema");
++    for (const auto *key :
++         {"kinetic_change_J", "field_work_J", "work_defect_J", "continuity_C",
++          "plasma_dt", "maximum_gyro", "maximum_displacement_cells"})
++      (void)json_scalar(budget.at(key));
++    long double kinetic_change = 0;
++    for (const auto &[id, old] : previous)
++      kinetic_change +=
++          static_cast<long double>(old.weight) *
++          (pic_kinetic_energy_J(actual.at(id)) - pic_kinetic_energy_J(old));
++    const double K = json_scalar(budget.at("kinetic_change_J")),
++                 W = json_scalar(budget.at("field_work_J")),
++                 defect = json_scalar(budget.at("work_defect_J"));
++    require(K == double(kinetic_change) && defect == K - W &&
++                std::abs(defect) <= 1e-20 + 1e-10 * (std::abs(K) + std::abs(W)),
++            "Hall retained exact kinetic/work defect and unchanged guard");
++    require(json_scalar(budget.at("continuity_C")) >= 0 &&
++                json_scalar(budget.at("plasma_dt")) >= 0 &&
++                json_scalar(budget.at("plasma_dt")) <= .1 &&
++                json_scalar(budget.at("maximum_gyro")) >= 0 &&
++                json_scalar(budget.at("maximum_gyro")) <= .05 &&
++                json_scalar(budget.at("maximum_displacement_cells")) >= 0 &&
++                json_scalar(budget.at("maximum_displacement_cells")) <= .2,
++            "Hall retained phase/plasma/gyro/displacement guards");
+     auto result = std::make_unique<PreparedPrivateMotion::Impl>();
+     result->trial = t;
+     result->binding = b;
+@@ -569,6 +1087,17 @@ public:
+     return result;
+   }
+ };
++FullTimeMotionAdmission::~FullTimeMotionAdmission() noexcept {
++  drain_json(record_);
++}
++FullTimeMotionAdmission &
++FullTimeMotionAdmission::operator=(FullTimeMotionAdmission &&other) noexcept {
++  if (this != &other) {
++    drain_json(record_);
++    record_.swap(other.record_);
++  }
++  return *this;
++}
+ CollisionScope::CollisionScope(std::unique_ptr<Impl> p) : impl_(std::move(p)) {}
+ CollisionScope::CollisionScope(CollisionScope &&) noexcept = default;
+ CollisionScope &CollisionScope::operator=(CollisionScope &&) noexcept = default;
+@@ -609,7 +1138,8 @@ CollisionScope::stochastic_completion(const std::string &id) const {
+   return frame_completion(impl_->scope->outer->frame, id);
+ }
+ std::string CollisionScope::state_prefix() const {
+-  if(impl_->scope->closed) return impl_->scope->completed_prefix;
++  if (impl_->scope->closed)
++    return impl_->scope->completed_prefix;
+   FullTimeAccess::live(*impl_->scope);
+   return FullTimeAccess::prefix(*impl_->scope->outer,
+                                 impl_->scope->outer->frame);
+@@ -620,9 +1150,12 @@ PreparedArena CollisionScope::prepare(const ArenaEvent &e, int fault) {
+ PreparedArena CollisionScope::prepare_compound_with_completion(
+     std::size_t cap,
+     const std::function<ArenaStochasticCompletion(CollisionScope &)> &f) {
+-  return FullTimeAccess::compound(*impl_->scope, cap, f, *this);
++  auto scope = impl_->scope;
++  return FullTimeAccess::compound(*scope, cap, f, *this);
+ }
+ bool CollisionScope::can_publish(const PreparedArena &t) const noexcept {
++  if (!impl_ || !impl_->scope)
++    return false;
+   try {
+     return FullTimeAccess::publishable(*impl_->scope, t);
+   } catch (...) {
+@@ -630,6 +1163,8 @@ bool CollisionScope::can_publish(const PreparedArena &t) const noexcept {
+   }
+ }
+ bool CollisionScope::try_publish(PreparedArena &t) noexcept {
++  if (!impl_ || !impl_->scope)
++    return false;
+   try {
+     return FullTimeAccess::publish(*impl_->scope, t);
+   } catch (...) {
+@@ -674,10 +1209,44 @@ std::string PrivateTransportTrial::state_prefix() const {
+   return impl_->trial->prefix;
+ }
+ PreparedPrivateMotion PrivateTransportTrial::prepare_total_field_motion(
+-    const FullTimeMotionBinding &b, const std::vector<GapParticle> &endpoints,
+-    const ArenaJson &r, const ArenaJson &s, const ArenaJson &k) {
++    const FullTimeMotionBinding &b, FullTimeMotionAdmission admission) {
++  FullTimeAccess::live(*impl_->trial->outer);
++  const auto &record = admission.record_;
++  require(record.is_object() && record.contains("endpoints") &&
++              record.at("endpoints").is_array() &&
++              record.at("endpoints").size() <= impl_->trial->outer->cap,
++          "bounded typed Hall receipt before copying");
++  std::vector<GapParticle> endpoints;
++  endpoints.reserve(record.at("endpoints").size());
++  for (const auto &row : record.at("endpoints")) {
++    GapParticle p;
++    p.id = json_u64(row.at("native_id"));
++    p.position_m = json_vector(row.at("position_m"));
++    p.proper_velocity_m_s = json_vector(row.at("proper_velocity_m_s"));
++    p.charge_C = json_scalar(row.at("charge_C"));
++    p.mass_kg = json_scalar(row.at("mass_kg"));
++    p.weight = json_scalar(row.at("weight"));
++    endpoints.push_back(p);
++  }
++  ArenaJson envelope = {{"schema", "arena_total_field_motion_receipt_v1"},
++                        {"transport_trial_sha256", b.transport_trial_sha256},
++                        {"common_clock_sha256", b.common.common_clock_sha256},
++                        {"mesh_sha256", b.common.mesh_sha256},
++                        {"field_before_sha256", b.field_before_sha256},
++                        {"field_after_sha256", b.field_after_sha256},
++                        {"begin_s", b.common.begin_s},
++                        {"end_s", b.common.end_s},
++                        {"dt_s", b.common.dt_s},
++                        {"owner_audit", std::move(admission.record_)}};
+   return PreparedPrivateMotion(
+-      FullTimeAccess::motion(impl_->trial, b, endpoints, r, s, k));
++      FullTimeAccess::motion(impl_->trial, b, endpoints, envelope,
++                             ArenaJson::array(), ArenaJson::array()));
++}
++PreparedPrivateMotion PrivateTransportTrial::prepare_total_field_motion(
++    const FullTimeMotionBinding &, const std::vector<GapParticle> &,
++    const ArenaJson &, const ArenaJson &, const ArenaJson &) {
++  throw std::invalid_argument("live JSON motion admission forbidden; use "
++                              "genuine typed Hall MotionReceipt adapter");
+ }
+ PrivateFullTimeStep::PrivateFullTimeStep(std::unique_ptr<Impl> p)
+     : impl_(std::move(p)) {}
+@@ -689,7 +1258,8 @@ PrivateFullTimeStep::~PrivateFullTimeStep() = default;
+ CollisionScope PrivateFullTimeStep::first_exposure(const ExposureBinding &e) {
+   auto o = impl_->outer;
+   FullTimeAccess::live(*o);
+-  require(o->phase == 0, "first exposure ordering");
++  require(o->phase == 0 && !o->first_reserved && !o->builder_active,
++          "first exposure already reserved or reentered");
+   exposure_guard(e, o->common, FullTimeSlot::before_transport,
+                  o->common.accepted_field_sha256);
+   auto s = std::make_shared<FullCollision>();
+@@ -697,17 +1267,20 @@ CollisionScope PrivateFullTimeStep::first_exposure(const ExposureBinding &e) {
+   s->exposure = e;
+   auto p = std::make_unique<CollisionScope::Impl>();
+   p->scope = std::move(s);
++  o->first_reserved = true;
+   return CollisionScope(std::move(p));
+ }
+ PrivateTransportTrial PrivateFullTimeStep::fork_transport_trial() {
+   auto o = impl_->outer;
+   FullTimeAccess::live(*o);
+-  require(o->phase == 1, "transport requires completed first exposure");
++  require(o->phase == 1 && !o->builder_active && o->transport_forks < 4,
++          "transport requires completed first exposure and bounded forks");
+   auto p = std::make_unique<PrivateTransportTrial::Impl>();
+   p->trial = std::make_shared<FullTrial>();
+   p->trial->outer = o;
+   p->trial->base = o->frame;
+   p->trial->prefix = FullTimeAccess::prefix(*o, o->frame);
++  ++o->transport_forks;
+   return PrivateTransportTrial(std::move(p));
+ }
+ void PrivateFullTimeStep::accept_transport_trial(PreparedPrivateMotion &&t) {
+@@ -721,7 +1294,8 @@ void PrivateFullTimeStep::accept_transport_trial(PreparedPrivateMotion &&t) {
+                   o.before.snapshot->journal.size() <=
+               o.records,
+           "outer motion record cap");
+-  o.frame = std::move(t.impl_->after);
++  swap_frame(o.frame, t.impl_->after);
++  o.motion_sha.swap(t.impl_->binding.transport_trial_sha256);
+   o.phase = 2;
+   t.impl_->consumed = true;
+   t.impl_->trial->consumed = true;
+@@ -729,7 +1303,8 @@ void PrivateFullTimeStep::accept_transport_trial(PreparedPrivateMotion &&t) {
+ CollisionScope PrivateFullTimeStep::second_exposure(const ExposureBinding &e) {
+   auto o = impl_->outer;
+   FullTimeAccess::live(*o);
+-  require(o->phase == 2, "second exposure requires accepted private motion");
++  require(o->phase == 2 && !o->second_reserved && !o->builder_active,
++          "second exposure already reserved or reentered");
+   exposure_guard(e, o->common, FullTimeSlot::after_transport,
+                  o->frame.snapshot->full_time_context.at("field_sha256"));
+   auto s = std::make_shared<FullCollision>();
+@@ -737,13 +1312,18 @@ CollisionScope PrivateFullTimeStep::second_exposure(const ExposureBinding &e) {
+   s->exposure = e;
+   auto p = std::make_unique<CollisionScope::Impl>();
+   p->scope = std::move(s);
++  o->second_reserved = true;
+   return CollisionScope(std::move(p));
+ }
+ PreparedArena PrivateFullTimeStep::seal(const FullTimeCommitSeals &seals) {
+   auto &o = *impl_->outer;
+   FullTimeAccess::live(o);
+-  require(o.phase == 3, "outer seal needs both exact collision exposures");
++  require(o.phase == 3 && !o.builder_active,
++          "outer seal needs both exact collision exposures");
+   auto &owner = *o.owner;
++  final_rng_guard(seals, o.second.completion);
++  require(digest(o.motion_sha),
++          "outer candidate lacks genuine consumed motion identity");
+   require(seals.field_sha256 ==
+                   o.frame.snapshot->full_time_context.at("field_sha256")
+                       .get<std::string>() &&
+@@ -753,7 +1333,7 @@ PreparedArena PrivateFullTimeStep::seal(const FullTimeCommitSeals &seals) {
+               seals.source_sha256 ==
+                   o.frame.snapshot->full_time_context.at("source_sha256")
+                       .get<std::string>() &&
+-              digest(seals.rng_sha256),
++              seals.rng_sha256 == o.second.completion.after_rng_clock_sha256,
+           "outer final field/heat/source/RNG seals");
+   auto boundary = std::make_shared<FullTimeAcceptedBoundary>(*o.boundary);
+   require(boundary->accepted_step < std::numeric_limits<std::uint64_t>::max(),
+@@ -776,6 +1356,7 @@ PreparedArena PrivateFullTimeStep::seal(const FullTimeCommitSeals &seals) {
+       {"kind", "full_time_boundary"},
+       {"common", common_json(o.common)},
+       {"outer_step_sha256", o.outer_sha},
++      {"transport_trial_sha256", o.motion_sha},
+       {"first_completed_state_prefix", o.first.completed_state_prefix},
+       {"second_completed_state_prefix", o.second.completed_state_prefix},
+       {"boundary", boundary_json(*boundary, false)}};
+@@ -792,11 +1373,13 @@ PreparedArena PrivateFullTimeStep::seal(const FullTimeCommitSeals &seals) {
+   t->audit = audit;
+   t->boundary_before = o.boundary;
+   t->boundary_after = boundary;
++  t->full_outer_identity = impl_->outer;
+   t->candidate_prefix = FullTimeAccess::prefix(o, {next, t->native_after});
+   boundary->accepted_arena_sha256 = t->candidate_prefix;
+   auto exposures = std::make_shared<FullTimeCandidateExposures>();
+   exposures->common = o.common;
+   exposures->outer_step_sha256 = o.outer_sha;
++  exposures->transport_trial_sha256 = o.motion_sha;
+   exposures->first = o.first;
+   exposures->second = o.second;
+   t->exposures = exposures;
+@@ -806,9 +1389,16 @@ PreparedArena PrivateFullTimeStep::seal(const FullTimeCommitSeals &seals) {
+ std::optional<ArenaStochasticCompletion>
+ PreparedArena::candidate_stochastic_completion(const std::string &owner) const {
+   require(bool(impl_), "empty prepared token");
++  require(bool(impl_->after),
++          "consumed private token retains audit/prefix only");
+   return frame_completion({impl_->after, impl_->native_after}, owner);
+ }
+ std::shared_ptr<const FullTimeAcceptedBoundary>
++PreparedArena::candidate_full_time_boundary() const {
++  require(bool(impl_), "empty prepared token");
++  return impl_->boundary_after;
++}
++std::shared_ptr<const FullTimeAcceptedBoundary>
+ PicArena::full_time_boundary() const {
+   require(bool(full_time_boundary_), "arena is not full-time total-field mode");
+   return full_time_boundary_;
+@@ -816,16 +1406,17 @@ PicArena::full_time_boundary() const {
+ PrivateFullTimeStep PicArena::begin_full_time_step(const FullTimeStepBinding &b,
+                                                    std::size_t carriers,
+                                                    std::size_t records) {
+-  require(full_time_boundary_ && !active_scope_,
++  require(full_time_boundary_ && !active_scope_ &&
++              active_full_time_outer_.expired(),
+           "full-time outer requires accepted full-time boundary");
+   common_guard(b, *full_time_boundary_);
+-  require(carriers > 0 && carriers <= maximum_native_carriers && records >= 5 &&
++  require(carriers > 0 && carriers <= maximum_native_carriers && records >= 7 &&
+               records <= maximum_journal_entries,
+           "outer bounded resources");
+   (void)rate_population(carriers);
+   auto o = std::make_shared<FullOuter>();
+   o->owner = this;
+-  o->lifetime=full_time_lifetime_;
++  o->lifetime = full_time_lifetime_;
+   o->common = b;
+   o->boundary = full_time_boundary_;
+   o->before = {accepted_, capture(*pic_)};
+@@ -847,6 +1438,7 @@ PrivateFullTimeStep PicArena::begin_full_time_step(const FullTimeStepBinding &b,
+   o->frame.snapshot = next;
+   auto p = std::make_unique<PrivateFullTimeStep::Impl>();
+   p->outer = o;
++  active_full_time_outer_ = o;
+   return PrivateFullTimeStep(std::move(p));
+ }
+ std::unique_ptr<PicArena>
+@@ -863,6 +1455,10 @@ PicArena::create_full_time(GapPicOptions options,
+                         &g.frame_sha256, &g.common_clock_sha256, &g.heat_sha256,
+                         &g.source_sha256, &g.rng_sha256})
+     require(digest(*s), "full-time genesis requires sealed owners/frame");
++  options_guard(options);
++  require(states.size() <= 256 && channels.size() <= 128 &&
++              packets.size() <= maximum_native_carriers,
++          "bounded full-time genesis catalog/population");
+   auto pic = std::make_unique<GapPic>(options);
+   std::map<std::string, ArenaStateSpec> registry;
+   for (const auto &s : states)
+@@ -901,6 +1497,9 @@ PicArena::create_full_time(GapPicOptions options,
+     pic->ledger_.authored_charge_C += p.weight * p.charge_C;
+     pic->ledger_.authored_kinetic_energy_J +=
+         p.weight * pic_kinetic_energy_J(p);
++    require(std::isfinite(pic->ledger_.authored_charge_C) &&
++                std::isfinite(pic->ledger_.authored_kinetic_energy_J),
++            "authored aggregate ledger overflow");
+   }
+   pic->fields_current_ = false;
+   pic->horizontal_transfers_.clear();
+@@ -956,7 +1555,7 @@ ArenaEvent replay_full_event(const ArenaJson &a, CollisionScope &scope) {
+   e.primary = a.at("primary");
+   e.target = a.at("target");
+   e.untouched_primary_id = a.at("untouched_primary_id");
+-  e.event_weight = a.at("event_weight");
++  e.event_weight = json_scalar(a.at("event_weight"));
+   e.phase = scope.phase();
+   require(a.at("phase") == "full_time_endpoint" &&
+               a.at("state_prefix") == e.phase.state_prefix &&
+@@ -980,12 +1579,12 @@ ArenaEvent replay_full_event(const ArenaJson &a, CollisionScope &scope) {
+   e.provenance.model = a.at("conditional_model");
+   e.provenance.selection_method = a.at("selection_method");
+   e.provenance.selection_state_prefix = a.at("selection_state_prefix");
+-  e.provenance.collision_elapsed_s = a.at("collision_elapsed_s");
++  e.provenance.collision_elapsed_s = json_scalar(a.at("collision_elapsed_s"));
+   for (const auto &p : a.at("products")) {
+     ArenaProduct product;
+     product.id = p.at("id");
+     product.state = p.at("state");
+-    product.proper_velocity_m_s = p.at("u").get<PicVector>();
++    product.proper_velocity_m_s = json_vector(p.at("u"));
+     const auto at = p.at("location").get<std::string>();
+     require(at == "primary" || at == "target",
+             "full-time replay product location");
+@@ -1001,7 +1600,7 @@ FullTimeGenesisBinding read_full_genesis(const ArenaJson &j) {
+   require(j.size() == 11 && j.at("schema") == "authored-full-time-genesis-v1",
+           "full-time genesis schema");
+   FullTimeGenesisBinding g;
+-  g.time_s = j.at("time_s");
++  g.time_s = json_scalar(j.at("time_s"));
+   g.origin_provenance = j.at("origin_provenance");
+   g.field_sha256 = j.at("field_sha256");
+   g.mesh_sha256 = j.at("mesh_sha256");
+@@ -1021,23 +1620,22 @@ void PicArena::save_full_time(const std::string &path) const {
+           "only accepted complete full-time boundary may be saved");
+   validate_population(*accepted_);
+   validate_full_time_history();
+-  ArenaJson body = {
+-      {"schema", "canonical_native_arena_full_time_exact_v1"},
+-      {"source_sha256", source_identity()},
+-      {"registry", registry()},
+-      {"registry_sha256", registry_sha_},
+-      {"initial_coupling_prefix", initial_prefix_},
+-      {"options_bytes_hex",
+-       hex_bytes(std::string(reinterpret_cast<const char *>(&pic_->options_),
+-                             sizeof(GapPicOptions)))},
+-      {"ABI", {80, 168, 200, sizeof(GapPic)}},
+-      {"genesis", metadata(*genesis_)},
+-      {"genesis_native", native_rows_json(genesis_native_)},
+-      {"genesis_next_id", genesis_next_id_},
+-      {"metadata", metadata(*accepted_)},
+-      {"native", native_rows_json(pic_->particles_)},
+-      {"next_id", pic_->next_particle_id_},
+-      {"boundary", boundary_json(*full_time_boundary_)}};
++  ArenaJson body = {{"schema", "canonical_native_arena_full_time_exact_v2"},
++                    {"source_sha256", source_identity()},
++                    {"registry", registry()},
++                    {"registry_sha256", registry_sha_},
++                    {"initial_coupling_prefix", initial_prefix_},
++                    {"options", options_json(pic_->options_)},
++                    {"ABI", {80, 168, 200, sizeof(GapPic)}},
++                    {"genesis", metadata(*genesis_)},
++                    {"genesis_native", native_rows_json(genesis_native_)},
++                    {"genesis_next_id", genesis_next_id_},
++                    {"metadata", metadata(*accepted_)},
++                    {"native", native_rows_json(pic_->particles_)},
++                    {"next_id", pic_->next_particle_id_},
++                    {"boundary", boundary_json(*full_time_boundary_)}};
++  require(body.dump().size() <= 64 * 1024 * 1024 - 1024,
++          "bounded full-time output checkpoint bytes");
+   atomic_json({{"payload", body}, {"sha256", sha_bytes(body.dump())}}, path);
+ }
+ std::unique_ptr<PicArena>
+@@ -1045,26 +1643,18 @@ PicArena::restore_full_time(const std::string &path, GapPicOptions options,
+                             std::vector<ArenaStateSpec> states,
+                             std::vector<ArenaChannel> channels,
+                             const FullTimeAcceptedBoundary &expected) {
+-  require(std::filesystem::file_size(path) <= 64 * 1024 * 1024,
+-          "bounded full-time restart size");
+-  std::ifstream in(path);
+-  ArenaJson doc;
+-  in >> doc;
+-  require(bool(in) && doc.size() == 2, "full-time restart envelope");
+-  in >> std::ws;
+-  require(in.eof(), "trailing full-time restart bytes");
++  const auto doc = read_full_json(path);
++  require(doc.is_object() && doc.size() == 2, "full-time restart envelope");
+   const auto &b = doc.at("payload");
+   require(b.size() == 14 &&
+-              b.at("schema") == "canonical_native_arena_full_time_exact_v1" &&
++              b.at("schema") == "canonical_native_arena_full_time_exact_v2" &&
+               b.at("source_sha256") == source_identity() &&
+               doc.at("sha256") == sha_bytes(b.dump()),
+           "full-time restart identity/integrity");
+   require(b.at("ABI") == ArenaJson::array({80, 168, 200, sizeof(GapPic)}),
+           "full-time restart ABI");
+-  const auto raw = unhex(b.at("options_bytes_hex"));
+-  require(raw.size() == sizeof(options), "full-time restart options shape");
+-  GapPicOptions saved;
+-  std::memcpy(&saved, raw.data(), sizeof(saved));
++  const auto saved = read_options(b.at("options"));
++  options_guard(options);
+   require(options_equal(saved, options),
+           "full-time restart kinetic geometry/options");
+   require(boundary_json(read_boundary(b.at("boundary"))) ==
+@@ -1095,16 +1685,16 @@ PicArena::restore_full_time(const std::string &path, GapPicOptions options,
+   auto owner = create_full_time(options, std::move(states), std::move(channels),
+                                 std::move(authored), g);
+   require(
+-      owner->registry() == b.at("registry") &&
++      owner->registry().dump() == b.at("registry").dump() &&
+           owner->registry_sha_ == b.at("registry_sha256").get<std::string>() &&
+           owner->initial_prefix_ ==
+               b.at("initial_coupling_prefix").get<std::string>() &&
+           metadata(*owner->genesis_) == b.at("genesis") &&
+           native_rows_json(owner->genesis_native_) == b.at("genesis_native") &&
+-          owner->genesis_next_id_ == b.at("genesis_next_id"),
++          owner->genesis_next_id_ == json_u64(b.at("genesis_next_id")),
+       "full-time restart immutable genesis/catalog");
+   const auto final = read_metadata(b.at("metadata"));
+-  journal_validate(final, owner->genesis_->chain);
++  full_journal_validate(final, *owner->genesis_, owner->channels_);
+   std::size_t i = 0;
+   auto payload = [&](std::size_t k) -> const ArenaJson & {
+     require(k < final.journal.size(), "incomplete full-time step journal");
+@@ -1126,6 +1716,18 @@ PicArena::restore_full_time(const std::string &path, GapPicOptions options,
+                                       common_json(common).dump())}}),
+             "full-time restart outer identity");
+     ++i;
++    std::size_t replay_limit = 1, batch = 0;
++    for (std::size_t look = i; look < final.journal.size(); ++look) {
++      const auto k = payload(look).at("kind").get<std::string>();
++      if (k == "full_time_boundary")
++        break;
++      if (k == "reaction")
++        ++batch;
++      else if (k == "full_time_exposure") {
++        replay_limit = std::max(replay_limit, batch);
++        batch = 0;
++      }
++    }
+     auto replay_exposure = [&](FullTimeSlot slot) {
+       std::size_t end = i;
+       while (end < final.journal.size() &&
+@@ -1139,7 +1741,7 @@ PicArena::restore_full_time(const std::string &path, GapPicOptions options,
+                        ? outer.first_exposure(e)
+                        : outer.second_exposure(e);
+       auto t = scope.prepare_compound_with_completion(
+-          std::max<std::size_t>(1, end - i), [&](CollisionScope &s) {
++          replay_limit, [&](CollisionScope &s) {
+             for (; i < end; ++i) {
+               auto ev = replay_full_event(payload(i), s);
+               auto event = s.prepare(ev);
+@@ -1169,8 +1771,9 @@ PicArena::restore_full_time(const std::string &path, GapPicOptions options,
+     mb.field_after_sha256 = motion.at("field_after_sha256");
+     mb.heat_after_sha256 = motion.at("heat_after_sha256");
+     mb.source_after_sha256 = motion.at("source_after_sha256");
+-    auto moved = trial.prepare_total_field_motion(
+-        mb, native_rows_read(motion.at("endpoints")), wrapper);
++    auto moved = PreparedPrivateMotion(FullTimeAccess::motion(
++        trial.impl_->trial, mb, native_rows_read(motion.at("endpoints")),
++        wrapper, ArenaJson::array(), ArenaJson::array()));
+     require(moved.audit() == clean_payload(motion),
+             "full-time replay motion receipt");
+     outer.accept_transport_trial(std::move(moved));
+@@ -1191,7 +1794,7 @@ PicArena::restore_full_time(const std::string &path, GapPicOptions options,
+   }
+   require(metadata(*owner->accepted_) == b.at("metadata") &&
+               native_rows_json(owner->pic_->particles_) == b.at("native") &&
+-              owner->pic_->next_particle_id_ == b.at("next_id") &&
++              owner->pic_->next_particle_id_ == json_u64(b.at("next_id")) &&
+               boundary_json(*owner->full_time_boundary_) == b.at("boundary") &&
+               boundary_json(*owner->full_time_boundary_) ==
+                   boundary_json(expected),
+@@ -1203,7 +1806,7 @@ void PicArena::validate_full_time_history() const {
+               genesis_->journal.empty() && genesis_->revision == 0 &&
+               genesis_->accepted_steps == 0 && genesis_->previous_dt_s == 0,
+           "full-time immutable genesis");
+-  journal_validate(*accepted_, genesis_->chain);
++  full_journal_validate(*accepted_, *genesis_, channels_);
+   validate_rows(*genesis_, genesis_native_, states_);
+   validate_population(*accepted_);
+   require(full_time_boundary_->accepted_step == accepted_->accepted_steps &&
+diff --git a/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/src/mfem_pic_hall_motion_adapter.cpp b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/src/mfem_pic_hall_motion_adapter.cpp
+new file mode 100644
+index 0000000..daaddc0
+--- /dev/null
++++ b/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate003/source/src/mfem_pic_hall_motion_adapter.cpp
+@@ -0,0 +1,12 @@
++#include "raikou/mfem_pic_full_time.h"
++// This separate adapter is linked only with the exact qualified Hall owner.
++// The core/legacy arena has no Hall runtime or field-solver dependency.
++namespace hall_driver {
++raikou::mfem_backend::ArenaJson motion_record(const MotionReceipt &);
++}
++namespace raikou::mfem_backend {
++FullTimeMotionAdmission
++bind_hall_total_field_motion(const hall_driver::MotionReceipt &receipt) {
++  return FullTimeMotionAdmission(hall_driver::motion_record(receipt));
++}
++} // namespace raikou::mfem_backend
