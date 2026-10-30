@@ -1,0 +1,119 @@
+{
+  "schema": "ss304-source-conditioned-thermal-v2",
+  "status": "conditional_model_alternative_implemented_not_foilEOS_or_60ns_validation",
+  "preserved_v1_seal_sha256": "8fc064a3341519c8f6254f2f0e971bff6638a6d6160d69176fa00c5d1b1a17fc",
+  "native_header": "include/ss304_thermal_v2.hpp",
+  "modes": {
+    "evaluated_solid_1500": {
+      "id": 0,
+      "range_K": [
+        298.2,
+        1500
+      ]
+    },
+    "nominal_1800": {
+      "id": 1,
+      "range_K": [
+        298.2,
+        1800
+      ],
+      "values_300_to_1800": "identical_to_sealed_v1"
+    },
+    "source_conditioned_liquid_3000": {
+      "id": 2,
+      "range_K": [
+        298.2,
+        3000
+      ],
+      "vapor_range_K": [
+        1800,
+        3000
+      ],
+      "explicit_model_choices": [
+        "Kim304L_estimated_liquidCp",
+        "HoChu_1800K_normalized_Kim_k_shape",
+        "constant_anchored_Lorenz_liquid_sigma",
+        "congruent_neutral_monatomic_vapor",
+        "latent_and_pressure_at3000K_anchored_thermodynamic_model"
+      ]
+    }
+  },
+  "cold_extension": {
+    "source": "Mills2004 Table3a298.2K evaluated row; same analytic Cp/H fit; HoChu Table2 interpolated293K-300K",
+    "min_K": 298.2,
+    "energy_zero_K": 300,
+    "min_energy_J_kg": -866.0792373440698,
+    "negative_reference_energy_is_valid": true,
+    "no_initial_temperature_change": true
+  },
+  "liquid_above1800K": {
+    "cp_J_kg_K": 794.96,
+    "cp_source": "Kim1975 PDF12/printed3 0.190cal/g/K,thermochemicalcalorie4184J/kg",
+    "h": "h_v1(1800)+794.96*(T-1800)",
+    "k_Kim_absolute_W_m_K": "100*(0.1229+3.248e-5*T)",
+    "k_selected": "28.99*k_Kim(T)/k_Kim(1800)",
+    "k_normalization": 1.5984429103901547,
+    "normalization_is_model_choice_not_source_data": true,
+    "rho_e": "[28.99*1.517e-6/1800]*T/k_selected",
+    "sigma": "1/rho_e",
+    "above3000K": "unsupported; report excess trial energy and reject"
+  },
+  "vapor": {
+    "molar_mass_kg_mol": 0.0553096362,
+    "nominal_atom_fractions": {
+      "Fe": 0.713,
+      "Cr": 0.202,
+      "Ni": 0.085
+    },
+    "raw_Kim_pressure_Pa": "101325*10^(6.1210-18836/T)",
+    "latent_source_J_kg": 7405680,
+    "source_pressure_implied_latent_J_kg": 6519852.243682778,
+    "anchor_K": 3000,
+    "latent_anchor_temperature_is_assumed": true,
+    "Cp_g": "2.5*Ru/M",
+    "deltaCp": "Cp_g-794.96",
+    "L": "7405680+deltaCp*(T-3000)",
+    "ln_P_ratio": "deltaCp/R*ln(T/3000)-(L(T)/T-7405680/3000)/R",
+    "h_g": "h_l(3000)+7405680+Cp_g*(T-3000)",
+    "u_g": "h_g-R*T",
+    "u0_atom": "h_g-Cp_g*T; constant",
+    "mass_flux": "alpha*(P_model-Pback)/sqrt(2*pi*R*T); same surface/background T",
+    "alpha_and_back_pressure_required": true,
+    "gas_k": "75*kB/(64*d^2)*sqrt(kB*T/(pi*m_atom)); positive d required,strictly neutral only",
+    "collision_diameter_default": null,
+    "gas_electrical_conductivity": "not supplied; actual plasma owner; never inherit liquid sigma"
+  },
+  "ownership": {
+    "canonical_metal_mass_energy": "heat owner; separate from adsorbedH2O inventory",
+    "proposal_only": "massflux; no automatic mass debit or RNG",
+    "actual_packets": "gas owner caller-owned sampling; signed mass and actual total kineticJ",
+    "packet_energy": "dm*u0_atom+K_actual; no second mean2RT/latent debit",
+    "mass_next": "m-dm",
+    "energy_next": "E+Q_other-E_packet",
+    "temperature_next": "inverse(E_next/m_next)",
+    "revision": "pure prepare,expected revision and monotone eventID; parent commits all owners once",
+    "after_mass_loss_reference_energy": "(m_current/V_ref)*u_model",
+    "after_mass_loss_reference_capacity": "(m_current/V_ref)*C_apparent",
+    "effective_medium_transport": "not inferred from mass fraction; geometry/transport owner must supply it",
+    "removed_reference_volume": "dm/rho_ref; divide by actual area only for recession",
+    "complete_depletion": "empty-cell geometry handoff required; reject current trial without clipping",
+    "excitation_ionization_reference": "separate actual species/charge energy carried by gas owner under same zero"
+  },
+  "EOS_evidence": {
+    "sjostrom4273": "numeric grid and Tartarus electron free energy not acquired; manuscriptRef27 requestsSESAMEcontact; no contact sent",
+    "mattsson2004": "soft-sphere pressure fit+SESAME4272 requires source temperature parameter functions and thermodynamic integration; plots not ingested as EOS",
+    "alternative_scope": "dense incompressible condensed caloric proxy and dilute neutral congruent gas1800-3000K; no critical/WDM/plasma EOS"
+  },
+  "unchanged_guards": [
+    "productionT/frozen1",
+    "noGPU_or_new_dependencies",
+    "sealed1800K_release_hashes",
+    "independent_mechanical773.15K_support",
+    "no silently held endpoints or extrapolation above3000K"
+  ],
+  "calorie_conversion_convention": {
+    "selected_J_per_cal": 4.184,
+    "status": "explicit thermochemical convention; paper unqualified calorie definition not independently established",
+    "same_for_cp_and_latent": true
+  }
+}
