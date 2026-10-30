@@ -274,12 +274,34 @@ and sm_120 (to be shown, not assumed); runs using cuDSS internals compare across
   Pub/Sub-triggered stop of all VMs at 100%, per-VM `--max-run-duration`, power-off on job exit or failure, launcher wall-time cap, no
   standing GPU reservations, storage lifecycle rules; 1-2 h checkpointed runs with rank-independent atomic checkpoints.
 
+## 5c. GPU-resident step (target on any machine with a GPU)
+
+The "field solve not worth a GPU" conclusion above holds only while particles stay on the CPU. The particle work is the largest phase
+(field gather + Boris 42-55% of an electron-only step, 23-40 ms for ~29.5k particles) and the earlier GPU gather microfixture took
+~0.65 ms median for the same particle count (synthetic self-field; pic-profiling-resume.json). FP64 push cost (~100-200 operations per
+particle) is well under 1 ms for 1e5 particles even at a 1/64 FP64 rate; the work is bandwidth bound.
+
+- Device-resident: carriers (structure of arrays), midpoint E/B, the assembled scaled Hall edge operator (CSR), gather, Boris push,
+  path/first-hit tracking, current and charge deposit, and the field CG. Iterations of the exact-midpoint fixed point stay on device.
+- Host (coordinator): exact-count chemistry, source accounting and births, sealing, ledgers, preflight and publication. Per step only
+  digests and compact carrier records cross PCIe (~1-10 MB).
+- Determinism: deposits by sort on (edge/node, carrier ID) plus fixed-order segmented reduction, no atomics; CG with fixed-tree dot
+  products and row-per-thread SpMV; compile with `-fmad=false`, IEEE division and square root. The push uses only + - x / and sqrt, so
+  bitwise equality with the sealed CPU push (same double-word deposit arithmetic) is the acceptance test at every N and on every GPU
+  architecture (sm_86 / sm_89 / sm_120 selected at runtime).
+- Solver options: own deterministic Jacobi CG (default, bitwise reproducible); library solvers (AmgX, hypre-CUDA incl. AMS, PETSc,
+  Ginkgo, cuDSS FP32 preconditioner) allowed where run-to-run bit identity is not required, accepted through the field guard receipt.
+- The earlier GPU force candidate (pic-cuda-force-evolving-v3, NVRTC gather) is input material only: its two open review findings
+  (stream ordering, async error teardown) must be closed, and it hard-codes compute_86.
+- Placement in the gate order: after S1 (the CPU path is the reference). Expected effect: the push phase drops by more than an order of
+  magnitude, the coordinator floor (~12-15 ms after hashing and snapshot rework) dominates, and fewer CPU cores are needed.
+
 ## 6. Gate order
 
 1. S1: serial Stage 1 on the workstation.
 2. S1b: new Hall versions (binary hashing, solver backend interface, distributed motion assembler) and native v5 (anchors, births,
    sinks, binary prefix), byte-identical to S1 at N = 1.
 3. H2-H7.
-4. N-parity (1,2,3,4,5,8) with cpu-pcg, then gpu1 with repeat-solve determinism.
+4. GPU-resident step (5c) with bitwise parity to the CPU push, then N-parity (1,2,3,4,5,8) with cpu-pcg and the GPU path.
 5. Workstation pilot (no restart).
 6. Restart (A05/A11), cloud site admission, cloud runs.
