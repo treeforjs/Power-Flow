@@ -1,0 +1,51 @@
+Audit field reproducers against the corrected Hall owner — 2026-10-30
+
+The pre-integration audit's own field counterexamples were ported to the
+corrected Hall field owner (raikou branch hall-coupled-transport-20261029,
+commit 8dddec0, development/hall-field-correction-20261030) and run on CPU6 at
+nice 15 inside the frozen launcher, in normal and UBSan builds with identical
+observations. Every original audit number reproduced bit for bit on the old
+path, and the probe's starting field equals Model::dc_seed().
+
+A09 inconsistent initial charge/field (-e x 1e9 at (0.00021,-0.00017,0.001)):
+  old axial::Fields::prepare accepted it and preserved the 4.811e-11 C mismatch;
+  corrected Model::admit, Model::prepare and the Owner bootstrap from a one-row
+  census reject it (worst node defect 4.81e-11 C vs 2.01e-23 C allowance).
+  Ledgers that omit or invent the census charge are rejected; controls admit.
+A09 divB ~50 T/m (B face perturbation 0.01): old path accepted it; corrected
+  admit, prepare, bootstrap and resealed-checkpoint restore reject it
+  (allowance 1.41e-10 T/m; face perturbations down to 1e-13 T are rejected).
+A10 midpoint: on the audit fixture the high-word average differs from the
+  compensated midpoint on 9,758 E edges and 1,583 B faces. The authoritative
+  midpoint equals the compensated average on every component; Maxwell midpoint
+  E and Joule power use it bit for bit. prepare_closed_proposal ran for the
+  first time (empty census and e/p pairs at weights 1e9-1e12), converging in
+  2-4 iterations with Owner::preflight passing; particle motion is bound to the
+  midpoint hash and its field work uses midpoint E bit for bit.
+
+Gauss allowance: equals eps0 x max(1e-30, 2e-13 x ||b||_2) = 1.733e-23 C from
+the 2e-13 relative-L2 stopping rule already in foil::solve before the audit;
+the earlier component-002 "defect" equals -eps0 x solver residual at that node.
+It sits 99.6x above the largest observed legitimate defect and catches the A09
+counterexample by 2.8e12. It is loose (global tolerance applied per node) and
+specific to this seed solve.
+
+Still open:
+- Actual canonical charge: census rows here are built by the port; no native
+  arena or native003 producer has fed the Owner yet. Conductor and exterior
+  charge banks remain caller declarations.
+- Sources: the closed path has no source API; the native003 motion binder was
+  not executed.
+- In this fixture the particle side of A10 is closed by hash binding only;
+  replay with the high-word midpoint left current and endpoints unchanged.
+- Link gap: the closed proposal path needs pic_boris and pic_kinetic_energy_J
+  from native-v6.2 mfem_gap_pic.cpp, absent from the corrective runner's link
+  line (run-001/build-plain.log).
+- Minor: the 256-eps gross-charge term lets bootstrap/restore admit the A09
+  mismatch only with a co-located neutral pair of 1e22 particles (~1e31 m^-3,
+  unphysical); prepare_closed_proposal refuses it, bootstrap and restore have no
+  plasma guard.
+
+port-source/ holds the port translation unit and runner; run-002/ the receipt,
+commands, input hashes, logs and normal/UBSan observations. Workspace paths are
+written as /home/treefor/sim-workspace/powerflow.
