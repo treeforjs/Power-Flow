@@ -1,0 +1,314 @@
+Hall/EM/thermal and source-v3 audit before full integration
+
+Disposition: changes required before full integration testing. Three current
+admission defects are P1: mutable candidate fields/heat are not rebound at final
+preflight, initial absolute Gauss consistency is not established, and supplied
+fields with nonzero divB are admitted. A separate P1 gate keeps source/boundary
+population changes disabled. The midpoint-array discrepancy is P2 in observed
+size but must be resolved before claiming v3's exact common-field contract.
+
+The identity-envelope correction remains the separate published version
+c2f81ab87ddc295e7bdad808d33135fa781b3942. No reviewed implementation was edited.
+No native/SSA/source/field/heat common step or full coupled test ran. The only
+new execution used isolated field operators and eight single native-Boris
+kicks. It created no canonical arena, source population, IDs or accepted commit.
+
+Input authority and source references
+
+input-manifest.json freezes 347 files, including Hall c2f81ab, the verified
+29-file source-v3 seal, current native/parent draft interfaces and local thesis
+recovery metadata. Draft captures are not represented as released native APIs.
+All references below resolve inside this audit directory, preserving line
+numbers from the reviewed files:
+  H/ = inputs/hall-source/development/hall-canonical-driver-20261029/
+  F/ = inputs/hall-source/development/hall-finite-foil-em-20261029/
+  N/ = inputs/native-owner-draft/
+  P/ = inputs/parent-owner-draft/
+  V/ = inputs/source-v3-review/inputs/source-v3/
+  D/ = inputs/thesis-evidence/
+findings.json also gives exact absolute file paths and line spans. This is an
+independent source audit; root's reported mutable-field concern was confirmed
+from the actual call chain, not accepted as its proof.
+
+A01 [P1, current defect] Final preflight does not bind proposed field/heat data
+
+Evidence: H/axial_joint_v2.hpp:21-26 exposes field, field receipt, optional motion
+and ThermalTrial as mutable members. Lines 72-77 compare the accepted field,
+accepted thermal state and baseline census, then check thermal owner tickets.
+They never hash the candidate field or compare its midpoint with the motion
+seal. H/native_joint_binding.hpp:25-30 also exposes the aggregate and admission;
+its preflight at 57-59 delegates to that same incomplete check. In the actual
+root draft, P/closed_parent_joint_step.hpp:93-117 computes native field/heat
+seals once, while 122-139 later publishes the mutable aggregate without
+recomputing those seals. N/source/src/mfem_pic_full_time.inc:459-568 validates
+and records the supplied seals/endpoints; it does not own the live Hall field.
+
+A concrete source-level counterexample is a valid prepared trial followed by
+trial.field_heat->field.E[0] += 1. All tested preflight operands are unchanged;
+the modified vector is swapped into accepted state. Changing candidate B,
+low words, time or revision has the same gap. Coupler::Trial itself hides its
+candidate, but the public ThermalTrial.bodies vector can be replaced by another
+valid trial from the same accepted owner/epoch with different Joule input.
+That also passes owner preflight without matching the native heat-after seal.
+This counterexample was established by the code path; no common commit was run.
+
+Consequence: accepted arena seals and the actual published field/heat can
+disagree. A subsequent step may reject, after inconsistency has already been
+published. The envelope fix is correct and does not fix this separate defect.
+
+Fix: make the complete joint proposal opaque, move-only and externally const.
+At the final root barrier recompute candidate field, candidate heat, source and
+motion identities and compare them with the immutable native candidate seals,
+including authoritative clocks and actual midpoint arrays. Do not compare only
+with an editable copy of FullTimeMotionBinding. Publish those same validated
+objects with exclusive ownership and no callback/I/O/allocation between swaps.
+Negative mutation and valid-alternate-heat-token tests are required afterward.
+V3 Candidate is also public (V/trial_source_binding.hpp:73-81); its preflight is
+a field/thermal-identity check, not a seal of candidate content or count truth.
+The future common source proposal needs the same complete final binding.
+
+A02 [P1, current admission gap] Initial absolute Gauss law is not established
+
+Evidence: F/axial_fields.hpp:21-101 constructs DC E/B from conductivity and feed
+current, without authored particle charge. Fields::start at 131 returns it.
+H/axial_joint_v2.hpp:31-48 accepts the census but never compares its deposited
+charge with that field. F/axial_fields.hpp:176-181 checks only the field charge
+INCREMENT against currents assembled from that same Ampere update.
+F/axial_mesh.hpp:97 defines Qfield = -G^T M E. Motion independently verifies
+Qparticle_end-Qparticle_begin = dt G^T Jparticle, not initial Qfield=Qphysical.
+
+The isolated probe used the unmodified supported-start field. Its vacuum
+nodal charge was at most 1.74069e-25 C. A separately deposited manufactured
+-e*1e9 charge had an initial field/charge mismatch of 4.81134e-11 C. This was
+only a nodal diagnostic: no native particle or ID was authored or committed.
+The current initial-state API has no operand with which to reject that mismatch.
+Existing component seeds place equal electron/ion weights at the same positions
+(H/test_joint_v2.cpp:14-19), so they do not exercise nonzero initial space charge.
+
+Consequence: increment preservation can propagate an arbitrary initial Gauss
+defect. Hashing an authored field and population establishes identity, not
+physical consistency. This also applies to restored fields and population.
+
+Fix: root/Hall must admit an explicitly charge-compatible initial state using
+the same deposition and boundary/metal charge conventions. Require absolute
+Gauss residuals over vacuum plus accounted conductor/short/exterior charge,
+and check the actual proposed final native census after both chemistry stages.
+Do not silently add compensating background charge or a second Poisson field.
+If a constrained initial-field solve is selected, qualify it as an explicit
+initialization operation and retain all physical charge-owner operands.
+
+A03 [P1, current admission gap] Non-solenoidal supplied B is accepted
+
+Evidence: F/axial_mesh.hpp:96 provides magnetic_divergence, but
+F/axial_fields.hpp:132-197 validates dimensions/finiteness and increment/work
+budgets without an initial or candidate divB guard. The incidence tests verify
+D curl=0 (F/axial_benchmark.cpp:14-24). That preserves a preexisting divergence
+error; it does not make an invalid starting field valid. The current component
+loaders likewise do not perform a physical divB admission check.
+
+The field-only probe perturbed one interior B face by 0.01 T. Fields::prepare
+accepted divB=50.00000000000004 T/m and returned 50.00000000000005 T/m. Its Gauss
+increment was 4.98826e-27 C and energy defect -1.15805e-23 J, both admitted.
+The normal DC initial divergence was 1.10845e-12 T/m, consistent with the
+operator's floating-point cancellation scale, and is a different quantity.
+
+Fix: validate initial/restored and candidate divergence using the actual high
+and low B words, operator scaling and explicit roundoff bounds, and retain a
+runtime diagnostic. Preserve the compatible Faraday update. Do not repair an
+arbitrary accepted B behind its identity seal or hide its initial residual.
+
+A04 [P2, current exact-binding defect] Motion and Maxwell use different E midpoints
+
+Evidence: H/axial_joint_v2.hpp:44-58 uses .5*(accepted.E+candidate.E), comparing
+those high-word midpoint arrays exactly across iterates. In contrast,
+F/axial_fields.hpp:149-153 constructs receipt.mid_E as
+old.E + (old.E_low + .5*increment/sqrtM), and 166-171 uses that array for plasma
+work, Joule heat and circuit/boundary work. The two expressions are not bitwise
+equivalent, even when old low words are zero. High/low state is included in
+physical field energy, while most force/RHS operations use rounded high words.
+
+The isolated field probe found 9,354 differing edges out of 41,676; maximum
+difference was 1.45519e-11 V/m. It compared the actual Maxwell receipt with the
+joint port's exact expression; it did not execute a joint nonlinear step.
+This is small roundoff in the observed fixture, not evidence of a large energy
+error. Nonetheless the current test checks the motion seal against the same
+high-word expression (H/test_joint_v2.cpp:49-52), never against receipt.mid_E.
+Thus the claim of one identical actual rounded field for all work is too strong.
+
+Fix: expose and use one authoritative immutable midpoint E/B representation
+from the field proposal for motion, source sampling, deposition/work and heat.
+Define how retained low words enter that representation. Converge on those
+exact arrays, or explicitly qualify a separate conversion error if the design
+requires one; do not relabel nearby arrays or relax source work bounds.
+
+G01 [P1, full-source integration gate] Source and sink ownership is unfinished
+
+The current closed resident port correctly refuses active IDs and all hits
+(H/native_arena_motion.cpp:98,127-139); the native operation requires empty
+source/boundary arrays (N/source/src/mfem_pic_full_time.inc:464-467). This is a
+safe restriction, not missing removal concealed by an accepted closed step.
+It must remain in place until the source/count/RNG/ID/layer and sink owners exist.
+
+V/axial_trial_field.hpp:19-21 uses old axial::push for handoff end-tau, with the
+field-domain and old short intersection in F/axial_particles.hpp:46-56. It does
+not apply H/kinetic_boundary.cpp's independent native width/gap/short/feed
+policy. Widening field air or axial padding can therefore change the handoff
+escape location. The canonical ordinary port explicitly rejects any such
+kinetic hit. A source extension cannot reuse the padded-field handoff endpoint
+or postclip its position while retaining full-flight momentum/current/work.
+
+V3 source paths correctly retain relative displacement before global origin,
+already weighted charge/work and common-dt current, including quantum bridges.
+Their endpoint impulse contains the surface counterpart of an emitted charge.
+The canonical birth/removal and electrode/short/exterior charge bank must be
+staged once with that impulse. Collection deposits a path through the incident
+endpoint before removing the same ID; the endpoint charge and kinetic energy
+need one actual sink owner. Neither a rejected hit nor a staged endpoint is an
+accepted escaped/collected charge history. Neutral births also need their own
+physical birth-time remaining flight, not ordinary resident full-step motion.
+
+Root/native must also settle collision eligibility and durations for birth,
+Active, handoff and recollection. The current parent exposes all resident
+electron/H2O carriers for dt/2 at each endpoint. A source-v3 physical birth
+time alone does not qualify that schedule for newborns or image-layer electrons.
+
+H/axial_thermal_v2.hpp:45-53 creates no source patches. A new aggregate needs
+explicit body/slice/patch origins, normals, height/area partitions and controlled
+access to the same accepted Couplers. Prepare Joule plus certified Qwall once
+per owner, retaining reference/image/particle changes separately. Finite log
+expected count with scalar underflow must survive to the real count owner.
+No weight/floor/statistical/birth policy or IDs are supplied by this audit.
+
+The complete requested typed operands and the 13/15 native-dependency comparison
+are in inputs/source-v3-review/SOURCE-V3-INTEGRATION-REVIEW.txt. The two native
+support differences are observer/transaction plumbing; Boris and kinetic-energy
+functions match byte-for-byte, but API-v3.txt's exact header binding still needs
+an explicit owner update. Do not link its test support as a second native arena.
+
+A05 [P2, runtime provenance gap] Drive and boundary forcing are not common-state seals
+
+H/axial_thermal_v2.hpp:10-27 parses any well-formed 12-column trace with the
+expected labels and finite increasing knots. It enforces support but not the
+declared trace SHA256. H/axial_joint_v2.hpp:9-20 seals field state and the thermal
+material/state, not the C19 curve, interpolation/clock registration, initial
+DC scenario or boundary-force vectors. F/axial_fields.hpp:129 exposes Initial
+publicly; its feed/background_force are used on every prepare. The root draft
+checks field/heat/source/mesh/material but not that actual drive/operator setup.
+
+The reviewed C19 copy DOES match its source and declared hash:
+2c54d2dbaec6b6c8fcf2e45b5abd837aa72999f5fd14217f530277ffd5949076.
+This is a restart/runtime binding gap, not evidence that a different trace was
+used in the preserved component run. Fix by sealing the actual curve and its
+role, clock mapping, geometry/operator and boundary/initialization scenario in
+the common configuration, validating on restart, and making them immutable.
+Source-code identity alone cannot authenticate a separately read runtime CSV.
+
+G02 [P2, common-restart gate] Component replay is not a complete atomic checkpoint
+
+H/axial_thermal_v2.hpp:123-133 now loads all thermal slices into private owners
+and swaps only after their clocks/files validate. That is a useful atomic
+aggregate improvement. Its caller must still validate field/native/source/RNG
+identities before exposing any of those candidate owners. The test fixture
+H/test_thermal_v2.cpp:22-27 loads thermal state before checking the field/thermal
+clock match; a mismatch can throw after that local thermal owner has changed.
+Do not promote that fixture loader into the common restore path. The old v1
+F/axial_restart.hpp also predates the canonical native arena/source/RNG design.
+
+Native full-time storage and ParentSubflow checkpoint their own state and
+bindings. Neither supplies the missing root publication of all components.
+Fresh-process byte parity of 9 thermal-v2 fixture files is not crash consistency
+of a common step. Root needs private candidate construction for every owner,
+complete physical and identity checks, and one durable checkpoint publication
+protocol with failure tests. A rename alone is not a demonstrated power-loss
+durability guarantee. No crash-consistency experiment was run in this audit.
+
+Other audited behavior, limitations and evidence
+
+Discrete field constraints: the SI Yee incidence complex retains x/y/z
+derivatives; compatible gradient/curl adjoints and D curl identity are tested.
+Gauss increment plus charge-conserving particle paths are useful ongoing
+checks, but absolute total charge requires the initial and owner checks in A02.
+Native reactions preserve charge at the primary and target anchors or reject
+nonlocal transfer (N/source/src/mfem_pic_arena.cpp:881-926). Ionization products
+are not allowed to relocate charge without a compatible current path.
+
+Domains: EM uses a centered finite air box and axial padding (F/axial_mesh.hpp).
+Kinetics uses native (0..width,0..gap,short..feed) and an explicit translation
+(-width/2,-gap/2,0), with unrotated E/B/u (H/native_arena_motion.cpp:102).
+P/native_parent_subflow.hpp:35-91 builds a separate physical collision grid,
+excludes aligned solid cells, uses actual 3D vacuum volume and rejects cut foils
+or ambiguous material-surface locations. Its grid/configuration is bound into
+the parent RNG state identity at 155-163; it is not the EM air-box cell volume.
+Changing EM width must not enlarge kinetic or collision volume. Source global
+origins need the inverse translation once on native admission. Actual proposed
+boundary geometry still needs G01's owner port and qualification.
+
+C19 interpretation and thesis evidence: feed_shape is a normalized impressed
+upper-to-lower branch at z=+12.5 mm. Terminal voltage is -feed dot E, positive
+lower-minus-upper, and circuit work is I*V*dt. Conduction, plasma, displacement
+and outer terms respond to the field solve; no second gap voltage is prescribed.
+The negative-z PEC short has zero modeled heating; its initial return profile
+is a reflected feed quadrature, not a recovered experimental lead geometry.
+The outer admittance dissipates Y E_mid^2 while a static background_force
+supplies its separately reported work (F/axial_fields.hpp:94-100,160-171).
+Thus circuit input alone is not the entire external energy ledger.
+
+D/shot_17133_current.json identifies C.19 as recovered published average-current
+display vertices, not raw independent samples. Literal support is
+0.749788055492..196.74963671 ns. Trigger registration is unknown; digitization
+envelopes are not physical confidence bounds. The Hall start is a declared
+300 K DC state at the first supported knot, not recovered prepulse history.
+D/figure_4_28_simulation_drive.json and figure_4_29_simulation_drive.json are
+separate legacy Allegra raster drives at 40/60 ns, with unknown clock relation
+and original arrays. Figure 4.30 metadata flags unresolved legend units.
+Those comparisons cannot be silently aligned, renormalized or treated as
+validated heating inputs. This audit inspected frozen recovery metadata and
+checked the C19 CSV hash; it did not reparse or redigitize the thesis PDF.
+
+The Hall evidence covers early sub-ps operator fixtures, not those thesis
+histories. The earlier 9/17/25 mm box comparison leaves a 5.57% central-B change
+from 17 to 25 mm; the small uniform exterior is explicitly unconverged. The
+wide graded exterior, axial refinement, actual lead/short geometry and a
+registered observable comparison remain physical gates. There is no evidence
+here establishing experimental heating, breakdown or an axial instability.
+
+Thermal timing: conductivity is sampled once from accepted T_n
+(H/axial_joint_v2.hpp:41), held throughout the EM iteration, then the actual
+midpoint Joule cell power enters one v2 heat solve per body/slice. Height dz is
+used once; conduction edge and cell Joule quadratures agree. Accepted T_{n+1}
+changes the next step's conductivity. This is lagged electrothermal coupling,
+not generally second order with strong thermal feedback; the heat owner uses
+backward Euler. Tiny-heating EM refinement does not establish nonlinear thermal
+accuracy. Source-v3 explicitly holds accepted temperature while E/B is a
+trial midpoint; that is truthful staging, not midpoint thermal temperature.
+The evaluated-solid 298.2..1500 K, rho_ref=8000, fixed-volume Cp-as-Cv model,
+no axial thermal diffusion, no short heat, mechanics or vapor remain limits.
+
+Orbit/work/current: F/foil_particles.hpp:40-43 calls unchanged pic_boris for
+proper momentum. Its displacement is conjugate to the two electric half-kick
+energy increments; magnetic rotation does no kinetic work. It is a distinct
+full-time orbit map, not the old native D-K-D phase. Axial Path uses the same
+piecewise polynomial basis for gathering and qD/dt deposition, and endpoints
+for continuity. No extra Hall drift, rotated B or post-motion energy repair
+was found. Native-only momentum equality held in all eight isolated probes at
+proper-velocity scales 0, 0.1, 1 and 10 c, with electric and magnetic cases.
+Maximum observed single-particle work defect was 9.96e-30 J, within explicit
+operand roundoff; represented displacement speeds remained below c. This is
+not a new orbit/time/spatial convergence qualification or boundary test.
+Ordinary motion still admits its documented 1e-20 J absolute work floor;
+source-v3's stricter actual-operand checks cannot be replaced with that floor.
+The full-common dt, gyro<=0.05, displacement<=0.2 cell and plasma<=0.1 guards
+remain unchanged. Current is an edge load in A m, not a raw velocity moment.
+
+Common publication: parent staged scheduler/product RNGs and exact private
+exposure identities are checked against the native token
+(P/native_parent_subflow.hpp:440-485). Native motion checks the true provider
+record seal, exact census/endpoints/species/weights and closed coverage. These
+are positive identity safeguards. The root then publishes native, parent and
+field/heat with nonthrowing swaps, but A01 currently invalidates the assertion
+that every published object was covered by the prior common barrier.
+
+Next action is root's consolidation and explicit separately versioned remediation
+instructions. G01/G02 stay closed until their interfaces are real. Corrections
+will need focused negative/admission checks against new snapshots before a full
+coupled qualification. No full integration run was launched by this audit.

@@ -1,0 +1,118 @@
+Actionable integration boundary
+
+The attached source diff is a bounded integration candidate against Raikou
+commit a7e44f7e9c3f7bd7d653d7e5a31cf3d850ee8e7d. It adds an atomic AUTHORED batch
+operation and an optional diagnostic force observer, plus the executable tests.
+The 162 checks and original PIC foundation suite pass in the isolated checkout.
+No shared checkout, sealed candidate, production executable, process or cgroup
+was changed. Parent integration and deployment remain separate decisions.
+
+Patch 1: retain species/current/work observability before adding reactions.
+- Transfer the two small GapPic changes and the manufactured tests to the actual
+  selected integration base, resolving any newer gather/backend changes there.
+  Preserve the current Boris force law and numerical guards. Rebuild and repeat
+  the same CPU benchmark; do not copy an executable across source/ABI versions.
+- Replace the harness's mutable native() access with an application-owned species
+  interface. Store typed species/state IDs, immutable data IDs and event lineage
+  in the selected new restart schema. Keep electron/ion number and current
+  diagnostics separate even when their net charge cancels.
+- At the existing force gather, expose the already evaluated E_P, E_ind, E_corr
+  operands separately to an observer, without extra callback evaluations. The
+  current observer measures only their total. First qualify channel sums using
+  the Boris kick identity, then split self/bias with the SAME zero-bias operator.
+  Existing U_P includes 2D bias; it cannot be mixed with all imposed particle work
+  and called a closed global energy balance. Ground circuit and boundary ports.
+- Retain the same full-depth projection once. The diagnostic midplane slab is
+  not a second particle population or a reaction volume.
+
+Patch 2: build a compatible electromagnetic adapter in a manufactured domain.
+A direct replacement of Poisson by a generic curl solve is not yet qualified.
+The present GapPic exposes integrated x/y edge charge transfers but no compatible
+out-of-plane current deposition or field-energy-adjoint vector gather. It has no
+Maxwell field state, Gauss/divB-preserving evolution, electromagnetic boundary
+ports or particle-plus-field restart. These are the precise current blockers to
+using its plasma current for magnetic feedback.
+
+Start with a periodic 1D3V/2D3V domain and the cold mode in this benchmark. Retain
+rho and all signed components of J from the same paths. Use compatible curl/div
+operators and interpolation such that discrete field work is the negative of
+particle work, to the declared time-discretization error. Qualify the following
+before importing foil geometry:
+  1. Vacuum wave and both circular polarizations; mesh/time refinement.
+  2. Cold electron-ion Maxwell dispersion and energy/work exchange, including
+     the same current/Faraday feedback ablations.
+  3. A longitudinal perturbation plus transverse current: evolving Gauss law,
+     species continuity, divB and a nontrivial Jz test. The single transverse
+     mode supplied here has identically zero divJ and cannot establish this.
+  4. Particle rather than fluid current on that domain, preserving the existing
+     relativistic orbit limit and species-resolved energy/momentum diagnostics.
+  5. Open/conductor/circuit boundaries with signed Poynting, particle and voltage
+     supply ports and exact restart provenance. No duplicate background work.
+
+For the real mapping, choose and document the field dimensionality before
+implementation. With native B in the current Poisson plane, E cross B can point
+along the unresolved z direction. A drift-direction instability then needs
+self-field variation along z, either a true 3D field mesh or a justified rotated
+2D benchmark geometry. Supplying Bz normal to a new 2D periodic drift domain is a
+new common-limit problem, not a field replacement inside an old checkpoint.
+The existing native B/induction history remains an external driver until a joint
+field/circuit model explicitly supplies its Maxwell residual and work ports.
+Hall induction inside the conducting solid is another closure, absent here.
+
+Patch 3: conservative reactions only when the channel data are bound.
+add_authored_batch is deliberately NOT apply_reaction_batch. Physical ionization
+needs the primary/neutral debit, outgoing primary, secondary and ion products,
+matched event weights, momentum/recoil, one reference/internal-energy convention,
+RNG replay and atomic rollback. Product charges must enter one field update.
+Do not charge internally created product kinetic energy to an external authored
+source. Use one PIC electron number/energy owner; do not also evolve the same
+population with Raikou's coupled electron F0 source/heating operators.
+
+The existing fragmentation registry still blocks a full H2O calculation:
+exclusive channel branching, high-energy support, secondary-energy and angular
+laws, recoil/internal states, heavy rates, surface inventory and calibrated RGA
+composition remain incomplete. No guessed coefficients, zero-filled missing
+support or instantaneous H2O -> 3e + 2H+ + O+ closure is introduced by this patch.
+Explicit forced-event stoichiometric tests may be added without promoting them
+to physical reaction rates. Collisions required for the 2026 resistive-plasma
+case are not established by a collisionless Hall-wave test.
+
+Reference-case matching
+
+N. Bennett et al., Magnetized particle transport in multi-MA accelerators,
+PRAB 24, 060401 (2021):
+https://doi.org/10.1103/PhysRevAccelBeams.24.060401
+The primary study uses relativistic electromagnetic kinetic transport and
+compares cross-gap currents with Hall-current estimates. The present E cross B
+and current controls are restricted collisionless common-limit tests. They do
+not reproduce its geometry, density profiles, surface/source closure, collision
+operators or published current-loss curve. No measured EEDF is inferred.
+
+D. R. Welch et al. (N. Bennett coauthor), Electrode plasma transport into the gap
+of high-current Z-pinch accelerators, PRAB 29, 093301 (2026):
+https://doi.org/10.1103/prpw-f8lt
+The primary study addresses a resistive plasma/electron-sheath instability using
+relativistic electromagnetic CHICAGO simulations. The local 2026 review records
+mobile H/C/Fe ions, collisions, a preinitialized surface plasma, B normal to a
+plane with resolved periodic drift, and source/field assumptions unlike the
+current finite-foil mapping. Those ingredients must be matched before using its
+growth spectra, ion fronts and nonlinear B/phi structures as validation targets.
+The present parallel cold wave tests a necessary EM coupling mechanism, not that
+collisional instability. Its quiet initial plasma is an authored numerical
+control, not a history of desorption or water breakdown.
+
+The initial read-only references are:
+/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profiling-resume.json
+/home/treefor/Documents/Codex/2026-10-28/we/outputs/chicago-pic-review/review.txt
+/home/treefor/Documents/Codex/2026-10-28/we/outputs/chicago-pic-review/2026-transport/review.txt
+/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/charged-coupling-plan/roadmap.md
+/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/energy-work-ownership-audit/ENERGY-WORK-DESIGN.txt
+/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/fragmentation-raikou-plan/physics-data-handoff.txt
+/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/hull-drift-validation/handoff.json
+
+No applicable AGENTS.md was found in the workspace/ancestor paths or the three
+repositories. Current Raikou/MFEM APIs and frozen build inputs were inspected
+before implementation. The matched new heating runs through 60 ns were not
+adopted by these manufactured controls. Any future adoption requires its own
+supported-start history and complete field/source provenance. The frozen long
+PIC run has not been signaled, resumed, replaced or restarted.

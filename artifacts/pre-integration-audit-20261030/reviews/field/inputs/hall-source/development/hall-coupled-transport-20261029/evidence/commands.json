@@ -1,0 +1,163 @@
+[
+  {
+    "label": "build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/usr/bin/c++",
+      "-std=c++20",
+      "-O2",
+      "-DNDEBUG",
+      "-I/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/include",
+      "-I/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/src",
+      "-I/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-coupled-transport-20261029",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/src/mfem_gap_pic.cpp",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-coupled-transport-20261029/benchmark.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build/hall_benchmark",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so"
+    ],
+    "elapsed_s": 9.079143048002152,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease_exclusion_verified": true
+  },
+  {
+    "label": "benchmark",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build/hall_benchmark",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/run-003"
+    ],
+    "elapsed_s": 3.4691852089890745,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease_exclusion_verified": true
+  },
+  {
+    "label": "foundation_build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/usr/bin/c++",
+      "-std=c++20",
+      "-O2",
+      "-DNDEBUG",
+      "-I/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/include",
+      "-I/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/src",
+      "-I/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-coupled-transport-20261029",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/src/mfem_gap_pic.cpp",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/tests/test_mfem_gap_pic.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build/pic_foundation_tests",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so"
+    ],
+    "elapsed_s": 4.671708902998944,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease_exclusion_verified": true
+  },
+  {
+    "label": "foundation",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build/pic_foundation_tests"
+    ],
+    "elapsed_s": 0.11554915099986829,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease_exclusion_verified": true
+  },
+  {
+    "label": "validation",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/usr/bin/python",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-coupled-transport-20261029/validate.py",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/run-003"
+    ],
+    "elapsed_s": 0.01672400599636603,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease_exclusion_verified": true
+  },
+  {
+    "label": "plots",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/home/treefor/projects/Power-Flow/.venv/bin/python",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-coupled-transport-20261029/plot.py",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/run-003"
+    ],
+    "elapsed_s": 1.1667685839929618,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease_exclusion_verified": true
+  }
+]

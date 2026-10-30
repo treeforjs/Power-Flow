@@ -1,0 +1,51 @@
+{
+  "schema": "ss304-thermal-material-port-v2",
+  "status": "ready_for_parent_conditional_integration_not_launched",
+  "source_root": "/home/treefor/projects/runtimes/ss304-thermal-properties-v2-20261029/source",
+  "native_header": "/home/treefor/projects/runtimes/ss304-thermal-properties-v2-20261029/source/include/ss304_thermal_v2.hpp",
+  "native_library": "/home/treefor/projects/runtimes/ss304-thermal-properties-v2-20261029/build/libss304v2.so",
+  "scenario": "/home/treefor/projects/runtimes/ss304-thermal-properties-v2-20261029/source/data/scenario-v2.json",
+  "low_bound_revision": {
+    "minimum_K": 298.2,
+    "unchanged_energy_zero_K": 300,
+    "negative_energy_to_J_kg": -866.0792373440698,
+    "no_clamp_or_initial_T_raise": true,
+    "nominal_1800_mode_keeps_300_to_1800_values_bitwise": true
+  },
+  "callbacks": {
+    "intrinsic_evaluate_T": "Model::evaluate(T)",
+    "inventory_evaluate_T": "Model::evaluate_inventory(T,current_mass,reference_volume)",
+    "T_E": "Model::temperature_from_u(E_total/current_mass)",
+    "support_budget": "Model::assess_energy(current_mass,E_trial); negative hot/cold margin identifies exact unsupportedJ",
+    "intrinsic_k_sigma": "not automatically mixture transport after mass loss",
+    "vapor": "NeutralVapor::evaluate(T) and signed net_mass_flux(T,Pback,alpha)",
+    "mass_energy_transfer": "prepare_transfer immutable MetalState -> TransferTrial; parent atomic commit with gas/geometry"
+  },
+  "low_bound_only_integration_choice": "q1 nominal_1800,range298.2-1800; no high-liquid/vapor alternative required",
+  "extended_integration_choice": "q2 source_conditioned_liquid_3000; compare source/model pressure and conductivity discrepancies before interpreting results",
+  "packet_reference_fields": [
+    "source/material revision",
+    "signed actual metal masskg",
+    "constant atomic u0J/kg",
+    "actual total kineticJ",
+    "state-specific excitation/ionization energy under common zero",
+    "producer/eventID and base revision"
+  ],
+  "canonical_inventory_owner": "heat owner owns metal; gas owns actual emitted/incident packets; mechanics owns removed volume/remap/work; adsorbedH2O inventory separate",
+  "no_launch_or_production_actions": true,
+  "mechanical773p15K_guard_unchanged": true,
+  "required_run_diagnostics": [
+    "Tmin/Tmax and signed unsupportedenergy margins percell",
+    "current mass/referencevolume and metaloutflow",
+    "integrated actual packetreference+kinetic+excitationenergy",
+    "sourcecondk vsrawKim sensitivity",
+    "conditional vapor pressure vsrawKim sensitivity",
+    "coupling interval/refinement and source revisions",
+    "no use of oldconstant-propertyT trajectory as forecast"
+  ],
+  "source_seal": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-properties-v2-20261029/source-manifest.json",
+  "source_seal_sha256": "1a1845e04f1f6fda33338d9bd284f5e1ead9cbc4b7747d0c6355e32cb5661c2d",
+  "verification": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-properties-v2-20261029/verification.json",
+  "verification_sha256": "83232db319d7d1f63cc42790d98a5969e7cab13ffb3f4672ed0a42373ec690b2",
+  "assertions_passed": 17601
+}

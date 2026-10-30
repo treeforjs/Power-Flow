@@ -1,0 +1,134 @@
+Water-channel and provenance audit, 29 October 2026
+
+Full breakdown is NOT ready. The published water snapshot is commit
+0f57b0427463efac440b52995b22bc5217548a76 on physics/h2o-gas-collision-data.
+It contains 39 stored observables/diagnostics and ten explicitly selected
+conditional event models. Those counts do not mean 39 independent reactions
+or a complete transport/chemistry mechanism. The existing receipt contains
+54,190 native assertions plus 1,810 atomic-source numerical bindings, with
+zero physical evolution. This audit checked their seals, not a new coupled run.
+
+The separate H(1s) continuation remains an UNCOMMITTED v8 working candidate.
+Its existing 515 CPU checks passed, but it was not integrated, deployed or
+silently substituted for v7. The ten changed/untracked working files and
+their exact patch are preserved in v8-working-snapshot.tar.gz and its JSON
+manifest. Full integration stays on hold.
+
+The admitted water event models and target-rest incident-energy domains are:
+
+  parent_ground_equal_pair_CM_v1                    13.5-1000 eV
+    e + H2O -> 2e + ground H2Oplus. Measured parent-yield rate;
+    conditional equal-energy/back-to-back CM electron pair.
+  Hminus_Ram65_factorized_window_v1                 6.25-6.75 eV
+    e + H2O -> Hminus + OH(X,v0..4). One family rate with conditional
+    vibrational branching, not five duplicated rates. Ram6.5eV lab-angle
+    fit and vibrational fit are factorized and held in this narrow window.
+  OHminus_ground_isotropic_CM_v1                   4.5-12.5 eV
+    e + H2O -> OHminus + H. Weak/uncertain rate; ground/isotropic endpoint.
+  A1B1_fixed_loss_dipole_ground_v1                  9-977.7 eV
+    e + H2O -> e + H + OH(X,v0). Molecular A1B1 excitation curve once;
+    fixed7.49eV intermediate loss, dipole-shaped electron angle and
+    isotropic ground breakup. Final chemical reference5.10eV.
+  outer3_BEB_Tan_parent_v1                          1000-10000 eV
+  outer3_BEB_Tan_OHp_H_v1                          1000-10000 eV
+  outer3_BEB_Tan_Hp_OH_v1                          1000-10000 eV
+    NIST outer-three-orbital BEB rates with Tan/Murakami branching.
+    Products are2e plus parent ion, OHplus+H, or Hplus+OH. Ground,
+    equal-pair/fixed-hole/isotropic assumptions are conditional.
+  IAM_NIST64_piecewise_mu_elastic_v1                1000-10000 eV
+    e + H2O -> e + H2O recoil. Incoherent O+2H free-atom angular model.
+  deep2a1_BEB_Montenegro15_Auger_OHp_Hp_v1          1000-10000 eV
+  deep2a1_BEB_Montenegro15_Auger_Op_Hp_H_v1         1000-10000 eV
+    Products3e+OHplus+Hplus or3e+Oplus+Hplus+H; net electron gain2.
+    Respectively14%/13% of modeled2a1 primary vacancies. The positive
+    prompt58%Hplus/15%Oplus remainders still have no exclusive products.
+
+The full observable/domain/source table is observable-catalog.json. In
+particular, Hminus scalar data4.5-19.5eV do not extend its product kernel;
+Ominus scalar data4.5-16eV have no product kernel. Parent data leave the
+12.621-13.5eV gap. Rotational, vibrational and other excitation observables
+do not acquire missing internal/recoil kernels by being tabulated. Missing
+rates remain unknown; strict coverage refusals are correct behavior.
+
+The principal scientific blockers are B01-B05 in audit.json. Core1a1 and
+direct multiple ionization, prompt2a1 neutral completion, other dissociation
+and attachment outcomes, detachment/recombination and fragment/ion collision
+families remain unqualified. Only ground-H ionization is added by the
+separate candidate:14-10000eV, known zero only at/below13.59844eV, explicit
+onset gap, oneH debit and zeroH2O debit. It uses NIST Q=.5668 BEB total data
+with conditional equal-pair kinematics, not NIST's detailed BED spectrum.
+The H2Oplus recombination source lead has no admitted numerical rate/kernel.
+
+The original NIST water model represents eight valence electrons. Its10keV
+formula ceiling and generic accuracy statement to about1keV do not establish
+all-shell or full-tail accuracy. At8084.470604111418eV,73% of its2a1 term
+remains unmapped; even the mapped fraction of the four-valence model is not
+physical total-ionization coverage. Exact rates and the limited denominator
+are recorded in audit.json. No missing rate was redistributed.
+
+The new Auger branches are a conditional adaptation of Montenegro2015's
+high-velocity fragmentation matrix, not energy-resolved measured electron
+branching across1-10keV. A fixed36.88eV hole leaves5.16456eV for OHplus/Hplus
+and only0.163505eV for Oplus/Hplus/H plus Auger kinetic energy. These budgets
+and phase-space sharing are not measured KER/Auger spectra. Exact numerical
+energy/momentum closure cannot establish their physical distributions.
+
+Angular provenance remains explicit. Ram2010 provides the near6.5eV Hminus
+lab-angle/vibration anchor. NIST SRD64 v5 supplies20 H/O atomic exports on
+1keV energy and1degree angle grids. Their piecewise-mu DCS integral defines
+the IAM rate; Muñoz molecular elastic data are diagnostic, not a rescaling.
+The1.9058% maximum discrepancy from rounded atomic totals is a numerical
+mesh check, not molecular accuracy. Molecular interference/bonding/dipole
+rotation and complete sub-keV angles are missing. No extrapolation fills
+SongTable2's angular/energy gaps.
+
+RGA background cannot initialize a calibrated mixture. The corrected record
+has50 nominal channels;450 PDF drawing rectangles are graphics provenance.
+Ionizer fragments and overlapping species prevent identifying neutral
+O/OH/H/H2O fractions from their mass peaks alone. The thesis page44/printed19
+was inspected in full. Instrument identity/settings, cracking/sensitivity
+matrix, raw timing and independent gauge/gas-temperature information remain
+missing. The approximate5e-5Torr, ALL-H2O,300K density1.6094e12cm^-3 is a
+named conditional scenario, not measured composition or surface coverage.
+The SRS manufacturer source supports this measurement distinction; it does
+not identify the actual Mykonos instrument. Superseded recovery directories
+are not used as independent measurements.
+
+One confirmed metadata defect is D01: generic api-handoff.json mixes v1
+unprefixed commit/check/archive fields with v7 current fields and retains an
+old Auger-missing warning. Consolidate from immutable coordination-handoff-v7
+and its bound port/archive instead. No numerical kernel defect was newly
+confirmed by this static audit; this is not an independent proof of all code.
+Refusing unsupported energies/products is an honest limitation, not a bug.
+
+Before any later driver test, declare one exclusive hazard partition and
+single parent-model selection at the shared1000eV endpoint. Do not combine
+inclusive yields, aggregate stopping, fullBEB and its branches, duplicate
+elastic prescriptions, or the old full2a1 diagnostic with its partition.
+Use onePIC/MCC electron owner, coherent source-rounded state masses, actual
+3D collision volumes and immutable site/time/state/data identities. The host
+must atomically own availability, all matched-weight debits/products,
+currents, source/sink energy, RNG, rollback and restart. Intermediate virtual
+losses/reference mass changes are not extra heat. Collision-site cascade
+collapse omits transient field work/quenching; it needs explicit admission.
+
+Primary anchors are Song2021 DOI10.1063/5.0035315 (recommended compilation
+with per-channel original lineage), Muñoz2007 DOI10.1103/PhysRevA.76.052707,
+Ram2010 arXiv1007.5144, Melton1972 DOI10.1063/1.1678051, Hargreaves2012
+DOI10.1088/0953-4075/45/20/201001, Murakami2012 DOI10.1103/PhysRevA.85.052704
+and its Tan1978 citation, Montenegro2015 DOI10.1088/1742-6596/635/1/012019,
+NIST BEB/WebBook/ASD and SRD64 DOI10.18434/T4/1502642. OriginalTan1978 was
+not retrieved; Hargreaves has a retained web binding rather than a localPDF.
+Source paths/hashes, primary URLs and retrieval limits are in input-bindings,
+primary-source-catalog and web-verification. No stronger provenance is implied.
+
+Published v7 data:
+  /home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-gas-20261029-deep-valence.json
+  SHA256 bac4e1e0876caae8eec0f11c5183458561e2c92661653cdb6803310bca2f5f77
+Port v7 SHA256 e11cce6cf09122d5ca254cc15ba114e9e2aca7fa26f92bc5e2d197ddbd1be865
+Archive SHA256 5829256a82b4c6edda82e78bad8ff67cdc180c5c4e36e92694412396f1b1627b
+Separate H data SHA256 f9a704b920f74e350cd5a2c492bdebc876dca529a2581eda47c36b14656ab5f3
+
+handoff.json and seal.json identify this audit and every retained file.
+No new native test, full integration, GPU operation, dependency change,
+production edit or active-run action occurred in preparing this audit.

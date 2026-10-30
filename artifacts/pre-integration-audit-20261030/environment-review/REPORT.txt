@@ -1,0 +1,156 @@
+Frozen environment and reproducibility review
+
+Disposition: selected pins match; integration execution remains HOLD.
+No launcher, compiler, test, native/Hall operator, CUDA library, NVIDIA
+executable or production process was executed or changed. Work consisted of bounded reads,
+hashing and ELF inspection on CPU 7 / nice 15 under testing-core7.lock.
+
+Verified observations
+---------------------
+* The recorded and running kernel release both read 7.2.11-arch1-1.
+  run-frozen:5-10 compares these strings and exits 78 on mismatch. This branch
+  was inspected, not exercised with a substituted kernel record.
+* root-files.json has 246673 entries. Its SHA256 matches root-files.sha256 and
+  MFEM source-lock.json's stored root digest:
+  b2df5e5864ecbe75a691a4fb2410f8fef21d55982b54c01adeddee9cb16563dd.
+  Twenty selected loader, shell, bwrap, compiler/backend, linker, MPI, libc,
+  libstdc++, libcrypto, Python, libcuda and NVML files/symlink chains match that
+  manifest. This was a selected-file check, not a full 246673-file rehash.
+* Frozen package metadata identifies GCC 16.2.1, binutils 2.47, glibc 2.44,
+  OpenMPI 5.0.11, OpenSSL 3.6.5, Python 3.14.8 and bubblewrap 0.13.1. Exact package
+  revisions and hashes are in environment-observation.json. Versions were read
+  from the frozen package database; those programs were not launched.
+* Native installed-files.json matches its source-lock digest. Selected MFEM,
+  HYPRE, METIS and GKlib static libraries plus MFEM configuration match that
+  installed manifest. MFEM/HYPRE configurations disable CUDA and OpenMP;
+  HYPRE uses its internal BLAS. These native dependencies live outside the base
+  image; selected installed files are mode 0444, frozen GCC mode 0555.
+* Four cuDSS/CUDA/cuBLAS files (942138577 bytes total) match the prior sealed
+  static candidate's exact library pins. The package lock records cuDSS 0.6.0.5,
+  CUDA runtime 12.8.90, nvcc support package 12.8.93 and cuBLAS 12.8.4.1, URLs and
+  package SHA256. No CUDA file was loaded. These project-prefix dependencies
+  are separately pinned files, not contents of the frozen root manifest.
+* Root's copied native archive matches its handoff hash; all 24 regular native
+  files match the archive. All 41 kernel/input pins match. The Hall archive
+  matches its pin and all 48 regular extracted files match it. Its handoff's
+  descriptive file count says 47; the observed archive has 48 regular entries.
+  No byte mismatch was found. The current legacy-only test executable hash
+  c8524769ad92a00e7337769014a23449c6f9c3f4179e0da980d8c1d30fc4eee3
+  matches its existing 442-check receipt; that is not a full-time joint result.
+* Read-only host observations show NVIDIA open modules 615.78.08 for nvidia,
+  nvidia_uvm, nvidia_modeset and nvidia_drm; frozen NVIDIA userspace is also
+  615.78.08. Module GNU build-ID notes, srcversion, GPU UUID/PCI identity and
+  kernel notes were recorded. Device is RTX 3080 Ti at 0000:01:00.0. These are
+  observations of host state, not frozen or newly qualified driver admission.
+
+What the freeze actually contains
+---------------------------------
+run-frozen:11-15 starts the copied loader/bwrap and mounts the copied root
+read-only. It shares the host kernel, exposes host /dev, and bind-mounts host
+/sys read-only. It creates private PID/IPC/user namespaces and temporary paths;
+it does not supply a separate kernel, GPU module, hardware, firmware, clock or
+network stack. A read-only bind is protection inside that mount namespace,
+not a claim that the underlying host-owned file can never change.
+
+run-frozen:18-24 bind-mounts projects and Codex outputs writable, then mounts
+the frozen base and several host project dependency/venv/tooling directories
+read-only. The latter remain external host directories; their contents are not
+covered merely by root-files.json. The native/CUDA prefixes are under the
+projects bind and need their own seals. Source/test paths remain writable.
+The host-proc variant preserves this layout, adds --die-with-parent and exposes
+host /proc read-only at /run/pic-host-proc (:13-17). It is useful for exact host
+PID/start/CPU verification, not an independent environment freeze.
+
+Findings and bounded remedies
+------------------------------
+E1 HIGH: guard scripts rely on Python assert while optimization is inherited.
+  parent-build_and_check.py:9-23 uses assert for affinity/nice and input/archive
+  integrity. dispatch-v2.py:169 and static-contract-v2.py:27-50 use assert for
+  CPU admission and seals. Python -O/PYTHONOPTIMIZE can remove these predicates.
+  run-frozen:26-29 sets a small environment subset but does not clear or refuse
+  PYTHONOPTIMIZE; scripts can also be started by host Python before run-frozen.
+  Current audit PYTHONOPTIMIZE is unset. No bypass was executed.
+  Remedy: explicit non-assert admission failures, and reject optimized guard
+  execution; use a pinned/sanitized interpreter environment for each dispatcher.
+
+E2 MEDIUM: kernel string guard does not admit driver/module or kernel image.
+  run-frozen:5-10 and host-proc:5-10 check only release equality. Neither checks
+  NVIDIA version/srcversion/build-ID/GPU UUID, nor the kernel build-ID/image.
+  The GPU static pin closure includes nvidia-smi bytes, but does not validate
+  the loaded driver module. Same kernel release can coexist with changed
+  modules; pinned libcuda/NVML cannot freeze that host dependency.
+  Remedy: before/after receipts and explicit expected host kernel/module/GPU
+  identity checks for any later GPU dispatch, with separate qualification after
+  a change. Do not update a pin merely to silence a mismatch. No driver change
+  or GPU launch is authorized by this report.
+
+E3 MEDIUM: CPU lease/thread policy is not self-enforced by CPU test scripts.
+  Parent builder:9-11 checks CPU 7 / nice 15 and sets 3 GiB RLIMIT_AS; its commands
+  are sequential with timeouts (:34-49). It does not acquire testing-core7.lock
+  or set OMP/BLAS thread variables, despite the README's external lease claim.
+  Native prototype build/run scripts likewise assert placement but do not
+  acquire the lease. CPU affinity restricts eligible CPUs; it does not ensure
+  one thread. Current audit thread/BLAS overrides are unset. Frozen native
+  MFEM/HYPRE have OpenMP disabled, but MPI/runtime helper threads are separate.
+  Remedy: keep an explicit outer CPU 7 / nice 15/exclusive-core7 lease and one-job
+  policy, set the recorded thread environment, and record the complete launch
+  command. No CPU test wrapper was changed or run here.
+
+E4 MEDIUM: launch-time pin closure is narrower than the available manifests.
+  run-frozen does not verify root-files.json or rehash binaries on each launch;
+  seal.py creates a manifest but is not a runtime verifier. Parent builder
+  verifies copied numerical inputs/native archive before compile, then records
+  source/test hashes and binary SHA after execution (:14-23,:53-60). It does
+  not independently admit the launcher, compiler/dependency manifest, staged
+  coordinator/test hashes or runtime overrides against a complete preexisting
+  test binding. Its binary receipt covers the legacy regression only.
+  Native prototype scripts use a draft source label and mutable prototype path;
+  they must not be substituted for the immutable intermediate's source seal.
+  Remedy: pin the exact test source, immutable native/Hall snapshot, build
+  recipe, compiler/dependency/launcher identities and resulting binary together;
+  verify before and after the bounded run. Existing read-only manifests and
+  selected matches are useful evidence, not automatic admission of a new test.
+
+E5 MEDIUM: remaining inherited environment can alter compiler/runtime selection.
+  run-frozen:29 clears LD_LIBRARY_PATH, LD_PRELOAD, PYTHONPATH and PYTHONHOME.
+  It does not clear compiler/OpenMPI overrides such as OMPI_CXX, CPATH,
+  CPLUS_INCLUDE_PATH, LIBRARY_PATH, GCC_EXEC_PREFIX, COMPILER_PATH or MCA options.
+  None of those allowlisted overrides is present in the audit environment.
+  Root CPU build selects /usr/bin/mpic++ inside the frozen root and passes
+  -ffp-contract=off/-fno-fast-math; the linked static libraries retain their own
+  separately recorded build recipe. Existing native ELF RUNPATH is /usr/lib and
+  NEEDED lists MPI/libcrypto/libstdc++/libm/libgcc/libc/loader. Running that ELF
+  directly on the host would select a different environment; its intended
+  invocation is through the frozen launcher.
+  Remedy: explicit allowlisted environment plus recorded compiler/MPI selection
+  for future builds and tests. Do not equate a read-only root with a sanitized
+  full process environment.
+
+Per-test CPU/GPU locking and scope
+----------------------------------
+The staged parent/native CPU builders require an outer exclusive core 7 lease;
+they are not self-locking. This audit acquired that exact shared lease only for
+bounded reads/hashes, never while launching a test or waiting for a GPU lock.
+
+The existing STATIC GPU v2 dispatcher is more complete: dispatch-v2.py:182-188
+acquires testing-gpu.lock THEN testing-core7.lock, serializes approved cases,
+checks pins before/after, and sets one-thread OMP/BLAS environment at:94. It
+checks affinity/nice at:169 and uses exact executable/argv/output/start PIDFD
+identity, a host production-hold guard and bounded cleanup. Source limits are
+120 s/case, sampled owned RSS 4 GiB, global GPU 10 GiB / increase 6 GiB and output 64 MiB.
+These are the already prepared static-case wrappers, not a full-time joint test
+dispatcher or launch approval. RSS/GPU sampling is monitoring rather than a hard
+memory cgroup ceiling. Python assert caveat E1 applies to these admission checks.
+
+No new full-time dispatcher, GPU request or test launch is prepared/approved by
+this review. Kernel/driver observations and selected hash matches do not resolve
+the separate scientific/transaction blockers in the contract audit.
+
+Evidence
+---------
+source-bindings.json gives original and copied source paths, SHA256 and exact
+bytes. sources/ retains only 20 small scripts/configuration/receipt files, not
+full logs or the recursive root manifest. Line references above use these copied
+files. environment-observation.json, candidate-seal-observation.json,
+cuda-file-observation.json and host-module-note-observation.json contain compact
+read-only measurements. findings.json is the machine-readable disposition.

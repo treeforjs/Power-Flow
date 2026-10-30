@@ -1,0 +1,213 @@
+{
+  "status": "audit complete; integration blocked pending findings",
+  "source_v3_commit": "51a867d96b7808eeaa70839276e7c66ab630f3a0",
+  "prerequisite_v2_commit": "373c91a83c9c058da26035ffdb4cea25a6fea491",
+  "issues": [
+    {
+      "id": "C1",
+      "severity": "P1",
+      "classification": "confirmed numerical defect",
+      "title": "Positive source release can leave the canonical source pool unchanged",
+      "source": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_electrode_heat_feedback_v2/electrode_heat_feedback.hpp",
+      "lines": [
+        26,
+        29,
+        128,
+        130
+      ],
+      "evidence": "Actual Coupler::prepare with inventory {1e15,-0.01} emits weight 1.0000000000000024e-30 while both candidate inventory limbs remain identical to the accepted base. The same header is used by the reviewed root thermal port.",
+      "consequence": "Gas ExactParticleCount can retain that emitted weight, but cannot reconstruct the source debit already lost by the two-word update. Source plus gas count increases.",
+      "remediation": "Use one admitted exact represented-count transaction for source debit and gas credit, or explicitly reject an unrepresentable source debit with quantified unresolved scope. Reuse the existing sealed arithmetic where its contract fits; do not add a competing count backend."
+    },
+    {
+      "id": "C2",
+      "severity": "P1",
+      "classification": "confirmed numerical defect",
+      "title": "Packet allocation is not an exact partition of the source debit",
+      "source": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_electrode_heat_feedback_v2/electrode_heat_feedback.hpp",
+      "lines": [
+        131,
+        134
+      ],
+      "evidence": "Actual preparation fully releases inventory 1 into 10 packets and passes assigned==released. The exact sum of returned binary64 weights is 36028797018963973/36028797018963968 = 1 + 5/2^55.",
+      "consequence": "Crediting those exact packet weights creates a 1.3877787807814457e-16 count excess even if source debit itself is exact. A rounded floating sum is not an exact conservation proof.",
+      "remediation": "Validate the exact sum of all actual positive packet parts against the exact source debit before any owner publishes. Reject an unsupported allocation/cap; never silently truncate or alter weights after accounting."
+    },
+    {
+      "id": "C3",
+      "severity": "P1",
+      "classification": "confirmed binding gap; planned integration blocker",
+      "title": "Public source proposals and mesh aliases are not sealed by metadata preflight",
+      "source": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_electrode_heat_source_v3/trial_source_binding.hpp",
+      "lines": [
+        46,
+        73,
+        81,
+        85,
+        88
+      ],
+      "additional_source": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_electrode_heat_source_v3/axial_trial_field.hpp",
+      "additional_lines": [
+        8,
+        12,
+        15,
+        25,
+        28
+      ],
+      "evidence": "Doubling Candidate.state.native.particle.weight leaves preflight true and import succeeds with the original path charge. Replacing PreparedPatch.native.spectrum by a 1600 K spectrum retains and accepts the old 1500 K exposure key. Reconstructing an identical Coupler at the same address lets its predecessor candidate pass. Mutating an external nonconst Mesh alias changes field gathering while matches_trial stays true.",
+      "consequence": "Field-array copies alone do not seal complete source payload, owner lifetime or geometry. Parent must not treat the binding-only preflight as a complete count/arena/source commit certificate.",
+      "remediation": "Keep prepared inputs/proposals under an opaque immutable owner, bind actual payload/geometry/field bits and canonical attributes, retain owner lifetime plus generation, and revalidate every owner at the final common barrier. API-v3 already assigns external count-owner truth to the parent; this is not evidence of an incorrect source kernel."
+    },
+    {
+      "id": "C4",
+      "severity": "P1",
+      "classification": "confirmed numerical domain gap",
+      "title": "Positive representable packet weight can silently lose all weighted charge and heat",
+      "source": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_electrode_heat_source_v3/trial_source_binding.hpp",
+      "lines": [
+        88
+      ],
+      "additional_source": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_electrode_heat_feedback_v2/source-kernel/src/surface_emission.cpp",
+      "evidence": "A 300 K thermal birth with weight approximately 1e-310 succeeds and preflights with positive physical_electron_number_change, particle_charge_change_C=-0 and wall_heat_J=-0. Its exact physical charge magnitude is approximately 1.602e-329 C.",
+      "consequence": "Positive binary64 weight alone is not a sufficient representability condition for scalar charge/energy ledgers. Exact gas count does not fix weighted charge/energy underflow.",
+      "remediation": "Retain the nonzero contributions with an explicit supported representation or reject the whole proposal with quantified unresolved count/charge/energy scope. Do not install a cold floor, change packet weight automatically or report the source as physically zero."
+    },
+    {
+      "id": "C5",
+      "severity": "P1",
+      "classification": "confirmed draft coordinator defect by source inspection",
+      "title": "Final joint preflight does not bind the mutable proposed field to native final seals",
+      "source": "reviewed-inputs/1/axial_joint_v2.hpp",
+      "lines": [
+        21,
+        23,
+        72,
+        76,
+        80,
+        82
+      ],
+      "additional_source": "reviewed-inputs/0/closed_parent_joint_step.hpp",
+      "additional_lines": [
+        93,
+        112,
+        122,
+        138
+      ],
+      "evidence": "Native motion/final seals capture field_after during preparation. AxialJointTrial.field remains public and mutable; final preflight checks accepted field/heat/census and heat ticket, but not the current proposed field hash, its actual midpoint arrays or its equality to the native final field seal. Publication swaps the current mutable field.",
+      "consequence": "An edit after native sealing can publish a field different from the field named by the accepted native boundary and checkpoint seals. This independently confirms the root-reported concern; no joint test was run.",
+      "remediation": "Make the final proposal opaque or retain/revalidate complete content seals at the common barrier, including actual midpoint equality and the native field/heat/source/RNG final seals."
+    },
+    {
+      "id": "L1",
+      "severity": "P1 before integration",
+      "classification": "documented scalar/log limitation; not an undisclosed v3 defect",
+      "title": "A zero expected-count scalar does not imply zero exposure",
+      "source": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_electrode_heat_source_v3/trial_source_binding.hpp",
+      "lines": [
+        63
+      ],
+      "evidence": "At 300 K, area_fraction=1e-250 and dt=1e-14, the intermediate product underflows: scalar count=0 and current_underflow=false, yet log_expected_number=-714.51649451502885 and exp(log count)=4.8913552196320394e-311.",
+      "remediation": "The source count owner must consume the separate log exposure, handle both current and product underflow, and retain or explicitly reject finite-log positive scope. The current-underflow flag alone is insufficient."
+    },
+    {
+      "id": "M1",
+      "severity": "P1 before integration",
+      "classification": "unimplemented integration",
+      "title": "No qualified production emission-count/arrival/RNG policy",
+      "source": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_electrode_heat_source_v3/API-v3.txt",
+      "lines": [
+        63,
+        94,
+        159,
+        180
+      ],
+      "evidence": "V3 accepts caller-supplied weight, marks, IDs, count receipt and one of three explicit birth-time policies. It allocates no count/ID/RNG and owns no residual arrival clock. New sampler work is research/design only and paused.",
+      "remediation": "Root must explicitly choose and qualify packet statistics/weight, real arrival timing, persistent residual clock/RNG, common-random-base nonlinear reevaluation, cap rollback and exact accepted restart. Fixed-weight qualification fixtures are not a production count model."
+    },
+    {
+      "id": "M2",
+      "severity": "P1 before integration",
+      "classification": "unimplemented integration",
+      "title": "Reviewed canonical coordinator is resident-only and rejects source/boundary changes",
+      "source": "reviewed-inputs/0/closed_parent_joint_step.hpp",
+      "lines": [
+        5,
+        7,
+        89,
+        119
+      ],
+      "additional_source": "reviewed-inputs/2/mfem_pic_full_time.inc",
+      "additional_lines": [
+        455,
+        463,
+        505,
+        526
+      ],
+      "evidence": "Native motion requires empty source/boundary receipts, identical resident membership/species/weights, and all_native_carriers_no_sources_no_boundaries. The closed coordinator declares surface_source_and_collection=false. It does not invoke source-v3.",
+      "remediation": "Add a separately reviewed canonical owner for births, persistent Active layers, handoff/recollection, boundary charge/energy, source/gas exact transfer and their common commit. Do not relabel this closed parent test as the requested thermal/field source integration."
+    },
+    {
+      "id": "M3",
+      "severity": "P1 before integration",
+      "classification": "unimplemented integration and physics scope decision",
+      "title": "Active-layer collision/remap ownership has no qualified composition",
+      "source": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_electrode_heat_source_v3/API-v3.txt",
+      "lines": [
+        109,
+        150
+      ],
+      "evidence": "Active source transport evolves a copied LayerState with fixed source weight/species and microscopic image ownership. Ordinary motion exclusion is required, but no collision or count-remap adapter updates the auxiliary state.",
+      "remediation": "Keep exactly one canonical particle per layer, include it and prospective births in global guards, and define collision exposure over its actual life. Either preserve an explicitly bounded collisionless Active-layer model or implement and qualify conservative collision/remap/reaction updates to both canonical and layer states. Never silently overwrite a collision result from stale auxiliary momentum."
+    },
+    {
+      "id": "M4",
+      "severity": "P1 before integration",
+      "classification": "unimplemented full restart qualification",
+      "title": "Component replay does not prove an atomic all-owner source restart",
+      "source": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_electrode_heat_source_v3/API-v3.txt",
+      "lines": [
+        173,
+        190
+      ],
+      "evidence": "V3 qualifies typed layer/heat payloads and identical next current/charge/heat under reconstructed fields. It has no common checkpoint coordinator or arrival-clock owner. BoundLayerState does not contain the external canonical-ID map or sampler policy/RNG/residual clock.",
+      "remediation": "Atomically checkpoint accepted arena/counts, layer-to-canonical-ID mapping, heat/inventories/watermarks, field, geometry/slice/model/species seals, source count/residual/RNG/ID state and clock. Verify complete next proposals and rejected retries across restart; reject mixed snapshots and rebuild unaccepted tokens."
+    },
+    {
+      "id": "U1",
+      "severity": "P2 applicability gate",
+      "classification": "unsupported physics outside explicit conditional model",
+      "title": "Source/material flags do not establish experimental or full plasma applicability",
+      "source": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_electrode_heat_feedback_v2/source-kernel/include/surface_emission.hpp",
+      "lines": [
+        10,
+        13,
+        104,
+        112
+      ],
+      "additional_source": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_electrode_heat_feedback_v2/source-kernel/src/micro_layer.cpp",
+      "additional_lines": [
+        70,
+        78,
+        127,
+        142
+      ],
+      "evidence": "The source is a locally planar equilibrium free-electron, stationary unmagnetized barrier model with explicit magnetic/image/geometry guards and conditional unit accommodation. Work function 4.3 eV is a clean-surface benchmark, not a measured dynamic SS304/oxide/water surface. V3 admission flags are caller assertions.",
+      "remediation": "Document supported surface/phase/work-function, local field-valid region, quantum magnetic and quasi-steady limits, return accommodation and omitted surface physics. Reject unsupported samples without guard-driven resampling. Do not infer a physical screening/breakdown history from component closure."
+    },
+    {
+      "id": "U2",
+      "severity": "P2 convergence gate",
+      "classification": "unqualified coupled numerical accuracy",
+      "title": "Accepted temperature and immutable midpoint fields are distinct, deliberate stages",
+      "source": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_electrode_heat_source_v3/trial_source_binding.hpp",
+      "lines": [
+        55,
+        63,
+        97,
+        98
+      ],
+      "evidence": "Source-v3 honestly uses accepted T and actual trial midpoint E/B. This is a held-temperature source treatment, not a jointly implicit midpoint-temperature solve; the component has no global source/field/chemistry convergence result.",
+      "remediation": "Retain thermal and strong-field supply at both electrodes with signed local total fields, partition area once, and establish temporal/spatial/packet-weight/nonlinear convergence for the coupled source/field/heat model. Keep source-law/field mesh and physical/collision domain limitations explicit."
+    }
+  ]
+}

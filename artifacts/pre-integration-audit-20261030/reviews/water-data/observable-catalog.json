@@ -1,0 +1,811 @@
+[
+  {
+    "id": "H2O:elastic_integral_song2021",
+    "observable": "elastic_integral",
+    "model": "linear_table",
+    "support_eV": [
+      0.1,
+      100.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table3, printed9/PDF10",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Song2021 Sec4.2; experimental/theoretical recommended elastic ICS; rotational resolution is source-dependent",
+    "table_points": 23
+  },
+  {
+    "id": "H2O:elastic_momentum",
+    "observable": "elastic_momentum_transfer",
+    "model": "linear_table",
+    "support_eV": [
+      0.001,
+      1000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table4, printed10/PDF11",
+    "use": "reduced_transport",
+    "exclusive_products": null,
+    "collision_process_admission": "elastic_momentum_only",
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Yousfi and Benabdessadok1996 JApplPhys80,6619; source recommendation extends to1000eV",
+    "table_points": 34
+  },
+  {
+    "id": "H2O:effective_momentum",
+    "observable": "effective_momentum_transfer",
+    "model": "linear_table",
+    "support_eV": [
+      0.001,
+      1000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table4, printed10/PDF11; caption explicitly equates TMT=EMT above6eV",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Pack,Voshall,Phelps1962 and Ness,Robson1986; thermal/swarm effective quantity, not an elastic event cross section",
+    "table_points": 34
+  },
+  {
+    "id": "H2O:rotation_J000_to_J1_sum",
+    "observable": "rotational_excitation",
+    "model": "linear_table",
+    "support_eV": [
+      0.004929,
+      49.13
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table5, printed12/PDF13, J0->J1 column",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Faure,Gorfinkiel,Tennyson MNRAS347,323(2004); Song2021 recommended compilation/extension Sec5",
+    "table_points": 26
+  },
+  {
+    "id": "H2O:excite_v010",
+    "observable": "state_excitation",
+    "model": "linear_table",
+    "support_eV": [
+      0.198,
+      100.0
+    ],
+    "zero_below_eV": 0.198,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Tables6/7, printed13/14, PDF14/15",
+    "use": "reduced_transport",
+    "exclusive_products": {
+      "e_g": 1,
+      "H2O_v010": 1
+    },
+    "collision_process_admission": "one_way_bend",
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Song2021 recommended synthesis of measurements and R-matrix calculations, Sec6",
+    "table_points": 15
+  },
+  {
+    "id": "H2O:stretch_v100_plus_v001",
+    "observable": "lumped_state_excitation",
+    "model": "linear_table",
+    "support_eV": [
+      0.453,
+      100.0
+    ],
+    "zero_below_eV": 0.453,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table7, printed14/PDF15",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Song2021 Sec6; unresolved symmetric100 and antisymmetric001 stretches",
+    "table_points": 15
+  },
+  {
+    "id": "H2O:excite_v100",
+    "observable": "state_excitation",
+    "model": "linear_table",
+    "support_eV": [
+      0.53,
+      100.0
+    ],
+    "zero_below_eV": 0.453,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table7 and Fig13/main text, printed14/PDF15",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Song2021 explicitly recommends symmetric/asymmetric0.56/0.44 split, from its theory ratio at3eV",
+    "table_points": 14
+  },
+  {
+    "id": "H2O:excite_v001",
+    "observable": "state_excitation",
+    "model": "linear_table",
+    "support_eV": [
+      0.53,
+      100.0
+    ],
+    "zero_below_eV": 0.466,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table7 and Fig13/main text, printed14/PDF15",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Song2021 explicitly recommends symmetric/asymmetric0.56/0.44 split, from its theory ratio at3eV",
+    "table_points": 14
+  },
+  {
+    "id": "H2O:electronic_A1B1",
+    "observable": "electronic_state_excitation",
+    "model": "linear_table",
+    "support_eV": [
+      9.0,
+      977.7
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-22,
+    "source": "song2021",
+    "source_locator": "Tables8/9, printed15/16, PDF16/17",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Ralphs etal2013 below17eV; BEf model above17eV; Matsui etal overlap; Song2021Sec7",
+    "table_points": 30
+  },
+  {
+    "id": "H2O:neutral_OH_yield",
+    "observable": "neutral_fragment_yield",
+    "model": "linear_table",
+    "support_eV": [
+      10.0,
+      300.0
+    ],
+    "zero_below_eV": 5.1,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table10, printed17/PDF18",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Harb,Kedzierski,McConkey JCP115,5507(2001); review DEA normalization",
+    "table_points": 11
+  },
+  {
+    "id": "H2O:ion_yield:H2O+",
+    "observable": "parent_ion_production",
+    "model": "linear_table",
+    "support_eV": [
+      13.5,
+      1000.0
+    ],
+    "zero_below_eV": 12.621,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table12, printed20/PDF21",
+    "use": "observable_only",
+    "exclusive_products": {
+      "e_g": 2,
+      "H2Op": 1
+    },
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Straub etal JCP108,109(1998), DOI10.1063/1.475367; Lindsay/Mangan recommendation",
+    "table_points": 30
+  },
+  {
+    "id": "H2O:ion_yield:OH+",
+    "observable": "partial_ion_yield",
+    "model": "linear_table",
+    "support_eV": [
+      17.5,
+      1000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table12, printed20/PDF21",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Straub etal JCP108,109(1998), DOI10.1063/1.475367; Lindsay/Mangan recommendation",
+    "table_points": 28
+  },
+  {
+    "id": "H2O:ion_yield:O+",
+    "observable": "partial_ion_yield",
+    "model": "linear_table",
+    "support_eV": [
+      25.0,
+      1000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table12, printed20/PDF21",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Straub etal JCP108,109(1998), DOI10.1063/1.475367; Lindsay/Mangan recommendation",
+    "table_points": 25
+  },
+  {
+    "id": "H2O:ion_yield:O_atomic_2plus",
+    "observable": "partial_ion_yield",
+    "model": "linear_table",
+    "support_eV": [
+      90.0,
+      1000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table12, printed20/PDF21",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Straub etal JCP108,109(1998), DOI10.1063/1.475367; Lindsay/Mangan recommendation",
+    "table_points": 16
+  },
+  {
+    "id": "H2O:ion_yield:H2+",
+    "observable": "partial_ion_yield",
+    "model": "linear_table",
+    "support_eV": [
+      30.0,
+      1000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table12, printed20/PDF21",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Straub etal JCP108,109(1998), DOI10.1063/1.475367; Lindsay/Mangan recommendation",
+    "table_points": 24
+  },
+  {
+    "id": "H2O:ion_yield:H+",
+    "observable": "partial_ion_yield",
+    "model": "linear_table",
+    "support_eV": [
+      20.0,
+      1000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table12, printed20/PDF21",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Straub etal JCP108,109(1998), DOI10.1063/1.475367; Lindsay/Mangan recommendation",
+    "table_points": 27
+  },
+  {
+    "id": "H2O:ion_yield:total",
+    "observable": "total_ionization_observable",
+    "model": "linear_table",
+    "support_eV": [
+      13.5,
+      1000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-20,
+    "source": "song2021",
+    "source_locator": "Table12, printed20/PDF21",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Straub etal JCP108,109(1998), DOI10.1063/1.475367; Lindsay/Mangan recommendation",
+    "table_points": 30
+  },
+  {
+    "id": "H2O:attachment_yield:Hminus",
+    "observable": "attachment_anion_yield",
+    "model": "linear_table",
+    "support_eV": [
+      4.5,
+      19.5
+    ],
+    "zero_below_eV": 4.35,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-22,
+    "source": "song2021",
+    "source_locator": "Table13, printed21/PDF22; different column units",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Rawat etal JPhysB40,4625(2007), DOI10.1088/0953-4075/40/24/007",
+    "table_points": 30
+  },
+  {
+    "id": "H2O:attachment_yield:Ominus",
+    "observable": "attachment_anion_yield",
+    "model": "linear_table",
+    "support_eV": [
+      4.5,
+      16.0
+    ],
+    "zero_below_eV": 3.56,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-23,
+    "source": "song2021",
+    "source_locator": "Table13, printed21/PDF22; different column units",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Rawat etal JPhysB40,4625(2007), DOI10.1088/0953-4075/40/24/007",
+    "table_points": 24
+  },
+  {
+    "id": "H2O:attachment_yield:OHminus",
+    "observable": "attachment_anion_yield",
+    "model": "linear_table",
+    "support_eV": [
+      4.5,
+      12.5
+    ],
+    "zero_below_eV": 3.27,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 1e-24,
+    "source": "song2021",
+    "source_locator": "Table13, printed21/PDF22; different column units",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "Melton JCP57,4218(1972), review-renormalized by Rawat Ominus peak",
+    "table_points": 17
+  },
+  {
+    "id": "H2O:munoz2007:elastic_integral",
+    "observable": "elastic_integral",
+    "model": "linear_table",
+    "support_eV": [
+      1.0,
+      10000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 2.800285205390781e-21,
+    "source": "munoz2007",
+    "source_locator": "TableI, printed4/PDF4",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "primary optical-potential calculation",
+    "table_points": 29
+  },
+  {
+    "id": "H2O:munoz2007:inelastic_integral",
+    "observable": "aggregate_inelastic",
+    "model": "linear_table",
+    "support_eV": [
+      7.5,
+      10000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 2.800285205390781e-21,
+    "source": "munoz2007",
+    "source_locator": "TableI, printed4/PDF4",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "primary optical-potential calculation",
+    "table_points": 23
+  },
+  {
+    "id": "H2O:munoz2007:rotational_integral_300K",
+    "observable": "thermal_rotational_integral",
+    "model": "linear_table",
+    "support_eV": [
+      1.0,
+      10000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 2.800285205390781e-21,
+    "source": "munoz2007",
+    "source_locator": "TableI, printed4/PDF4",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "primary optical-potential calculation",
+    "table_points": 29
+  },
+  {
+    "id": "H2O:munoz2007:theory_total",
+    "observable": "total_scattering",
+    "model": "linear_table",
+    "support_eV": [
+      1.0,
+      10000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 2.800285205390781e-21,
+    "source": "munoz2007",
+    "source_locator": "TableI, printed4/PDF4",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "primary optical-potential calculation",
+    "table_points": 29
+  },
+  {
+    "id": "H2O:munoz2007:measured_ionization",
+    "observable": "gross_ionization_observable",
+    "model": "linear_table",
+    "support_eV": [
+      50.0,
+      5000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 2.800285205390781e-21,
+    "source": "munoz2007",
+    "source_locator": "TableI, printed4/PDF4",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "primary measurement",
+    "table_points": 15
+  },
+  {
+    "id": "H2O:munoz2007:measured_total",
+    "observable": "total_scattering",
+    "model": "linear_table",
+    "support_eV": [
+      50.0,
+      5000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 2.800285205390781e-21,
+    "source": "munoz2007",
+    "source_locator": "TableI, printed4/PDF4",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "primary measurement",
+    "table_points": 15
+  },
+  {
+    "id": "H2O:munoz2007:recommended_total",
+    "observable": "total_scattering",
+    "model": "linear_table",
+    "support_eV": [
+      7.5,
+      10000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 2.800285205390781e-21,
+    "source": "munoz2007",
+    "source_locator": "TableII, printed6/PDF6",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "primary recommended gas-phase totals",
+    "table_points": 23
+  },
+  {
+    "id": "H2O:munoz2007:recommended_inelastic",
+    "observable": "aggregate_inelastic",
+    "model": "linear_table",
+    "support_eV": [
+      7.5,
+      10000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 2.800285205390781e-21,
+    "source": "munoz2007",
+    "source_locator": "TableII total*mu, Eq3",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "derived exactly from primary TableII total and inelastic fraction",
+    "table_points": 23
+  },
+  {
+    "id": "H2O:munoz2007:stopping_energy_area",
+    "observable": "energy_loss_moment",
+    "model": "linear_table",
+    "support_eV": [
+      7.5,
+      10000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "eV m2",
+    "ordinate_scale_to_SI": 2.991507623573765e-21,
+    "source": "munoz2007",
+    "source_locator": "TableII, This work column, printed6/PDF6",
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": "linear_in_energy_and_ordinate",
+    "lineage": "primary gas-phase mass stopping power; MeV cm2/g *1e5*molecule_mass_kg ->eV m2",
+    "table_points": 23
+  },
+  {
+    "id": "H2O:nist_BEB_valence",
+    "observable": "valence_ionization_model",
+    "model": "nist_BEB",
+    "support_eV": [
+      0,
+      10000
+    ],
+    "zero_below_eV": 12.61,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": null,
+    "source": "nist_beb",
+    "source_locator": null,
+    "use": "observable_only",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": null,
+    "lineage": null,
+    "table_points": 0
+  },
+  {
+    "id": "H2O:conditional_outer3:parent",
+    "observable": "conditional_exclusive_event_rate",
+    "model": "nist_BEB",
+    "support_eV": [
+      1000.0,
+      10000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": null,
+    "source": "murakami2012",
+    "source_locator": "NIST four-orbitalBEB formula times Tan/Murakami outer3 weights; not measured fragment-event cross sections",
+    "use": "explicit_conditional_model_only",
+    "exclusive_products": {
+      "e_g": 2,
+      "H2Op": 1
+    },
+    "collision_process_admission": null,
+    "interpolation": null,
+    "lineage": "NIST orbital rates + Murakami2012 Eqs27-29/Tan1978 high-energy single-vacancy branching; 2a1 deliberately unmapped",
+    "table_points": 0
+  },
+  {
+    "id": "H2O:conditional_outer3:OHp_H",
+    "observable": "conditional_exclusive_event_rate",
+    "model": "nist_BEB",
+    "support_eV": [
+      1000.0,
+      10000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": null,
+    "source": "murakami2012",
+    "source_locator": "NIST four-orbitalBEB formula times Tan/Murakami outer3 weights; not measured fragment-event cross sections",
+    "use": "explicit_conditional_model_only",
+    "exclusive_products": {
+      "e_g": 2,
+      "OHp_X_ground": 1,
+      "H_1s": 1
+    },
+    "collision_process_admission": null,
+    "interpolation": null,
+    "lineage": "NIST orbital rates + Murakami2012 Eqs27-29/Tan1978 high-energy single-vacancy branching; 2a1 deliberately unmapped",
+    "table_points": 0
+  },
+  {
+    "id": "H2O:conditional_outer3:Hp_OH",
+    "observable": "conditional_exclusive_event_rate",
+    "model": "nist_BEB",
+    "support_eV": [
+      1000.0,
+      10000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": null,
+    "source": "murakami2012",
+    "source_locator": "NIST four-orbitalBEB formula times Tan/Murakami outer3 weights; not measured fragment-event cross sections",
+    "use": "explicit_conditional_model_only",
+    "exclusive_products": {
+      "e_g": 2,
+      "Hp": 1,
+      "OH_X_v0": 1
+    },
+    "collision_process_admission": null,
+    "interpolation": null,
+    "lineage": "NIST orbital rates + Murakami2012 Eqs27-29/Tan1978 high-energy single-vacancy branching; 2a1 deliberately unmapped",
+    "table_points": 0
+  },
+  {
+    "id": "H2O:conditional_outer3:unmapped_2a1",
+    "observable": "unmapped_ionization_hole",
+    "model": "nist_BEB",
+    "support_eV": [
+      1000.0,
+      10000.0
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": null,
+    "source": "murakami2012",
+    "source_locator": "NIST four-orbitalBEB formula times Tan/Murakami outer3 weights; not measured fragment-event cross sections",
+    "use": "unmapped_rate_evidence",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": null,
+    "lineage": "NIST orbital rates + Murakami2012 Eqs27-29/Tan1978 high-energy single-vacancy branching; 2a1 deliberately unmapped",
+    "table_points": 0
+  },
+  {
+    "id": "H2O:conditional_IAM_NIST64:elastic",
+    "observable": "conditional_exclusive_elastic_event_rate",
+    "model": "linear_table",
+    "support_eV": [
+      1000,
+      10000
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": 2.8002852e-21,
+    "source": "nist_srd64_v5",
+    "source_locator": "SRD64 official H/O DCS exports, incoherent O+2H sum; exact integral of piecewise-linear d\u03c3/d\u03a9 in cos(theta)",
+    "use": "explicit_conditional_model_only",
+    "exclusive_products": {
+      "e_g": 1,
+      "H2O_g": 1
+    },
+    "collision_process_admission": "explicit_native_event_kernel_only",
+    "interpolation": null,
+    "lineage": null,
+    "table_points": 10
+  },
+  {
+    "id": "H2O:conditional_2a1:Auger_OHp_Hp",
+    "observable": "conditional_exclusive_Auger_event_rate",
+    "model": "nist_BEB",
+    "support_eV": [
+      1000,
+      10000
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": null,
+    "source": "montenegro2015",
+    "source_locator": "Montenegro2015 Fig3, printed4/PDF5, times original NIST2a1 BEB vacancy rate",
+    "use": "explicit_conditional_model_only",
+    "exclusive_products": {
+      "e_g": 3,
+      "OHp_X_ground": 1,
+      "Hp": 1
+    },
+    "collision_process_admission": null,
+    "interpolation": null,
+    "lineage": null,
+    "table_points": 0
+  },
+  {
+    "id": "H2O:conditional_2a1:Auger_Op_Hp_H",
+    "observable": "conditional_exclusive_Auger_event_rate",
+    "model": "nist_BEB",
+    "support_eV": [
+      1000,
+      10000
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": null,
+    "source": "montenegro2015",
+    "source_locator": "Montenegro2015 Fig3, printed4/PDF5, times original NIST2a1 BEB vacancy rate",
+    "use": "explicit_conditional_model_only",
+    "exclusive_products": {
+      "e_g": 3,
+      "Op_4S_ground": 1,
+      "Hp": 1,
+      "H_1s": 1
+    },
+    "collision_process_admission": null,
+    "interpolation": null,
+    "lineage": null,
+    "table_points": 0
+  },
+  {
+    "id": "H2O:conditional_2a1:unmapped_prompt_Hp",
+    "observable": "unmapped_prompt_ion_yield",
+    "model": "nist_BEB",
+    "support_eV": [
+      1000,
+      10000
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": null,
+    "source": "montenegro2015",
+    "source_locator": "Montenegro2015 Fig3, printed4/PDF5, times original NIST2a1 BEB vacancy rate",
+    "use": "unmapped_rate_evidence",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": null,
+    "lineage": null,
+    "table_points": 0
+  },
+  {
+    "id": "H2O:conditional_2a1:unmapped_prompt_Op",
+    "observable": "unmapped_prompt_ion_yield",
+    "model": "nist_BEB",
+    "support_eV": [
+      1000,
+      10000
+    ],
+    "zero_below_eV": null,
+    "unit_SI": "m2",
+    "ordinate_scale_to_SI": null,
+    "source": "montenegro2015",
+    "source_locator": "Montenegro2015 Fig3, printed4/PDF5, times original NIST2a1 BEB vacancy rate",
+    "use": "unmapped_rate_evidence",
+    "exclusive_products": null,
+    "collision_process_admission": null,
+    "interpolation": null,
+    "lineage": null,
+    "table_points": 0
+  }
+]

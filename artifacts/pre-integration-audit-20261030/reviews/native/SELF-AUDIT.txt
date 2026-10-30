@@ -1,0 +1,215 @@
+Full-time native arena self-audit, 2026-10-30 UTC
+Status: AUDIT HOLD. No joint/full-coupled execution or full-time physical result.
+No own compiler/test process remains. No GPU, production mutation or signals.
+
+Frozen review inputs
+  intermediate-001 source bc44576f9115e79e7c7978796ed95f8075613a3a09d3044325842516fa137306
+  archive 233b91a984f581d506e991b5e1a7c0f0db540e11660116b024574c6169a25600
+  audit-candidate-002 source eccf8960d420e4b24fc8dedb1ee5ed8a89a8024f241a0f99fdc386c4283d31df
+  archive af0824d80023f006708fd1a764acd78178d34d2965562970333f523658546647
+Both snapshots immutable. 002 adds per-scope token identity, weak owner lifetime,
+and exact immutable completed-prefix observation. Remaining issues below are NOT
+fixed in either snapshot unless specifically identified as 001-only.
+
+Evidence actually completed
+  Clean compile/link with frozen C++20/MFEM/OpenSSL, CPU7/nice15/one job/lease.
+  Existing exact-count native suite: 368 recorded assertions and identical check
+  and local proof JSON to the exact-count baseline. The success line prints369
+  because its final assertion follows the JSON result construction.
+  39 manufactured storage/private-scope controls: nonzero authored time, exact
+  fresh-genesis restart, wrong geometry/RNG-seal refusal, legacy reaction/DKD
+  refusal, authoritative dt/2 vs rounded absolute subtraction, prepare exception,
+  stale clock/sequence, private/foreign/double token refusal, accepted observation
+  unchanged, transport census/revision, empty/fake/source/boundary receipt refusal,
+  accepted checkpoint excludes private trial, safe destroyed-owner handle in002.
+  No positive manufactured Hall receipt was fabricated. Actual Hall two-exposure
+  step and completed-step restart have NOT been executed or qualified.
+
+BLOCKERS / concrete source-level findings
+  FT-01 [001 only; fixed/tested in002]: tokens were keyed by shared outer object
+  and scope generation. Distinct sibling scopes with matching generations could
+  cross-admit a completion token. 002 gives each scope a distinct immutable token
+  identity. Private tokens still cannot publish the accepted arena.
+
+  FT-02 [001 only; fixed/tested in002]: FullOuter kept only a raw PicArena pointer.
+  Scope/trial use after owner destruction could dereference freed ownership.
+  002 checks a weak lifetime before dereferencing; native_options refers to the
+  retained immutable before-frame options. Moved-from handles retain ordinary
+  moved-from object preconditions (not a public valid empty-handle API).
+
+  FT-03 [BOTH; critical Poisson bypass]: legacy compound_impl lacks a full-time
+  refusal. Empty legacy prepare_compound_with_completion can enter legacy
+  complete_stochastic then stage(), whose !fields_current branch calls
+  solve_fields(). The resulting legacy token can publish without updating the
+  typed full-time boundary. Legacy prepare and prepare_transport do refuse, but
+  that is insufficient. Add a mode guard at both legacy compound and legacy
+  stage entry. This path was not executed during the audit hold; control flow is
+  explicit in mfem_pic_arena.cpp.
+
+  FT-04 [BOTH; private scope reentry/order]: first_exposure and second_exposure
+  do not reserve the slot when issuing a handle. Multiple handles can be issued
+  before completion. FullCollision::building is local to one handle, so another
+  sibling compound can run during a builder. It may change outer phase/frame;
+  exception cleanup restores only frame, not that phase. Need a single outer
+  active-builder/slot authority and explicit handle/generation reservation.
+
+  FT-05 [BOTH; standalone native RNG boundary gap]: completion_validate enforces
+  per-owner sequence/hash continuation and scope validates clock/duration, but
+  first.before_rng is not tied to accepted boundary.rng; two slots need not name
+  the same owner/channel; final seals.rng is only a digest rather than exactly
+  second.after_rng. The ParentSubflow wrapper checks these, but native admission
+  and semantic replay should enforce them independently. rng_sha256 means the
+  chemistry scheduler/product RNG/configuration. Future arrival RNG belongs in
+  source_sha256, unless a separately versioned per-owner map is introduced.
+
+  FT-06 [BOTH; throwing private publication]: FullTimeAccess::publish installs
+  frame/status and closes scope before constructing the final exposure receipt
+  (string/JSON/hash allocations can throw). Its noexcept facade returns false,
+  but private state may be partially advanced and unusable. Accepted state is
+  unaffected; nevertheless all allocations/validation should precede private
+  publication and then use no-throw moves/swaps only.
+
+  FT-07 [BOTH; motion envelope validation incomplete]: checks include exact
+  wrapper common/time/field seals, SHA encoding of owner_audit, census hash,
+  staged revision/prefix, existing native IDs/q/m/w, endpoint values, closed
+  endpoint geometry, cohort kinematics and finite budget values. Missing native
+  checks: recognized Hall record schema; exact required budget/path/field hash
+  schema; unique complete owner-audit endpoint IDs (size plus lookup permits a
+  duplicated audit row); native-to-field transform/path start/displacement/flight
+  consistency; explicit source/kinetic policy/species binding where applicable.
+  SHA is integrity/self-consistency, not provider authentication. Root MUST
+  preflight real Hall field/heat/motion tokens. Arbitrary JSON or a self-hashed
+  record cannot establish current/work or Gauss/energy correctness. First-hit
+  kinetic/path physics remains Hall-owned, not proved by interior endpoints.
+
+  FT-08 [BOTH; closed source seal gap]: nonempty source/boundary arrays refuse and
+  native IDs/population cannot change in motion, but source_after_sha256 may be
+  any digest even though this closed fixture has no source mutation. Require it
+  equal the accepted unchanged source seal. Heat may change only through the
+  actual provider transaction; native identity receipt is not a heat token.
+
+  FT-09 [BOTH; allocation/resource preflight]: native census/history have hard
+ 100k-carrier/4096-entry/16MiB journal/64MiB input bounds; each outer has carrier
+  and record budgets. But number of concurrent outer/scope/transport forks is
+  not capped. Each fork and token can copy full bounded vectors. Reaction result
+  carrier count and summed declared slot budgets are not checked before all
+  resulting allocations/callbacks; some refusals happen only on later census or
+  record finalization. Bound transient ownership/copies and preflight result/
+  reserved budgets. No claim of production-scale memory or history behavior.
+
+  FT-10 [BOTH; evidence gate]: completed full-time save/restore replay exists in
+  source and re-runs typed begin/C1/motion/C2/boundary operations, native reaction
+  ledgers and exact prefix/seal comparisons. Only fresh-genesis restart has run.
+  Completed-step/restart/corruption checks using genuine provider receipts remain
+  unqualified and must follow these fixes and the broader integration audit.
+
+Invariant scope that is already visible, with limits
+  Fresh genesis is an explicit authored x(t0),u(t0) mode at arbitrary finite
+  nonnegative t0. It creates one GapPic geometry/storage owner once; no per-trial
+  mesh/operator construction. It does not claim that arbitrary authored charge
+  matches an independently supplied Maxwell field. Initial total-field Gauss and
+  cross-owner configuration consistency are coordinator/provider prerequisites.
+  Private frames contain native particles/counts/IDs/journal/time; callback
+  guards tested above never changed accepted pointer/prefix. FullTimeEndpoint is
+  distinct and keyed, not relabeled legacy leapfrog. Explicit exposure is exactly
+  dt/2; ordered positive SSA offsets are checked against that operand, both live
+  and via the same replay path. Forced-kernel provenance remains non-SSA.
+  Motion changes only x/u/time for same native IDs/q/m/w; canonical Count sums and
+  shared-carrier kinematics are revalidated. q0 carriers use same owner/clock.
+  Source/boundary mutation is unsupported, not implemented physical source or
+  collection. No active-layer ownership integration or full water mechanism.
+  Final accepted token publication uses existing preflight + native vector/MFEM
+  swap and shared_ptr assignments; no callbacks/solve/filesystem/allocation are
+  intentionally placed between accepted swaps. Root must preflight all other
+  real owners; native rollback alone cannot restore another owner.
+  Save is a distinct full-time exact schema and rejects legacy relabeling. It
+  stores owner seals and native/count/history operands; hashes are not external
+  authentication. Save validation currently checks chain/current boundary, while
+  full restore replays operations. Rolling validated anchors/external receipts,
+  output-size preflight and production checkpoint cost remain future work.
+
+Next gate: parent/independent audit findings first, then explicit versioned
+corrective candidate(s), focused tests of every refusal, legacy parity and
+sanitizers. Do not treat either current archive as a qualified joint driver.
+
+Additional source-level audit findings (same hold, no execution)
+  FT-11 [BOTH; options restore object representation]: options_bytes_hex is
+  decoded with memcpy into GapPicOptions before options_equal reads bool fields.
+  A fully rehashed file with noncanonical bool bytes can cause undefined behavior
+  instead of a clean refusal. Use an explicit checked field codec for this new
+  schema; do not deserialize arbitrary bytes into bool-bearing C++ objects.
+
+  FT-12 [BOTH; native configuration prefix binding]: frame_prefix includes initial
+  declared seals, registry, metadata, native rows, allocator and time, but not
+  the actual GapPicOptions operands independently. Correct root code derives
+  mesh/config seals from those options; the standalone factory accepts declared
+  digests and cannot prove that correspondence. Bind a canonical checked native
+  option/kinetic-geometry encoding directly into its state commitment. Keep
+  field mesh identity and kinetic geometry conceptually separate.
+
+  FT-13 [BOTH; fresh authored aggregate ledger overflow]: create_full_time checks
+  individual native weighted charge/K but sums authored_charge_C and authored_K
+  directly without the aggregate finite checks in native add_authored_batch.
+  Large finite individual operands can overflow the total. Preserve that native
+  guard in fresh admission, check immutable source ledger, and bind/replay the
+  authored receipts consistently. Actual small component fixtures do not probe
+  this domain. No giant population or PIC run was executed to demonstrate it.
+
+Parent-requested remediation interface and exact history ceiling
+  After audit, a NEW corrective API candidate should expose immutable
+  PreparedArena::candidate_full_time_boundary(). Root can compare the actual
+  candidate native field/heat/source seals, time and revision against real
+  provider tokens during the single common preflight. It is not present in001
+  or002, and neither archive is changed. Making the root joint proposal opaque
+  is a separate necessary owner fix; accepting JSON hashes alone does not bind
+  a subsequently mutable field/heat proposal.
+
+  Even an empty full-time outer step writes FIVE journal entries: begin, C1,
+  motion, C2, boundary. With maximum_journal_entries=4096, an absolute ideal
+  ceiling is floor(4096/5)=819 accepted empty steps (8.19 ps at10 fs). Declared
+  future reaction budget headroom, any actual events and the16MiB byte bound
+  reject earlier. This is thousands of times too short for60ns: 60ns/10fs is
+  6,000,000 steps. Full in-memory history copies and repeated full-prefix dumps
+  add substantial growth cost before the cap. No production timing/size claim.
+  A qualified bounded checkpoint-anchor/rolling commitment plus external
+  append-only receipts is required before a long run, preserving restart local
+  conservation/phase/owner semantics. Merely increasing caps or silently dropping
+  records is not a correction.
+
+Read-only follow-up against manifest-verified intermediate001
+  FT-14 [BOTH; confirmed completed-step restart blocker]: save_full_time at
+  .inc1017 calls validate_full_time_history, which at .inc1200 calls the LEGACY
+  journal_validate. restore_full_time directly calls it at .inc1101. The validator
+  at mfem_pic_arena.cpp427/448-456 permits only reaction, native_transport and
+  stochastic_exposure; it throws "journal operation" on full_time_outer_begin
+  (and every other full_time_* kind). Thus every nonempty completed full-time
+  save/restore is impossible, before typed replay can run. This supersedes FT-10's
+  weaker unqualified-evidence wording. Empty genesis succeeds, which explains
+  why the39 storage controls did not expose it. No numerical run was needed or
+  launched to establish the direct source contradiction. The legacy validator
+  additionally derives accepted_steps/previous_dt only from native_transport,
+  so widening its kind allowlist alone cannot repair typed full-time accounting.
+  Use a separate checked full-time structural/step/dt validator and keep legacy
+  semantics intact in a future versioned remediation.
+
+  FT-11 rechecked at intermediate001 .inc1058-1063 and arena.cpp64-79: raw bytes
+  are copied into bool-bearing options before options_equal reads the booleans.
+  File hash/ABI/size checks do not establish canonical bool representation after
+  an intentionally rehashed corruption. No corruption probe or fix was run.
+
+  Final-boundary accessor rechecked: PreparedArena::Impl already retains a
+  shared_ptr<const FullTimeAcceptedBoundary> boundary_after, assigned at seal
+  before token return (.inc789). Public header109-113 exposes candidate prefix,
+  stochastic completion and exposure metadata, but no typed final boundary.
+  Proposed later API, NOT implemented in either reviewed snapshot:
+    std::shared_ptr<const FullTimeAcceptedBoundary>
+      PreparedArena::candidate_full_time_boundary() const;
+  It should expose exactly that immutable candidate seal (null for legacy/private
+  child tokens), allowing common preflight to compare real field/heat/source/RNG
+  proposal hashes, time/revision/clock with final native token metadata. An opaque
+  state hash or the two collision receipts alone cannot make that comparison.
+  Root proposal immutability and real provider token preflight remain necessary.
+
+  Evidence: read-only-follow-up-001.json verifies the three inspected source files
+  against intermediate001 source-manifest.json. Neither source snapshot changed;
+  zero new tests/integration/numerical jobs and zero source edits in this follow-up.

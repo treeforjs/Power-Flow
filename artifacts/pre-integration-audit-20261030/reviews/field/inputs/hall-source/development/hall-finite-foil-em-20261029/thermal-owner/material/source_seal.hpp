@@ -1,0 +1,2 @@
+#pragma once
+inline constexpr const char* ss304_source_seal_sha256="8fc064a3341519c8f6254f2f0e971bff6638a6d6160d69176fa00c5d1b1a17fc";

@@ -1,0 +1,92 @@
+Hall-coupled transport milestone — completed 2026-10-29
+
+A bounded executable CPU prototype passed 162 declared checks and the original
+PIC foundation suite. It combines existing Raikou/MFEM signed particle/Poisson
+components with a separate linear cold two-fluid Maxwell mode. The next
+integration candidate is concrete source, with measured results and limits.
+
+Accepted evidence: run-003 (earlier run-001/run-002 are retained).
+Source: /home/treefor/projects/runtimes/hall-coupled-transport-20261029/source
+Benchmark: development/hall-coupled-transport-20261029/benchmark.cpp
+Reproduction and mathematical formulation: README.txt
+Integration patch and remaining field/data blockers: next-integration.txt
+
+Measured results
+
+Signed uniform-field control, n_e=n_i=1e8 cm^-3, Bz=+10 T, Ex=1e5 V/m,
+physical proton/electron mass ratio; 20 electron gyroperiods:
+  Electron mean Jy: 0.160217921788 A/m^2
+  Ion mean Jy:      -0.000125043057445 A/m^2
+  Total mean Jy:    0.160092878731 A/m^2
+  Fine normalized current error: 1.6127324e-06
+B reversal reverses the currents. Time refinement is approximately second order.
+A balanced common E cross B drift gives zero relative current. These results
+measure transient kinetic relative transport; no added Hall velocity is used.
+
+Self-consistent native Poisson control, n_e=n_i=3.14207783e+14 cm^-3,
+Bx=5.68563011 T, manufactured ion mass ratio 25:
+  Mesh-refined potential L2 error at 64 cells: 0.00060639804
+  Max electron displacement error / initial amplitude: 0.00073468109
+  Max ion displacement error / (initial amplitude / 25): 0.0028981129
+  Max relative energy defect at dt=2.5 fs: 8.4524512e-07
+  Max accumulated absolute kick-work defect / initial field energy:
+    1.916408e-13
+  Max species continuity defect / gross charge over all native cases:
+    4.8133942e-17
+  Max Gauss defect / gross charge:
+    1.6298988e-17
+Potential, electron and ion waveform errors show approximately second-order
+mesh convergence. Energy error scales as dt^2. Sampling at fixed physical density
+converges toward the fixed-grid result; increasing sampling alone does not remove
+Q1 mesh error. A separate physical proton-mass case also advances both species.
+The tested restart continuation is bitwise identical for positions, proper
+velocities and accumulated work. Wrong-species and corrupt-file restarts fail.
+
+An invalid second member of a source batch rolls back; IDs and valid cached
+fields remain unchanged. A successful collocated authored electron/positive-ion
+pair deposits together and creates zero initial net field. Positive/negative
+wall charge signs and kinetic throughput also pass. These are authored source
+transactions, not simulated ionization events or water secondaries.
+
+Cold two-fluid Maxwell control with physical proton/electron mass ratio:
+  Continuum mode omega/omega_pe at k*de=0.2: 0.0193067065099
+  Finest (128 samples/wavelength) frequency relative error: 0.00018890678
+  Max relative field+species energy defect across coupled cases:
+    9.5759416e-12
+  Mesh and time convergence orders are approximately two.
+Disabling current feedback changes omega/omega_pe from approximately 0.01929 to
+0.20013 and produces a large unbalanced energy gain. Disabling Faraday also
+changes the mode and breaks the closed energy balance. The Hall-MHD frequency
+limit differs from full cold Maxwell by 4.98% at k*de=0.2 and 0.140% at k*de=0.025.
+The finite-electron-inertia/displacement-current limit must be stated explicitly.
+This is a Fourier representation of a periodic staggered-curl linear mode. Its
+identically zero divJ cannot qualify general electromagnetic particle deposition.
+
+Cost and resource scope
+
+The final benchmark used 3.408 s inside frozen userspace.
+Build, benchmark, original foundation tests, validation and plotting used one
+CPU6 job at nice15 with one thread under the shared testing-core.lock lease.
+No numerical acceptance limit was relaxed. Every populated PIC timestep retained
+the 10 fs cap and gyro/plasma/displacement checks. Dependencies were unchanged.
+No GPU execution, production run, scheduled monitor or heating-field adoption
+occurred. The frozen long PIC process and cgroup were not touched.
+
+Remaining boundary
+
+The actual mapping still lacks a coupled vector electromagnetic field state,
+compatible all-component current deposition (including Jz), field-work-adjoint
+interpolation, electromagnetic boundaries/circuit ports and an EM restart schema.
+Its prescribed native B plus 2D Poisson self field cannot represent general
+Hall-MHD induction or the resolved-drift resistive instability in the 2026 paper.
+next-integration.txt specifies the patch sequence and matched benchmark gates.
+Full H2O rates, exclusive branching, secondary laws and recoil remain unsupported
+where the existing data registry marks them missing. This prototype introduces
+no guessed rates and no instantaneous fragmentation closure.
+
+Primary reference context, with matching restrictions in next-integration.txt:
+N. Bennett et al., PRAB 24, 060401 (2021),
+https://doi.org/10.1103/PhysRevAccelBeams.24.060401
+D. R. Welch et al., PRAB 29, 093301 (2026),
+https://doi.org/10.1103/prpw-f8lt
+Neither published application is claimed to have been reproduced here.

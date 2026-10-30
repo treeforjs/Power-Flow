@@ -1,0 +1,46 @@
+{
+  "schema": "finite-foil-drive-options-v1",
+  "status": "c19_current_control_selected_by_parent",
+  "scope": "Common synchronized interval, SI, explicit field decomposition and one signed external-work ledger",
+  "no_simultaneous_independent_constraints": true,
+  "options": [
+    {
+      "id": "c19_current_control",
+      "input": "Supported C19 current I(t), plus declared clock registration and electrode terminal topology",
+      "constraints": "Axial electrode currents I_upper=+I and I_lower=-I, with a declared conduction/displacement/plasma partition at measurement ports",
+      "unknowns": "Conductor electrostatic gradients g_upper, g_lower and corresponding circuit voltages, solved together with evolving A/E/B and admitted conductivity/enthalpy",
+      "power": "Sum of terminal V_port*I_port with unique signs; all field/plasma/Joule/boundary/internal transfers are internal ledger exchanges",
+      "potential_extension": "For a short plane z_s, Phi_ext=-(z-z_s)*(g_lower+(g_upper-g_lower)*psi(x,y))+C; E_xy=(z-z_s)*(g_upper-g_lower)*grad_xy(psi), E_z=g_lower+(g_upper-g_lower)*psi. Both mixed derivatives are retained analytically, so curl E_ext=0. z_s, terminal gauge and common mode must be bound.",
+      "magnetic_evolution": "Evolve total induced field from actual signed Jxyz, including solid conductivity and plasma; do not interpolate independent A and backward-Euler rate histories",
+      "thermal_feedback": "Use same accepted midpoint conductivity and solid E for J_solid and sigma|E_solid|^2. Return per-cell joules once to enthalpy owner and use its returned material state on the next staged solve.",
+      "restriction": "A z-invariant perturbation plus analytical scalar extension is a reduced model and cannot qualify axial instabilities, finite-end fringe fields, or a general 3D Maxwell solution."
+    },
+    {
+      "id": "conditional_gap_voltage_control",
+      "input": "Conditional remembered gap pulse V_gap(t), identified as assumed rather than measured, plus short/feed geometry and common conductor potential",
+      "constraints": "One terminal voltage topology; infer electrode currents rather than additionally imposing C19 current",
+      "unknowns": "Actual conductor/current response and magnetic field from the coupled plasma/solid EM solve",
+      "power": "Voltage source work integral V_port dQ_port, including displacement and conduction at that same port exactly once; circuit inductive work must not be added again",
+      "potential_extension": "If using the old short-to-feed linear scalar ansatz, retain Phi=2Vq(psi-1/2)+V/2 and all x,y,z derivatives together. Dropping only partial_z E_xy would create a false Faraday source.",
+      "magnetic_evolution": "No independent old B waveform; evolve field and compare predicted current with C19 as evidence, not a second hard constraint",
+      "thermal_feedback": "Same-interval solid current and E supply Joule heat; preserve enthalpy/material closure and rejection domain",
+      "restriction": "The pulse is conditional and its topology/common mode require explicit binding; it does not determine all 3D conductor potentials by itself."
+    }
+  ],
+  "intermediate_pilot": {
+    "approximation": "Frozen DC magnetic supported-start initial state plus independent transverse gap-voltage port; ideal PEC conductors and z-invariant geometry",
+    "use": "Bounded incidence, Jxyz, boundary/circuit work and particle-field operator checks only",
+    "not_a_claim_of": "physical current-controlled or voltage-controlled resistive 60ns breakdown"
+  },
+  "required_before_physical_promotion": [
+    "choose one drive constraint and terminal topology",
+    "bind full scalar/inductive background representation with paired derivatives",
+    "declare gauge and initial electric/magnetic/conductor charge state",
+    "couple dynamic conductivity/enthalpy with actual same-interval Jz and Joule energy",
+    "verify current/voltage/work, Faraday/Gauss/divB, boundary energy, time/mesh/exterior refinement",
+    "retain unknown neutral/water differential rates and material phase limits"
+  ],
+  "selected": "c19_current_control",
+  "selection_instruction": "Constrain total current at a declared feed/measurement port; predict voltage; retain conduction, plasma, displacement and charge accumulation; do not enforce conditional gap pulse or solid-only current.",
+  "next_geometry": "Finite axial extension with explicit feed and short topology; z-invariant intermediate cannot close transverse-breakdown current distribution."
+}

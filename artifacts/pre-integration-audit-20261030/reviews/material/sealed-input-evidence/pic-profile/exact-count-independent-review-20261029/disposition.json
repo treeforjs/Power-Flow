@@ -1,0 +1,62 @@
+{
+  "status": "bounded_independent_review_passed_no_actionable_backend_defect_found",
+  "reviewed_source_identity": "b8a9a27e6a0fcd8c54e49dd341503fed165da460180b608aa0ae024b0436fb0e",
+  "reviewed_archive_sha256": "883ec79a67cb8462037dc1b3cb9d5a226e3a54058e4eaa30f56636296f89d755",
+  "assertions_per_mode": 1287,
+  "modes": [
+    "normal-O2",
+    "UBSan-O1-no-recover"
+  ],
+  "case_totals": {
+    "cases": 47,
+    "admitted_imports": 32,
+    "admitted_operations": 42,
+    "refused_operations": 14,
+    "lossy_or_overflow_Count2_export_refusals": 21,
+    "largest_positive_decomposition": 40
+  },
+  "normal_and_UBSan_outputs_byte_identical": true,
+  "source_current_unchanged": true,
+  "no_368_5120_or_442_matrix_rerun": true,
+  "maximum_compute_lease_s": 3.1377651691436768,
+  "source_material_contract_notes": [
+    {
+      "kind": "range-contract-clarification",
+      "text": "2098-bit exact domain includes values above DBL_MAX. Positive carriers remain exact; rounded diagnostics/Count2 export may explicitly refuse overflow. This agrees with implementation and existing range contract; callers must not require a scalar to conserve count."
+    },
+    {
+      "kind": "inherited-Count2-normalization-edge",
+      "text": "At hi=DBL_MAX, nextafter(hi,+inf)-hi is infinity, so the shared normalization predicate accepts large negative low limbs, including complete cancellation. Exact value is still conserved and export renormalizes it; this is inherited Count2 admission behavior, not silent count corruption or a new physical source admission. Tightening it needs a shared Count2 contract decision."
+    },
+    {
+      "kind": "source-material-seam",
+      "text": "Gas count uses exact positive leaves; source/adsorbed Count2 remains its own owner. Full-time source preflight must prove exact source inventory delta equals actual emitted native weights. Do not use successful gas debit/export as proof that a separate heat Count2 debit was exact. The production spatial material port can form exact atoms/mass/E from all positive native leaves without Count2 export."
+    }
+  ],
+  "source_material_note_is_not_new_backend_defect": true,
+  "production": {
+    "pid": 278902,
+    "state": "T",
+    "start_ticks": "5288339",
+    "frozen": true,
+    "exe_sha256": "cddd9f1867b50f471b6e8ce49e698c45414b568acb6e42c5a4364d5c5fb37797",
+    "signals_sent": false
+  },
+  "GPU": false,
+  "deployment": false,
+  "source_files": {
+    "review.py": "af23b6340d391431fe1691338c379b68e7334cd5ddec8663976e9f9710c214e5",
+    "probe.cpp": "a64927c252bbc2ed2bc8ae3a1b7f86d958928c2c622b10d0321d91511aaa7bdb",
+    "dyadic.hpp": "a4d0084a78a856e0425a14e8a0c003edb410635ad52aaf0d2256070fca31d5f3",
+    "vendor/nlohmann-json-LICENSE.MIT": "62176251affdda17bece4ddd44271d68019e2448ca721d2c1af4c650f29c9898",
+    "vendor/raikou/json.hpp": "9bea4c8066ef4a1c206b2be5a36302f8926f7fdc6087af5d20b417d0cf103ea6"
+  },
+  "frozen_wrapper_sha256": "d149ac9c013dd630ca11ba69a6d91b603dd715e0ca3ee41e03e00d51122faa5c",
+  "libcrypto_sha256": "a75a864dcda6ef9e4dc29fad4b7988ca832b904c3915a63c920062c40763dae1",
+  "limits": [
+    "parent-subflow integration suite owned by root",
+    "new full-time native source/motion scope",
+    "physical packet weight validity, source-rate selection or C19 physics",
+    "all allocation-failure paths and all floating environment modes"
+  ]
+}

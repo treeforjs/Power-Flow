@@ -1,0 +1,143 @@
+Native heat/source binding v2 -- integration contract
+
+Namespace electrode_heat_v2. C++20, MFEM4.10/MPI, frozen native runtime.
+Target electrode-heat-feedback-v2. Add this module once. It compiles the exact
+source-owner usable-api-v1 kernel copied under source-kernel. Alternatively set
+ELECTRODE_HEAT_SOURCE_TARGET to one existing source-owner CMake target BEFORE
+add_subdirectory; its three source/header hashes must match copied-inputs.json
+and binding_seals.hpp. Never compile/link two different source kernels.
+
+This separate package preserves generic source-snapshot-v1 unchanged. Its Coupler,
+Transfer, Budget, Packet and binary checkpoint are v2 types, not ABI-compatible
+with v1. Native thermal discretization, opaque lifetime/generation ticket guard,
+atomic prepare/preflight/commit, canonical hi/lo inventory and producer/canonical
+energy-owner watermarks are retained. New heat checkpoint magic ends04, cumulative
+ledger has19 entries. No v1 migration is implicit.
+
+Electron energy port
+Transfer.certified_source_exchange selects ONLY these weighted integrated J:
+ source_wall_J
+ source_particle_K_change_J (signed inventory state change, not fake throughput)
+ source_electron_reference_change_J
+ source_image_energy_change_J
+ source_field_work_J
+The certified equation is Qwall + dK + dRef_e + dImage = Wfield, with source-owner
+operand-scaled1e-10 arithmetic bound and no absolute energy floor. All legacy
+kinetic/reference/Nottingham/collision/authored fields must be zero in this mode.
+Only Qwall is deposited in the solid; Wfield is a separate diagnostic for the
+field/current owner. No field work is relabeled as Joule or material reference.
+Budget and cumulative indices14..18 expose these five terms in the listed order.
+Signed electron reference and image energy remain distinct from water chemistry.
+
+SourceStageBinding explicitly maps this thermal revision/time to the parent's
+positive common_state, field_state, mesh_revision, material_revision and patch_id.
+Set mesh_identity/material_hash to the actual epoch values and field_time=t_begin.
+E and B are solved one-sided total fields at that same accepted stage; source
+uses heat's actual patch-mean accepted T, material-outward normal and physical area.
+The explicit material_phase, locally planar and equilibrium-electron-supply
+admission booleans are caller decisions; no physical regime is admitted by default.
+accepted_source_stage does not falsely date held-start T at interval midpoint.
+No source law is implemented here: begin_bound_source calls the exact source-owner
+prepare/begin_layer; advance_bound_source calls advance_layer.
+
+begin_bound_source receives one sampled physical surface origin, caller weight,
+three open uniforms, event ID, Config, LayerPolicy and SourceEventIdentity. It
+returns BoundLayerTrial with state (BoundLayerState), incremental exchange, heat
+Transfer, substeps and global_paths. Origin must be on the selected physical
+patch and inside the25mm invariant height. BoundLayerState persists native
+LayerState, the same origin, patch index, geometry/material identities and kernel
+seal. advance_bound_source accepts this complete accepted state; the origin cannot
+be supplied anew. Recollection heat uses its actual displaced material point.
+
+The ONE parent particle inventory owns this electron and its native source state.
+While status is Active, evolve it through the layer only; ordinary PIC transport
+must exclude the same particle. On PICHandedOff, use current proper velocity and
+origin+position_from_surface_m, then advance the ordinary particle only over any
+remaining accepted interval. Recollected removes that same particle. Do not add
+another source population or redebit Packet.ledger on continuation: that ledger
+is birth metadata; only each returned incremental exchange is charged. LayerExchange
+and CurrentPath charge/work are already weighted; do not multiply by weight again.
+Deposit weighted path charge/displacement/time and Wfield once in the field owner's
+compatible current/work path. Preserve zero-duration quantum bridge displacements;
+they are not divided by a fictitious flight time. Common interval averaging belongs
+to the parent. The wrapper verifies path work q*E dot dx before translating positions.
+
+collected_source_heat receives ACTUAL WEIGHTED incoming kinetic J and physical
+weight. It divides by weight exactly once to call source-owner collection (whose
+argument is per-particle K), then returns weighted certified operands. It does not
+invent reflection, secondary emission or partial accommodation.
+
+All wrappers are pure. Parent prepares particle, field/current, charge/reference,
+heat and gas changes; rejects every candidate on failure; preflights all owners;
+then publishes together. Thermal commit alone is not a full coupled commit.
+write_bound_layer_state/read_bound_layer_state serialize explicit fields without
+object padding, plus the kernel seal, into a parent-owned checkpoint stream.
+Checkpoint this full payload atomically with thermal state and global particle,
+charge/reference/current ledgers. Payload is native local binary format, not a
+cross-platform archival format. Root owns full multi-component crash consistency.
+
+Material v2
+conditional_ss304_v2 requires explicit ss304v2::Qualification, fixed-reference
+Cp-as-Cv density convention, positive rho_ref and owner provenance seal. The actual
+compiled header seal also enters the thermal callback contract/signature. Options:
+ evaluated_solid_1500:298.2..1500K
+ nominal_1800:298.2..1800K
+ source_conditioned_liquid_3000:298.2..3000K conditional liquid alternative
+Direct sealed-owner h, capacity, k, sigma, phase and liquid fraction are used.
+Tiny enthalpy increments integrate capacity without subtracting large prefixes,
+splitting300/1672/1727/1800K. No temperature clamp/extrapolation. Cold reference h<0
+is valid. Density8000kg/m3 in tests is an explicit nominal model choice. Hot liquid
+transport/thermodynamics are conditional source synthesis, not measured foil data.
+This adapter retains fixed mass and geometry. Separate metal-vapor and reversible
+mechanics adapters must own their signed transfers; do not duplicate their latent,
+recoil or mechanical work here. The773.15K mechanics support limit is unchanged.
+
+H2O state/reference port
+oxide_water_patch binds actual caller gas-state/parent IDs and canonical registry
+mass; it cannot choose a different molecular state on the caller's behalf. One
+finite local pool is a physical partition of one adsorbed water state. No four
+independent .8eV water reservoirs are introduced. Read water-scenario-v2.json for
+literature facts, authored assumptions, sensitivity choices and regime selection.
+Reviewed300To1300 rejects remaining water outside its data range. The alternative
+ConditionalAnalytic298To3000 is an explicitly selected analytical continuation
+with unchanged ideal oxide surface; it is not additional MD support. Parent must
+jointly admit its surface/material hypothesis. Clean4.3eV electron and oxide-water
+models are not one measured microscopic surface calibration.
+
+Gas H2O reference is0. Packet.reference_J is0. Packet.adsorbed_reference_change_J
+is a diagnostic of the adsorbed reservoir change, NEVER a transported gas reference
+or fragment debit. Negative adsorbed reference is
+ Uads(N)=-Eb0*q_e*[N-alpha_ref*N*N/(2*N_ML)].
+Removing actual dN raises it by
+ dUads=Eb0*q_e*dN*[1-alpha_ref*(theta_before+theta_after)/2].
+Solid heat loses actual packet K + specified internal energy + dUads once. The
+activation barrier is not an extra energy cost. Budget.adsorbed_reference_change_J
+and cumulative[8] record dUads. Canonical hi/lo N and the sealed law determine the
+reservoir, so no second independent reference state evolves. Exposed long-double
+adsorbed_reference_energy_J is a diagnostic, not a scalar gas-inventory conversion;
+use stable per-transfer dUads and compensated global energy sums for tiny changes.
+Packet carries neutral charge0, actual mass/proper velocity and kinetic energy.
+wall_support_impulse_N_s is negative actual weighted m*u. Fixed infinite-mass
+support has no invented recoil kinetic heat. A finite moving support must route
+its real work through the mechanics owner. Mean2kT is diagnostic only.
+
+Temperature and coverage are held at accepted start for each frozen Temkin hazard.
+Coverage is N/(n_ML*A), never N/N_initial. Prefactor is chosen canonical Eyring kBT/h.
+Binding integration uses the finite-step exact selected reservoir difference;
+coverage/rate feedback is first-order and must be interval-refined. No RNG, source
+floor, resampling, depletion clamp or hidden state is introduced. Parent must retain
+inventory limbs and add actual emitted weights to its canonical gas inventory.
+
+Evidence scope
+v2-final-checks is native component evidence, with actual sealed source calls,
+material callbacks, heat/current/reference partitions, magnetic return, disk heat
+and typed layer-payload restart, source-temperature feedback, water conservation,
+subULP inventory, range rejection, interval refinement and parameter sensitivity.
+Source packet weight1e9 in manufactured interface tests makes thermal increments
+resolvable; it is NOT a predicted source event count/current. Strong-B return tests
+explicitly use the source owner's .3 manufactured barrier criterion; production
+selection remains the nominal .2 unless the parent separately qualifies it.
+The water sensitivity history is a controlled700K component case, not C19 evolution.
+Root selected measured C19 total-current drive; this package imposes no110kV bias.
+No GPU/production run, full coupled physical breakdown, whole-driver conservation,
+transport accuracy or experimental calibration is claimed.

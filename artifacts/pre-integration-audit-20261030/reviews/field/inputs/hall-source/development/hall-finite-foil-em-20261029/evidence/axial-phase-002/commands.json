@@ -1,0 +1,166 @@
+[
+  {
+    "label": "build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/usr/bin/c++",
+      "-std=c++20",
+      "-O2",
+      "-DNDEBUG",
+      "-I/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/include",
+      "-I/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/src",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/src/mfem_gap_pic.cpp",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/axial_benchmark.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build-axial-foil-em/axial_foil_em",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so"
+    ],
+    "elapsed_s": 12.985135455994168,
+    "returncode": 0,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease": true
+  },
+  {
+    "label": "benchmark",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build-axial-foil-em/axial_foil_em",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/finite-foil-em/axial-phase-002"
+    ],
+    "elapsed_s": 2.5687330100045074,
+    "returncode": 0,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease": true
+  },
+  {
+    "label": "refinement",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build-axial-foil-em/axial_foil_em",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/finite-foil-em/axial-phase-002",
+      "refinement"
+    ],
+    "elapsed_s": 23.810271594004007,
+    "returncode": 0,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease": true
+  },
+  {
+    "label": "full",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build-axial-foil-em/axial_foil_em",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/finite-foil-em/axial-phase-002",
+      "full"
+    ],
+    "elapsed_s": 0.5655445779993897,
+    "returncode": 0,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease": true
+  },
+  {
+    "label": "split",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build-axial-foil-em/axial_foil_em",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/finite-foil-em/axial-phase-002",
+      "split"
+    ],
+    "elapsed_s": 0.4660917160072131,
+    "returncode": 0,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease": true
+  },
+  {
+    "label": "resume",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build-axial-foil-em/axial_foil_em",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/finite-foil-em/axial-phase-002",
+      "resume"
+    ],
+    "elapsed_s": 0.6145131030061748,
+    "returncode": 0,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease": true
+  },
+  {
+    "label": "independent-energy",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/usr/bin/python3",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/verify_axial_energy.py",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/finite-foil-em/axial-phase-002"
+    ],
+    "elapsed_s": 0.3660814839968225,
+    "returncode": 0,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease": true
+  }
+]

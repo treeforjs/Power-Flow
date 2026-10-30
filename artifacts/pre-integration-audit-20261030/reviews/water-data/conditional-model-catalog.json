@@ -1,0 +1,333 @@
+[
+  {
+    "id": "parent_ground_equal_pair_CM_v1",
+    "channel": "H2O:ion_yield:H2O+",
+    "admission": "explicit opt-in only; not a measured differential kernel",
+    "data_support_eV": [
+      13.5,
+      1000
+    ],
+    "products": {
+      "e_g": 2,
+      "H2Op": 1
+    },
+    "parent_debit": 1,
+    "chemical_reference_gain_eV": 12.621,
+    "target": "stationary ground-state gas H2O; initially unexcited parent",
+    "final_state": "ground intact H2O+; ignores actual parent-ion internal excitation",
+    "kinematics": "exact relativistic CM boost; equal-energy back-to-back electron pair, ion at rest in CM; isotropic pair axis from host RNG",
+    "ion_mass_convention": "M_ion=M_neutral-m_e+12.621eV/c^2; chemical reference ledger represents this mass defect, not a second heat source",
+    "limitations": [
+      "does not reproduce measured secondary spectrum/angles or vibrational branching",
+      "not eligible above1keV or in12.621-13.5eV table gap",
+      "no dissociative/double/core ionization or neutral fragmentation",
+      "host owns RNG, macro splitting, inventory checks, atomic staging/restart/rollback"
+    ]
+  },
+  {
+    "id": "Hminus_Ram65_factorized_window_v1",
+    "channel": "H2O:attachment_yield:Hminus",
+    "admission": "explicit conditional near-anchor extension",
+    "data_support_eV": [
+      6.25,
+      6.75
+    ],
+    "empirical_anchor_eV": 6.5,
+    "experimental_beam_resolution_eV": 0.5,
+    "products": {
+      "Hm": 1,
+      "OH_X_v": 1
+    },
+    "parent_debit": 1,
+    "electron_capture": 1,
+    "chemical_reference_gain_eV": 4.35,
+    "source": [
+      "song2021",
+      "ram2010",
+      "nist_OH"
+    ],
+    "angular": {
+      "model": "Ram2010_Eq4_B1_pd",
+      "a": 1.0,
+      "b": 0.31,
+      "phase_rad": 3.139,
+      "frame": "target-rest laboratory Hminus direction; exact inverse CM boost for each selected vibrational state",
+      "expression": "I(mu)=(1-mu^2)*(A+B*mu^2+C*mu), A=2a^2+.96b^2, B=1.2b^2, C=4.2ab*cos(delta)",
+      "measure": "I is differential intensity; sample I(mu)dmu and uniform azimuth, not uniform theta"
+    },
+    "OH_vibrational_relative_intensities": [
+      1.0,
+      0.82,
+      0.57,
+      0.32,
+      0.25
+    ],
+    "OH_X_G_cm1_coefficients": [
+      3737.761,
+      -84.8813,
+      0.5409,
+      -0.02134,
+      -0.00113
+    ],
+    "OH_vibrational_energy_convention": "(G(v+1/2)-G(1/2))*hc in eV; v0..4",
+    "h_c_eV_cm": 0.00012398419843320026,
+    "mass_convention": "M_OH(v)=M_H2O+me+(4.35eV+E_v)/c2-M_Hminus; host binds the same immutable species/state mass basis",
+    "kinematics": "exact relativistic two-body breakup and CM boost; consumed electron, one Hminus and one OH(X,v), matched represented weights",
+    "assumptions": [
+      "hold6.5eV vibrational/angular fit only over explicitly selected6.25..6.75eV conditional window",
+      "factorize energy-integrated angular fit and fitted vibrational populations; correlations unresolved",
+      "reported v0..4 fit closes this reduced model; unobserved high-v tail not independently bounded",
+      "OH rotational/spin-orbit structure and Gaussian instrumental widths unresolved; no extra rotational energy assigned",
+      "external field action during transient anion lifetime omitted"
+    ],
+    "exclusions": [
+      "OH excited-electronic/three-body branches",
+      "no applicability at8.5 or12eV resonances",
+      "not a full attachment or breakdown mechanism"
+    ]
+  },
+  {
+    "id": "OHminus_ground_isotropic_CM_v1",
+    "channel": "H2O:attachment_yield:OHminus",
+    "data_support_eV": [
+      4.5,
+      12.5
+    ],
+    "products": {
+      "OHm_X_v0": 1,
+      "H_1s": 1
+    },
+    "parent_debit": 1,
+    "electron_capture": 1,
+    "chemical_reference_gain_eV": 3.27,
+    "source": [
+      "song2021",
+      "ram2010",
+      "melton1972"
+    ],
+    "differential_model": "Ground-state OHminus+H with host-supplied isotropic CM axis; exact relativistic two-body breakup and target-rest lab boost",
+    "mass_convention": "M_OHminus=M_H2O+me+3.27eV/c2-M_H; host must bind the same immutable state mass basis",
+    "assumptions": [
+      "all OHminus assigned ground vibration/rotation/electronic state; maximum-translational-energy conditional endpoint",
+      "CM angular distribution isotropic; no measured angular calibration",
+      "no reliability bound on review-renormalized OHminus magnitude; very weak and historically disputed channel"
+    ],
+    "exclusions": [
+      "not an experimental product energy spectrum",
+      "no high-energy zero outside supported curve",
+      "not a complete water mechanism"
+    ]
+  },
+  {
+    "id": "A1B1_fixed_loss_dipole_ground_v1",
+    "channel": "H2O:electronic_A1B1",
+    "data_support_eV": [
+      9.0,
+      977.7
+    ],
+    "products": {
+      "e_g": 1,
+      "H_1s": 1,
+      "OH_X_v0": 1
+    },
+    "parent_debit": 1,
+    "electron_net_gain": 0,
+    "fixed_excitation_eV": 7.49,
+    "chemical_reference_gain_eV": 5.1,
+    "source": [
+      "song2021",
+      "hargreaves2012"
+    ],
+    "angular_model": "Born/dipole-shaped CM electron density proportional to1/(pi^2+pf^2-2pi*pf*mu); uniform azimuth; host isotropic excited-rest H direction",
+    "kinematics": "exact two-body excitation e+H2O -> e+H2Ostar then prompt two-body H2Ostar -> H+OH, with exact Lorentz boosts; intermediate is not retained or separately heated",
+    "mass_convention": "Mstar=M_H2O+7.49eV/c2; M_OH=M_H2O+5.10eV/c2-M_H; immutable common host state mass basis required",
+    "assumptions": [
+      "unit prompt H+OH(X) branching for the selected repulsive A1B1 molecular state",
+      "fixed7.49eV energy-loss line replaces the broad source continuum; no measured differential loss spectrum claimed",
+      "Born/dipole-shaped electron angle is approximate, especially near9eV; not the measured full angular table",
+      "OH internal energy set tozero; isotropic breakup is a maximum-translation conditional endpoint; rotation/vibration/recoil correlations unresolved"
+    ],
+    "sensitivity": [
+      "compare other excitation-line losses/product internal-state choices under a separate version; do not tune against coupled results"
+    ],
+    "overlap_exclusions": [
+      "do not also sample the inclusive neutral OH yield or the same A1B1 excitation as another event",
+      "aggregate inelastic/stopping observables overlap this channel"
+    ],
+    "exclusions": [
+      "not complete neutral dissociation",
+      "no extrapolation beyond977.7eV",
+      "not a complete8keV water mechanism"
+    ]
+  },
+  {
+    "id": "outer3_BEB_Tan_parent_v1",
+    "channel": "H2O:conditional_outer3:parent",
+    "data_support_eV": [
+      1000.0,
+      10000.0
+    ],
+    "products": {
+      "e_g": 2,
+      "H2Op": 1
+    },
+    "parent_debit": 1,
+    "electron_net_gain": 1,
+    "chemical_reference_gain_eV": 12.621,
+    "fixed_fragmenting_hole_eV": null,
+    "assumptions": [
+      "outer3BEB rates approximate isolated single-vacancy production at high energy",
+      "1b1/3a1 parent branches1.0;1b2 parent/OHp/Hp branches.08/.70/.22; no2a1 branch sampled",
+      "ground final species; parent equal-energy back-to-backCM electron pair; fragment branches have equal-energy back-to-backCM electrons and fixed19.83eV virtual ion followed by isotropic ground-product breakup",
+      "not a measured joint secondary/angle/internal/recoil distribution"
+    ],
+    "exclusions": [
+      "positive unmapped2a1 rate retained",
+      "oxygen core, double/triple ionization and Auger omitted",
+      "not a complete8keV water mechanism"
+    ]
+  },
+  {
+    "id": "outer3_BEB_Tan_OHp_H_v1",
+    "channel": "H2O:conditional_outer3:OHp_H",
+    "data_support_eV": [
+      1000.0,
+      10000.0
+    ],
+    "products": {
+      "e_g": 2,
+      "OHp_X_ground": 1,
+      "H_1s": 1
+    },
+    "parent_debit": 1,
+    "electron_net_gain": 1,
+    "chemical_reference_gain_eV": 18.116999999999997,
+    "fixed_fragmenting_hole_eV": 19.83,
+    "assumptions": [
+      "outer3BEB rates approximate isolated single-vacancy production at high energy",
+      "1b1/3a1 parent branches1.0;1b2 parent/OHp/Hp branches.08/.70/.22; no2a1 branch sampled",
+      "ground final species; parent equal-energy back-to-backCM electron pair; fragment branches have equal-energy back-to-backCM electrons and fixed19.83eV virtual ion followed by isotropic ground-product breakup",
+      "not a measured joint secondary/angle/internal/recoil distribution"
+    ],
+    "exclusions": [
+      "positive unmapped2a1 rate retained",
+      "oxygen core, double/triple ionization and Auger omitted",
+      "not a complete8keV water mechanism"
+    ]
+  },
+  {
+    "id": "outer3_BEB_Tan_Hp_OH_v1",
+    "channel": "H2O:conditional_outer3:Hp_OH",
+    "data_support_eV": [
+      1000.0,
+      10000.0
+    ],
+    "products": {
+      "e_g": 2,
+      "Hp": 1,
+      "OH_X_v0": 1
+    },
+    "parent_debit": 1,
+    "electron_net_gain": 1,
+    "chemical_reference_gain_eV": 18.698439999999998,
+    "fixed_fragmenting_hole_eV": 19.83,
+    "assumptions": [
+      "outer3BEB rates approximate isolated single-vacancy production at high energy",
+      "1b1/3a1 parent branches1.0;1b2 parent/OHp/Hp branches.08/.70/.22; no2a1 branch sampled",
+      "ground final species; parent equal-energy back-to-backCM electron pair; fragment branches have equal-energy back-to-backCM electrons and fixed19.83eV virtual ion followed by isotropic ground-product breakup",
+      "not a measured joint secondary/angle/internal/recoil distribution"
+    ],
+    "exclusions": [
+      "positive unmapped2a1 rate retained",
+      "oxygen core, double/triple ionization and Auger omitted",
+      "not a complete8keV water mechanism"
+    ]
+  },
+  {
+    "id": "IAM_NIST64_piecewise_mu_elastic_v1",
+    "channel": "H2O:conditional_IAM_NIST64:elastic",
+    "data_support_eV": [
+      1000,
+      10000
+    ],
+    "products": {
+      "e_g": 1,
+      "H2O_g": 1
+    },
+    "parent_debit": 1,
+    "electron_net_gain": 0,
+    "chemical_reference_gain_eV": 0,
+    "assumptions": [
+      "incoherent O+2H free-atom DCS; exact molecule recoil at unchanged H2O mass",
+      "source target-rest scattering angle sampled in dcos(theta) with uniform azimuth; not silently reinterpreted as a CM distribution",
+      "piecewise-linear angular interpolation in cos(theta), linear incident-energy interpolation between official1keV anchors",
+      "rate is the integral of this numerical DCS, not the rounded source total or a rescaled Mu\u00f1oz curve",
+      "rotation/vibration/internal excitation omitted from this elastic-only channel"
+    ],
+    "exclusions": [
+      "below1keV and above10keV remain unsupported",
+      "not a full water chemistry or electron-transport mechanism"
+    ]
+  },
+  {
+    "id": "deep2a1_BEB_Montenegro15_Auger_OHp_Hp_v1",
+    "channel": "H2O:conditional_2a1:Auger_OHp_Hp",
+    "data_support_eV": [
+      1000,
+      10000
+    ],
+    "products": {
+      "e_g": 3,
+      "OHp_X_ground": 1,
+      "Hp": 1
+    },
+    "parent_debit": 1,
+    "electron_net_gain": 2,
+    "chemical_reference_gain_eV": 31.715439999999997,
+    "fixed_fragmenting_hole_eV": 36.88,
+    "assumptions": [
+      "Original2a1 BEB term approximates primary single-hole production, independent of its post-collision autoionization",
+      "Montenegro2015 asymptotic matrix fraction held over selected1..10keV electron conditional domain",
+      "fixed36.88eV hole line is the frozen BEB parameter, not measured inner-valence spectral distribution",
+      "initial primary/secondary equal-energy back-to-backCM pair, virtual cation at rest in totalCM",
+      "post-hole ground-product energy sharing follows nonrelativistic constant-matrix-element phase space, with exact relativistic two-body decays and boosts",
+      "isotropic sequential decay axes; no measured Auger/internal/angular/recoil joint spectrum",
+      "Auger and breakup collapsed into one collision-site event; isolated gas, no external-field work or collisional quenching during the transient"
+    ],
+    "exclusions": [
+      "prompt Hplus58percent and Oplus15percent remain positive unmapped channels",
+      "not a complete valence or all-shell mechanism"
+    ]
+  },
+  {
+    "id": "deep2a1_BEB_Montenegro15_Auger_Op_Hp_H_v1",
+    "channel": "H2O:conditional_2a1:Auger_Op_Hp_H",
+    "data_support_eV": [
+      1000,
+      10000
+    ],
+    "products": {
+      "e_g": 3,
+      "Op_4S_ground": 1,
+      "Hp": 1,
+      "H_1s": 1
+    },
+    "parent_debit": 1,
+    "electron_net_gain": 2,
+    "chemical_reference_gain_eV": 36.716494999999995,
+    "fixed_fragmenting_hole_eV": 36.88,
+    "assumptions": [
+      "Original2a1 BEB term approximates primary single-hole production, independent of its post-collision autoionization",
+      "Montenegro2015 asymptotic matrix fraction held over selected1..10keV electron conditional domain",
+      "fixed36.88eV hole line is the frozen BEB parameter, not measured inner-valence spectral distribution",
+      "initial primary/secondary equal-energy back-to-backCM pair, virtual cation at rest in totalCM",
+      "post-hole ground-product energy sharing follows nonrelativistic constant-matrix-element phase space, with exact relativistic two-body decays and boosts",
+      "isotropic sequential decay axes; no measured Auger/internal/angular/recoil joint spectrum",
+      "Auger and breakup collapsed into one collision-site event; isolated gas, no external-field work or collisional quenching during the transient"
+    ],
+    "exclusions": [
+      "prompt Hplus58percent and Oplus15percent remain positive unmapped channels",
+      "not a complete valence or all-shell mechanism"
+    ]
+  }
+]

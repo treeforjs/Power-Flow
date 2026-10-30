@@ -1,0 +1,72 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5aaa546..9aee6da 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -122,6 +122,7 @@ if(RAIKOU_BUILD_TESTS)
+   if(RAIKOU_BUILD_RUNTIME)
+     list(APPEND raikou_tests collision_elastic_angular)
+     list(APPEND raikou_tests collision_deep_valence)
++    list(APPEND raikou_tests fragment_hydrogen)
+     list(APPEND raikou_tests collision_data collision_events collision_two_body collision_dissociation collision_outer_valence chemistry distributed_chemistry json_collective eedf distributed_eedf electron_coupling_options coupled_collective angular_kinetics spherical_operator spherical_coupling kinetic_rz kinetic_refinement spatial spatial_mesh spatial_partition spatial_kinetics spatial_kinetic_adapter spatial_distributed spatial_distributed_json spatial_preflight spatial_circuit spatial_electrical spatial_barycentric spatial_thermal_ledger)
+   endif()
+   foreach(test IN LISTS raikou_tests)
+@@ -148,6 +149,9 @@ if(RAIKOU_BUILD_TESTS)
+     if(test STREQUAL "collision_deep_valence")
+       target_compile_definitions(raikou_test_collision_deep_valence PRIVATE RAIKOU_TEST_H2O_DEEP="${CMAKE_CURRENT_SOURCE_DIR}/data/collisions/h2o-gas-20261029-deep-valence.json")
+     endif()
++    if(test STREQUAL "fragment_hydrogen")
++      target_compile_definitions(raikou_test_fragment_hydrogen PRIVATE RAIKOU_TEST_H_FRAGMENT="${CMAKE_CURRENT_SOURCE_DIR}/data/collisions/H-1s-ionization-20261029.json")
++    endif()
+     add_test(NAME raikou.${test} COMMAND raikou_test_${test})
+   endforeach()
+   if(RAIKOU_BUILD_RUNTIME)
+diff --git a/docs/h2o-collision-data.md b/docs/h2o-collision-data.md
+index 1a34635..a2cdaf4 100644
+--- a/docs/h2o-collision-data.md
++++ b/docs/h2o-collision-data.md
+@@ -392,3 +392,45 @@ The pinned native suite tests source fractions without renormalization,
+ three-electron/ion/neutral inventories, phase-space CDF/density/moments, all
+ product mass shells, shared mass references and rejected unsupported inputs.
+ No full mechanism, chemistry/PIC evolution or GPU execution is established.
++
++## Ground-H fragment continuation: package v8
++
++`H-1s-ionization-20261029.json` is a **separate ground-state atomic-H target**
++freeze. Water data v7 remain byte-identical. Official NIST1s constants are
++B=U=13.6057eV, N=1 and Q=0.5668. The general Q-dependent BEB Eq1 is used with
++the same NIST a0/R constants; the more detailed BED secondary spectrum is not
++imported. Seven65-digit Decimal formula evaluations are computational oracles,
++not measured cross sections or a claim of reproducing the online CGI outputs.
++
++`hydrogen_fragment_ionization.h` exposes `HydrogenFragmentIonizationData::read`,
++`ionization_cross_section_m2(E_target_rest_eV)`, physical-weight `coverage`, and
++`strict_rate_m3_s`. Positive rate/event support is **14-10000eV**. Energies
++at/below13.59844eV have a known forbidden ionization reference; the unresolved
++positive13.59844-14eV threshold interval and all energies above10keV are refused,
++never filled with zero or endpoint-held. Uncovered electrons stay in the rate
++denominator. The source's general near1keV model accuracy is not promoted into
++a new10keV error guarantee.
++
++`conditional_H1s_ionization_products(data,"H1s_NIST_BEB_equal_pair_CM_v1",
++E_eV,W,MH,beam_unit,CM_e_pair_unit)` returns `ConditionalParentProducts` for
++e+H(1s)->2e+Hplus. With only one bound target electron, its ionization products
++have no molecular-fragment branching ambiguity. The equal-energy back-to-back
++CM pair and proton-at-rest-CM law remain an explicit differential comparison
++assumption, with exact relativistic boost/recoil. This is ground protium only;
++the API rejects molecular/deuterium-scale target masses.
++
++The host debits **one atomic H**, not a water parent, and replaces the incident
++electron with two outgoing electrons at matched weight W. The actual H(1s)
++inventory supplies its target density. H and water hazards can compete for
++the same PIC electrons without introducing another electron inventory.
++The proton mass MH-me+13.59844eV/c2 matches the existing shared source-rounded
++water fragment catalog. Count chemical reference once per physical H event;
++scale every returned kinetic/reference energy by W once. Host ownership of
++cohort splitting, RNG, transforms, deposition and atomic rollback is unchanged.
++
++Run `tools/test_hydrogen_fragment.sh` for its pinned CPU7/one-thread checks.
++`h2o-collision-port-v8.json` declares both immutable datasets and the new target
++contract. This does not supply H excitation/elastic scattering, recombination,
++other fragment targets or the remaining water mechanism. Source leads for
++vibrational-ground H2Oplus dissociative recombination are retained externally;
++their thermal coefficients are not substituted for nonthermal PIC rates.

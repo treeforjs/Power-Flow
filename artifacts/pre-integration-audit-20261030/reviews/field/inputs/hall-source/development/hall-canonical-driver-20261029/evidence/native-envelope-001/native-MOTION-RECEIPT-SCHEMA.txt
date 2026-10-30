@@ -1,0 +1,24 @@
+Draft versioned arena transport identity envelope (not physics certification):
+transport_receipts is an object containing exactly:
+ schema: "arena_total_field_motion_receipt_v1"
+ transport_trial_sha256: actual provider trial digest, ==motion binding
+ common_clock_sha256: ==common binding
+ mesh_sha256: ==common binding (includes canonical field-frame transform)
+ field_before_sha256, field_after_sha256: ==motion binding
+ begin_s,end_s,dt_s: exact authoritative common operands
+ owner_audit: actual nonempty Hall transport/current/work audit object
+
+The arena validates identity/clock/hash binding, finite endpoint x/u, exact old
+native IDs/mass/charge/weight and packet correspondence, unchanged Count/native
+carrier sums and coherent carrier kinematics. It does NOT certify Hall field
+current/work numbers by accepting arbitrary JSON. Root must preflight the actual
+qualified field/heat provider tokens and global ledgers. owner_audit must be that
+actual provider receipt; no manufactured positive endpoint/physics receipt is
+needed or accepted as integrated-driver evidence.
+
+source_receipts and boundary_receipts initially must be empty arrays; any change
+in population/ownership is an explicit unsupported scope gate. No silent drop,
+source minting, image-layer freeze/duplicate push, or wall crossing is admitted.
+Motion endpoints may be supplied in any order; ID correspondence is checked and
+native storage order retained. Every transport fork starts from the exact same
+completed first-exposure private state, with no MFEM mesh/operator creation.

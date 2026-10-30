@@ -1,0 +1,361 @@
+Closed parent joint integration: read-only contract audit
+
+Disposition: HOLD. This is not a qualified full integration or a plasma run.
+No joint test, field solve, PIC step, GPU work, compilation, or production action
+was performed for this audit. The only executed probe was primitive binary64
+midpoint arithmetic, without loading the native or Hall operators.
+
+Inputs and evidence
+-------------------
+The immutable audit copy is:
+  /home/treefor/projects/runtimes/pic-closed-parent-joint-tests-20261029/audit-snapshot
+All line numbers below refer to files within that copy. bindings.json records
+the exact original path, copied path, bytes and SHA256 for every inspected input.
+No staged or sealed input was edited. Root native source identity is
+bc44576f9115e79e7c7978796ed95f8075613a3a09d3044325842516fa137306,
+intermediate-001 archive SHA256
+233b91a984f581d506e991b5e1a7c0f0db540e11660116b024574c6169a25600.
+The staged ParentSubflow header is 87f7b13d..., coordinator b83f3892....
+Hall numerical ports are the sealed 8ea1798 archive; corrected caller-only
+helpers are recorded separately under corrected-hall-caller. The stale helper
+inside the original archive is preserved. The coordinator's versioned
+arena_total_field_motion_receipt_v1 envelope, actual motion_record owner_audit,
+and actual MotionReceipt::seal_sha256 are the agreed native admission contract.
+No bare Hall record or staged-prefix substitution is proposed.
+
+Findings requiring disposition before joint execution
+-----------------------------------------------------
+F1 HIGH: a legacy compound entry point can reach native Poisson in full-time mode.
+  native/source/src/mfem_pic_arena.cpp:1334-1358 admits compound_impl without
+  refusing full_time_boundary_. An empty builder satisfies its ordinary checks;
+  line 1424 then calls stage. stage:711-712 calls solve_fields when fields_current
+  is false. Full-time genesis deliberately makes that flag false and clears
+  native potential (mfem_pic_full_time.inc:899-902). Thus prepare()/transport's
+  direct full-time refusals do not close the legacy compound route. Even a
+  no-event legacy compound can invoke the forbidden operator. The selected root
+  coordinator uses CollisionScope and does not call this route, but public mode
+  separation and the intended legacy-refusal test are incomplete.
+  Remedy: reject full-time mode at every legacy compound/stage entrance before
+  callback or native mutation; retain zero-call linker traps for all old entry
+  points, including no-op compounds. This is static call-path evidence; the
+  forbidden solve was not invoked here.
+
+F2 HIGH: common preflight does not bind mutable proposed field/heat to native seals.
+  parent/source/closed_parent_joint_step.hpp:15-20 exposes the mutable
+  field_heat proposal. Lines89-110 seal hashes of its then-current field/heat in
+  the native token. Common preflight:122-130 subsequently checks accepted source,
+  native token, parent RNG and Hall preflight. Hall axial_joint_v2.hpp:72-76
+  checks accepted field/heat, saved census, and thermal token ownership, but not
+  proposed field values, endpoint time/revision, or proposed heat-state hash
+  against the native token's immutable boundary audit.
+  Example consequence: after successful prepare, changing
+  trial.field_heat->field.time_s (or a field coefficient) leaves those preflight
+  predicates unchanged. Publication can install that changed field while the
+  native boundary retains the previously sealed hash/time. This is a direct
+  source-level counterexample; no actual joint proposal was executed to exhibit
+  it. The corrected Hall caller has the same preflight gap.
+  Remedy: make the publishable proposal immutable, or preflight recomputed
+  proposed field/heat hashes and endpoint clocks against the immutable native
+  token's boundary audit, plus motion midpoint identity. Keep the no-throw swap
+  barrier. Add deliberate proposal-mutation refusals with all owners unchanged.
+
+F3 HIGH at the native primitive boundary: starting/cross-slot/final RNG seals
+  are not independently enforced by intermediate-001.
+  mfem_pic_full_time.inc:154-171 checks each explicit half-exposure and its
+  completion metadata. completion_validate (arena.cpp:1473-1504) checks a prior
+  completion for the SAME owner if present; initial stage 0 accepts any digest.
+  The native first exposure does not require its before_rng_clock hash to equal
+  accepted boundary.rng_sha256. The second exposure need not select the same
+  completion owner as first, and seal:737-764 only requires a digest for the
+  final rng_sha256, rather than equality with the second actual completion.
+  Closed ParentSubflow currently supplies stronger checks at :385-475, and the
+  coordinator passes its staged second RNG hash. That caller is consistent,
+  but native admission/restore alone does not establish the advertised chain.
+  Remedy: enforce initial accepted RNG, same integration owner, consecutive
+  exposure sequence, first-after/second-before, and final-second-after natively;
+  retain ParentSubflow's opaque exposure-key checks as an independent barrier.
+
+F4 MEDIUM, numerical contract: Hall motion midpoint and Maxwell receipt midpoint
+  can differ when compensated low field components are nonzero.
+  Hall axial_joint_v2.hpp:44-46 computes .5*(accepted.E+proposed.E) and analogous
+  high B. axial_fields.hpp:150-179 retains E_low/B_low and computes receipt.mid_E
+  using old high+low+half increment. Identical rounded high midpoint iteration
+  at joint:58 does not establish equality with that compensated receipt field.
+  arithmetic-counterexample.json gives a one-ULP E difference for old_high=1,
+  old_low=2^-54, increment=2^-52. It is not a measured error in the actual C19
+  fixture, an energy tolerance, or evidence of accumulated physical error.
+  The existing particle/Maxwell work guard can reject a discrepancy but does not
+  make the two field definitions identical. Source-v3 must share the actual same
+  physical midpoint, not a separately rounded or low-part-omitting field.
+  Remedy: obtain a Hall-owner definition/disposition for the authoritative
+  compensated midpoint; test nonzero low parts. Do not loosen work guards.
+
+F5 MEDIUM, genesis scientific gate: hashes do not establish absolute Gauss closure.
+  Native create_full_time:847-939 accepts authored charge plus a field digest;
+  it does not examine the actual EM field or deposit its initial charge.
+  Hall Fields::start (axial_fields.hpp:130-131) is the current-driven DC start.
+  Fields::prepare:176-181 checks Gauss INCREMENTS; it preserves any preexisting
+  absolute charge/field defect. An authored electron+neutral fixture has net
+  negative charge unless an explicit compensating population/field is supplied.
+  A small charge or passing incremental residual is not an absolute Gauss proof.
+  Remedy: independently report initial vacuum nodal charge versus divergence of
+  total initial E, with conductor/outer boundary ownership stated; create an
+  explicitly charge-consistent manufactured fixture or label the retained
+  defect. No extra Poisson or charge adjustment was run or proposed implicitly.
+
+F6 MEDIUM, future common restart/configuration gate: accepted state hashes do not
+  bind all future forcing/operator operands, and a common atomic restart is absent.
+  Fields::initial is public (axial_fields.hpp:129) and future prepare uses its
+  feed/background_force (:146-168). CurrentTrace (:7-29 in axial_thermal_v2.hpp)
+  has no content identity in the common boundary. Native boundary/restore binds
+  accepted field/heat/source/RNG/frame/mesh/material, not these future forcing
+  arrays or C19 bytes. An equal restored E/B state alone cannot prove identical
+  continuation under a changed trace or baseline force. Parent checkpoint
+  :341-364 binds its actual grid, kernel/configuration, arena and RNG state;
+  native typed restore :1038-1193 contains semantic replay of both exposures and
+  motion, but its nonempty-history entrance is currently blocked by F9 below.
+  Neither is a disk transaction spanning native, parent, field, all thermal
+  slices, source, count/RNG owner and operator configuration.
+  Remedy: a common immutable manifest must bind exact C19 bytes, actual initial
+  force/feed/operator and runtime material/frame configuration, source/atlas
+  configurations, all accepted payload hashes and endpoint clocks; restore
+  everything privately before publishing. Fresh-process split/full comparison
+  is required. This is an unimplemented integration capability, not a claim
+  that the individual accepted payload restore is broken.
+
+F7 HIGH in intermediate-001 public private-scope lifetime/identity handling.
+  FullOuter:209 holds a raw PicArena owner. live:297-301 dereferences it without
+  an owner lifetime token. publishable:364-369 keys child tokens by shared outer,
+  generation and before snapshot, not the particular CollisionScope. Separate
+  sibling scopes can share those values; compound:398-415 has a per-scope build
+  flag rather than an outer reservation, and first/second scope factories at
+  :684-697/:724-735 do not reserve the slot. The current coordinator creates and
+  retains one owner, one first scope and one second scope, so this is chiefly a
+  public API escape rather than its ordinary call sequence.
+  Remedy: owner lifetime guard, exact per-scope key on child tokens and a single
+  outer build/slot reservation; test sibling/reentry/escaped token and owner
+  destruction cases. A separate native-owner audit-candidate-002 reportedly
+  addresses scope identity/lifetime only. It was not substituted for001 or
+  qualified by this audit; remaining findings still need separate disposition.
+
+F8 MEDIUM, native source and Hall-record admission hardening.
+  Native motion:460-469 refuses nonempty source/boundary receipts yet permits
+  any digest source_after_sha256, then installs it at :554. For this closed
+  scope it should equal the accepted source seal. Root currently supplies the
+  unchanged source correctly. Motion:476-538 validates the envelope digest,
+  selected binding/census/mode values and endpoint dimensions, but the audit
+  endpoint loop has no independent set enforcing unique endpoint IDs. It does
+  not strictly validate the complete Hall record/path/frame/kinetic-policy/schema
+  against native geometry; budget fields are only checked finite (:539-544).
+  The real immutable Hall producer performs much stronger checks. The digest is
+  a content binding, not authentication that arbitrary JSON came from that
+  producer. Root's actual MotionReceipt construction is therefore a necessary
+  trust boundary and must stay pinned; do not accept authored positive JSON.
+  Remedy: unchanged-source equality for this scope; exact Hall schema/unique
+  endpoint/path/frame/kinetic identity validation or a typed trusted port, while
+  retaining the genuine immutable producer and its numerical guards.
+
+F9 HIGH: every nonempty full-time history is rejected by the legacy validator
+  before full-time save/restore can complete.
+  Native save_full_time calls validate_full_time_history at inc:1017, which
+  calls journal_validate at inc:1200. restore_full_time calls the same validator
+  at inc:1101 before its typed replay. That validator (arena.cpp:427-460) accepts
+  only reaction, native_transport and stochastic_exposure, throwing on any
+  other kind at :455-456. A genuine accepted full-time step begins with
+  full_time_outer_begin and also contains full_time_exposure, full_time_motion
+  and full_time_boundary. Therefore nonempty full-time history fails both
+  routes by construction. Empty genesis is not this counterexample.
+  Remedy: a bounded full-time-aware chain/accounting validator must admit only
+  the exact complete full-time grammar, count outer accepted steps and previous
+  dt correctly, retain semantic replay and all byte/count checks, and reject
+  truncated or mixed legacy/full-time histories. Add a real one-step fresh-
+  process save/restore test after audit closure. This conclusion was obtained
+  from the source call graph; no joint step or restart was executed.
+
+F10 MEDIUM: full-time restart caps input bytes before DOM parsing, but collection
+  caps and exact integer JSON types are not uniformly admitted before conversion.
+  inc:1042 checks file size <= 64 MiB BEFORE parsing at :1046; thus it is incorrect
+  to describe that whole-file check as occurring after parse. However the DOM
+  is allocated before journal/packet/carrier/string-depth/collection caps. Then
+  arena.cpp:386-395 builds/copies sets, journal, sinks and completions before
+  journal_validate checks journal 4096/16MiB, and packets/native_ids have no
+  complete collection cap before map/vector conversion at :399-406. A 64 MiB
+  serialized file is not a demonstrated 4 GiB peak-memory bound for these DOM and
+  duplicate data structures. No pathological allocation probe was run.
+  Unsigned counters/IDs use implicit JSON conversions in read_common:25-26,
+  read_exposure:58, read_boundary:83-84, completion_read:1467 and metadata/read
+  native rows. The pinned JSON library's get_arithmetic_value :4678-4695 casts
+  signed integer and floating values with static_cast to the requested integer
+  type. Negative-to-unsigned wrap and fractional truncation are therefore not
+  rejected at the admission point. Later replay/equality checks can refuse
+  particular malformed histories; a whole-history acceptance bypass has NOT
+  been established or asserted here. The exact typed schema is nevertheless
+  not enforced by those conversions.
+  Remedy: bounded stream/SAX admission or explicit pre-copy shape/count/depth/
+  string limits, exact nonnegative integer type/range helpers for every ID,
+  count/revision/sequence/ABI dimension, and field-specific finite ranges before
+  conversion. Keep semantic replay and do not raise existing hard caps. The
+  checkpoint source, ABI and hashes are integrity bindings, not a substitute
+  for type/resource admission.
+
+Production history capability is absent, independently of F9/F10.
+  At least five journal rows are retained per accepted outer step even with no
+  reactions (begin, first completion, motion, second completion, boundary).
+  The 4096-row ceiling gives an absolute floor(4096/5)=819-step bound, at most
+  about 8.19 ps at 10 fs/step; declaration margins and 16 MiB can stop earlier. From
+  actual C19 start (~0.749788 ns) to 60 ns requires about 5.93 million 10 fs steps.
+  The code expressly demands validated history anchors for longer runs
+  (arena.cpp:412-414). No compaction/anchor, bounded production journal or common
+  restart mechanism is provided. This is a missing production capability,
+  not authorization to raise caps or discard history.
+
+No-throw publication audit
+--------------------------
+  Common can_publish performs potentially allocating hashes, census checks and
+  JSON queries before the first owner swap and catches exceptions as refusal.
+  Native can_publish compares owner/status/baseline and native storage without
+  allocation; native swap_native :193-200 uses vector swaps, MFEM Vector::Swap
+  (frozen vector.hpp:746-750 swaps memory and size), POD swaps and shared_ptr
+  publication. Parent publish_prevalidated :489-491 swaps its prepared State
+  pointer and increments a checked generation. Hall thermal preflight is only
+  owner/lifetime/generation/base/time comparisons for already prepared opaque
+  thermal Trial objects; its commit swaps State (static_assert no-throw), copies
+  already sized temperature coefficients and consumes the token. Aggregate
+  thermal/field publication has no allocation or I/O in the inspected path.
+  All preflights and swaps require a sole synchronized common coordinator; this
+  is not thread-safe multi-owner compare-and-swap. A violated post-preflight
+  invariant terminates after possible partial publication, so noexcept alone
+  does not prove recoverable atomicity. F2 must close mutable proposal drift,
+  and the public native-only try_rollback must never be used after a common
+  field/heat/RNG acceptance. There is no common rollback transaction in001.
+  No exceptions, callbacks, hashes, filesystem work or allocation may be added
+  after native publication. Actual publication/fault tests remain on hold.
+
+Contracts that are present in the inspected call sequence
+---------------------------------------------------------
+* One native accepted population/count/ID owner: validate_rows checks complete
+  positive native-carrier decomposition and exact counts. Parent rates use the
+  positive native census, not a rounded logical weight. Neutral depletion goes
+  through exact debit; H/O/charge, momentum and kinetic+internal+reference energy
+  are checked by the actual native event builder. No extra ionization threshold
+  is charged to electrode heat (arena.cpp:1047-1050).
+* One coordinate transform for Hall motion: native_arena_motion.cpp:30-40
+  checks physical finite foil geometry; :101 and :115/:124 translate native
+  xy by (-width/2,-gap/2), leave z and E/B/u axes unchanged, and return native
+  endpoints. Kinetic escape bounds remain native geometry, independent of field
+  extent. No 180-degree plotting rotation enters this transport.
+* Authoritative common dt and exact two local exposures: coordinator:51-78 and
+  :112-114, native exposure_guard:154-163, and Scheduler::prepare_exposure
+  :258-265 use explicit dt/2 instead of subtracting floating endpoint times.
+  SSA wait time is local collision exposure, not physical trajectory flight.
+  First stage is begin, second stage is end. Native common_guard:98-112 checks
+  accepted step/revision/begin/field/mesh/material and exact end=begin+dt.
+* Actual field/motion work: immutable MotionReceipt is a genuine sealed provider
+  product. native_arena_motion.cpp:98 refuses ALL active layer exclusions,
+  :126-139 moves every neutral with q0 drift and every charged species through
+  the actual Hall pusher and refuses first boundary hits. Current is weighted
+  q*D/common_dt once. :152-160 checks work, full-census plasma and path continuity;
+  joint:60-69 retains the existing nonlinear, particle/Maxwell and heat ledgers.
+* No hidden Poisson/DKD in the intended new path: full-time factory constructs
+  only the native mesh/storage; GapPic constructor :146-154 has no solve.
+  New private reaction/motion code uses copied frames and does not invoke
+  native advance or solve_fields. F1 is a separate legacy entrance needing
+  refusal. Retain active zero-call linker traps for qualification.
+* Accepted owners remain untouched by the normal prepare path in source:
+  native outer frames and child frames are private; compound restores its base
+  on exception (:398-452). Parent stages own copied random streams/counters;
+  field/thermal proposals do not commit. Five coordinator failure hooks are
+  before common publication. Source inspection cannot replace actual rollback
+  tests at those hooks.
+* Common publish is ordered native -> parent RNG -> thermal/field with preflight
+  first and no callbacks/I/O between swaps. Native try_publish uses owner/status/
+  before-snapshot/native checks. Parent generation/lifetime and opaque exposure
+  keys reject stale, foreign and mismatched private histories. Hall thermal
+  commit is preflighted over every slice and terminates rather than returning a
+  partially published success. These claims still require actual joint tests,
+  especially after F2 is fixed.
+* Bounded inputs exist: parent default reactions 128, carriers 100k, cells 1 M,
+  pair/query 1 M and candidates 100k; native carriers 100k, journal 4096 entries / 16 MiB;
+  native restart file 64 MiB; dt <= 10 fs, gyro/displacement/plasma guards; Hall fixed
+  point 16 iterations and bounded linear solves. Caller limits can exceed some
+  native hard limits and should be reconciled before work. Per-outer carrier
+  cap is not checked at every reaction allocation (only global carrier cap),
+  and concurrent private forks have no combined live-memory quota in001.
+
+Source-v3 and collision-atlas integration boundary
+--------------------------------------------------
+Source-v3 is a qualified stage/adapter component, not connected by this root
+coordinator. The coordinator explicitly records surface_source_and_collection
+false, supplies unchanged_source, and passes no active layers. Hall thermal
+adapter has source_patch_count 0 and empty source transfers (axial_thermal_v2.hpp
+:48-71/:100). Native motion refuses nonempty source/boundary receipts.
+
+Source-v3 TrialFrame requires TotalMidpoint, unique trial stage, true accepted
+thermal clock/revision and explicit physical exposure/birth time. Its global
+field coordinates must be mapped once from canonical native xy; thermal slice
+center/height are explicit, used once. Candidate/source current is already
+weighted and divided by common dt, including zero-duration bridges and actual
+handoff remainder. Heat receives Qwall only; K, reference, image and field work
+have separate owners. These operands must enter the SAME common field/heat and
+arena/count/RNG transaction; adding a second source or ordinary push would
+double count. Source-v1 electron mass and ParentBridge me are exactly the same
+9.1093837139e-31kg in the pinned dependencies; registry identity must still bind
+runtime q/m/reference values. StagedCanonicalOwner provenance must validate real
+counter/RNG tickets and exact count sums externally. Source component tests do
+not qualify that sampler or an Active-layer gas reaction/remap mechanism.
+
+The collision atlas is also separate. Root snapshot still constructs old Grid
+and scans all its supplied vacuum cells for every SSA candidate rebuild.
+Atlas locate is typed CanonicalPointSI; canonical arena positions must not be
+translated a second time. Geometry uses [0,width]x[0,gap] and actual short/feed
+bounds; full 25 mm physical depth determines volume, never an observation slab.
+complete_indexed_census independently flattens EVERY snapshot native ID, then
+validates the complete unfiltered rate_population before chemistry filtering.
+occupied_cells refuses missing/duplicate/unknown carriers and exact material
+surfaces, returns deterministic ascending occupied IDs and exact physical volume
+without rebuilding empty geometry. There is a 1 M geometric-bin cap. Bind full
+atlas+frame/configuration in constructor, genesis RNG identity and checkpoint;
+retain exact legacy Grid IDs/volumes/rates when using legacy mode. Do not replace
+the field/kinetic mesh identity with the collision atlas identity. No arbitrary
+vacuum source strip may be removed, and Active ownership does not automatically
+exclude a particle from gas reactions. That overlap needs an explicit common
+stage contract, which does not exist here.
+
+Unimplemented and unqualified physical capabilities
+---------------------------------------------------
+No desorbed-water injection/inventory depletion, physical stochastic thermionic
+source, active-layer gas coupling, broader water mechanism, species-changing
+layer remap, boundary collection/reemission/wall heat/source handoff publication,
+common crash-safe checkpoint, deformation/melt/phase-transition closure, field/
+collision/sheath/Debye/axial convergence, or production scenario is implemented
+by this closed coordinator. Resolved ion feedback is only the common particle
+current from resident ions in the actual total-field pusher; a broader plasma
+closure is not supplied. Thermal closure is the declared 298.2..1500K solid,
+fixed-reference-volume Cp-as-Cv approximation, with no axial heat diffusion or
+mechanics. Total Maxwell fields must never be superposed with the independent
+native electrostatic Poisson E. The old electrostatic milestone and static
+exterior controls remain separate evidence.
+
+Required release sequence (no launch approval implied)
+------------------------------------------------------
+1. Resolve/review the concrete admission, proposal integrity and midpoint gates;
+   pin a new native/Hall/caller snapshot without replacing original failures.
+2. Keep source/atlas absent from the closed fixture until their own complete
+   common ownership path exists. Use actual C19 trace.start_s, actual Hall/heat,
+   actual ParentBridge/SSA and explicitly authored manufactured populations.
+   A dense neutral fixture is a test device, not a physical foil plasma.
+3. Independently check initial absolute Gauss/charge closure. Verify both local
+   half-exposures with real events and unchanged accepted owners during prepare
+   and all five failures; test foreign/stale/double, mutation, reentry/lifetime,
+   legacy route and hard resource refusals. Keep all residual/work/gyro/support
+   thresholds unchanged. Unsupported incident or product energy must fail the
+   whole proposal, never be clipped/ignored.
+4. After explicit audit closure, run short closed steps under the CPU lease and
+   zero-call Poisson/DKD traps. Compare exact particle/count/ID/RNG/completion,
+   field high+low and heat bindings at every accepted endpoint. No syntax-only
+   result can satisfy this gate.
+5. Implement and test a fresh-process common restart with the full future
+   forcing/configuration manifest. Only then assess adding source/atlas and
+   broader mechanisms through reviewed, separately staged integration.
+
+No full joint execution is authorized by this receipt.

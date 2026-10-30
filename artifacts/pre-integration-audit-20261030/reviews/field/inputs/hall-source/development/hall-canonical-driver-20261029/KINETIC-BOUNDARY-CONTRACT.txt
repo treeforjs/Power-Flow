@@ -1,0 +1,46 @@
+Explicit finite-target kinetic boundary contract, version 1
+
+The selected kinetic policy retains the sealed canonical v6.2 finite-target
+classification from GapPic::drift_until_absorbed. It does not derive an escape
+plane from the Maxwell mesh, its transverse extent, or its axial air cells.
+
+Native coordinates are x in [0,width_m], y in [0,gap_m], and z in the declared
+[short_z_m,feed_z_m]. width/gap here are the independently authored KINETIC box.
+All outer xy faces absorb/escape. Foils are the native lower/upper rectangles
+extruded through this target interval. At short_z, only x within the lower foil
+width and y between lower.top and upper.bottom is the short bridge. The rest of
+that plane is axial escape. The whole feed_z plane is axial escape. No reflection
+or extended axial streaming through electric-field air padding is introduced.
+
+First-hit selection follows the original order: outer x, outer y, lower foil,
+upper foil, then target-end plane. A later candidate wins an exactly equal
+fraction. No epsilon creates, postpones, or advances a hit. Entry is evaluated
+on the integrator's represented straight segment; fraction 1 is a boundary hit.
+The unit normal points OUT OF VACUUM (into metal or the external sink). Foil
+corner patch ownership still belongs to the source/boundary owner.
+
+kinetic_boundary.hpp declares the policy, its independent SHA256, a segment
+first-hit helper and a neutral full-time stream proposal. The neutral proposal
+uses x(t0), u(t0), authoritative dt, relativistic velocity u/gamma, and unchanged
+u. It reports the first-hit native endpoint, flight and remaining duration,
+sink classification, native ID, exact carrier weight and incident kinetic energy.
+It does not remove a carrier, change Count2, allocate an ID, move any clock,
+attribute wall heat, invoke Poisson or run D-K-D. Canonical owner must admit all
+carriers of a packet consistently and own the kinetic/internal/reference sink
+receipt. No sink policy can be inferred from a motion endpoint alone.
+
+Motion receipt v2 requires kinetic_policy_sha256 separately
+from mesh_sha256 and contains the explicit policy description. A centered native
+to field translation is applied once, using the KINETIC width/gap, even when the
+field box is wider. The ordinary no-source motion port continues to reject hits;
+the neutral helper makes first-hit proposals available for the native owner's
+later typed sink admission. This avoids silently claiming boundary publication
+or source heat integration. Charged boundary admission still requires a coupled
+partial-flight/work/source operation; the no-boundary port rejects it.
+
+Qualification requires fixed native policy with two different field exteriors,
+neutral and charged xy/feed escapes, short bridge versus nonbridge escape,
+foil hits, exact endpoint-time hits, neutral remaining time and kinetic energy,
+unchanged identity/weight/momentum, one native-to-field translation, and source
+ownership rejection. Widening only the field mesh must not change first-hit
+kind, native endpoint, flight, policy hash, or accepted no-hit force/trajectory.

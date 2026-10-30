@@ -1,0 +1,129 @@
+[
+  {
+    "label": "build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/usr/bin/c++",
+      "-std=c++20",
+      "-O2",
+      "-DNDEBUG",
+      "-ffp-contract=off",
+      "-fno-fast-math",
+      "-I/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-canonical-driver-20261029/bindings/native-v6.2/source/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-canonical-driver-20261029/bindings/native-v6.2/inputs",
+      "-I/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-canonical-driver-20261029/bindings/native-v6.2/vendor",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-canonical-driver-20261029/bindings/native-v6.2/source/src/mfem_gap_pic.cpp",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-canonical-driver-20261029/test_thermal_v2.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build-canonical-driver/thermal_v2",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so"
+    ],
+    "returncode": 0,
+    "elapsed_s": 10.483091815010994,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "lease": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock"
+  },
+  {
+    "label": "benchmark",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build-canonical-driver/thermal_v2",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/thermal-v2-001",
+      "benchmark"
+    ],
+    "returncode": 0,
+    "elapsed_s": 1.818702067990671,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "lease": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock"
+  },
+  {
+    "label": "full",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build-canonical-driver/thermal_v2",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/thermal-v2-001",
+      "full"
+    ],
+    "returncode": 0,
+    "elapsed_s": 1.567798939999193,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "lease": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock"
+  },
+  {
+    "label": "split",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build-canonical-driver/thermal_v2",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/thermal-v2-001",
+      "split"
+    ],
+    "returncode": 0,
+    "elapsed_s": 1.4675979470048333,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "lease": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock"
+  },
+  {
+    "label": "resume",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build-canonical-driver/thermal_v2",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/thermal-v2-001",
+      "resume"
+    ],
+    "returncode": 0,
+    "elapsed_s": 1.5176268729992444,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "lease": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock"
+  }
+]

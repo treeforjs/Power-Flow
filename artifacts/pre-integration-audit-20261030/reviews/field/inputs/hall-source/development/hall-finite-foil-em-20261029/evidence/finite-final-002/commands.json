@@ -1,0 +1,61 @@
+[
+  {
+    "label": "build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/usr/bin/c++",
+      "-std=c++20",
+      "-O2",
+      "-DNDEBUG",
+      "-I/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/include",
+      "-I/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/src",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/src/mfem_gap_pic.cpp",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/benchmark.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build-finite-foil-em/finite_foil_em",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so"
+    ],
+    "elapsed_s": 8.4795305919979,
+    "returncode": 0,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease": true
+  },
+  {
+    "label": "benchmark",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "prlimit",
+      "--as=2147483648",
+      "--cpu=180",
+      "--",
+      "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/build-finite-foil-em/finite_foil_em",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/finite-foil-em/finite-final-002"
+    ],
+    "elapsed_s": 0.16560749300697353,
+    "returncode": 0,
+    "CPU": [
+      6
+    ],
+    "nice": 15,
+    "threads": 1,
+    "shared_lease": true
+  }
+]

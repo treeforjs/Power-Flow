@@ -1,0 +1,51 @@
+{
+  "status": "confirmed-read-only",
+  "source_identity": "bc44576f9115e79e7c7978796ed95f8075613a3a09d3044325842516fa137306",
+  "reviewed_files_sha256": {
+    "source/src/mfem_pic_arena.cpp": "1931fcaba7ee401269cbf1f9f318f683065907ac9e66ad4d7841deb08b4b0eb5",
+    "source/src/mfem_pic_full_time.inc": "8d6b2549ce70199717526697294f1a749a9d67ecb96a87438e8a820e58dda5dd",
+    "source/include/raikou/mfem_pic_arena.h": "141d6b70f5b685044c59773222494bc947e33347e1290c4836044465e89eeb4f"
+  },
+  "jobs_started": 0,
+  "source_edits": false,
+  "findings": [
+    {
+      "id": "FT-14",
+      "severity": "blocker",
+      "finding": "Nonempty full-time save and restore always fail legacy journal operation allowlist before typed full-time replay",
+      "locations": [
+        "source/src/mfem_pic_arena.cpp:427",
+        "source/src/mfem_pic_arena.cpp:448",
+        "source/src/mfem_pic_arena.cpp:455",
+        "source/src/mfem_pic_full_time.inc:1017",
+        "source/src/mfem_pic_full_time.inc:1101",
+        "source/src/mfem_pic_full_time.inc:1200"
+      ],
+      "proof": "Every completed outer contains full_time_outer_begin. Legacy journal_validate allows only reaction/native_transport/stochastic_exposure and throws journal operation otherwise. It also derives accepted_steps/previous_dt only from native_transport. Genesis-only empty journal passes, explaining existing39 controls.",
+      "disposition": "Separate typed full-time structural/accounting validator required; merely extending allowlist leaves step/dt accounting incorrect. Preserve legacy validator."
+    },
+    {
+      "id": "FT-11-confirmation",
+      "finding": "Raw options object bytes are memcpy-decoded into bool-bearing GapPicOptions, then read by options_equal without canonical representation validation.",
+      "locations": [
+        "source/src/mfem_pic_full_time.inc:1058",
+        "source/src/mfem_pic_full_time.inc:1061",
+        "source/src/mfem_pic_arena.cpp:64"
+      ],
+      "disposition": "Versioned typed checked options codec; validate boolean JSON type, integer range and finite numeric/domain constraints before constructing C++ options. Also bind canonical actual options into prefix."
+    },
+    {
+      "id": "candidate-final-boundary-confirmation",
+      "finding": "PreparedArena internally stores shared_ptr<const FullTimeAcceptedBoundary> boundary_after but public accessors expose only state prefix, completions and exposure slots.",
+      "locations": [
+        "source/src/mfem_pic_arena.cpp:478",
+        "source/src/mfem_pic_full_time.inc:789",
+        "source/include/raikou/mfem_pic_arena.h:109"
+      ],
+      "next_proposed_interface": "std::shared_ptr<const FullTimeAcceptedBoundary> PreparedArena::candidate_full_time_boundary() const;",
+      "semantics": "Read exactly the final native token boundary without mutable proposal or JSON parsing. Return null for legacy/private child tokens, and preserve the candidate boundary after publication as immutable metadata. Root compares field/heat/source/RNG/time/revision/common seals before any owner publication. No implementation added."
+    }
+  ],
+  "scope": "Source-level confirmation only, no positive Hall receipt fabricated and no nonempty run/checkpoint execution. Intermediate001 and audit002 are untouched.",
+  "utc": "2026-10-30T05:51:52.161128+00:00"
+}

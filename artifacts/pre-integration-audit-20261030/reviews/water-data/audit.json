@@ -1,0 +1,265 @@
+{
+  "schema": "water-physics-applicability-audit-v1",
+  "status": "sealed_component_audit_full_integration_on_hold",
+  "date": "2026-10-29",
+  "published_water_commit": "0f57b0427463efac440b52995b22bc5217548a76",
+  "published_water_dataset": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-gas-20261029-deep-valence.json",
+  "published_water_dataset_sha256": "bac4e1e0876caae8eec0f11c5183458561e2c92661653cdb6803310bca2f5f77",
+  "published_water_contract": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-collision-port-v7.json",
+  "published_water_contract_sha256": "e11cce6cf09122d5ca254cc15ba114e9e2aca7fa26f92bc5e2d197ddbd1be865",
+  "published_water_source_archive": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/source-archive/raikou-h2o-deep-valence-0f57b0427463.tar.gz",
+  "published_water_source_archive_sha256": "5829256a82b4c6edda82e78bad8ff67cdc180c5c4e36e92694412396f1b1627b",
+  "published_water_conditional_models": 10,
+  "stored_observables_including_diagnostics": 39,
+  "native_assertions_in_existing_v7_receipt": 54190,
+  "atomic_source_binding_checks": 1810,
+  "separate_H_working_candidate": {
+    "dataset": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/H-1s-ionization-20261029.json",
+    "sha256": "f9a704b920f74e350cd5a2c492bdebc876dca529a2581eda47c36b14656ab5f3",
+    "checks": 515,
+    "status": "uncommitted_separate_snapshot_preserved_no_integration",
+    "snapshot": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/full-audit-001/v8-working-snapshot.json"
+  },
+  "at_8084_470604111418_eV": {
+    "rates_m2": {
+      "Auger_OHp_Hp_m2": 2.2131738312562852e-23,
+      "Auger_Op_Hp_H_m2": 2.0550899861665505e-23,
+      "positive_unmapped_prompt_Hp_m2": 9.16886301520461e-23,
+      "positive_unmapped_prompt_Op_m2": 2.3712576763460196e-23,
+      "source_2a1_m2": 1.5808384508973464e-22
+    },
+    "unmapped_fraction_of_2a1": 0.73,
+    "unmapped_fraction_of_original_four_valence_BEB_only": 0.08038797283000355,
+    "mapped_fraction_of_original_four_valence_BEB_only": 0.9196120271699965,
+    "physical_all_shell_coverage_fraction": null,
+    "warning": "This fraction is a conditional partition of an8electron/fourvalence model, never all-shell/full-mechanism accuracy."
+  },
+  "findings": [
+    {
+      "id": "D01",
+      "severity": "medium",
+      "class": "confirmed_metadata_inconsistency",
+      "finding": "Generic api-handoff.json combines a v7 dataset/current_commit/current_native_checks with unprefixed v1 commit/native_checks/archive fields; outer3_coverage_warning still says Auger missing. Historical outer3 model exclusions remain correct for that subset, but the generic handoff is not a single-version import manifest.",
+      "evidence": [
+        {
+          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/api-handoff.json",
+          "lines": [
+            4,
+            19,
+            28,
+            94,
+            142,
+            147
+          ]
+        },
+        {
+          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/coordination-handoff-v7.json"
+        }
+      ],
+      "impact": "An importer choosing unprefixed fields can bind the wrong commit, tests or archive to the current dataset.",
+      "remedy": "Use the immutable coordination-handoff-v7.json and its exact contract/archive hashes for consolidation. A normalized generic handoff should be a separately reviewed metadata revision; none was silently edited in this audit."
+    },
+    {
+      "id": "B01",
+      "severity": "blocking_for_full_breakdown",
+      "class": "explicit_missing_physics",
+      "finding": "Only 27% of the modeled 2a1 primary-vacancy rate has exclusive products; prompt Hplus58% and Oplus15% stay positive and unmapped. Hplus does not determine OH versus H+O neutral companions; Oplus does not determine H2 versus two H. Oxygen1a1 core and direct projectile double/triple channels remain unqualified.",
+      "evidence": [
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/h2o_deep_valence.h",
+          "start": 7,
+          "end": 18
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/h2o_deep_valence.h",
+          "start": 90,
+          "end": 95
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-missing-rate-ledger-v7.json"
+        }
+      ],
+      "remedy": "Keep the two positive remainders and all unknown rates explicit. Source-qualified absolute exclusive event rates, neutral completion and states are required. Never renormalize the mapped27% or count the old full2a1 diagnostic a second time."
+    },
+    {
+      "id": "B02",
+      "severity": "blocking_for_validated_full_physics",
+      "class": "declared_conditional_model_limits",
+      "finding": "Exact event conservation does not validate equal-energy primary/secondary sharing, ground states, isotropic breakup, fixed hole lines or a collapsed isolated-site cascade. The high-velocity matrix inferred using proton data is applied conditionally to electron BEB holes, not measured over every1..10keV electron energy. No proton collision rate was imported.",
+      "evidence": [
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/h2o_outer_valence.h",
+          "start": 44,
+          "end": 74
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/h2o_deep_valence.h",
+          "start": 35,
+          "end": 37
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/h2o_deep_valence.h",
+          "start": 98,
+          "end": 133
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-collision-port-v7.json"
+        }
+      ],
+      "important_budget_eV": {
+        "OHplus_Hplus_and_Auger": 5.16456,
+        "Oplus_Hplus_H_and_Auger": 0.163505
+      },
+      "remedy": "Require explicit model opt-in and declare no field work/quenching/lifetime resolution at the collision site. Calibrated spectral/internal/angular data need a new model revision; especially do not describe the0.163505eV endpoint budget as measured KER/Auger spectroscopy."
+    },
+    {
+      "id": "B03",
+      "severity": "blocking_for_full_breakdown",
+      "class": "unimplemented_fragment_continuation",
+      "finding": "Published v7 contains water-target kernels, not continuation for all produced fragments. The separate uncommitted v8 candidate adds only ground-protium H1s ionization,14..10000eV. OH, O, H2, molecular/atomic ion and anion excitation, ionization, detachment, recombination, charge exchange and heavy-particle families are not supplied by that addition.",
+      "evidence": [
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/hydrogen_fragment_ionization.h",
+          "start": 10,
+          "end": 27
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/hydrogen_fragment_ionization.h",
+          "start": 52,
+          "end": 67
+        },
+        {
+          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/full-audit-001/v8-working-snapshot.json"
+        },
+        {
+          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/fragment-continuation-research.json"
+        }
+      ],
+      "remedy": "Preserve H as a separate target/density with oneH debit, zeroH2O debit and net electron gain1. Do not deploy this candidate during the audit. H2Oplus dissociative recombination is only a primary-source research lead; no rate/kernel was admitted. A thermal300K recombination coefficient cannot replace energy-resolved nonthermalPIC data."
+    },
+    {
+      "id": "B04",
+      "severity": "blocking_for_complete_transport",
+      "class": "explicit_angular_and_internal_coverage_gaps",
+      "finding": "Full-angle event transport is conditional free-atom IAM only at1..10keV. Molecular low-energy integral/momentum data do not complete angles or rotational energy transfer. SongTable2 covers2..100eV with10..130degree angles and unresolved rotation; no full numerical angular extension was admitted. Other attachment resonances, Ominus products and most excitation/dissociation state outcomes remain unavailable.",
+      "evidence": [
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/h2o_elastic_angular.h",
+          "start": 40,
+          "end": 73
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/collision_data.h",
+          "start": 150,
+          "end": 178
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-missing-rate-ledger-v6.json"
+        }
+      ],
+      "remedy": "Retain angular/energy gaps. IAM is incoherentO+2H, not measured molecularDCS; source atomic accuracy is not a molecular uncertainty bound. The1.9057882329984954% mesh-integral discrepancy against rounded atomic totals is only a numerical binding diagnostic."
+    },
+    {
+      "id": "B05",
+      "severity": "blocking_for_measured_background_initialization",
+      "class": "unidentified_experimental_input",
+      "finding": "The corrected figure recovery has50 nominal mass channels, not450 independent measurements. RGA channels include ionizer cracking and species overlap; peak16/17/18 does not establish neutralO/OH/H2O fractions. Instrument settings, sensitivity/cracking matrix, raw timing, gas temperature and independent total-gauge calibration were not recovered.",
+      "evidence": [
+        {
+          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/rga-channel-recovery/figure_2_3_rga_recovery.json"
+        },
+        {
+          "path": "/home/treefor/Documents/Codex/2026-10-28/we/work/smith-dissertation-2025.pdf",
+          "PDF_page_one_based": 44,
+          "printed_page": 19
+        },
+        {
+          "url": "https://www.thinksrs.com/downloads/pdfs/applicationnotes/Residual%20Gas%20Analysis%20Basics.pdf",
+          "role": "generic manufacturer measurement formalism, not identification of the actual Mykonos instrument"
+        }
+      ],
+      "conditional_density_example_cm3": 1609416639337.16,
+      "remedy": "The approximate5e-5Torr context with ALL-H2O/300K is a named scenario, not a calibrated neutral mixture, exact boundary or surface coverage. Preserve uncertainty/identifiability; never initialize separate radicals merely from RGA fragment peaks."
+    },
+    {
+      "id": "G01",
+      "severity": "mandatory_integration_gate",
+      "class": "host_owned_unimplemented_here",
+      "finding": "These pure kernels stage candidates only. They do not own collisions, accepted state, macro availability, exact source-pool debit, RNG, moving-target transforms, collision volume, current/energy deposition, rollback or restart. Water component checks do not audit another owner implementation.",
+      "evidence": [
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/collision_data.h",
+          "start": 2,
+          "end": 3
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/collision_data.h",
+          "start": 127,
+          "end": 148
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-collision-port-v1.json"
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-collision-port-v7.json"
+        }
+      ],
+      "remedy": "Use onePIC/MCC electron owner, one coherent source-rounded state/mass catalog, immutable dataset/site/state/mesh/time/event identity and actual3D volume. Commit matchedW source/electron/parent/product/sink/current/energy updates atomically. Count final reference/internal energies once; intermediate virtual-hole losses are not additional heat."
+    },
+    {
+      "id": "G02",
+      "severity": "mandatory_integration_gate",
+      "class": "overlap_and_dispatch_policy_required",
+      "finding": "39 stored cross-section observables are not39 disjoint event channels. Inclusive fragment/OH yields, effective momentum, total scattering, aggregate inelastic and stopping moments overlap selected events. The measured parent model and outer3 parent model both admit exactly1000eV; global model dispatch is host-owned.",
+      "evidence": [
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/collision_data.h",
+          "start": 150,
+          "end": 178
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/collision_data.h",
+          "start": 180,
+          "end": 199
+        },
+        {
+          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/full-audit-001/observable-catalog.json"
+        },
+        {
+          "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/full-audit-001/conditional-model-catalog.json"
+        }
+      ],
+      "remedy": "Select one parent model at the shared endpoint and declare a single hazard partition. Treat OHv0..4 as oneDEA family branching, not five copies of its rate. Do not add inclusiveOH plusA1B1, IAM plus molecular elastic, original fullBEB plus orbital branches, or old2a1 plus the new partition. ReducedEMT/bend export is not a completePIC or waterF0 mechanism."
+    },
+    {
+      "id": "L01",
+      "severity": "explicit_limitation",
+      "class": "honest_refusal_not_defect",
+      "finding": "Strict unsupported-energy and unselected-kernel exceptions, positive unmapped rates, missing-rate nulls and false full-mechanism flags are deliberate. O1S remains quarantined for a factor100 unit/text discrepancy. No rate is invented by subtraction or unsupported tail fill.",
+      "evidence": [
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/collision_data.h",
+          "start": 113,
+          "end": 119
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/include/raikou/collision_data.h",
+          "start": 145,
+          "end": 178
+        },
+        {
+          "path": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-missing-rate-ledger-v7.json"
+        }
+      ],
+      "remedy": "Preserve these refusals. A valid restricted component test or conditional comparison must name its scope; it cannot be presented as full breakdown."
+    }
+  ],
+  "numerical_defect_conclusion": "No new numerical kernel defect confirmed by this static/hash audit; this is not an independent proof of every native kernel. The existing tests establish their declared computational invariants, not physical completeness or full-driver correctness.",
+  "full_breakdown_ready": false,
+  "new_native_tests_or_full_integration_runs": 0,
+  "GPU_used": false,
+  "physical_time_advanced": 0,
+  "active_run_modified": false,
+  "scope_boundary": "Read-only source/provenance/receipt audit; writes confined to this separate audit package. No source/model substitution, commit, push, launch or production change.",
+  "consolidation_entrypoint": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/full-audit-001/handoff.json"
+}

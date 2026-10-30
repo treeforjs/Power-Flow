@@ -1,0 +1,97 @@
+Full-time variable-step composition and source-v2 integration gate
+
+Qualified phase
+  NativePhase::full_time_work_conjugate_v1 stores x and proper u at the same
+  accepted physical time. It is the endpoint state of the qualified native-Boris
+  momentum / conjugate work-displacement map, not GapPic's old D-K-D phase.
+  The API rejects unbound and legacy_leapfrog_dkd phases. No implicit checkpoint
+  conversion or relabeling is provided. Bootstrap from an explicitly authored
+  full-time physical state, or supply a separately validated phase conversion.
+
+  axial_split_stage.hpp prepares C(dt/2) -> EM(dt) -> C(dt/2):
+    first chemistry: physical stage t_n; local exposure dt/2; frozen positions;
+    EM: implicit midpoint total E/B, native work transport, actual Jxyz and Joule;
+    second chemistry: physical stage t_n+dt; local exposure dt/2; frozen positions.
+  This schedule is valid for variable accepted dt without a hidden half-kick
+  carry. SSA waiting time is a collision-local exposure coordinate. It does NOT
+  advance particle position or move the global physical clock. Root must retain
+  that coordinate separately from the physical stage and accepted interval.
+
+  Source callbacks are pure prepared transactions. The response includes the
+  same binding, updated charged view, neutral-parent location/hash anchors,
+  separate other-owner energy/momentum, and a staged source token. Existing IDs
+  cannot move during a chemistry stage. New products need frozen participant
+  anchors. The actual deposited charge impulse must cancel nodewise. A nonlocal
+  charge-transfer event requires a separately qualified compatible current;
+  the operator will not repair Gauss or invent one.
+
+  Charged kinetic change + other-owner energy and momentum must close. The
+  chemistry check has no absolute energy/momentum floor: it uses actual-transfer
+  relative bounds and explicit floating-point operand bounds. Field energy is
+  not a collision counterpart. Source-law/registry/channel checks remain the
+  reaction owner's responsibility. Root's source-token preflight must validate
+  actual neutral anchors, RNG staging, canonical hi/lo inventory and event IDs.
+
+  EM work and collision energy remain separate receipts. Root must preflight
+  both source tokens, thermal trial, field and canonical arena before one atomic
+  commit. The reference fixture has a stateless manufactured angular operator;
+  it does not qualify physical water SSA time accuracy. Tests vary dt from10 fs
+  to 0.625 fs and compare repeated subdivision of the same physical intervals.
+  The actual v6.1 water operator must pass the same composition with its seals.
+
+Surface ownership and source-v2 mapping
+  native total-field prepare excludes every canonical Active layer ID from
+  ordinary motion while retaining it in the plasma guard. CurrentPath charge
+  and field work are already weighted. Current is q*displacement divided by the
+  COMMON accepted dt, including zero-duration quantum bridges.
+
+  import_surface_paths expects surface-relative GLOBAL vector components and
+  adds one physical patch origin. import_global_surface_paths expects absolute
+  global paths, as exported by source-v2 BoundLayerTrial.global_paths; do not add
+  the origin again. Bind the exact trial-field, arena, mesh and material hashes.
+  The source work check uses the actual operands with no absolute energy floor.
+  Preserve the persisted source origin, outward normal, kernel seal, full layer
+  state, and inward/recollection/handoff provenance in the parent's transaction.
+
+  On a handoff at physical tau, the canonical electron is still excluded from
+  the ordinary full-interval push. Its source paths end at tau. Advance the same
+  particle from that endpoint only for t_end-tau using axial::push, then deposit
+  that returned Path using COMMON dt. Do not use the remaining duration as the
+  current denominator or advance it for another full interval. Retain the full
+  common-step gyro/plasma/displacement guards including prospective births.
+  Route actual boundary endpoint charge/K once, and keep image, electron
+  reference, wall heat, and field work in their certified separate owners.
+
+Read-only source-v2 API audit
+  Inspected:
+  /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-feedback-20261029/source-snapshot-v2/API-v2.txt
+  /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-feedback-20261029/source-snapshot-v2/surface_source_binding.hpp
+
+  accepted_source_stage currently requires bind.field_time == epoch.t and sets
+  thermal_time == stage_time == accepted thermal time. advance_bound_source uses
+  that stage. bind_layer_trial checks work against its frozen uniform E before
+  translating paths to global coordinates. These are meaningful v2 component
+  constraints, not a qualified midpoint/path-gather EM source contract.
+
+  Full EM integration therefore still requires the source owner/root to provide
+  an explicit trial-field stage while preserving the REAL accepted thermal
+  timestamp and declared held-temperature approximation. Do not relabel T_start
+  or accepted-start E as a midpoint snapshot. Source motion must use the same
+  work-conjugate path field as the compatible current gather; a frozen local E
+  may be used only if its actual path work passes that check. Spatially varying
+  E generally needs substep/path-field callbacks or a consistent source/field
+  iteration, not a replacement energy receipt after the trajectory is computed.
+  Keep relative displacement information if translating tiny paths to a large
+  absolute origin would lose the source owner's required work precision.
+
+  The reference chemistry/EM/chemistry coordinator is intentionally Joule-only
+  and rejects nonempty active_layer_ids. Root's full source coordinator composes
+  the lower field/transport/global-path ports and the source-v2 owners. The v1
+  thermal copy used by this bounded pilot is not source-v2 ABI-compatible and
+  must not be substituted for it or linked as a second source kernel.
+
+Remaining qualification
+  Physical water SSA, actual source-v2 midpoint/path coupling, source handoff
+  remainder, collection/short heat, and whole-driver crash-consistent restart
+  need joint-driver tests. Wide exterior, axial resolution and realistic lead/
+  short geometry also remain physical gates. No production/long run is released.

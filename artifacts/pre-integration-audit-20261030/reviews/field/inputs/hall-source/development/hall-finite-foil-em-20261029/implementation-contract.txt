@@ -1,0 +1,56 @@
+Finite-foil 2D3V electromagnetic pilot: implementation contract
+
+Implement the actual 5mm-wide, 0.2mm-thick, 5mm-separated foil cross sections,
+centered at x=0 and y=+/-2.6mm. The represented z depth is25mm, included once.
+All fields have three components but are z-invariant. Preserve native in-plane
+B=(d_y Az,-d_x Az,0), hence the E cross B drift can remain axial. No rotation to
+out-of-plane B and no claim about axial instabilities or finite-z ends.
+
+Smallest declared physical approximation:
+- Ideal perfect electric conductors with absorbing particle surfaces; no finite
+  SS304 resistivity, solid Joule heat, secondary emission or material motion.
+- One explicit terminal bias port, defined by the discrete harmonic weighting
+  potential and its capacitance. Its voltage is energy-conjugate to port charge.
+- A static axial DC-current-supported magnetic initial state, using the native
+  supported-start current +/-6012.0713604700004A and exact foil geometry. Solve
+  Az with the new compatible operators rather than rotate/interpolate native B.
+  Compare/restrict that discretization and exterior approximation explicitly.
+- Full E/B perturbations evolve from all deposited Jx,Jy,Jz. No second full
+  Poisson force or independent prescribed induction history is added.
+- A finite outer impedance termination (first-order radiation approximation),
+  with explicit signed incoming/background-drive and outgoing Poynting ports.
+  This is not an exact infinite-domain boundary. Extent and mesh tests remain
+  independent. Static bias uses a declared finite natural exterior condition.
+- This short frozen-driver approximation is not the60ns evolving-current
+  experiment. The supplied sparse A/rate interpolants have an audited Faraday
+  mismatch; the old finite-z scalar correction also needs its z derivatives
+  and cannot be inserted unchanged into a z-invariant Maxwell system.
+
+Discrete fields in SI:
+Ex horizontal edges, Ey vertical edges, Ez nodes;
+Bx vertical edges, By horizontal edges, Bz cell centers.
+Oriented incidence operators give curl grad=0 and div curl=0. Positive lumped
+physical volumes include half dual volumes on the outer boundary. Maxwell
+uses midpoint and the weighted adjoint curl. Surface impedance contributes a
+positive quadratic outward-energy term. Conductor tangential E is constrained.
+A voltage constraint is enforced by its explicit circuit current, with V dQ
+work in the same accepted interval, not hidden field correction.
+
+Particle path/gather/deposition:
+2D bilinear endpoint charge and compatible x/y edge and z nodal path integrals.
+Use the unchanged native relativistic Boris momentum update and the already
+qualified work-displacement position rule. Exact cell-boundary and foil/outer
+intersections produce signed charge and kinetic-energy surface receipts.
+The wall/escape current path stops at the actual hit position; removed charge
+enters its boundary ledger. Source birth/debit events must be locally charge
+neutral and split synchronized field/particle segments at the admitted phase.
+
+One staged transaction owns fields, species inventories, all Jxyz, clock,
+IDs, event/current/work and boundary ledgers. External reaction/heat/RNG owners
+must join a common coordinator. No physical water mechanism is authored here.
+
+Admission order: incidence/path identities; vacuum field and boundary/circuit
+work controls; actual finite-foil self-consistent particle pilot; mesh/time/
+exterior comparisons and exact restart. Preserve prior periodic321 checks.
+CPU6, nice15, one thread/job, existing lock, frozen libraries, no GPU or old-run
+signals. Initial bounded processes:2GiB address space,180CPU seconds,240s wall.

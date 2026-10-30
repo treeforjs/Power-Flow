@@ -1,0 +1,572 @@
+{
+  "schema": "native-thermoelastic-checkpoint-v4",
+  "config": {
+    "schema": "native-thermoelastic-joint-v4",
+    "solid_mesh_sha256": "7525ea7c58a280c0c377a89170885e2cd3c46e71bb258edcc4c79e463b7414ea",
+    "mechanical_mesh_revision": "solid-component-4x2x2-v4",
+    "material_sha256": "ef08fafdd9f61f83dae2b721f72b09ab399521bfe311d4bc8564586f90116f56",
+    "source_sha256": "55b7c94f25d84633a177e19eceaf65607fba7a76206e822bdd84886fd7f9d1ce",
+    "caloric": {
+      "adapter_revision": "ss304-caloric-v2-q1-cold298p2-reference300-v1",
+      "energy_basis": "rho_ref*u_model(T), fixed-reference-volume Cp-as-Cv approximation",
+      "energy_zero_temperature_K": 300.0,
+      "inventory_basis": "fixed accepted metal mass/reference volume; no mass-transfer binding",
+      "library_sha256": "b046db34ac3d760023c84d2dc922d23583aa1326b658009ec6aaf9354f9f0757",
+      "mechanical_upper_temperature_K": 773.15,
+      "mechanics_range_extended": false,
+      "minimum_specific_energy_J_kg": -866.0792373440698,
+      "negative_cold_reference_energy_valid": true,
+      "phase_or_vapor_mechanics_supplied": false,
+      "physical_EOS": false,
+      "qualification_id": 1,
+      "qualification_mode": "nominal_1800",
+      "reference_density_kg_m3": 7897.403049272394,
+      "runtime_bindings_sha256": "664261f4f7271b83fef41b0ede8f9e384fdb53c3d38d14718888da9fa777fb93",
+      "scenario_sha256": "1675aad49f3224cc92377c7655ad3125cb04532bd62c5a84078cbee5186f37c9",
+      "source_root": "/home/treefor/projects/runtimes/ss304-thermal-properties-v2-20261029/source",
+      "source_seal_sha256": "1a1845e04f1f6fda33338d9bd284f5e1ead9cbc4b7747d0c6355e32cb5661c2d",
+      "temperature_range_K": [
+        298.2,
+        1800.0
+      ]
+    },
+    "native": {
+      "schema": "native-sealed-source-thermoelastic-v4",
+      "executable_path": "/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/build-native-v4/ss304-thermoelastic-v4-server",
+      "executable_sha256": "ddac5713252581184025059b2c8d8d67131831bfea0388176b077c696f236dcc",
+      "mesh_revision": "native-component-4x2-v4",
+      "caloric_sha256": "1a1845e04f1f6fda33338d9bd284f5e1ead9cbc4b7747d0c6355e32cb5661c2d",
+      "source_sha256": "55b7c94f25d84633a177e19eceaf65607fba7a76206e822bdd84886fd7f9d1ce",
+      "electrode_id": "component-solid",
+      "reference_density_kg_m3": 7897.403049272394,
+      "nx": 4,
+      "ny": 2,
+      "x0_m": 0.0,
+      "y0_m": 0.0,
+      "width_m": 2e-06,
+      "thickness_m": 1e-06,
+      "height_m": 2e-06,
+      "initial_time_s": 0.0,
+      "initial_nodal_sha256": "412bd011d1d08f7a1a1e4aa9429d98214c852bbbdb68aa374f2a87ff1980a58d",
+      "patches": [
+        {
+          "id": "oxide-water",
+          "gas_state_id": "H2O(g,0)",
+          "parent_id": "adsorbed-H2O",
+          "scenario_sha256": "55b7c94f25d84633a177e19eceaf65607fba7a76206e822bdd84886fd7f9d1ce",
+          "face": 0,
+          "begin": 0.0,
+          "end": 0.5,
+          "water_enabled": true,
+          "water_range": 0,
+          "initial_coverage": 0.33,
+          "registry_mass_kg": 2.9915076246e-26
+        },
+        {
+          "id": "clean-electron",
+          "gas_state_id": "H2O(g,0)",
+          "parent_id": "unused-water",
+          "scenario_sha256": "55b7c94f25d84633a177e19eceaf65607fba7a76206e822bdd84886fd7f9d1ce",
+          "face": 0,
+          "begin": 0.5,
+          "end": 1.0,
+          "water_enabled": false,
+          "water_range": 0,
+          "initial_coverage": 0.0,
+          "registry_mass_kg": 2.9915076246e-26
+        }
+      ],
+      "electron_state_id": "e-",
+      "electron_parent_id": "electrode-electrons",
+      "source_stage": "accepted start T and total E/B, explicit component admissions",
+      "source_ownership": "one native bound-layer state per electron; one canonical adsorbed pool per disjoint patch",
+      "gas_reference_J": 0.0,
+      "authored_heat_J": 0.0,
+      "Joule_heat_J": 0.0,
+      "field_solve_performed": false,
+      "source_surface_approximation": "stationary fixed reference surface; support impulse diagnostic, no moving-wall/recoil work"
+    },
+    "stress_free_temperature_K": 300.0,
+    "poisson_ratio": 0.29,
+    "boundary": "free",
+    "initial_mechanical_state_sha256": "ccdfdd1bf664ea98383ab5872436e99be04a15113dc2e66601ded9885de2b21f",
+    "mechanics_temperature_max_K": 773.15,
+    "coefficient_knots": "reject landing/crossing",
+    "proof_screen": "caller nominal scenario screen; unchanged v2 implementation",
+    "proof_screen_sha256": "9163a02a866bde50c99d5108f5f92646825f5289560615a823ed6dbe4bc56423",
+    "proof_screen_knot_values_Pa": [
+      190000000.0,
+      155000000.0,
+      127000000.0,
+      110000000.0,
+      98000000.0,
+      92000000.0
+    ],
+    "source_surface_approximation": "frozen stationary reference surface; emitted momentum diagnostic exported to fixed support; no moving-wall/recoil coupling",
+    "source_energy_ownership": "sealed-v2 certified electron partition; water gas reference0 and negative adsorbed reservoir"
+  },
+  "config_sha256": "e04e13c64e90d28918b146815387c50e21c496864b874c6d586db8b363757c61",
+  "state_digest": "d990af79df756fc1aa120afd913cb42a8e2e1d8d6f9c95a6331b97b03d07838c",
+  "native_sha256": "6fc1aa3f95bcb66c250eb67da1d4fe9eb60b585e10113dffaa0af6fd9d3d9fc9",
+  "native_state": {
+    "revision": 1,
+    "time_s": 1e-15,
+    "state_digest": "3c50eb72ea8af99471248ce6c113c22ec0c13329df29697c2ab702ec8e908614"
+  },
+  "u": [
+    [
+      -7.073939496209641e-09,
+      -3.5369698481049946e-09,
+      -7.073939696209469e-09
+    ],
+    [
+      -3.5369697481045445e-09,
+      -3.5369698481048932e-09,
+      -7.073939696209416e-09
+    ],
+    [
+      1.4436429576118786e-22,
+      -3.5369698481046476e-09,
+      -7.073939696209291e-09
+    ],
+    [
+      3.5369697481047493e-09,
+      -3.536969848104401e-09,
+      -7.073939696209171e-09
+    ],
+    [
+      7.073939496208946e-09,
+      -3.536969848104298e-09,
+      -7.0739396962091206e-09
+    ],
+    [
+      -7.073939496209642e-09,
+      -1.514615251173188e-29,
+      -7.073939696209468e-09
+    ],
+    [
+      -3.536969748104544e-09,
+      -2.0022641585028426e-28,
+      -7.073939696209417e-09
+    ],
+    [
+      1.4434516899645673e-22,
+      -1.9512067338318907e-26,
+      -7.073939696209296e-09
+    ],
+    [
+      3.5369697481047505e-09,
+      -3.882607385617514e-26,
+      -7.073939696209172e-09
+    ],
+    [
+      7.073939496208945e-09,
+      -3.9013319622923864e-26,
+      -7.07393969620912e-09
+    ],
+    [
+      -7.073939496209641e-09,
+      3.5369698481049946e-09,
+      -7.073939696209469e-09
+    ],
+    [
+      -3.5369697481045445e-09,
+      3.536969848104893e-09,
+      -7.073939696209416e-09
+    ],
+    [
+      1.443260422399736e-22,
+      3.5369698481046476e-09,
+      -7.073939696209291e-09
+    ],
+    [
+      3.5369697481047493e-09,
+      3.536969848104401e-09,
+      -7.073939696209172e-09
+    ],
+    [
+      7.073939496208946e-09,
+      3.5369698481042985e-09,
+      -7.0739396962091206e-09
+    ],
+    [
+      -7.073939496209643e-09,
+      -3.536969848104995e-09,
+      -1.253676259580592e-35
+    ],
+    [
+      -3.5369697481045445e-09,
+      -3.5369698481048936e-09,
+      -9.047170140552726e-36
+    ],
+    [
+      1.4436429576017185e-22,
+      -3.536969848104648e-09,
+      -9.540385822111615e-36
+    ],
+    [
+      3.5369697481047493e-09,
+      -3.5369698481043994e-09,
+      -2.9798424045031358e-36
+    ],
+    [
+      7.073939496208948e-09,
+      -3.5369698481042997e-09,
+      -8.386364004376052e-36
+    ],
+    [
+      -7.073939496209645e-09,
+      -1.5146145574904562e-29,
+      -8.718971727870602e-36
+    ],
+    [
+      -3.5369697481045458e-09,
+      -2.0022642847447002e-28,
+      2.2028743343871502e-36
+    ],
+    [
+      1.4434516899544766e-22,
+      -1.9512067365776088e-26,
+      9.278116390302638e-36
+    ],
+    [
+      3.53696974810475e-09,
+      -3.8826073841921267e-26,
+      -1.6259326538655607e-35
+    ],
+    [
+      7.073939496208949e-09,
+      -3.901331962281886e-26,
+      -1.5859476846966544e-36
+    ],
+    [
+      -7.073939496209644e-09,
+      3.536969848104995e-09,
+      -3.702334701017275e-35
+    ],
+    [
+      -3.536969748104544e-09,
+      3.536969848104894e-09,
+      -2.1234046670883936e-36
+    ],
+    [
+      1.4432604223894822e-22,
+      3.536969848104648e-09,
+      6.864295551956792e-36
+    ],
+    [
+      3.53696974810475e-09,
+      3.5369698481044002e-09,
+      1.58519957479268e-35
+    ],
+    [
+      7.073939496208947e-09,
+      3.5369698481042997e-09,
+      5.5858397192899005e-36
+    ],
+    [
+      -7.073939496209641e-09,
+      -3.5369698481049946e-09,
+      7.073939696209469e-09
+    ],
+    [
+      -3.5369697481045445e-09,
+      -3.536969848104893e-09,
+      7.073939696209416e-09
+    ],
+    [
+      1.443642957611949e-22,
+      -3.5369698481046476e-09,
+      7.073939696209291e-09
+    ],
+    [
+      3.5369697481047493e-09,
+      -3.5369698481044002e-09,
+      7.073939696209172e-09
+    ],
+    [
+      7.073939496208946e-09,
+      -3.536969848104298e-09,
+      7.0739396962091206e-09
+    ],
+    [
+      -7.073939496209643e-09,
+      -1.5146149894245637e-29,
+      7.073939696209468e-09
+    ],
+    [
+      -3.536969748104544e-09,
+      -2.0022646277556956e-28,
+      7.073939696209416e-09
+    ],
+    [
+      1.4434516899646305e-22,
+      -1.9512067348891624e-26,
+      7.0739396962092935e-09
+    ],
+    [
+      3.5369697481047505e-09,
+      -3.8826073820801846e-26,
+      7.073939696209172e-09
+    ],
+    [
+      7.073939496208945e-09,
+      -3.901331961605957e-26,
+      7.07393969620912e-09
+    ],
+    [
+      -7.073939496209641e-09,
+      3.5369698481049946e-09,
+      7.073939696209469e-09
+    ],
+    [
+      -3.5369697481045445e-09,
+      3.536969848104893e-09,
+      7.073939696209416e-09
+    ],
+    [
+      1.443260422399577e-22,
+      3.5369698481046476e-09,
+      7.073939696209291e-09
+    ],
+    [
+      3.5369697481047493e-09,
+      3.536969848104401e-09,
+      7.073939696209172e-09
+    ],
+    [
+      7.073939496208946e-09,
+      3.536969848104298e-09,
+      7.0739396962091206e-09
+    ]
+  ],
+  "v": [
+    [
+      0.19999930748415037,
+      -6.94997391487732e-07,
+      -3.4956664727530343e-07
+    ],
+    [
+      0.10000020544051377,
+      -4.920384195572249e-07,
+      -2.439512582473397e-07
+    ],
+    [
+      2.8872859152237574e-07,
+      -8.243668571919342e-10,
+      6.618851778104768e-09
+    ],
+    [
+      -0.09999979701960465,
+      4.920654705233823e-07,
+      2.472735061804658e-07
+    ],
+    [
+      -0.20000069587304653,
+      6.983545883593172e-07,
+      3.479365232607192e-07
+    ],
+    [
+      0.19999930582978914,
+      -3.0292305023463757e-14,
+      -3.4791228605030717e-07
+    ],
+    [
+      0.10000020626769439,
+      -4.004528317005685e-13,
+      -2.456056194725556e-07
+    ],
+    [
+      2.8869033799291344e-07,
+      -3.9024134676637806e-11,
+      -3.307315572531564e-09
+    ],
+    [
+      -0.0999997945380628,
+      -7.765214771235029e-11,
+      2.456191449554146e-07
+    ],
+    [
+      -0.20000069752740776,
+      -7.802663924584771e-11,
+      3.495908844857703e-07
+    ],
+    [
+      0.19999930748415037,
+      6.94997391487732e-07,
+      -3.4956664727530343e-07
+    ],
+    [
+      0.10000020544051377,
+      4.912112389447817e-07,
+      -2.439512582473397e-07
+    ],
+    [
+      2.886520844799472e-07,
+      8.243668573017629e-10,
+      6.618851778049853e-09
+    ],
+    [
+      -0.09999979701960465,
+      -4.920654705232724e-07,
+      2.4561914495530484e-07
+    ],
+    [
+      -0.20000069587304653,
+      -6.97527407746764e-07,
+      3.479365232607741e-07
+    ],
+    [
+      0.19999930252106668,
+      -6.958245721005045e-07,
+      -2.5073525191611836e-20
+    ],
+    [
+      0.10000020544051377,
+      -4.928656001698877e-07,
+      -1.8094340281105453e-20
+    ],
+    [
+      2.8872859152034366e-07,
+      -1.6515474697449619e-09,
+      -1.9080771644223232e-20
+    ],
+    [
+      -0.09999979701960465,
+      4.953741929735944e-07,
+      -5.959684809006272e-21
+    ],
+    [
+      -0.2000006925643241,
+      6.950458659087755e-07,
+      -1.67727280087521e-20
+    ],
+    [
+      0.19999929921234424,
+      -3.0292291149809117e-14,
+      -1.7437943455741205e-20
+    ],
+    [
+      0.10000020295897194,
+      -4.0045285694894e-13,
+      4.4057486687743e-21
+    ],
+    [
+      2.886903379908953e-07,
+      -3.902413473155218e-11,
+      1.8556232780605276e-20
+    ],
+    [
+      -0.09999979536524342,
+      -7.765214768384253e-11,
+      -3.251865307731122e-20
+    ],
+    [
+      -0.20000068925560163,
+      -7.802663924563771e-11,
+      -3.1718953693933086e-21
+    ],
+    [
+      0.19999930086670545,
+      6.958245721003947e-07,
+      -7.40466940203455e-20
+    ],
+    [
+      0.10000020626769439,
+      4.936927807825507e-07,
+      -4.2468093341767865e-21
+    ],
+    [
+      2.8865208447789644e-07,
+      1.6515474698547906e-09,
+      1.3728591103913585e-20
+    ],
+    [
+      -0.09999979536524342,
+      -4.937198317483786e-07,
+      3.17039914958536e-20
+    ],
+    [
+      -0.2000006942186853,
+      -6.950458659086657e-07,
+      1.1171679438579802e-20
+    ],
+    [
+      0.19999930748415037,
+      -6.949973914878418e-07,
+      3.4956664727535833e-07
+    ],
+    [
+      0.10000020544051377,
+      -4.912112389446719e-07,
+      2.4395125824739463e-07
+    ],
+    [
+      2.8872859152238977e-07,
+      -8.243668573017629e-10,
+      -6.618851778104768e-09
+    ],
+    [
+      -0.09999979701960465,
+      4.937198317483786e-07,
+      -2.456191449554146e-07
+    ],
+    [
+      -0.20000069587304653,
+      6.983545883592072e-07,
+      -3.479365232607741e-07
+    ],
+    [
+      0.19999930252106668,
+      -3.0292299788491276e-14,
+      3.4791228605019737e-07
+    ],
+    [
+      0.10000020626769439,
+      -4.0045292555113907e-13,
+      2.439512582475044e-07
+    ],
+    [
+      2.8869033799292614e-07,
+      -3.902413469778324e-11,
+      -1.6557681026218587e-09
+    ],
+    [
+      -0.0999997945380628,
+      -7.765214764160368e-11,
+      -2.456191449553597e-07
+    ],
+    [
+      -0.20000069752740776,
+      -7.802663923211914e-11,
+      -3.4959088448588015e-07
+    ],
+    [
+      0.19999930748415037,
+      6.949973914878418e-07,
+      3.4956664727524853e-07
+    ],
+    [
+      0.10000020544051377,
+      4.912112389447817e-07,
+      2.4395125824739463e-07
+    ],
+    [
+      2.886520844799154e-07,
+      8.243668573017629e-10,
+      -6.618851777994939e-09
+    ],
+    [
+      -0.09999979701960465,
+      -4.920654705233823e-07,
+      -2.456191449553597e-07
+    ],
+    [
+      -0.20000069587304653,
+      -6.983545883592072e-07,
+      -3.47936523260829e-07
+    ]
+  ],
+  "source_provenance_json": "{\"interval_s\": [0.0, 1e-15], \"native_candidate_digest\": \"3c50eb72ea8af99471248ce6c113c22ec0c13329df29697c2ab702ec8e908614\", \"source_actions\": [{\"PIC_applies_microscopic_image_force\": false, \"action_nodes\": 64, \"azimuth_uniform\": 0.1, \"collection_accommodation_admitted\": false, \"duration_s\": 0.0, \"energy_panels\": 128, \"image_energy_fraction\": 0.03, \"image_force_fraction\": 0.03, \"incoming_weighted_K_J\": 0.0, \"kind\": 1, \"layer_id\": 1, \"local_linear_vacuum_extent_m\": 2.5e-05, \"maximum_gyroangle\": 0.02, \"maximum_quantum_magnetic_energy_fraction\": 0.2, \"maximum_relative_normal_step\": 0.02, \"maximum_substeps\": 4096, \"normal_uniform\": 0.6, \"origin_x_m\": 1.5e-06, \"origin_y_m\": 0.0, \"origin_z_m\": 0.0, \"own_return_unit_accommodation\": true, \"patch_id\": 2, \"patch_index\": 1, \"tail_widths\": 48.0, \"transverse_uniform\": 0.35, \"weight\": 1000.0, \"work_function_eV\": 4.3}, {\"PIC_applies_microscopic_image_force\": false, \"action_nodes\": 64, \"azimuth_uniform\": 0.1, \"collection_accommodation_admitted\": false, \"duration_s\": 1e-15, \"energy_panels\": 128, \"image_energy_fraction\": 0.03, \"image_force_fraction\": 0.03, \"incoming_weighted_K_J\": 0.0, \"kind\": 2, \"layer_id\": 1, \"local_linear_vacuum_extent_m\": 2.5e-05, \"maximum_gyroangle\": 0.02, \"maximum_quantum_magnetic_energy_fraction\": 0.2, \"maximum_relative_normal_step\": 0.02, \"maximum_substeps\": 4096, \"normal_uniform\": 0.6, \"origin_x_m\": 1.5e-06, \"origin_y_m\": 0.0, \"origin_z_m\": 0.0, \"own_return_unit_accommodation\": true, \"patch_id\": 2, \"patch_index\": 1, \"tail_widths\": 48.0, \"transverse_uniform\": 0.35, \"weight\": 1000.0, \"work_function_eV\": 4.3}], \"source_input_sha256\": \"d52012cb12c9c670f1701ad59a298f67564e26b730a96b3f24a18c5532199f21\", \"source_stage\": {\"B_x_T\": 0.0, \"B_y_T\": 0.0, \"B_z_T\": 0.0, \"E_x_V_m\": 0.0, \"E_y_V_m\": 1000000000.0, \"E_z_V_m\": 0.0, \"common_state\": 1, \"electron_supply_admitted\": true, \"field_basis\": \"prescribed total one-sided component fields; no field solve\", \"field_sha256\": \"c8b47a78495783b2f3a46c353967624177a8ff104d18a2a11aacf1a55cfca982\", \"field_state\": 1, \"field_time_s\": 0.0, \"material_phase_admitted\": true, \"planar_barrier_admitted\": true, \"source_material_revision\": 1, \"source_mesh_revision\": 1}, \"water_draws\": [{\"along\": 0.5, \"angle\": 0.3, \"normal\": 0.4, \"patch_index\": 0, \"radius\": 0.6, \"time\": 0.5, \"z\": 0.5}]}",
+  "manifest_sha256": "db2067d6299c6439719004d8a011eca11af761d175011a03f68d40d5533937d4"
+}

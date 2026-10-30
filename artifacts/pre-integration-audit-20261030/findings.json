@@ -1,0 +1,254 @@
+{
+  "schema": "consolidated-pre-integration-audit-v1",
+  "disposition": "HOLD_FULL_INTEGRATION",
+  "findings": [
+    {
+      "id": "A01",
+      "kind": "defect",
+      "priority": "P1",
+      "title": "Legacy entry point can invoke native Poisson in full-time mode",
+      "evidence": "Empty legacy compound preparation reaches stage/solve_fields and can publish without updating the full-time boundary. The intended new coordinator avoids the route, but the public mode boundary does not.",
+      "closure": "Refuse every legacy entry point before callbacks/mutation; retain zero-call traps for the forbidden solver and legacy advance.",
+      "reviews": [
+        "native",
+        "contract"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A02",
+      "kind": "defect",
+      "priority": "P1",
+      "title": "Proposed field, source and geometry can change after their seals are captured",
+      "evidence": "Final common preflight does not compare mutable proposed field/heat to immutable native final seals. Narrow source probes also accept changed particle weight, spectrum, reused owner address and mutated mesh with old metadata.",
+      "closure": "Use opaque immutable candidates, live owner/generation and geometry identities, and recompute final native/field/heat/source/RNG/time bindings before allocation-free publication. Mutation/fault tests must leave every accepted owner unchanged.",
+      "reviews": [
+        "contract",
+        "source"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A03",
+      "kind": "defect",
+      "priority": "P1",
+      "title": "Private scope identity, lifetime and reentry are incomplete",
+      "evidence": "Intermediate001 shares an outer identity between sibling scopes and retains a raw owner pointer. Factories do not reserve exposure slots; per-scope builder flags allow sibling reentry. Exposure receipt allocation can throw after partial private publication. Candidate002 fixes only part of this and is not substituted into the review.",
+      "closure": "One outer reservation/build authority; exact scope keys and weak owner lifetime; prepare all allocating receipts before private swaps. Test destroyed-owner, sibling, reentry, stale and throwing paths.",
+      "reviews": [
+        "native",
+        "contract"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A04",
+      "kind": "defect",
+      "priority": "P1",
+      "title": "Native stochastic and closed-source seals are weaker than the advertised boundary",
+      "evidence": "Native admission does not independently bind first RNG to accepted RNG, both stages to one owner, and final RNG to actual second completion. Empty source receipts permit a changed source hash. Motion JSON does not fully validate schema and unique complete path/endpoints. Root supplies stronger normal-path checks, which do not repair the primitive.",
+      "closure": "Bind the complete RNG chain and unchanged closed-source seal natively; admit only a typed genuine motion receipt with complete census, geometry, path, time and policy checks.",
+      "reviews": [
+        "native",
+        "contract"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A05",
+      "kind": "defect",
+      "priority": "P1",
+      "title": "A nonempty full-time checkpoint cannot save or restore",
+      "evidence": "Both routes call the legacy journal validator, which rejects full_time_outer_begin and other full-time entries before semantic replay. Merely extending its allowed names leaves incorrect step/previous-dt accounting. Fresh-genesis restart evidence did not cover this.",
+      "closure": "Implement the exact bounded full-time grammar and accepted-step accounting. After component fixes, require genuine one-step fresh-process restart, split/full parity and corruption/refusal evidence.",
+      "reviews": [
+        "native",
+        "contract"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A06",
+      "kind": "defect",
+      "priority": "P1",
+      "title": "Restart and genesis admission need checked types and bounds",
+      "evidence": "Raw option bytes are copied into a bool-bearing C++ object; malformed representations can cause undefined behavior. JSON integer conversions can truncate/wrap before replay. Collection caps are incomplete before copying. Actual option operands are not independently bound in the native prefix; authored aggregate charge/energy can overflow.",
+      "closure": "Use an explicit typed option codec, exact nonnegative integer/range checks, preallocation shape/count/depth limits, direct native-option commitments and finite aggregate ledger checks. Preserve semantic replay and existing caps.",
+      "reviews": [
+        "native",
+        "contract"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A07",
+      "kind": "defect",
+      "priority": "P1",
+      "title": "Source reservoir debit and packet allocation are not exact",
+      "evidence": "Actual component preparation emits about 1e-30 particles from {1e15,-0.01} with unchanged inventory limbs. A separate unit release into ten packets exceeds its exact debit by 5/2^55. Exact gas arithmetic preserves the upstream excess rather than correcting it.",
+      "closure": "Use the existing exact-count representation across the complete source debit/newborn credit transaction, or explicitly refuse unrepresentable debits. Exact-sum all actual returned leaves; do not introduce another count backend.",
+      "reviews": [
+        "source",
+        "material"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A08",
+      "kind": "defect_or_admission_gap",
+      "priority": "P1",
+      "title": "Tiny positive source contributions can silently lose charge or heat",
+      "evidence": "A roughly 1e-310 positive-weight birth has rounded-zero charge and wall heat. Separately, an exposure-product scalar underflows despite a finite log expected count and current_underflow=false. V3 documents the latter; the external count owner must honor it.",
+      "closure": "Preserve the required weighted quantities in an admitted representation or refuse with explicit unresolved scope. Use finite-log exposure admission; never floor, resample, or silently treat positive flux as zero.",
+      "reviews": [
+        "source"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A09",
+      "kind": "defect_or_missing_guard",
+      "priority": "P1",
+      "title": "Initial absolute field constraints are not enforced",
+      "evidence": "Incremental Gauss checks can preserve an inconsistent initial charge/field state. A narrow actual Fields::prepare probe accepts and preserves divB about 50 T/m while energy and Gauss-increment checks pass. This is manufactured evidence, not a measurement of the paused run.",
+      "closure": "Admit initial total E against actual canonical charge and conductor/boundary ownership; admit initial divB and check preservation. Reject inconsistent states without inserting a second self-field solver.",
+      "reviews": [
+        "field",
+        "contract"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A10",
+      "kind": "defect",
+      "priority": "P2",
+      "title": "Particle/source midpoint differs from the compensated Maxwell midpoint",
+      "evidence": "The joint port averages high field words while the Maxwell receipt includes compensation. The operator probe found 9,354 differing E edges, maximum 1.4552e-11 V/m. Small magnitude does not establish the exact shared-field contract.",
+      "closure": "Publish one authoritative total midpoint from the field owner for particles, sources and work. Test nonzero compensation; do not loosen the work guard.",
+      "reviews": [
+        "field",
+        "contract"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A11",
+      "kind": "unimplemented",
+      "priority": "P1",
+      "title": "There is no whole-owner atomic restart or long-run history scheme",
+      "evidence": "The native, parent, field, thermal, source/count/RNG and future forcing configurations do not yet form one atomic disk snapshot. Five journal rows per empty step and a 4096-row ceiling allow at most 819 steps, 8.19 ps at 10 fs, before earlier event/byte/headroom limits. About 5.93 million 10 fs steps are needed from the supported start to 60 ns.",
+      "closure": "Bind exact drive/configuration and all accepted owners in one manifest, restore privately, and use validated bounded history anchors plus external receipts. Do not just raise caps or drop history. Bound transient forks and memory before allocation.",
+      "reviews": [
+        "native",
+        "contract",
+        "material",
+        "environment"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A12",
+      "kind": "unimplemented",
+      "priority": "P1",
+      "title": "The staged common driver is resident-only",
+      "evidence": "It explicitly excludes source births, active microscopic layers, collection and escape. Source arrival/count/RNG/ID ownership and newborn collision age are external. No full joint step or physical source-coupled trajectory has been accepted.",
+      "closure": "Implement one canonical population/source-layer mapping, finite inventories, actual physical birth times and remaining flight, first-hit collections/escapes, current and exactly-once energy exchange. Qualify a stated arrival/weight model and active-layer collision scope.",
+      "reviews": [
+        "source",
+        "contract",
+        "field"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A13",
+      "kind": "scientific_coverage_gap",
+      "priority": "P1",
+      "title": "The water mechanism is a conditional subset, not full breakdown",
+      "evidence": "Generic v6 omits low-energy elastic/angular and rovibrational transport, several attachment/ionization branches and fragment/ion continuation. New v7 metadata maps only part of the positive 2a1 hole and is not the integrated bridge; its generic handoff also mixes old and current metadata. Product conservation does not validate imposed secondary spectra.",
+      "closure": "Version and qualify supported exclusive channels and product distributions; implement native channel-set admission and physical collision-site/current treatment for capture. Assess omissions on actual densities/EEDF without inventing rates or renormalizing positive missing branches.",
+      "reviews": [
+        "chemistry",
+        "water-data"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A14",
+      "kind": "model_and_resource_gap",
+      "priority": "P1",
+      "title": "Broad-population chemistry has a model seam and evidence ceiling",
+      "evidence": "The selected cross-section sum jumps 3.0329-fold across adjacent binary64 energies at 1 keV without overlapping double counts; this is not a measured ensemble-rate or EEDF jump. The evidence collector refuses 257 energies by default and 1025 at its maximum; a captured 46,726-carrier pre-kick fixture evaluated against stationary H2O has 46,726 distinct relative energies.",
+      "closure": "Resolve supported coverage and quantify the model seam rather than smoothing it arbitrarily. Add bounded streaming evidence with equivalence checks, and converge macroparticle noise/weights independently of exact count arithmetic.",
+      "reviews": [
+        "chemistry"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A15",
+      "kind": "conditional_physics_and_missing_integration",
+      "priority": "P1",
+      "title": "Thermal and field-assisted emission remain essential but not fully admitted",
+      "evidence": "The unified supply/barrier law includes both mechanisms. Historical extracting probes have unsupported outgoing phases; tangent and oblique diagnostics do not qualify a general replacement. Unit return accommodation and clean 4.3 eV stationary-surface assumptions are explicit closures, not demonstrated actual heated layered-electrode properties.",
+      "closure": "Retain both mechanisms and one source integral. Evaluate actual one-sided total midpoint E/B and accepted surface material; bound or qualify unsupported phases and return behavior, and test held-T time error. Do not add independent thermionic/FN populations or impose shielding.",
+      "reviews": [
+        "emission",
+        "source"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A16",
+      "kind": "unimplemented_and_conditional_physics",
+      "priority": "P1",
+      "title": "Material, expansion and field geometry do not yet share one mass/energy owner",
+      "evidence": "Qualified scenarios use distinct reference densities and thermal stores. The reviewed Hall thermal port uses the separate evaluated-solid 298.2\u20131500 K scope, not the material q2 extension to 3000 K. Expansion has fixed-mass/reference-geometry restrictions and no deformed EM solve. Its actual prescribed-T comparison ends at 12.428 ns; the separate solid thermal pilot refuses near 49.105 ns at 3000 K. These are component limits, not a predicted failure time of the future coupled model.",
+      "closure": "Choose consistent declared density/reference conventions for each material and phase, with one extensive mass/energy owner; conserve geometry/current/wall work and removed mass. Preserve local material/mechanical guards. The newly requested layered, melt-triggered energy-limited release is a separate closure to implement and qualify, not a silent extension of old seals. Released metal/oxide needs explicit species or a removed-material reservoir with reference energy; the current water catalog cannot supply those kinetics.",
+      "reviews": [
+        "material",
+        "surface-request"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A17",
+      "kind": "data_and_validation_gap",
+      "priority": "P2",
+      "title": "Drive, RGA and observation assumptions remain conditional",
+      "evidence": "The new selected driver uses C19 current recovered from published average-display vertices, with unknown trigger registration and terminal/AK voltage as outputs; old recalled 220 kV feed/110 kV midpoint are conditional comparisons. Earlier B comparisons differ about 12\u201314% and do not validate the new 3D field. The published/vector-figure RGA recovery has 50 mass channels, not raw acquisition or calibrated neutral fractions. Numerical density slabs are not calibrated slit response.",
+      "closure": "Bind current bytes/clock/topology, compare field and terminal measurements without independent conflicting current/voltage constraints, retain RGA calibration/composition uncertainty, and keep actual 3D collision volume separate from cm^-3 display/slit sampling.",
+      "reviews": [
+        "root-data",
+        "field",
+        "chemistry",
+        "water-data"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A18",
+      "kind": "environment_admission_gap",
+      "priority": "P1",
+      "title": "Pinned userspace does not freeze every host dependency or guard",
+      "evidence": "Selected frozen userspace, native and CUDA hashes match. The host kernel release is guarded, but GPU module/build identity is observed rather than admitted. Python assert guards can be disabled by inherited optimization. CPU leases/thread settings require an external wrapper; compiler/MPI overrides and complete launch seals need explicit admission.",
+      "closure": "Use non-assert checks, a sanitized recorded environment, explicit CPU/GPU leases, complete source/build/runtime pins and expected kernel/module/device identity. A changed host must refuse pending requalification, not silently refresh pins.",
+      "reviews": [
+        "environment"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A19",
+      "kind": "validation_gap",
+      "priority": "P2",
+      "title": "No converged continuous coupled plasma result exists",
+      "evidence": "Legacy parent 442 checks still pass on intermediate001 with no physical trajectory advancement. Large component assertion totals, the paused 26.4787 ns electron-only run, and solid-only trials do not establish plasma shielding, breakdown, sheath/grid/particle convergence or a full 60 ns history.",
+      "closure": "After defect closure, progress through component adversarial checks, an exact-version common-owner short test, physical pilot/refinement, then bounded production qualification. Record actual accepted range, limitations, ledgers and white cm^-3 figures. No long-run launch yet.",
+      "reviews": [
+        "all"
+      ],
+      "status": "open"
+    }
+  ]
+}

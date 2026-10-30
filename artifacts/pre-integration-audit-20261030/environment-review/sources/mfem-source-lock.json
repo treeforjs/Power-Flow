@@ -1,0 +1,37 @@
+{
+  "created_utc": "2026-10-29T17:48:00.977359+00:00",
+  "status": "installed_runtime_pinned_and_read_only",
+  "frozen_base": "/home/treefor/projects/runtimes/arch-base-20261028",
+  "root_manifest_sha256": "b2df5e5864ecbe75a691a4fb2410f8fef21d55982b54c01adeddee9cb16563dd",
+  "sources": {
+    "GKlib": {
+      "commit": "3b7d61b9f885063c89901f3901fb4426f9cfb58f",
+      "patch": ""
+    },
+    "hypre": {
+      "commit": "d3243638e7dee5208cb4ea643610fa9bdb74123b",
+      "patch": ""
+    },
+    "mfem": {
+      "commit": "d964264cdb9a13e94a201b6c236c7721e0c8765f",
+      "patch": ""
+    },
+    "metis": {
+      "commit": "f5ae915a84d3bbf1508b529af90292dd7085b9ec",
+      "patch": "diff --git a/libmetis/CMakeLists.txt b/libmetis/CMakeLists.txt\nindex fc6cec6..797bbca 100644\n--- a/libmetis/CMakeLists.txt\n+++ b/libmetis/CMakeLists.txt\n@@ -13,3 +13,5 @@ if(METIS_INSTALL)\n     RUNTIME DESTINATION lib\n     ARCHIVE DESTINATION lib)\n endif()\n+\n+target_link_libraries(metis PUBLIC \"${GKLIB_PATH}/lib/libGKlib.a\" m)\n"
+    }
+  },
+  "build_recipe": "/home/treefor/Documents/Codex/2026-10-28/we/work/rebuild-20261029/build-native.sh",
+  "notes": [
+    "All builds run inside frozen userspace; Arch system upgrades do not replace its libraries.",
+    "Kernel change is rejected by launcher until separately qualified.",
+    "METIS_VERSION_5=ON is required with explicitly supplied version5 libraries."
+  ],
+  "MFEM_METIS_configuration": {
+    "METIS_VERSION_5": true,
+    "METIS_INCLUDE_DIRS": "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include"
+  },
+  "installed_file_manifest": "installed-files.json",
+  "installed_file_count": 402,
+  "installed_manifest_sha256": "aac3532ad53a7f08139f4f93896cf1f850edad8564a16765bcd03082a6f692d7"
+}

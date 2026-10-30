@@ -1,0 +1,27 @@
+{
+  "schema": "axial-current-control-pilot-v1",
+  "selected_drive": "c19_current_control",
+  "status": "implementation_under_test",
+  "total_field_owner": "axial Maxwell; no native Poisson self-E addition",
+  "current_port": "distributed impressed upper-to-lower branch on positive-z foil end",
+  "current_measured": "total port current with explicit conduction, plasma, displacement, boundary and charge accumulation",
+  "voltage": "predicted minus same-stage E line integral along the unit feed branch",
+  "conditional_voltage_pulse": "comparison only, never a second constraint",
+  "short": "ideal PEC transverse sheet at negative-z foil end; heating in this sheet is not modeled",
+  "initialization": "supported first C19 knot; declared uniform-temperature DC scenario, full scalar potential and closed-loop magnetostatics",
+  "gauge": "scalar short potential zero; magnetostatic tangential A=0 at outer air box with Coulomb penalty",
+  "outer_boundary": "finite impedance plus explicit static matched initial-state boundary source; finite box not exterior-qualified",
+  "material": "conditional nominal SS304 evaluated solid 300..1500 K; rho_ref=8000 kg/m3 scenario, fixed-reference-volume Cp-as-Cv approximation",
+  "thermal": "one sealed native thermal coupler per electrode per axial slice; no axial diffusion in this bounded pilot",
+  "guards": {
+    "dt_s": 1e-14,
+    "gyro_angle": 0.05,
+    "sum_species_omega_p_dt": 0.1,
+    "displacement_cells": 0.2,
+    "linear_relative": 2e-13,
+    "linear_absolute": 1e-30,
+    "energy_absolute_J": 1e-20,
+    "energy_relative_to_actual_transfer": 1e-10
+  },
+  "not_qualified": ["experimental lead/short shape", "mesh and exterior convergence", "axial instability convergence", "full water breakdown", "mechanics", "vapor"]
+}

@@ -1,0 +1,233 @@
+{
+  "schema": "hall-preintegration-audit-findings-v1",
+  "disposition": "changes_required_full_integration_held",
+  "findings": [
+    {
+      "id": "A01",
+      "severity": "P1",
+      "classification": "current_defect",
+      "title": "Mutable candidate field/heat is not rebound at final preflight",
+      "evidence_summary": "Static call-chain proof: mutating proposed E/B/low words/time or substituting another valid same-owner heat trial leaves every current preflight operand satisfied.",
+      "required_action": "Make the complete proposal opaque and rehash actual proposed objects against immutable native seals at the final common barrier.",
+      "source_evidence": [
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-canonical-driver-20261029/axial_joint_v2.hpp",
+          "line": 21,
+          "end_line": 27,
+          "anchor": "struct AxialJointTrial {",
+          "sha256": "7faf0284adb79147b7e418ac1352a054eddaeaff7db338a006b2e870e2d45bbc"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-canonical-driver-20261029/axial_joint_v2.hpp",
+          "line": 72,
+          "end_line": 77,
+          "anchor": "inline bool preflight_axial_joint(const axial::State&accepted,const Thermal&thermal,",
+          "sha256": "7faf0284adb79147b7e418ac1352a054eddaeaff7db338a006b2e870e2d45bbc"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/parent-owner-draft/closed_parent_joint_step.hpp",
+          "line": 122,
+          "end_line": 139,
+          "anchor": "inline bool can_publish_closed_parent_joint(const m::PicArena& arena,const ParentSubflow& chemistry,",
+          "sha256": "b83f389207c6db92e382ddc375d2e12fc88ce3d8fda8888b0d0755390f238775"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-canonical-driver-20261029/native_joint_binding.hpp",
+          "line": 57,
+          "end_line": 59,
+          "anchor": "inline bool preflight_native_joint(const axial::State&accepted_field,const Thermal&thermal,const PreparedNativeJoint&p){",
+          "sha256": "cc81e03232be07a11cf1d3563baf8fd2f234a642874489f71bf154d9ef748ba5"
+        }
+      ]
+    },
+    {
+      "id": "A02",
+      "severity": "P1",
+      "classification": "current_admission_gap",
+      "title": "Initial absolute Gauss consistency with authored charge is absent",
+      "evidence_summary": "The DC initializer has no particle-charge operand; isolated nodal diagnostic found 4.811336431901993e-11 C mismatch for the explicitly manufactured charge. No native genesis was executed.",
+      "required_action": "Admit explicit charge-compatible initial/restored states and independently compare actual final native and boundary-owner charge with the field.",
+      "source_evidence": [
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-finite-foil-em-20261029/axial_fields.hpp",
+          "line": 21,
+          "end_line": 24,
+          "anchor": "inline Initial dc_initial(const Mesh&g,const Vec&sigma_cells,double current) {",
+          "sha256": "3122e9e9d42715cd8e8aa8a0f0a97d746c2944c6ec298619e01812ca38153a17"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-finite-foil-em-20261029/axial_fields.hpp",
+          "line": 131,
+          "end_line": 131,
+          "anchor": "State start(double t)const{return {initial.E,initial.B,t,0,Vec(g.ne),Vec(g.nb)};}",
+          "sha256": "3122e9e9d42715cd8e8aa8a0f0a97d746c2944c6ec298619e01812ca38153a17"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-finite-foil-em-20261029/axial_fields.hpp",
+          "line": 176,
+          "end_line": 181,
+          "anchor": "auto charge0=g.field_charge(old.E),charge1=g.field_charge(next.E),low0=g.field_charge(old.E_low),low1=g.field_charge(next.E_low);Vec physical_current=total;",
+          "sha256": "3122e9e9d42715cd8e8aa8a0f0a97d746c2944c6ec298619e01812ca38153a17"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-canonical-driver-20261029/test_joint_v2.cpp",
+          "line": 14,
+          "end_line": 19,
+          "anchor": "Rows authored(){Rows rows;std::uint64_t id=1;for(int species=0;species<3;++species){",
+          "sha256": "1952f91180f5cbb636e2dc14547a586a7e7af44a1a9aca0bd717b5da3a1746ac"
+        }
+      ]
+    },
+    {
+      "id": "A03",
+      "severity": "P1",
+      "classification": "current_admission_gap",
+      "title": "Fields with nonzero divB are admitted",
+      "evidence_summary": "Isolated Fields.prepare accepted and preserved a 50 T/m divergence error while its Gauss increment and energy checks passed.",
+      "required_action": "Check high+low initial/restored and proposed divB with operator-scaled roundoff bounds; preserve compatible Faraday evolution.",
+      "source_evidence": [
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-finite-foil-em-20261029/axial_mesh.hpp",
+          "line": 96,
+          "end_line": 96,
+          "anchor": "Vec magnetic_divergence(const Vec&B)const{Vec p(nx*ny*nz);for(int k=0;k<nz;++k)for(int j=0;j<ny;++j)for(int i=0;i<nx;++i)p[(k*ny+j)*nx+i]=(B[bx(i+1,j,k)]-B[bx(i,j,k)])/dx+(B[by(i,j+1,k)]-B[by(i,j,k)])/dy+(B[bz(i,j,k+1)]-B[bz(i,j,k)])/dz;return p;}",
+          "sha256": "7e172f2787f1ae7058edddffde499b573560a2d9c3893abd9680e3b462d0e7db"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-finite-foil-em-20261029/axial_fields.hpp",
+          "line": 132,
+          "end_line": 138,
+          "anchor": "std::pair<State,Receipt> prepare(const State&old,const Vec&plasma,const Vec&sigma_cells,double dt,double current)const{",
+          "sha256": "3122e9e9d42715cd8e8aa8a0f0a97d746c2944c6ec298619e01812ca38153a17"
+        }
+      ]
+    },
+    {
+      "id": "A04",
+      "severity": "P2",
+      "classification": "current_exact_binding_defect",
+      "title": "The joint midpoint expression differs from Maxwell work midpoint",
+      "evidence_summary": "Field-only probe found 9354 of 41676 E edges differ, maximum 1.4551915228366852e-11 V/m; no joint nonlinear execution was performed.",
+      "required_action": "Use one authoritative immutable midpoint representation for motion/source/Maxwell work/heat and define low-word treatment.",
+      "source_evidence": [
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-canonical-driver-20261029/axial_joint_v2.hpp",
+          "line": 44,
+          "end_line": 47,
+          "anchor": "auto midpoint=[&](const axial::State&s){std::pair<Vec,Vec> result{Vec(g.ne),Vec(g.nb)};",
+          "sha256": "7faf0284adb79147b7e418ac1352a054eddaeaff7db338a006b2e870e2d45bbc"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-finite-foil-em-20261029/axial_fields.hpp",
+          "line": 151,
+          "end_line": 152,
+          "anchor": "r.mid_E[e]=old.E[e]+(old.E_low[e]+.5*increment[e]/sqrtM[e]);",
+          "sha256": "3122e9e9d42715cd8e8aa8a0f0a97d746c2944c6ec298619e01812ca38153a17"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-finite-foil-em-20261029/axial_fields.hpp",
+          "line": 166,
+          "end_line": 168,
+          "anchor": "r.plasma_work_J+=dt*r.mid_E[e]*plasma[e];r.joule_J+=dt*r.mid_E[e]*r.solid_current[e];",
+          "sha256": "3122e9e9d42715cd8e8aa8a0f0a97d746c2944c6ec298619e01812ca38153a17"
+        }
+      ]
+    },
+    {
+      "id": "G01",
+      "severity": "P1",
+      "classification": "full_source_integration_gate",
+      "title": "Source, kinetic handoff, sink, count/RNG/ID/layer and patch ownership is incomplete",
+      "evidence_summary": "Closed port correctly rejects active IDs/hits and native source/boundary receipts. V3 handoff calls the older field-domain intersection.",
+      "required_action": "Keep closed resident-only scope; obtain root/native typed ownership and kinetic partial-flight contracts before source population integration.",
+      "source_evidence": [
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-canonical-driver-20261029/native_arena_motion.cpp",
+          "line": 98,
+          "end_line": 98,
+          "anchor": "hall::require(active_layer_ids.empty(),\"motion requires source owner for every active layer; no implicit exclusion/freeze\");",
+          "sha256": "9b72670e2d979fef7eaaa2f7c56768c480422bb91e224dd5cde30f26aa6cee3a"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-finite-foil-em-20261029/axial_particles.hpp",
+          "line": 46,
+          "end_line": 57,
+          "anchor": "inline foil::Hit intersection(const Mesh&g,V3 x,V3 D){",
+          "sha256": "45bdc1bb5f966fab80a7dcd5502133416f73f931f38f69d44b32373ad4bb3d68"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/source-v3-review/inputs/source-v3/axial_trial_field.hpp",
+          "line": 19,
+          "end_line": 21,
+          "anchor": "HandoffTrial handoff_remainder(const Candidate&source,const GapParticle&canonical,bool qualification=false)const {",
+          "sha256": "d5aba2d4bdbb4bdb35535a357f3474f6d649d769e18a505bd80c2af21a53c85e"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-canonical-driver-20261029/axial_thermal_v2.hpp",
+          "line": 57,
+          "end_line": 57,
+          "anchor": "result.push_back(std::make_unique<electrode_heat_v2::Coupler>(geometry,law,std::vector<electrode_heat_v2::Patch>{},300.,electrode_heat_v2::source_kernel_sha256,initial_time_s));",
+          "sha256": "8dd497ed8c690af15d2aaf6f5fc5f56476f1179e1d9ddb6009f519ab952e56ad"
+        }
+      ]
+    },
+    {
+      "id": "A05",
+      "severity": "P2",
+      "classification": "runtime_provenance_gap",
+      "title": "Trace and boundary forcing are not bound in common runtime configuration",
+      "evidence_summary": "CurrentTrace parses but does not verify declared CSV SHA; common field/thermal seals omit trace/clock/start scenario and mutable Fields.initial forcing. Reviewed CSV itself matches the declared hash.",
+      "required_action": "Seal actual drive/operator/clock/initialization configuration and validate it at restart; make forcing immutable.",
+      "source_evidence": [
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-canonical-driver-20261029/axial_thermal_v2.hpp",
+          "line": 10,
+          "end_line": 26,
+          "anchor": "explicit CurrentTrace(const std::string&path){",
+          "sha256": "8dd497ed8c690af15d2aaf6f5fc5f56476f1179e1d9ddb6009f519ab952e56ad"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-finite-foil-em-20261029/axial_fields.hpp",
+          "line": 129,
+          "end_line": 132,
+          "anchor": "Initial initial;",
+          "sha256": "3122e9e9d42715cd8e8aa8a0f0a97d746c2944c6ec298619e01812ca38153a17"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-finite-foil-em-20261029/axial_fields.hpp",
+          "line": 99,
+          "end_line": 99,
+          "anchor": "if(g.fixed_A[e])out.background_force[e]=g.Y[e]*out.E[e]+defect;",
+          "sha256": "3122e9e9d42715cd8e8aa8a0f0a97d746c2944c6ec298619e01812ca38153a17"
+        }
+      ]
+    },
+    {
+      "id": "G02",
+      "severity": "P2",
+      "classification": "common_restart_gate",
+      "title": "Component restore/replay is not a complete atomic root checkpoint",
+      "evidence_summary": "Thermal aggregate restore is atomic across its slices, but the fixture commits it before cross-owner field-clock validation and has no complete native/source/RNG common publication.",
+      "required_action": "Restore every owner privately, validate all identities and physical constraints, then publish one durable common checkpoint with failure qualification.",
+      "source_evidence": [
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-canonical-driver-20261029/axial_thermal_v2.hpp",
+          "line": 123,
+          "end_line": 133,
+          "anchor": "void load(const std::filesystem::path&dir){",
+          "sha256": "8dd497ed8c690af15d2aaf6f5fc5f56476f1179e1d9ddb6009f519ab952e56ad"
+        },
+        {
+          "file": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/hall-coupled-transport-20261029/canonical-driver/full-audit-001/inputs/hall-source/development/hall-canonical-driver-20261029/test_thermal_v2.cpp",
+          "line": 27,
+          "end_line": 27,
+          "anchor": "t.load(path/\"thermal\");hall::require(t.time_s()==s.time_s&&t.revision()==s.revision,\"v2 fixture clock\");return s;",
+          "sha256": "e5fd2bda892783a548e3daef31c0976b3700c286dd1d8f642f05c0acdb118602"
+        }
+      ]
+    }
+  ],
+  "implementation_commit": "c2f81ab87ddc295e7bdad808d33135fa781b3942",
+  "physics_scope": "isolated field operators and eight native kicks only; no common joint execution",
+  "remediation_performed": false
+}

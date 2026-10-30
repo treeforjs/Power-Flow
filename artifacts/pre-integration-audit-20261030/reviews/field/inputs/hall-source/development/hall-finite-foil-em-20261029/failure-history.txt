@@ -1,0 +1,43 @@
+Preserved rejected trials and dispositions
+
+particles-001: neutral electron/proton start made net charge exactly zero, which
+was an invalid continuity normalization denominator. The denominator now uses
+actual gross unsigned deposited charge; the 1e-12 coefficient was unchanged.
+Gauss uses actual charge change. Accepted retest:particles-002.
+
+axial-001: applying a Coulomb penalty on exterior scalar nodes as well as interior
+nodes was incompatible with essential tangential A. It introduced a harmonic
+interior gauge force. Interior scalar test functions now vanish on the boundary.
+The independent linear and physical residual limits were unchanged.
+
+axial-qualified-001/-002: at 5 fs, a 1.45697e-18 J defect exceeded the unchanged
+1.30976e-18 J energy allowance. Tiny field increments had been rounded away against
+large DC fields. Canonical high+low E/B storage now retains them; restart and an
+independent 80-digit physical energy audit verify them. No energy correction or
+looser tolerance was used.
+
+axial-qualified-003/-004: the nx 90 uniform-DC conductor solve failed its independent
+residual due to roundoff transverse modes in the anisotropic iterative solve.
+The exact affine uniform-conductor solution is evaluated directly and admitted
+with the SAME 2e-13 independent residual bound. Nonuniform DC data still use the
+iterative solver and must pass its original bound.
+
+axial-qualified-005: nx 180 failed the short-sheet scalar initialization solve.
+The final uniform-DC scenario explicitly selects reflected feed-contact current
+on the ideal short sheet, checked with the SAME 2e-13 continuity residual bound.
+This is a declared return-current initial-condition choice: an ideal PEC short
+alone does not select a resistive current profile. It replaces the former
+minimum-weighted-gradient profile and can alter end fields. It is not presented
+as an experimental short/lead reconstruction. The whole loop is recomputed and
+all field/circuit tests rerun.
+
+axial-qualified-006 passed all then-present checks; its axial-resolution sweep
+also changed air-padding distance. The final sweep keeps 6.25 mm padding per end
+fixed when refining z. The earlier sensitivity is preserved and not called an
+axial convergence result.
+
+Later phase/source refinements add explicit full-time phase rejection, the
+variable-step composition, source-v2 absolute-path import, and source/collision
+work checks without absolute floors. Accepted final runs are finite-final-002 and
+axial-phase-002. Exact rejected source snapshots and command logs are preserved
+under the corresponding output run/source directories; none were overwritten.

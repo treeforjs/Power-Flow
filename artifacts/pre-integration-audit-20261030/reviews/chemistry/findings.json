@@ -1,0 +1,279 @@
+[
+  {
+    "id": "PHY-01",
+    "severity": "P1",
+    "classification": "missing_physics_coverage",
+    "title": "Cold/secondary-electron transport is incomplete",
+    "finding": "No elastic event kernel below1keV, no rotation/vibrational event channels, one selected electronic state only. At20eV the unapplied elastic integral is1.36e-19m2 versus selected parent+A1B1 sum5.466014492753623e-21m2. Scalar/momentum/energy-loss observables are available but are not exclusive differential events.",
+    "remediation": "Bind supported low-energy angle/internal-state kernels and consistent state/reference inventories, or quantify declared omitted-process bounds. Do not use momentum-transfer/effective/stopping cross sections as extra event rates.",
+    "evidence": [
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/source/generic_water_bridge.hpp",
+        "lines": [
+          88,
+          95,
+          119,
+          131
+        ]
+      },
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/products/data/collisions/h2o-gas-20261029-elastic.json",
+        "json_pointer": "channels[id=H2O:elastic_integral_song2021]"
+      }
+    ]
+  },
+  {
+    "id": "PHY-02",
+    "severity": "P1",
+    "classification": "missing_physics_coverage",
+    "title": "Attachment and fragment-ion channels are not complete",
+    "finding": "Hminus is applied only6.25..6.75eV although its source yield is positive at8.5/12eV; Ominus is never an event. At8.5eV source Hminus/Ominus yields are1.26e-22/8e-24m2; at12eV8e-24/2.74e-23m2. Below1keV only parent ionization is sampled, while OH+/H+/O+/other partial yields exist without qualified exclusive completion.",
+    "remediation": "Add source-qualified event multiplicities, all neutral/electron products and state/angle/internal closures. Treat yield curves as observables until that contract exists; do not synthesize branches by arbitrary yield normalization.",
+    "evidence": [
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/source/generic_water_bridge.hpp",
+        "lines": [
+          88,
+          95
+        ]
+      },
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/products/data/collisions/h2o-gas-20261029-elastic.json",
+        "json_pointer": "channels[id=H2O:attachment_yield:Hminus,Ominus;H2O:ion_yield:*]"
+      },
+      {
+        "url": "https://arxiv.org/abs/1007.5144"
+      }
+    ]
+  },
+  {
+    "id": "PHY-03",
+    "severity": "P1",
+    "classification": "missing_physics_coverage",
+    "title": "High-energy coverage remains partial",
+    "finding": "At8084.470604111418eV2a1 contributes1.5808384508973464e-22m2 without v6 products; core/multiple/Auger and fragment-species continuation remain unknown. Mapped fraction0.8898794893 is only of the original four-valence BEB model, not all-shell physical coverage.",
+    "remediation": "Retain positive/unknown ledgers and refuse full-mechanism admission. Add source-qualified missing rates/products and continuation, or make a quantitatively bounded explicit subset claim. Published v7 has only a conditional27% mapping of2a1 and still73%positive unmapped; it is not integrated or audited here.",
+    "evidence": [
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/source/generic_water_bridge.hpp",
+        "lines": [
+          115,
+          135
+        ]
+      },
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/products/tools/build_h2o_outer_valence_extensions.py",
+        "lines": [
+          18,
+          40
+        ]
+      },
+      {
+        "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/h2o-collision-data-20261029/coordination-handoff-v7.json"
+      }
+    ]
+  },
+  {
+    "id": "PHY-04",
+    "severity": "P1",
+    "classification": "unimplemented_integration",
+    "title": "Native multichannel and OHv family admission are absent",
+    "finding": "Generic native proofs use one fixed outcome-specific registry under forced_kernel_integration_only. Current single-channel completion requires every SSA child to match one channel/model; Hminus needs five allowed product alternatives under one base rate. Latest full-time candidate remains single-channel and unqualified.",
+    "remediation": "Introduce a separately versioned immutable channel-set/product-family schema, preserve old single-channel checks, bind every child data/kernel/model/clock/stage/prefix, and qualify commit/replay/rollback. Do not relabel forced tests or duplicate full rates.",
+    "evidence": [
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/source/generic_water_native_adapter.hpp",
+        "lines": [
+          9,
+          14,
+          27,
+          35
+        ]
+      },
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/native/source/src/mfem_pic_arena.cpp",
+        "lines": [
+          885,
+          888,
+          1438,
+          1444,
+          1488,
+          1508
+        ]
+      }
+    ]
+  },
+  {
+    "id": "PHY-05",
+    "severity": "P1",
+    "classification": "unimplemented_spatial_physics",
+    "title": "Spatially separated capture cannot be admitted",
+    "finding": "DEA rates remain in the race, but sample requires exact3D coincidence. Native also refuses net charge transfer between distinct reactant sites. Independent macro e/H2O pairs normally need not coincide; selected capture will abort, not provide a complete reacting history.",
+    "remediation": "Specify/qualify a physical collision-site and compatible reaction-current/work path before nonlocal capture. Retain the refusal meanwhile. Do not drop positive capture pairs, skip selected events, or move ions to the electron site merely to pass.",
+    "evidence": [
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/source/generic_water_bridge.hpp",
+        "lines": [
+          158,
+          166
+        ]
+      },
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/native/source/src/mfem_pic_arena.cpp",
+        "lines": [
+          867,
+          891
+        ]
+      },
+      {
+        "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-generic-water-bridge-20261029/native-summary.json"
+      }
+    ]
+  },
+  {
+    "id": "PHY-06",
+    "severity": "P1_for_physical_EEDF",
+    "classification": "unqualified_product_models",
+    "title": "Conservation does not validate the EEDF/angles",
+    "finding": "Parent/outer3 prescribe equal-energy back-to-back CM electron pairs; A1B1 uses fixed7.49eV loss and ground/isotropic breakup; DEA factorizes a narrow6.5eV fit; OHminus uses ground/isotropic endpoint; IAM is an incoherent O+2H free-atom approximation.",
+    "remediation": "Retain conditional labels, compare differential/secondary/internal observables to primary data and bound model sensitivity. Replace spectra only with an explicitly sourced, conservatively admitted kernel. Do not infer thermalization/avalanche from scalar rate or closure tests.",
+    "evidence": [
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/products/include/raikou/h2o_conditional_parent.h",
+        "lines": [
+          38,
+          51
+        ]
+      },
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/products/tools/build_h2o_outer_valence_extensions.py",
+        "lines": [
+          31,
+          36
+        ]
+      },
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/products/data/collisions/h2o-gas-20261029-elastic.json",
+        "json_pointer": "conditional_event_models[*].assumptions"
+      },
+      {
+        "url": "https://physics.nist.gov/PhysRefData/Ionization/intro.html"
+      },
+      {
+        "url": "https://nvlpubs.nist.gov/nistpubs/NSRDS/NIST.NSRDS.64-2023.pdf"
+      }
+    ]
+  },
+  {
+    "id": "PHY-07",
+    "severity": "P2",
+    "classification": "confirmed_model_join_artifact",
+    "title": "Selected collision sum jumps at1keV",
+    "finding": "Adjacent binary64 energies around1000eV give selected sums4.32e-21 then1.3102231042042155e-20m2, ratio3.0329238523. Parent alone jumps4.32e-21 to5.476053113888497e-21; IAM/fragment branches activate. No overlap double count was found, but continuity/physical transport is unqualified.",
+    "remediation": "Obtain compatible supported low-energy/angular coverage and assess model matching/sensitivity. Do not hide the seam by arbitrary rescaling, endpoint holds or smoothing.",
+    "evidence": [
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/source/generic_water_bridge.hpp",
+        "lines": [
+          45,
+          62,
+          88,
+          95
+        ]
+      },
+      {
+        "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-generic-water-physics-audit-20261029/cap-probes.json",
+        "json_pointer": "one_keV_join"
+      }
+    ]
+  },
+  {
+    "id": "PHY-08",
+    "severity": "P2",
+    "classification": "weighted_macro_model_validation_gap",
+    "title": "Physical first moments do not establish stochastic convergence",
+    "finding": "With k=sigma*g/V, cohort hazard=max(Wp,Wn)k and event weight=min(Wp,Wn) preserve WpWn*k. Frozen-population count variance scales as WpWn*min(Wp,Wn)k, so weights/decomposition alter correlations and noise even at fixed mean physical source.",
+    "remediation": "Converge macro weights/target carrier representation, cell size and interval with fixed physical source/neutral inventory. Report density, free-electron EEDF, species charge/current, ionization/attachment counts and variance; do not claim physical breakdown-delay fluctuations from first-moment tests.",
+    "evidence": [
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/inputs/collision_scheduler.hpp",
+        "lines": [
+          202,
+          218,
+          289,
+          306
+        ]
+      },
+      {
+        "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-generic-water-bridge-20261029/clock-ensembles.json"
+      }
+    ]
+  },
+  {
+    "id": "PHY-09",
+    "severity": "P2",
+    "classification": "confirmed_component_resource_limit",
+    "title": "Coverage evidence cap is below a broad kinetic population",
+    "finding": "Default256 distinct relative energies refuses257; hard maximum1024 admits1024 and refuses1025. The old pre-kick fixture has46726 distinct stationary-H2O relative energies. This is an honest bounded refusal, not a physical zero or current physics-rate bug.",
+    "remediation": "Fork a bounded streaming/hash/weighted-coverage evidence path that retains every supported/positive/unknown contribution, without changing rates or omitting pairs; qualify resource equivalence. Do not simply suppress the cap.",
+    "evidence": [
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/source/generic_water_bridge.hpp",
+        "lines": [
+          137,
+          156
+        ]
+      },
+      {
+        "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-generic-water-physics-audit-20261029/cap-probes.json"
+      }
+    ]
+  },
+  {
+    "id": "PHY-10",
+    "severity": "P2",
+    "classification": "experimental_calibration_and_source_model_limit",
+    "title": "RGA does not fix local H2O density/composition",
+    "finding": "The current recovered50-channel figure is published vector geometry, not raw calibrated neutral partial pressures. At assumed5e-5Torr and300K ideal-gas total density is1.6094166e12cm^-3; water is x_H2O times that unknown fraction. Desorbed oxide-water inventory/ground-state effusion is a declared surrogate scenario, not measured SS304 coverage.",
+    "remediation": "Bind p,T,x species and sensitivity as explicit background scenarios or recover calibration/cracking matrix; use finite transported desorption inventory and gas internal-state assumptions. Keep microscopic source/binding/translation energy debits distinct and avoid normalizing RGA peaks into neutral fractions.",
+    "evidence": [
+      {
+        "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/rga-channel-recovery/figure_2_3_rga_recovery.json",
+        "json_pointer": "limitations;physical_neutral_composition_ready"
+      },
+      {
+        "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-feedback-20261029/source-snapshot-v2/water-scenario-v2.json"
+      }
+    ]
+  },
+  {
+    "id": "PHY-11",
+    "severity": "P2",
+    "classification": "model_resolution_and_unit_admission",
+    "title": "Cell volume, density and field resolution remain host-owned",
+    "finding": "Rates use m2,m/s,m3 once. Generic fixtures use authored1e-12m3, not a verified full foil collision grid. Input positions/cell volume/native epoch are not authenticated by the sampler. Height-averaged field charge and a midplane diagnostic slab are not alternate gas populations.",
+    "remediation": "Bind actual physical3D vacuum cell volumes and native private census/phase; keep all species number densities cm^-3, net charge separately, and converge collision-cell/Debye/plasma/gyro/coupling scales. Do not substitute slab volume or apply height twice.",
+    "evidence": [
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/inputs/collision_scheduler.hpp",
+        "lines": [
+          202,
+          208
+        ]
+      },
+      {
+        "path": "/home/treefor/projects/runtimes/pic-generic-water-bridge-20261029/source/generic_water_bridge.hpp",
+        "lines": [
+          71,
+          72,
+          137,
+          167
+        ]
+      },
+      {
+        "path": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/water-breakdown-tonight-20261029/coupling-port-requirements.json",
+        "json_pointer": "dimensions;screening_observables"
+      }
+    ]
+  }
+]
