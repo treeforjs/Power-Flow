@@ -1,0 +1,111 @@
+--- native-arena/source/include/raikou/mfem_pic_arena.h
++++ candidate/source/arena/include/raikou/mfem_pic_arena.h
+@@ -67,6 +67,23 @@
+   std::uint64_t revision = 0, accepted_steps = 0;
+   double previous_dt_s = 0;
+ };
++// Surface source/sink only: no collision kernel, RNG or duplicate solid inventory.
++struct MetalSurfacePacket {
++  bool emit=true;
++  std::string id;
++  ArenaCount count;
++  GapParticle pose;
++};
++struct MetalSurfaceEvent {
++  std::string id,state,state_prefix,material_seal_sha256;
++  double atom_mass_kg=0,reference_per_atom_J=0,internal_per_atom_J=0;
++  double physical_stage_s=0;
++  GapFoil thermal_foil{};
++  double thermal_depth_m=0;
++  double thermal_short_z_m=0,thermal_feed_z_m=0;
++  bool manufactured_internal_state=false;
++  std::vector<MetalSurfacePacket> packets;
++};
+ class PreparedArena {
+ public:
+   PreparedArena(PreparedArena &&) noexcept;
+@@ -98,6 +115,7 @@
+   std::vector<GapParticle> rate_carriers(const std::string &) const;
+   std::string state_prefix() const;
+   PreparedArena prepare(const ArenaEvent &, int manufactured_fault_point = 0);
++  PreparedArena prepare_metal_surface(const MetalSurfaceEvent &, int manufactured_fault_point=0);
+   PreparedArena prepare_transport(double dt_s,
+                                   int manufactured_fault_point = 0);
+   bool can_publish(const PreparedArena &) const noexcept;
+--- native-arena/source/src/mfem_pic_arena.cpp
++++ candidate/source/arena/src/mfem_pic_arena.cpp
+@@ -374,7 +374,7 @@
+             "journal chain");
+     chain = x.at("sha256");
+     auto type = x.at("payload").at("kind").get<std::string>();
+-    if (type == "reaction") {
++    if (type == "reaction" || type == "metal_surface") {
+       auto id = x.at("payload").at("event_id").get<std::string>();
+       require(events.insert(id).second, "duplicate accepted event");
+     } else if (type == "native_transport") {
+@@ -645,6 +645,65 @@
+   accepted_ = t.impl_->before;
+   t.impl_->status = PreparedArena::Impl::Status::RolledBack;
+   return true;
++}
++
++PreparedArena PicArena::prepare_metal_surface(const MetalSurfaceEvent& e,int fault) {
++  validate_population(*accepted_);
++  require(pic_->fields_current_ && e.state_prefix==state_prefix(),"stale surface/native field prefix");
++  require(std::isfinite(e.physical_stage_s)&&e.physical_stage_s==pic_->ledger_.time_s,"surface/native physical stage mismatch");
++  const auto& foil=pic_->options_.upper_foil;
++  require(pic_->options_.finite_foils&&e.thermal_foil.left_m==foil.left_m&&e.thermal_foil.right_m==foil.right_m&&e.thermal_foil.bottom_m==foil.bottom_m&&e.thermal_foil.top_m==foil.top_m&&e.thermal_depth_m==pic_->options_.depth_m,"thermal geometry does not bind actual native upper foil");
++  require(pic_->options_.finite_axial_extent&&e.thermal_short_z_m==pic_->options_.short_z_m&&e.thermal_feed_z_m==pic_->options_.feed_z_m,"thermal/native axial frame mismatch");
++  require(digest(e.material_seal_sha256)&&!e.id.empty()&&!accepted_->event_ids.count(e.id)&&states_.count(e.state),"surface event identity");
++  const auto& spec=states_.at(e.state);
++  require(e.material_seal_sha256=="1a1845e04f1f6fda33338d9bd284f5e1ead9cbc4b7747d0c6355e32cb5661c2d"&&(e.internal_per_atom_J==0||e.manufactured_internal_state),"sealed material or internal-state qualification");
++  require(e.state=="SS304_CONGRUENT_NEUTRAL"&&spec.hydrogen==0&&spec.oxygen==0&&spec.charge_e==0&&
++    spec.mass_kg==e.atom_mass_kg&&spec.reference_J==e.reference_per_atom_J&&spec.internal_J==e.internal_per_atom_J,"explicit neutral lumped-metal state binding");
++  for(const auto& [id,c]:channels_) {
++    (void)id;
++    require(c.primary_state!=e.state&&c.target_state!=e.state&&std::find(c.product_states.begin(),c.product_states.end(),e.state)==c.product_states.end(),"metal has no admitted H2O collision channel");
++  }
++  auto next=std::make_shared<ArenaSnapshot>(*accepted_);auto candidate=capture(*pic_);
++  ArenaJson rows=ArenaJson::array();std::set<std::string> ids;
++  auto face=[&](const GapParticle& p,bool emit){const double tol=64*std::numeric_limits<double>::epsilon()*std::max(1.,std::abs(foil.top_m));require(p.position_m[0]>=foil.left_m&&p.position_m[0]<=foil.right_m&&std::abs(p.position_m[1]-foil.top_m)<=tol&&(emit?p.proper_velocity_m_s[1]>0:p.proper_velocity_m_s[1]<0),"particle is not an actual upper-face outgoing/incident carrier");};
++  for(const auto& op:e.packets) {
++    require(!op.id.empty()&&ids.insert(op.id).second,"duplicate surface packet operation");
++    if(op.emit) {
++      require(!next->ever_packet_ids.count(op.id),"surface packet ID reuse");
++      auto weights=positive_carriers(op.count);require(!weights.empty(),"zero surface emission count");
++      ArenaPacket record{op.id,e.state,"metal_surface/"+e.material_seal_sha256,e.id,op.count,{}};
++      for(double weight:weights) {
++        GapParticle p=op.pose;p.weight=weight;p.mass_kg=spec.mass_kg;p.charge_C=0;
++        require(candidate.next_id<std::numeric_limits<std::uint64_t>::max(),"surface native ID exhaustion");p.id=candidate.next_id++;
++        native_particle_guard(p);
++        face(p,true);
++        require(std::isfinite(p.mass_kg*p.weight)&&p.mass_kg*p.weight>0&&
++          (spec.reference_J==0||(std::isfinite(spec.reference_J*p.weight)&&spec.reference_J*p.weight!=0))&&
++          (spec.internal_J==0||(std::isfinite(spec.internal_J*p.weight)&&spec.internal_J*p.weight>0))&&
++          (pic_kinetic_energy_J(p)==0||pic_kinetic_energy_J(p)*p.weight>0),"surface weighted mass/state/kinetic energy unrepresentable; no floor");
++        require(p.position_m[0]>=0&&p.position_m[0]<=pic_->options_.width_m&&p.position_m[1]>=0&&p.position_m[1]<=pic_->options_.gap_m&&
++          !pic_->inside_conductor(p.position_m[0],p.position_m[1])&&(!pic_->options_.finite_axial_extent||
++          (p.position_m[2]>=pic_->options_.short_z_m&&p.position_m[2]<=pic_->options_.feed_z_m)),"surface launch outside supported vacuum");
++        record.native_ids.push_back(p.id);candidate.particles.push_back(p);
++      }
++      next->packets.emplace(op.id,record);next->ever_packet_ids.insert(op.id);
++    } else {
++      require(next->packets.count(op.id)&&next->packets.at(op.id).state==e.state&&exact_count_equal(op.count,next->packets.at(op.id).count),"condensation requires exact full canonical packet");
++      face(view(op.id),false);
++      const auto natives=next->packets.at(op.id).native_ids;
++      candidate.particles.erase(std::remove_if(candidate.particles.begin(),candidate.particles.end(),[&](const auto& p){return std::find(natives.begin(),natives.end(),p.id)!=natives.end();}),candidate.particles.end());
++      next->packets.erase(op.id);
++    }
++    auto diagnostic_pose=op.emit?op.pose:view(op.id);diagnostic_pose.mass_kg=spec.mass_kg;diagnostic_pose.charge_C=0;diagnostic_pose.weight=1;
++    auto actual_weights=positive_carriers(op.count);
++    rows.push_back({{"packet",op.id},{"emit",op.emit},{"count",count_json(op.count)},{"weights",actual_weights},{"position",diagnostic_pose.position_m},{"proper_velocity",diagnostic_pose.proper_velocity_m_s},{"native_per_atom_kinetic_J",pic_kinetic_energy_J(diagnostic_pose)}});
++  }
++  // All carriers are neutral: existing electric field/continuity and authored
++  // reservoir are unchanged. Surface energy is owned by the coupled heat port.
++  next->event_ids.insert(e.id);
++  ArenaJson audit={{"kind","metal_surface"},{"event_id",e.id},{"state",e.state},{"material_seal_sha256",e.material_seal_sha256},
++    {"packets",rows},{"physical_stage_s",e.physical_stage_s},{"manufactured_internal_state",e.manufactured_internal_state},{"collision_data_qualified",false},{"authored_reservoir_debit_J",0},{"electric_field_work_J",0}};
++  journal_append(*next,audit);return stage(std::move(next),candidate,std::move(audit),fault);
+ }
+ 
+ std::string PicArena::state_prefix() const {
