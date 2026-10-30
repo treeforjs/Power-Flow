@@ -1,0 +1,75 @@
+Generic dispatch component v1: prepared for review, not deployment
+
+Implemented in the isolated prefix:
+  /home/treefor/projects/runtimes/pic-test-dispatch-v1-20261030
+Existing launchers, audit outputs, native/Hall code and paused deployment were
+not edited. Full integration remains held.
+
+The component has a real CLI and injected core API:
+  Dispatcher(fs, context, leases, runner).dispatch(path, trusted_SHA, execute=False)
+Default operation verifies only. No live manifest was generated or approved.
+The examples contain manufactured paths and hashes and must refuse on this host.
+
+E1-E5 mechanisms
+----------------
+E1: Explicit checks replace removable assert guards. Optimized Python and
+command optimization overrides refuse. Strict JSON rejects duplicate keys,
+unknown fields, unsigned-limit coercion through booleans/fractions, bad hashes
+and unbounded inputs. The child environment is rebuilt, not inherited.
+
+E2: Kernel release AND kernel notes are exact pins. Explicit GPU mode additionally
+requires all four loaded NVIDIA module versions/build IDs, srcversion, GPU
+information and character-device identity. UUID, PCI and minor must agree.
+Missing/drifted host identities refuse before execution and after completion.
+There is no refresh-pins operation or driver/module mutation.
+
+E3: CPU 7 / nice 15 is mandatory. Exclusive CPU7 locking is internal; explicit
+GPU mode locks GPU before CPU and releases in reverse order. The child receives
+one-thread OMP/BLAS and one-job Make/CMake settings. The reviewed command must
+also respect one-job sequencing; service-thread behavior is not qualified here.
+
+E4: A separately supplied trusted digest binds exact manifest bytes. Explicit
+source/build/runtime/tool identities and complete source-directory membership
+are required. Library search directories also require complete sealed membership.
+Files, symlink chains, memberships and host pins are checked on both sides of
+the child while leases remain held. Inserted headers/libraries or changed pins
+refuse. Root must independently derive the actual transitive dependency closure;
+the wrapper does not infer compiler/dlopen/plugin/callback dependencies.
+
+E5: Ambient compiler/MPI/Python/loader overrides and secrets are absent from the
+child environment. Only a narrow, explicitly pinned extra-environment set is
+accepted. The admitted GPU UUID selects CUDA visibility; CPU mode hides CUDA.
+This is execution configuration, not a device security or continuous-attestation
+boundary. Frozen-visible versus host-visible paths must be mapped once by root.
+
+Validation and limits
+---------------------
+172 dependency-injected primitive checks passed under the unchanged frozen
+Python on CPU 7 / nice 15 / exclusive core7 lease. They cover positive CPU/GPU
+models, exact lock ordering/release/contention, optimization/placement refusal,
+sanitized environment, malformed types/schema, kernel/module/device drift,
+UUID/PCI/minor consistency, all four file roles, source/runtime member insertion,
+symlink closure, byte caps, failed/interrupted child models and post-run drift.
+All runner, filesystem, context and GPU-lock effects inside the suite are fake.
+No numerical operator, real dispatched child, GPU query/workload or production
+action occurred. One final harness attempt yielded to a busy CPU7 lease before
+starting; the subsequent final suite passed. Earlier primitive receipts are
+historical; final qualification is bound to primitive-results-final.json.
+
+The real process adapter was inspected but NOT execution-qualified. It is not a
+replacement for reviewed PIDFD/tree-cleanup, production-hold, RSS/VRAM guards or
+a common integration checkpoint. Daemonizing/session-changing commands require
+their separate pinned guard. The dispatcher itself and frozen interpreter must
+be verified by the external trusted bootstrap; it cannot authenticate modified
+code from within that same code. Before/after hashes do not defend against a
+host actor changing and restoring files during a command.
+
+Source identity:
+  48f23ef916ffe5d6db138e9d6fe2b7e47c5ef0f72bd1fd59dcf28e2ca24104bc
+Source archive SHA256:
+  2a001bbe7170a354859427ca0cf69f07de0183f7084e611089ce84990b1338b1
+
+INTEGRATION-PROPOSAL.txt is unapplied. It separates verify/build/test manifests,
+avoids nested frozen launchers and nested locks, and requires review before a
+new binary is promoted to an expected test identity. Nothing in this release
+authorizes a full joint test, GPU dispatch or automatic deployment.

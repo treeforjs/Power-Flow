@@ -1,0 +1,453 @@
+In file included from /home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/closed_parent_joint_step.hpp:2,
+                 from /home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/tests/declaration_opaque_joint.cpp:1:
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp: In lambda function:
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:248:13: error: 'CandidateInputLimits' is not a member of 'raikou::native_water::pc' [-Wtemplate-body]
+  248 |         pc::CandidateInputLimits caps;caps.projectiles=caps.targets=limits_.carriers;caps.cells=limits_.cells;
+      |             ^~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:248:39: error: 'caps' was not declared in this scope [-Wtemplate-body]
+  248 |         pc::CandidateInputLimits caps;caps.projectiles=caps.targets=limits_.carriers;caps.cells=limits_.cells;
+      |                                       ^~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:249:13: error: 'CandidateWork' is not a member of 'raikou::native_water::pc'; did you mean 'Candidate'? [-Wtemplate-body]
+  249 |         pc::CandidateWork work;
+      |             ^~~~~~~~~~~~~
+      |             Candidate
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:251:80: error: 'work' was not declared in this scope [-Wtemplate-body]
+  251 |           limits_.pairs-pairs,limits_.queries-queries,limits_.candidates,caps,&work);
+      |                                                                                ^~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:257:19: error: 'class raikou::pic_collisions::Scheduler' has no member named 'prepare_exposure' [-Wtemplate-body]
+  257 |           ?clock->prepare_exposure({stage,exposure->common.dt_s,exposure->collision_duration_s},candidates,limits_.candidates)
+      |                   ^~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp: In instantiation of 'raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::PicArena>(raikou::mfem_backend::PicArena&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)> [with auto:75 = raikou::mfem_backend::PicArena]':
+/usr/include/c++/16/type_traits:2890:26:   required by substitution of 'template<class _Fn, class ... _Args> static std::__result_of_success<decltype (declval<_Fn>()((declval<_Args>)()...)), std::__invoke_other> std::__result_of_other_impl::_S_test(int) [with _Fn = raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::PicArena>(raikou::mfem_backend::PicArena&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>&; _Args = {raikou::mfem_backend::PicArena&}]'
+ 2890 |       std::declval<_Fn>()(std::declval<_Args>()...)
+      |       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/16/type_traits:2901:60:   required from 'struct std::__result_of_impl<false, false, raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::PicArena>(raikou::mfem_backend::PicArena&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>&, raikou::mfem_backend::PicArena&>'
+ 2901 |       using type = decltype(_S_test<_Functor, _ArgTypes...>(0));
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/usr/include/c++/16/bits/std_function.h:338:9:   recursively required by substitution of 'template<class _Result, class _Ret> struct std::__is_invocable_impl<_Result, _Ret, false, std::__void_t<typename _CTp::type> > [with _Result = std::__invoke_result<raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::PicArena>(raikou::mfem_backend::PicArena&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>&, raikou::mfem_backend::PicArena&>; _Ret = raikou::mfem_backend::ArenaStochasticCompletion]'
+  338 |         struct _Callable
+      |                ^~~~~~~~~
+/usr/include/c++/16/bits/std_function.h:338:9:   required from 'struct std::function<raikou::mfem_backend::ArenaStochasticCompletion(raikou::mfem_backend::PicArena&)>::_Callable<raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::PicArena>(raikou::mfem_backend::PicArena&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>, raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::PicArena>(raikou::mfem_backend::PicArena&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>, std::__invoke_result<raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::PicArena>(raikou::mfem_backend::PicArena&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>&, raikou::mfem_backend::PicArena&> >'
+/usr/include/c++/16/bits/std_function.h:343:41:   required by substitution of 'template<class _Res, class ... _ArgTypes> template<class _Cond, class _Tp> using std::function<_Res(_ArgTypes ...)>::_Requires = std::__enable_if_t<((bool)_Cond::value), _Tp> [with _Cond = std::function<raikou::mfem_backend::ArenaStochasticCompletion(raikou::mfem_backend::PicArena&)>::_Callable<raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::PicArena>(raikou::mfem_backend::PicArena&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>, raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::PicArena>(raikou::mfem_backend::PicArena&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>, std::__invoke_result<raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::PicArena>(raikou::mfem_backend::PicArena&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>&, raikou::mfem_backend::PicArena&> >; _Tp = void; _Res = raikou::mfem_backend::ArenaStochasticCompletion; _ArgTypes = {raikou::mfem_backend::PicArena&}]'
+  343 |         using _Requires = __enable_if_t<_Cond::value, _Tp>;
+      |                                                ^~~~~
+/usr/include/c++/16/bits/std_function.h:424:9:   required by substitution of 'template<class _Functor, class _Constraints> std::function<raikou::mfem_backend::ArenaStochasticCompletion(raikou::mfem_backend::PicArena&)>::function(_Functor&&) [with _Functor = raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::PicArena>(raikou::mfem_backend::PicArena&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>; _Constraints = <missing>]'
+  424 |                typename _Constraints = _Requires<_Callable<_Functor>>>
+      |                ^~~~~~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:245:54:   required from 'raikou::native_water::ParentSubflow::Built raikou::native_water::ParentSubflow::build_events(Arena&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const [with Arena = raikou::mfem_backend::PicArena]'
+  245 |     auto token=arena.prepare_compound_with_completion(limits_.reactions,[&](auto& scoped){
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  246 |       while(!terminal){
+      |       ~~~~~~~~~~~~~~~~~                               
+  247 |         const auto p=population(scoped);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~              
+  248 |         pc::CandidateInputLimits caps;caps.projectiles=caps.targets=limits_.carriers;caps.cells=limits_.cells;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  249 |         pc::CandidateWork work;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~                       
+  250 |         auto candidates=pc::candidates(p.electrons,p.water,grid_.cells,{bridge_.channel()},
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  251 |           limits_.pairs-pairs,limits_.queries-queries,limits_.candidates,caps,&work);
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  252 |         pairs+=work.pair_visits;queries+=work.channel_queries;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  253 |         const auto prefix=scoped.state_prefix();
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~      
+  254 |         pc::Clock stage{interval.phase.accepted_step,scoped.snapshot()->revision,interval.begin_s,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  255 |           interval.end_s,prefix,grid_.identity,binding_.kernel_sha256,interval.phase.physical_stage_s,elapsed};
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  256 |         const auto proposal=exposure
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~                  
+  257 |           ?clock->prepare_exposure({stage,exposure->common.dt_s,exposure->collision_duration_s},candidates,limits_.candidates)
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  258 |           :clock->prepare(stage,candidates,limits_.candidates);
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  259 |         if(!proposal.event()){
+      |         ~~~~~~~~~~~~~~~~~~~~~~                        
+  260 |           pc::require(clock->try_publish(proposal),"terminal scheduler publication");terminal=true;break;
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  261 |         }
+      |         ~                                             
+  262 |         pc::require(events.size()<limits_.reactions&&next->next_event<UINT64_MAX-1,"native reaction/event resource limit");
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  263 |         const auto& c=*proposal.event();
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~              
+  264 |         const auto products=bridge_.sample(c,p.by_id.at(c.projectile_id),p.by_id.at(c.target_id),direction(rng));
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  265 |         const std::string id="conditional/native-parent/"+std::to_string(next->next_event++);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  266 |         m::ArenaEvent e;e.id=id;e.channel=c.channel_id;e.primary=p.parent.at(c.projectile_id);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  267 |         e.target=p.parent.at(c.target_id);e.event_weight=c.event_weight;e.scattered_primary_id=e.primary;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  268 |         const auto remaining=m::PicArena::debit(scoped.snapshot()->packets.at(e.primary).count,e.event_weight);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  269 |         if(!m::PicArena::positive_carriers(remaining).empty())e.untouched_primary_id=id+"/unscattered-primary";
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  270 |         if constexpr(std::is_same_v<Arena,m::CollisionScope>)e.phase=scoped.phase();
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  271 |         else e.phase=interval.phase;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~                  
+  272 |         e.phase.state_prefix=prefix;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~                  
+  273 |         e.provenance={m::ArenaProvenance::Kind::ConditionalPhysicalData,binding_.dataset_sha256,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  274 |           binding_.kernel_sha256,binding_.kernel_binding_file_sha256,w::parent_model,
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  275 |           "ssa_weighted_pair_clock_v1",prefix,proposal.event_subflow_elapsed_s()};
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  276 |         for(int i=0;i<3;++i)e.products.push_back({i==0?e.primary:id+(i==1?"/secondary":"/ion"),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  277 |           products.particles[i].state,products.particles[i].proper_velocity_m_s,
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  278 |           i==0?m::ArenaProduct::At::Primary:m::ArenaProduct::At::Target});
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  279 |         auto reaction=scoped.prepare(e);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~              
+  280 |         pc::require(clock->can_publish(proposal)&&scoped.can_publish(reaction),"reaction common preflight");
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  281 |         pc::require(scoped.try_publish(reaction),"native reaction publication");
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  282 |         pc::require(clock->try_publish(proposal),"reaction RNG publication");
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  283 |         elapsed=proposal.event_subflow_elapsed_s();
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+  284 |         events.push_back({{"event",id},{"cell",c.cell},{"physical_volume_m3",c.volume_m3},
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  285 |           {"weight",c.event_weight},{"rate_s",c.rate_s},{"total_rate_s",proposal.total_rate_s()},
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  286 |           {"energy_eV",c.energy_eV},{"physical_stage_s",stage.frozen_physical_stage_s},
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  287 |           {"collision_elapsed_s",elapsed},{"native",reaction.audit()}});
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  288 |       }
+      |       ~                                               
+  289 |       next->scheduler=clock->checkpoint();next->product_rng=encode(rng);++next->next_interval;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  290 |       m::ArenaStochasticCompletion completion;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~        
+  291 |       completion.integration_owner_id=owner_id;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~       
+  292 |       completion.before_rng_clock_sha256=before_hash;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+  293 |       completion.after_rng_clock_sha256=state_hash(*next);
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  294 |       completion.channel_id=w::parent_channel;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~        
+  295 |       completion.dataset_sha256=binding_.dataset_sha256;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  296 |       completion.kernel_manifest_sha256=binding_.kernel_sha256;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  297 |       completion.kernel_binding_file_sha256=binding_.kernel_binding_file_sha256;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  298 |       completion.model=w::parent_model;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~               
+  299 |       completion.common_clock_sha256=interval.common_clock_sha256;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  300 |       completion.stage_sequence=interval.sequence;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
+  301 |       completion.frozen_physical_stage_s=interval.phase.physical_stage_s;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  302 |       completion.common_interval_begin_s=interval.begin_s;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  303 |       completion.common_interval_end_s=interval.end_s;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  304 |       return completion;
+      |       ~~~~~~~~~~~~~~~~~~                              
+  305 |     });
+      |     ~~                                                
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:372:28:   required from here
+  372 |     auto built=build_events(arena_,interval,*accepted_);
+      |                ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:273:21: error: no match for 'operator=' (operand types are 'raikou::mfem_backend::ArenaProvenance' and '<brace-enclosed initializer list>')
+  273 |         e.provenance={m::ArenaProvenance::Kind::ConditionalPhysicalData,binding_.dataset_sha256,
+      |         ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  274 |           binding_.kernel_sha256,binding_.kernel_binding_file_sha256,w::parent_model,
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  275 |           "ssa_weighted_pair_clock_v1",prefix,proposal.event_subflow_elapsed_s()};
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  • there are 2 candidates
+In file included from /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/source/include/raikou/mfem_pic_full_time.h:2,
+                 from /home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:2:
+    • candidate 1: 'constexpr raikou::mfem_backend::ArenaProvenance& raikou::mfem_backend::ArenaProvenance::operator=(const raikou::mfem_backend::ArenaProvenance&)'
+      /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/source/include/raikou/mfem_pic_arena.h:51:8:
+         51 | struct ArenaProvenance {
+            |        ^~~~~~~~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'const raikou::mfem_backend::ArenaProvenance&'
+    • candidate 2: 'constexpr raikou::mfem_backend::ArenaProvenance& raikou::mfem_backend::ArenaProvenance::operator=(raikou::mfem_backend::ArenaProvenance&&)'
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'raikou::mfem_backend::ArenaProvenance&&'
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:276:40: error: no matching function for call to 'std::vector<raikou::mfem_backend::ArenaProduct>::push_back(<brace-enclosed initializer list>)'
+  276 |         for(int i=0;i<3;++i)e.products.push_back({i==0?e.primary:id+(i==1?"/secondary":"/ion"),
+      |                             ~~~~~~~~~~~^~~~~~~~~
+  • there are 2 candidates
+In file included from /usr/include/c++/16/vector:68,
+                 from /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/source/include/raikou/exact_particle_count.h:12,
+                 from /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/source/include/raikou/mfem_pic_arena.h:2:
+    • candidate 1: 'constexpr void std::vector<_Tp, _Alloc>::push_back(const value_type&) [with _Tp = raikou::mfem_backend::ArenaProduct; _Alloc = std::allocator<raikou::mfem_backend::ArenaProduct>; value_type = raikou::mfem_backend::ArenaProduct]'
+      /usr/include/c++/16/bits/stl_vector.h:1406:7:
+       1406 |       push_back(const value_type& __x)
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'const std::vector<raikou::mfem_backend::ArenaProduct>::value_type&' {aka 'const raikou::mfem_backend::ArenaProduct&'}
+        /usr/include/c++/16/bits/stl_vector.h:1406:35:
+         1406 |       push_back(const value_type& __x)
+              |                 ~~~~~~~~~~~~~~~~~~^~~
+    • candidate 2: 'constexpr void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = raikou::mfem_backend::ArenaProduct; _Alloc = std::allocator<raikou::mfem_backend::ArenaProduct>; value_type = raikou::mfem_backend::ArenaProduct]'
+      /usr/include/c++/16/bits/stl_vector.h:1423:7:
+       1423 |       push_back(value_type&& __x)
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'std::vector<raikou::mfem_backend::ArenaProduct>::value_type&&' {aka 'raikou::mfem_backend::ArenaProduct&&'}
+        /usr/include/c++/16/bits/stl_vector.h:1423:30:
+         1423 |       push_back(value_type&& __x)
+              |                 ~~~~~~~~~~~~~^~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:284:16: error: no matching function for call to 'nlohmann::json_abi_v3_11_3::basic_json<>::push_back(<brace-enclosed initializer list>)'
+  284 |         events.push_back({{"event",id},{"cell",c.cell},{"physical_volume_m3",c.volume_m3},
+      |         ~~~~~~~^~~~~~~~~
+  • there are 4 candidates
+In file included from /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/source/include/raikou/mfem_pic_arena.h:3:
+    • candidate 1: 'void nlohmann::json_abi_v3_11_3::basic_json<ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer, BinaryType, CustomBaseClass>::push_back(nlohmann::json_abi_v3_11_3::basic_json<ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer, BinaryType, CustomBaseClass>&&) [with ObjectType = std::map; ArrayType = std::vector; StringType = std::__cxx11::basic_string<char>; BooleanType = bool; NumberIntegerType = long int; NumberUnsignedType = long unsigned int; NumberFloatType = double; AllocatorType = std::allocator; JSONSerializer = nlohmann::json_abi_v3_11_3::adl_serializer; BinaryType = std::vector<unsigned char>; CustomBaseClass = void]'
+      /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22390:10:
+      22390 |     void push_back(basic_json&& val)
+            |          ^~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'nlohmann::json_abi_v3_11_3::basic_json<>&&'
+        /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22390:33:
+        22390 |     void push_back(basic_json&& val)
+              |                    ~~~~~~~~~~~~~^~~
+    • candidate 2: 'void nlohmann::json_abi_v3_11_3::basic_json<ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer, BinaryType, CustomBaseClass>::push_back(const nlohmann::json_abi_v3_11_3::basic_json<ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer, BinaryType, CustomBaseClass>&) [with ObjectType = std::map; ArrayType = std::vector; StringType = std::__cxx11::basic_string<char>; BooleanType = bool; NumberIntegerType = long int; NumberUnsignedType = long unsigned int; NumberFloatType = double; AllocatorType = std::allocator; JSONSerializer = nlohmann::json_abi_v3_11_3::adl_serializer; BinaryType = std::vector<unsigned char>; CustomBaseClass = void]'
+      /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22423:10:
+      22423 |     void push_back(const basic_json& val)
+            |          ^~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'const nlohmann::json_abi_v3_11_3::basic_json<>&'
+        /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22423:38:
+        22423 |     void push_back(const basic_json& val)
+              |                    ~~~~~~~~~~~~~~~~~~^~~
+    • candidate 3: 'void nlohmann::json_abi_v3_11_3::basic_json<ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer, BinaryType, CustomBaseClass>::push_back(const typename object_t::value_type&) [with ObjectType = std::map; ArrayType = std::vector; StringType = std::__cxx11::basic_string<char>; BooleanType = bool; NumberIntegerType = long int; NumberUnsignedType = long unsigned int; NumberFloatType = double; AllocatorType = std::allocator; JSONSerializer = nlohmann::json_abi_v3_11_3::adl_serializer; BinaryType = std::vector<unsigned char>; CustomBaseClass = void; typename object_t::value_type = std::pair<const std::__cxx11::basic_string<char>, nlohmann::json_abi_v3_11_3::basic_json<> >; object_t = std::map<std::__cxx11::basic_string<char>, nlohmann::json_abi_v3_11_3::basic_json<>, std::less<void>, std::allocator<std::pair<const std::__cxx11::basic_string<char>, nlohmann::json_abi_v3_11_3::basic_json<> > > >]'
+      /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22455:10:
+      22455 |     void push_back(const typename object_t::value_type& val)
+            |          ^~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'const std::map<std::__cxx11::basic_string<char>, nlohmann::json_abi_v3_11_3::basic_json<>, std::less<void>, std::allocator<std::pair<const std::__cxx11::basic_string<char>, nlohmann::json_abi_v3_11_3::basic_json<> > > >::value_type&' {aka 'const std::pair<const std::__cxx11::basic_string<char>, nlohmann::json_abi_v3_11_3::basic_json<> >&'}
+        /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22455:57:
+        22455 |     void push_back(const typename object_t::value_type& val)
+              |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    • candidate 4: 'void nlohmann::json_abi_v3_11_3::basic_json<ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer, BinaryType, CustomBaseClass>::push_back(initializer_list_t) [with ObjectType = std::map; ArrayType = std::vector; StringType = std::__cxx11::basic_string<char>; BooleanType = bool; NumberIntegerType = long int; NumberUnsignedType = long unsigned int; NumberFloatType = double; AllocatorType = std::allocator; JSONSerializer = nlohmann::json_abi_v3_11_3::adl_serializer; BinaryType = std::vector<unsigned char>; CustomBaseClass = void; initializer_list_t = std::initializer_list<nlohmann::json_abi_v3_11_3::detail::json_ref<nlohmann::json_abi_v3_11_3::basic_json<> > >]'
+      /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22486:10:
+      22486 |     void push_back(initializer_list_t init)
+            |          ^~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'nlohmann::json_abi_v3_11_3::basic_json<>::initializer_list_t' {aka 'std::initializer_list<nlohmann::json_abi_v3_11_3::detail::json_ref<nlohmann::json_abi_v3_11_3::basic_json<> > >'}
+        /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22486:39:
+        22486 |     void push_back(initializer_list_t init)
+              |                    ~~~~~~~~~~~~~~~~~~~^~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp: In instantiation of 'raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::CollisionScope>(raikou::mfem_backend::CollisionScope&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)> [with auto:75 = raikou::mfem_backend::CollisionScope]':
+/usr/include/c++/16/type_traits:2890:26:   required by substitution of 'template<class _Fn, class ... _Args> static std::__result_of_success<decltype (declval<_Fn>()((declval<_Args>)()...)), std::__invoke_other> std::__result_of_other_impl::_S_test(int) [with _Fn = raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::CollisionScope>(raikou::mfem_backend::CollisionScope&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>&; _Args = {raikou::mfem_backend::CollisionScope&}]'
+ 2890 |       std::declval<_Fn>()(std::declval<_Args>()...)
+      |       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/16/type_traits:2901:60:   required from 'struct std::__result_of_impl<false, false, raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::CollisionScope>(raikou::mfem_backend::CollisionScope&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>&, raikou::mfem_backend::CollisionScope&>'
+ 2901 |       using type = decltype(_S_test<_Functor, _ArgTypes...>(0));
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/usr/include/c++/16/bits/std_function.h:338:9:   recursively required by substitution of 'template<class _Result, class _Ret> struct std::__is_invocable_impl<_Result, _Ret, false, std::__void_t<typename _CTp::type> > [with _Result = std::__invoke_result<raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::CollisionScope>(raikou::mfem_backend::CollisionScope&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>&, raikou::mfem_backend::CollisionScope&>; _Ret = raikou::mfem_backend::ArenaStochasticCompletion]'
+  338 |         struct _Callable
+      |                ^~~~~~~~~
+/usr/include/c++/16/bits/std_function.h:338:9:   required from 'struct std::function<raikou::mfem_backend::ArenaStochasticCompletion(raikou::mfem_backend::CollisionScope&)>::_Callable<raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::CollisionScope>(raikou::mfem_backend::CollisionScope&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>, raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::CollisionScope>(raikou::mfem_backend::CollisionScope&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>, std::__invoke_result<raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::CollisionScope>(raikou::mfem_backend::CollisionScope&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>&, raikou::mfem_backend::CollisionScope&> >'
+/usr/include/c++/16/bits/std_function.h:343:41:   required by substitution of 'template<class _Res, class ... _ArgTypes> template<class _Cond, class _Tp> using std::function<_Res(_ArgTypes ...)>::_Requires = std::__enable_if_t<((bool)_Cond::value), _Tp> [with _Cond = std::function<raikou::mfem_backend::ArenaStochasticCompletion(raikou::mfem_backend::CollisionScope&)>::_Callable<raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::CollisionScope>(raikou::mfem_backend::CollisionScope&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>, raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::CollisionScope>(raikou::mfem_backend::CollisionScope&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>, std::__invoke_result<raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::CollisionScope>(raikou::mfem_backend::CollisionScope&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>&, raikou::mfem_backend::CollisionScope&> >; _Tp = void; _Res = raikou::mfem_backend::ArenaStochasticCompletion; _ArgTypes = {raikou::mfem_backend::CollisionScope&}]'
+  343 |         using _Requires = __enable_if_t<_Cond::value, _Tp>;
+      |                                                ^~~~~
+/usr/include/c++/16/bits/std_function.h:424:9:   required by substitution of 'template<class _Functor, class _Constraints> std::function<raikou::mfem_backend::ArenaStochasticCompletion(raikou::mfem_backend::CollisionScope&)>::function(_Functor&&) [with _Functor = raikou::native_water::ParentSubflow::build_events<raikou::mfem_backend::CollisionScope>(raikou::mfem_backend::CollisionScope&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const::<lambda(auto:75&)>; _Constraints = <missing>]'
+  424 |                typename _Constraints = _Requires<_Callable<_Functor>>>
+      |                ^~~~~~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:245:54:   required from 'raikou::native_water::ParentSubflow::Built raikou::native_water::ParentSubflow::build_events(Arena&, const raikou::native_water::Interval&, const raikou::native_water::State&, const raikou::mfem_backend::ExposureBinding*) const [with Arena = raikou::mfem_backend::CollisionScope]'
+  245 |     auto token=arena.prepare_compound_with_completion(limits_.reactions,[&](auto& scoped){
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  246 |       while(!terminal){
+      |       ~~~~~~~~~~~~~~~~~                               
+  247 |         const auto p=population(scoped);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~              
+  248 |         pc::CandidateInputLimits caps;caps.projectiles=caps.targets=limits_.carriers;caps.cells=limits_.cells;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  249 |         pc::CandidateWork work;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~                       
+  250 |         auto candidates=pc::candidates(p.electrons,p.water,grid_.cells,{bridge_.channel()},
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  251 |           limits_.pairs-pairs,limits_.queries-queries,limits_.candidates,caps,&work);
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  252 |         pairs+=work.pair_visits;queries+=work.channel_queries;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  253 |         const auto prefix=scoped.state_prefix();
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~      
+  254 |         pc::Clock stage{interval.phase.accepted_step,scoped.snapshot()->revision,interval.begin_s,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  255 |           interval.end_s,prefix,grid_.identity,binding_.kernel_sha256,interval.phase.physical_stage_s,elapsed};
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  256 |         const auto proposal=exposure
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~                  
+  257 |           ?clock->prepare_exposure({stage,exposure->common.dt_s,exposure->collision_duration_s},candidates,limits_.candidates)
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  258 |           :clock->prepare(stage,candidates,limits_.candidates);
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  259 |         if(!proposal.event()){
+      |         ~~~~~~~~~~~~~~~~~~~~~~                        
+  260 |           pc::require(clock->try_publish(proposal),"terminal scheduler publication");terminal=true;break;
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  261 |         }
+      |         ~                                             
+  262 |         pc::require(events.size()<limits_.reactions&&next->next_event<UINT64_MAX-1,"native reaction/event resource limit");
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  263 |         const auto& c=*proposal.event();
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~              
+  264 |         const auto products=bridge_.sample(c,p.by_id.at(c.projectile_id),p.by_id.at(c.target_id),direction(rng));
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  265 |         const std::string id="conditional/native-parent/"+std::to_string(next->next_event++);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  266 |         m::ArenaEvent e;e.id=id;e.channel=c.channel_id;e.primary=p.parent.at(c.projectile_id);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  267 |         e.target=p.parent.at(c.target_id);e.event_weight=c.event_weight;e.scattered_primary_id=e.primary;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  268 |         const auto remaining=m::PicArena::debit(scoped.snapshot()->packets.at(e.primary).count,e.event_weight);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  269 |         if(!m::PicArena::positive_carriers(remaining).empty())e.untouched_primary_id=id+"/unscattered-primary";
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  270 |         if constexpr(std::is_same_v<Arena,m::CollisionScope>)e.phase=scoped.phase();
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  271 |         else e.phase=interval.phase;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~                  
+  272 |         e.phase.state_prefix=prefix;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~                  
+  273 |         e.provenance={m::ArenaProvenance::Kind::ConditionalPhysicalData,binding_.dataset_sha256,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  274 |           binding_.kernel_sha256,binding_.kernel_binding_file_sha256,w::parent_model,
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  275 |           "ssa_weighted_pair_clock_v1",prefix,proposal.event_subflow_elapsed_s()};
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  276 |         for(int i=0;i<3;++i)e.products.push_back({i==0?e.primary:id+(i==1?"/secondary":"/ion"),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  277 |           products.particles[i].state,products.particles[i].proper_velocity_m_s,
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  278 |           i==0?m::ArenaProduct::At::Primary:m::ArenaProduct::At::Target});
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  279 |         auto reaction=scoped.prepare(e);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~              
+  280 |         pc::require(clock->can_publish(proposal)&&scoped.can_publish(reaction),"reaction common preflight");
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  281 |         pc::require(scoped.try_publish(reaction),"native reaction publication");
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  282 |         pc::require(clock->try_publish(proposal),"reaction RNG publication");
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  283 |         elapsed=proposal.event_subflow_elapsed_s();
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+  284 |         events.push_back({{"event",id},{"cell",c.cell},{"physical_volume_m3",c.volume_m3},
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  285 |           {"weight",c.event_weight},{"rate_s",c.rate_s},{"total_rate_s",proposal.total_rate_s()},
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  286 |           {"energy_eV",c.energy_eV},{"physical_stage_s",stage.frozen_physical_stage_s},
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  287 |           {"collision_elapsed_s",elapsed},{"native",reaction.audit()}});
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  288 |       }
+      |       ~                                               
+  289 |       next->scheduler=clock->checkpoint();next->product_rng=encode(rng);++next->next_interval;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  290 |       m::ArenaStochasticCompletion completion;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~        
+  291 |       completion.integration_owner_id=owner_id;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~       
+  292 |       completion.before_rng_clock_sha256=before_hash;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+  293 |       completion.after_rng_clock_sha256=state_hash(*next);
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  294 |       completion.channel_id=w::parent_channel;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~        
+  295 |       completion.dataset_sha256=binding_.dataset_sha256;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  296 |       completion.kernel_manifest_sha256=binding_.kernel_sha256;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  297 |       completion.kernel_binding_file_sha256=binding_.kernel_binding_file_sha256;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  298 |       completion.model=w::parent_model;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~               
+  299 |       completion.common_clock_sha256=interval.common_clock_sha256;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  300 |       completion.stage_sequence=interval.sequence;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
+  301 |       completion.frozen_physical_stage_s=interval.phase.physical_stage_s;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  302 |       completion.common_interval_begin_s=interval.begin_s;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  303 |       completion.common_interval_end_s=interval.end_s;
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  304 |       return completion;
+      |       ~~~~~~~~~~~~~~~~~~                              
+  305 |     });
+      |     ~~                                                
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:418:28:   required from here
+  418 |     auto built=build_events(scope,request,*before,&exposure);
+      |                ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:273:21: error: no match for 'operator=' (operand types are 'raikou::mfem_backend::ArenaProvenance' and '<brace-enclosed initializer list>')
+  273 |         e.provenance={m::ArenaProvenance::Kind::ConditionalPhysicalData,binding_.dataset_sha256,
+      |         ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  274 |           binding_.kernel_sha256,binding_.kernel_binding_file_sha256,w::parent_model,
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  275 |           "ssa_weighted_pair_clock_v1",prefix,proposal.event_subflow_elapsed_s()};
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  • there are 2 candidates
+    • candidate 1: 'constexpr raikou::mfem_backend::ArenaProvenance& raikou::mfem_backend::ArenaProvenance::operator=(const raikou::mfem_backend::ArenaProvenance&)'
+      /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/source/include/raikou/mfem_pic_arena.h:51:8:
+         51 | struct ArenaProvenance {
+            |        ^~~~~~~~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'const raikou::mfem_backend::ArenaProvenance&'
+    • candidate 2: 'constexpr raikou::mfem_backend::ArenaProvenance& raikou::mfem_backend::ArenaProvenance::operator=(raikou::mfem_backend::ArenaProvenance&&)'
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'raikou::mfem_backend::ArenaProvenance&&'
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:276:40: error: no matching function for call to 'std::vector<raikou::mfem_backend::ArenaProduct>::push_back(<brace-enclosed initializer list>)'
+  276 |         for(int i=0;i<3;++i)e.products.push_back({i==0?e.primary:id+(i==1?"/secondary":"/ion"),
+      |                             ~~~~~~~~~~~^~~~~~~~~
+  • there are 2 candidates
+    • candidate 1: 'constexpr void std::vector<_Tp, _Alloc>::push_back(const value_type&) [with _Tp = raikou::mfem_backend::ArenaProduct; _Alloc = std::allocator<raikou::mfem_backend::ArenaProduct>; value_type = raikou::mfem_backend::ArenaProduct]'
+      /usr/include/c++/16/bits/stl_vector.h:1406:7:
+       1406 |       push_back(const value_type& __x)
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'const std::vector<raikou::mfem_backend::ArenaProduct>::value_type&' {aka 'const raikou::mfem_backend::ArenaProduct&'}
+        /usr/include/c++/16/bits/stl_vector.h:1406:35:
+         1406 |       push_back(const value_type& __x)
+              |                 ~~~~~~~~~~~~~~~~~~^~~
+    • candidate 2: 'constexpr void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = raikou::mfem_backend::ArenaProduct; _Alloc = std::allocator<raikou::mfem_backend::ArenaProduct>; value_type = raikou::mfem_backend::ArenaProduct]'
+      /usr/include/c++/16/bits/stl_vector.h:1423:7:
+       1423 |       push_back(value_type&& __x)
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'std::vector<raikou::mfem_backend::ArenaProduct>::value_type&&' {aka 'raikou::mfem_backend::ArenaProduct&&'}
+        /usr/include/c++/16/bits/stl_vector.h:1423:30:
+         1423 |       push_back(value_type&& __x)
+              |                 ~~~~~~~~~~~~~^~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v2-20261030/source/native_parent_subflow.hpp:284:16: error: no matching function for call to 'nlohmann::json_abi_v3_11_3::basic_json<>::push_back(<brace-enclosed initializer list>)'
+  284 |         events.push_back({{"event",id},{"cell",c.cell},{"physical_volume_m3",c.volume_m3},
+      |         ~~~~~~~^~~~~~~~~
+  • there are 4 candidates
+    • candidate 1: 'void nlohmann::json_abi_v3_11_3::basic_json<ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer, BinaryType, CustomBaseClass>::push_back(nlohmann::json_abi_v3_11_3::basic_json<ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer, BinaryType, CustomBaseClass>&&) [with ObjectType = std::map; ArrayType = std::vector; StringType = std::__cxx11::basic_string<char>; BooleanType = bool; NumberIntegerType = long int; NumberUnsignedType = long unsigned int; NumberFloatType = double; AllocatorType = std::allocator; JSONSerializer = nlohmann::json_abi_v3_11_3::adl_serializer; BinaryType = std::vector<unsigned char>; CustomBaseClass = void]'
+      /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22390:10:
+      22390 |     void push_back(basic_json&& val)
+            |          ^~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'nlohmann::json_abi_v3_11_3::basic_json<>&&'
+        /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22390:33:
+        22390 |     void push_back(basic_json&& val)
+              |                    ~~~~~~~~~~~~~^~~
+    • candidate 2: 'void nlohmann::json_abi_v3_11_3::basic_json<ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer, BinaryType, CustomBaseClass>::push_back(const nlohmann::json_abi_v3_11_3::basic_json<ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer, BinaryType, CustomBaseClass>&) [with ObjectType = std::map; ArrayType = std::vector; StringType = std::__cxx11::basic_string<char>; BooleanType = bool; NumberIntegerType = long int; NumberUnsignedType = long unsigned int; NumberFloatType = double; AllocatorType = std::allocator; JSONSerializer = nlohmann::json_abi_v3_11_3::adl_serializer; BinaryType = std::vector<unsigned char>; CustomBaseClass = void]'
+      /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22423:10:
+      22423 |     void push_back(const basic_json& val)
+            |          ^~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'const nlohmann::json_abi_v3_11_3::basic_json<>&'
+        /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22423:38:
+        22423 |     void push_back(const basic_json& val)
+              |                    ~~~~~~~~~~~~~~~~~~^~~
+    • candidate 3: 'void nlohmann::json_abi_v3_11_3::basic_json<ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer, BinaryType, CustomBaseClass>::push_back(const typename object_t::value_type&) [with ObjectType = std::map; ArrayType = std::vector; StringType = std::__cxx11::basic_string<char>; BooleanType = bool; NumberIntegerType = long int; NumberUnsignedType = long unsigned int; NumberFloatType = double; AllocatorType = std::allocator; JSONSerializer = nlohmann::json_abi_v3_11_3::adl_serializer; BinaryType = std::vector<unsigned char>; CustomBaseClass = void; typename object_t::value_type = std::pair<const std::__cxx11::basic_string<char>, nlohmann::json_abi_v3_11_3::basic_json<> >; object_t = std::map<std::__cxx11::basic_string<char>, nlohmann::json_abi_v3_11_3::basic_json<>, std::less<void>, std::allocator<std::pair<const std::__cxx11::basic_string<char>, nlohmann::json_abi_v3_11_3::basic_json<> > > >]'
+      /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22455:10:
+      22455 |     void push_back(const typename object_t::value_type& val)
+            |          ^~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'const std::map<std::__cxx11::basic_string<char>, nlohmann::json_abi_v3_11_3::basic_json<>, std::less<void>, std::allocator<std::pair<const std::__cxx11::basic_string<char>, nlohmann::json_abi_v3_11_3::basic_json<> > > >::value_type&' {aka 'const std::pair<const std::__cxx11::basic_string<char>, nlohmann::json_abi_v3_11_3::basic_json<> >&'}
+        /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22455:57:
+        22455 |     void push_back(const typename object_t::value_type& val)
+              |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+    • candidate 4: 'void nlohmann::json_abi_v3_11_3::basic_json<ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer, BinaryType, CustomBaseClass>::push_back(initializer_list_t) [with ObjectType = std::map; ArrayType = std::vector; StringType = std::__cxx11::basic_string<char>; BooleanType = bool; NumberIntegerType = long int; NumberUnsignedType = long unsigned int; NumberFloatType = double; AllocatorType = std::allocator; JSONSerializer = nlohmann::json_abi_v3_11_3::adl_serializer; BinaryType = std::vector<unsigned char>; CustomBaseClass = void; initializer_list_t = std::initializer_list<nlohmann::json_abi_v3_11_3::detail::json_ref<nlohmann::json_abi_v3_11_3::basic_json<> > >]'
+      /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22486:10:
+      22486 |     void push_back(initializer_list_t init)
+            |          ^~~~~~~~~
+      • no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'nlohmann::json_abi_v3_11_3::basic_json<>::initializer_list_t' {aka 'std::initializer_list<nlohmann::json_abi_v3_11_3::detail::json_ref<nlohmann::json_abi_v3_11_3::basic_json<> > >'}
+        /home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/native/inputs/raikou/json.hpp:22486:39:
+        22486 |     void push_back(initializer_list_t init)
+              |                    ~~~~~~~~~~~~~~~~~~~^~~~

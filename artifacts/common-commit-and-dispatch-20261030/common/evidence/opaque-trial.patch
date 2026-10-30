@@ -1,0 +1,84 @@
+--- audited/closed_parent_joint_step.hpp
++++ staged-v2/closed_parent_joint_step.hpp
+@@ -1,6 +1,7 @@
+ #pragma once
+ #include "native_parent_subflow.hpp"
+ #include "axial_joint_v2.hpp"
++#include "common_commit_contract.hpp"
+ 
+ // Integration fixture for resident particles and the conditional parent channel.
+ // Surface emission/desorption/collection and broader chemistry are not supplied
+@@ -12,19 +13,34 @@
+   std::string unchanged_source_sha256;
+   std::size_t maximum_native_records=4096;
+ };
+-struct ClosedParentTrial {
++class ClosedParentTrial {
++  friend ClosedParentTrial prepare_closed_parent_joint(
++    m::PicArena&,ParentSubflow&,const axial::Mesh&,const axial::Fields&,
++    const axial::State&,h::Thermal&,const h::CurrentTrace&,
++    const ClosedParentInputs&,double,std::size_t,int);
++  friend bool can_publish_closed_parent_joint(const m::PicArena&,
++    const ParentSubflow&,const axial::State&,const h::Thermal&,
++    const std::string&,const ClosedParentTrial&) noexcept;
++  friend bool try_publish_closed_parent_joint(m::PicArena&,ParentSubflow&,
++    axial::State&,h::Thermal&,const std::string&,ClosedParentTrial&) noexcept;
+   std::unique_ptr<m::PrivateFullTimeStep> private_step;
+   std::unique_ptr<m::PreparedArena> native;
+   PreparedParentState random;
+   std::unique_ptr<h::AxialJointTrial> field_heat;
+   std::vector<m::ArenaRateEntry> post_first_census;
+   std::string source_sha256;
+-  Json audit;
++  Json audit_;
++  common_commit::ExpectedStep expected;
++  bool consumed=false;
+   ClosedParentTrial()=default;
++public:
+   ClosedParentTrial(ClosedParentTrial&&) noexcept=default;
+   ClosedParentTrial& operator=(ClosedParentTrial&&) noexcept=default;
+   ClosedParentTrial(const ClosedParentTrial&)=delete;
+   ClosedParentTrial& operator=(const ClosedParentTrial&)=delete;
++  // Diagnostic data only. No candidate owner, token, mutable state or vector
++  // escapes this move-only outer holder.
++  const Json& audit()const noexcept{return audit_;}
+ };
+ 
+ // Failure injection is a test hook: every location is still before common
+@@ -68,6 +84,10 @@
+     {"material",common.material_sha256},{"frame",boundary->frame_sha256},
+     {"species",inputs.species_sha256}}.dump());
+   ClosedParentTrial out;out.source_sha256=inputs.unchanged_source_sha256;
++  out.expected.before=*boundary;out.expected.dt_s=common.dt_s;
++  out.expected.end_s=common.end_s;out.expected.common_clock=common.common_clock_sha256;
++  // The corrective Hall Owner must supply its actual immutable configuration
++  // identity. This legacy-signature staging copy is not an admitted adapter.
+   out.private_step=std::make_unique<m::PrivateFullTimeStep>(
+     arena.begin_full_time_step(common,maximum_carriers,inputs.maximum_native_records));
+   m::ExposureBinding exposure{common,m::FullTimeSlot::before_transport,
+@@ -111,7 +131,7 @@
+   out.native=std::make_unique<m::PreparedArena>(out.private_step->seal(
+     {field_after,heat_after,inputs.unchanged_source_sha256,chemistry.staged_rng_sha256(second)}));
+   out.random=chemistry.seal(first,second,*out.native);fail(5);
+-  out.audit={{"schema","closed-parent-field-heat-step-v1"},
++  out.audit_={{"schema","closed-parent-field-heat-step-v2-staged"},
+     {"begin_s",common.begin_s},{"end_s",common.end_s},{"authoritative_dt_s",common.dt_s},
+     {"common_clock_sha256",common.common_clock_sha256},{"first_exposure",first.audit()},
+     {"second_exposure",second.audit()},{"transport",h::motion_record(*proposal.motion)},
+@@ -123,7 +143,7 @@
+     const axial::State& field,const h::Thermal& heat,const std::string& accepted_source,
+     const ClosedParentTrial& trial) noexcept {
+   try {
+-    return trial.native&&trial.field_heat&&accepted_source==trial.source_sha256&&
++    return !trial.consumed&&trial.native&&trial.field_heat&&accepted_source==trial.source_sha256&&
+       arena.can_publish(*trial.native)&&chemistry.can_publish(trial.random,*trial.native)&&
+       h::preflight_axial_joint(field,heat,trial.post_first_census,*trial.field_heat);
+   }catch(...){return false;}
+@@ -136,6 +156,7 @@
+   // No allocation, throwing computation, callbacks or I/O between owner swaps.
+   chemistry.publish_prevalidated(trial.random);
+   h::publish_field_heat_prevalidated(field,heat,std::move(*trial.field_heat));
++  trial.consumed=true;
+   return true;
+ }
+ } // namespace raikou::native_water

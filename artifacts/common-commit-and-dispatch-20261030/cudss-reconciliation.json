@@ -1,0 +1,63 @@
+{
+  "status": "reconciled_no_demonstrated_cudss_speedup",
+  "checked_utc": "2026-10-30T06:17:37.258778+00:00",
+  "case_count": 7,
+  "matched_timings_s": {
+    "default": 16.893089468001563,
+    "AMD": 32.31116333299724,
+    "v2_default": 16.486350242994376,
+    "hybrid1": 16.838137309008744
+  },
+  "screening_only": true,
+  "confirmed_repeated_speedups": [],
+  "saved_state_passes": {
+    "default": 164,
+    "AMD": 164,
+    "v2_default": 164,
+    "hybrid1": 164
+  },
+  "rejected": [
+    "ND128: DTRSM parameter9 plus unchanged residual guard",
+    "ND256: DTRSM parameter9 plus unchanged residual guard",
+    "explicit ND512: DTRSM parameter9 plus unchanged residual guard"
+  ],
+  "deferred": [
+    "ND1024: explicit512 control failed; no admissible continuation",
+    "Confirmation repetitions: no promising observed gain; current holds unchanged"
+  ],
+  "recommendation": {
+    "reordering": "CUDSS_ALG_DEFAULT",
+    "ND_NLEVELS": "unset/library default; explicit512 failed",
+    "HYBRID_EXECUTE_MODE": 0,
+    "HYBRID_MODE": 0,
+    "IR_N_STEPS": 2,
+    "HOST_NTHREADS": 1,
+    "precision_matrix": "unchanged FP64 SPD"
+  },
+  "new_GPU_work": false,
+  "guards_changed": false,
+  "deployment": false,
+  "production": {
+    "PID": 278902,
+    "state": "T",
+    "startticks": 5288339,
+    "executable": "/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/qualified/heating-history-pic-gpu",
+    "events": "populated 1\nfrozen 1\n",
+    "signals_sent": false
+  },
+  "evidence_sha256": {
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cudss-tuning-validation/independent-summary.json": "c73bb50f8e8169d441f429a336475f4e20cae90ebfd33f89069745fa936407e6",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cudss-tuning-validation/default-control/run-receipt.json": "7c2b1a182d4091d12836163b0ce637de637d73a61d49e9afe34dd6e77fa7fb3e",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/gpu-independent-review/cudss-control-comparison.json": "1457f13b50d9155f05042121bce32db325f6944329d008c902a7987d37ee78d8",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cudss-tuning-validation/amd/run-receipt.json": "f9b4494f3505c5748638afb071ef627f8273e07e22ac6af015b34d77e89c874a",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/gpu-independent-review/cudss-amd-comparison.json": "e56875a38e40b05b7c6acb25c963148b9542bf125e55ceece9a5af79ceb89b16",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cudss-tuning-validation/v2-default-control/run-receipt.json": "6efd6c48cccc02a3779ce0aa7bdaf8662984fdc88357b2134dd45666d3cafb6f",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/gpu-independent-review/cudss-v2-default-control-comparison.json": "1edb558846ce6e57064a616a90f3625b72dbfd8bc5d975e20db9986c0171a9b3",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cudss-tuning-validation/v2-hybrid1/run-receipt.json": "ea1ccfc68e7caafa7c04bee06b7f9cae15dc1b681911cd27b7323a02a9dd8ca5",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/gpu-independent-review/cudss-v2-hybrid1-comparison.json": "95cbfd3edb3efbc6e325dfdc23d9e8ec0034f574b96c214d801d41e5a0fca6c9",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cudss-tuning-validation/nd128/run-receipt.json": "7728fa1c2c5c15bea6d8634bc19abaa9947e5cee9714c669413969ad5fbb0655",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cudss-tuning-validation/nd256/run-receipt.json": "4b03b42bee463d4cdef5c8cddceacbd566b355e7d7fb6c2d2db130e9e6ec77ee",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cudss-tuning-validation/v2-explicit-nd512/run-receipt.json": "37f6152320be3a082de31a781efc92e0a911aa973a237526ab801b39d6990568"
+  },
+  "scope": "Existing short replay only. Not the new full 3D coupled field solver, physical convergence or production throughput."
+}

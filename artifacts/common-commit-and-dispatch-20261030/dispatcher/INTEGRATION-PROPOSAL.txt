@@ -1,0 +1,44 @@
+Unapplied root build integration proposal
+
+Do not modify or wrap the paused deployment in place. Keep the existing audit,
+native001 failure evidence, wrappers and numerical sources immutable. Use a new
+versioned root build driver only after the audit's separate gates are closed.
+
+1. Review/seal this component and its bootstrap interpreter/launcher. Construct
+   an immutable manifest from EXISTING independently reviewed expected hashes,
+   not from whatever happens to be installed at invocation. Pin copied source,
+   native/Hall/data archives, exact extracted files, build recipe/compiler flags,
+   loader/compiler/linker/MPI/dependency closure, inputs and known test binary.
+   Include complete source-directory membership and dynamic plugin directories.
+   Kernel notes/release and GPU module/device identities come from the accepted
+   environment record. A mismatch refuses; it does not approve a pin refresh.
+2. Run the dispatcher from the unchanged frozen userspace with CPU 7/nice 15.
+   The dispatcher owns the CPU lease; do not wrap it in another core7 flock.
+   Prepare the manifest for that namespace: /usr/... is the frozen root, while
+   isolated project paths retain their absolute names. The external trusted
+   source/bootstrap check must precede importing this component.
+3. The NEW admitted CPU build command should invoke a copied build driver that
+   calls frozen /usr/bin/mpic++ directly. It must not call run-frozen again from
+   inside the frozen namespace. Preserve existing source selection, flags,
+   one-job sequencing and libraries. This is a proposed wrapper adaptation,
+   not permission to alter solver math or integrate a full joint test.
+4. Start with verification only. CLI shape (placeholders are intentionally not
+   executable commands or approved live pins):
+     taskset -c 7 nice -n 15 RUN_FROZEN /usr/bin/python3 -B DISPATCHER \
+       REVIEWED_MANIFEST --expected-sha256 REVIEWED_DIGEST --receipt FRESH_RECEIPT
+   --execute is deliberately absent. A later explicitly approved component
+   execution adds that flag only after real adapter/cleanup review. Neither this
+   file nor the default CLI auto-dispatches anything.
+5. A first build may create a new binary, but must not automatically promote it
+   into a test identity. Save/review its binary hash and complete build receipt,
+   then bind that reviewed result in a separately versioned test manifest. Any
+   existing known-binary comparison remains exact; no new observed hash replaces
+   an expected one automatically. Root owns this promotion decision.
+6. Keep GPU mode separate and explicit. It owns GPU-before-CPU locks. Do not
+   launch an existing self-locking dispatcher inside it: nested lock ownership
+   can deadlock. A future adapter may call a pinned guard that does not acquire
+   these locks, preserving all original PIDFD/hold/resource/no-throw constraints.
+   No GPU or full-time joint dispatch is approved by this component release.
+
+No patch has been applied to root build scripts, launchers, deployment or native
+code. This proposal changes only a possible future admission boundary.

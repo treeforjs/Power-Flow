@@ -1,0 +1,104 @@
+Streaming chemistry coverage evidence primitive v1 — 2026-10-30
+
+Result: bounded evidence processing passes all existing small-fixture controls,
+independent exact-sum/framing checks and the full captured46,726-query replay.
+This is a separate component/proposal. Generic-v6 remains immutable, including
+its old256/1024-energy map cap until a new fork integrates this primitive.
+No physical kernel, channel, chemistry policy,1keV seam, RNG, native validator,
+field, source or accepted owner was changed. No new EEDF or physical evolution.
+
+Source/runtime: /home/treefor/projects/runtimes/pic-streaming-chemistry-evidence-20261030.
+source/streaming_coverage.hpp and README.txt specify the API and wire format.
+integration-proposal.json lists the exact future fork boundary and remaining
+limits. The new receipt schema is streaming-generic-v6-evidence-receipt-v1; it is
+not a native event/completion/restart schema and cannot weaken existing admission.
+
+Semantics and support partition
+Each declared query has a contiguous ordinal, opaque bounded ID, context hash,
+binary64 energy and nonnegative evidence weight. The frozen provider's complete
+40-key inventory is required for every query. Seven mutually exclusive bins per
+key distinguish selected positive/zero/unsupported, unselected positive/zero/
+unsupported and unqualified-without-rate. Counts are exact uint64; weight sums
+are exact admitted binary64 sums using the unchanged sealed ExactParticleCount
+header, not a new count backend. Zero-weight unknown queries remain counted.
+There is no support-weight/tail renormalization and no unknown-to-zero conversion.
+
+The40 keys occupy conditional-model, unapplied-observable and missing-contract
+lanes; these are nonadditive evidence views. The2a1 observable and its explicit
+missing-rate contract are not two events. Stopping moments retain eV*m2 units,
+separate from m2 cross sections. Each category records finite energy/value extrema,
+positive-weight energy extrema and first/last query ordinals. Unknown values and
+their source moments remain null. Query weights are not automatically a unique
+population or density: repeated queries count repeatedly under the declared
+measure. No observation slab/depth/volume convention is silently introduced.
+
+Weighted moments are exact sums of PER-TERM BINARY64 ROUNDED PRODUCTS, not exact
+real multiplication. Positive product underflow, product overflow, count-range
+or finite-total overflow refuses atomically before evidence publication. The
+rounding/subnormal environment is checked; fast-math builds are unsupported.
+Raw values/weights are still committed, and any wider moment representation
+would require a separately qualified change. These explicit numerical admission
+limits do not silently floor a physical rate or drop an unsupported query.
+
+Commitment and reproducibility
+The SHA256 commitment includes a versioned, length-framed canonical header with
+component/arithmetic/provider/data/kernel/mechanism/missing-ledger/query-input
+hashes, policy, layout, weight meaning and resource limits. Each ordered query
+then commits its exact ID/context bytes, ordinal, raw IEEE754 energy/weight bits
+and the full canonical provider JSON. All source reason strings, nulls, positive
+unmapped values, inactive contributions and array order are included. The wire
+format is documented in README.txt. Chunk boundaries leave it unchanged; input
+order and contents are bound. Hashes give integrity, not external authentication.
+
+Only fixed summaries and a commitment remain in memory. Exact per-query retrieval
+requires the retained immutable operands/provider/generator or a separately
+qualified dynamic replay source. This fixture retains its complete original CSV
+and input manifests. A digest cannot replace missing accepted native history;
+no rolling owner/checkpoint implementation is claimed here.
+
+Evidence
+129 C++ checks compare all7 frozen pointwise fixtures, a16-electron legacy-admitted
+candidate batch, repeated-energy queries and malformed/omitted/zero-substituted
+observations, resource caps, numeric under/overflow and changed rounding mode.
+Source coverage and candidate scalar bits remain unchanged; scheduler RNG parity
+passes. Legacy unique-energy metadata is equivalent pointwise; the new stream
+additionally counts all query multiplicities/weights rather than deduplicating
+repeated energies. A separate Python Fraction/hashlib oracle passes6,931 checks
+of exact category sums, per-term moments, extrema, support partitions and SHA
+framing. No implementation-mirroring floating tolerance is substituted for exact
+weight checks. The captured exact total query weight is
+210953412474120907543/144115188075855872 represented electrons.
+
+The captured pre-kick list is evaluated against a declared stationary H2O target:
+46,726 queries,1,869,040 evidence observations,40 retained keys/280 category slots.
+It hashes501,032,796 query bytes, maximum11,194 bytes for one encoded query, while
+retaining no per-energy container. Processing peak RSS is9,160KiB at256/1024/4096/
+16,384/46,726 checkpoints; final receipt serialization reaches10,520KiB process
+peak. The first full pass used8.81CPU-s/8.89wall-s including all frozen provider
+value/coverage evaluations. A second process produced a BYTE-IDENTICAL full
+receipt. Exact timestamps/resources are in logs. This proves bounded memory on
+this list, not production throughput or a new kinetic/EEDF result.
+
+Integration scope
+A new wrapper fork may replace only the evidence map with a private stream hook,
+once per declared query/pair while preserving all numeric callbacks and caps on
+physical work. Bind actual phase/census and weight semantics; discard the private
+evidence if candidate preparation fails. Freeze the finished receipt before a
+common owner preflight. Reuse already computed provider results where possible;
+this prototype's full diagnostic evaluation cost is not approved for every
+production substep. Preserve raw/replayable query input history externally.
+The new component does not fix missing physics, native channel-set/product-family
+admission, source counts, field/current/heat ownership or the native history
+ceiling. All those review gates remain separate.
+
+Resource limits are finite: <=64 keys,7 bins/key, <=32KiB validated text and256KiB
+encoded query; default1M queries and16GiB encoded query bytes per receipt, hard
+query maximum100M. Shapes/caps are checked before copying admitted policy/identity
+strings; each update stages a bounded successor and commits by no-throw swaps.
+The caller's already allocated input JSON/provider memory is a separate resource.
+Overflow or limit refusal leaves counts, sums, digest and extrema unchanged.
+
+All execution used the exclusiveCPU7 lease, nice15, frozen userspace, one thread,
+1.5GiB address and180s CPU limits, existinglibcrypto, no new dependencies or GPU.
+Input/source manifests and the source archive preserve the exact implementation.
+No accepted scientific state, production process or full integration was advanced.

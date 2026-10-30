@@ -1,0 +1,143 @@
+Independent review of staged common commit v2
+
+Disposition: value/encapsulation changes reviewed; A02 remains OPEN.
+No numerical operator, real owner, joint timestep or GPU workload was run.
+Root files were not edited. Current reviewed identities are:
+  common_commit_contract.hpp
+  7666c724ea4c6db5e8518322274aa998da8057cca8466114895ba70ab1578b20
+  closed_parent_joint_step.hpp
+  05b09d48792cd92b0fc115736094a68b578addd958b5978ce3961a2a0abc3b89
+Line references below refer to snapshot-current/source copies of these versions.
+
+Confirmed value contracts
+--------------------------
+* same_boundary:50-58 compares all public Boundary fields, including accepted
+  step/revision, physical time, all owner/geometry/frame hashes and origin flag.
+  ExpectedStep.before is a value copy; it does not borrow a caller's strings.
+* owner_values_match:61-71 checks native prefix/revision/step, actual field/heat/
+  source/RNG hashes, fresh mesh/material/frame observations, valid configuration
+  identity and field/heat clocks/revisions against native boundary values.
+* accepts_closed_step:80-86 requires the exact prepared accepted boundary,
+  finite positive dt <= 10 fs, positive representable dt/2, representable forward
+  end=begin+dt, a valid common clock and unchanged prepared configuration.
+  It uses explicit dt; it does not replace it with rounded end-minus-begin.
+* :87-95 protects additions against exhausted counters, requires exactly one
+  accepted outer step, a strictly greater nonmax native revision, the exact
+  endpoint and common clock, and unchanged closed source/geometry/material/frame.
+* :96-97 requires equal valid motion/field midpoint digests. No numerical
+  tolerances are introduced or loosened. The checks only compare values and
+  strings and allocate no new state; observations/hashing must be prepared
+  before any accepted swap.
+
+The initial snapshot lacked fresh geometry/configuration slots and explicit
+native dt/half guards. Those source-level points were reported and are covered
+in the current version and root's added drift/time cases. Initial files remain
+separate under snapshot/; no stale source was substituted for the current seal.
+
+Opaque holder, moves and getters
+--------------------------------
+ClosedParentTrial:16-44 has a private constructor, no public copy, and private
+unique ownership of native/private-step/field-heat state, random token, census,
+source seal and expected step. Only the three narrow coordinator functions are
+friends. There is no ordinary public mutable candidate/token/vector getter.
+
+Default move transfers the unique_ptrs, leaving the ordinary moved-from holder's
+native and field_heat pointers null. can_publish:146 checks those before any
+dereference, so the ordinary moved-from path should refuse. A published holder
+has consumed=true (:159); native/parent tokens are also consumed. Moving a used
+holder copies that true flag, and cannot revive its native publication status.
+The source's false consumed flag after an ordinary prepublication move is not a
+reuse path because its unique_ptrs are null. Move assignment discards only the
+destination's unaccepted private proposal under the intended owner destructors;
+it does not itself call publication. Self-move and token/owner destruction still
+need actual runtime coverage. Compile-time traits alone do not prove those
+effects or stale/foreign/double publication refusal.
+
+audit():43 returns only a borrowed const JSON reference. The audit initializer
+:134-139 copies diagnostic JSON, not native/Hall token pointers. The supplied
+JSON implementation deep-copies objects/arrays/strings. Even editing diagnostic
+JSON through a cast would not change the private expected step or owner token;
+it could falsify diagnostics, so diagnostic bytes must never be an authority
+factory. A retained audit reference is invalidated by holder destruction/move
+assignment like any borrowed member reference. No ordinary authority leakage
+through this getter was found. The pending JSON-motion replacement is a
+separate authority boundary; serialized audits must not become its substitute.
+
+Remaining concrete staged gaps
+-------------------------------
+P1 / A02: The real predicate is NOT in the publication path. The preparer sets
+ExpectedStep.before/dt/end/clock at:87-88 but leaves configuration unset, with
+an explicit staging comment at:89-90. can_publish:142-149 still calls the legacy
+native/parent/Hall preflights without deriving ObservedOwners or calling
+accepts_closed_step. JSON-motion construction/admission remains at:117-125.
+The type/predicate improvements therefore do not close the original mutation
+and final-owner-binding finding. This is acknowledged staging, not a hidden
+claim of completed correction.
+
+P1 inherited alias/observation gate: Hiding the proposal prevents caller access
+through this holder, but does not freeze aliases to the external Mesh, Fields,
+Thermal, CurrentTrace, material or source objects. The legacy can_publish
+signature has no Mesh/Fields argument and cannot independently observe those
+objects. The corrective Hall Owner must own immutable geometry/current/forcing
+and validate its live owner/generation/configuration in preflight_final. The new
+mesh/material/frame/configuration strings are adequate comparison slots only
+when independently derived from those real objects; copying native stamps into
+them would be circular and would not detect the original live-geometry defect.
+
+Native validity preconditions remain separate. valid_boundary:42-47 validates
+time/hash shape, not a complete native history. The predicate does not establish
+the exact native revision delta from the five outer records plus reactions,
+genesis step/revision consistency, exact counts/IDs, both exposure sequences or
+their RNG chain, resources, or native live-owner identity. The original value
+fixture even uses revision 19 at step 7 and a revision increment 3; it is explicitly
+a synthetic cross-owner fixture, not an admissible native journal. This is not
+an integrated bypass: genuine native getters/factories must enforce those
+conditions before producing observations. Do not advertise this function as a
+replacement for native semantic validation or opaque authority.
+
+Required actual observation derivation
+---------------------------------------
+1. Obtain before/candidate boundaries, snapshot counters and prefixes from the
+   genuine native accepted owner and opaque prepared token. Verify owner lifetime,
+   generation, current baseline and exact candidate history before publication.
+2. Independently hash actual field high+low arrays and clocks, all heat bodies,
+   and the prepared parent RNG/counter state. Do not fill actual_* or owner hash
+   fields by reading the corresponding native boundary stamp alone.
+3. Derive mesh/material/frame/configuration from the corrective immutable Hall
+   Owner. Frame schema must encode the actual native-to-field geometry mapping;
+   configuration must cover current trace/forcing/operator/material operands.
+   Bind that immutable configuration to genesis/common checkpoint/accepted owner,
+   not only to a new preparer's locally supplied string. The predicate checks
+   within-trial equality, not independent configuration provenance/continuity.
+4. Compare the actual common authoritative compensated midpoint used by field
+   work and the genuine typed motion receipt. Equal copied digest strings cannot
+   establish that the physical midpoint arrays were the same.
+5. This is closed resident scope: an inactive immutable source marker can remain
+   unchanged. It is not observation of an active source owner. Source-v3 birth,
+   weight/spectrum/layer/geometry lifetime fixes and real source/counter/RNG
+   preflight remain separate. Do not reuse this predicate to suppress a changing
+   source or geometry step; that needs an explicit different contract.
+6. Perform all fallible hashes/allocations/owner observations before the first
+   swap. Then use the sole synchronized coordinator and prevalidated no-throw
+   commits. No fallible getter/callback/I/O or native-only rollback may follow
+   partial common acceptance. Actual owner mutation/fault and lifetime tests
+   must leave all accepted owners unchanged at every rejection.
+
+Evidence and test scope
+------------------------
+The current root predicate receipt attempt-002 reports 45 passing public-value
+cases at the reviewed header/test hashes. The root's current opaque-declaration-
+003 receipt reports compile-only member/ownership traits against exactly the
+current sources. Those are ROOT executions, not independent executions here.
+Their scopes are preserved verbatim in copied receipts.
+
+No independent executable was built or run. Optional initial-snapshot value
+probes and a current declaration-only rerun each yielded at the busy core7 lease
+before their harness could start. Root then supplied the current 45-case and
+declaration-003 results and requested no duplicate rerun. The unexecuted stale
+probe source is retained only as preparation history and is not test evidence.
+
+No additional ordinary encapsulation defect was found in the current holder.
+Real owner wiring, typed motion authority, alias/lifetime/failure/publication
+tests and active-source closure remain pending. A02 and full integration stay
+open; this review is not launch approval.
