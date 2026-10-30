@@ -223,6 +223,11 @@ model and dt and is not comparable.
 
 ## 5. Portable deployment
 
+Status 2026-10-30: cloud compute is out of scope (not affordable). Targets are the workstation (GPU-resident step on the
+RTX 3080 Ti) and the 64-core RTX PRO 4000 Blackwell station. The container/site-config work below is kept only as low-priority
+portability notes for that second station.
+
+
 Does not delay the workstation pilot; restart (A05/A11) becomes required only for preemptible cloud runs. Container image (Apptainer for
 Slurm, OCI) from `arch-base-20261028` root-files.json plus pinned MFEM/hypre/METIS/GKlib, cuDSS 0.6.0 and CUDA 12.8, image digest in
 every receipt; the fixed-kernel guard becomes per-site admission (kernel, driver, GPU set, CPU model/flags, MPI fabric); each new site

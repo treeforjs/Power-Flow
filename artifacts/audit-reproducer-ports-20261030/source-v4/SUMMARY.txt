@@ -1,0 +1,45 @@
+Audit source reproducers against source owner v4 — 2026-10-30
+
+The pre-integration audit's source counterexamples were ported to source owner v4 (Power-Flow branch
+electrode-heat-source-v4-20261030, commit c65ac51) and run on CPU7 at nice 15 inside the frozen launcher with the
+v4 build flags and libraries. Normal and ASan/UBSan outputs are byte-identical with no sanitizer reports; an
+independent Fraction oracle passed 13/13; the v4 worktree and build tree were unchanged. Final run: attempt-003.
+
+v3 behavior -> v4 behavior:
+1. A07 release from stock {1e15,-0.01}: v3 emitted 1.0000000000000024e-30 with both limbs unchanged; v4 returns the
+   same leaf verbatim, the stock changes, accepted stock + leaf equals the initial stock exactly; a leaf one ulp low
+   is refused. Exact.
+2. A07 legacy two-word add: still lossy, but v4 does not use it; the exact-count debit is exact.
+3. A07 ten packets summing to 1 + 5/2^55: refused (also ten copies of 0.1), owner unchanged; an exact ten-leaf
+   partition is admitted verbatim and drains the stock to 0.
+4. A08 1e-310 birth: v3 gave zero charge and wall heat with preflight true; v4 raises a typed refusal on particle
+   charge with log scope -757.0791, owner unchanged.
+5. A08 exposure underflow at area 1e-250: v3 admitted a zero scalar; v4 raises a typed refusal with log scope
+   -714.51649451502885 (bit-identical to v3's); no finite-log admission path exists.
+6. Cold handoff positive control: identical to v3.
+7-10. A02 source probes: changed particle weight and changed spectrum are not expressible (11 compile-reject cases
+   fail as intended; the control compiles); runtime analogues are refused with the owner unchanged; a reused owner
+   address and a mutated mesh (dx, zmin, VE[0], one edge length) are refused at preflight/import/handoff/prepare/
+   commit with the owner unchanged, and the restored mesh commits as a positive control.
+
+Verdicts:
+- A07 closed at component scope (leaf sums equal the debit or are refused; existing exact-count representation;
+  no new backend). Open: binding returned leaves to actual native gas credits (root work); draining the
+  {1e15,-0.01} stock at rate 1e300 fails with an untyped "insufficient exact inventory" error instead of a scoped
+  refusal.
+- A08 not closed. New defect G1: a birth at weight 1e-301 is admitted with nonzero exchange values, then its
+  handoff zeroes all 12 nonzero current-load entries (exact total 1.23e-315, representable in binary64), all 8
+  endpoint charge-impulse entries and the continuity value (5.8e-34 -> 0) without refusal; v4 checks only handoff
+  work and kinetic terms. New gap G2: at area fraction 3.1622776601683792e-245 v4 admits an expected-count scalar of
+  3.08e-305 against an exact 1.547e-305 (ratio 1.994) while the finite log is correct; 18 of 30 admitted areas in the
+  sweep exceed 1e-9 relative error. Admitted births can also carry subnormal weighted values with up to 59% relative
+  error, and some tiny weights are refused only by an untyped v2 energy-closure error. Minimal reproducer:
+  port-source/min_repro_a08_gaps.cpp (attempt-003/logs/run-minrepro-*.log print REPRODUCED for both).
+- SS304 melt conflict confirmed: after the audit debit the v4 stock has four positive carriers and has no two-limb
+  export; the melt proposal's stock admission rejects it ("cannot be represented in two limbs"), and the melt
+  proposal's own release of the same 1e-30 from the same input is also refused.
+- Scope: mutating the parent's field arrays after preflight and before publish is not detected by the source
+  component; the API leaves that to the root critical section (all-owner A02 tests).
+
+Workspace paths in the copies are written as /home/treefor/sim-workspace/powerflow (the runner's input-location
+prefix check is shown with the same normalization).
