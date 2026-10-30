@@ -30,6 +30,9 @@ Host changes: reboots at 12:09 and 14:31 MDT; host identity, frozen root (246,67
 checkpoint verified unchanged; every corrective suite re-run with identical scientific outputs
 (artifacts/post-reboot-requalification-20261030).
 
+Stage 1 (artifacts/stage1-joint-step-20261030): first real all-owner joint step published; T2 28/28, T4-T7 pass; T1 passes off
+Hall node planes; T3 sampled sweep finds std::terminate in sealed JSON destructors; Hall node-plane guard defect found.
+
 Next work and gate order: artifacts/coupled-pilot-plan-20261030/PLAN.md.
 
 Re-run notes: native `verify-final.py` needs the CPU7 lease held externally and overwrites its evidence directory (back it up and

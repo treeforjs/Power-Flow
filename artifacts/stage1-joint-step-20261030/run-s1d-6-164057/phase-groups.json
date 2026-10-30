@@ -1,0 +1,231 @@
+{
+ "schema": "stage1-phase-groups-v1",
+ "definitions": {
+  "gather_push": "link-wrapped hall_driver::prepare_canonical_motion wall time summed over all fixed-point iterations (real step; includes its internal census/mesh/field binary hashing)",
+  "field_solve_derived": "iterations x (Model::prepare - 2 state_sha256 - 2 admit), from probe replays on the post-step state",
+  "hashing_and_validation": "prepare + can_publish - gather_push - field_solve - chemistry (owner observations, JSON field-state hashing, heat binding, native typed admission, seals, final preflights)",
+  "chemistry": "first + second parent exposures (both SSA half-exposures, private native publication)",
+  "commit": "first native swap to end of reservation release (allocation-free window plus release)"
+ },
+ "runs": [
+  {
+   "run": "t1-a",
+   "hall_iterations": 2,
+   "census_rows": 2,
+   "measured": {
+    "prepare_s": 0.124107476,
+    "can_publish_s": 0.040377815,
+    "swap_window_s": 4.77e-06,
+    "release_s": 3.426e-05,
+    "step_total_s": 0.164524321,
+    "coordinator_phases_s": {
+     "audit_s": 0.000512947,
+     "begin_s": 2.529e-05,
+     "binding_checks_s": 0.000561566,
+     "census_s": 3.547e-05,
+     "first_exposure_s": 0.000666455,
+     "hall_iterations": 2,
+     "hall_proposal_s": 0.112468567,
+     "motion_admission_s": 0.000636165,
+     "observe_s": 0.008158863,
+     "seal_s": 0.000191338,
+     "second_exposure_s": 0.000829035
+    },
+    "wrapped_hall_calls": {
+     "canonical_census_sha256": {
+      "calls": 1,
+      "seconds": 2.55e-06
+     },
+     "motion_mesh_sha256": {
+      "calls": 6,
+      "seconds": 4.569e-05
+     },
+     "prepare_canonical_motion": {
+      "calls": 2,
+      "seconds": 0.0026220510000000002
+     },
+     "total_field_sha256": {
+      "calls": 3,
+      "seconds": 0.001799897
+     }
+    },
+    "allocations_prepare": 685104,
+    "allocations_can_publish": 330249,
+    "allocations_between_first_and_last_swap": 0
+   },
+   "probe_replays_s": {
+    "canonical_census_sha256_s": 9.9e-07,
+    "census_rows": 2,
+    "chemistry_accepted_rng_sha256_s": 0.000105969,
+    "model_admit_constraints_s": 0.001642438,
+    "model_prepare_s": 0.043783961,
+    "model_state_sha256_s": 0.011675608,
+    "motion_mesh_sha256_s": 4.76e-06,
+    "observe_closed_accepted_s": 0.012063035,
+    "owner_heat_sha256_s": 3.694e-05,
+    "prepare_canonical_motion_s": 0.001295531,
+    "repeats": 5,
+    "total_field_sha256_s": 0.000595906
+   },
+   "groups_ms": {
+    "gather_push": 2.6220510000000004,
+    "field_solve_derived": 34.29573800000001,
+    "hashing_and_validation": 126.07201199999999,
+    "chemistry": 1.49549,
+    "commit": 0.039029999999999995
+   },
+   "field_state_hash": {
+    "count_per_step": 10,
+    "ms_each_probe": 11.675608,
+    "ms_total_derived": 116.75608000000001
+   }
+  },
+  {
+   "run": "t1-b",
+   "hall_iterations": 2,
+   "census_rows": 2,
+   "measured": {
+    "prepare_s": 0.129233955,
+    "can_publish_s": 0.040033127,
+    "swap_window_s": 3.92e-06,
+    "release_s": 3.9869e-05,
+    "step_total_s": 0.169310871,
+    "coordinator_phases_s": {
+     "audit_s": 0.000523077,
+     "begin_s": 3.051e-05,
+     "binding_checks_s": 0.000593096,
+     "census_s": 3.902e-05,
+     "first_exposure_s": 0.000758495,
+     "hall_iterations": 2,
+     "hall_proposal_s": 0.11719649,
+     "motion_admission_s": 0.000699695,
+     "observe_s": 0.008290871,
+     "seal_s": 0.000194428,
+     "second_exposure_s": 0.000877844
+    },
+    "wrapped_hall_calls": {
+     "canonical_census_sha256": {
+      "calls": 1,
+      "seconds": 3.15e-06
+     },
+     "motion_mesh_sha256": {
+      "calls": 6,
+      "seconds": 6.3149e-05
+     },
+     "prepare_canonical_motion": {
+      "calls": 2,
+      "seconds": 0.00283159
+     },
+     "total_field_sha256": {
+      "calls": 3,
+      "seconds": 0.0018602979999999998
+     }
+    },
+    "allocations_prepare": 685104,
+    "allocations_can_publish": 330249,
+    "allocations_between_first_and_last_swap": 0
+   },
+   "probe_replays_s": {
+    "canonical_census_sha256_s": 1.56e-06,
+    "census_rows": 2,
+    "chemistry_accepted_rng_sha256_s": 6.319e-05,
+    "model_admit_constraints_s": 0.001624288,
+    "model_prepare_s": 0.042951696,
+    "model_state_sha256_s": 0.011628338,
+    "motion_mesh_sha256_s": 7.37e-06,
+    "observe_closed_accepted_s": 0.011984545,
+    "owner_heat_sha256_s": 4.105e-05,
+    "prepare_canonical_motion_s": 0.001251081,
+    "repeats": 5,
+    "total_field_sha256_s": 0.000651926
+   },
+   "groups_ms": {
+    "gather_push": 2.8315900000000003,
+    "field_solve_derived": 32.89288799999999,
+    "hashing_and_validation": 131.90626500000002,
+    "chemistry": 1.6363390000000002,
+    "commit": 0.043788999999999995
+   },
+   "field_state_hash": {
+    "count_per_step": 10,
+    "ms_each_probe": 11.628338,
+    "ms_total_derived": 116.28338000000001
+   }
+  }
+ ],
+ "median_groups_ms": {
+  "gather_push": 2.7268205000000005,
+  "field_solve_derived": 33.594313,
+  "hashing_and_validation": 128.9891385,
+  "chemistry": 1.5659145,
+  "commit": 0.041409499999999995
+ },
+ "median_percent": {
+  "gather_push": 1.6336327417512055,
+  "field_solve_derived": 20.126286146608535,
+  "hashing_and_validation": 77.27713649793996,
+  "chemistry": 0.9381362645553558,
+  "commit": 0.02480834914492777
+ },
+ "electron_only_reference": {
+  "phase-baseline-late-cpu7": {
+   "ms_per_step": 74.03991400476188,
+   "groups": {
+    "field_gather_and_boris": {
+     "ms_per_step": 40.468816571428576,
+     "percent": 54.65810855591462
+    },
+    "gpu_poisson_including_transfers": {
+     "ms_per_step": 14.441938671428568,
+     "percent": 19.505612432909814
+    },
+    "cpu_field_assembly_and_ledgers": {
+     "ms_per_step": 9.075950366666673,
+     "percent": 12.258185991522021
+    },
+    "particle_drifts_and_continuity": {
+     "ms_per_step": 6.402443152380951,
+     "percent": 8.64728604623876
+    },
+    "cpu_linear_residual_checks": {
+     "ms_per_step": 1.8698586095238097,
+     "percent": 2.5254737727052863
+    },
+    "step_selection_sources_diagnostics_other": {
+     "ms_per_step": 1.7809066333333339,
+     "percent": 2.405333200709545
+    }
+   }
+  },
+  "phase-cpu-v2-late-cpu7": {
+   "ms_per_step": 55.17157489999998,
+   "groups": {
+    "field_gather_and_boris": {
+     "ms_per_step": 23.421427661904755,
+     "percent": 42.45198311695242
+    },
+    "gpu_poisson_including_transfers": {
+     "ms_per_step": 15.12864306190476,
+     "percent": 27.421082485547764
+    },
+    "cpu_field_assembly_and_ledgers": {
+     "ms_per_step": 6.970023114285715,
+     "percent": 12.633358984076631
+    },
+    "particle_drifts_and_continuity": {
+     "ms_per_step": 6.099634757142859,
+     "percent": 11.055756099401941
+    },
+    "cpu_linear_residual_checks": {
+     "ms_per_step": 1.7016269999999998,
+     "percent": 3.0842458332651295
+    },
+    "step_selection_sources_diagnostics_other": {
+     "ms_per_step": 1.850219304761905,
+     "percent": 3.353573480756131
+    }
+   }
+  }
+ },
+ "comparability": "electron-only profile: about 29.5k particles, electrostatic GPU Poisson, 210 steps; Stage 1: 2 carriers, Hall implicit Maxwell, one step. Group sizes are comparable only per phase type."
+}

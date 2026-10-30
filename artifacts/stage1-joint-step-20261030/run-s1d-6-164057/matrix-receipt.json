@@ -1,0 +1,1532 @@
+{
+ "schema": "stage1-v4-run-receipt-v1",
+ "command": {
+  "name": "matrix",
+  "argv": [
+   "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+   "/home/treefor/projects/runtimes/pic-water-common-commit-v4-20261030/build/s1d/test_stage1_joint",
+   "matrix",
+   "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/data/shot_17133_current.csv",
+   "/home/treefor/projects/runtimes/pic-water-exact-count-subflow-20261029/inputs/h2o-gas.json",
+   "/home/treefor/sim-workspace/powerflow/outputs/pic-water-exact-count-subflow-20261029/run-binding.json",
+   "/home/treefor/sim-workspace/powerflow/outputs/pic-water-common-commit-v4-20261030/run-s1d-6-164057/matrix",
+   "c045c42d2f57082e3fb5e12172c440d2470e681a38df9ac406bd7e063609a08d",
+   "1200.0"
+  ],
+  "returncode": 1,
+  "expected_returncode": 0,
+  "ok": false,
+  "elapsed_s": 1217.7391499350001,
+  "log": "/home/treefor/sim-workspace/powerflow/outputs/pic-water-common-commit-v4-20261030/run-s1d-6-164057/matrix.log",
+  "log_sha256": "56cac525c0ba1be830ea856a5d777e7c9ed878b236c7c01580c145f11f39df69"
+ },
+ "cpu_affinity": [
+  6
+ ],
+ "nice": 15,
+ "threads": 1,
+ "gpu": false,
+ "rlimit_as_bytes": 3221225472,
+ "binary_sha256": "34d99fb6ed85801ed5ca99e612ebcba72e3c652716248b31015407945f510512",
+ "inputs_sha256": {
+  "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/data/shot_17133_current.csv": "2c54d2dbaec6b6c8fcf2e45b5abd837aa72999f5fd14217f530277ffd5949076",
+  "/home/treefor/projects/runtimes/pic-water-exact-count-subflow-20261029/inputs/h2o-gas.json": "840663cdbcf4c39f1ab6f5407f9ecacb232a07c3c48002a4a182c8187792e4bf",
+  "/home/treefor/sim-workspace/powerflow/outputs/pic-water-exact-count-subflow-20261029/run-binding.json": "f7e2f3dfa314abfbde876dde390652a31d74fbae3bb2cd8d3782aa811f6b6505"
+ },
+ "result_file": "/home/treefor/sim-workspace/powerflow/outputs/pic-water-common-commit-v4-20261030/run-s1d-6-164057/matrix/matrix-result.json",
+ "result_sha256": "87d3e17e02f6690b5f9c91c2531850d3ec30a8daa18fa3954ae787b9255303b6",
+ "summary": {
+  "T1": {
+   "checks": 1,
+   "failed": 0,
+   "passed": 1
+  },
+  "T2": {
+   "checks": 28,
+   "failed": 0,
+   "passed": 28
+  },
+  "T3": {
+   "checks": 33,
+   "failed": 1,
+   "passed": 32
+  },
+  "T4": {
+   "checks": 10,
+   "failed": 0,
+   "passed": 10
+  },
+  "T5": {
+   "checks": 37,
+   "failed": 0,
+   "passed": 37
+  },
+  "T6": {
+   "checks": 6,
+   "failed": 0,
+   "passed": 6
+  },
+  "T7": {
+   "checks": 9,
+   "failed": 0,
+   "passed": 9
+  }
+ },
+ "cases": [
+  {
+   "evidence": {
+    "exit_code": 0,
+    "reference_digest": "8812dabbf4c93244ded10033ed656ab1379f48d99de5dc8f5f6d8cd839d27c55",
+    "signal": 0
+   },
+   "name": "matrix reference: fresh positive joint step publishes (child process)",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "initial_gauss_solver_bound_C": 1.7332512783829863e-23,
+    "max_divB_T_m": 1.1083185881727017e-12,
+    "max_divB_bound_T_m": 3.20621590337423e-10,
+    "max_gauss_bound_C": 1.7516999727376923e-23,
+    "max_gauss_defect_C": 1.740564405174864e-25
+   },
+   "name": "control: neutral P1 genesis admits with actual-census bootstrap",
+   "passed": true,
+   "test": "T6"
+  },
+  {
+   "evidence": {
+    "expected_guard": "absolute Gauss constraint disagrees",
+    "expected_stage": 4,
+    "refusal": "refused: absolute Gauss constraint disagrees with actual declared charge: node=7382 defect_C=3.3645686821326906e-20 bound_C=1.7359249933817085e-23 field_activity_C=4.7036488322694674e-13",
+    "stage_reached": 4
+   },
+   "name": "lone electron with the DC seed refuses (absolute Gauss)",
+   "passed": true,
+   "test": "T6"
+  },
+  {
+   "evidence": {
+    "expected_guard": "absolute divB constraint failed",
+    "expected_stage": 4,
+    "refusal": "refused: absolute divB constraint failed",
+    "stage_reached": 4
+   },
+   "name": "about 50 T/m divB seed refuses (single face +0.01 T over 200 um)",
+   "passed": true,
+   "test": "T6"
+  },
+  {
+   "evidence": {
+    "expected_guard": "initial/restored net charge differs from actual canonical carriers",
+    "expected_stage": 4,
+    "refusal": "refused: initial/restored net charge differs from actual canonical carriers",
+    "stage_reached": 4
+   },
+   "name": "ledger gross-charge mismatch refuses",
+   "passed": true,
+   "test": "T6"
+  },
+  {
+   "evidence": {
+    "expected_guard": "actual native genesis census differs from the provisional Hall prediction",
+    "expected_stage": 8,
+    "refusal": "refused: actual native genesis census differs from the provisional Hall prediction",
+    "stage_reached": 8
+   },
+   "name": "1-ulp ion move after the provisional hash refuses",
+   "passed": true,
+   "test": "T6"
+  },
+  {
+   "evidence": {
+    "expected_guard": "genesis time differs from the first supported C19 knot",
+    "expected_stage": 1,
+    "refusal": "refused: genesis time differs from the first supported C19 knot",
+    "stage_reached": 1
+   },
+   "name": "genesis time different from the C19 drive start refuses",
+   "passed": true,
+   "test": "T6"
+  },
+  {
+   "evidence": {
+    "parent_legacy_prepare": "refused: legacy preparation is not a full-time endpoint stage",
+    "prepare_compound": "refused: legacy compound forbidden in full-time total-field mode",
+    "prepare_compound_with_completion": "refused: legacy compound forbidden in full-time total-field mode",
+    "prepare_event": "refused: full-time reactions require a private collision scope",
+    "prepare_transport": "refused: full-time transport requires genuine total-field motion port"
+   },
+   "name": "A01: every legacy entry point refuses in full-time mode",
+   "passed": true,
+   "test": "T7"
+  },
+  {
+   "evidence": {
+    "advance_family": 0,
+    "callbacks": 0,
+    "solve_fields": 0
+   },
+   "name": "A01: legacy refusals ran zero callbacks and zero native solver/advance calls",
+   "passed": true,
+   "test": "T7"
+  },
+  {
+   "evidence": {},
+   "name": "A01: legacy refusals leave every owner byte-identical",
+   "passed": true,
+   "test": "T7"
+  },
+  {
+   "evidence": {
+    "late_reseal": "refused: stale full-time outer owner",
+    "late_transport_fork": "refused: stale full-time outer owner",
+    "second_begin_full_time_step": "refused: full-time outer requires accepted full-time boundary",
+    "sibling_first_exposure": "refused: stale full-time outer owner",
+    "sibling_second_exposure": "refused: stale full-time outer owner",
+    "sibling_v4_prepare": "refused: full-time outer requires accepted full-time boundary"
+   },
+   "name": "A03: second begin_full_time_step, sibling prepare, sibling exposure slots, late fork and reseal refuse",
+   "passed": true,
+   "test": "T7"
+  },
+  {
+   "evidence": {},
+   "name": "A03: sibling refusals leave every owner byte-identical",
+   "passed": true,
+   "test": "T7"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "A03: the outstanding trial still publishes after the sibling refusals (child process)",
+   "passed": true,
+   "test": "T7"
+  },
+  {
+   "evidence": {
+    "builder": "refused: stage1 reentry probe ends the builder",
+    "builder_callbacks": 1,
+    "nested_callbacks": 0,
+    "nested_scope_builder": "refused: private compound cap or reentry",
+    "outer_begin_from_builder": "refused: full-time outer requires accepted full-time boundary",
+    "parent_prepare_on_from_builder": "refused: private compound cap or reentry",
+    "v4_prepare_from_builder": "refused: full-time outer requires accepted full-time boundary"
+   },
+   "name": "A03: reentry from inside a private collision builder refuses (v4 prepare, nested builder, parent prepare_on, outer begin)",
+   "passed": true,
+   "test": "T7"
+  },
+  {
+   "evidence": {},
+   "name": "A03: reentry refusals leave every owner byte-identical",
+   "passed": true,
+   "test": "T7"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T7 reentry refusals a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal": "",
+    "twin_frame": "c1482765acdec0a180967b36bde1b040de6ab7613509c4cad4c44b8eab525907",
+    "twin_mesh": "cbdd55569c50902d6a3016b715cda12cac64184c306727da9d70f22227e0639b"
+   },
+   "name": "geometry twin (nextafter foil x coordinate) admits with a different mesh/frame identity",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {},
+   "name": "value-identical twin fixture has identical accepted bytes",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "expected_refusal_point": 2,
+    "owners_digest_after": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "owners_digest_before": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "published": false,
+    "refusal_point": 2
+   },
+   "name": "native token from a value-identical twin arena: refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "native token from a value-identical twin arena: the unmutated trial still publishes afterwards (child process, T1 bytes)",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T2 native token from a value-identical twin arena a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "owners_digest_after": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "owners_digest_before": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "published": false,
+    "refusal_point": 8
+   },
+   "name": "field/heat proposal from a value-identical twin Hall owner: refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "field/heat proposal from a value-identical twin Hall owner: the unmutated trial still publishes afterwards (child process, T1 bytes)",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T2 field/heat proposal from a value-identical twin Hall owner a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "expected_refusal_point": 3,
+    "owners_digest_after": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "owners_digest_before": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "published": false,
+    "refusal_point": 3
+   },
+   "name": "RNG token from a twin chemistry owner: refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "RNG token from a twin chemistry owner: the unmutated trial still publishes afterwards (child process, T1 bytes)",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T2 RNG token from a twin chemistry owner a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "expected_refusal_point": 2,
+    "owners_digest_after": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "owners_digest_before": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "published": false,
+    "refusal_point": 2
+   },
+   "name": "geometry: native token from the nextafter-foil twin: refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "geometry: native token from the nextafter-foil twin: the unmutated trial still publishes afterwards (child process, T1 bytes)",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T2 geometry: native token from the nextafter-foil twin a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "owners_digest_after": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "owners_digest_before": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "published": false,
+    "refusal_point": 4
+   },
+   "name": "geometry: Hall proposal from the nextafter-foil twin: refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "geometry: Hall proposal from the nextafter-foil twin: the unmutated trial still publishes afterwards (child process, T1 bytes)",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T2 geometry: Hall proposal from the nextafter-foil twin a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "owners_digest_after": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "owners_digest_before": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "published": false,
+    "refusal_point": 4
+   },
+   "name": "heat: same-owner proposal for dt/2: refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "heat: same-owner proposal for dt/2: the unmutated trial still publishes afterwards (child process, T1 bytes)",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T2 heat: same-owner proposal for dt/2 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "expected_refusal_point": 8,
+    "owners_digest_after": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "owners_digest_before": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "published": false,
+    "refusal_point": 8
+   },
+   "name": "source: same-owner proposal bound to a foreign source digest (refused by preflight_final): refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "source: same-owner proposal bound to a foreign source digest (refused by preflight_final): the unmutated trial still publishes afterwards (child process, T1 bytes)",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T2 source: same-owner proposal bound to a foreign source digest (refused by preflight_final) a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "owners_digest_after": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "owners_digest_before": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "published": false,
+    "refusal_point": 104
+   },
+   "name": "config: species identity: refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "config: species identity: the unmutated trial still publishes afterwards (child process, T1 bytes)",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T2 config: species identity a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "owners_digest_after": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "owners_digest_before": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "published": false,
+    "refusal_point": 104
+   },
+   "name": "config: frame identity: refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "config: frame identity: the unmutated trial still publishes afterwards (child process, T1 bytes)",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T2 config: frame identity a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "owners_digest_after": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "owners_digest_before": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "published": false,
+    "refusal_point": 7
+   },
+   "name": "config: carrier cap: refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "config: carrier cap: the unmutated trial still publishes afterwards (child process, T1 bytes)",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T2 config: carrier cap a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "owners_digest_after": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "owners_digest_before": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "published": false,
+    "refusal_point": 7
+   },
+   "name": "config: native record cap: refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "config: native record cap: the unmutated trial still publishes afterwards (child process, T1 bytes)",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T2 config: native record cap a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal_point": 0
+   },
+   "name": "twin fixture publishes its own step (control)",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "owners_digest_after": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "owners_digest_before": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "published": false,
+    "refusal_point": 4
+   },
+   "name": "field: proposal from another clock (twin at step 1): refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "field: proposal from another clock (twin at step 1): the unmutated trial still publishes afterwards (child process, T1 bytes)",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T2 field: proposal from another clock (twin at step 1) a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "expected_refusal_point": 3,
+    "owners_digest_after": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "owners_digest_before": "5703e0d31c806e7e69e900bcc42a217262c2099bfc11b3f7c7f9fdfa4f898755",
+    "published": false,
+    "refusal_point": 3
+   },
+   "name": "RNG: chemistry restore() between prepare and publish: refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after T2 RNG: chemistry restore() between prepare and publish a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal": "refused: manufactured v4 preparation fault"
+   },
+   "name": "prepare throw point 1 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after prepare throw point 1 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal": "refused: manufactured v4 preparation fault"
+   },
+   "name": "prepare throw point 2 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after prepare throw point 2 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal": "refused: manufactured v4 preparation fault"
+   },
+   "name": "prepare throw point 3 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after prepare throw point 3 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal": "refused: manufactured v4 preparation fault"
+   },
+   "name": "prepare throw point 4 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after prepare throw point 4 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal": "refused: manufactured v4 preparation fault"
+   },
+   "name": "prepare throw point 5 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after prepare throw point 5 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal": "refused: manufactured v4 preparation fault"
+   },
+   "name": "prepare throw point 6 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after prepare throw point 6 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal": "refused: manufactured v4 preparation fault"
+   },
+   "name": "prepare throw point 7 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after prepare throw point 7 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal": "refused: manufactured v4 preparation fault"
+   },
+   "name": "prepare throw point 8 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after prepare throw point 8 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal": "refused: manufactured v4 preparation fault"
+   },
+   "name": "prepare throw point 9 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after prepare throw point 9 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal": "refused: manufactured v4 preparation fault"
+   },
+   "name": "prepare throw point 10 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after prepare throw point 10 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal": "refused: manufactured v4 preparation fault"
+   },
+   "name": "prepare throw point 11 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after prepare throw point 11 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal": "refused: manufactured v4 preparation fault"
+   },
+   "name": "prepare throw point 12 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after prepare throw point 12 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal_point": 101
+   },
+   "name": "can_publish throw point 1 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 1 the same trial publishes (child process, T1 bytes)",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 1 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal_point": 102
+   },
+   "name": "can_publish throw point 2 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 2 the same trial publishes (child process, T1 bytes)",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 2 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal_point": 103
+   },
+   "name": "can_publish throw point 3 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 3 the same trial publishes (child process, T1 bytes)",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 3 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal_point": 104
+   },
+   "name": "can_publish throw point 4 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 4 the same trial publishes (child process, T1 bytes)",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 4 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal_point": 105
+   },
+   "name": "can_publish throw point 5 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 5 the same trial publishes (child process, T1 bytes)",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 5 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal_point": 106
+   },
+   "name": "can_publish throw point 6 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 6 the same trial publishes (child process, T1 bytes)",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 6 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal_point": 107
+   },
+   "name": "can_publish throw point 7 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 7 the same trial publishes (child process, T1 bytes)",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 7 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal_point": 108
+   },
+   "name": "can_publish throw point 8 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 8 the same trial publishes (child process, T1 bytes)",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 8 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal_point": 109
+   },
+   "name": "can_publish throw point 9 refuses with all owners byte-identical",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 9 the same trial publishes (child process, T1 bytes)",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "after can_publish throw point 9 a fresh trial reproduces the T1 receipt (child process)",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "matches_reference": true,
+     "published": true,
+     "refusal_point": 0
+    },
+    "signal": 0
+   },
+   "name": "can_publish has exactly nine throw points before the final Hall preflight (index 10 publishes, child process)",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "exit_code": 0,
+    "output": {
+     "allocations_between_first_and_last_swap": 0,
+     "allocations_can_publish": 330249,
+     "allocations_release": 0,
+     "can_publish_s": 0.042859967,
+     "matches_reference": true,
+     "prepare_allocations": 685063,
+     "probe_calls": 2,
+     "published": true,
+     "refusal_point": 0,
+     "release_s": 5.884e-05,
+     "swap_window_s": 2.8199e-05,
+     "total_s": 0.042947006
+    },
+    "signal": 0
+   },
+   "name": "allocation census step publishes the T1 bytes with zero allocations between the first and last swap",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "clean": 10137,
+    "coverage_fraction": 0.010018575534268217,
+    "crash_attribution": {
+     "json-destructor-allocation-under-noexcept | hall-corrective": 13,
+     "json-destructor-allocation-under-noexcept | hall-field": 1,
+     "json-destructor-allocation-under-noexcept | hall-motion/thermal": 5,
+     "json-destructor-allocation-under-noexcept | native003": 13,
+     "json-destructor-allocation-under-noexcept | v3-parent-subflow": 3
+    },
+    "crashed": 35,
+    "detail": "allocation-sweep.json",
+    "executed": 10172,
+    "total_allocation_sites": 1015312
+   },
+   "name": "global operator new countdown sweep: every injected failure refuses with all owners byte-identical, no crash",
+   "passed": false,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "matching": 414,
+    "reproduced": 414
+   },
+   "name": "sweep subset: fresh trials after injected allocation failures reproduce the T1 receipt",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "fresh_runs": 35,
+    "matching": 35,
+    "restored_matching": 23,
+    "restored_runs": 23
+   },
+   "name": "failure atomicity tally: all fresh trials after refusals reproduce the T1 receipt",
+   "passed": true,
+   "test": "T5"
+  },
+  {
+   "evidence": {
+    "refusal_point": 1
+   },
+   "name": "moved-from trial refuses",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {
+    "digest": "8812dabbf4c93244ded10033ed656ab1379f48d99de5dc8f5f6d8cd839d27c55",
+    "reference": "8812dabbf4c93244ded10033ed656ab1379f48d99de5dc8f5f6d8cd839d27c55"
+   },
+   "name": "the moved trial publishes step 1 with the T1 bytes",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {
+    "refusal_point": 1
+   },
+   "name": "second try_publish of the published trial refuses",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {
+    "refusal": "refused: full-time outer requires accepted full-time boundary"
+   },
+   "name": "a retained published native token keeps the outer reservation (next begin refuses)",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {
+    "native_can_publish": false,
+    "refusal_point": 2
+   },
+   "name": "reused (already published) native token refuses",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {
+    "refusal": ""
+   },
+   "name": "after releasing the token, step 2 prepares",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {},
+   "name": "consumed Hall proposal fails Hall preflight directly",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {
+    "refusal_point": 4
+   },
+   "name": "consumed Hall proposal refuses inside a step-2 trial",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {
+    "refusal_point": 3
+   },
+   "name": "stale chemistry generation (consumed step-1 RNG token) refuses",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {
+    "accepted_step": 2,
+    "time_s": 7.498080554919999e-10
+   },
+   "name": "the unmutated step-2 trial publishes (two consecutive published steps)",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {
+    "advance_family": 0,
+    "solve_fields": 0
+   },
+   "name": "no forbidden native solver/advance call in the whole matrix process",
+   "passed": true,
+   "test": "T7"
+  }
+ ],
+ "files": {
+  "allocation-sweep.json": {
+   "path": "/home/treefor/sim-workspace/powerflow/outputs/pic-water-common-commit-v4-20261030/run-s1d-6-164057/matrix/allocation-sweep.json",
+   "sha256": "8376922633a2b9c2e6a0a61552f934e8428ca70f090d9fc1e6185bdad32fb153"
+  }
+ }
+}

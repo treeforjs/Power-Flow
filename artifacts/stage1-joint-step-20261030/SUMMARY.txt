@@ -1,0 +1,38 @@
+Stage 1: first real all-owner joint step — 2026-10-30
+
+Coordinator v4 (source/) joins native candidate003 (c045c42d...), the corrected Hall owner (commit 8dddec0, unchanged) and the
+parent chemistry subflow in one real step from t0 = 0.749788 ns to t0 + 10 fs. Run: run-s1d-6-164057/ (stage1-receipt.json);
+build receipts: build-s1d/. Workspace paths written as /home/treefor/sim-workspace/powerflow; binaries are not included.
+
+T1 positive step: publishes with the population at z = 1 mm (P1 electron + H2O+ pair; P2 adds H2O with 2 parent ionization
+  events); field, heat and RNG change, source unchanged; 0 calls to the four wrapped GapPic routines; midpoint loop converged in
+  2 iterations; compensated midpoint differs from the high-word average on 9,760 E edges and 1,587 B faces (A10 nonzero);
+  two fresh processes and the matrix reference give byte-identical receipts. At the plan's z = 0 (a Hall node plane) the step is
+  refused by Hall Model::prepare ("actual particle endpoint charge/current mismatch") — defect 1.
+T2 mutation after sealing: 28/28 (12 mutations refuse with every owner byte-identical; the unmutated trial then publishes T1 bytes).
+T3 faults: 12 prepare and 9 can_publish throw points pass; 0 allocations between first and last swap; operator-new sweep sampled
+  10,172 of 1,015,312 allocation sites: 35 points terminate the process (all in sealed code: Hall 19, native 13, v3 subflow 3,
+  none in v4) — defect 2; the rest refuse cleanly and all 414 fresh trials after injected failures reproduce T1 bytes.
+T4 single use: 10/10 (includes two consecutive published steps). T5 rollback/declaration: 37/37. T6 A09 admission: 6/6.
+T7 legacy refusal, second begin, sibling and reentry: 9/9.
+
+Per-phase time for one P1 step (~165 ms): gather/push 2.7 ms; field solve ~34 ms (derived); hashing and validation ~129 ms (77%,
+~117 ms of it 10 JSON field-state hashes); chemistry 1.6 ms; commit 0.04 ms (swap window ~5 us).
+
+Defects in sealed components:
+1. Hall Model::prepare endpoint charge/current guard is purely relative to local node charge; near a mesh node plane the local
+   charge is tiny while deposit rounding is absolute, so charge-conserving motion within ~1e-7 m of the plane (1.6e-5 cell) is
+   refused (admitted from 1e-6 m), independent of weight. Reproducer: source/repro/repro_hall_node_plane.cpp,
+   repro-hall-node-plane-r1/. Needs a deposit-rounding tolerance term in a new Hall version.
+2. The frozen nlohmann JSON header's noexcept destructor allocates, so one failed allocation inside the Json{...} identity-hash
+   pattern calls std::terminate. Reproducer: source/repro/repro_json_destructor.cpp (terminates at 4 of 26 sites),
+   repro-json-destructor-r1/. Removed by binary hashing (plan item H) in new Hall and native versions.
+
+Plan departures: native-v6.2 mfem_gap_pic.cpp is not linked (the native003 archive already defines pic_boris and
+pic_kinetic_energy_J from identical source; Hall objects compile against native003 headers; one json.hpp). v4 hashes its own
+configuration, source and clock digests in a binary encoding. The native census_sha and Hall canonical_census_sha256 agree on real
+native003 data.
+
+Audit evidence: A01 (T7, zero wrapped calls), A02 (T2, T3 throw points, live re-observation), A04 (typed motion, RNG chain),
+A09 (T6, actual-census bootstrap), A10 (nonzero compensation, motion digest = actual midpoint digest) now have all-owner execution
+evidence; A03 partial (T7); T3 allocation coverage is a 1% sample with the sealed-code termination defect open.
