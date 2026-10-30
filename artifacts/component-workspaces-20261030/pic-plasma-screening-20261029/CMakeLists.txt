@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.24)
+project(PicPlasmaScreening LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+find_package(MFEM 4.10 CONFIG REQUIRED)
+add_executable(plasma_screening source/screening.cpp source/src/mfem_gap_pic.cpp)
+target_include_directories(plasma_screening PRIVATE source source/include source/src)
+target_link_libraries(plasma_screening PRIVATE mfem)
+target_compile_options(plasma_screening PRIVATE -Wall -Wextra -Wpedantic -ffp-contract=off)

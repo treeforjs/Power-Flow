@@ -1,0 +1,695 @@
+[
+  {
+    "label": "serial-configure",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "cmake",
+      "-S",
+      "/home/treefor/projects/raikou-mfem",
+      "-B",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DRAIKOU_ENABLE_MFEM=ON",
+      "-DRAIKOU_ENABLE_MPI=OFF",
+      "-DRAIKOU_ENABLE_CUDA=OFF",
+      "-DRAIKOU_BUILD_RUNTIME=OFF",
+      "-DRAIKOU_BUILD_TESTS=ON",
+      "-DRAIKOU_BUILD_PYTHON=OFF",
+      "-DMFEM_DIR=/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/cmake/mfem"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen cmake -S /home/treefor/projects/raikou-mfem -B /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build -DCMAKE_BUILD_TYPE=Release -DRAIKOU_ENABLE_MFEM=ON -DRAIKOU_ENABLE_MPI=OFF -DRAIKOU_ENABLE_CUDA=OFF -DRAIKOU_BUILD_RUNTIME=OFF -DRAIKOU_BUILD_TESTS=ON -DRAIKOU_BUILD_PYTHON=OFF -DMFEM_DIR=/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/cmake/mfem",
+    "elapsed_seconds": 0.10812885899940738,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "serial-build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "cmake",
+      "--build",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build",
+      "--parallel",
+      "1",
+      "--target",
+      "raikou_test_mfem_electrostatics",
+      "raikou_test_mfem_gap_pic",
+      "raikou_test_mfem_q1_scalar_gather",
+      "raikou_mfem_gap_pic",
+      "raikou_mfem_finite_foil_pic"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen cmake --build /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build --parallel 1 --target raikou_test_mfem_electrostatics raikou_test_mfem_gap_pic raikou_test_mfem_q1_scalar_gather raikou_mfem_gap_pic raikou_mfem_finite_foil_pic",
+    "elapsed_seconds": 10.282955377006147,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "serial-ctest",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "ctest",
+      "--test-dir",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build",
+      "--output-on-failure",
+      "--parallel",
+      "1",
+      "-R",
+      "^raikou\\.mfem_"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen ctest --test-dir /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build --output-on-failure --parallel 1 -R '^raikou\\.mfem_'",
+    "elapsed_seconds": 0.20998940999561455,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "mpi-configure",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "cmake",
+      "-S",
+      "/home/treefor/projects/raikou-mfem",
+      "-B",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/mpi-build",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DRAIKOU_ENABLE_MFEM=ON",
+      "-DRAIKOU_ENABLE_MPI=ON",
+      "-DRAIKOU_ENABLE_CUDA=OFF",
+      "-DRAIKOU_BUILD_RUNTIME=OFF",
+      "-DRAIKOU_BUILD_TESTS=ON",
+      "-DRAIKOU_BUILD_PYTHON=OFF",
+      "-DMFEM_DIR=/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/cmake/mfem"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen cmake -S /home/treefor/projects/raikou-mfem -B /home/treefor/projects/runtimes/pic-repo-integration-20261029/mpi-build -DCMAKE_BUILD_TYPE=Release -DRAIKOU_ENABLE_MFEM=ON -DRAIKOU_ENABLE_MPI=ON -DRAIKOU_ENABLE_CUDA=OFF -DRAIKOU_BUILD_RUNTIME=OFF -DRAIKOU_BUILD_TESTS=ON -DRAIKOU_BUILD_PYTHON=OFF -DMFEM_DIR=/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/cmake/mfem",
+    "elapsed_seconds": 0.2529902239984949,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "mpi-build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "cmake",
+      "--build",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/mpi-build",
+      "--parallel",
+      "1",
+      "--target",
+      "raikou_test_mfem_electrostatics",
+      "raikou_test_mfem_gap_pic",
+      "raikou_test_mfem_q1_scalar_gather",
+      "raikou_mfem_gap_pic",
+      "raikou_mfem_finite_foil_pic",
+      "raikou_mfem_heating_history_pic",
+      "raikou_mfem_heating_pic"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen cmake --build /home/treefor/projects/runtimes/pic-repo-integration-20261029/mpi-build --parallel 1 --target raikou_test_mfem_electrostatics raikou_test_mfem_gap_pic raikou_test_mfem_q1_scalar_gather raikou_mfem_gap_pic raikou_mfem_finite_foil_pic raikou_mfem_heating_history_pic raikou_mfem_heating_pic",
+    "elapsed_seconds": 17.051238951004052,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "mpi-ctest",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "ctest",
+      "--test-dir",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/mpi-build",
+      "--output-on-failure",
+      "--parallel",
+      "1",
+      "-R",
+      "^raikou\\.mfem_"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen ctest --test-dir /home/treefor/projects/runtimes/pic-repo-integration-20261029/mpi-build --output-on-failure --parallel 1 -R '^raikou\\.mfem_'",
+    "elapsed_seconds": 0.36938565500167897,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "baseline-core-build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-std=c++20",
+      "-O3",
+      "-DNDEBUG",
+      "-fPIC",
+      "-Wall",
+      "-Wextra",
+      "-Wpedantic",
+      "-Werror",
+      "-I/home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "-c",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/src/mfem_gap_pic.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mfem-gap-pic.o"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/sbin/c++ -std=c++20 -O3 -DNDEBUG -fPIC -Wall -Wextra -Wpedantic -Werror -I/home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include -c /home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/src/mfem_gap_pic.cpp -o /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mfem-gap-pic.o",
+    "elapsed_seconds": 3.7086288389982656,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "baseline-serial-state-build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-std=c++20",
+      "-O3",
+      "-DNDEBUG",
+      "-I/home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/serial_state_trace.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-serial-state",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mfem-gap-pic.o",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath",
+      "-Wl,/usr/lib",
+      "-Wl,--enable-new-dtags"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/sbin/c++ -std=c++20 -O3 -DNDEBUG -I/home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/serial_state_trace.cpp -o /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-serial-state /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mfem-gap-pic.o /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a /usr/lib/libmpi.so -Wl,-rpath -Wl,/usr/lib -Wl,--enable-new-dtags",
+    "elapsed_seconds": 1.8447426100028679,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "baseline-serial-state",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-serial-state",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-checkpoint"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-serial-state /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-checkpoint",
+    "elapsed_seconds": 0.06998184000258334,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "repository-serial-state-build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-std=c++20",
+      "-O3",
+      "-DNDEBUG",
+      "-I/home/treefor/projects/raikou-mfem/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/serial_state_trace.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-serial-state",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou_mfem.a",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath",
+      "-Wl,/usr/lib",
+      "-Wl,--enable-new-dtags"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/sbin/c++ -std=c++20 -O3 -DNDEBUG -I/home/treefor/projects/raikou-mfem/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/serial_state_trace.cpp -o /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-serial-state /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou_mfem.a /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a /usr/lib/libmpi.so -Wl,-rpath -Wl,/usr/lib -Wl,--enable-new-dtags",
+    "elapsed_seconds": 1.805725022997649,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "repository-serial-state",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-serial-state",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-checkpoint"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-serial-state /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-checkpoint",
+    "elapsed_seconds": 0.06490204700094182,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "baseline-mpi-pic-build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-std=c++20",
+      "-O3",
+      "-DNDEBUG",
+      "-I/home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/mpi_pic_trace.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mpi-pic",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mfem-gap-pic.o",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath",
+      "-Wl,/usr/lib",
+      "-Wl,--enable-new-dtags"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/sbin/c++ -std=c++20 -O3 -DNDEBUG -I/home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/mpi_pic_trace.cpp -o /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mpi-pic /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mfem-gap-pic.o /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a /usr/lib/libmpi.so -Wl,-rpath -Wl,/usr/lib -Wl,--enable-new-dtags",
+    "elapsed_seconds": 1.8870384940018994,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "baseline-mpi-1",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "mpiexec",
+      "--bind-to",
+      "none",
+      "--oversubscribe",
+      "-n",
+      "1",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mpi-pic",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mpi-1-record"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen mpiexec --bind-to none --oversubscribe -n 1 /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mpi-pic /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mpi-1-record",
+    "elapsed_seconds": 1.445071864000056,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "baseline-mpi-2",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "mpiexec",
+      "--bind-to",
+      "none",
+      "--oversubscribe",
+      "-n",
+      "2",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mpi-pic",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mpi-2-record"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen mpiexec --bind-to none --oversubscribe -n 2 /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mpi-pic /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mpi-2-record",
+    "elapsed_seconds": 4.439425169999595,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "repository-mpi-pic-build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-std=c++20",
+      "-O3",
+      "-DNDEBUG",
+      "-I/home/treefor/projects/raikou-mfem/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/mpi_pic_trace.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-mpi-pic",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/mpi-build/libraikou_mfem.a",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/mpi-build/libraikou.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath",
+      "-Wl,/usr/lib",
+      "-Wl,--enable-new-dtags"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/sbin/c++ -std=c++20 -O3 -DNDEBUG -I/home/treefor/projects/raikou-mfem/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/mpi_pic_trace.cpp -o /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-mpi-pic /home/treefor/projects/runtimes/pic-repo-integration-20261029/mpi-build/libraikou_mfem.a /home/treefor/projects/runtimes/pic-repo-integration-20261029/mpi-build/libraikou.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a /usr/lib/libmpi.so -Wl,-rpath -Wl,/usr/lib -Wl,--enable-new-dtags",
+    "elapsed_seconds": 1.8464920760015957,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "repository-mpi-1",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "mpiexec",
+      "--bind-to",
+      "none",
+      "--oversubscribe",
+      "-n",
+      "1",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-mpi-pic",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-mpi-1-record"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen mpiexec --bind-to none --oversubscribe -n 1 /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-mpi-pic /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-mpi-1-record",
+    "elapsed_seconds": 1.2208662900011404,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "repository-mpi-2",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "mpiexec",
+      "--bind-to",
+      "none",
+      "--oversubscribe",
+      "-n",
+      "2",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-mpi-pic",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-mpi-2-record"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen mpiexec --bind-to none --oversubscribe -n 2 /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-mpi-pic /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-mpi-2-record",
+    "elapsed_seconds": 4.190681886997481,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "baseline-native-build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-std=c++20",
+      "-O3",
+      "-DNDEBUG",
+      "-DHISTORY_SOURCE=\"/home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/examples/mfem_heating_history_pic.cpp\"",
+      "-I/home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/field_cache_trace.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-native-fields",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mfem-gap-pic.o",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath",
+      "-Wl,/usr/lib",
+      "-Wl,--enable-new-dtags"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/sbin/c++ -std=c++20 -O3 -DNDEBUG '-DHISTORY_SOURCE=\"/home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/examples/mfem_heating_history_pic.cpp\"' -I/home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/field_cache_trace.cpp -o /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-native-fields /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-mfem-gap-pic.o /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a /usr/lib/libmpi.so -Wl,-rpath -Wl,/usr/lib -Wl,--enable-new-dtags",
+    "elapsed_seconds": 3.6241089250033838,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "baseline-native-fields",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-native-fields",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-native-fixture",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-native-checksum.json",
+      "baseline"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-native-fields /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-native-fixture /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/baseline-native-checksum.json baseline",
+    "elapsed_seconds": 0.04790014999889536,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "repository-native-build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-std=c++20",
+      "-O3",
+      "-DNDEBUG",
+      "-DHISTORY_SOURCE=\"/home/treefor/projects/raikou-mfem/examples/mfem_heating_history_pic.cpp\"",
+      "-I/home/treefor/projects/raikou-mfem/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/field_cache_trace.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-native-fields",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou_mfem.a",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath",
+      "-Wl,/usr/lib",
+      "-Wl,--enable-new-dtags"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/sbin/c++ -std=c++20 -O3 -DNDEBUG '-DHISTORY_SOURCE=\"/home/treefor/projects/raikou-mfem/examples/mfem_heating_history_pic.cpp\"' -I/home/treefor/projects/raikou-mfem/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/field_cache_trace.cpp -o /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-native-fields /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou_mfem.a /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a /usr/lib/libmpi.so -Wl,-rpath -Wl,/usr/lib -Wl,--enable-new-dtags",
+    "elapsed_seconds": 3.7294890289995237,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "repository-native-fields",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-native-fields",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-native-fixture",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-native-checksum.json",
+      "repository"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-native-fields /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-native-fixture /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-native-checksum.json repository",
+    "elapsed_seconds": 0.047528445000352804,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "abi-baseline-build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-std=c++20",
+      "-O3",
+      "-DNDEBUG",
+      "-I/home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/abi_probe.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/abi-baseline",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou_mfem.a",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath",
+      "-Wl,/usr/lib",
+      "-Wl,--enable-new-dtags"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/sbin/c++ -std=c++20 -O3 -DNDEBUG -I/home/treefor/projects/runtimes/pic-repo-integration-20261029/baseline-source/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/abi_probe.cpp -o /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/abi-baseline /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou_mfem.a /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a /usr/lib/libmpi.so -Wl,-rpath -Wl,/usr/lib -Wl,--enable-new-dtags",
+    "elapsed_seconds": 1.9013812519988278,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "abi-baseline",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/abi-baseline"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/abi-baseline",
+    "elapsed_seconds": 0.046523748998879455,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "abi-repository-build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-std=c++20",
+      "-O3",
+      "-DNDEBUG",
+      "-I/home/treefor/projects/raikou-mfem/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/abi_probe.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/abi-repository",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou_mfem.a",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath",
+      "-Wl,/usr/lib",
+      "-Wl,--enable-new-dtags"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/sbin/c++ -std=c++20 -O3 -DNDEBUG -I/home/treefor/projects/raikou-mfem/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/abi_probe.cpp -o /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/abi-repository /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou_mfem.a /home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build/libraikou.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a /usr/lib/libmpi.so -Wl,-rpath -Wl,/usr/lib -Wl,--enable-new-dtags",
+    "elapsed_seconds": 1.776899358999799,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "abi-repository",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/abi-repository"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/abi-repository",
+    "elapsed_seconds": 0.04689246299676597,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "git-diff-check",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "git",
+      "diff",
+      "--check"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen git diff --check",
+    "elapsed_seconds": 0.00634794600046007,
+    "returncode": 0,
+    "logical_cpus": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  }
+]

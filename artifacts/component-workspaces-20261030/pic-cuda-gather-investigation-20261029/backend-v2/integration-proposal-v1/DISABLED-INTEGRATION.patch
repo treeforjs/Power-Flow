@@ -1,0 +1,140 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,6 +1,10 @@
+ cmake_minimum_required(VERSION 3.24)
+ project(PicCudaCheckpointBenchmark LANGUAGES CXX)
+ set(CMAKE_CXX_STANDARD 20)
++option(RAIKOU_PIC_EXPERIMENTAL_FORCE_BRIDGE "Disabled review contract for future force integration" OFF)
++if(RAIKOU_PIC_EXPERIMENTAL_FORCE_BRIDGE)
++    message(FATAL_ERROR "Force integration is disabled: typed live-state provider, runtime executor, approval/bindings and evolving replay are not implemented/qualified. Keep the native path; no production resume is authorized.")
++endif()
+ find_package(MFEM 4.10 CONFIG REQUIRED)
+ set(gpu "/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia")
+ add_library(pic STATIC src/mfem_gap_pic.cpp)
+--- /dev/null
++++ b/include/raikou/experimental_force_bridge.h
+@@ -0,0 +1,60 @@
++#pragma once
++// REVIEW CONTRACT ONLY. No definitions/bindings/runtime backend are supplied.
++// CMake rejects enabling this bridge. Do not add a v2 reference-free overload.
++#include "raikou/mfem_gap_pic.h"
++#include <memory>
++#include <span>
++
++namespace raikou::mfem_backend::experimental_force {
++enum class Mode { NativeCpu, QualificationShadow, QualifiedRuntime };
++struct ForceSample {
++    PicVector E_V_m{}, B_T{}, proper_velocity_m_s{};
++    int status=0;
++};
++struct MidpointView {
++    const GapPicOptions& options;
++    const mfem::GridFunction& recovered_phi;
++    std::span<const GapParticle> particles;
++    double relative_midpoint_s,dt_s;
++};
++// An application-owned typed provider must lease exact unit-psi, native frame
++// IDs/times/topology/axes/Az/rate arrays, fraction/voltage/origin and explicit
++// layout/unit/native epochs. This type and provider remain UNIMPLEMENTED.
++// Callback identity or rounded/reconstructed time is not a valid epoch.
++class NativeMidpointState;
++class QualifiedRuntimeApproval; // opaque; no issuer exists in this proposal
++
++class PreparedForce {
++public:
++    virtual ~PreparedForce()=default; // discard uncommitted work safely
++    virtual std::span<const ForceSample> output() const=0;
++    // Whole-batch finite/status/shape/physical-input/domain/capacity/epoch and
++    // unchanged-input/identity validation precedes velocity-only mutation.
++    // Context/thread/resource requirements and safe cleanup are mandatory
++    // without reference comparisons. No partial or implicit fallback commit.
++    virtual void validate_and_commit(std::span<GapParticle> live)=0;
++};
++class RuntimeExecutor {
++public:
++    virtual ~RuntimeExecutor()=default;
++    // Normal execution has NO independent reference argument or callback.
++    // No implementation is supplied; the reviewed v2 API stays unchanged.
++    virtual std::unique_ptr<PreparedForce> prepare(
++        const MidpointView&,const NativeMidpointState&)=0;
++};
++using ReferenceProducer=std::function<std::vector<ForceSample>()>;
++
++// Future bindings must be per GapPic owner/thread, explicit and scoped. The
++// default is NativeCpu; a requested unsupported mode fails closed. Shared
++// cuDSS-primary context, immutable leases, resource budgets and safe draining
++// remain mandatory. No definitions/registration facility exist here.
++Mode selected_mode(const GapPic&);
++void execute_qualified_runtime(GapPic&,const MidpointView&,
++                              std::span<GapParticle> live);
++// The separate qualification wrapper generates fresh independent original
++// E/B/u, then executes the runtime, applies ALL original componentwise/weighted
++// reference gates, and only then permits transactional commit. The runtime
++// path above cannot access or silently suppress this reference producer.
++void execute_qualification_shadow(GapPic&,const MidpointView&,
++    const ReferenceProducer&,std::span<GapParticle> live);
++} // namespace raikou::mfem_backend::experimental_force
+--- a/src/mfem_gap_pic.cpp
++++ b/src/mfem_gap_pic.cpp
+@@ -1,4 +1,7 @@
+ #include "raikou/mfem_gap_pic.h"
++#if defined(RAIKOU_PIC_EXPERIMENTAL_FORCE_BRIDGE)
++#include "raikou/experimental_force_bridge.h"
++#endif
+ 
+ #include <algorithm>
+ #include <cmath>
+@@ -556,6 +559,45 @@
+     // Midpoint position splitting; full-time velocities. Absorption is resolved
+     // at each half drift. Wall interaction timing must be checked by refinement.
+     drift(.5*dt); solve_fields();
++#if defined(RAIKOU_PIC_EXPERIMENTAL_FORCE_BRIDGE)
++    // Disabled review boundary: the original first drift/guarded field solve
++    // above and second drift/guarded solve below keep their original order.
++    // No options/checkpoint/ledger layout or application field/source changes.
++    const auto mode=experimental_force::selected_mode(*this);
++    if(mode!=experimental_force::Mode::NativeCpu) {
++        const experimental_force::MidpointView midpoint{
++            options_,potential_,particles_,ledger_.time_s+.5*dt,dt};
++        if(mode==experimental_force::Mode::QualificationShadow) {
++            const experimental_force::ReferenceProducer original_reference=[&] {
++                std::vector<experimental_force::ForceSample> reference;
++                reference.reserve(particles_.size());
++                for(const auto& p:particles_) {
++                    auto E=electric_field(p.position_m[0],p.position_m[1]);
++                    auto B=options_.magnetic_field_T;
++                    if(external_electric_) {
++                        auto extra=external_electric_(p.position_m[0],p.position_m[1],ledger_.time_s+.5*dt);
++                        for(int i=0;i<3;++i)E[i]+=extra[i];
++                    }
++                    if(external_electric_3d_) {
++                        auto extra=external_electric_3d_(p.position_m[0],p.position_m[1],p.position_m[2],ledger_.time_s+.5*dt);
++                        for(int i=0;i<3;++i)E[i]+=extra[i];
++                    }
++                    if(external_magnetic_)B=external_magnetic_(p.position_m[0],p.position_m[1],ledger_.time_s+.5*dt);
++                    const auto u=pic_boris(p.proper_velocity_m_s,p.charge_C/p.mass_kg,E,B,dt);
++                    reference.push_back({E,B,u,0});
++                }
++                return reference;
++            };
++            experimental_force::execute_qualification_shadow(*this,midpoint,original_reference,particles_);
++        } else if(mode==experimental_force::Mode::QualifiedRuntime) {
++            // Independent original reference generation exists only in the
++            // explicit shadow branch. Mandatory runtime guards stay in its
++            // typed executor and in the unchanged surrounding PIC algorithm.
++            experimental_force::execute_qualified_runtime(*this,midpoint,particles_);
++        } else throw std::runtime_error("Unsupported experimental force mode");
++    } else
++#endif
++    {
+     for (auto& p : particles_) {
+         auto E=electric_field(p.position_m[0],p.position_m[1]);
+         auto B=options_.magnetic_field_T;
+@@ -569,6 +611,7 @@
+         }
+         if(external_magnetic_) B=external_magnetic_(p.position_m[0],p.position_m[1],ledger_.time_s+.5*dt);
+         p.proper_velocity_m_s=pic_boris(p.proper_velocity_m_s,p.charge_C/p.mass_kg,E,B,dt);
++    }
+     }
+     drift(.5*dt); solve_fields();
+     ledger_.time_s+=dt;

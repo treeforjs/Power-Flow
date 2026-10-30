@@ -1,0 +1,123 @@
+Bounded aligned 3D collision atlas — design and CPU microcase
+
+Status: geometric design and unchanged candidate-builder parity tested. This is
+not a native-driver port, physical collision qualification, or a Debye/sheath
+convergence result. No driver, solver, particle, source, GPU or production state
+has been changed. The conditional 1 µm target requires independent refinement.
+
+Geometry
+Use the actual 5 mm foil width, .2 mm thickness, 5 mm gap and full 25 mm axial
+height. In the prototype pilot frame, the box is [0,9]×[0,9]×[0,25] mm; lower foil
+is [2,7]×[1.8,2] mm and upper is [2,7]×[7,7.2] mm through the full height. This
+gives exactly 1.975e-6 m^3 of physical vacuum. Parent integration must derive these
+from the accepted geometry owner, including its actual z origin, not copy this
+nominal frame into an existing differently located state.
+
+Split at all foil boundary planes first. The resulting 13 vacuum rectangles have
+no solid cuts. Refine each rectangle by deterministic axis-aligned binary splits:
+normal target h0 + .3*d to a material face, capped at 500 µm; broad-face tangential
+maximum 125 µm and narrow side-face tangential maximum 25 µm; corner refinement
+uses distance to the finite rectangle. No source is smeared, shifted or deposited
+by this operation. These are collision bins, not finite elements; hanging bin
+faces need no field interpolation or Poisson continuity operator.
+
+Extrude each transverse rectangle through its own full-height z-axis family.
+This avoids refining every transverse/axial direction whenever a normal layer
+is refined. Every vacuum bin has V = dx*dy*dz, with no solid fraction and no
+observation-slab depth. The atlas contains the whole kinetic collision domain;
+extending the field mesh does not extend kinetic escape or collision bounds.
+
+CPU footprint (one million geometric bins remains a hard bound)
+Normal target   Actual first broad-face widths   z spacing   Vacuum bins
+2 µm           1.220–1.758 µm                    500 µm      562,800
+1 µm            .610–.879 µm                     500 µm      634,000
+.5 µm           .305–.440 µm                     500 µm      705,200
+.25 µm          .152–.220 µm                     500 µm      776,400
+
+At 1 µm target there are 12,680 transverse leaves. The full Cell vector would
+cost 10,144,000 bytes on the tested ABI (sizeof(Cell)=16), plus an estimated
+~1.2 MB packed bounds/tree structure. Existing std::map cell indexing would add
+allocator/tree/vector overhead if every empty bin were supplied; it must not be
+rebuilt over the full atlas for each reaction. Measured test RSS below includes
+that exhaustive comparison once, not a proposed production allocation strategy.
+
+Independent local axial pair, identical transverse grid:
+Away from a declared numerical refinement band use 1 mm z bins. Within 25 µm of
+the foil rectangle use 500 then 250 µm z bins: 416,800 then 616,400 total bins.
+Extending that numerical refinement band to 50 µm at the latter spacing gives
+707,300 bins. No gas is excluded outside the band; it ONLY selects resolution.
+The 125 µm local-z request exceeds the cap and remains refused. Global 250/125 µm
+z, halved tangential bounds and .15 distance-growth requests also remain refused.
+No automatic coarsening or partial grid is accepted. These cost controls provide
+bounded sensitivity pairs, not convergence. Finer successful controls still need
+an independently justified allocation/design; the cap is not silently enlarged.
+
+Immutable atlas plus complete occupied-cell view
+The native indexed candidate API already accepts arbitrary positive Cell volumes.
+Keep the full geometric atlas immutable. At each accepted population generation,
+locate EVERY positive native carrier with its original position and retain its
+ID, state, weight, mass and proper velocity. Build the ascending-ID unique occupied
+Cell view using the atlas's exact physical volume. Never normalize volumes to the
+occupied total. Empty cells contribute no particle pairs and may be absent from
+the supplied view. An occupied unknown cell, non-vacuum point, or incomplete
+census refuses the whole request. No energy/support, packet, or source-status
+filter may be used to make a cell appear empty. Products/population changes must
+rebind the view to the new canonical prefix; a cached old view cannot be reused
+without a complete verified transaction delta. Keep existing carrier, pair,
+query, string, candidate and reaction caps independently of geometry-bin count.
+
+Exact unchanged-builder evidence
+The pinned pc::candidates header is copied unchanged and its source hash checked
+against the owner before/after. A 128-cell variable-volume microgrid versus its
+5 occupied cells gives 141 identical candidate rows. A second cost case uses ALL
+46,726 preserved electron positions/weights/velocities for binning, plus one
+clearly MANUFACTURED stationary weight-8 target per occupied cell and a constant
+manufactured sigma. No actual gas distribution or physical rate is claimed.
+The 634,000-bin atlas has 13,747 occupied cells in this actual-like case. Every
+candidate field, query order, total rate and weight*rate sum is bitwise identical
+between exhaustive and occupied views: 46,726 pairs/queries/rows. Removing an
+occupied cell refuses before the first cross-section query. No Scheduler event
+is selected or committed. One CPU-7 sample took .08447 s exhaustive versus .02369 s
+occupied; the entire comparison process peaked at 108,600 KiB RSS. These are
+mock-query costs, not projected coupled-run throughput. Geometry tests took
+3.110 s and 54,144 KiB; census/atlas preparation 1.443 s and 44,112 KiB. All were
+CPU 7, nice 15, one thread, shared lease, 4 GiB and 90 s bounds; one compiler job.
+
+Source and common-stage ownership
+Adsorbed matter is a surface reservoir and never acquires a fabricated 3D gas
+volume. Exact material-face points remain refused unless the common stage gives
+a valid explicit side/stage. The prototype can identify the adjacent vacuum bin
+without moving that physical point; this is GEOMETRY membership, not permission
+to react. A point 1 nm into vacuum is retained: no arbitrary vacuum strip is cut.
+
+Active microscopic source-layer electrons are excluded from the ordinary mover
+by their own operator owner, NOT automatically from all gas reactions. The current
+microscopic layer has no gas-collision coupling. Its actual overlap, cross-section
+support and optical-depth admission must be explicit in the common stage. The
+atlas must expose membership/volume and preserve the owner tag, not invent a
+zero collision rate, drop positive weight, double push it, or declare the missing
+coupling qualified. This design does not resolve that operator-physics contract.
+
+Coordinate, checkpoint and remaining controls
+See API-CONTRACT.txt. Source, collision and field meshes can differ; all consume
+the same canonical physical point. External heating/native-field coordinate
+transforms occur once in the field adapter. No collision-side recentering,
+rotation, rounding or observation-depth substitution is allowed. TOTAL E/B remain
+owned by the Maxwell stage; the collision atlas adds no electrostatic field.
+
+The CPU prototype uses exact integer-nm MANUFACTURED geometry and Fraction
+positions to prove partitions. It never quantizes a native particle. The legacy
+fixture's z-short_z translation is a declared read-only frame transform for this
+test only. A native port must retain exact accepted binary boundary anchors,
+typed frame identity and unmodified particle coordinates; native float boundary
+parity and actual driver checkpoint integration have NOT been run.
+
+Before pilot admission: preserve the existing uniform constructor/identity and
+prove its source/bin/volume/query parity; native tests at faces, corners, outer
+and axial endpoints; complete source/operator census with missing coupling
+refused or separately admitted; exact charge/count/energy and original guards;
+uniform-density rate integral and localized/disjoint overlap controls; independent
+normal, tangential, axial and refinement-band sensitivities. Dense plasma may
+need much finer response/field scales; 1 µm is a conditional starting bin size,
+not Debye or sheath convergence. No actual PIC, trajectory or GPU qualification
+is authorized by this design handoff.

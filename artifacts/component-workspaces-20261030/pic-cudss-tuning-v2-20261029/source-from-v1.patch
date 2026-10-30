@@ -1,0 +1,222 @@
+diff -ruN /home/treefor/projects/runtimes/pic-cudss-tuning-20261029/source/CMakeLists.txt /home/treefor/projects/runtimes/pic-cudss-tuning-v2-20261029/source/CMakeLists.txt
+--- /home/treefor/projects/runtimes/pic-cudss-tuning-20261029/source/CMakeLists.txt	2026-10-29 17:07:42.568881530 -0600
++++ /home/treefor/projects/runtimes/pic-cudss-tuning-v2-20261029/source/CMakeLists.txt	2026-10-29 17:33:14.205974944 -0600
+@@ -21,3 +21,6 @@
+ target_link_libraries(poisson_matrix_audit PRIVATE mfem)
+ add_executable(cudss_tuning_options_tests tests/test_cudss_tuning_options.cpp)
+ target_include_directories(cudss_tuning_options_tests PRIVATE src)
++
++add_executable(cudss_config_diagnostics_tests tests/test_cudss_config_diagnostics.cpp)
++target_include_directories(cudss_config_diagnostics_tests PRIVATE src "${gpu}/cuda_runtime/include" "${gpu}/cuda_nvcc/include" "${gpu}/cu12/include")
+diff -ruN /home/treefor/projects/runtimes/pic-cudss-tuning-20261029/source/src/cudss_config_diagnostics.hpp /home/treefor/projects/runtimes/pic-cudss-tuning-v2-20261029/source/src/cudss_config_diagnostics.hpp
+--- /home/treefor/projects/runtimes/pic-cudss-tuning-20261029/source/src/cudss_config_diagnostics.hpp	1969-12-31 17:00:00.000000000 -0700
++++ /home/treefor/projects/runtimes/pic-cudss-tuning-v2-20261029/source/src/cudss_config_diagnostics.hpp	2026-10-29 17:33:14.204974963 -0600
+@@ -0,0 +1,70 @@
++#pragma once
++#include <cudss.h>
++#include <algorithm>
++#include <cstdint>
++#include <cstdlib>
++#include <cstring>
++#include <filesystem>
++#include <fstream>
++#include <stdexcept>
++#include <string>
++#include <type_traits>
++#include <unistd.h>
++namespace pic_cudss_tuning {
++struct ConfigValue {
++ cudssStatus_t status;size_t written;std::int32_t raw;
++ bool verified() const{return status==CUDSS_STATUS_SUCCESS && written==sizeof(raw);}
++ void json(std::ostream& out) const {if(verified())out<<raw;else out<<"null";}
++};
++class ConfigDiagnostics {
++ inline static std::size_t next_id=0;
++ std::ofstream events;
++ static std::string hex(const void* value,size_t bytes) {
++  const char* digits="0123456789abcdef";const auto* p=static_cast<const unsigned char*>(value);std::string out;
++  for(size_t i=0;i<std::min(bytes,size_t(32));++i){out+=digits[p[i]>>4];out+=digits[p[i]&15];}return out;
++ }
++ void event(const char* operation,const char* parameter,const char* type,cudssStatus_t status,
++            const void* buffer,size_t bytes,const size_t* written) {
++  if(!enabled())return;
++  events<<"{\"operation\":\""<<operation<<"\",\"parameter\":\""<<parameter<<"\",\"scalar_type\":\""<<type
++        <<"\",\"return_code\":"<<int(status)<<",\"buffer_bytes\":"<<bytes<<",\"raw_size_written\":";
++  if(written)events<<*written;else events<<"null";
++  events<<",\"size_written_valid\":"<<(written && status==CUDSS_STATUS_SUCCESS?"true":"false")
++        <<",\"raw_hex_bytes_recorded\":"<<std::min(bytes,size_t(32))<<",\"raw_bytes_hex\":\""<<hex(buffer,bytes)<<"\"}\n";
++  events.flush();if(!events)throw std::runtime_error("Cannot write cuDSS config diagnostics");
++ }
++public:
++ const std::size_t id=next_id++;
++ std::string prefix;
++ explicit ConfigDiagnostics(int rows) {
++  const char* root=std::getenv("RAIKOU_PIC_CUDSS_AUDIT_PREFIX");if(!root)return;
++  if(!*root || *root!='/')throw std::runtime_error("CUDSS_AUDIT_PREFIX must be absolute and nonempty");
++  prefix=std::string(root)+"."+std::to_string(id);
++  if(std::filesystem::exists(prefix+".config.jsonl") || std::filesystem::exists(prefix+".json"))throw std::runtime_error("Use a fresh CUDSS_AUDIT_PREFIX");
++  events.open(prefix+".config.jsonl");
++  events<<"{\"diagnostics_only\":true,\"solver_id\":"<<id<<",\"pid\":"<<::getpid()<<",\"matrix_rows\":"<<rows<<"}\n";
++  events.flush();if(!events)throw std::runtime_error("Cannot initialize cuDSS config diagnostics");
++ }
++ bool enabled() const{return !prefix.empty();}
++ template<class T>cudssStatus_t set(cudssConfig_t config,cudssConfigParam_t param,const char* name,T value) {
++  static_assert(std::is_same_v<T,int> || std::is_same_v<T,cudssAlgType_t>);
++  static_assert(sizeof(T)==4);
++  const auto status=cudssConfigSet(config,param,&value,sizeof(value));
++  event("ConfigSet",name,std::is_same_v<T,int>?"int":"cudssAlgType_t",status,&value,sizeof(value),nullptr);
++  return status; // Caller retains the original mandatory setter error handling.
++ }
++ template<class T>ConfigValue get(cudssConfig_t config,cudssConfigParam_t param,const char* name) {
++  static_assert(std::is_same_v<T,int> || std::is_same_v<T,cudssAlgType_t>);
++  static_assert(sizeof(T)==4);
++  T value;std::memset(&value,0xa5,sizeof(value));size_t written=0;
++  const auto status=cudssConfigGet(config,param,&value,sizeof(value),&written);
++  event("ConfigGet",name,std::is_same_v<T,int>?"int":"cudssAlgType_t",status,&value,sizeof(value),&written);
++  std::int32_t raw;std::memcpy(&raw,&value,sizeof(raw));return {status,written,raw};
++ }
++ cudssStatus_t data_get(cudssHandle_t handle,cudssData_t data,cudssDataParam_t param,const char* name,
++                       void* value,size_t bytes,size_t* written) {
++  const auto status=cudssDataGet(handle,data,param,value,bytes,written);
++  event("DataGet",name,"see_parameter_contract",status,value,bytes,written);return status;
++ }
++};
++}
+diff -ruN /home/treefor/projects/runtimes/pic-cudss-tuning-20261029/source/src/cudss_poisson.hpp /home/treefor/projects/runtimes/pic-cudss-tuning-v2-20261029/source/src/cudss_poisson.hpp
+--- /home/treefor/projects/runtimes/pic-cudss-tuning-20261029/source/src/cudss_poisson.hpp	2026-10-29 17:07:42.568881530 -0600
++++ /home/treefor/projects/runtimes/pic-cudss-tuning-v2-20261029/source/src/cudss_poisson.hpp	2026-10-29 17:33:14.205974944 -0600
+@@ -21,16 +21,18 @@
+  explicit CudssPoisson(const mfem::SparseMatrix& matrix):n(matrix.Height()) {
+   pic_bench::Timer timer("cuda_factor_setup");
+   const auto tuning=pic_cudss_tuning::Options::environment();
++  pic_cudss_tuning::ConfigDiagnostics diagnostics(n);
+   cuda_ok(cudaSetDevice(0));ok(cudssCreate(&handle));
+   ok(cudssConfigCreate(&config));ok(cudssDataCreate(handle,&data));
+   int one=1,zero=0,two=2;
+-  ok(cudssConfigSet(config,CUDSS_CONFIG_HOST_NTHREADS,&one,sizeof(one)));
++  const auto set=[&](cudssConfigParam_t param,const char* name,auto value){ok(diagnostics.set(config,param,name,value));};
++  set(CUDSS_CONFIG_HOST_NTHREADS,"CUDSS_CONFIG_HOST_NTHREADS",one);
+   int hybrid=tuning.hybrid_execute;
+-  ok(cudssConfigSet(config,CUDSS_CONFIG_HYBRID_EXECUTE_MODE,&hybrid,sizeof(hybrid)));
+-  ok(cudssConfigSet(config,CUDSS_CONFIG_HYBRID_MODE,&zero,sizeof(zero)));
+-  ok(cudssConfigSet(config,CUDSS_CONFIG_IR_N_STEPS,&two,sizeof(two)));
+-  if(tuning.amd){cudssAlgType_t alg=CUDSS_ALG_3;ok(cudssConfigSet(config,CUDSS_CONFIG_REORDERING_ALG,&alg,sizeof(alg)));}
+-  if(tuning.nd_levels!=-1){int levels=tuning.nd_levels;ok(cudssConfigSet(config,CUDSS_CONFIG_ND_NLEVELS,&levels,sizeof(levels)));}
++  set(CUDSS_CONFIG_HYBRID_EXECUTE_MODE,"CUDSS_CONFIG_HYBRID_EXECUTE_MODE",hybrid);
++  set(CUDSS_CONFIG_HYBRID_MODE,"CUDSS_CONFIG_HYBRID_MODE",zero);
++  set(CUDSS_CONFIG_IR_N_STEPS,"CUDSS_CONFIG_IR_N_STEPS",two);
++  if(tuning.amd)set(CUDSS_CONFIG_REORDERING_ALG,"CUDSS_CONFIG_REORDERING_ALG",CUDSS_ALG_3);
++  if(tuning.nd_levels!=-1)set(CUDSS_CONFIG_ND_NLEVELS,"CUDSS_CONFIG_ND_NLEVELS",tuning.nd_levels);
+   std::vector<int> rows(n+1),cols;std::vector<double> values;
+   for(int i=0;i<n;++i) {
+    std::vector<std::pair<int,double>> row;bool diagonal=false;
+@@ -61,7 +63,7 @@
+   int info=-1;size_t written=0;
+   ok(cudssDataGet(handle,data,CUDSS_DATA_INFO,&info,sizeof(info),&written));
+   if(info!=0)throw std::runtime_error("cuDSS factorization info "+std::to_string(info));
+-  pic_cudss_tuning::audit(handle,config,data,rows,cols,values);
++  pic_cudss_tuning::audit(handle,config,data,rows,cols,values,diagnostics);
+  }
+  void Solve(const mfem::Vector& rhs,mfem::Vector& answer) {
+   pic_bench::Timer timer("cuda_solve_including_transfers");answer.SetSize(n);
+diff -ruN /home/treefor/projects/runtimes/pic-cudss-tuning-20261029/source/src/cudss_tuning_audit.hpp /home/treefor/projects/runtimes/pic-cudss-tuning-v2-20261029/source/src/cudss_tuning_audit.hpp
+--- /home/treefor/projects/runtimes/pic-cudss-tuning-20261029/source/src/cudss_tuning_audit.hpp	2026-10-29 17:07:42.568881530 -0600
++++ /home/treefor/projects/runtimes/pic-cudss-tuning-v2-20261029/source/src/cudss_tuning_audit.hpp	2026-10-29 17:33:14.204974963 -0600
+@@ -1,37 +1,42 @@
+ #pragma once
+ #include "cudss_tuning_options.hpp"
+ #include "cudss_matrix_audit.hpp"
++#include "cudss_config_diagnostics.hpp"
+ #include <cudss.h>
+ #include <unistd.h>
+ namespace pic_cudss_tuning {
+ inline void audit(cudssHandle_t handle,cudssConfig_t config,cudssData_t data,
+-                  const std::vector<int>& rows,const std::vector<int>& cols,const std::vector<double>& values) {
+- const char* root=std::getenv("RAIKOU_PIC_CUDSS_AUDIT_PREFIX");if(!root)return;
+- if(!*root || *root!='/')throw std::runtime_error("CUDSS_AUDIT_PREFIX must be absolute and nonempty");
+- static std::size_t next_id=0;const auto id=next_id++;const std::string prefix=std::string(root)+"."+std::to_string(id);
+- if(std::filesystem::exists(prefix+".json"))throw std::runtime_error("Use a fresh CUDSS_AUDIT_PREFIX");
+- const auto integer=[&](cudssConfigParam_t param) {
+-  int value=-1;size_t written=0;
+-  if(cudssConfigGet(config,param,&value,sizeof(value),&written)!=CUDSS_STATUS_SUCCESS || written!=sizeof(value))throw std::runtime_error("Cannot read effective cuDSS tuning configuration");
+-  return value;
+- };
+- const int reorder=integer(CUDSS_CONFIG_REORDERING_ALG),nd=integer(CUDSS_CONFIG_ND_NLEVELS);
+- const int hybrid=integer(CUDSS_CONFIG_HYBRID_EXECUTE_MODE),ir=integer(CUDSS_CONFIG_IR_N_STEPS);
+- if(ir!=2 || integer(CUDSS_CONFIG_HOST_NTHREADS)!=1 || integer(CUDSS_CONFIG_HYBRID_MODE)!=0)throw std::runtime_error("cuDSS frozen configuration guard failed");
++                  const std::vector<int>& rows,const std::vector<int>& cols,const std::vector<double>& values,
++                  ConfigDiagnostics& diagnostics) {
++ if(!diagnostics.enabled())return;
++ const auto& prefix=diagnostics.prefix;const auto id=diagnostics.id;
++ const auto reorder=diagnostics.get<cudssAlgType_t>(config,CUDSS_CONFIG_REORDERING_ALG,"CUDSS_CONFIG_REORDERING_ALG");
++ const auto nd=diagnostics.get<int>(config,CUDSS_CONFIG_ND_NLEVELS,"CUDSS_CONFIG_ND_NLEVELS");
++ const auto hybrid=diagnostics.get<int>(config,CUDSS_CONFIG_HYBRID_EXECUTE_MODE,"CUDSS_CONFIG_HYBRID_EXECUTE_MODE");
++ const auto ir=diagnostics.get<int>(config,CUDSS_CONFIG_IR_N_STEPS,"CUDSS_CONFIG_IR_N_STEPS");
++ const auto threads=diagnostics.get<int>(config,CUDSS_CONFIG_HOST_NTHREADS,"CUDSS_CONFIG_HOST_NTHREADS");
++ const auto memory_mode=diagnostics.get<int>(config,CUDSS_CONFIG_HYBRID_MODE,"CUDSS_CONFIG_HYBRID_MODE");
++ (void)diagnostics.get<cudssAlgType_t>(config,CUDSS_CONFIG_SOLVE_ALG,"CUDSS_CONFIG_SOLVE_ALG");
++ (void)diagnostics.get<cudssAlgType_t>(config,CUDSS_CONFIG_FACTORIZATION_ALG,"CUDSS_CONFIG_FACTORIZATION_ALG");
+  std::int64_t fill=-1,memory[16]{};size_t fill_bytes=0,memory_bytes=0;
+- const auto fill_status=cudssDataGet(handle,data,CUDSS_DATA_LU_NNZ,&fill,sizeof(fill),&fill_bytes);
+- const auto memory_status=cudssDataGet(handle,data,CUDSS_DATA_MEMORY_ESTIMATES,memory,sizeof(memory),&memory_bytes);
++ const auto fill_status=diagnostics.data_get(handle,data,CUDSS_DATA_LU_NNZ,"CUDSS_DATA_LU_NNZ",&fill,sizeof(fill),&fill_bytes);
++ const auto memory_status=diagnostics.data_get(handle,data,CUDSS_DATA_MEMORY_ESTIMATES,"CUDSS_DATA_MEMORY_ESTIMATES",memory,sizeof(memory),&memory_bytes);
+  Structure structure(rows,cols);std::ofstream out(prefix+".json");
+  out<<"{\"diagnostics_only\":true,\"solver_id\":"<<id<<",\"pid\":"<<::getpid()<<",\"matrix_rows\":"<<rows.size()-1
+     <<",\"stored_upper_nnz\":"<<cols.size()<<",\"symmetric_nonzero_nnz\":"<<2*cols.size()-(rows.size()-1)<<',';structure.json(out);
+- out<<",\"reorder_enum\":"<<reorder<<",\"nd_nlevels\":"<<nd<<",\"hybrid_execute\":"<<hybrid<<",\"ir_steps\":"<<ir
+-    <<",\"host_threads\":1,\"hybrid_memory\":0,\"fp64_spd\":true,\"lu_nnz_status\":"<<int(fill_status)<<",\"lu_nnz_bytes\":"<<fill_bytes<<",\"lu_nnz\":"<<fill
+-    <<",\"memory_estimates_status\":"<<int(memory_status)<<",\"memory_estimates_bytes\":"<<memory_bytes<<",\"memory_estimates\":[";
+- for(int i=0;i<16;++i){if(i)out<<',';out<<memory[i];}out<<']';
++ out<<",\"reorder_enum\":";reorder.json(out);out<<",\"nd_nlevels\":";nd.json(out);
++ out<<",\"hybrid_execute\":";hybrid.json(out);out<<",\"ir_steps\":";ir.json(out);
++ out<<",\"host_threads\":";threads.json(out);out<<",\"hybrid_memory\":";memory_mode.json(out);
++ out<<",\"fp64_spd\":true,\"lu_nnz_status\":"<<int(fill_status)<<",\"lu_nnz_bytes\":"<<fill_bytes<<",\"lu_nnz\":";
++ if(fill_status==CUDSS_STATUS_SUCCESS && fill_bytes==sizeof(fill))out<<fill;else out<<"null";
++ out<<",\"memory_estimates_status\":"<<int(memory_status)<<",\"memory_estimates_bytes\":"<<memory_bytes<<",\"memory_estimates\":";
++ if(memory_status==CUDSS_STATUS_SUCCESS && memory_bytes==sizeof(memory)) {
++  out<<'[';for(int i=0;i<16;++i){if(i)out<<',';out<<memory[i];}out<<']';
++ } else out<<"null";
+  if(const char* dump=std::getenv("RAIKOU_PIC_CUDSS_DUMP_MATRIX")) {
+   if(std::string(dump)!="1")throw std::runtime_error("CUDSS_DUMP_MATRIX must be unset or 1");
+   matrix_arrays(prefix,rows,cols,values);std::vector<int> permutation(rows.size()-1,-1);size_t written=0;
+-  const auto status=cudssDataGet(handle,data,CUDSS_DATA_PERM_REORDER_ROW,permutation.data(),permutation.size()*sizeof(int),&written);
++  const auto status=diagnostics.data_get(handle,data,CUDSS_DATA_PERM_REORDER_ROW,"CUDSS_DATA_PERM_REORDER_ROW",permutation.data(),permutation.size()*sizeof(int),&written);
+   bool valid=status==CUDSS_STATUS_SUCCESS && written==permutation.size()*sizeof(int);
+   if(valid) {
+    std::vector<unsigned char> seen(permutation.size());
+diff -ruN /home/treefor/projects/runtimes/pic-cudss-tuning-20261029/source/tests/test_cudss_config_diagnostics.cpp /home/treefor/projects/runtimes/pic-cudss-tuning-v2-20261029/source/tests/test_cudss_config_diagnostics.cpp
+--- /home/treefor/projects/runtimes/pic-cudss-tuning-20261029/source/tests/test_cudss_config_diagnostics.cpp	1969-12-31 17:00:00.000000000 -0700
++++ /home/treefor/projects/runtimes/pic-cudss-tuning-v2-20261029/source/tests/test_cudss_config_diagnostics.cpp	2026-10-29 17:33:14.205974944 -0600
+@@ -0,0 +1,31 @@
++#include "cudss_tuning_audit.hpp"
++#include <iostream>
++// CPU mocks only. No CUDA runtime or cuDSS library is linked into this test.
++extern "C" cudssStatus_t cudssConfigSet(cudssConfig_t,cudssConfigParam_t,void*,size_t bytes) {
++ return bytes==4?CUDSS_STATUS_SUCCESS:CUDSS_STATUS_INVALID_VALUE;
++}
++extern "C" cudssStatus_t cudssConfigGet(cudssConfig_t,cudssConfigParam_t param,void* value,size_t bytes,size_t* written) {
++ if(bytes!=4)return CUDSS_STATUS_INVALID_VALUE;
++ if(param==CUDSS_CONFIG_HOST_NTHREADS)return CUDSS_STATUS_NOT_SUPPORTED;
++ int result=param==CUDSS_CONFIG_ND_NLEVELS?512:0;std::memcpy(value,&result,4);
++ *written=param==CUDSS_CONFIG_ND_NLEVELS?0:4;return CUDSS_STATUS_SUCCESS;
++}
++extern "C" cudssStatus_t cudssDataGet(cudssHandle_t,cudssData_t,cudssDataParam_t,void*,size_t,size_t*) {
++ return CUDSS_STATUS_NOT_SUPPORTED;
++}
++int main(int argc,char** argv) {
++ try {
++  if(argc!=2)return 1;::setenv("RAIKOU_PIC_CUDSS_AUDIT_PREFIX",argv[1],1);
++  pic_cudss_tuning::ConfigDiagnostics d(1);
++  if(d.set(nullptr,CUDSS_CONFIG_IR_N_STEPS,"CUDSS_CONFIG_IR_N_STEPS",2)!=CUDSS_STATUS_SUCCESS)return 2;
++  if(d.set(nullptr,CUDSS_CONFIG_REORDERING_ALG,"CUDSS_CONFIG_REORDERING_ALG",CUDSS_ALG_3)!=CUDSS_STATUS_SUCCESS)return 3;
++  const auto unknown=d.get<int>(nullptr,CUDSS_CONFIG_ND_NLEVELS,"CUDSS_CONFIG_ND_NLEVELS");
++  if(unknown.verified() || unknown.raw!=512 || unknown.written!=0)return 4;
++  const auto unsupported=d.get<int>(nullptr,CUDSS_CONFIG_HOST_NTHREADS,"CUDSS_CONFIG_HOST_NTHREADS");
++  if(unsupported.verified() || unsupported.status!=CUDSS_STATUS_NOT_SUPPORTED)return 5;
++  const auto known=d.get<cudssAlgType_t>(nullptr,CUDSS_CONFIG_SOLVE_ALG,"CUDSS_CONFIG_SOLVE_ALG");
++  if(!known.verified() || known.raw!=0)return 6;
++  pic_cudss_tuning::audit(nullptr,nullptr,nullptr,{0,1},{0},{1.},d);
++  std::cout<<"CPU mocks: enum/int setters, unsupported getter, zero written count, known getter and nonfatal data queries passed\n";return 0;
++ }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 7;}
++}

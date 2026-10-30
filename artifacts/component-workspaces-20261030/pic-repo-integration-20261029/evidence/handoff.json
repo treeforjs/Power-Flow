@@ -1,0 +1,78 @@
+{
+  "status": "ready_for_review",
+  "created_utc": "2026-10-29T23:10:20.472683+00:00",
+  "repository": "/home/treefor/projects/raikou-mfem",
+  "base_commit": "0d9596994503895d4633e5af60641bbcd522bd21",
+  "changed_files": [
+    "CMakeLists.txt",
+    "examples/mfem_heating_history_pic.cpp",
+    "examples/native_heating_fields.hpp",
+    "include/raikou/q1_scalar_gather.h",
+    "src/mfem_gap_pic.cpp",
+    "src/mfem_pic_distributed.hpp",
+    "tests/test_mfem_q1_scalar_gather.cpp"
+  ],
+  "patch": "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/repository-cpu-optimizations.patch",
+  "patch_sha256": "aae5ae65bbb9c388273dc450a37e8055478a8d64207240539d63c46d4551c188",
+  "source_manifest": "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/source-manifest.json",
+  "source_manifest_sha256": "549d344ad1e5bd6cd17f249948a5606fae8e4e9f4d113a8e7db0dbbdd3bc6197",
+  "build_manifest": "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/build-manifest.json",
+  "build_manifest_sha256": "ace66f100c2aca3c8c205d0ea9ca1522fa50a17c53a838b68fab5ad49f0251a7",
+  "validation": "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/validation.json",
+  "commands": "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/commands.json",
+  "build_and_test_entrypoint": "flock <workspace>/outputs/pic-profile/testing-core.lock taskset -c 6 nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= python3 -u /home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/build_and_check.py",
+  "serial_build": "/home/treefor/projects/runtimes/pic-repo-integration-20261029/serial-build",
+  "mpi_build": "/home/treefor/projects/runtimes/pic-repo-integration-20261029/mpi-build",
+  "mfem_tests_passed_per_configuration": 3,
+  "serial_state_bytes": 333821,
+  "serial_state_byte_identical": true,
+  "native_state_byte_identical": true,
+  "mpi_state_byte_identical_ranks": [
+    1,
+    2
+  ],
+  "mpi_participation_records": {
+    "1": {
+      "mpi_ranks": 1,
+      "assembly_rank": 0,
+      "output_rank": 0,
+      "operator_ownership": "disjoint_contiguous_rows",
+      "linear_systems_per_rank": 2,
+      "linear_solves_per_rank": 10,
+      "all_ranks_participated": true,
+      "completed": true
+    },
+    "2": {
+      "mpi_ranks": 2,
+      "assembly_rank": 0,
+      "output_rank": 0,
+      "operator_ownership": "disjoint_contiguous_rows",
+      "linear_systems_per_rank": 2,
+      "linear_solves_per_rank": 10,
+      "all_ranks_participated": true,
+      "completed": true
+    }
+  },
+  "public_gap_pic_header_unchanged": true,
+  "gap_pic_size_alignment_unchanged": true,
+  "checkpoint_abi_unchanged": true,
+  "abi_sizes_bytes": {
+    "GapPic": 8416,
+    "GapPicOptions": 168,
+    "GapPicDiagnostics": 200,
+    "GapParticle": 80,
+    "GapFoil": 32
+  },
+  "guards_unchanged": true,
+  "cpu_mpi_backend_preserved": true,
+  "gpu_runtime_code_added": false,
+  "gpu_work": false,
+  "active_runtime_modified": false,
+  "completed_candidates_modified": false,
+  "production_signals": false,
+  "index_staged": false,
+  "committed": false,
+  "remote_pushed": false,
+  "deployment_performed": false,
+  "notes": "/home/treefor/projects/runtimes/pic-repo-integration-20261029/evidence/README.txt"
+}

@@ -1,0 +1,117 @@
+Native full-time anchoring v1 — proposed contract, not implemented/qualified yet
+Base: candidate003-c045 source c045c42d2f57082e3fb5e12172c440d2470e681a38df9ac406bd7e063609a08d.
+Old003 and arbitrary-ID schemas are unchanged and never relabeled.
+
+Trust boundary
+Only a live accepted PicArena in the NEW explicitly admitted anchored/monotone-ID
+mode may prepare an anchor. No active outer, child, transport, or other anchor
+reservation may exist. There is no public anchor-from-JSON/native-prefix factory.
+Preparation captures its exact accepted native state, immutable boundary, source
+ledger, registries, configuration, ID policy/counters and history commitment.
+The move-only opaque anchor token exports an immutable identity. That identity
+must be pinned separately by the common coordinator, never inferred from an
+untrusted anchor file at restore. SHA gives integrity relative to that pin; it
+is not a signature or proof that an arbitrary self-authored history occurred.
+
+Restore requires independently supplied expected identity AND exact native
+canonical-state/ledger/config/clock/owner compatibility values. A structurally
+valid, internally rehashed file with a different supplied identity refuses.
+A caller who obtains the expected pin from the same untrusted file has violated
+the explicit trust precondition; the native API must not provide that shortcut.
+Whole-owner atomic disk checkpoint and provenance authentication remain outside
+this native component. Fields/heat/source/RNG owners remain separately authoritative.
+
+Logical state versus storage
+New anchored prefix semantics commit canonical resident packets/native rows,
+exact counts/species/reference state, complete native ledger, immutable native
+options/registry/original authored provenance, global accepted revision/step/time,
+previous dt, last stochastic completions and owner seals, monotone ID policy/
+next event counter, and the rolling full-history chain. They do not depend on
+which already accepted journal window happens to be resident in memory.
+Anchoring preserves the accepted logical prefix, physical time, step/revision,
+native ID allocator, particle/count/energy/charge state, chemistry RNG completion,
+field/heat/source/motion seals, and all global counters EXACTLY. No field/pusher,
+collision selection, RNG draw, heat/source debit or trajectory callback occurs.
+A new source/schema/genesis selects these semantics;003 prefix rules are not
+reinterpreted in place. Local replay begins at a trusted anchor and verifies the
+bounded suffix. It does not claim to replay omitted history from original genesis.
+
+Exact ID replay protection
+A digest cannot answer arbitrary old-ID membership. Anchored v1 therefore admits
+ONLY an explicit closed single-owner monotone namespace policy. It refuses old
+arbitrary-ID checkpoints/events instead of dropping their tombstones.
+Event IDs are deterministic owner-namespace + exact next_event sequence; require
+CONTIGUOUS equality, then increment without wrap. New product and unscattered-
+primary IDs derive from that event sequence and a disjoint product slot/kind.
+Only currently resident primary/target IDs can be retained. Fresh genesis IDs
+have a separate namespace which can never be minted by later reactions. Source
+births/active layers/collections remain unsupported in this closed policy.
+This permits bounded live-ID sets and bounded suffix event sets without forgetting
+which historical IDs could be reused. Species/state/channel IDs remain immutable.
+The policy identity and next sequence are included in every anchor and checkpoint
+and must agree with the completion owner/coordinator configuration. Future source
+or multiple integration owners require a separately versioned namespace policy.
+
+Receipt retention is EXPLICIT, never silent
+The caller must select one declared policy (no default):
+ FullReplaySegmentV1: persist the exact immutable suffix rows externally before
+ native compaction. Disk includes native endpoint/path arrays and can be O(N)
+ per step; not a demonstrated feasible60ns storage plan.
+ CompactCommitmentsV1: persist a typed per-row hash/previous-chain/global revision
+ log plus actual clock/config/owner/count/conservation/work diagnostics, and keep
+ the exact canonical endpoint and cumulative native receipt ledger in the anchor.
+ Raw trajectory/event replay is unavailable for data deliberately omitted by
+ this policy. Retained commitments do not masquerade as recoverable raw data.
+Explicit signed exact sums of finite binary64 native event/work receipts are
+needed before selecting compact policy; do not replace them with a digest or
+ordinary growing double. Reuse frozen libcrypto/existing exact dyadic engine;
+keep root field/heat/source cumulative ledgers separately owned and sealed.
+If this receipt-ledger support is not yet implemented, compact policy refuses.
+The first bounded storage implementation can qualify FullReplaySegment only and
+must retain its disk-cost limitation; no production scalability claim follows.
+
+Proposed API shape (names to freeze after coordinator review)
+ struct NativeMonotoneIdPolicy { std::string integration_owner_id; };
+ enum class NativeAnchorRetention { FullReplaySegmentV1, CompactCommitmentsV1 };
+ struct NativeAnchorIdentity { source/schema/policy/config/registry/provenance IDs;
+   anchor_sequence; global revision/step; next_event/native-ID counters;
+   accepted boundary; canonical_state_sha256; native_ledger_sha256;
+   previous_anchor_sha256; base_history_chain; tail_history_chain;
+   segment_sha256; payload_sha256; retention; };
+ class PreparedNativeAnchor; // move-only/private construction
+ PicArena::create_full_time_anchored(options,states,channels,authored,genesis,policy);
+ PicArena::prepare_history_anchor(retention) -> PreparedNativeAnchor;
+ PreparedNativeAnchor::identity() -> const NativeAnchorIdentity&;
+ PreparedNativeAnchor::write_files(anchor_path,segment_path[,raw_path]);
+ PicArena::can_publish(anchor) -> bool;
+ PicArena::try_publish(anchor) noexcept -> bool;
+ PicArena::restore_history_anchor(path,options,states,channels,
+     independently_supplied_expected_identity) -> unique_ptr<PicArena>;
+ PicArena::save_anchored_checkpoint(path); // bounded trusted base + bounded suffix
+ PicArena::restore_anchored_checkpoint(path,...,expected_base_anchor,
+     expected_current_native_boundary) -> unique_ptr<PicArena>;
+
+Persistence/publication
+Export/write/fsync/hashing/allocation occur before preflight/publication. Writes
+are immutable/content-addressed or exclusive-create; same bytes may recover an
+idempotent prior write, differing bytes refuse. Failed export leaves accepted
+state unchanged; an uncommitted disk artifact is not an accepted root checkpoint.
+Native can_publish requires live owner/generation, exact unchanged accepted state,
+and durable matching exports. It does no filesystem IO. Publication is no-throw
+metadata/base-window swaps only; accepted logical identity remains identical.
+The common coordinator still owns all-owner durable manifest publication and
+restart selection. Atomic native files alone are not atomic coupled restart.
+
+Resource/evidence gates
+Keep existing carrier/window/row/byte/JSON caps; do not raise4096 as the fix.
+One pending anchor and bounded transient copies. Preserve explicit global counters
+and monotone namespace state; fail on wrap or unsupported conversion. Native
+checkpoint must retain complete typed ledger compatibility, including authored
+source, absorbed/escaped categories (closed mode asserts no unsupported sinks),
+last RNG completions, field/heat/source/motion and initial provenance identities.
+Qualify fresh actually admitted authored-genesis anchors, immutable export,
+restore against independent pins, tamper/type/ID/counter/config/ledger refusals,
+failed persistence/drop/stale/foreign/double operations, and exact namespace
+value cases underCPU7 lease. No fabricated positive Hall receipt. A nonempty
+full-step anchor/restart remains unqualified until genuine joint execution is
+explicitly released. Exact disk sizes and native-only limitations are reported.

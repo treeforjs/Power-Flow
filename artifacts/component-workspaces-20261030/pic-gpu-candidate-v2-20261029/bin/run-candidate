@@ -1,0 +1,24 @@
+#!/bin/bash
+set -euo pipefail
+if (( $# < 2 )); then
+    printf '%s\n' 'Usage: run-candidate off|required|auto QUALIFICATION_JSON [PIC_ARGUMENT ...]' >&2
+    exit 64
+fi
+profile_mode=$1
+profile_record=$2
+shift 2
+case "$profile_mode" in off|required|auto) ;; *) exit 64 ;; esac
+if [[ "$profile_record" != /* ]]; then
+    printf '%s\n' 'QUALIFICATION_JSON must be absolute.' >&2
+    exit 64
+fi
+profile_cuda=/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia
+exec /home/treefor/projects/runtimes/arch-base-20261028/run-frozen \
+    /usr/bin/env \
+    RAIKOU_PIC_FIELD_BACKEND=cudss \
+    RAIKOU_PIC_CUDSS_GRAPH="$profile_mode" \
+    RAIKOU_PIC_CUDSS_GRAPH_RECORD="$profile_record" \
+    OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 BLIS_NUM_THREADS=1 \
+    LD_LIBRARY_PATH="$profile_cuda/cu12/lib:$profile_cuda/cublas/lib:$profile_cuda/cuda_runtime/lib" \
+    /home/treefor/projects/runtimes/pic-gpu-candidate-v2-20261029/build/heating_history_pic_gpu \
+    "$@"

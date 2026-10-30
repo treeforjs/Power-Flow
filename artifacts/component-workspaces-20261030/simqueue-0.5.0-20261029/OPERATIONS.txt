@@ -1,0 +1,9 @@
+SimQueue on Arch: four physical CPU slots 0-3. The GPU PIC job owns physical core 7 (logical 7,15) in a separate isolated kernel partition. CPU 6 is assigned to local PIC tests. Queue jobs use cooperative affinity within CPUs 0-3. Do not run the historical Intel-specific exclusive installer on this layout.
+
+Commands: simq doctor; simq; simqueue -active; simqueue -queue; simq log -f ID.
+
+The enabled user service simqueue.service survives logout via lingering. Queue source, Python, standard library and SQLite are pinned independently from Arch updates. Scientific jobs use their own frozen launchers.
+
+The enabled simqueue-spheral-dispatch.path watches launch-handoff.json and submits one four-core job only after explicit native readiness and a validated frozen command. Readiness remains pending; no coupled advancement is claimed.
+
+Scientific jobs execute in separate transient user scopes capped at 18 GiB RAM and 1 GiB swap with whole-job OOM cleanup. The worker remains outside the cap. Canary job 6 verified CPUs 0-3 and the live kernel memory limits. Historical jobs 3-5 verified completion, OOM containment and cancellation on the prior six-core allocation. See ~/.local/state/simqueue/resource-scopes.

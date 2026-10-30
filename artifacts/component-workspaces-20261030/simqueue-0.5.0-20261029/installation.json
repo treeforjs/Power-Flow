@@ -1,0 +1,131 @@
+{
+  "installed_unix_s": 1793305604.7431183,
+  "status": "running",
+  "version": "0.5.0",
+  "runtime": "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029",
+  "commands": [
+    "/home/treefor/.local/bin/simq",
+    "/home/treefor/.local/bin/simqueue"
+  ],
+  "service": "simqueue.service",
+  "service_active": "active",
+  "service_enabled": "enabled",
+  "survives_logout": true,
+  "physical_slots": 4,
+  "cpu_list": "0-3",
+  "pic_reserved_cpu_pair": [
+    7,
+    15
+  ],
+  "queue_cpu_protection": "cooperative four-core affinity; PIC core exclusion enforced separately by isolated kernel partition",
+  "state_directory": "/home/treefor/.local/state/simqueue",
+  "database": "/home/treefor/.local/state/simqueue/queue.sqlite3",
+  "tests": {
+    "existing_suite_passed": true,
+    "existing_test_count": 42,
+    "duration_s": 19.189,
+    "live_affinity_canary_job": 6,
+    "live_affinity_canary_succeeded": true,
+    "seven_core_submission_rejected": true,
+    "four_core_memory_scope_verified": true
+  },
+  "coupled_dispatch": {
+    "status": "waiting_for_native_readiness",
+    "checked_unix_s": 1793313479.0760036,
+    "handoff": "/home/treefor/projects/runs/rz-spheral-setup-20261029/launch-handoff.json",
+    "why_not_ready": [
+      "Native Zapdos10steps completed0; full decoder failedMemoryError in integrity JSON materialization under6GiB AS. Fix and requalify exact hashes.",
+      "Promote102194cell/four-core configuration and run its actual native checks/rollback",
+      "Installed native suite and coupled advancement pending"
+    ],
+    "queue_core_count": 4
+  },
+  "path_watcher": "simqueue-spheral-dispatch.path",
+  "source_repository": "/home/treefor/projects/plasma-solid-shocks/simqueue",
+  "science_dependencies": "Numerical jobs retain their own frozen runtime wrappers and unchanged native gates. Queue controller itself uses pinned Python3.14.8, SQLite3.54.0, and copied read-only source.",
+  "allocation_history": [
+    {
+      "previous_physical_slots": 7,
+      "previous_cpu_list": "0-6",
+      "changed_unix_s": 1793307119.338224,
+      "physical_slots": 6,
+      "cpu_list": "0-5",
+      "mfem_testing_core": 6,
+      "mfem_testing_siblings": [
+        6,
+        14
+      ],
+      "pic_reserved_core": 7,
+      "pic_reserved_siblings": [
+        7,
+        15
+      ],
+      "authorization_evidence": "Direct six-core instruction verified in Resume yesterday\u2019s work via read_thread; original message id01a1896a-d147-7e03-9811-2cd9b214b6c0."
+    },
+    {
+      "previous_physical_slots": 6,
+      "previous_cpu_list": "0-5",
+      "physical_slots": 4,
+      "cpu_list": "0-3",
+      "applied_unix_s": 1793313479.0790396,
+      "authorization": "Direct four-core instruction and after-prior-diagnostic timing verified in Resume yesterday\u2019s work",
+      "cleanup_receipt": "/home/treefor/projects/runs/rz-spheral-setup-20261029/coarse-fe-bootstrap-4-outer.process.json"
+    }
+  ],
+  "mfem_testing_cpu_pair": [
+    6,
+    14
+  ],
+  "coupled_job_memory_policy": {
+    "installed_unix_s": 1793310728.4801364,
+    "policy": "Per-job Spheral scientific scope; no queue-wide memory limit",
+    "memory_max_bytes": 19327352832,
+    "swap_max_bytes": 1073741824,
+    "oom_policy": "kill",
+    "cpu_slots": 4,
+    "cpu_list": "0-3",
+    "policy_checked_before_exec": true,
+    "canonical_science_command_preserved": true,
+    "queue_worker_outside_scope": true,
+    "queue_worker_pid_unchanged": 298660,
+    "normal_completion_proof_job": 3,
+    "intentional_containment_proof_job": 4,
+    "cancellation_proof_job": 5,
+    "proof_results": {
+      "3": {
+        "memory_policy_verified": true,
+        "scope_empty": true,
+        "process_returncode": 0,
+        "oom_killed": false,
+        "cancelled": false
+      },
+      "4": {
+        "memory_policy_verified": true,
+        "scope_empty": true,
+        "process_returncode": -9,
+        "oom_killed": true,
+        "cancelled": false
+      },
+      "5": {
+        "memory_policy_verified": true,
+        "scope_empty": true,
+        "process_returncode": -15,
+        "oom_killed": false,
+        "cancelled": true
+      },
+      "6": {
+        "memory_policy_verified": true,
+        "scope_empty": true,
+        "process_returncode": 0,
+        "oom_killed": false,
+        "cancelled": false
+      }
+    },
+    "receipt_directory": "/home/treefor/.local/state/simqueue/resource-scopes",
+    "receipt_note": "entry_verification records the live kernel limits. A collected successful scope may return not-found/default systemd properties afterward; OOM failed scope retains Result and MemoryPeak.",
+    "scheduled_pic_monitor": "Deleted by explicit request; do not recreate.",
+    "scientific_qualification": "Resource isolation only. Native coupled readiness and actual coupled acceptance remain pending.",
+    "normal_completion_four_core_proof_job": 6,
+    "historical_proof_note": "Jobs3-5 used then-authorized CPUs0-5; job6 verifies current CPUs0-3. Worker PID298660 stayed unchanged during OOM/cancellation tests, before the deliberate idle allocation restart."
+  }
+}

@@ -1,0 +1,127 @@
+UNAPPLIED integration patch proposal — full-time ParentSubflow
+
+Target:
+/home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/source/native_parent_subflow.hpp
+This is a review recipe/diff sketch, not an apply-ready or compiled driver patch.
+The exact observed base hash is in integration/bindings.json. No root header has
+been edited. Core atlas and helper are separately compiled/tested; the full-time
+native implementation itself remains outside this qualification.
+
+1. Keep struct Grid unchanged and retain the legacy route/results.
+   Introduce an explicit new full-time collision configuration, not an implicit
+   change to an old grid/count checkpoint:
+
+   struct CollisionGridConfig {
+     enum class Layout { LegacyUniform, GradedRectangles };
+     Layout layout;
+     std::array<std::uint32_t,3> uniform_counts;
+     cg::GradedOptions graded;
+     std::string canonical_frame_sha256;
+   };
+
+   Use optional/variant ownership so legacy owns its existing Grid and new
+   full-time owns one immutable CollisionAtlas. Do not build a dummy exhaustive
+   Grid for the graded route. Leave existing legacy constructor/initial RNG and
+   checkpoint route intact. Add a new full-time constructor/config overload;
+   update the new full-time driver's call sites explicitly. If old full-time-v1
+   compatibility is needed, name that mode explicitly rather than auto-migrating.
+
+   Full-time construction:
+     auto g = cg::Geometry::from_native_options(arena.native_options());
+     cg::FrameBinding frame(config.canonical_frame_sha256); // TOTAL E/B canonical
+     atlas = config.layout == Layout::LegacyUniform
+       ? cg::CollisionAtlas::legacy_uniform(g, frame, config.uniform_counts, caps)
+       : cg::CollisionAtlas::graded(g, frame, config.graded, caps);
+   Require caps.geometric_bins <= 1,000,000 and bind the same runtime physical
+   geometry/catalog/common frame as the accepted native owner. No slab depth.
+   Move the EXISTING constructor's data/kernel/catalog checks into a shared
+   unchanged initializer if necessary; do not copy or change chemistry choices.
+
+2. Population construction: complete geometry admission before existing filters.
+
+   #include "physical_collision_atlas.hpp"
+   #include "complete_indexed_census.hpp"
+   namespace cg = raikou::collision_geometry;
+
+   struct Population {
+     // Existing electrons, water, parent and by_id members unchanged.
+     std::vector<pc::Cell> occupied_cells;
+     std::string collision_census_sha256;
+   };
+
+   // New full-time/atlas branch in population(const Arena& a):
+   cg::CensusLimits caps;
+   caps.carriers = limits_.carriers;
+   caps.occupied_cells = limits_.carriers; // <= geometry/cell cap too
+   auto indexed = cg::complete_indexed_census(a, *atlas_, caps);
+   for (std::size_t i=0; i<indexed.entries.size(); ++i) {
+     const auto& entry = indexed.entries[i];
+     // KEEP the existing electron/H2O channel filtering/name/Packet construction
+     // and parent/by_id maps exactly. The helper does no chemistry filtering.
+     // Replace only grid_.locate(carrier.position_m) with:
+     const auto cell = indexed.occupied.entry_cell_ids[i];
+   }
+   p.occupied_cells = std::move(indexed.occupied.cells);
+   p.collision_census_sha256 = indexed.occupied.census_identity;
+
+   The legacy branch keeps its original population loop and Grid arithmetic.
+   For atlas mode, EVERY positive native carrier (including ions/other states)
+   was admitted before any chemistry filter. No source-status/energy filter may
+   make a cell empty. Active microscopic source electrons are not automatically
+   excluded from gas reactions; missing external-layer coupling still needs its
+   separate common-stage admission. The geometry/helper does not grant it.
+
+3. In build_events(), replace only the supplied cell view for the atlas branch:
+
+   const auto& cells = atlas_ ? p.occupied_cells : legacy_grid_->cells;
+   auto candidates = pc::candidates(p.electrons, p.water, cells,
+       {bridge_.channel()}, /* EXISTING remaining pair/query/row caps unchanged */);
+
+   Rebuild the COMPLETE occupied view after each accepted population change,
+   not the empty atlas. Keep candidate-builder, strict support, clock, product
+   RNG, bridge sampling, native prepare/publish and all guards unchanged.
+   Missing/unknown occupied membership must refuse, never disappear.
+
+4. Bind constructor, bootstrap RNG, checkpoint and exposure configuration.
+
+   Define one canonical grid_binding_json() used by BOTH the new constructor and
+   its new initial_full_time_rng_sha256 overload:
+     schema: "full-time-collision-atlas-binding/v1"
+     layout/config, canonical_frame_sha256, frame.identity(), atlas.identity()
+     selected_collision_clock_identity
+     existing dataset/kernel/binding hashes and all existing resource limits
+
+   For the LegacyUniform atlas control, selected_collision_clock_identity may
+   use atlas.legacy_uniform_identity() (exact old IDs/hash); graded uses
+   atlas.identity(). The full atlas/frame identities remain separately sealed in
+   configuration in BOTH cases. Never let a matching old uniform ID hide a
+   changed frame/layout. New bootstrap RNG seal MUST use this same config.
+
+   New atlas full-time checkpoint schema, e.g.:
+     "native-water-parent-full-time-atlas-v1"
+   Store/require layout, full atlas ID, frame binding and canonical-frame IDs,
+   selected collision clock ID, integration_configuration and existing native,
+   data/kernel/RNG/exposure identities. Validate all before swap. Old legacy
+   checkpoint behavior remains unchanged; foreign/unknown atlas or old full-time
+   schema does not silently become graded. No accepted exposure is reinterpreted.
+
+   Keep actual native/field mesh hashes in their OWN common-stage fields. In
+   current prepare_on(), scope.phase() may bind the native/field mesh; do not
+   replace it with the collision atlas ID or add a false equality between them.
+   Only pc::Clock's collision mesh identity and this owner's config use the
+   selected collision identity. The accepted field/common clock/exposure keys
+   and exact half-dt logic remain unchanged.
+
+5. Include/link and tests before root admission.
+   Export only core include/ and this integration/ helper directory. The driver
+   must use its own selected collision_scheduler.hpp, not the core's private copy.
+   Full-time header SHA is pinned separately from the older indexed header used
+   by the core baseline. Compile unchanged atlas .cpp against that selected
+   header, or use the additive compatibility library only while its pin matches.
+
+   Required driver controls: exact old uniform physical candidates/RNG/results;
+   checkpoint/config/frame foreign refusal; missing/duplicate/other-state native
+   census admission; both real endpoint CollisionScope routes; rollback/restart;
+   strict support failures; existing charge/energy/source/current/work guards.
+   Geometry/core/helper tests do not substitute for those full-time controls.
+   No field/source evolution or GPU test has been run here.

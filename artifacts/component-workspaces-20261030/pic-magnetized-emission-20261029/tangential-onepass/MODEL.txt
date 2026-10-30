@@ -1,0 +1,132 @@
+Conditional tangential one-pass thermal-field source prototype
+
+Scope and selection
+
+This component requires explicit selection of a continuum free-electron FD
+reservoir and incoherent one-pass matching. It does not solve SS304's exact
+magnetized band/edge spectrum, quantum coherence or arbitrary oblique fields.
+The ratio hbar*e*B/(m*kT) is reported as a scale, not an error bound on those
+omitted material/quantum effects. No foil model or native integration is
+admitted. The original v1 library and nominal0.2 guard remain unchanged.
+
+Domain:298.2..1500K; phi2..6eV; positive extraction F50..100MV/m; B<=40T
+strictly tangent; E strictly normal. Numerical equality tolerances1e-12
+do not provide a physical small-obliquity approximation. Both field vectors
+and evolved temperature must belong to the same accepted Stage. The existing
+material/planarity/equilibrium admission flags remain mandatory. Work function
+4.3eV is a clean-surface benchmark with no actual foil/T calibration. Retarding
+surfaces retain their separate thermal supply/return requirement; this source
+does not cover them. It must not replace them by zero.
+
+The actual local constant-field/geometry extent must contain a conservative
+bound on the entire resolved quantum region. For vmax=sqrt(2e*Etmax/m),
+when B*vmax<=F/2 the bound is2*(phi-Emin+delta)/(F-B*vmax); otherwise it is
+(F+B*vmax)/(2*alpha), alpha=e*B^2/(2m). This follows from the descending
+parabolic-barrier root or the subsequent local minimum, with the image term
+lowering the potential. It is a domain check, not an arbitrary launch offset.
+The later micro trajectories must also remain in the admitted region.
+
+Joint source
+
+Let n be the material-outward normal and d=n cross Bhat. The metal transverse
+velocity is sqrt(2e*Et/m)*(cos(theta)*d+sin(theta)*Bhat). Minimal coupling
+shifts its d component at distance x by -e*B*x/m. Therefore the effective
+normal barrier, in eV relative to the Fermi level, is
+ U=phi-(F+B*v_d)*x-c/x+alpha*x^2, c=e/(16*pi*epsilon0).
+The cross term is retained. Its local saddle and subsequent allowed pocket
+are found from the exact derivative. Below the saddle, the first real
+turning-point action is numerically integrated, with a cosine endpoint
+transform and Gauss-Legendre quadrature. Above it, a signed local parabolic
+continuation is an explicit approximation. D=1/(1+exp(G)). This is one-pass
+entry into a local allowed region; it is not terminal escape through an
+infinite magnetic half-space.
+
+With f(u)=1/(1+exp(u/kT)), energies in eV and C=A_ideal/(kB/e)^2,
+ Jknown=C integral D(E,Et,theta)*f(E+Et) dE dEt dtheta/(2*pi),
+ Qknown=-C integral (E+Et)*D*f dE dEt dtheta/(2*pi).
+Gauss-Laguerre quadrature handles Et, periodic angular quadrature handles
+theta, and segmented Gauss-Legendre integration handles E around each
+canonical saddle. The same unnormalized weights determine J, complete
+Nottingham heat and joint phase-space sampling. No half-Maxwellian sampler,
+RD+FN sum, asperity factor, CL cap or shielding multiplier is inserted.
+
+Known components and unresolved bounds
+
+Unresolved channels are not assigned zero or used to renormalize the old MG
+rate. Distribution returns Jknown, Qknown, nonzero upper bounds on unresolved
+current and absolute heat, and a separate numerical-budget flag. Sampling
+uses only this explicitly named component at Jknown; it refuses a large bound.
+The upper bounds cover unresolved model integrals; resolved quadrature error
+is assessed separately by refinement. They do not bound error against exact
+quantum/material physics or certify a new native state without refinement.
+
+The quadrature domain is Emin<=E<=phi+48kT and Et<=2phi+120kT by default.
+Unknown local pockets/overlaps have a conservative raw FD supply bound. With
+alpha=eB^2/(2m), k=B*sqrt(2e/m) and delta=eta*kT, all E>=Emin have a resolved
+overlap for Et<=Etcrit if F-k*sqrt(Etcrit) exceeds both
+3*(alpha^2*c)^(1/3) and2*sqrt(alpha*(phi-Emin+delta)). For a=Emin+Etcrit>0,
+the remaining raw supply is bounded by C*(kT)^2*exp(-a/kT), with absolute
+heat bound C*(kT)^2*(a+2kT)*exp(-a/kT). For a<=0, finite occupied-region
+polynomial bounds plus the positive Boltzmann tail are used. Low-field/
+strong-B states can have enormous unresolved bounds and remain unsupported.
+
+For E<Emin at bounded Et, choose a fixed SN subinterval where the potential
+is at least m>Emin. Its length L gives G>=a0*sqrt(m-E), a0=kappa*L,
+kappa=2*sqrt(2me)/hbar. The omitted integral is bounded analytically by
+2*exp(-a0*z)*(z/a0+1/a0^2), z=sqrt(m-Emin). Absolute energy follows the
+corresponding third-moment exponential integral. For Et tails, split E at
+-Et/2: FD bounds the upper half, and a triangular SN subinterval bounds the
+lower half by G>=a*(phi-E), a=kappa/[8*sqrt(2)*(F/sqrt(Etmax)+k)]. Its
+required inequality (phi+Etmax/2)^2>=16*c*(F+k*sqrt(Etmax)) is checked.
+The high-E FD tail is bounded separately. Overlapping bounds are conservative.
+
+Forward and inverse ports
+
+Each sampled phase starts at a finite canonical overlap U=E-delta, or at the
+local saddle for above-barrier phases. The transverse canonical momentum is
+shifted by B; normal proper momentum is chosen to reproduce the exact declared
+kinetic energy. The nonrelativistic barrier/reservoir model is distinct from
+the relativistic classical kinematics used for transport.
+
+Complete sampled heat is -e*(E+Et), electron reference +e*phi, image reference
+-e*c/x and field work e*F*x. The quantum projection supplies its explicit
+zero-duration q dx path. Its integrated current belongs to the accepted common
+dt. The image/Lorentz layer uses v1's real-time energy-conserving transport.
+The sealed v2 helper restores image reference on inward PIC re-entry. One
+packet has one owner: Active layer or ordinary PIC, with provenance retained.
+
+Returning quantum events use the SAME canonical D. The real reduced normal
+Schrodinger problem has flux-normalized reciprocal transmission at fixed
+canonical transverse mode. From the incoming momentum and overlap position,
+the model reconstructs E and Et, then chooses absorption or reflection from
+a caller-owned draw. Reflection atomically removes the provisional material
+quantum bridge, cancels that bridge's charge/heat/reference/work exchange,
+retains all actual micro paths, reverses normal momentum and keeps Active
+ownership. It adds no new displacement, field work or heat. Absorption retains
+the original complete reverse bridge exactly once. No second work-function
+or mean-Nottingham debit is allowed. Unsupported return channels throw for
+rollback; they are not silently absorbed or zeroed.
+
+resolve_quantum_return must run BEFORE a provisional v1 recollection is
+published. Parent must persist a distinct quantum-event counter/draw identity
+alongside LayerState in its single native arena and restart journal. Native
+rollback/restart for that new dispatch is not qualified by these component
+tests. Using plain v1 advance_layer collection as the final new-model decision
+would incorrectly impose unit absorption.
+
+Validation scope
+
+Current/heat quadrature refinement and B0 recovery, same-spectrum packet heat,
+complete birth ledger, explicit oblique/non-normal-E refusal, and bounded real
+outgoing-PIC/inward-image/material trajectories are checked. Canonical phase
+is reconstructed every epoch. Partial-transmission fixtures must reflect and
+later absorb; other packets may legitimately remain resident at4ps and are
+not forced absorbed or deleted. These manufactured constant-field trajectories
+are neither native Maxwell/thermal evolution nor a physical midpoint proof.
+
+Primary inputs: Murphy & Good1956 DOI10.1103/PhysRev.102.1464; numerical SN
+current/heat framework in Kyritsakis & Djurabekova2017,
+https://arxiv.org/abs/1609.02364; minimal-coupling barrier in Lebedynskyi et al
+2015, https://arxiv.org/abs/1702.02713 Eqs4/20/28. Joint quadrature, explicit
+bound construction and inverse adapter are derived conditional implementation,
+not a published SS304 calibration. No third-party full text is redistributed.

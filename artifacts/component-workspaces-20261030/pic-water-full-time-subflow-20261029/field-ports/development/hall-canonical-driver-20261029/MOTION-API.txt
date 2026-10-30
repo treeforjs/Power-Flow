@@ -1,0 +1,105 @@
+Canonical full-time motion port v2
+
+Public declarations: motion_receipt.hpp
+Implementation: native_arena_motion.cpp + kinetic_boundary.cpp
+Qualified file hashes: motion-api-seal.json
+This is a sealed, immutable motion proposal API. The separate native owner
+implements admission/publication on its private full-time arena. This component
+does not provide a competing arena, initializer, history or native restart.
+
+Native owner call sequence
+  1. Finish first chemistry on the private outer arena. Obtain its positive
+     ArenaRateEntry census with exact native carrier weights, state_prefix(),
+     staged revision, and native options. Never build it from rounded view().
+  2. Populate MotionBinding from that private phase and the common outer step.
+     accepted_step is the OUTER accepted step; staged_arena_revision includes
+     first-exposure reaction/completion revisions. begin/end/dt bind transport;
+     dt is authoritative. phase must be full_time_position_and_proper_velocity.
+     The native owner certifies it; this port cannot infer or relabel a phase.
+  3. Use motion_mesh_sha256(mesh, native_options) and total_field_sha256(E,B).
+     Separately set kinetic_policy_sha256 = kinetic_policy_sha256(
+         declared_kinetic_policy(native_options)); a field mesh does not define it.
+     Supply actual material, species and common-clock SHA256 identities. The
+     C19/v2 joint port uses material_binding_sha256() for its explicit scenario.
+  4. Call prepare_canonical_motion(mesh, options, census, binding, {}, E, B).
+     Each iteration starts from the same post-first-exposure census. The return
+     is move-only. No accepted owner changes and no native field solve occurs.
+  5. Check receipt.binding() against the private outer stage and recompute
+     receipt.census_sha256() with canonical_census_sha256(current_census).
+     Admit receipt.endpoints() only through the native owner's typed operation.
+     Every native ID must occur exactly once; charge/mass/weight and each packet's
+     Count2 carriers/kinematics remain consistent. Preserve native vector order
+     by looking up IDs rather than replacing it with receipt order accidentally.
+  6. Record receipt.seal_sha256() and motion_record(receipt), update only private
+     endpoint x/u and native transport clock. Route current_A_m()/initial and
+     endpoint charge to the Maxwell owner. Stage second chemistry and both RNG
+     streams on these private endpoints. Root performs one common final commit.
+
+Supported scope
+  All resident charged AND neutral carriers; all position and proper-velocity
+  components; native Boris momentum, work-conjugate path displacement, compatible
+  current/charge deposition. Current has units A*m (edge work load). Paths use
+  field coordinates. Endpoints use canonical native coordinates. Translation is
+  (-width/2,-gap/2,0); there is no field/momentum rotation. Native prescribed B and
+  potential options are not sampled. No extra Hall drift or duplicated F0.
+  The present axial mesh is the sealed finite-foil component mesh; it is not a
+  claim that the root's exterior or axial convergence requirement is complete.
+  Empty census is allowed. A nonempty active-layer list, any wall hit, and any
+  native outer/short/feed-plane crossing fail before producing a receipt. No
+  silent frozen layer, carrier thinning, removal, minting or wall heat assumption.
+  Source-v3 population and surface handoffs need a later explicitly typed port.
+
+Fingerprint encoding and record seal
+  canonical_census_sha256 sorts ascending native ID. All integers are 8-byte
+  little-endian unsigned. A text is byte length then UTF-8 bytes. A double is its
+  IEEE binary64 uint64 bits. Encode text("canonical-motion-census-v1"), row count,
+  then each row's packet_id text, state text, ID, x[3], u[3], charge, mass, weight.
+  No rounded Count sum appears. Duplicate/zero IDs and empty packet/state IDs fail.
+  The record seal is SHA256(text("motion-receipt-record-v1") followed by
+  text(record_without_seal.dump())). Both texts use the length-prefix encoding
+  above. JSON is nlohmann's default ordered-key object compact dump, preserving
+  the sealed native vendor version. motion_record adds seal_sha256 afterward.
+  Current and charge array hashes encode text("motion-array-binary64-v1"), vector
+  size, then each binary64. Full arrays remain with the field owner; they are not
+  a second native current or particle inventory. Root checkpoint must bind them
+  to its field state. Native replay validates endpoints/counts/phase/clock and
+  all relevant receipt hashes; a hash alone is not semantic validation.
+
+Build/link
+  Compile native_arena_motion.cpp and kinetic_boundary.cpp ONCE each with C++20, -ffp-contract=off and
+  -fno-fast-math, include the native owner's chosen header first, link its actual
+  pic_boris implementation and libcrypto. Reused field headers live beside this
+  module at ../hall-finite-foil-em-20261029 (sealed 1f9cf7e). They transitively use
+  ../hall-coupled-transport-20261029/coupled_pic.hpp for shared math/JSON; its
+  legacy CoupledPic class is not constructed or invoked by this implementation.
+  The native v6.2 binding copy is evidence, not an additional arena to link with
+  the owner's extension. Never link two mfem_pic_arena.cpp implementations.
+
+Qualification boundary
+  motion-v2-002 checks the actual native Boris and v6.2 positive Count2 factory,
+  preserved weights/IDs/co-kinematics, neutral drift, translated current/charge/
+  work, unchanged inputs on rejection, source/boundary gates and variable-step
+  manufactured C/2-transport-C/2 order. Link traps are probed and then observe
+  zero calls to native solve_fields or advance during transport.
+  Actual two-sided parent SSA, private arena publication/rollback and full-time
+  native restart are the native/root owners' integration checks, still required.
+
+Root helper and explicit boundaries
+  native_joint_binding.hpp::prepare_native_joint takes the native owner's actual
+  PrivateTransportTrial, FullTimeStepBinding, mesh/Fields/accepted State, native
+  kinetic geometry, Thermal, C19 CurrentTrace, species/source seals and carrier
+  cap. It obtains the private census/revision/prefix, fills the Hall binding,
+  prepares the actual joint field/heat/motion and asks that same private owner
+  to prepare_total_field_motion with the actual v2 receipt. Returned
+  PreparedNativeJoint.native_motion is consumed by outer.accept_transport_trial.
+  Root owns both SSA exposures and common commit. preflight_native_joint checks
+  field/heat and its transient before-census; root separately preflights native
+  and both RNG streams. root_joint_prepare_example.hpp shows the actual calls.
+  Helper/example were syntax instantiated against current owner drafts, not
+  linked or claimed as full-time driver qualification. Exact first/second private
+  identities and genesis/RNG/transport-trial binding remain owner requirements.
+  Read KINETIC-BOUNDARY-CONTRACT.txt and kinetic_boundary.hpp. A wider field box
+  and additional axial air cells cannot move native xy/short/feed escape planes.
+  The policy is recorded explicitly and sealed independently. Neutral first-hit
+  proposals include actual flight, remaining duration and incident kinetic energy;
+  the ordinary motion receipt still refuses all hits before native admission.

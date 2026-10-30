@@ -1,0 +1,120 @@
+--- accepted-v2/cuda_batched_force.cpp
++++ candidate-v3/cuda_force_runtime.cpp
+@@ -1,4 +1,5 @@
+-#include "cuda_batched_force.hpp"
++#include "cuda_force_runtime.hpp"
++#include "runtime_guards.hpp"
+ #include <cuda.h>
+ #include <array>
+ #include <chrono>
+@@ -159,13 +160,13 @@
+     ~Resources(){close();}
+ };
+ enum Slot {SelfCells,NativeCells,Psi,Az0,Az1,Rate0,Rate1,Xs,Ys,Phi,Inputs,Outputs,Slots};
+-std::array<std::size_t,Slots> allocation_sizes(const HostSnapshot& s,std::size_t capacity) {
++std::array<std::size_t,Slots> allocation_sizes(const RuntimeSnapshot& s,std::size_t capacity) {
+     return {s.self_cells.size()*sizeof(gp::Cell),s.native_cells.size()*sizeof(gp::Cell),
+         s.psi.size()*8,s.az0.size()*8,s.az1.size()*8,s.rate0.size()*8,s.rate1.size()*8,s.xs.size()*8,s.ys.size()*8,
+         s.phi.size()*8,capacity*sizeof(gp::Inputs),capacity*sizeof(gp::Outputs)};
+ }
+ }
+-struct CudaBatchedForce::Impl {
++struct CudaForceRuntime::Impl {
+     CleanupReport cleanup;
+     Context context;
+     Resources resources;
+@@ -176,8 +177,7 @@
+     std::vector<GapParticle> pending_inputs;
+     bool pending=false,poisoned=false;
+     BatchTiming last;
+-    batch_compare::Comparison comparison;
+-    Impl(const std::filesystem::path& path,const HostSnapshot& s,std::size_t cap,BackendOptions options)
++    Impl(const std::filesystem::path& path,const RuntimeSnapshot& s,std::size_t cap,BackendOptions options)
+         :context(options,cleanup),resources(context,cleanup),static_parameters(s.parameters),capacity(cap),self_nodes(s.phi.size()),native_nodes(s.az0.size()),pending_inputs(cap) {
+         const auto sizes=allocation_sizes(s,capacity);
+         for(auto bytes:sizes)total_bytes+=bytes;
+@@ -194,18 +194,18 @@
+     void ready() const {io::require(!resources.closed,"Batched-force backend is closed");io::require(!poisoned,"Batched-force backend is poisoned; reconstruct it");io::require(std::this_thread::get_id()==thread,"Batched-force owner thread changed");context.current();}
+     void upload(Slot slot,const void* source,std::size_t bytes) {io::require(bytes==resources.device[slot].bytes,"Static snapshot size changed; reconstruct backend");cuda_ok(cuMemcpyHtoD(resources.device[slot].value,source,bytes),"cuMemcpyHtoD static snapshot");}
+ };
+-CudaBatchedForce::CudaBatchedForce(const std::filesystem::path& path,const HostSnapshot& s,std::size_t capacity,BackendOptions options) {
++CudaForceRuntime::CudaForceRuntime(const std::filesystem::path& path,const RuntimeSnapshot& s,std::size_t capacity,BackendOptions options) {
+     // Validate before the constructor above can initialize CUDA.
+-    s.validate(true);io::require(capacity>=s.particles.size() && capacity<=2000000,"Invalid persistent particle capacity");
++    s.validate();io::require(capacity>=1 && capacity<=2000000,"Invalid persistent particle capacity");
+     std::size_t total=0;for(auto n:allocation_sizes(s,capacity))total+=n;
+     io::require(total<=128*1024*1024,"Batched-force128MiB explicit allocation guard exceeded before CUDA initialization");
+     p_=std::make_unique<Impl>(path,s,capacity,options);set_snapshot(s);
+ }
+-CudaBatchedForce::~CudaBatchedForce()=default;
+-void CudaBatchedForce::set_snapshot(const HostSnapshot& s) {
++CudaForceRuntime::~CudaForceRuntime()=default;
++void CudaForceRuntime::set_snapshot(const RuntimeSnapshot& s) {
+     auto& b=*p_;b.ready();io::require(!b.pending,"Discard or commit pending batch before snapshot refresh");
+     try {
+-        s.validate(true);io::require(s.phi.size()==b.self_nodes && s.az0.size()==b.native_nodes,"Snapshot nodal counts changed");
++        s.validate();io::require(s.phi.size()==b.self_nodes && s.az0.size()==b.native_nodes,"Snapshot nodal counts changed");
+         b.resources.static_inflight=true;
+         b.upload(SelfCells,s.self_cells.data(),s.self_cells.size()*sizeof(gp::Cell));b.upload(NativeCells,s.native_cells.data(),s.native_cells.size()*sizeof(gp::Cell));
+         const std::array<std::pair<Slot,const std::vector<double>*>,7> fields={{{Psi,&s.psi},{Az0,&s.az0},{Az1,&s.az1},{Rate0,&s.rate0},{Rate1,&s.rate1},{Xs,&s.xs},{Ys,&s.ys}}};
+@@ -215,13 +215,13 @@
+         b.static_parameters=s.parameters;
+     }catch(...){b.poisoned=true;b.close();throw;}
+ }
+-std::span<const gp::Outputs> CudaBatchedForce::evaluate(std::span<const GapParticle> particles,
+-        std::span<const double> values,const Parameters& p,std::span<const gp::Outputs> reference) {
++std::span<const gp::Outputs> CudaForceRuntime::evaluate(std::span<const GapParticle> particles,
++        std::span<const double> values,const Parameters& p) {
+     const auto start=Clock::now();
+     auto& b=*p_;b.ready();io::require(!b.pending,"Discard or commit prior batch first");
+     try {
+         const auto n=particles.size();
+-        io::require(n>0 && n<=b.capacity && reference.size()==n && values.size()==b.self_nodes,"Batched-force shape/capacity mismatch");
++        io::require(n>0 && n<=b.capacity && values.size()==b.self_nodes,"Batched-force shape/capacity mismatch");
+         const auto& fixed=b.static_parameters;
+         io::require(p.magic==snapshot_magic && p.flags==1 && p.self_nx==fixed.self_nx && p.self_ny==fixed.self_ny &&
+             p.native_nx==fixed.native_nx && p.native_ny==fixed.native_ny && p.width==fixed.width && p.height==fixed.height &&
+@@ -229,12 +229,11 @@
+         io::require(std::isfinite(p.fraction) && p.fraction>=0 && p.fraction<=1 && std::isfinite(p.voltage) && std::isfinite(p.dt) && p.dt>0,"Invalid midpoint parameters");
+         auto* packed=static_cast<gp::Inputs*>(b.resources.inputs.value);
+         for(std::size_t i=0;i<n;++i) {
+-            const auto& q=particles[i];const auto& r=reference[i];
++            const auto& q=particles[i];
+             io::require(gp::finite(io::vec(q.position_m)) && gp::finite(io::vec(q.proper_velocity_m_s)) && std::isfinite(q.charge_C) &&
+                 std::isfinite(q.mass_kg) && q.mass_kg>0 && std::isfinite(q.weight) && q.weight>0 &&
+                 std::isfinite(q.charge_C*q.weight) && std::isfinite(q.charge_C/q.mass_kg) && gp::finite(gp::norm2(io::vec(q.proper_velocity_m_s))),"Nonfinite/invalid input particle");
+             io::require(q.position_m[0]>=0 && q.position_m[0]<=p.width && q.position_m[1]>=0 && q.position_m[1]<=p.height,"Particle outside supported domain");
+-            io::require(r.status==0 && gp::finite(r.E) && gp::finite(r.B) && gp::finite(r.u) && gp::finite(gp::norm2(r.u)),"Invalid independent CPU reference");
+             b.pending_inputs[i]=q;packed[i]={q.position_m[0],q.position_m[1],q.position_m[2],io::vec(q.proper_velocity_m_s),q.charge_C/q.mass_kg};
+         }
+         for(double v:values)io::require(std::isfinite(v),"Nonfinite recovered phi");
+@@ -260,22 +259,20 @@
+         cuda_ok(cuEventSynchronize(b.resources.events[3]),"final batch synchronization");b.resources.stream_inflight=false;const auto synchronized=Clock::now();
+         float stages[3];for(int i=0;i<3;++i)cuda_ok(cuEventElapsedTime(&stages[i],b.resources.events[i],b.resources.events[i+1]),"event elapsed");
+         const std::span<const gp::Outputs> result{static_cast<const gp::Outputs*>(b.resources.outputs.value),n};
+-        b.comparison=batch_compare::compare(reference,result,particles);
+-        io::require(b.comparison.failures==0,"GPU batch failed independent finite/componentwise/weighted CPU reference gates");
++        validate_runtime_outputs(result,particles);
+         const auto validated=Clock::now();b.last={elapsed(start,packed_at),stages[0],stages[1],stages[2],elapsed(start,synchronized),elapsed(synchronized,validated),elapsed(start,validated)};
+         b.pending_count=n;b.pending=true;return result;
+     }catch(...){b.pending=false;b.poisoned=true;b.close();throw;}
+ }
+-void CudaBatchedForce::commit_velocities(std::span<GapParticle> particles) {
++void CudaForceRuntime::commit_velocities(std::span<GapParticle> particles) {
+     auto& b=*p_;b.ready();io::require(b.pending && particles.size()==b.pending_count,"No validated batch to commit");
+     for(std::size_t i=0;i<particles.size();++i)io::require(std::memcmp(&particles[i],&b.pending_inputs[i],sizeof(GapParticle))==0,"Particle state changed before transactional commit");
+     const auto* result=static_cast<const gp::Outputs*>(b.resources.outputs.value);
+     for(std::size_t i=0;i<particles.size();++i)particles[i].proper_velocity_m_s=io::vec(result[i].u);
+     b.pending=false;
+ }
+-void CudaBatchedForce::discard(){p_->ready();p_->pending=false;}
+-CleanupReport CudaBatchedForce::close() noexcept{return p_->close();}
+-const BatchTiming& CudaBatchedForce::timing() const{return p_->last;}
+-const batch_compare::Comparison& CudaBatchedForce::comparison() const{return p_->comparison;}
+-std::size_t CudaBatchedForce::explicit_device_bytes() const{return p_->total_bytes;}
+-}
++void CudaForceRuntime::discard(){p_->ready();p_->pending=false;}
++CleanupReport CudaForceRuntime::close() noexcept{return p_->close();}
++const BatchTiming& CudaForceRuntime::timing() const{return p_->last;}
++std::size_t CudaForceRuntime::explicit_device_bytes() const{return p_->total_bytes;}
++}

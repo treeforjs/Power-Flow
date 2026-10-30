@@ -1,0 +1,455 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 57c1a43..195721e 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -187,6 +187,9 @@ if(RAIKOU_BUILD_TESTS)
+     add_executable(raikou_test_mfem_gap_pic tests/test_mfem_gap_pic.cpp)
+     target_link_libraries(raikou_test_mfem_gap_pic PRIVATE Raikou::mfem)
+     add_test(NAME raikou.mfem_gap_pic COMMAND raikou_test_mfem_gap_pic)
++    add_executable(raikou_test_mfem_q1_scalar_gather tests/test_mfem_q1_scalar_gather.cpp)
++    target_link_libraries(raikou_test_mfem_q1_scalar_gather PRIVATE Raikou::mfem)
++    add_test(NAME raikou.mfem_q1_scalar_gather COMMAND raikou_test_mfem_q1_scalar_gather)
+   endif()
+   if(RAIKOU_ENABLE_ALE)
+     foreach(test IN ITEMS rz_ale mfem_rz_mesh cohesive_mode_i spall_slab ale_session)
+diff --git a/examples/mfem_heating_history_pic.cpp b/examples/mfem_heating_history_pic.cpp
+index 6f7e312..df5927b 100644
+--- a/examples/mfem_heating_history_pic.cpp
++++ b/examples/mfem_heating_history_pic.cpp
+@@ -10,6 +10,7 @@ constexpr double eps=8.8541878188e-12;
+ struct Voltage {
+     std::vector<double> start,end,value;
+     int current=0;
++    double last_time=std::numeric_limits<double>::quiet_NaN();
+     explicit Voltage(const std::filesystem::path& path) {
+         std::ifstream in(path);std::string line;std::getline(in,line);
+         while(std::getline(in,line)){auto r=split(line);start.push_back(std::stod(r.at(0)));end.push_back(std::stod(r.at(1)));value.push_back(std::stod(r.at(2)));}
+@@ -17,9 +18,11 @@ struct Voltage {
+         for(std::size_t i=0;i<start.size();++i)if(!std::isfinite(start[i]) || !std::isfinite(end[i]) || !std::isfinite(value[i]) || end[i]<=start[i] || value[i]>=0 || value[i] < -1e6 || (i && std::abs(start[i]-end[i-1])>1e-21))throw std::runtime_error("Invalid pulsed voltage intervals");
+     }
+     double at(double t) {
++        if(t==last_time) return value[current];
+         if(t<start.front()-1e-20 || t>end.back()+1e-20)throw std::runtime_error("Voltage extrapolation prohibited");
+         const double lookup=t+32*std::numeric_limits<double>::epsilon()*std::max(std::abs(t),1e-12);
+         current=std::clamp(int(std::upper_bound(start.begin(),start.end(),lookup)-start.begin())-1,0,int(start.size())-1);
++        last_time=t;
+         return value[current];
+     }
+ };
+@@ -52,6 +55,7 @@ struct Fields {
+     std::vector<double> bounds;
+     std::unique_ptr<NativeField> lower,upper;
+     int current=-1;double fraction=0;
++    double last_time=std::numeric_limits<double>::quiet_NaN();
+     explicit Fields(const std::filesystem::path& path):directory(path) {
+         std::ifstream in(path/"em_field_snapshots.csv");std::string line;std::getline(in,line);
+         while(std::getline(in,line))times.push_back(std::stod(split(line).at(0)));
+@@ -66,6 +70,7 @@ struct Fields {
+         return value;
+     }
+     void set(double t) {
++        if(t==last_time) return;
+         if(t<times.front()-1e-20 || t>times.back()+1e-20)throw std::runtime_error("Field extrapolation prohibited");
+         const double lookup=t+32*std::numeric_limits<double>::epsilon()*std::max(std::abs(t),1e-12);
+         int k=std::clamp(int(std::upper_bound(times.begin(),times.end(),lookup)-times.begin())-1,0,int(times.size())-2);
+@@ -75,6 +80,7 @@ struct Fields {
+             if(bounds[k]<0)bounds[k]=maximum(*lower);if(bounds[k+1]<0)bounds[k+1]=maximum(*upper);
+         }
+         fraction=std::clamp((t-times[k])/(times[k+1]-times[k]),0.,1.);
++        last_time=t;
+     }
+     double bound() const {return std::max(bounds[current],bounds[current+1]);}
+     PicVector value(double x,double y,double t,bool magnetic) {
+diff --git a/examples/native_heating_fields.hpp b/examples/native_heating_fields.hpp
+index 059e8b6..715b66b 100644
+--- a/examples/native_heating_fields.hpp
++++ b/examples/native_heating_fields.hpp
+@@ -1,11 +1,13 @@
+ #pragma once
+ #include "raikou/mfem_gap_pic.h"
++#include "raikou/q1_scalar_gather.h"
+ #include <algorithm>
+ #include <filesystem>
+ #include <fstream>
+ #include <sstream>
+ #include <memory>
+ #include <cmath>
++#include <limits>
+ using namespace raikou::mfem_backend;
+ std::vector<std::string> split(std::string line) {
+     std::vector<std::string> out;std::istringstream in(line);std::string v;
+@@ -17,6 +19,10 @@ struct NativeField {
+     std::vector<double> xs,ys;
+     std::vector<int> elements;
+     std::unique_ptr<mfem::GridFunction> az,rate;
++    std::unique_ptr<Q1ScalarGather> az_gather,rate_gather;
++    double last_x=std::numeric_limits<double>::quiet_NaN(),last_y=last_x;
++    int last_element=-1;
++    mfem::IntegrationPoint last_point;
+     explicit NativeField(const std::filesystem::path& dir,double time):mesh((dir/"em_mesh.mesh").c_str(),1,1) {
+         std::ifstream axes(dir/"em_axes.csv");std::string line;std::getline(axes,line);
+         while(std::getline(axes,line)) {auto r=split(line);(r.at(0)=="x"?xs:ys).push_back(std::stod(r.at(2)));}
+@@ -27,6 +33,8 @@ struct NativeField {
+             if(error<best){best=error;a=r.at(1);b=r.at(2);}}
+         if(best>1e-17) throw std::runtime_error("Require an exact native snapshot at test start");
+         std::ifstream ia(dir/a),ir(dir/b);az=std::make_unique<mfem::GridFunction>(&mesh,ia);rate=std::make_unique<mfem::GridFunction>(&mesh,ir);
++        az_gather=std::make_unique<Q1ScalarGather>(*az);
++        rate_gather=std::make_unique<Q1ScalarGather>(*rate);
+         const int nx=static_cast<int>(xs.size())-1;elements.resize(nx*(ys.size()-1));
+         for(int e=0;e<mesh.GetNE();++e) {
+             mfem::Vector p(2);mesh.GetElementTransformation(e)->Transform(mfem::Geometries.GetCenter(mfem::Geometry::SQUARE),p);
+@@ -37,17 +45,21 @@ struct NativeField {
+         if(x<a.front() || x>a.back()) throw std::runtime_error("Particle left native field coverage");
+         return std::clamp(int(std::upper_bound(a.begin(),a.end(),x)-a.begin())-1,0,int(a.size())-2);
+     }
+-    PicVector magnetic(double px,double py) {
++    void locate(double px,double py) {
++        if(last_element>=0 && px==last_x && py==last_y) return;
+         // PIC box coordinates to original centered heating coordinates.
+         const double x=px-.0045,y=py-.0045;
+-        int i=bin(xs,x),j=bin(ys,y),e=elements.at(j*(xs.size()-1)+i);
+-        mfem::IntegrationPoint ip;ip.Set2((x-xs[i])/(xs[i+1]-xs[i]),(y-ys[j])/(ys[j+1]-ys[j]));
+-        auto* tr=mesh.GetElementTransformation(e);tr->SetIntPoint(&ip);mfem::Vector g(2);az->GetGradient(*tr,g);
++        const int i=bin(xs,x),j=bin(ys,y),e=elements.at(j*(xs.size()-1)+i);
++        last_point.Set2((x-xs[i])/(xs[i+1]-xs[i]),(y-ys[j])/(ys[j+1]-ys[j]));
++        last_x=px;last_y=py;last_element=e;
++    }
++    PicVector magnetic(double px,double py) {
++        locate(px,py);
++        const auto g=az_gather->gradient(last_element,last_point);
+         return {g[1],-g[0],0};
+     }
+     PicVector electric(double px,double py) {
+-        double x=px-.0045,y=py-.0045;int i=bin(xs,x),j=bin(ys,y),e=elements.at(j*(xs.size()-1)+i);
+-        mfem::IntegrationPoint ip;ip.Set2((x-xs[i])/(xs[i+1]-xs[i]),(y-ys[j])/(ys[j+1]-ys[j]));
+-        return {0,0,-rate->GetValue(e,ip)};
++        locate(px,py);
++        return {0,0,-rate_gather->value(last_element,last_point)};
+     }
+ };
+diff --git a/src/mfem_gap_pic.cpp b/src/mfem_gap_pic.cpp
+index 66de06a..fdbf091 100644
+--- a/src/mfem_gap_pic.cpp
++++ b/src/mfem_gap_pic.cpp
+@@ -1,4 +1,5 @@
+ #include "raikou/mfem_gap_pic.h"
++#include "raikou/q1_scalar_gather.h"
+ 
+ #include <algorithm>
+ #include <cmath>
+@@ -95,11 +96,13 @@ struct PicPoissonState {
+     mfem::BilinearForm form;
+     std::unique_ptr<mfem::SparseMatrix> full_matrix;
+     mfem::GridFunction xfield,yfield;
++    Q1ScalarGather potential_gather;
+ #ifdef MFEM_USE_MPI
+     std::unique_ptr<raikou_pic_parallel::LinearSystem> distributed;
+     const mfem::SparseMatrix* address=nullptr;
+ #endif
+-    explicit PicPoissonState(mfem::FiniteElementSpace& space):epsilon(epsilon0),form(&space),xfield(&space),yfield(&space) {
++    explicit PicPoissonState(mfem::FiniteElementSpace& space,const mfem::GridFunction& potential)
++        :epsilon(epsilon0),form(&space),xfield(&space),yfield(&space),potential_gather(potential) {
+         form.AddDomainIntegrator(new mfem::DiffusionIntegrator(epsilon));
+         form.Assemble();form.Finalize();full_matrix=std::make_unique<mfem::SparseMatrix>(form.SpMat());
+         mfem::FunctionCoefficient xcoord([](const mfem::Vector& x){return x[0];});
+@@ -304,7 +307,7 @@ bool GapPic::inside_conductor(double x,double y) const {
+ }
+ 
+ void GapPic::solve_fields() {
+-    if(!poisson_)poisson_=std::make_unique<PicPoissonState>(space_);
++    if(!poisson_)poisson_=std::make_unique<PicPoissonState>(space_,potential_);
+     auto& form=poisson_->form;
+     mfem::LinearForm rhs(&space_); rhs=0;
+     mfem::Array<int> dofs;
+@@ -374,9 +377,18 @@ void GapPic::solve_fields() {
+     solver.Mult(b,x);
+     if (!solver.GetConverged()) throw std::runtime_error("Gap PIC Poisson solve failed");
+     }
+-    mfem::Vector residual(b.Size()); matrix->Mult(x,residual); residual-=b;
++    double residual_norm=0;
++#ifdef MFEM_USE_MPI
++    if(options_.distributed_fields) residual_norm=poisson_->distributed->last_residual_norm;
++    else
++#endif
++    {
++        mfem::Vector residual(b.Size()); matrix->Mult(x,residual); residual-=b;
++        residual_norm=residual.Norml2();
++    }
+     form.RecoverFEMSolution(x,rhs,trial);
+-    mfem::Vector reaction(trial.Size()); full_matrix.Mult(trial,reaction); reaction-=full_rhs;
++    mfem::Vector action(trial.Size()); full_matrix.Mult(trial,action);
++    mfem::Vector reaction(action); reaction-=full_rhs;
+     // Find electrode nodal charges through Q1 nodal coordinate fields.
+     double lower=0,upper=0;
+     for (int i=0;i<essential.Size();++i) {
+@@ -384,13 +396,12 @@ void GapPic::solve_fields() {
+         if (options_.finite_foils ? owner[d]==0 : yfield[d]<.5*options_.gap_m) lower+=reaction[d]*options_.depth_m;
+         else upper+=reaction[d]*options_.depth_m;
+     }
+-    mfem::Vector action(trial.Size()); full_matrix.Mult(trial,action);
+     ledger_.particle_charge_C=charge;
+     ledger_.deposited_charge_C=deposited;
+     ledger_.lower_field_charge_C=lower; ledger_.upper_field_charge_C=upper;
+     ledger_.gauss_defect_C=charge+lower+upper;
+     ledger_.field_energy_J=.5*(trial*action)*options_.depth_m;
+-    ledger_.poisson_residual_C_per_m=residual.Norml2();
++    ledger_.poisson_residual_C_per_m=residual_norm;
+     potential_=trial;
+     fields_current_=true;
+ }
+@@ -399,6 +410,10 @@ PicVector GapPic::electric_field(double x, double y) {
+     if (!fields_current_) throw std::logic_error("Solve gap fields before gathering");
+     mfem::IntegrationPoint point;
+     const int element=locate(x,y,point);
++    if(poisson_) {
++        const auto gradient=poisson_->potential_gather.gradient(element,point);
++        return {-gradient[0],-gradient[1],0};
++    }
+     auto* transformation=mesh_.GetElementTransformation(element);
+     transformation->SetIntPoint(&point);
+     mfem::Vector gradient(2); potential_.GetGradient(*transformation,gradient);
+@@ -440,6 +455,7 @@ void GapPic::drift(double dt) {
+     };
+     std::vector<GapParticle> remaining;
+     remaining.reserve(particles_.size());
++    std::vector<double> times;
+     for (auto p : particles_) {
+         const double g=gamma(p.proper_velocity_m_s);
+         const double vx=p.proper_velocity_m_s[0]/g,vy=p.proper_velocity_m_s[1]/g;
+@@ -485,7 +501,9 @@ void GapPic::drift(double dt) {
+             if(vz<0)axial((options_.short_z_m-p.position_m[2])/vz,true);
+             if(vz>0)axial((options_.feed_z_m-p.position_m[2])/vz,false);
+         }
+-        std::vector<double> times{0,flight};
++        times.clear();
++        times.push_back(0);
++        times.push_back(flight);
+         const auto split=[&](double pos,double velocity,double spacing) {
+             if (velocity==0) return;
+             const double finish=pos+velocity*flight;
+diff --git a/src/mfem_pic_distributed.hpp b/src/mfem_pic_distributed.hpp
+index cf7d044..78559cc 100644
+--- a/src/mfem_pic_distributed.hpp
++++ b/src/mfem_pic_distributed.hpp
+@@ -110,7 +110,7 @@ inline void Record()
+ struct LinearSystem
+ {
+    SparseMatrix &matrix;
+-   int id,iterations=0;double residual=0;
++   int id,iterations=0;double residual=0,last_residual_norm=0;
+    std::unique_ptr<distributed_linear::System> distributed;
+    explicit LinearSystem(SparseMatrix &a):matrix(a),id(distributed_linear::next_id++)
+    {distributed_linear::Send(distributed_linear::Create,id);distributed=std::make_unique<distributed_linear::System>(&a);}
+@@ -119,7 +119,8 @@ struct LinearSystem
+    {
+       distributed_linear::Send(distributed_linear::Solve,id);distributed->Apply(&rhs,&answer);
+       Vector error(rhs.Size());matrix.Mult(answer,error);error-=rhs;
+-      const double norm=rhs.Norml2(),relative=norm>0?error.Norml2()/norm:error.Norml2();
++      last_residual_norm=error.Norml2();
++      const double norm=rhs.Norml2(),relative=norm>0?last_residual_norm/norm:last_residual_norm;
+       iterations=std::max(iterations,distributed->iterations);residual=std::max(residual,relative);
+       MFEM_VERIFY(std::isfinite(residual),"Nonfinite solver residual");
+    }
+diff --git a/include/raikou/q1_scalar_gather.h b/include/raikou/q1_scalar_gather.h
+new file mode 100644
+index 0000000..d5caa74
+--- /dev/null
++++ b/include/raikou/q1_scalar_gather.h
+@@ -0,0 +1,92 @@
++#pragma once
++
++#include <mfem.hpp>
++#include <array>
++#include <vector>
++
++namespace raikou::mfem_backend {
++
++// Serial scalar Q1 gather with cached connectivity and stack scratch. Keep
++// MFEM's basis evaluation and physical Jacobian so evaluation order and mesh
++// geometry are unchanged. Other spaces, transformed DOFs, and updated spaces
++// use the ordinary GridFunction operations. Connectivity must stay unchanged
++// while cached: call invalidate() before unversioned DOF renumbering (for
++// example, FiniteElementSpace::ReorderElementToDofTable()).
++class Q1ScalarGather {
++public:
++    explicit Q1ScalarGather(const mfem::GridFunction& field)
++        : field_(field), space_(field.FESpace()),
++          mesh_sequence_(space_->GetMesh()->GetSequence()),
++          space_sequence_(space_->GetSequence()) {
++        const auto* mesh=space_->GetMesh();
++        if(space_->GetVDim()!=1 || mesh->Dimension()!=2 || mesh->SpaceDimension()!=2) return;
++        std::vector<std::array<int,4>> connectivity(mesh->GetNE());
++        mfem::Array<int> dofs;
++        mfem::DofTransformation transform;
++        for(int e=0;e<mesh->GetNE();++e) {
++            const auto* fe=space_->GetFE(e);
++            if(e==0) element_=fe;
++            else if(fe!=element_) return;
++            if(!dynamic_cast<const mfem::H1_QuadrilateralElement*>(fe) ||
++               fe->GetOrder()!=1 || fe->GetDof()!=4 ||
++               fe->GetMapType()!=mfem::FiniteElement::VALUE) return;
++            space_->GetElementDofs(e,dofs,transform);
++            if(dofs.Size()!=4 || !transform.IsIdentity()) return;
++            for(int j=0;j<4;++j) {
++                if(dofs[j]<0 || dofs[j]>=field_.Size()) return;
++                connectivity[e][j]=dofs[j];
++            }
++        }
++        dofs_=std::move(connectivity);
++    }
++
++    // Permanently fall back to MFEM. Construct a new gather to cache again.
++    void invalidate() { dofs_.clear(); }
++
++    bool available() const {
++        return !dofs_.empty() && field_.FESpace()==space_ &&
++            mesh_sequence_==space_->GetMesh()->GetSequence() &&
++            space_sequence_==space_->GetSequence();
++    }
++
++    double value(int element,const mfem::IntegrationPoint& point) const {
++        if(!available()) return field_.GetValue(element,point);
++        double shape_data[4],local_data[4];
++        mfem::Vector shape(shape_data,4),local(local_data,4);
++        load(element,local_data);
++        element_->CalcShape(point,shape);
++        return shape*local;
++    }
++
++    std::array<double,2> gradient(int element,const mfem::IntegrationPoint& point) const {
++        auto* transformation=field_.FESpace()->GetMesh()->GetElementTransformation(element);
++        transformation->SetIntPoint(&point);
++        if(!available()) {
++            mfem::Vector gradient;
++            field_.GetGradient(*transformation,gradient);
++            return {gradient[0],gradient[1]};
++        }
++        std::array<double,2> result{};
++        mfem::Vector gradient(result.data(),2);
++        double derivative_data[8],local_data[4],reference_data[2];
++        mfem::DenseMatrix derivatives(derivative_data,4,2);
++        mfem::Vector local(local_data,4),reference(reference_data,2);
++        load(element,local_data);
++        element_->CalcDShape(point,derivatives);
++        derivatives.MultTranspose(local,reference);
++        transformation->InverseJacobian().MultTranspose(reference,gradient);
++        return result;
++    }
++
++private:
++    void load(int element,double* local) const {
++        const double* values=field_.HostRead();
++        for(int j=0;j<4;++j) local[j]=values[dofs_[element][j]];
++    }
++    const mfem::GridFunction& field_;
++    const mfem::FiniteElementSpace* space_;
++    const mfem::FiniteElement* element_=nullptr;
++    long mesh_sequence_,space_sequence_;
++    std::vector<std::array<int,4>> dofs_;
++};
++} // namespace raikou::mfem_backend
+diff --git a/tests/test_mfem_q1_scalar_gather.cpp b/tests/test_mfem_q1_scalar_gather.cpp
+new file mode 100644
+index 0000000..2a098e5
+--- /dev/null
++++ b/tests/test_mfem_q1_scalar_gather.cpp
+@@ -0,0 +1,99 @@
++#include "raikou/q1_scalar_gather.h"
++#include <cmath>
++#include <cstring>
++#include <iostream>
++#include <stdexcept>
++
++using raikou::mfem_backend::Q1ScalarGather;
++namespace {
++void check(bool pass,const char* message) {
++    if(!pass) throw std::runtime_error(message);
++}
++void identical(double a,double b) {
++    check(std::memcmp(&a,&b,sizeof(a))==0,"Q1 gather changed the MFEM result bits");
++}
++void dof_renumbering_invalidation() {
++    auto mesh=mfem::Mesh::MakeCartesian2D(3,2,mfem::Element::QUADRILATERAL,true,2.,3.,false);
++    mfem::H1_FECollection collection(1,2);
++    mfem::FiniteElementSpace space(&mesh,&collection);
++    mfem::GridFunction field(&space);
++    for(int i=0;i<field.Size();++i) field[i]=i+1.;
++    Q1ScalarGather gather(field);
++    check(gather.available(),"Q1 gather initially cached");
++    const long mesh_sequence=mesh.GetSequence(),space_sequence=space.GetSequence();
++    // MFEM does not advance either sequence when it renumbers element DOFs.
++    gather.invalidate();
++    space.ReorderElementToDofTable();
++    check(mesh.GetSequence()==mesh_sequence && space.GetSequence()==space_sequence,
++          "DOF renumbering regression must exercise unchanged sequence counters");
++    check(!gather.available(),"explicit invalidation rejects renumbered connectivity");
++    gather.invalidate(); // Idempotent, including an already-disabled cache.
++    Q1ScalarGather rebuilt(field);
++    check(rebuilt.available(),"a new gather caches the renumbered connectivity");
++    for(int e=0;e<mesh.GetNE();++e) {
++        for(double x:{0.,.23,1.}) for(double y:{0.,.61,1.}) {
++            mfem::IntegrationPoint point;point.Set2(x,y);
++            const double value=field.GetValue(e,point);
++            identical(gather.value(e,point),value);
++            identical(rebuilt.value(e,point),value);
++            auto* transformation=mesh.GetElementTransformation(e);
++            transformation->SetIntPoint(&point);
++            mfem::Vector reference(2);field.GetGradient(*transformation,reference);
++            const auto fallback=gather.gradient(e,point),cached=rebuilt.gradient(e,point);
++            for(int i=0;i<2;++i) {
++                identical(fallback[i],reference[i]);identical(cached[i],reference[i]);
++            }
++        }
++    }
++}
++void compare(mfem::Mesh& mesh,int order,bool supported) {
++    mfem::H1_FECollection collection(order,2);
++    mfem::FiniteElementSpace space(&mesh,&collection);
++    mfem::GridFunction field(&space);
++    for(int i=0;i<field.Size();++i) field[i]=std::sin(17.*i)+i*.13;
++    Q1ScalarGather gather(field);
++    check(gather.available()==supported,"Q1 gather structural guard");
++    for(int e=0;e<mesh.GetNE();++e) {
++        for(double x:{0.,.001,.13,.5,.999,1.}) for(double y:{0.,.001,.37,.5,.999,1.}) {
++            mfem::IntegrationPoint point;point.Set2(x,y);
++            identical(gather.value(e,point),field.GetValue(e,point));
++            auto* transformation=mesh.GetElementTransformation(e);
++            transformation->SetIntPoint(&point);
++            mfem::Vector reference(2);field.GetGradient(*transformation,reference);
++            const auto actual=gather.gradient(e,point);
++            identical(actual[0],reference[0]);identical(actual[1],reference[1]);
++        }
++    }
++    // Connectivity becomes stale after a mesh/space update, so use MFEM again.
++    mesh.UniformRefinement();space.Update();field.Update();field=3.;
++    check(!gather.available(),"Q1 gather rejects stale connectivity");
++    mfem::IntegrationPoint point;point.Set2(.23,.61);
++    identical(gather.value(0,point),field.GetValue(0,point));
++    auto* transformation=mesh.GetElementTransformation(0);
++    transformation->SetIntPoint(&point);
++    mfem::Vector reference(2);field.GetGradient(*transformation,reference);
++    const auto actual=gather.gradient(0,point);
++    identical(actual[0],reference[0]);identical(actual[1],reference[1]);
++}
++}
++int main() {
++    try {
++        dof_renumbering_invalidation();
++        auto rectangles=mfem::Mesh::MakeCartesian2D(7,9,mfem::Element::QUADRILATERAL,true,.009,.013,false);
++        // Nonuniform rectangle spacing, with coordinates far from the origin.
++        for(int v=0;v<rectangles.GetNV();++v) {
++            auto* p=rectangles.GetVertex(v);p[0]=2.+p[0]*p[0]*100.;p[1]=-3.+p[1]*p[1]*80.;
++        }
++        compare(rectangles,1,true);
++        auto distorted=mfem::Mesh::MakeCartesian2D(3,4,mfem::Element::QUADRILATERAL,true,.009,.009,false);
++        for(int v=0;v<distorted.GetNV();++v) {
++            auto* p=distorted.GetVertex(v);p[0]+=p[1]*.3;p[1]+=p[0]*p[0];
++        }
++        compare(distorted,1,true);
++        auto quadratics=mfem::Mesh::MakeCartesian2D(2,3,mfem::Element::QUADRILATERAL,true,.009,.009,false);
++        compare(quadratics,2,false);
++        auto triangles=mfem::Mesh::MakeCartesian2D(2,3,mfem::Element::TRIANGLE,true,.009,.009,false);
++        compare(triangles,1,false);
++        std::cout<<"Q1 scalar gathers, explicit DOF invalidation and fallbacks match MFEM bit for bit\n";
++    } catch(const std::exception& error) {std::cerr<<error.what()<<'\n';return 1;}
++}

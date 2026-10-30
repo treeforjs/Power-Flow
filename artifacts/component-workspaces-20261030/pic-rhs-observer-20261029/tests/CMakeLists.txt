@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.24)
+project(ObserverNativeContract LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+find_package(MFEM 4.10 CONFIG REQUIRED)
+add_executable(native_form_contract native_form_contract.cpp)
+target_compile_options(native_form_contract PRIVATE -UNDEBUG)
+target_link_libraries(native_form_contract PRIVATE mfem)

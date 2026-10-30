@@ -1,0 +1,43 @@
+--- benchmark/CMakeLists.txt
++++ deployed/CMakeLists.txt
+@@ -7,8 +7,8 @@
+ target_include_directories(pic PUBLIC include src "${gpu}/cuda_runtime/include" "${gpu}/cuda_nvcc/include" "${gpu}/cu12/include")
+ target_link_libraries(pic PUBLIC mfem "${gpu}/cu12/lib/libcudss.so.0" "${gpu}/cuda_runtime/lib/libcudart.so.12")
+ set(CMAKE_BUILD_RPATH "${gpu}/cu12/lib;${gpu}/cublas/lib;${gpu}/cuda_runtime/lib")
+-add_executable(checkpoint_benchmark examples/mfem_heating_history_pic.cpp)
+-target_link_libraries(checkpoint_benchmark PRIVATE pic)
++add_executable(heating_history_pic_gpu examples/mfem_heating_history_pic.cpp)
++target_link_libraries(heating_history_pic_gpu PRIVATE pic)
+ add_executable(pic_foundation_tests tests/test_mfem_gap_pic.cpp)
+ target_link_libraries(pic_foundation_tests PRIVATE pic)
+ 
+--- benchmark/src/mfem_pic_distributed.hpp
++++ deployed/src/mfem_pic_distributed.hpp
+@@ -116,6 +116,7 @@
+    explicit LinearSystem(SparseMatrix &a):matrix(a),id(distributed_linear::next_id++)
+    {
+  const char* backend=std::getenv("RAIKOU_PIC_FIELD_BACKEND");
++ MFEM_VERIFY(backend && std::string(backend)=="cudss","GPU deployment requires the cuDSS backend");
+  if(backend && std::string(backend)=="cudss") {
+   MFEM_VERIFY(Mpi::WorldSize()==1,"CUDA benchmark requires exactly one CPU rank");
+   cuda=std::make_unique<CudssPoisson>(a);++distributed_linear::systems;
+--- benchmark/examples/mfem_heating_history_pic.cpp
++++ deployed/examples/mfem_heating_history_pic.cpp
+@@ -135,7 +135,7 @@
+             auto E=unit_bias.electric_field(x,y);for(int k=0;k<2;++k)E[k]*=V*(2*g-1);
+             E[2]=-2*V/o.depth_m*(psi(x,y)-.5);return E;
+         });
+-        std::ofstream scope(out/"scope.json");scope<<std::setprecision(17)<<"{\"status\":\"isolated_checkpoint_benchmark\",\"physical_prediction\":false,\"converged\":false,\"start_time_s\":"<<start<<",\"requested_end_time_s\":"<<end<<",\"nx\":360,\"ny\":360,\"cell_size_m\":0.000025,\"observation_plane_z_m\":0,\"target_height_m\":0.025,\"short_z_m\":-0.0125,\"feed_z_m\":0.0125,\"short_scope\":\"out-of-plane5x5mm conducting short absorbs particles; feed and exterior escapes recorded; full3D field fringing not resolved\",\"depth_m\":0.025,\"finite_axial_extent\":true,\"density_sampling_depth_m\":0.001,\"space_charge_model\":\"height-averaged2D Poisson with3D particle transport and imposed linear axial voltage profile\",\"mpi_ranks\":1,\"lower_potential_V\":0,\"voltage_model\":\"midpoint pulse half of220kV feed pulse; ideal linear axial drop to0atshort; symmetric scalar longitudinal gradient plus native inductive Ez\",\"initial_upper_potential_V\":"<<o.upper_potential_V<<",\"initial_electrons\":\"empty at first supported heating timestamp; prior electron population unknown\",\"thermal_source\":\"295 high resolution upper boundary states; mirrored lower reconstruction verified on small case\",\"fields\":\"linear temporal interpolation of coarse regenerated native Az curl and inductive Ez; conditional AK voltage\",\"source_law\":\"patch Richardson phi4.3eV ideal A, no Schottky or tunneling\",\"source_reservoir\":\"sub-electron face supplies accumulated before emission; less than one physical electron per face/electrode can be delayed\",\"step_rule\":\"gyroangle<=0.05, dt<=10fs with particles, plasma-frequency and particle-displacement limits; empty vacuum<=1ps\",\"limitations\":\"constant-property heating beyond material validity; no phase change, collisions, gas feedback or sheath/grid convergence\",\"density_units\":\"cm^-3\",\"checkpoint_format\":\"same frozen executable ABI only; input SHA checked by launcher\",\"parallelism\":\"root particles/assembly/output; one CPU rank; optional CUDA cuDSS field solve\"}\n";scope.close();
++        std::ofstream scope(out/"scope.json");scope<<std::setprecision(17)<<"{\"status\":\"continuous_heating_history_pic_gpu_fields\",\"physical_prediction\":false,\"converged\":false,\"start_time_s\":"<<start<<",\"requested_end_time_s\":"<<end<<",\"nx\":360,\"ny\":360,\"cell_size_m\":0.000025,\"observation_plane_z_m\":0,\"target_height_m\":0.025,\"short_z_m\":-0.0125,\"feed_z_m\":0.0125,\"short_scope\":\"out-of-plane5x5mm conducting short absorbs particles; feed and exterior escapes recorded; full3D field fringing not resolved\",\"depth_m\":0.025,\"finite_axial_extent\":true,\"density_sampling_depth_m\":0.001,\"space_charge_model\":\"height-averaged2D Poisson with3D particle transport and imposed linear axial voltage profile\",\"mpi_ranks\":1,\"lower_potential_V\":0,\"voltage_model\":\"midpoint pulse half of220kV feed pulse; ideal linear axial drop to0atshort; symmetric scalar longitudinal gradient plus native inductive Ez\",\"initial_upper_potential_V\":"<<o.upper_potential_V<<",\"initial_electrons\":\"empty at first supported heating timestamp; prior electron population unknown\",\"thermal_source\":\"295 high resolution upper boundary states; mirrored lower reconstruction verified on small case\",\"fields\":\"linear temporal interpolation of coarse regenerated native Az curl and inductive Ez; conditional AK voltage\",\"source_law\":\"patch Richardson phi4.3eV ideal A, no Schottky or tunneling\",\"source_reservoir\":\"sub-electron face supplies accumulated before emission; less than one physical electron per face/electrode can be delayed\",\"step_rule\":\"gyroangle<=0.05, dt<=10fs with particles, plasma-frequency and particle-displacement limits; empty vacuum<=1ps\",\"limitations\":\"constant-property heating beyond material validity; no phase change, collisions, gas feedback or sheath/grid convergence\",\"density_units\":\"cm^-3\",\"checkpoint_format\":\"same frozen executable ABI only; input SHA checked by launcher\",\"parallelism\":\"root particles/assembly/output; one CPU rank; optional CUDA cuDSS field solve\"}\n";scope.close();
+         std::ofstream history(out/"history.csv",resume?std::ios::app:std::ios::out);history<<std::setprecision(17);if(!resume)history<<"time_s,step,macro_particles,gauss_defect_C,particle_charge_defect_C,nodal_continuity_defect_C,field_energy_J,kinetic_energy_J,source_reservoir_electrons,short_absorbed_charge_C,short_absorbed_energy_J,axial_escaped_charge_C\n";
+         auto wall=std::chrono::steady_clock::now(),saved=wall,reported=wall;
+         const auto clock=[]{return std::chrono::steady_clock::now();};
+@@ -150,7 +150,7 @@
+             auto d=pic.diagnostics();double pending=0;
+             for(int f=0;f<4;++f)pending+=2*std::accumulate(reservoir[f].integral.begin(),reservoir[f].integral.end(),0.)*(f<2?.005:.0002)/thermal.sizes[f]*o.depth_m/pic_e;
+             history<<start+d.time_s<<','<<step<<','<<pic.particles().size()<<','<<d.gauss_defect_C<<','<<d.particle_charge_defect_C<<','<<d.maximum_nodal_continuity_defect_C<<','<<d.field_energy_J<<','<<d.particle_kinetic_energy_J<<','<<pending<<','<<d.short_absorbed_charge_C<<','<<d.short_absorbed_energy_J<<','<<d.axial_escaped_charge_C<<'\n';history.flush();
+-            std::ofstream p(out/"progress.json.tmp");p<<std::setprecision(17)<<"{\"phase\":\""<<(done?"completed":"running")<<"\",\"full_history_run\":false,\"checkpoint_benchmark\":true,\"accepted_time_s\":"<<start+d.time_s<<",\"start_time_s\":"<<start<<",\"requested_end_time_s\":"<<end<<",\"steps\":"<<step<<",\"macro_particles\":"<<pic.particles().size()<<",\"mpi_ranks\":1,\"upper_potential_V\":"<<pic.options().upper_potential_V<<",\"wall_time_since_restart_s\":"<<std::chrono::duration<double>(clock()-wall).count()<<",\"source_reservoir_electrons\":"<<pending<<"}\n";p.close();std::filesystem::rename(out/"progress.json.tmp",out/"progress.json");
++            std::ofstream p(out/"progress.json.tmp");p<<std::setprecision(17)<<"{\"phase\":\""<<(done?"completed":"running")<<"\",\"full_history_run\":"<<(end>=60e-9-1e-20?"true":"false")<<",\"checkpoint_benchmark\":"<<(end>=60e-9-1e-20?"false":"true")<<",\"accepted_time_s\":"<<start+d.time_s<<",\"start_time_s\":"<<start<<",\"requested_end_time_s\":"<<end<<",\"steps\":"<<step<<",\"macro_particles\":"<<pic.particles().size()<<",\"mpi_ranks\":1,\"upper_potential_V\":"<<pic.options().upper_potential_V<<",\"wall_time_since_restart_s\":"<<std::chrono::duration<double>(clock()-wall).count()<<",\"source_reservoir_electrons\":"<<pending<<"}\n";p.close();std::filesystem::rename(out/"progress.json.tmp",out/"progress.json");
+             std::cout<<std::setprecision(12)<<"Accepted heating clock "<<(start+d.time_s)*1e9<<" ns / "<<end*1e9<<" ns; steps "<<step<<" particles "<<pic.particles().size()<<'\n'<<std::flush;reported=clock();
+         };
+         if(!resume){snapshot(pic,out,0,start);save();}progress(false);

@@ -1,0 +1,149 @@
+--- a/examples/mfem_heating_history_pic.cpp
++++ b/examples/mfem_heating_history_pic.cpp
+@@ -1,4 +1,7 @@
+ #include "native_heating_fields.hpp"
++#ifdef PIC_EVOLVING_CANDIDATE
++#include "evolving_force.hpp"
++#endif
+ #include <array>
+ #include <chrono>
+ #include <iostream>
+@@ -103,11 +106,17 @@
+ }
+ }
+ int main(int argc,char** argv) {
++#ifdef PIC_EVOLVING_CANDIDATE
++    try{pic_evolving::candidate_environment();}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 78;}
++#endif
+     mfem::Mpi::Init(argc,argv);mfem::Hypre::Init();
+     try {
+         if(argc!=6)throw std::invalid_argument("Usage: heating-history-pic FIELD_DIR THERMAL_BINARY OUTPUT END_NS VOLTAGE_INTERVAL_CSV");
+         if(mfem::Mpi::WorldRank()!=0){pic_parallel_workers();pic_parallel_record("");return 0;}
+         Thermal thermal(argv[2]);Fields fields(argv[1]);Voltage voltage(argv[5]);const std::filesystem::path out(argv[3]);
++#ifdef PIC_EVOLVING_CANDIDATE
++        pic_evolving::validate_output(out);
++#endif
+         const double start=thermal.times.front(),end=std::stod(argv[4])*1e-9;
+         if(!std::isfinite(end) || end<=start || end>thermal.times.back()+1e-20 || start<fields.times.front()-1e-20 || end>fields.times.back()+1e-20)throw std::runtime_error("Full run outside supported input clocks");
+         const bool resume=std::filesystem::exists(out/"restart.meta");
+@@ -122,8 +131,18 @@
+             std::ifstream meta(out/"restart.meta");meta>>checkpoint>>step>>next_frame;
+             for(auto& pool:reservoir){meta>>pool.span;for(auto& v:pool.integral)meta>>v;for(auto& v:pool.weighted_temperature)meta>>v;}
+             if(!meta)throw std::runtime_error("Invalid reservoir restart");double elapsed=0,stored_voltage=0;meta>>elapsed>>stored_voltage;if(!meta)throw std::runtime_error("Missing checkpoint clock");
++            #ifdef PIC_EVOLVING_CANDIDATE
++            snapshot_io::require(checkpoint=="checkpoint_437411.bin" && !std::filesystem::is_symlink(out/checkpoint),"Exact private late-seed checkpoint required");
++            pic_evolving::bound_restart(start,elapsed,end,step);
++#endif
+             pic.set_potentials(0,stored_voltage);pic.load_checkpoint((out/checkpoint).string());
+-        }else pic.solve_fields();
++        }else {
++#ifdef PIC_EVOLVING_CANDIDATE
++            throw std::runtime_error("Deployment hard disabled: one-ps candidate requires the fixed saved-state restart");
++#else
++            pic.solve_fields();
++#endif
++        }
+         // Midplane of a25mm line: feed at+12.5mm, ideal short at-12.5mm.
+         // Local gap bias is half the feed bias. Symmetric conductor potentials
+         // give Ez_scalar=-V_feed/H*(psi_upper-.5) at the observation plane.
+@@ -141,6 +160,18 @@
+             auto E=unit_bias.electric_field(x,y);for(int k=0;k<2;++k)E[k]*=V*(2*g-1);
+             E[2]=-2*V/o.depth_m*(psi(x,y)-.5);return E;
+         });
++#ifdef PIC_EVOLVING_CANDIDATE
++        const auto provider=[&](double relative_midpoint) {
++            const double absolute=start+relative_midpoint;
++            fields.set(absolute);const double V=voltage.at(absolute);
++            snapshot_io::require(fields.last_time==absolute && voltage.last_time==absolute && fields.lower && fields.upper && fields.current>=0,
++                                 "Typed native provider clock differs from original selected midpoint");
++            return pic_evolving::NativeSelection{&unit_bias.potential(),fields.lower->az.get(),fields.upper->az.get(),fields.lower->rate.get(),fields.upper->rate.get(),
++                &fields.lower->elements,&fields.lower->xs,&fields.lower->ys,1,1,static_cast<std::uint64_t>(fields.current),static_cast<std::uint64_t>(fields.current+1),
++                start,absolute,fields.times.at(fields.current),fields.times.at(fields.current+1),fields.fraction,V};
++        };
++        pic_evolving::configure(pic,pic_evolving::requested_mode(),"/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/build/gather_push.ptx",out,provider);
++#endif
+         std::ofstream scope(out/"scope.json");scope<<std::setprecision(17)<<"{\"status\":\"continuous_heating_history_pic_gpu_fields\",\"physical_prediction\":false,\"converged\":false,\"start_time_s\":"<<start<<",\"requested_end_time_s\":"<<end<<",\"nx\":360,\"ny\":360,\"cell_size_m\":0.000025,\"observation_plane_z_m\":0,\"target_height_m\":0.025,\"short_z_m\":-0.0125,\"feed_z_m\":0.0125,\"short_scope\":\"out-of-plane5x5mm conducting short absorbs particles; feed and exterior escapes recorded; full3D field fringing not resolved\",\"depth_m\":0.025,\"finite_axial_extent\":true,\"density_sampling_depth_m\":0.001,\"space_charge_model\":\"height-averaged2D Poisson with3D particle transport and imposed linear axial voltage profile\",\"mpi_ranks\":1,\"lower_potential_V\":0,\"voltage_model\":\"midpoint pulse half of220kV feed pulse; ideal linear axial drop to0atshort; symmetric scalar longitudinal gradient plus native inductive Ez\",\"initial_upper_potential_V\":"<<o.upper_potential_V<<",\"initial_electrons\":\"empty at first supported heating timestamp; prior electron population unknown\",\"thermal_source\":\"295 high resolution upper boundary states; mirrored lower reconstruction verified on small case\",\"fields\":\"linear temporal interpolation of coarse regenerated native Az curl and inductive Ez; conditional AK voltage\",\"source_law\":\"patch Richardson phi4.3eV ideal A, no Schottky or tunneling\",\"source_reservoir\":\"sub-electron face supplies accumulated before emission; less than one physical electron per face/electrode can be delayed\",\"step_rule\":\"gyroangle<=0.05, dt<=10fs with particles, plasma-frequency and particle-displacement limits; empty vacuum<=1ps\",\"limitations\":\"constant-property heating beyond material validity; no phase change, collisions, gas feedback or sheath/grid convergence\",\"density_units\":\"cm^-3\",\"checkpoint_format\":\"same frozen executable ABI only; input SHA checked by launcher\",\"parallelism\":\"root particles/assembly/output; one CPU rank; optional CUDA cuDSS field solve\"}\n";scope.close();
+         std::ofstream history(out/"history.csv",resume?std::ios::app:std::ios::out);history<<std::setprecision(17);if(!resume)history<<"time_s,step,macro_particles,gauss_defect_C,particle_charge_defect_C,nodal_continuity_defect_C,field_energy_J,kinetic_energy_J,source_reservoir_electrons,short_absorbed_charge_C,short_absorbed_energy_J,axial_escaped_charge_C\n";
+         auto wall=std::chrono::steady_clock::now(),saved=wall,reported=wall;
+@@ -207,10 +238,24 @@
+             if(!injected && pic.particles().empty())pic.advance_empty(dt);else pic.advance(dt);++step;
+             auto d=pic.diagnostics();
+             if(!std::isfinite(d.gauss_defect_C) || !std::isfinite(d.particle_charge_defect_C) || pic.particles().size()>2000000)throw std::runtime_error("Nonfinite PIC ledger or two-million-particle resource guard; last checkpoint preserved");
++#ifdef PIC_EVOLVING_CANDIDATE
++            pic_evolving::observe_step(pic,step,dt);
++            std::array<double,4> spans;std::array<std::span<const double>,4> integral,temperatures;
++            for(int f=0;f<4;++f){spans[f]=reservoir[f].span;integral[f]=reservoir[f].integral;temperatures[f]=reservoir[f].weighted_temperature;}
++            pic_evolving::observe_sources(spans,integral,temperatures);
++#endif
+             if(start+d.time_s>=next_frame*1e-9-1e-21){snapshot(pic,out,next_frame,start+d.time_s);++next_frame;save();}
+             if(std::chrono::duration<double>(clock()-reported).count()>10)progress(false);
+             if(std::chrono::duration<double>(clock()-saved).count()>60)save();
+         }
+-        snapshot(pic,out,next_frame,end);save();progress(true);pic_bench::write((out/"benchmark_profile.json").string());pic_bench::resources((out/"process_resources.json").string());unit_bias.release_field_solver();pic.release_field_solver();pic_parallel_finish();pic_parallel_record(out.string());
+-    }catch(const std::exception& e){std::cerr<<e.what()<<'\n';MPI_Abort(MPI_COMM_WORLD,1);return 1;}
++        snapshot(pic,out,next_frame,end);save();progress(true);pic_bench::write((out/"benchmark_profile.json").string());pic_bench::resources((out/"process_resources.json").string());
++#ifdef PIC_EVOLVING_CANDIDATE
++        pic_evolving::shutdown();
++#endif
++        unit_bias.release_field_solver();pic.release_field_solver();pic_parallel_finish();pic_parallel_record(out.string());
++    }catch(const std::exception& e){
++#ifdef PIC_EVOLVING_CANDIDATE
++        try{pic_evolving::shutdown(e.what());}catch(const std::exception& report){std::cerr<<"Qualification report: "<<report.what()<<'\n';}
++#endif
++        std::cerr<<e.what()<<'\n';MPI_Abort(MPI_COMM_WORLD,1);return 1;}
+ }
+--- a/src/mfem_gap_pic.cpp
++++ b/src/mfem_gap_pic.cpp
+@@ -1,4 +1,7 @@
+ #include "raikou/mfem_gap_pic.h"
++#ifdef PIC_EVOLVING_CANDIDATE
++#include "evolving_force.hpp"
++#endif
+ 
+ #include <algorithm>
+ #include <cmath>
+@@ -556,6 +559,33 @@
+     // Midpoint position splitting; full-time velocities. Absorption is resolved
+     // at each half drift. Wall interaction timing must be checked by refinement.
+     drift(.5*dt); solve_fields();
++#ifdef PIC_EVOLVING_CANDIDATE
++    pic_evolving::begin_force(this,ledger_.time_s+.5*dt,dt);
++    if(pic_evolving::active(this)) {
++        std::vector<gather_push::Outputs> reference;
++        if(pic_evolving::shadow(this)) {
++            reference.reserve(particles_.size());
++    for (const auto& p : particles_) {
++        auto E=electric_field(p.position_m[0],p.position_m[1]);
++        auto B=options_.magnetic_field_T;
++        if(external_electric_) {
++            auto extra=external_electric_(p.position_m[0],p.position_m[1],ledger_.time_s+.5*dt);
++            for(int i=0;i<3;++i) E[i]+=extra[i];
++        }
++        if(external_electric_3d_) {
++            auto extra=external_electric_3d_(p.position_m[0],p.position_m[1],p.position_m[2],ledger_.time_s+.5*dt);
++            for(int i=0;i<3;++i)E[i]+=extra[i];
++        }
++        if(external_magnetic_) B=external_magnetic_(p.position_m[0],p.position_m[1],ledger_.time_s+.5*dt);
++        const auto u=pic_boris(p.proper_velocity_m_s,p.charge_C/p.mass_kg,E,B,dt);
++        reference.push_back({snapshot_io::vec(E),snapshot_io::vec(B),snapshot_io::vec(u),0});
++    }
++            pic_evolving::reference_ready(this);
++        }
++        pic_evolving::force(this,particles_,potential_,options_,ledger_.time_s+.5*dt,dt,reference);
++    } else
++#endif
++    {
+     for (auto& p : particles_) {
+         auto E=electric_field(p.position_m[0],p.position_m[1]);
+         auto B=options_.magnetic_field_T;
+@@ -570,6 +600,10 @@
+         if(external_magnetic_) B=external_magnetic_(p.position_m[0],p.position_m[1],ledger_.time_s+.5*dt);
+         p.proper_velocity_m_s=pic_boris(p.proper_velocity_m_s,p.charge_C/p.mass_kg,E,B,dt);
+     }
++    }
++#ifdef PIC_EVOLVING_CANDIDATE
++    pic_evolving::end_force(this);
++#endif
+     drift(.5*dt); solve_fields();
+     ledger_.time_s+=dt;
+ }

@@ -1,0 +1,46 @@
+Proposed native collision geometry boundary — not an implemented driver API
+
+CanonicalPointSI:
+  accepted x/y/z binary operands + immutable common-coordinate-frame identity.
+  The collision atlas applies no transform. Source/field owners map their inputs
+  into this common frame once. A source local-patch coordinate is not a PIC or
+  native-heating coordinate until its named adapter has mapped it.
+
+CollisionAtlas:
+  immutable physical outer bounds; actual binary foil planes; complete rectangle
+  partition/tree; per-rectangle full-height z family; positive volume table;
+  deterministic IDs; bounded constructor; schema + frame + topology digest.
+  Exclude wholly solid cells. Reject all unresolved cuts, overlaps, holes,
+  out-of-domain operands and unbound depth. Cap complete geometry before use.
+  Hash actual boundary bits, leaves, z axes, leaf ordering, volumes, face/outer
+  closure policy, IDs and frame token, not just nominal h0 or a cell count.
+
+membership(point, optional side/stage token):
+  Vacuum(cell), MaterialBoundary(face), Solid, or Outside.
+  No point is moved. Exact material-boundary ownership requires a valid explicit
+  physical face and common-stage token; the adjacent vacuum cell is geometric
+  information only. Do not auto-admit gas collisions or ordinary transport for
+  an Active microscopic-layer electron. Do not auto-exclude it from gas reactions.
+  Adsorbed reservoir counts do not enter this API as 3D particles.
+
+occupied_view(complete accepted positive-carrier census, atlas):
+  Bind canonical prefix/generation and atlas digest, retain all native identities,
+  resolve every physical position, sort unique occupied IDs, attach unchanged
+  physical V, and retain an exact census receipt. Any unknown occupied cell or
+  unresolved source/operator stage refuses; no truncation or normalization.
+  Supply only these occupied Cells to the unchanged indexed candidate builder.
+  Projectile/target/channel order remains unchanged, preserving query sequence.
+  Empty geometric cells need no per-event std::map/vector entry.
+
+Checkpoint/common clock:
+  New graded layout has a new explicit schema and digest. Keep legacy uniform
+  mode and default identity unchanged. Restore refuses unknown/foreign atlas,
+  frame, source/operator policy, mechanism and accepted exposure/RNG identities.
+  Rebinning cannot reinterpret an already accepted reaction exposure. A candidate
+  fork/migration at a closed common stage must bind its new layout explicitly;
+  native particles, exact Counts, fields and source reservoirs remain under their
+  original owners. Any native restore/migration needs fresh owner review.
+
+Candidate parity demonstrated here is exhaustive-cells versus occupied-cells
+on the SAME grid and same carriers. It does not claim physical parity between
+different collision resolutions or qualify an unimplemented driver adapter.

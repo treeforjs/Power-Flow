@@ -1,0 +1,410 @@
+diff -ruN /home/treefor/projects/runtimes/pic-gpu-candidate-20261029/source/CMakeLists.txt /home/treefor/projects/runtimes/pic-gpu-candidate-v2-20261029/source/CMakeLists.txt
+--- /home/treefor/projects/runtimes/pic-gpu-candidate-20261029/source/CMakeLists.txt	2026-10-29 16:31:25.828212499 -0600
++++ /home/treefor/projects/runtimes/pic-gpu-candidate-v2-20261029/source/CMakeLists.txt	2026-10-29 16:51:11.084310335 -0600
+@@ -19,3 +19,6 @@
+ add_executable(cudss_graph_qualification examples/cudss_graph_qualification.cpp)
+ target_include_directories(cudss_graph_qualification PRIVATE src)
+ target_link_libraries(cudss_graph_qualification PRIVATE pic)
++
++add_executable(cudss_graph_record_tests tests/test_cudss_graph_record.cpp)
++target_include_directories(cudss_graph_record_tests PRIVATE src)
+diff -ruN /home/treefor/projects/runtimes/pic-gpu-candidate-20261029/source/examples/cudss_graph_qualification.cpp /home/treefor/projects/runtimes/pic-gpu-candidate-v2-20261029/source/examples/cudss_graph_qualification.cpp
+--- /home/treefor/projects/runtimes/pic-gpu-candidate-20261029/source/examples/cudss_graph_qualification.cpp	2026-10-29 16:31:25.828212499 -0600
++++ /home/treefor/projects/runtimes/pic-gpu-candidate-v2-20261029/source/examples/cudss_graph_qualification.cpp	2026-10-29 16:50:07.345971075 -0600
+@@ -13,6 +13,8 @@
+   return 0;
+  }
+  try {
++  pic_graph::RunRecord::instance().begin("cudss_graph_qualification");
++  {
+   constexpr int n=33;
+   mfem::SparseMatrix matrix(n);
+   for(int i=0;i<n;++i) {
+@@ -40,8 +42,10 @@
+     throw std::runtime_error("Unchanged Poisson residual guard failed on RHS "+std::to_string(test));
+   }
+   std::cout<<"32 right hand sides: direct and graph answers bitwise identical; residual guards passed.\n";
++  }
++  pic_graph::RunRecord::instance().complete();
+   return 0;
+  } catch(const std::exception& error) {
+-  std::cerr<<error.what()<<'\n';return 1;
++  pic_graph::RunRecord::instance().fail(std::size_t(-1),error.what());std::cerr<<error.what()<<'\n';return 1;
+  }
+ }
+diff -ruN /home/treefor/projects/runtimes/pic-gpu-candidate-20261029/source/examples/mfem_heating_history_pic.cpp /home/treefor/projects/runtimes/pic-gpu-candidate-v2-20261029/source/examples/mfem_heating_history_pic.cpp
+--- /home/treefor/projects/runtimes/pic-gpu-candidate-20261029/source/examples/mfem_heating_history_pic.cpp	2026-10-29 13:53:46.109620613 -0600
++++ /home/treefor/projects/runtimes/pic-gpu-candidate-v2-20261029/source/examples/mfem_heating_history_pic.cpp	2026-10-29 16:50:07.345971075 -0600
+@@ -6,6 +6,7 @@
+ #include <limits>
+ #include <numeric>
+ #include "bench_profile.hpp"
++#include "cudss_graph_record.hpp"
+ namespace {
+ constexpr double eps=8.8541878188e-12;
+ struct Voltage {
+@@ -99,6 +100,7 @@
+ int main(int argc,char** argv) {
+     mfem::Mpi::Init(argc,argv);mfem::Hypre::Init();
+     try {
++        if(mfem::Mpi::WorldRank()==0)pic_graph::RunRecord::instance().begin("heating_history_pic_gpu");
+         if(argc!=6)throw std::invalid_argument("Usage: heating-history-pic FIELD_DIR THERMAL_BINARY OUTPUT END_NS VOLTAGE_INTERVAL_CSV");
+         if(mfem::Mpi::WorldRank()!=0){pic_parallel_workers();pic_parallel_record("");return 0;}
+         Thermal thermal(argv[2]);Fields fields(argv[1]);Voltage voltage(argv[5]);const std::filesystem::path out(argv[3]);
+@@ -206,5 +208,6 @@
+             if(std::chrono::duration<double>(clock()-saved).count()>60)save();
+         }
+         snapshot(pic,out,next_frame,end);save();progress(true);pic_bench::write((out/"benchmark_profile.json").string());pic_bench::resources((out/"process_resources.json").string());unit_bias.release_field_solver();pic.release_field_solver();pic_parallel_finish();pic_parallel_record(out.string());
+-    }catch(const std::exception& e){std::cerr<<e.what()<<'\n';MPI_Abort(MPI_COMM_WORLD,1);return 1;}
++        pic_graph::RunRecord::instance().complete();
++    }catch(const std::exception& e){if(mfem::Mpi::WorldRank()==0)pic_graph::RunRecord::instance().fail(std::size_t(-1),e.what());std::cerr<<e.what()<<'\n';MPI_Abort(MPI_COMM_WORLD,1);return 1;}
+ }
+diff -ruN /home/treefor/projects/runtimes/pic-gpu-candidate-20261029/source/src/cudss_graph_record.hpp /home/treefor/projects/runtimes/pic-gpu-candidate-v2-20261029/source/src/cudss_graph_record.hpp
+--- /home/treefor/projects/runtimes/pic-gpu-candidate-20261029/source/src/cudss_graph_record.hpp	1969-12-31 17:00:00.000000000 -0700
++++ /home/treefor/projects/runtimes/pic-gpu-candidate-v2-20261029/source/src/cudss_graph_record.hpp	2026-10-29 16:51:11.084310335 -0600
+@@ -0,0 +1,135 @@
++#pragma once
++// Process-local diagnostics only. No CUDA calls and no per-solve file I/O.
++#include <chrono>
++#include <cstdio>
++#include <cstdlib>
++#include <fstream>
++#include <iostream>
++#include <stdexcept>
++#include <string>
++#include <vector>
++#include <unistd.h>
++
++namespace pic_graph {
++class RunRecord {
++ struct Solver {
++  int rows;
++  std::string requested_mode,status="initializing",reason;
++  bool closed=false,first_rhs_bitwise_qualified=false;
++  std::size_t nodes=0,kernels=0,copies=0,direct_solves=0,graph_replays=0;
++ };
++ bool started=false;
++ std::string path,run_id,context,requested_mode,run_status="running",reason;
++ std::vector<Solver> solvers;
++ static std::string quote(const std::string& value) {
++  const char* hex="0123456789abcdef";std::string result="\"";
++  for(unsigned char c:value) {
++   if(c=='\"' || c=='\\'){result+='\\';result+=char(c);}
++   else if(c<32){result+="\\u00";result+=hex[c>>4];result+=hex[c&15];}
++   else result+=char(c);
++  }
++  return result+'\"';
++ }
++ bool all_qualified() const {
++  if(run_status=="failed" || solvers.empty())return false;
++  for(const auto& s:solvers)if(s.status!="qualified")return false;
++  return true;
++ }
++ std::string graph_status() const {
++  if(run_status=="failed")return "failed";
++  bool fallback=false,pending=solvers.empty(),off=false,qualified=false;
++  for(const auto& s:solvers) {
++   if(s.status=="failed" || s.status=="unsupported")return "failed";
++   fallback|=s.status=="fallback";
++   off|=s.status=="off";qualified|=s.status=="qualified";
++   pending|=s.status=="initializing" || s.status=="pending";
++  }
++  if(fallback)return "fallback";
++  if(pending)return "pending";
++  if(off && qualified)return "mixed";
++  return off?"off":"qualified";
++ }
++ void write() const {
++  if(path.empty())return;
++  const std::string temporary=path+".tmp."+std::to_string(::getpid());
++  std::ofstream output(temporary);
++  if(!output)throw std::runtime_error("Cannot open graph run record temporary file");
++  bool required=!solvers.empty();
++  for(const auto& s:solvers)required&=s.requested_mode=="required";
++  output<<"{\"schema_version\":2,\"run_id\":"<<quote(run_id)
++        <<",\"pid\":"<<::getpid()<<",\"context\":"<<quote(context)
++        <<",\"requested_mode\":"<<quote(requested_mode)
++        <<",\"run_status\":"<<quote(run_status)<<",\"reason\":"<<quote(reason)
++        <<",\"graph_status\":"<<quote(graph_status())
++        <<",\"all_solvers_graph_qualified\":"<<(all_qualified()?"true":"false")
++        <<",\"all_solvers_requested_required\":"<<(required?"true":"false")
++        <<",\"outer_process_receipt_required\":true,\"solvers\":[";
++  for(std::size_t i=0;i<solvers.size();++i) {
++   const auto& s=solvers[i];if(i)output<<',';
++   output<<"{\"solver_id\":"<<i<<",\"matrix_rows\":"<<s.rows
++         <<",\"requested_mode\":"<<quote(s.requested_mode)<<",\"status\":"<<quote(s.status)
++         <<",\"reason\":"<<quote(s.reason)<<",\"closed\":"<<(s.closed?"true":"false")
++         <<",\"ir_steps\":2,\"graph_nodes\":"<<s.nodes<<",\"kernel_nodes\":"<<s.kernels
++         <<",\"memcpy_nodes\":"<<s.copies<<",\"direct_solve_calls\":"<<s.direct_solves
++         <<",\"graph_replays\":"<<s.graph_replays
++         <<",\"first_rhs_bitwise_qualified\":"<<(s.first_rhs_bitwise_qualified?"true":"false")<<'}';
++  }
++  output<<"]}\n";output.close();
++  if(!output){std::remove(temporary.c_str());throw std::runtime_error("Cannot write graph run record");}
++  if(std::rename(temporary.c_str(),path.c_str())!=0) {
++   std::remove(temporary.c_str());throw std::runtime_error("Cannot replace graph run record");
++  }
++ }
++public:
++ static RunRecord& instance(){static RunRecord record;return record;}
++ void begin(const std::string& run_context) {
++  if(started)throw std::runtime_error("Graph run record already started");
++  started=true;context=run_context;
++  const char* record_path=std::getenv("RAIKOU_PIC_CUDSS_GRAPH_RECORD");
++  const std::string requested_path=record_path?record_path:"";
++  if(!requested_path.empty() && requested_path.front()!='/')throw std::runtime_error("Graph run record path must be absolute");
++  path=requested_path;
++  const char* mode=std::getenv("RAIKOU_PIC_CUDSS_GRAPH");requested_mode=mode?mode:"off";
++  const auto now=std::chrono::system_clock::now().time_since_epoch();
++  run_id=std::to_string(::getpid())+":"+std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(now).count());
++  write(); // Replace a previous run immediately, including off and zero-solver runs.
++ }
++ std::size_t add(int rows,const std::string& mode) {
++  if(!started)begin("solver_only");
++  if(run_status!="running")throw std::runtime_error("Cannot add solver after graph run ended");
++  solvers.push_back(Solver{rows,mode});write();return solvers.size()-1;
++ }
++ void update(std::size_t id,const char* status,const char* detail,
++             std::size_t nodes,std::size_t kernels,std::size_t copies,bool first_rhs) {
++  auto& s=solvers.at(id);
++  if(s.status=="failed" || s.status=="unsupported")return;
++  s.status=status;s.reason=detail;s.nodes=nodes;s.kernels=kernels;s.copies=copies;
++  s.first_rhs_bitwise_qualified=first_rhs;write();
++ }
++ void direct_solve(std::size_t id){++solvers.at(id).direct_solves;}
++ void graph_replay(std::size_t id){++solvers.at(id).graph_replays;}
++ void fail(std::size_t id,const char* detail) noexcept {
++  try {
++   if(run_status!="failed")reason=detail;
++   run_status="failed";
++   if(id<solvers.size()) {
++    auto& s=solvers[id];if(s.status!="failed"){s.status="failed";s.reason=detail;}
++   }
++   write();
++  } catch(...) {std::cerr<<"Failed to persist graph run failure record\n";}
++ }
++ void close(std::size_t id) noexcept {
++  try {solvers.at(id).closed=true;write();}
++  catch(...) {fail(id,"Cannot persist solver close record");}
++ }
++ void complete() {
++  for(const auto& s:solvers)if(!s.closed) {
++   fail(std::size_t(-1),"Graph run completed with an unclosed solver");
++   throw std::runtime_error("Graph run completed with an unclosed solver");
++  }
++  if(run_status=="failed") {write();throw std::runtime_error("Graph run has a recorded failure");}
++  run_status="completed";
++  try {write();}catch(...) {fail(std::size_t(-1),"Cannot persist graph run completion");throw;}
++ }
++};
++}
+diff -ruN /home/treefor/projects/runtimes/pic-gpu-candidate-20261029/source/src/cudss_poisson.hpp /home/treefor/projects/runtimes/pic-gpu-candidate-v2-20261029/source/src/cudss_poisson.hpp
+--- /home/treefor/projects/runtimes/pic-gpu-candidate-20261029/source/src/cudss_poisson.hpp	2026-10-29 16:32:15.470207575 -0600
++++ /home/treefor/projects/runtimes/pic-gpu-candidate-v2-20261029/source/src/cudss_poisson.hpp	2026-10-29 16:50:07.342971105 -0600
+@@ -12,6 +12,7 @@
+ #include <string>
+ #include <vector>
+ #include "bench_profile.hpp"
++#include "cudss_graph_record.hpp"
+ 
+ namespace raikou_pic_parallel {
+ class CudssPoisson {
+@@ -26,6 +27,8 @@
+  cudaGraphExec_t graph_exec=nullptr;
+  GraphMode graph_mode=GraphMode::Off;
+  bool graph_qualified=false;
++ bool fell_back=false;
++ std::size_t record_id=std::size_t(-1);
+  std::size_t graph_nodes=0,kernel_nodes=0,memcpy_nodes=0;
+ 
+  static void cuda_ok(cudaError_t code) {
+@@ -50,22 +53,14 @@
+  static bool documented_unsupported(cudaError_t code) {
+   return code==cudaErrorStreamCaptureUnsupported || code==cudaErrorNotSupported;
+  }
++ static const char* mode_name(GraphMode mode) {
++  return mode==GraphMode::Off?"off":mode==GraphMode::Required?"required":"auto";
++ }
+  void record(const char* status,const char* reason="") {
+   std::cerr<<"cuDSS graph status="<<status<<" reason="<<reason
+            <<" ir_steps=2 nodes="<<graph_nodes<<" kernels="<<kernel_nodes
+            <<" memcpy="<<memcpy_nodes<<'\n';
+-  const char* path=std::getenv("RAIKOU_PIC_CUDSS_GRAPH_RECORD");
+-  if(!path || !*path)return;
+-  std::ofstream output(path);
+-  if(!output)throw std::runtime_error("Cannot write cuDSS graph qualification record");
+-  output<<"{\"status\":\""<<status<<"\",\"reason\":\""<<reason
+-        <<"\",\"ir_steps\":2,\"matrix_rows\":"<<n
+-        <<",\"pinned_host_buffers\":"<<(host_rhs && host_answer?"true":"false")
+-        <<",\"graph_nodes\":"<<graph_nodes<<",\"kernel_nodes\":"<<kernel_nodes
+-        <<",\"memcpy_nodes\":"<<memcpy_nodes
+-        <<",\"first_rhs_bitwise_qualified\":"<<(graph_qualified?"true":"false")<<"}\n";
+-  output.close();
+-  if(!output)throw std::runtime_error("Failed to write cuDSS graph qualification record");
++  pic_graph::RunRecord::instance().update(record_id,status,reason,graph_nodes,kernel_nodes,memcpy_nodes,graph_qualified);
+  }
+  bool unsupported(const char* reason) {
+   if(graph_mode==GraphMode::Required) {
+@@ -73,26 +68,36 @@
+    throw std::runtime_error(std::string("Required cuDSS graph capture unsupported: ")+reason);
+   }
+   graph_mode=GraphMode::Off;
++  fell_back=true;
+   record("fallback",reason);
+   return false;
+  }
+  void release() noexcept {
+-  if(stream)cudaStreamSynchronize(stream);
+-  if(graph_exec)cudaGraphExecDestroy(graph_exec);
+-  if(graph)cudaGraphDestroy(graph);
++  bool failed=false;
++  const auto cuda_cleanup=[&](cudaError_t status){failed|=status!=cudaSuccess;};
++  const auto cudss_cleanup=[&](cudssStatus_t status){failed|=status!=CUDSS_STATUS_SUCCESS;};
++  if(stream)cuda_cleanup(cudaStreamSynchronize(stream));
++  if(graph_exec)cuda_cleanup(cudaGraphExecDestroy(graph_exec));
++  if(graph)cuda_cleanup(cudaGraphDestroy(graph));
+   graph_exec=nullptr;graph=nullptr;
+-  if(A)cudssMatrixDestroy(A);if(b)cudssMatrixDestroy(b);if(x)cudssMatrixDestroy(x);
++  if(A)cudss_cleanup(cudssMatrixDestroy(A));if(b)cudss_cleanup(cudssMatrixDestroy(b));if(x)cudss_cleanup(cudssMatrixDestroy(x));
+   A=nullptr;b=nullptr;x=nullptr;
+-  if(data)cudssDataDestroy(handle,data);if(config)cudssConfigDestroy(config);
+-  if(handle)cudssDestroy(handle);
++  if(data)cudss_cleanup(cudssDataDestroy(handle,data));if(config)cudss_cleanup(cudssConfigDestroy(config));
++  if(handle)cudss_cleanup(cudssDestroy(handle));
+   data=nullptr;config=nullptr;handle=nullptr;
+-  if(stream)cudaStreamSynchronize(stream);
+-  cudaFree(di);cudaFree(dj);cudaFree(da);cudaFree(db);cudaFree(dx);
++  if(stream)cuda_cleanup(cudaStreamSynchronize(stream));
++  if(di)cuda_cleanup(cudaFree(di));if(dj)cuda_cleanup(cudaFree(dj));if(da)cuda_cleanup(cudaFree(da));
++  if(db)cuda_cleanup(cudaFree(db));if(dx)cuda_cleanup(cudaFree(dx));
+   di=nullptr;dj=nullptr;da=nullptr;db=nullptr;dx=nullptr;
+-  if(host_rhs)cudaFreeHost(host_rhs);if(host_answer)cudaFreeHost(host_answer);
++  if(host_rhs)cuda_cleanup(cudaFreeHost(host_rhs));if(host_answer)cuda_cleanup(cudaFreeHost(host_answer));
+   host_rhs=nullptr;host_answer=nullptr;
+-  if(stream)cudaStreamDestroy(stream);
++  if(stream)cuda_cleanup(cudaStreamDestroy(stream));
+   stream=nullptr;
++  if(record_id!=std::size_t(-1)) {
++   auto& run=pic_graph::RunRecord::instance();
++   if(failed)run.fail(record_id,"CUDA/cuDSS cleanup failed");
++   run.close(record_id);
++  }
+  }
+  void direct_solve(const double* rhs,double* answer) {
+   if(stream) {
+@@ -105,6 +110,7 @@
+    ok(cudssExecute(handle,CUDSS_PHASE_SOLVE,config,data,A,x,b));
+    cuda_ok(cudaMemcpy(answer,dx,n*sizeof(double),cudaMemcpyDeviceToHost));
+   }
++  pic_graph::RunRecord::instance().direct_solve(record_id);
+  }
+  void inspect_graph(cudaGraph_t inspected) {
+   size_t count=0;cuda_ok(cudaGraphGetNodes(inspected,nullptr,&count));
+@@ -175,6 +181,7 @@
+   }
+   cuda_ok(cudaGraphLaunch(graph_exec,stream));
+   cuda_ok(cudaStreamSynchronize(stream));
++  pic_graph::RunRecord::instance().graph_replay(record_id);
+   if(std::memcmp(reference.data(),host_answer,n*sizeof(double))!=0) {
+    record("failed","First RHS direct and graph answers differ bitwise");
+    throw std::runtime_error("cuDSS graph qualification failed: first RHS differs bitwise");
+@@ -188,6 +195,7 @@
+   pic_bench::Timer timer("cuda_factor_setup");
+   try {
+    graph_mode=graph_setting();
++   record_id=pic_graph::RunRecord::instance().add(n,mode_name(graph_mode));
+    cuda_ok(cudaSetDevice(0));ok(cudssCreate(&handle));
+    if(graph_mode!=GraphMode::Off) {
+     int pools=0;cuda_ok(cudaDeviceGetAttribute(&pools,cudaDevAttrMemoryPoolsSupported,0));
+@@ -233,6 +241,8 @@
+    cuda_ok(cudaMemcpy(dj,cols.data(),cols.size()*sizeof(int),cudaMemcpyHostToDevice));
+    cuda_ok(cudaMemcpy(da,values.data(),values.size()*sizeof(double),cudaMemcpyHostToDevice));
+    cuda_ok(cudaMemset(db,0,n*sizeof(double)));cuda_ok(cudaMemset(dx,0,n*sizeof(double)));
++   // The cuDSS nonblocking stream does not inherit default-stream setup order.
++   if(stream)cuda_ok(cudaDeviceSynchronize());
+    ok(cudssMatrixCreateCsr(&A,n,n,cols.size(),di,nullptr,dj,da,CUDA_R_32I,CUDA_R_64F,
+                            CUDSS_MTYPE_SPD,CUDSS_MVIEW_UPPER,CUDSS_BASE_ZERO));
+    ok(cudssMatrixCreateDn(&b,n,1,n,db,CUDA_R_64F,CUDSS_LAYOUT_COL_MAJOR));
+@@ -242,11 +252,17 @@
+    cuda_ok(cudaDeviceSynchronize());int info=-1;size_t written=0;
+    ok(cudssDataGet(handle,data,CUDSS_DATA_INFO,&info,sizeof(info),&written));
+    if(info!=0)throw std::runtime_error("cuDSS factorization info "+std::to_string(info));
+-  } catch(...) {release();throw;}
++   if(!fell_back)record(graph_mode==GraphMode::Off?"off":"pending");
++  } catch(const std::exception& error) {
++   pic_graph::RunRecord::instance().fail(record_id,error.what());release();throw;
++  } catch(...) {
++   pic_graph::RunRecord::instance().fail(record_id,"Unknown solver construction failure");release();throw;
++  }
+  }
+  CudssPoisson(const CudssPoisson&)=delete;
+  CudssPoisson& operator=(const CudssPoisson&)=delete;
+  void Solve(const mfem::Vector& rhs,mfem::Vector& answer) {
++  try {
+   pic_bench::Timer timer("cuda_solve_including_transfers");answer.SetSize(n);
+   if(rhs.Size()!=n)throw std::runtime_error("cuDSS Poisson right hand side size changed");
+   if(graph_mode==GraphMode::Off) {direct_solve(rhs.GetData(),answer.GetData());return;}
+@@ -254,7 +270,13 @@
+   std::copy_n(rhs.GetData(),n,host_rhs);
+   cuda_ok(cudaGraphLaunch(graph_exec,stream));
+   cuda_ok(cudaStreamSynchronize(stream));
++  pic_graph::RunRecord::instance().graph_replay(record_id);
+   std::copy_n(host_answer,n,answer.GetData());
++  } catch(const std::exception& error) {
++   pic_graph::RunRecord::instance().fail(record_id,error.what());throw;
++  } catch(...) {
++   pic_graph::RunRecord::instance().fail(record_id,"Unknown solver runtime failure");throw;
++  }
+  }
+  ~CudssPoisson() {release();}
+ };
+diff -ruN /home/treefor/projects/runtimes/pic-gpu-candidate-20261029/source/tests/test_cudss_graph_record.cpp /home/treefor/projects/runtimes/pic-gpu-candidate-v2-20261029/source/tests/test_cudss_graph_record.cpp
+--- /home/treefor/projects/runtimes/pic-gpu-candidate-20261029/source/tests/test_cudss_graph_record.cpp	1969-12-31 17:00:00.000000000 -0700
++++ /home/treefor/projects/runtimes/pic-gpu-candidate-v2-20261029/source/tests/test_cudss_graph_record.cpp	2026-10-29 16:51:11.084310335 -0600
+@@ -0,0 +1,46 @@
++#include "cudss_graph_record.hpp"
++#include <filesystem>
++
++int main(int argc,char** argv) {
++ try {
++  if(argc!=3)throw std::runtime_error("Expected scenario and absolute output path");
++  const std::string scenario=argv[1],path=argv[2];
++  ::setenv("RAIKOU_PIC_CUDSS_GRAPH_RECORD",path.c_str(),1);
++  ::setenv("RAIKOU_PIC_CUDSS_GRAPH",scenario=="off"?"off":"required",1);
++  auto& run=pic_graph::RunRecord::instance();
++  if(scenario=="invalid_path") {
++   ::setenv("RAIKOU_PIC_CUDSS_GRAPH_RECORD","relative-record-must-not-exist.json",1);
++   bool rejected=false;try{run.begin(scenario);}catch(const std::exception&){rejected=true;}
++   run.fail(std::size_t(-1),"Rejected relative path");
++   if(!rejected || std::filesystem::exists("relative-record-must-not-exist.json"))
++    throw std::runtime_error("Relative record path was not rejected safely");
++   return 0;
++  }
++  {std::ofstream old(path);old<<"{\"run_status\":\"completed\",\"graph_status\":\"qualified\",\"run_id\":\"old-run\"}\n";}
++  run.begin(scenario);
++  std::filesystem::copy_file(path,path+".initial",std::filesystem::copy_options::overwrite_existing);
++  auto a=run.add(130321,scenario=="off"?"off":scenario=="fallback"?"auto":"required");
++  if(scenario=="off") {
++   run.update(a,"off","Graph disabled",0,0,0,false);run.direct_solve(a);run.close(a);run.complete();
++  } else if(scenario=="unclosed") {
++   bool rejected=false;try{run.complete();}catch(const std::exception&){rejected=true;}
++   if(!rejected)throw std::runtime_error("Unclosed solver accepted");run.close(a);
++  } else {
++   auto b=run.add(130321,"required");
++   run.update(a,scenario=="fallback"?"fallback":"qualified","first solver",40,37,2,scenario!="fallback");
++   run.direct_solve(a);
++   if(scenario!="fallback")run.graph_replay(a);
++   run.update(b,"qualified","second solver",40,37,2,true);run.graph_replay(b);
++   if(scenario=="late_failure") {
++    run.fail(a,"Late launch failure: \"quoted\"\nline");
++    run.update(a,"qualified","must not erase failure",40,37,2,true);
++   }
++   run.close(a);run.close(b);
++   if(scenario=="outer_failure")run.fail(std::size_t(-1),"Outer scientific guard failed");
++   bool rejected=false;try{run.complete();}catch(const std::exception&){rejected=true;}
++   if(rejected!=(scenario=="late_failure" || scenario=="outer_failure"))
++    throw std::runtime_error("Unexpected completion outcome");
++  }
++  std::cout<<scenario<<": passed\n";return 0;
++ } catch(const std::exception& error) {std::cerr<<error.what()<<'\n';return 1;}
++}

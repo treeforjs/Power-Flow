@@ -1,0 +1,71 @@
+ACTUAL MIDPOINT FORCE-COST COMPARISON — CPU6 ONLY
+
+46,726 actual post-half-drift particles, true phi/psi and native selected frames.
+3 warmups +21 measured samples per path, rotated/alternating order, CPU6/nice15
+and testing-core.lock. Every native/shared E/B/u output is byte-identical to the
+original captured reference. Original finite/componentwise/weighted gates remain.
+All buffers preallocated; setup, file IO, fixture reset and post-variant golden
+instrumentation excluded. Required qualification work is timed separately and
+then INCLUDED in complete force-pipeline measurements.
+
+Matched fixed-fixture CPU6 medians (ms):
+  Source-equivalent native force update                 20.044
+  Fresh INDEPENDENT native E/B/u reference generation   20.055
+  Shared host core, prepacked E/B/u                       6.797
+  AoS packing + shared host core, E/B/u                   6.745
+  Unchanged independent-reference validation gate         1.307
+  Transactional velocity-only commit                     0.181
+  Complete CPU qualification force pipeline             28.284
+    = fresh native reference + fresh pack/shared arithmetic + gates + commit
+
+Thus fusion alone reduces matched arithmetic cost by about2.97x. This is a
+fixed-midpoint kernel/force microbenchmark, NOT an application speedup and NOT
+an integrated shared-host fallback. The complete still-reference-gated CPU
+qualification path is slower than the original native force alone.
+
+The existing application baseline remains23.421ms mean native force inside a
+55.172ms mean step, measured on CPU7 over210 evolving late-replay steps. It is
+not interchangeable with this warm fixed-fixture CPU6 proxy. The timing proxy
+recreates separate self/unit MFEM spaces, verifies their layout and nodal data,
+uses the original Fields/Voltage code and three std::function callbacks, and
+calls the original pic_boris. It is source-equivalent, not the production binary.
+The full sample ranges/p10/p90 are retained; no outliers were discarded. Do not
+infer a negative packing cost from the <1% difference between shared medians.
+
+GPU comparison under the CURRENT API
+Actual v2 GPU costs remain UNMEASURED and on review hold. Required dynamic-state
+reference generation cannot be treated as a free cached vector. The honest full
+GPU force total is:
+  fresh independent native CPU reference
+  + GPU API (input checks/packing + H2D + kernel + D2H + synchronization
+             + unchanged finite/componentwise/weighted output validation)
+  + transactional commit.
+The native reference alone costs20.055ms in this CPU6 probe. Do not add the old
+0.654ms synthetic29,537-particle GPU result to this46,726 actual-state result,
+and do not sum medians from different cores and label that measured end-to-end.
+
+A separate C++ adapter, reference_inclusive_gpu_timing.cpp, is compiled but NOT
+executed and has NO ready marker or GPU request. After fresh v2 review, the
+parent can time fresh original native reference generation INSIDE each GPU
+iteration. It records reference_ms, GPU API with packing/gates, commit_ms, and
+one measured total from before reference generation through commit. It also
+keeps a caller-owned cleanup report alive through exception handling and saves
+its issues on success/error. Python remains only a process guard, outside the
+force loop. This is a fixed FORCE pipeline; complete PIC solves/drifts/sources,
+changing fields/capacities, setup/refresh amortization remain application work.
+
+Interpretation for design
+The measured benefit so far is substantial host fusion, independent of a GPU.
+A shared typed host provider may be the simpler first optimization to qualify.
+The current mandatory independent-reference mode necessarily performs native
+CPU work as well as the new force path, so an offline-reference GPU number is
+not an application acceleration result. No reference gate was removed or
+weakened here. Any later production/reference policy or CPU fallback integration
+must be explicit, separately reviewed, and preserve original scientific guards.
+
+Preservation and review
+The reviewed backend-v2/source files and hashes are untouched by this timing
+project. v1 source/build/ready/request/PTX and actual capture/fixture hashes are
+unchanged. execution-provenance.json verifies those invariants and records the
+benchmark inputs/source/binaries. GPU/lifecycle/integration remain gated by fresh
+review of v2. Production is not resumed or changed.

@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.24)
+project(NativeSpatialDiagnostics LANGUAGES CXX)
+find_package(MFEM 4.10 CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
+add_executable(test_rate_moments tests/test_rate_moments.cpp)
+target_include_directories(test_rate_moments PRIVATE source arena-v5/source/include arena-v5/inputs arena-v5/vendor)
+target_compile_options(test_rate_moments PRIVATE -std=c++17 -O2 -ffp-contract=off -Wall -Wextra -Wpedantic)
+target_link_libraries(test_rate_moments PRIVATE mfem OpenSSL::Crypto)

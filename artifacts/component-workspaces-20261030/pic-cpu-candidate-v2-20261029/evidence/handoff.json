@@ -1,0 +1,62 @@
+{
+  "status": "ready",
+  "created_utc": "2026-10-29T22:51:09.063670+00:00",
+  "candidate_path": "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029",
+  "candidate_source": "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/source",
+  "gpu_capable_executable": {
+    "path": "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/build/heating_history_pic_gpu",
+    "sha256": "6ed8e9724f6c95a75f8d23cc6edad832f2a865ec925ca5ff47c22d9b17076d86",
+    "bytes": 26689440
+  },
+  "v1_source": "/home/treefor/projects/runtimes/pic-cpu-candidate-20261029/source",
+  "v1_unchanged": true,
+  "independent_patch": "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/dof-cache-invalidation.patch",
+  "independent_patch_sha256": "aa423ea8f3f221dcc1060d2cdb1bdcfa2498577d365461aa93509804c125f387",
+  "changed_files_from_v1": [
+    "include/raikou/q1_scalar_gather.h",
+    "tests/test_q1_scalar_gather.cpp"
+  ],
+  "delta_from_v1": "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/diff-from-v1.patch",
+  "delta_from_v1_sha256": "43774e9b1079518f4fa9d083d73e1b309426c79ee80ff6f30d5b3e6f904ef898",
+  "combined_diff_from_sealed_source": "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/combined-diff-from-sealed-source.patch",
+  "combined_diff_sha256": "d6d51b4eab9eef28e6658d6943b35b221fe2712e97cbfa9d6d37ca19e99a0f4d",
+  "changed_files_from_sealed_source": [
+    "CMakeLists.txt",
+    "examples/mfem_heating_history_pic.cpp",
+    "examples/native_heating_fields.hpp",
+    "include/raikou/mfem_gap_pic.h",
+    "include/raikou/q1_scalar_gather.h",
+    "src/mfem_gap_pic.cpp",
+    "src/mfem_pic_distributed.hpp",
+    "tests/pic_cpu_trace.cpp",
+    "tests/test_q1_scalar_gather.cpp"
+  ],
+  "source_manifest": "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/source-manifest.json",
+  "source_manifest_sha256": "032b10fc793dc4e8f09db20149f0ce8426d122c615ee8f32b17dc99f4becf606",
+  "build_manifest": "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/build-manifest.json",
+  "build_manifest_sha256": "180b57ab3c82b3a72e4bf026e28008599513f702b4b41d560825e47b901efb56",
+  "validation": "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/validation.json",
+  "commands": "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/commands.json",
+  "build_and_test_entrypoint": "flock <workspace>/outputs/pic-profile/testing-core.lock taskset -c 6 nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= python3 -u /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/build_and_check.py",
+  "abi_identical_to_active_and_v1": true,
+  "abi_sizes_bytes": {
+    "GapPicOptions": 168,
+    "GapPicDiagnostics": 200,
+    "GapParticle": 80,
+    "GapFoil": 32
+  },
+  "abi_all_members_checked": true,
+  "abi_evidence": [
+    "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-active.log",
+    "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-v1.log",
+    "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-v2.log"
+  ],
+  "gpu_work": false,
+  "production_changes": false,
+  "production_signals": false,
+  "deployment_performed": false,
+  "no_runtime_renumbering_call_sites": true,
+  "contract": "Invalidate all gathers referencing a space before unversioned DOF numbering changes; fallback is permanent until a new gather is constructed.",
+  "full_checkpoint_validation": "Pending separate parent-owned validation and timing.",
+  "notes": "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/README.txt"
+}

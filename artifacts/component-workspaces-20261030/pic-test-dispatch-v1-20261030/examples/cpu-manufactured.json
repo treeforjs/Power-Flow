@@ -1,0 +1,65 @@
+{
+  "schema": "pic_generic_test_dispatch_v1",
+  "mode": "cpu",
+  "stage": "primitive_test",
+  "command": [
+    "/sealed/tool",
+    "--primitive"
+  ],
+  "cwd": "/owned/work",
+  "env": {},
+  "identities": [
+    {
+      "path": "/owned/source/input.cpp",
+      "role": "source",
+      "kind": "file",
+      "bytes": 6,
+      "sha256": "41cf6794ba4200b839c53531555f0f3998df4cbb01a4d5cb0b94e3ca5e23947d"
+    },
+    {
+      "path": "/owned/source/build.py",
+      "role": "build",
+      "kind": "file",
+      "bytes": 6,
+      "sha256": "e1d8e552330911f9f779f85b6f2c00a15e790dcc3fbb3b28f5da1d660a30c5b8"
+    },
+    {
+      "path": "/sealed/runtime/lib.so",
+      "role": "runtime",
+      "kind": "file",
+      "bytes": 7,
+      "sha256": "b718f1354f7247312eca086d9a024afe5fa717ddea5adeddd6f12bcf945b2e8c"
+    },
+    {
+      "path": "/sealed/tool",
+      "role": "tool",
+      "kind": "file",
+      "bytes": 10,
+      "sha256": "a29c2123a01df1d0febb9d308a20d8a2fe3d40a91ca8b1294f59f08f9773ebea"
+    }
+  ],
+  "host": [
+    {
+      "path": "/sys/kernel/notes",
+      "label": "kernel_notes",
+      "kind": "file",
+      "bytes": 36,
+      "sha256": "5b62ab33a7bd0dddc4b63c84c26e939084e456f41ed1f36b2df89bc749e0d78c"
+    },
+    {
+      "path": "/proc/sys/kernel/osrelease",
+      "label": "kernel_release",
+      "kind": "file",
+      "bytes": 38,
+      "sha256": "583fdf1b38480ce9687570525f72d3bbc2a64b2ce070a7675b8f96066e1e8593"
+    }
+  ],
+  "limits": {
+    "wall_s": 10,
+    "output_bytes": 4096
+  },
+  "closure": "reviewed_complete_source_build_runtime_and_transitive_inputs_v1",
+  "sealed_roots": [
+    "/owned/source"
+  ]
+}

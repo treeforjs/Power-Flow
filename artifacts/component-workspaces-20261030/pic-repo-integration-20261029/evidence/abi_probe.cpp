@@ -1,0 +1,70 @@
+#include "raikou/mfem_gap_pic.h"
+#include <cstddef>
+#include <iostream>
+#include <type_traits>
+using namespace raikou::mfem_backend;
+int main() {
+std::cout<<"GapPic size="<<sizeof(GapPic)<<" align="<<alignof(GapPic)<<"\n";
+static_assert(std::is_standard_layout_v<GapParticle>);
+static_assert(std::is_trivially_copyable_v<GapParticle>);
+std::cout<<"GapParticle size="<<sizeof(GapParticle)<<" align="<<alignof(GapParticle)<<"\n";
+std::cout<<"GapParticle.id offset="<<offsetof(GapParticle,id)<<" size="<<sizeof(((GapParticle*)nullptr)->id)<<"\n";
+std::cout<<"GapParticle.position_m offset="<<offsetof(GapParticle,position_m)<<" size="<<sizeof(((GapParticle*)nullptr)->position_m)<<"\n";
+std::cout<<"GapParticle.proper_velocity_m_s offset="<<offsetof(GapParticle,proper_velocity_m_s)<<" size="<<sizeof(((GapParticle*)nullptr)->proper_velocity_m_s)<<"\n";
+std::cout<<"GapParticle.charge_C offset="<<offsetof(GapParticle,charge_C)<<" size="<<sizeof(((GapParticle*)nullptr)->charge_C)<<"\n";
+std::cout<<"GapParticle.mass_kg offset="<<offsetof(GapParticle,mass_kg)<<" size="<<sizeof(((GapParticle*)nullptr)->mass_kg)<<"\n";
+std::cout<<"GapParticle.weight offset="<<offsetof(GapParticle,weight)<<" size="<<sizeof(((GapParticle*)nullptr)->weight)<<"\n";
+static_assert(std::is_standard_layout_v<GapFoil>);
+static_assert(std::is_trivially_copyable_v<GapFoil>);
+std::cout<<"GapFoil size="<<sizeof(GapFoil)<<" align="<<alignof(GapFoil)<<"\n";
+std::cout<<"GapFoil.left_m offset="<<offsetof(GapFoil,left_m)<<" size="<<sizeof(((GapFoil*)nullptr)->left_m)<<"\n";
+std::cout<<"GapFoil.right_m offset="<<offsetof(GapFoil,right_m)<<" size="<<sizeof(((GapFoil*)nullptr)->right_m)<<"\n";
+std::cout<<"GapFoil.bottom_m offset="<<offsetof(GapFoil,bottom_m)<<" size="<<sizeof(((GapFoil*)nullptr)->bottom_m)<<"\n";
+std::cout<<"GapFoil.top_m offset="<<offsetof(GapFoil,top_m)<<" size="<<sizeof(((GapFoil*)nullptr)->top_m)<<"\n";
+static_assert(std::is_standard_layout_v<GapPicOptions>);
+static_assert(std::is_trivially_copyable_v<GapPicOptions>);
+std::cout<<"GapPicOptions size="<<sizeof(GapPicOptions)<<" align="<<alignof(GapPicOptions)<<"\n";
+std::cout<<"GapPicOptions.nx offset="<<offsetof(GapPicOptions,nx)<<" size="<<sizeof(((GapPicOptions*)nullptr)->nx)<<"\n";
+std::cout<<"GapPicOptions.ny offset="<<offsetof(GapPicOptions,ny)<<" size="<<sizeof(((GapPicOptions*)nullptr)->ny)<<"\n";
+std::cout<<"GapPicOptions.width_m offset="<<offsetof(GapPicOptions,width_m)<<" size="<<sizeof(((GapPicOptions*)nullptr)->width_m)<<"\n";
+std::cout<<"GapPicOptions.gap_m offset="<<offsetof(GapPicOptions,gap_m)<<" size="<<sizeof(((GapPicOptions*)nullptr)->gap_m)<<"\n";
+std::cout<<"GapPicOptions.depth_m offset="<<offsetof(GapPicOptions,depth_m)<<" size="<<sizeof(((GapPicOptions*)nullptr)->depth_m)<<"\n";
+std::cout<<"GapPicOptions.lower_potential_V offset="<<offsetof(GapPicOptions,lower_potential_V)<<" size="<<sizeof(((GapPicOptions*)nullptr)->lower_potential_V)<<"\n";
+std::cout<<"GapPicOptions.upper_potential_V offset="<<offsetof(GapPicOptions,upper_potential_V)<<" size="<<sizeof(((GapPicOptions*)nullptr)->upper_potential_V)<<"\n";
+std::cout<<"GapPicOptions.magnetic_field_T offset="<<offsetof(GapPicOptions,magnetic_field_T)<<" size="<<sizeof(((GapPicOptions*)nullptr)->magnetic_field_T)<<"\n";
+std::cout<<"GapPicOptions.distributed_fields offset="<<offsetof(GapPicOptions,distributed_fields)<<" size="<<sizeof(((GapPicOptions*)nullptr)->distributed_fields)<<"\n";
+std::cout<<"GapPicOptions.finite_foils offset="<<offsetof(GapPicOptions,finite_foils)<<" size="<<sizeof(((GapPicOptions*)nullptr)->finite_foils)<<"\n";
+std::cout<<"GapPicOptions.lower_foil offset="<<offsetof(GapPicOptions,lower_foil)<<" size="<<sizeof(((GapPicOptions*)nullptr)->lower_foil)<<"\n";
+std::cout<<"GapPicOptions.upper_foil offset="<<offsetof(GapPicOptions,upper_foil)<<" size="<<sizeof(((GapPicOptions*)nullptr)->upper_foil)<<"\n";
+std::cout<<"GapPicOptions.finite_axial_extent offset="<<offsetof(GapPicOptions,finite_axial_extent)<<" size="<<sizeof(((GapPicOptions*)nullptr)->finite_axial_extent)<<"\n";
+std::cout<<"GapPicOptions.short_z_m offset="<<offsetof(GapPicOptions,short_z_m)<<" size="<<sizeof(((GapPicOptions*)nullptr)->short_z_m)<<"\n";
+std::cout<<"GapPicOptions.feed_z_m offset="<<offsetof(GapPicOptions,feed_z_m)<<" size="<<sizeof(((GapPicOptions*)nullptr)->feed_z_m)<<"\n";
+static_assert(std::is_standard_layout_v<GapPicDiagnostics>);
+static_assert(std::is_trivially_copyable_v<GapPicDiagnostics>);
+std::cout<<"GapPicDiagnostics size="<<sizeof(GapPicDiagnostics)<<" align="<<alignof(GapPicDiagnostics)<<"\n";
+std::cout<<"GapPicDiagnostics.time_s offset="<<offsetof(GapPicDiagnostics,time_s)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->time_s)<<"\n";
+std::cout<<"GapPicDiagnostics.particle_charge_C offset="<<offsetof(GapPicDiagnostics,particle_charge_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->particle_charge_C)<<"\n";
+std::cout<<"GapPicDiagnostics.deposited_charge_C offset="<<offsetof(GapPicDiagnostics,deposited_charge_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->deposited_charge_C)<<"\n";
+std::cout<<"GapPicDiagnostics.lower_field_charge_C offset="<<offsetof(GapPicDiagnostics,lower_field_charge_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->lower_field_charge_C)<<"\n";
+std::cout<<"GapPicDiagnostics.upper_field_charge_C offset="<<offsetof(GapPicDiagnostics,upper_field_charge_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->upper_field_charge_C)<<"\n";
+std::cout<<"GapPicDiagnostics.gauss_defect_C offset="<<offsetof(GapPicDiagnostics,gauss_defect_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->gauss_defect_C)<<"\n";
+std::cout<<"GapPicDiagnostics.particle_charge_defect_C offset="<<offsetof(GapPicDiagnostics,particle_charge_defect_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->particle_charge_defect_C)<<"\n";
+std::cout<<"GapPicDiagnostics.field_energy_J offset="<<offsetof(GapPicDiagnostics,field_energy_J)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->field_energy_J)<<"\n";
+std::cout<<"GapPicDiagnostics.particle_kinetic_energy_J offset="<<offsetof(GapPicDiagnostics,particle_kinetic_energy_J)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->particle_kinetic_energy_J)<<"\n";
+std::cout<<"GapPicDiagnostics.lower_absorbed_charge_C offset="<<offsetof(GapPicDiagnostics,lower_absorbed_charge_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->lower_absorbed_charge_C)<<"\n";
+std::cout<<"GapPicDiagnostics.upper_absorbed_charge_C offset="<<offsetof(GapPicDiagnostics,upper_absorbed_charge_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->upper_absorbed_charge_C)<<"\n";
+std::cout<<"GapPicDiagnostics.lower_absorbed_energy_J offset="<<offsetof(GapPicDiagnostics,lower_absorbed_energy_J)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->lower_absorbed_energy_J)<<"\n";
+std::cout<<"GapPicDiagnostics.upper_absorbed_energy_J offset="<<offsetof(GapPicDiagnostics,upper_absorbed_energy_J)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->upper_absorbed_energy_J)<<"\n";
+std::cout<<"GapPicDiagnostics.lower_injected_charge_C offset="<<offsetof(GapPicDiagnostics,lower_injected_charge_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->lower_injected_charge_C)<<"\n";
+std::cout<<"GapPicDiagnostics.upper_injected_charge_C offset="<<offsetof(GapPicDiagnostics,upper_injected_charge_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->upper_injected_charge_C)<<"\n";
+std::cout<<"GapPicDiagnostics.injected_energy_J offset="<<offsetof(GapPicDiagnostics,injected_energy_J)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->injected_energy_J)<<"\n";
+std::cout<<"GapPicDiagnostics.authored_charge_C offset="<<offsetof(GapPicDiagnostics,authored_charge_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->authored_charge_C)<<"\n";
+std::cout<<"GapPicDiagnostics.authored_kinetic_energy_J offset="<<offsetof(GapPicDiagnostics,authored_kinetic_energy_J)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->authored_kinetic_energy_J)<<"\n";
+std::cout<<"GapPicDiagnostics.maximum_nodal_continuity_defect_C offset="<<offsetof(GapPicDiagnostics,maximum_nodal_continuity_defect_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->maximum_nodal_continuity_defect_C)<<"\n";
+std::cout<<"GapPicDiagnostics.escaped_charge_C offset="<<offsetof(GapPicDiagnostics,escaped_charge_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->escaped_charge_C)<<"\n";
+std::cout<<"GapPicDiagnostics.escaped_kinetic_energy_J offset="<<offsetof(GapPicDiagnostics,escaped_kinetic_energy_J)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->escaped_kinetic_energy_J)<<"\n";
+std::cout<<"GapPicDiagnostics.short_absorbed_charge_C offset="<<offsetof(GapPicDiagnostics,short_absorbed_charge_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->short_absorbed_charge_C)<<"\n";
+std::cout<<"GapPicDiagnostics.short_absorbed_energy_J offset="<<offsetof(GapPicDiagnostics,short_absorbed_energy_J)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->short_absorbed_energy_J)<<"\n";
+std::cout<<"GapPicDiagnostics.axial_escaped_charge_C offset="<<offsetof(GapPicDiagnostics,axial_escaped_charge_C)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->axial_escaped_charge_C)<<"\n";
+std::cout<<"GapPicDiagnostics.poisson_residual_C_per_m offset="<<offsetof(GapPicDiagnostics,poisson_residual_C_per_m)<<" size="<<sizeof(((GapPicDiagnostics*)nullptr)->poisson_residual_C_per_m)<<"\n";
+}

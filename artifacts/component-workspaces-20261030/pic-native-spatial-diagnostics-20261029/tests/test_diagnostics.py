@@ -1,0 +1,25 @@
+import sys,pathlib,copy,math
+P=pathlib.Path(__file__).resolve().parents[1];sys.path.insert(0,str(P/'source'))
+from diagnostics import *
+ME=9.1093837139e-31
+def row(nid,state,m,q,w,z,E):
+ u=C*math.sqrt((E*QE/(m*C*C))*(E*QE/(m*C*C)+2))
+ return dict(packet_id='p'+str(nid),state=state,native=dict(id=nid,position_m=[.0001,.005,z],proper_velocity_m_s=[u,0,0],mass_kg=m,charge_C=q,weight=w))
+def fixture():return dict(schema='native_spatial_diagnostics_input/v1',state_prefix='a'*64,time_s=0.,maximum_entries=10,states=[dict(id='electron',mass_kg=ME,charge_e=-1),dict(id='ion',mass_kg=3e-26,charge_e=1)],entries=[row(1,'electron',ME,-QE,1,.0005,1),row(2,'electron',ME,-QE,1,.005,5),row(3,'ion',3e-26,QE,2,.005,2)],geometry=dict(xs_m=[0,.01],ys_m=[0,.01],zs_m=[0,.01]),observation_slab_m=[0,.001],energy_edges_eV=[0,2,10],surfaces=[dict(id='face',axis=0,normal_sign=1,plane_m=0,bounds_m=[0,0,0,.01,0,.01],vacuum_band_m=.001)])
+def reject(fn):
+ try:fn()
+ except (ValueError,KeyError):return
+ raise AssertionError('Invalid diagnostic input accepted')
+def main():
+ tests=[];d=fixture();r=diagnose(d);e=next(x for x in r['species_cell_densities'] if x['state']=='electron');assert math.isclose(e['density_cm3'],2) and math.isclose(e['observation']['density_cm3'],10);assert r['net_charge_C']==0 and r['net_charge_cells'][0]['net_charge_density_C_cm3']==0;tests.append('Physical3D versus observation-slab volume and separate signed net charge')
+ assert r['sink_diagnostics']['actual_current_A'] is None and r['surface_geometry_and_flux'][0]['snapshot_outward_flux_m2_s']>0;tests.append('Snapshot flux estimator never invents actual crossing current/returns')
+ d=fixture();d['entries'].append(row(4,'electron',ME,-QE,1,.005,20));r=diagnose(d);h=r['energy_distributions']['electron'];assert h['overflow_count']['rounded']==1 and sum(x['rounded'] for x in h['bin_counts'])==2 and math.isclose(sum(pdf*(b-a) for pdf,a,b in zip(h['ensemble_EEDF_per_eV'],d['energy_edges_eV'],d['energy_edges_eV'][1:])),2/3);tests.append('EEDF includes overflow in denominator; no in-range renormalization')
+ d=fixture();d['entries']=[row(1,'electron',ME,-QE,2**53-1,.005,1),row(2,'electron',ME,-QE,.5,.005,1)];d['entries'][1]['packet_id']='p1';d['canonical_packets']={'p1':dict(state='electron',native_ids=[1,2],count=dict(hi=float(2**53),lo=-.5))};r=diagnose(d);assert Fraction(int(r['species_counts']['electron']['numerator']),int(r['species_counts']['electron']['denominator']))==Fraction(2**53)-Fraction(1,2);tests.append('Compensated canonical Count exactly matches positive carriers')
+ d['entries'][1]['native']['position_m'][0]=.002;reject(lambda:diagnose(d));d['entries'][1]['native']['position_m'][0]=.0001;d['canonical_packets']['p1']['count']['lo']=0;reject(lambda:diagnose(d));d=fixture();d['entries'][1]['native']['id']=1;reject(lambda:diagnose(d));d=fixture();d['entries'][0]['native']['weight']=float('nan');reject(lambda:diagnose(d));tests.append('Inconsistent canonical kinematics, wrong Count, duplicate identity and nonfinite data fail closed')
+ d=fixture();d['entries'][0]['native']['position_m'][0]=-.01;r=diagnose(d);assert r['outside_diagnostic_grid_counts']['electron']['rounded']==1;tests.append('Outside-grid positive weight is counted and never clamped')
+ d=fixture();d['sinks']=[dict(receipt_id='sink/1',state='electron',sink='upper_foil',origin='source',time_s=.5,count=dict(hi=1.,lo=0.),incident_K_J=QE)];d['sink_time_window_s']=[0,1];r=diagnose(d);s=r['sink_diagnostics']['rows'][0];assert s['actual_current_A']==-QE and s['unknown_return_origin_count']['rounded']==1;d['origin_electrode_bindings']={'source':dict(electrode='upper_foil',provenance_sha256='b'*64)};s=diagnose(d)['sink_diagnostics']['rows'][0];assert s['returned_to_verified_origin_electrode_count']['rounded']==1;tests.append('Actual sink current and explicit origin-bound return classification')
+ d=fixture();d['entries'][0]['native']['weight']=float.fromhex('0x0.0000000000001p-1022');r=diagnose(d);h=r['energy_distributions']['electron'];assert h['exact_weighted_kinetic_receipt']['numerator']!='0';assert count(Fraction(1,2**1100))['positive_below_double'] and number(Fraction(1,2**1100)) is None;tests.append('Subnormal positive weights and sub-double products retain exact receipts; no false zero')
+ d=fixture();d['sinks']=[dict(receipt_id='bad',state='electron',sink='upper_foil',origin='source',time_s=.5,count=dict(hi=1.,lo=1.),incident_K_J=QE)];reject(lambda:diagnose(d));d=fixture();d['surfaces'][0]['bounds_m'][1]=.001;reject(lambda:diagnose(d));tests.append('Malformed canonical sink Count and nonplanar surface reject')
+ d=fixture();d['states'][1]['charge_e']=3;d['entries'][2]['native']['charge_C']=3*QE;r=diagnose(d);charge=sum((Fraction(x['native']['weight'])*Fraction(x['native']['charge_C']) for x in d['entries']),Fraction());assert Fraction(int(r['exact_native_charge_C']['numerator']),int(r['exact_native_charge_C']['denominator']))==charge;tests.append('Signed net charge follows actual native binary-double q operands, including multicharged states')
+ print('\n'.join(tests));return tests
+if __name__=='__main__':main()

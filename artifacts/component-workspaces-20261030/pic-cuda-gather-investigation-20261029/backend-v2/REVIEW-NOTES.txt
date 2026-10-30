@@ -1,0 +1,80 @@
+BACKEND V2 — FRESH REVIEW REQUIRED, GPU HOLD CONTINUES
+
+This revision lives only in backend-v2/source and backend-v2/build. Published
+v1 source, executable, library, ready/request receipts, capture and fixture
+inputs, force core and PTX remain unchanged. evidence-preservation.json records
+all checked hashes. No new READY marker or GPU command has been published.
+
+F1: static upload ordering
+set_snapshot marks static DMA in flight, performs the existing pageable uploads,
+then checks cuCtxSynchronize BEFORE clearing that state or publishing metadata.
+This occurs at setup/explicit refresh, never per particle or normal force step.
+A failure closes/poisons the backend without publishing a new snapshot. The
+resource owner knows that a context drain is needed before static buffers can
+be released on that path. The underlying CUDA contract is documented at:
+https://docs.nvidia.com/cuda/archive/12.8.1/cuda-driver-api/api-sync-behavior.html
+
+F2: asynchronous lifetime and cleanup errors
+One Resources owner outlives every submitted operation's buffers, module and
+events. It closes on evaluate/refresh errors, normal explicit close, destructor,
+and partial Impl-constructor unwind. While the correct context is current, it
+attempts cuStreamSynchronize BEFORE destroying events/stream/module or freeing
+pinned/device storage. A failed stream drain or pending static DMA triggers a
+context-wide drain attempt. Original exceptions are rethrown unchanged.
+
+If completion/context cannot be established, it does not free possibly-live
+resources. It retains those allocations and its own primary-context reference,
+records the failure, and requires the isolated candidate process to abort.
+This intentional quarantine can leak until process/context-owner cleanup; it
+avoids use-after-free. There is no reset/destroy of a borrowed/shared context.
+Every failed cleanup API is kept in a fixed-capacity, allocation-free report
+owned by the caller, or printed to stderr when no external sink was supplied.
+Cleanup does not throw or replace the original operation error. Release failures
+are retained/reported too, rather than converted to a success claim.
+
+No extra per-step drain was added to successful evaluate. Its existing final
+event remains the batch completion boundary. The new stream drain is shutdown
+or error cleanup; the context fence is setup/refresh or error fallback. CUDA
+stream lifetime contract:
+https://docs.nvidia.com/cuda/archive/12.8.1/cuda-driver-api/group__CUDA__STREAM.html
+
+Context contract
+Default ContextPolicy::RequireCurrentSharedPrimary requires cuDSS-first setup:
+there must already be a current context equal to device0's shared primary. It
+retains and later releases only its own reference. It never creates a private
+fallback and never resets/destroys a shared context. ContextPolicy::StandalonePrimary
+is explicit API opt-in, only with no current context; the standalone CLI also
+requires --standalone-primary. That path balances its retain/push/drain/pop/release.
+
+A lost/wrong current context fails before force dispatch. Cleanup can temporarily
+push the captured primary to drain/release the backend's resources, then restores
+the caller's context. If activation fails, it quarantines rather than releasing
+under an unrelated context. Wrong-thread cleanup is reported and quarantined.
+Primary-context contract:
+https://docs.nvidia.com/cuda/archive/12.8.1/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
+
+CPU evidence
+27 link-time driver-mock cases passed on CPU6/nice15/testing-core.lock. The mock
+has no libcuda dependency and supplies all Driver API operations itself. It
+intentionally delays pageable default-stream copies and makes stream destruction
+nonblocking, so the old implicit-order assumptions cannot satisfy these tests.
+It executes the shared force arithmetic on CPU only; this is NOT GPU evidence.
+Tests cover static ordering and refresh; no normal-step context fence/allocation;
+failures after both H2D submissions, kernel, D2H, event records/sync/timing; invalid
+status; static-fence failure; partial construction; failed stream/context drain;
+failed cleanup context activation; failed free/primary release; original-error
+preservation; absent/wrong shared context; explicit standalone lifetime; lost/wrong
+current context; atomic mutation-before-commit rejection and discard/commit.
+Pre-CUDA resource tests and the actual46,726-particle CPU arithmetic check still
+pass with zero E/B/u component or weighted error. force core, numerical gates,
+shape/schema source and original checkpoint ABI evidence were not changed.
+
+Next parent gate after independent fresh review
+Only after review accepts this exact revision: prepare a bounded real GPU
+solve -> borrowed force -> solve -> force close/destruction -> solve probe.
+Verify context identity, solver residual guards and saved force reference gates,
+plus wrong/lost-context failure and caller-context restoration. Also inspect the
+new cleanup report; any retained resource/error disqualifies that candidate.
+An explicit standalone test is separate. Evolving native-frame/voltage refresh
+and offloaded full-step integration remain later, separately reviewed work.
+No production restart, deployment, source/deposition offload or speedup claim.

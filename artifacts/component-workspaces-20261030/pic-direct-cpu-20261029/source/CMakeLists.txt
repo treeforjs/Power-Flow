@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.24)
+project(PicCpuDirectReference LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+find_package(MFEM 4.10 CONFIG REQUIRED)
+find_package(Eigen3 5.0.1 EXACT CONFIG REQUIRED)
+add_executable(direct_cpu_reference reference.cpp)
+target_compile_definitions(direct_cpu_reference PRIVATE EIGEN_DONT_PARALLELIZE)
+target_link_libraries(direct_cpu_reference PRIVATE mfem Eigen3::Eigen)

@@ -1,0 +1,94 @@
+{
+  "status": "CPU_actual_midpoint_costs_measured_GPU_v2_remains_review_hold",
+  "particles": 46726,
+  "CPU_affinity": 6,
+  "nice": 15,
+  "warmups": 3,
+  "repetitions": 21,
+  "all_EBu_buffers_bitwise_equal": true,
+  "all_original_qualification_gates_preserved": true,
+  "matched_CPU6_stats_ms": {
+    "native_force_update": {
+      "median": 20.044271,
+      "mean": 20.577533904761903,
+      "min": 19.654023,
+      "max": 25.177874,
+      "p10": 19.740193,
+      "p90": 22.099175
+    },
+    "native_reference_generate_EBu": {
+      "median": 20.055332,
+      "mean": 21.942825,
+      "min": 19.716953,
+      "max": 32.772929,
+      "p10": 19.762182,
+      "p90": 25.967521
+    },
+    "shared_core_prepacked_EBu": {
+      "median": 6.797467,
+      "mean": 6.895984952380952,
+      "min": 6.621357,
+      "max": 8.110062,
+      "p10": 6.628027,
+      "p90": 7.249155
+    },
+    "pack_plus_shared_core_EBu": {
+      "median": 6.745367,
+      "mean": 6.868967142857143,
+      "min": 6.678217,
+      "max": 8.556771,
+      "p10": 6.696628,
+      "p90": 6.894157
+    },
+    "independent_reference_gate": {
+      "median": 1.307196,
+      "mean": 1.3475519523809523,
+      "min": 1.297776,
+      "max": 1.865664,
+      "p10": 1.299165,
+      "p90": 1.421165
+    },
+    "transactional_velocity_commit": {
+      "median": 0.180869,
+      "mean": 0.1837927619047619,
+      "min": 0.147269,
+      "max": 0.2533,
+      "p10": 0.156429,
+      "p90": 0.214539
+    },
+    "complete_reference_gated_CPU_force_pipeline": {
+      "median": 28.284304,
+      "mean": 30.160662904761903,
+      "min": 28.036934,
+      "max": 41.184489,
+      "p10": 28.125574,
+      "p90": 34.756561
+    }
+  },
+  "existing_native_application_CPU7": {
+    "scope": "210 evolving late-replay steps, not the fixed CPU6 microfixture",
+    "mean_force_phase_ms": 23.421427661904755,
+    "median_force_phase_ms": 22.7018415,
+    "mean_whole_step_ms": 55.17157489999998,
+    "source": "<workspace>/outputs/pic-profile/phase-cpu-v2-late-cpu7/phase_profile.json"
+  },
+  "matched_arithmetic_fusion_ratio": 2.9715612212056066,
+  "CPU_shared_complete_reference_gated_pipeline_measured_median_ms": 28.284304,
+  "GPU_current_API": {
+    "measured_on_actual_fixture": false,
+    "total_formula": "fresh independent native CPU reference generation + GPU API (packing/H2D/kernel/D2H/sync/finite+componentwise+weighted validation) + transactional commit",
+    "reference_generation_CPU6_median_ms": 20.055332,
+    "warning": "Do not add an unrelated synthetic29,537 GPU measurement or sum different-CPU medians and call it measured end-to-end. Fresh reference generation must be timed within the same future GPU benchmark iteration.",
+    "prepared_benchmark_source": "/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/backend-v2/host-timing/reference_inclusive_gpu_timing.cpp",
+    "execution_status": "HOLD until fresh backend-v2 review; no GPU request/ready marker issued"
+  },
+  "interpretation": [
+    "Shared CPU fusion alone materially lowers this fixed-midpoint arithmetic cost. This is not an integrated application speedup.",
+    "With the current mandatory independent-reference API, either fused-CPU or GPU qualification must also pay the original native reference generation; the measured full gated CPU pipeline is slower than native force alone.",
+    "The current reference-gated GPU total is its fresh reference plus positive GPU/API/commit overhead. A fast GPU kernel alone cannot establish application gain.",
+    "Any future reference policy change or application CPU fallback integration must be explicit and separately qualified; no prototype gate was dropped.",
+    "Native CPU6 is a source-equivalent reconstructed MFEM/callback/Boris probe, not the exact production binary phase. The actual CPU7 application phase remains a separate23.4ms baseline.",
+    "All cases use true captured self phi/unit psi and exact native selected frames/fraction/voltage. Field setup, file IO, resetting the fixed input and post-variant golden checks are excluded; per-pipeline required gates are charged.",
+    "Prepacked and AoS-pack+shared medians differ by less than1%; do not infer negative packing cost by subtraction."
+  ]
+}

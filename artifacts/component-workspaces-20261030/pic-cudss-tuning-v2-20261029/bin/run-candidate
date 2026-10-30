@@ -1,0 +1,9 @@
+#!/bin/bash
+set -euo pipefail
+prefix=/home/treefor/projects/runtimes/pic-cudss-tuning-v2-20261029
+cuda=/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia
+exec /home/treefor/projects/runtimes/arch-base-20261028/run-frozen \
+  /usr/bin/env RAIKOU_PIC_FIELD_BACKEND=cudss \
+  OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 BLIS_NUM_THREADS=1 \
+  LD_LIBRARY_PATH="$cuda/cu12/lib:$cuda/cublas/lib:$cuda/cuda_runtime/lib" \
+  "$prefix/build/heating_history_pic_gpu" "$@"

@@ -1,0 +1,77 @@
+--- /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/source/src/bench_profile.hpp
++++ /home/treefor/projects/runtimes/pic-rhs-observer-20261029/source/src/bench_profile.hpp
+@@ -26,3 +26,4 @@
+  f<<"\n}\n";
+ }
+ }
++#include "rhs_observer.hpp" // RHS_OBSERVATION
+--- /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/source/src/mfem_gap_pic.cpp
++++ /home/treefor/projects/runtimes/pic-rhs-observer-20261029/source/src/mfem_gap_pic.cpp
+@@ -360,9 +360,11 @@
+     auto& full_matrix=*poisson_->full_matrix;
+     mfem::OperatorPtr matrix;
+     mfem::Vector x,b;
++    const auto observed_call=rhs_observer::before_form(trial.GetData(),full_rhs.GetData(),trial.Size(),essential.GetData(),essential.Size(),reinterpret_cast<std::uintptr_t>(poisson_.get())); // RHS_OBSERVATION
+     form.FormLinearSystem(essential,trial,rhs,matrix,x,b);
+     auto* sparse=dynamic_cast<mfem::SparseMatrix*>(matrix.Ptr());
+     if (!sparse) throw std::runtime_error("Gap PIC expected sparse Poisson matrix");
++    rhs_observer::after_form(observed_call,sparse->GetI(),sparse->GetJ(),sparse->GetData(),sparse->Height(),sparse->GetI()[sparse->Height()],x.GetData(),b.GetData(),reinterpret_cast<std::uintptr_t>(sparse)); // RHS_OBSERVATION
+ #ifdef MFEM_USE_MPI
+     if(options_.distributed_fields) {
+         if(!poisson_->distributed){poisson_->distributed=std::make_unique<raikou_pic_parallel::LinearSystem>(*sparse);poisson_->address=sparse;}
+@@ -551,11 +553,14 @@
+  pic_bench::Timer timer("advance_total");
+     if (!std::isfinite(dt) || dt<=0 || !std::isfinite(ledger_.time_s+dt))
+         throw std::invalid_argument("Gap PIC advance requires positive finite dt");
++    rhs_observer::AdvanceScope observed_advance(!particles_.empty(),particles_.size(),ledger_.time_s,dt,options_.lower_potential_V,options_.upper_potential_V); // RHS_OBSERVATION
+     std::fill(horizontal_transfers_.begin(),horizontal_transfers_.end(),0);
+     std::fill(vertical_transfers_.begin(),vertical_transfers_.end(),0);
+     // Midpoint position splitting; full-time velocities. Absorption is resolved
+     // at each half drift. Wall interaction timing must be checked by refinement.
+-    drift(.5*dt); solve_fields();
++    drift(.5*dt);
++    rhs_observer::set_half(1); // RHS_OBSERVATION
++    solve_fields();
+     for (auto& p : particles_) {
+         auto E=electric_field(p.position_m[0],p.position_m[1]);
+         auto B=options_.magnetic_field_T;
+@@ -570,7 +575,9 @@
+         if(external_magnetic_) B=external_magnetic_(p.position_m[0],p.position_m[1],ledger_.time_s+.5*dt);
+         p.proper_velocity_m_s=pic_boris(p.proper_velocity_m_s,p.charge_C/p.mass_kg,E,B,dt);
+     }
+-    drift(.5*dt); solve_fields();
++    drift(.5*dt);
++    rhs_observer::set_half(2); // RHS_OBSERVATION
++    solve_fields();
+     ledger_.time_s+=dt;
+ }
+ 
+--- /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/source/src/mfem_pic_distributed.hpp
++++ /home/treefor/projects/runtimes/pic-rhs-observer-20261029/source/src/mfem_pic_distributed.hpp
+@@ -133,5 +133,6 @@
+       if(distributed)iterations=std::max(iterations,distributed->iterations);residual=std::max(residual,relative);
+  if(cuda)MFEM_VERIFY(last_residual_norm<=std::max(1e-30,2e-13*norm),"CUDA Poisson residual guard failed");
+       MFEM_VERIFY(std::isfinite(residual),"Nonfinite solver residual");
++      rhs_observer::accepted(rhs.GetData(),answer.GetData(),error.GetData(),rhs.Size(),last_residual_norm,norm,id,reinterpret_cast<std::uintptr_t>(this)); // RHS_OBSERVATION
+    }
+ };
+--- /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/source/examples/mfem_heating_history_pic.cpp
++++ /home/treefor/projects/runtimes/pic-rhs-observer-20261029/source/examples/mfem_heating_history_pic.cpp
+@@ -204,6 +204,7 @@
+                 pic.inject_surface_profile(GapElectrode::Lower,side,temp,J,pool.span,32,1000000ULL*step+f*100+50);
+                 std::fill(pool.integral.begin(),pool.integral.end(),0.);std::fill(pool.weighted_temperature.begin(),pool.weighted_temperature.end(),0.);pool.span=0;injected=true;
+             }
++            rhs_observer::driver_step(step+1,t,dt); // RHS_OBSERVATION
+             if(!injected && pic.particles().empty())pic.advance_empty(dt);else pic.advance(dt);++step;
+             auto d=pic.diagnostics();
+             if(!std::isfinite(d.gauss_defect_C) || !std::isfinite(d.particle_charge_defect_C) || pic.particles().size()>2000000)throw std::runtime_error("Nonfinite PIC ledger or two-million-particle resource guard; last checkpoint preserved");
+@@ -211,6 +212,8 @@
+             if(std::chrono::duration<double>(clock()-reported).count()>10)progress(false);
+             if(std::chrono::duration<double>(clock()-saved).count()>60)save();
+         }
+-        snapshot(pic,out,next_frame,end);save();progress(true);pic_bench::write((out/"benchmark_profile.json").string());pic_bench::resources((out/"process_resources.json").string());unit_bias.release_field_solver();pic.release_field_solver();pic_parallel_finish();pic_parallel_record(out.string());
++        snapshot(pic,out,next_frame,end);save();progress(true);pic_bench::write((out/"benchmark_profile.json").string());pic_bench::resources((out/"process_resources.json").string());
++        rhs_observer::finish(); // RHS_OBSERVATION
++        unit_bias.release_field_solver();pic.release_field_solver();pic_parallel_finish();pic_parallel_record(out.string());
+     }catch(const std::exception& e){std::cerr<<e.what()<<'\n';MPI_Abort(MPI_COMM_WORLD,1);return 1;}
+ }

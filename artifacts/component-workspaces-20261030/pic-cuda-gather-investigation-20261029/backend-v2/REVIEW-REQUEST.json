@@ -1,0 +1,20 @@
+{
+  "status": "awaiting_fresh_independent_review_NOT_GPU_READY",
+  "revision": "/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/backend-v2",
+  "source_hashes": "/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/backend-v2/source-sha256.json",
+  "changes": "/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/backend-v2/changes-from-v1.patch",
+  "mock_results": "/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/backend-v2/cpu-driver-mock-tests.json",
+  "CPU_logs": "/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/backend-v2/cpu-final-checks.log",
+  "preservation": "/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/backend-v2/evidence-preservation.json",
+  "source_hashes_count": 20,
+  "backend_executable_sha256": "b2831168128b5d09156c7d03030ba2cd60cd36c6038949edac2f5a2c4c10338a",
+  "mock_executable_sha256": "769fdc0164e35bb58ea76d8a6bccc45388a39b2f1b5ac5ad725c21338bdf5f21",
+  "F1_fix": "Checked cuCtxSynchronize before static metadata publication, on setup and refresh only. Static inflight state retained on failure.",
+  "F2_fix": "One completion-aware resource owner handles explicit close, destructor, constructor unwind and evaluate/refresh errors. Drain owned stream before release; context-sync fallback; preserve original error and fixed-capacity caller-owned cleanup report. Quarantine live resources/reference if completion/context cannot be established.",
+  "context_contract": "Default requires cuDSS-first CURRENT DEVICE0 SHARED PRIMARY, retains/releases only its own reference; no private fallback or reset/destroy. StandalonePrimary is explicit API/CLI opt-in. Cleanup temporarily establishes required context and restores caller context.",
+  "review_gate": "No new READY or GPU request until fresh independent review accepts fixes. Parent owns GPU/lifecycle tests.",
+  "following_parent_GPU_gate": "After review, bounded solve->force->solve->force close->solve, wrong/lost context and explicit standalone lifetime; then separately reviewed evolving full-step integration.",
+  "numerical_guards_changed": false,
+  "production_resume_authorized": false,
+  "created_unix_s": 1793318676.4314013
+}

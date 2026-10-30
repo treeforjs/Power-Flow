@@ -1,0 +1,623 @@
+{
+  "passed": true,
+  "audit_checks": 121,
+  "GPU_executed_by_auditor": false,
+  "production_actions": false,
+  "receipt_hashes": {
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/PARENT-CONTINUATION.json": "7eeaab9c846e01cd58f009e7f4581d80723e223bc3cad54c350ab6ebf4237c2b",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/PARENT-DISPATCH.json": "5b7d588b15c14493ec455ef2c56aa046042344983a4ede3844769b6d67c84c11",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/continuation-verifier.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/continuation-verifier.stdout": "d112354244adbfc3e5f4a78a144cfa58c8a30757ac4012d8349cb1689e7ee7e1",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/explicit-standalone/host-guard.json": "49230a28ddb1abacb023728ecddd30cc49c3c91e2c5da403dd3497f90f5cab81",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/explicit-standalone/lifecycle.json": "6d5f0af57f77c0f138a55d775b4992ba02015b50844c3a6a2b2f962ababd5870",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/explicit-standalone/preflight.json": "ff51d4e2474f6e0762d9fadc7f33876658c359b1c5fb176ef0f92891581c0c78",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/explicit-standalone/standalone_force1-comparison.json": "b0fd89df85cb9af8e6c8f669f6448ccfe7b03adae72a498fdf5de34daaf754e3",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/explicit-standalone/standalone_force1-device.bin": "7df823d9a41187650f5852d48af7d1f421ed083b441cc73512018cbf7aedc113",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/explicit-standalone/standalone_force2-comparison.json": "b0fd89df85cb9af8e6c8f669f6448ccfe7b03adae72a498fdf5de34daaf754e3",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/explicit-standalone/standalone_force2-device.bin": "7df823d9a41187650f5852d48af7d1f421ed083b441cc73512018cbf7aedc113",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/explicit-standalone.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/explicit-standalone.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/reference-inclusive-timing/cleanup.json": "30a5a7026f1df9bdb9c8b1089fd22e618f34c4b9702e7df1bdec7a977de6c126",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/reference-inclusive-timing/comparison.json": "b0fd89df85cb9af8e6c8f669f6448ccfe7b03adae72a498fdf5de34daaf754e3",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/reference-inclusive-timing/device.bin": "7df823d9a41187650f5852d48af7d1f421ed083b441cc73512018cbf7aedc113",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/reference-inclusive-timing/host-guard.json": "1ac9a312b3753e75b828eff571b113af76a80767557831b201cf9bc338534bfa",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/reference-inclusive-timing/preflight.json": "94b289ed222dd3bf922ebb8a6caf43861f48c45ac11e59388a9de82f4d9b3a0b",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/reference-inclusive-timing/reference-inclusive-timing.json": "78bf2cc0eeceba9e38969049b4b0b36c60c6a866b8bb3b1a0a3dd63fcfdb33f5",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/reference-inclusive-timing.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/reference-inclusive-timing.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/shared-lifecycle/force1-comparison.json": "b0fd89df85cb9af8e6c8f669f6448ccfe7b03adae72a498fdf5de34daaf754e3",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/shared-lifecycle/force1-device.bin": "7df823d9a41187650f5852d48af7d1f421ed083b441cc73512018cbf7aedc113",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/shared-lifecycle/force2-comparison.json": "b0fd89df85cb9af8e6c8f669f6448ccfe7b03adae72a498fdf5de34daaf754e3",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/shared-lifecycle/force2-device.bin": "7df823d9a41187650f5852d48af7d1f421ed083b441cc73512018cbf7aedc113",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/shared-lifecycle/host-guard.json": "2b1c17c6f382981f31c4135e4685d159ec0e638ef7a1388a8e6ad4f85a50376c",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/shared-lifecycle/lifecycle.json": "2b9f54703959008abacb1d8b05e7721e4f3c4a43e70921fcd985bd29536c70aa",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/shared-lifecycle/preflight.json": "0a1815aa4303acd4dc086c9a33155e403a77086c00f125e6ce09f840d57c0210",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/shared-lifecycle.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "<workspace>/outputs/pic-profile/cuda-gather-investigation/gpu-lifecycle-v2/shared-lifecycle.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "checks": [
+    {
+      "check": "fresh harness review accepted",
+      "passed": true
+    },
+    {
+      "check": "accepted artifact identity: artifact-sha256.json",
+      "passed": true
+    },
+    {
+      "check": "accepted artifact identity: REVIEW-REQUEST.json",
+      "passed": true
+    },
+    {
+      "check": "accepted artifact identity: parent-gpu-request.json",
+      "passed": true
+    },
+    {
+      "check": "accepted artifact identity: force_lifecycle",
+      "passed": true
+    },
+    {
+      "check": "all 42 reviewed artifacts/dependencies unchanged",
+      "passed": true
+    },
+    {
+      "check": "all v1 evidence unchanged",
+      "passed": true
+    },
+    {
+      "check": "actual fixture evidence unchanged",
+      "passed": true
+    },
+    {
+      "check": "accepted v2 core source unchanged",
+      "passed": true
+    },
+    {
+      "check": "parent dispatch bound to accepted bundle",
+      "passed": true
+    },
+    {
+      "check": "three serial processes returned0 within bounds",
+      "passed": true
+    },
+    {
+      "check": "parent kept resume/integration unauthorized",
+      "passed": true
+    },
+    {
+      "check": "continuation follows original shared dispatch; no shared rerun required",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle exact reviewed child argv",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle CPU/hold/exit guard",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle before stopped/frozen identity",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle before retained pidfd",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle after stopped/frozen identity",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle after retained pidfd",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle hold chronology",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle child requested live pre-CUDA guard",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle live child hold",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle preflight passed",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle preflight hold",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle namespace/executable boundary",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle no unexpected process output",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone exact reviewed child argv",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone CPU/hold/exit guard",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone before stopped/frozen identity",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone before retained pidfd",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone after stopped/frozen identity",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone after retained pidfd",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone hold chronology",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone child requested live pre-CUDA guard",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone live child hold",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone preflight passed",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone preflight hold",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone namespace/executable boundary",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone no unexpected process output",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing exact reviewed child argv",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing CPU/hold/exit guard",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing before stopped/frozen identity",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing before retained pidfd",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing after stopped/frozen identity",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing after retained pidfd",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing hold chronology",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing child requested live pre-CUDA guard",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing live child hold",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing preflight passed",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing preflight hold",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing namespace/executable boundary",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing no unexpected process output",
+      "passed": true
+    },
+    {
+      "check": "shared successful actual-midpoint scope",
+      "passed": true
+    },
+    {
+      "check": "shared no forbidden context operation",
+      "passed": true
+    },
+    {
+      "check": "shared cleanup shared",
+      "passed": true
+    },
+    {
+      "check": "shared cleanup wrong",
+      "passed": true
+    },
+    {
+      "check": "shared cleanup lost",
+      "passed": true
+    },
+    {
+      "check": "shared cleanup standalone (unused sink stays empty)",
+      "passed": true
+    },
+    {
+      "check": "standalone successful actual-midpoint scope",
+      "passed": true
+    },
+    {
+      "check": "standalone no forbidden context operation",
+      "passed": true
+    },
+    {
+      "check": "standalone cleanup shared (unused sink stays empty)",
+      "passed": true
+    },
+    {
+      "check": "standalone cleanup wrong (unused sink stays empty)",
+      "passed": true
+    },
+    {
+      "check": "standalone cleanup lost (unused sink stays empty)",
+      "passed": true
+    },
+    {
+      "check": "standalone cleanup standalone",
+      "passed": true
+    },
+    {
+      "check": "shared reference balance and negative-context outcomes",
+      "passed": true
+    },
+    {
+      "check": "exact shared solve/force/close/negative-probe sequence",
+      "passed": true
+    },
+    {
+      "check": "shared primary stays active",
+      "passed": true
+    },
+    {
+      "check": "shared identity around all solves/forces/normal close",
+      "passed": true
+    },
+    {
+      "check": "wrong_current_selected rejected before dispatch and caller restored",
+      "passed": true
+    },
+    {
+      "check": "lost_current_selected rejected before dispatch and caller restored",
+      "passed": true
+    },
+    {
+      "check": "distinct wrong and missing current contexts exercised",
+      "passed": true
+    },
+    {
+      "check": "five manufactured actual-resolution cuDSS solves",
+      "passed": true
+    },
+    {
+      "check": "unchanged finite/residual gate solve1",
+      "passed": true
+    },
+    {
+      "check": "unchanged finite/residual gate solve2",
+      "passed": true
+    },
+    {
+      "check": "unchanged finite/residual gate solve3",
+      "passed": true
+    },
+    {
+      "check": "unchanged finite/residual gate solve4",
+      "passed": true
+    },
+    {
+      "check": "unchanged finite/residual gate solve5",
+      "passed": true
+    },
+    {
+      "check": "explicit standalone reference balance/null restoration/activity lifetime",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle force1 exact reference comparison",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle force1 complete output shape",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle force1 every E/B/u/status bit independently equals captured original",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle force1 independently finite and status0",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle force2 exact reference comparison",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle force2 complete output shape",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle force2 every E/B/u/status bit independently equals captured original",
+      "passed": true
+    },
+    {
+      "check": "shared-lifecycle force2 independently finite and status0",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone standalone_force1 exact reference comparison",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone standalone_force1 complete output shape",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone standalone_force1 every E/B/u/status bit independently equals captured original",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone standalone_force1 independently finite and status0",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone standalone_force2 exact reference comparison",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone standalone_force2 complete output shape",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone standalone_force2 every E/B/u/status bit independently equals captured original",
+      "passed": true
+    },
+    {
+      "check": "explicit-standalone standalone_force2 independently finite and status0",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing  exact reference comparison",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing  complete output shape",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing  every E/B/u/status bit independently equals captured original",
+      "passed": true
+    },
+    {
+      "check": "reference-inclusive-timing  independently finite and status0",
+      "passed": true
+    },
+    {
+      "check": "twenty measured complete reference-inclusive force samples",
+      "passed": true
+    },
+    {
+      "check": "timing cleanup recorded fields pass (full drain/ref fields not emitted by adapter)",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample1",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample2",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample3",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample4",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample5",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample6",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample7",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample8",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample9",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample10",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample11",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample12",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample13",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample14",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample15",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample16",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample17",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample18",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample19",
+      "passed": true
+    },
+    {
+      "check": "measured total partitions exactly sample20",
+      "passed": true
+    },
+    {
+      "check": "production remains original stopped/frozen process at audit",
+      "passed": true
+    }
+  ],
+  "timing_ms": {
+    "native_reference_generation": {
+      "median": 20.1632045,
+      "mean": 20.15579325,
+      "min": 19.985022,
+      "max": 20.621293,
+      "p10": 19.999239900000003,
+      "p90": 20.35226
+    },
+    "GPU_API_including_pack_and_gates": {
+      "median": 2.564527,
+      "mean": 2.57719815,
+      "min": 2.549652,
+      "max": 2.66475,
+      "p10": 2.5529290000000002,
+      "p90": 2.6064317999999997
+    },
+    "commit": {
+      "median": 0.154632,
+      "mean": 0.1572296,
+      "min": 0.146828,
+      "max": 0.191907,
+      "p10": 0.14804399999999998,
+      "p90": 0.1663929
+    },
+    "force_pipeline_total": {
+      "median": 22.868514,
+      "mean": 22.890221,
+      "min": 22.705551,
+      "max": 23.45329,
+      "p10": 22.719792,
+      "p90": 23.0710979
+    },
+    "packing": {
+      "median": 0.3661095,
+      "mean": 0.37362495,
+      "min": 0.355315,
+      "max": 0.470073,
+      "p10": 0.36013290000000003,
+      "p90": 0.38231190000000004
+    },
+    "H2D": {
+      "median": 0.28068800270557404,
+      "mean": 0.28143520206212996,
+      "min": 0.27904000878334045,
+      "max": 0.29148799180984497,
+      "p10": 0.27932159006595614,
+      "p90": 0.2832512021064758
+    },
+    "kernel": {
+      "median": 0.30777600407600403,
+      "mean": 0.30785600244998934,
+      "min": 0.3041920065879822,
+      "max": 0.312032014131546,
+      "p10": 0.30555520951747894,
+      "p90": 0.31004801094532014
+    },
+    "D2H": {
+      "median": 0.28222399950027466,
+      "mean": 0.2820031985640526,
+      "min": 0.2789439857006073,
+      "max": 0.2847999930381775,
+      "p10": 0.27941758930683136,
+      "p90": 0.2839999943971634
+    },
+    "stage_through_sync": {
+      "median": 1.263581,
+      "mean": 1.2701806,
+      "min": 1.248672,
+      "max": 1.3636,
+      "p10": 1.251431,
+      "p90": 1.285323
+    },
+    "output_reference_validation": {
+      "median": 1.3019205,
+      "mean": 1.30682155,
+      "min": 1.29575,
+      "max": 1.371269,
+      "p10": 1.296715,
+      "p90": 1.317882
+    }
+  },
+  "paired_total_over_fresh_reference_percent": {
+    "median": 13.53250892145712,
+    "mean": 13.566712497841205,
+    "min": 13.333679857069768,
+    "max": 14.089223328594326,
+    "p10": 13.417573524587848,
+    "p90": 13.744487922774786
+  },
+  "setup_excluded_ms": 677.024495,
+  "shared_max_relative_residual": 3.907744042725088e-15,
+  "qualification": "Real midpoint E/B/u plus shared-primary lifecycle passed for reviewed isolated backend. Full evolving-step integration remains unqualified.",
+  "limits": [
+    "Poisson RHS is manufactured; it tests real solver/context lifetime, not live PIC charge deposition.",
+    "Timing adapter emits only subset of cleanup booleans; full drain/own-release evidence comes from separately reviewed lifecycle processes, not those missing fields.",
+    "Matched baseline here is fresh native reference generation within each CPU7 sample, not a native whole force-only update or full timestep.",
+    "Setup/static refresh amortization, evolving fields/capacities, both PIC drifts/solves/sources are excluded. No application speedup claim."
+  ]
+}

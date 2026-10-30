@@ -1,0 +1,131 @@
+--- /home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source/src/bench_profile.hpp
++++ /home/treefor/projects/runtimes/pic-phase-timing-20261029/baseline/source/src/bench_profile.hpp
+@@ -26,3 +26,4 @@
+  f<<"\n}\n";
+ }
+ }
++#include "phase_profile.hpp" // PHASE_TIMING
+--- /home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source/src/cudss_poisson.hpp
++++ /home/treefor/projects/runtimes/pic-phase-timing-20261029/baseline/source/src/cudss_poisson.hpp
+@@ -19,6 +19,7 @@
+ public:
+  explicit CudssPoisson(const mfem::SparseMatrix& matrix):n(matrix.Height()) {
+   pic_bench::Timer timer("cuda_factor_setup");
++  pic_phase::Scope phase_factor(pic_phase::Phase::FactorSetup); // PHASE_TIMING
+   cuda_ok(cudaSetDevice(0));ok(cudssCreate(&handle));
+   ok(cudssConfigCreate(&config));ok(cudssDataCreate(handle,&data));
+   int one=1,zero=0,two=2;
+@@ -59,6 +60,7 @@
+  }
+  void Solve(const mfem::Vector& rhs,mfem::Vector& answer) {
+   pic_bench::Timer timer("cuda_solve_including_transfers");answer.SetSize(n);
++  pic_phase::Scope phase_cuda(pic_phase::solve_phase(pic_phase::Phase::CudaFirst,pic_phase::Phase::CudaSecond,pic_phase::Phase::CudaOther)); // PHASE_TIMING
+   cuda_ok(cudaMemcpy(db,rhs.GetData(),n*sizeof(double),cudaMemcpyHostToDevice));
+   ok(cudssExecute(handle,CUDSS_PHASE_SOLVE,config,data,A,x,b));
+   cuda_ok(cudaMemcpy(answer.GetData(),dx,n*sizeof(double),cudaMemcpyDeviceToHost));
+--- /home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source/src/mfem_pic_distributed.hpp
++++ /home/treefor/projects/runtimes/pic-phase-timing-20261029/baseline/source/src/mfem_pic_distributed.hpp
+@@ -127,6 +127,7 @@
+    {
+       pic_bench::Timer timer("linear_solve_with_residual_check");
+  if(cuda){cuda->Solve(rhs,answer);++distributed_linear::solves;}else{distributed_linear::Send(distributed_linear::Solve,id);distributed->Apply(&rhs,&answer);}
++      pic_phase::Scope phase_residual(pic_phase::solve_phase(pic_phase::Phase::ResidualFirst,pic_phase::Phase::ResidualSecond,pic_phase::Phase::ResidualOther)); // PHASE_TIMING
+       Vector error(rhs.Size());matrix.Mult(answer,error);error-=rhs;
+       const double norm=rhs.Norml2(),relative=norm>0?error.Norml2()/norm:error.Norml2();
+       if(distributed)iterations=std::max(iterations,distributed->iterations);residual=std::max(residual,relative);
+--- /home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source/src/mfem_gap_pic.cpp
++++ /home/treefor/projects/runtimes/pic-phase-timing-20261029/baseline/source/src/mfem_gap_pic.cpp
+@@ -539,13 +539,20 @@
+ 
+ void GapPic::advance(double dt) {
+  pic_bench::Timer timer("advance_total");
++ pic_phase::Scope phase_advance(pic_phase::Phase::Advance); // PHASE_TIMING
+     if (!std::isfinite(dt) || dt<=0 || !std::isfinite(ledger_.time_s+dt))
+         throw std::invalid_argument("Gap PIC advance requires positive finite dt");
+     std::fill(horizontal_transfers_.begin(),horizontal_transfers_.end(),0);
+     std::fill(vertical_transfers_.begin(),vertical_transfers_.end(),0);
+     // Midpoint position splitting; full-time velocities. Absorption is resolved
+     // at each half drift. Wall interaction timing must be checked by refinement.
+-    drift(.5*dt); solve_fields();
++    pic_phase::Scope phase_drift_first(pic_phase::Phase::DriftFirst); // PHASE_TIMING
++    drift(.5*dt);
++    phase_drift_first.stop(); // PHASE_TIMING
++    pic_phase::Scope phase_fields_first(pic_phase::Phase::SolveFieldsFirst); // PHASE_TIMING
++    solve_fields();
++    phase_fields_first.stop(); // PHASE_TIMING
++    pic_phase::Scope phase_force(pic_phase::Phase::ForceLoop); // PHASE_TIMING
+     for (auto& p : particles_) {
+         auto E=electric_field(p.position_m[0],p.position_m[1]);
+         auto B=options_.magnetic_field_T;
+@@ -560,11 +567,18 @@
+         if(external_magnetic_) B=external_magnetic_(p.position_m[0],p.position_m[1],ledger_.time_s+.5*dt);
+         p.proper_velocity_m_s=pic_boris(p.proper_velocity_m_s,p.charge_C/p.mass_kg,E,B,dt);
+     }
+-    drift(.5*dt); solve_fields();
++    phase_force.stop(); // PHASE_TIMING
++    pic_phase::Scope phase_drift_second(pic_phase::Phase::DriftSecond); // PHASE_TIMING
++    drift(.5*dt);
++    phase_drift_second.stop(); // PHASE_TIMING
++    pic_phase::Scope phase_fields_second(pic_phase::Phase::SolveFieldsSecond); // PHASE_TIMING
++    solve_fields();
++    phase_fields_second.stop(); // PHASE_TIMING
+     ledger_.time_s+=dt;
+ }
+ 
+ void GapPic::advance_empty(double dt) {
++    pic_phase::Scope phase_empty(pic_phase::Phase::AdvanceEmpty); // PHASE_TIMING
+     if(!particles_.empty() || !fields_current_ || !std::isfinite(dt) || dt<=0 || !std::isfinite(ledger_.time_s+dt))
+         throw std::invalid_argument("Empty advance requires solved vacuum and a finite positive interval");
+     ledger_.time_s+=dt;
+@@ -606,6 +620,7 @@
+ }
+ 
+ GapPicDiagnostics GapPic::diagnostics() const {
++    pic_phase::Scope phase_diagnostics(pic_phase::Phase::Diagnostics); // PHASE_TIMING
+     if (!fields_current_) throw std::logic_error("Solve gap fields before diagnostics");
+     auto result=ledger_;
+     for (const auto& p : particles_) result.particle_kinetic_energy_J+=pic_kinetic_energy_J(p)*p.weight;
+--- /home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source/examples/mfem_heating_history_pic.cpp
++++ /home/treefor/projects/runtimes/pic-phase-timing-20261029/baseline/source/examples/mfem_heating_history_pic.cpp
+@@ -154,7 +154,8 @@
+             std::cout<<std::setprecision(12)<<"Accepted heating clock "<<(start+d.time_s)*1e9<<" ns / "<<end*1e9<<" ns; steps "<<step<<" particles "<<pic.particles().size()<<'\n'<<std::flush;reported=clock();
+         };
+         if(!resume){snapshot(pic,out,0,start);save();}progress(false);
+-        while(start+pic.diagnostics().time_s<end-1e-22) {
++        while((pic_phase::begin_step(step+1), start+pic.diagnostics().time_s<end-1e-22)) {
++            pic_phase::Scope phase_selection(pic_phase::Phase::DriverSelection); // PHASE_TIMING
+             const double t=start+pic.diagnostics().time_s;fields.set(t);const double boundary_V=voltage.at(t);
+             if(pic.options().upper_potential_V!=boundary_V){if(pic.particles().empty())pic.set_empty_potentials(0,boundary_V);else pic.set_potentials(0,boundary_V);}
+             double dt=pic.particles().empty()?1e-12:std::min(1e-14,.05*pic_me/(pic_e*std::max(fields.bound(),1e-20)));
+@@ -167,6 +168,8 @@
+             }
+             dt=std::min({dt,end-t,fields.times[fields.current+1]-t,voltage.end[voltage.current]-t,std::max(1e-22,next_frame*1e-9-t)});
+             if(dt<=1e-23 || !std::isfinite(dt))throw std::runtime_error("Nonprogressing time step");
++            phase_selection.stop(); // PHASE_TIMING
++            pic_phase::Scope phase_source(pic_phase::Phase::ThermalSource); // PHASE_TIMING
+             auto T=thermal.at(t+.5*dt);double jmax=0;
+             for(const auto& v:T)for(double vT:v)jmax=std::max(jmax,pic_richardson_supply_A_m2(vT,4.3,1201732.289489034));
+             // Source-induced density also bounds the new explicit plasma step.
+@@ -198,13 +201,21 @@
+                 pic.inject_surface_profile(GapElectrode::Lower,side,temp,J,pool.span,32,1000000ULL*step+f*100+50);
+                 std::fill(pool.integral.begin(),pool.integral.end(),0.);std::fill(pool.weighted_temperature.begin(),pool.weighted_temperature.end(),0.);pool.span=0;injected=true;
+             }
++            phase_source.stop(); // PHASE_TIMING
++            pic_phase::interval(t,dt); // PHASE_TIMING
+             if(!injected && pic.particles().empty())pic.advance_empty(dt);else pic.advance(dt);++step;
+             auto d=pic.diagnostics();
+             if(!std::isfinite(d.gauss_defect_C) || !std::isfinite(d.particle_charge_defect_C) || pic.particles().size()>2000000)throw std::runtime_error("Nonfinite PIC ledger or two-million-particle resource guard; last checkpoint preserved");
++            pic_phase::Scope phase_output(pic_phase::Phase::PeriodicOutput); // PHASE_TIMING
+             if(start+d.time_s>=next_frame*1e-9-1e-21){snapshot(pic,out,next_frame,start+d.time_s);++next_frame;save();}
+             if(std::chrono::duration<double>(clock()-reported).count()>10)progress(false);
+             if(std::chrono::duration<double>(clock()-saved).count()>60)save();
++            phase_output.stop(); // PHASE_TIMING
++            pic_phase::end_step(); // PHASE_TIMING
+         }
+-        snapshot(pic,out,next_frame,end);save();progress(true);pic_bench::write((out/"benchmark_profile.json").string());pic_bench::resources((out/"process_resources.json").string());unit_bias.release_field_solver();pic.release_field_solver();pic_parallel_finish();pic_parallel_record(out.string());
++        pic_phase::end_terminal_condition(); // PHASE_TIMING
++        snapshot(pic,out,next_frame,end);save();progress(true);pic_bench::write((out/"benchmark_profile.json").string());pic_bench::resources((out/"process_resources.json").string());
++        pic_phase::write((out/"phase_profile.json").string()); // PHASE_TIMING
++unit_bias.release_field_solver();pic.release_field_solver();pic_parallel_finish();pic_parallel_record(out.string());
+     }catch(const std::exception& e){std::cerr<<e.what()<<'\n';MPI_Abort(MPI_COMM_WORLD,1);return 1;}
+ }

@@ -1,0 +1,83 @@
+Magnetized-emission applicability and separate tangential one-pass prototype
+
+The sealed source API v1 and the epoch/reverse adapter v2 are immutable.
+Their nominal0.2 predicate is unchanged. The new guard-assessment library
+analytically integrates that predicate's rejected transverse supply and its
+Fermi-relative energy moment over the existing normal-spectrum quadrature.
+
+For normal metal energy E and kT=t in eV, S(E)=t*log(1+exp(-E/t)). The v1
+magnetic predicate is independent of azimuth and monotone in transverse
+energy. At each normal node, its accepted transverse-energy cutoff is
+Et*=m/(2e)*[(0.2*s - e*Bt^2*x^2/(2m) - hbar*abs(Bn)/(2m))/(Bt*x)]^2
+when the numerator is positive; otherwise all transverse supply is rejected.
+The conditional rejected probability is S(E+Et*)/S(E). The rejected total
+Fermi-relative energy moment is
+[(E+Et*)*S(E+Et*) + t^2*F1(-(E+Et*)/t)] / S(E),
+where F1(y)=-Li2(-exp(y)). T=0 uses the exact uniform transverse distribution.
+These quantities are weighted by nominal MG transmitted normal-node rates.
+They are not predictions for the actual magnetized current. A numerical zero
+on the retarding thermal-step branch is not proof of no magnetic correction.
+
+All1056 legacy finite-offset probes were mapped at300/773.15/1490K. They
+are not qualified native one-sided boundary fields. No probe is strictly
+tangential-B, so a strict tangential replacement covers none of these proxy
+states. Equal-probe current-weighted summaries are not surface-area integrals.
+Unknown physical rates remain null, not zero or a renormalized accepted set.
+
+Next prototype scope: explicitly selected continuum free-electron Fermi
+reservoir plus locally stationary, one-pass canonical tangential-B barrier.
+This retains the FD joint supply f(E+Et), rather than summing RD and FN or
+reusing a half-Maxwellian. It does not solve the magnetized solid's detailed
+band/edge spectrum or oblique-B scattering. The continuum supply and incoherent
+one-pass matching must be explicit model assumptions. hbar*e*B/(m*kT) is a
+diagnostic scale, not an asserted error bound for real SS304 electronic bands.
+
+For B tangent to the material and E normal, minimal coupling gives the joint
+effective normal barrier, in eV,
+Ueff(x)=phi-(F+B*v_z)*x-c/x+e*B^2*x^2/(2m),
+where v_z is the metal tangential velocity along n cross B and
+c=e/(16*pi*epsilon0). The cross term is retained. D(E,Et,theta) is a
+one-pass Kemble/JWKB first-barrier probability, with the same stated parabolic
+continuation above its local saddle as v1. It is not a terminal escaping
+current: the later Lorentz/image evolution can return particles. Closed or
+unresolved local channels must retain an explicit unresolved contribution.
+
+The finite-T joint integral is
+J=C integral dE dEt dtheta/(2*pi) D(E,Et,theta)*f(E+Et),
+Q_complete=-C integral (E+Et)*D*f dE dEt dtheta/(2*pi),
+C=A_ideal/(kB/e)^2. Current, joint phase-space and complete Nottingham heat
+must use the same weights. Canonical tangential momentum at overlap shifts
+by -e*B*x. Image energy, work function reference, quantum-bridge q dx and
+field work remain explicitly owned; B does no work. The reverse tail helper
+v2 is reused without inventing an extra heat debit. Unit electronic return
+accommodation is a separately selected conditional reservoir assumption.
+
+Numerical truncation/admission strategy under derivation: retain known-channel
+current and heat plus conservative nonzero upper bounds on unresolved/tail
+contributions. A state with a large unresolved bound is not source-admitted.
+For purely tangential B, alpha=e*B^2/(2m) and k=B*sqrt(2e/m). At a lower
+normal cutoff Emin, local allowed pockets exist for all E>=Emin and
+Et<=Etcrit if F-k*sqrt(Etcrit) exceeds both the saddle-existence threshold
+3*(alpha^2*c)^(1/3) and2*sqrt(alpha*(phi-Emin+overlap)). Thus unresolved
+rectangle phases have Et>=Etcrit. Their raw FD supply is bounded by the
+positive triangular convolution starting at a=Emin+Etcrit, and must not be
+replaced by zero. For a>0, current bound C*t^2*exp(-a/t), absolute heat bound
+C*t^2*(a+2t)*exp(-a/t). Low-F states generally fail this bound.
+
+For omitted deep E at bounded Et, a fixed subinterval on which the lower SN
+potential exceeds m>Emin gives G>=a0*sqrt(m-E). The omitted current integral
+is bounded by2*exp(-a0*z)*(z/a0+1/a0^2), z=sqrt(m-Emin), times C*Etmax.
+Additional transverse and high-normal tails require explicit analytical bounds
+and numerical refinement. These control the defined one-pass approximation;
+they do not bound its error against the exact quantum/material problem.
+
+Primary basis: Murphy & Good1956 DOI10.1103/PhysRev.102.1464; the numerical
+SN integral in Kyritsakis & Djurabekova2017, https://arxiv.org/abs/1609.02364;
+minimal-coupling Hamiltonian in Lebedynskyi et al2015,
+https://arxiv.org/abs/1702.02713 Eqs4,20,28. This package's joint integration
+and admission-bound construction are explicit derived work, not a published
+SS304 calibrated emission law. No third-party full text is redistributed.
+
+All builds/tests/heavy scripts: CPU7, nice15, one job, frozen userspace and
+exclusive testing-core7.lock. No production/GPU/shared-source/global dependency
+changes. Parent owns native source-port integration and physical qualification.

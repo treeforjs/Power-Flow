@@ -1,0 +1,32 @@
+{
+  "schema": "boundary-layer-inward-matching-port-v2",
+  "status": "sealed_component_helper",
+  "immutable_API_dependency": "/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/snapshots/usable-api-v1",
+  "API_v1_manifest_sha256": "9bd0fa5771b8cba405cc0b63b99c0e32a24da8d735eef240606c36b1fb49f0ca",
+  "source": "/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/qualification-v2/inward_layer_adapter.hpp",
+  "source_sha256": "f47c5978e1ada5a8f74342df41b7b591f3839f06157c0796f912f07adfa5e294",
+  "function": "surface_emission_integration::reenter_image_layer(LayerState,Stage,LayerPolicy)->LayerTrial",
+  "caller_event": "Resolve first inward crossing of originating LayerState.handoff_distance_m in ordinary PIC; retain LayerState provenance after outgoing handoff.",
+  "transaction": "K+=|Uimage|; image_energy+=Uimage<0; preserve tangential proper momentum; normal proper momentum inward; status Active; physical position/time unchanged.",
+  "zero_exchange": [
+    "number",
+    "particle_charge",
+    "electrode_charge",
+    "wall_heat",
+    "electron_reference",
+    "field_work",
+    "displacement_current"
+  ],
+  "next": "Advance Active state over remaining same accepted interval; do not also advance it in ordinary PIC.",
+  "guards": [
+    "PICHandedOff only; duplicate re-entry rejected",
+    "same field/thermal accepted-state, field time, mesh/material/patch and normal",
+    "actual first inward handoff-plane crossing in admitted local geometry",
+    "no separately already applied analytic microscopic image force"
+  ],
+  "ledger_ownership": "LayerTrial.exchange incremental only; Packet.ledger remains birth diagnostic; commit once with inverse status transition.",
+  "native_integration_admitted": false,
+  "physical_model_admitted": false,
+  "nominal_magnetic_guard": 0.2,
+  "evidence": "<workspace>/outputs/pic-thermal-field-emission-20261029/qualification-v2/QUALIFICATION.json"
+}

@@ -1,0 +1,260 @@
+[
+  {
+    "label": "configure",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "cmake",
+      "-S",
+      "source",
+      "-B",
+      "build",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DMFEM_DIR=/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/cmake/mfem"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen cmake -S source -B build -DCMAKE_BUILD_TYPE=Release -DMFEM_DIR=/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/cmake/mfem",
+    "elapsed_seconds": 0.014829947998805437,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "build",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "1"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen cmake --build build --parallel 1",
+    "elapsed_seconds": 0.07471133500075666,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "foundation",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/build/pic_foundation_tests"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/build/pic_foundation_tests",
+    "elapsed_seconds": 0.13086413199926028,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "q1-invalidation",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/build/q1_gather_tests"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/build/q1_gather_tests",
+    "elapsed_seconds": 0.07477455499611096,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "serial-trace",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/build/pic_cpu_trace"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/build/pic_cpu_trace",
+    "elapsed_seconds": 0.07733076200383948,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "abi-build-active",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-std=c++20",
+      "-O3",
+      "-DNDEBUG",
+      "-I/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi_probe.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-active",
+      "-Wl,-rpath,/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cu12/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cublas/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/lib",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath",
+      "-Wl,/usr/lib",
+      "-Wl,--enable-new-dtags"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/sbin/c++ -std=c++20 -O3 -DNDEBUG -I/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/source/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi_probe.cpp -o /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-active -Wl,-rpath,/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cu12/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cublas/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/lib /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a /usr/lib/libmpi.so -Wl,-rpath -Wl,/usr/lib -Wl,--enable-new-dtags",
+    "elapsed_seconds": 1.695289668001351,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "abi-active",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-active"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-active",
+    "elapsed_seconds": 0.04649636000249302,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "abi-build-v1",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-std=c++20",
+      "-O3",
+      "-DNDEBUG",
+      "-I/home/treefor/projects/runtimes/pic-cpu-candidate-20261029/source/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi_probe.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-v1",
+      "-Wl,-rpath,/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cu12/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cublas/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/lib",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath",
+      "-Wl,/usr/lib",
+      "-Wl,--enable-new-dtags"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/sbin/c++ -std=c++20 -O3 -DNDEBUG -I/home/treefor/projects/runtimes/pic-cpu-candidate-20261029/source/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi_probe.cpp -o /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-v1 -Wl,-rpath,/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cu12/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cublas/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/lib /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a /usr/lib/libmpi.so -Wl,-rpath -Wl,/usr/lib -Wl,--enable-new-dtags",
+    "elapsed_seconds": 1.7629239829984726,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "abi-v1",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-v1"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-v1",
+    "elapsed_seconds": 0.04627180299576139,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "abi-build-v2",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/usr/sbin/c++",
+      "-std=c++20",
+      "-O3",
+      "-DNDEBUG",
+      "-I/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/source/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi_probe.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-v2",
+      "-Wl,-rpath,/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cu12/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cublas/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/lib",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "/usr/lib/libmpi.so",
+      "-Wl,-rpath",
+      "-Wl,/usr/lib",
+      "-Wl,--enable-new-dtags"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/sbin/c++ -std=c++20 -O3 -DNDEBUG -I/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/source/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include -isystem /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi_probe.cpp -o /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-v2 -Wl,-rpath,/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cu12/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cublas/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/lib /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a /home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a /usr/lib/libmpi.so -Wl,-rpath -Wl,/usr/lib -Wl,--enable-new-dtags",
+    "elapsed_seconds": 1.7954181130044162,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "abi-v2",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-v2"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/evidence/abi-v2",
+    "elapsed_seconds": 0.047163750998151954,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  },
+  {
+    "label": "gpu-target-dynamic-links",
+    "command": [
+      "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+      "readelf",
+      "-d",
+      "/home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/build/heating_history_pic_gpu"
+    ],
+    "shell_display": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen readelf -d /home/treefor/projects/runtimes/pic-cpu-candidate-v2-20261029/build/heating_history_pic_gpu",
+    "elapsed_seconds": 0.00588245400285814,
+    "returncode": 0,
+    "cpu_affinity": [
+      6
+    ],
+    "nice": 15,
+    "lease_exclusion_confirmed": true
+  }
+]

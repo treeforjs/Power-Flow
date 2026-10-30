@@ -1,0 +1,29 @@
+#!/bin/bash
+set -euo pipefail
+if (( $# != 6 )); then
+    printf '%s\n' 'Usage: run-observer CAPTURE_DIRECTORY FIELD_DIR THERMAL_BINARY PIC_OUTPUT END_NS VOLTAGE_CSV' >&2
+    exit 64
+fi
+observer_capture=$1
+shift
+if [[ "$observer_capture" != /* ]]; then
+    printf '%s\n' 'Capture directory must be absolute.' >&2
+    exit 64
+fi
+if [[ -e "$observer_capture" ]]; then
+    [[ -d "$observer_capture" ]] || exit 64
+    shopt -s nullglob dotglob
+    for observer_entry in "$observer_capture"/*; do
+        printf '%s\n' 'Capture directory must be new or empty.' >&2
+        exit 64
+    done
+fi
+observer_cuda=/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia
+exec /home/treefor/projects/runtimes/arch-base-20261028/run-frozen \
+    /usr/bin/env \
+    RAIKOU_PIC_RHS_OBSERVE_DIR="$observer_capture" \
+    RAIKOU_PIC_FIELD_BACKEND=cudss \
+    OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 BLIS_NUM_THREADS=1 \
+    LD_LIBRARY_PATH="$observer_cuda/cu12/lib:$observer_cuda/cublas/lib:$observer_cuda/cuda_runtime/lib" \
+    /home/treefor/projects/runtimes/pic-rhs-observer-20261029/build/heating_history_pic_gpu \
+    "$@"

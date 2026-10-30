@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+"""Frozen metadata/geometry/candidate controls only; no PIC construction."""
+import argparse,hashlib,json,os,pathlib,resource,subprocess,time
+P=pathlib.Path(__file__).resolve().parent
+ROOT=pathlib.Path('/home/treefor/projects/runtimes/pic-water-native-subflow-20261029')
+FIX=pathlib.Path('<workspace>/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture')
+def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def main():
+ p=argparse.ArgumentParser();p.add_argument('--out',type=pathlib.Path,required=True);a=p.parse_args();assert not a.out.exists() and os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15;resource.setrlimit(resource.RLIMIT_AS,(4*1024**3,4*1024**3));a.out.mkdir()
+ native=json.loads((P/'native-input-bindings.json').read_text());assert all(sha(P/name)==h for name,h in native['immutable_files'].items());pairs=[(P/'inputs/native_parent_subflow.hpp',ROOT/'source/native_parent_subflow.hpp'),(P/'inputs/collision_scheduler.hpp',ROOT/'inputs/collision_scheduler.hpp'),(P/'inputs/water_parent_bridge.hpp',ROOT/'inputs/water_parent_bridge.hpp')];assert all(sha(a)==sha(b) for a,b in pairs);fixture=json.loads((FIX/'sha256.json').read_text());assert all(sha(FIX/name)==h for name,h in fixture.items())
+ sources={str(p.relative_to(P)):sha(p) for folder in ['include','source','tests'] for p in sorted((P/folder).glob('*')) if p.is_file()};records=[]
+ commands=[('configure',['cmake','-S',str(P),'-B',str(P/'build'),'-G','Ninja','-DMFEM_DIR=/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/cmake/mfem']),('build',['cmake','--build',str(P/'build'),'--parallel','1']),('controls',[str(P/'build/test_native_collision_atlas'),str(a.out/'controls.json'),str(FIX)]),('root-header-coexist',[str(P/'build/test_root_header_coexist')])]
+ for name,command in commands:
+  start=time.monotonic();r=subprocess.run(command,capture_output=True,text=True,cwd=P,timeout=90,check=False);log=a.out/(name+'.log');log.write_text(r.stdout+r.stderr);records.append(dict(name=name,command=command,returncode=r.returncode,wall_s=time.monotonic()-start,log_sha256=sha(log)));assert r.returncode==0,r.stderr
+ assert all(sha(P/name)==h for name,h in native['immutable_files'].items()) and all(sha(a)==sha(b) for a,b in pairs) and all(sha(FIX/name)==h for name,h in fixture.items()) and all(sha(P/name)==h for name,h in sources.items());result=dict(schema='native_collision_atlas_cpu_qualification/v1',status='PASS',source_files=sources,records=records,fixture_hashes=fixture,root_dependencies={str(b):sha(b) for a,b in pairs},library_sha256=sha(P/'build/libphysical_collision_atlas.a'),test_executable_sha256=sha(P/'build/test_native_collision_atlas'),coexist_executable_sha256=sha(P/'build/test_root_header_coexist'),all_inputs_unchanged=True,physical_evolution=False,GPU=False,source_layer_reaction_admission=False,execution=dict(affinity=sorted(os.sched_getaffinity(0)),nice=os.getpriority(os.PRIO_PROCESS,0),address_space_cap_bytes=4*1024**3,per_command_timeout_s=90,compile_jobs=1));(a.out/'qualification.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(dict(status=result['status'],records=records,library_sha256=result['library_sha256']),indent=2))
+if __name__=='__main__':main()

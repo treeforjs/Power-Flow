@@ -1,0 +1,4210 @@
+{
+  "status": "passed",
+  "comparison_complete": true,
+  "policy": {
+    "position_atol_m": 1e-12,
+    "velocity_rtol_global": 1e-10,
+    "field_rtol_global": 1e-10,
+    "ledger_roundoff_factor": 1024,
+    "density_roundoff_factor": 256,
+    "time_roundoff_factor": 64,
+    "rationale": {
+      "position": "Existing checkpoint regression budget; 4e-8 of a 25 um cell. Record measured differences and bin-boundary crossings separately.",
+      "velocity": "Existing global proper-velocity regression budget. Mass, charge, weights and identity remain exact.",
+      "fields": "Conservative integration regression budget, not a production solver tolerance. 1e-10 of each global component plus 256 epsilon V_scale/h for derivative cancellation. The corresponding e/m E_error window impulse is reported against the velocity budget.",
+      "ledger": "1024 epsilon times the appropriate full charge/energy scale, rather than relative error of a cancellation residual near zero.",
+      "density": "Validate each CSV against that checkpoint particle deposition; permit only roundoff or particle-bin/slab-boundary changes explained by matched, position-qualified particles. No blanket absolute density threshold.",
+      "time": "64 epsilon times the global clock scale, with a 1e-23 s floor reflecting the existing nonprogress guard. Pairwise clocks/options/counts remain exact."
+    }
+  },
+  "paths": {
+    "baseline": "<workspace>/outputs/pic-profile/phase-cpu-v2-late-cpu7",
+    "candidate": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off",
+    "seed": "<workspace>/outputs/pic-profile/seed-late-phase"
+  },
+  "abi_schema_sha256": "0a9c8e39fb2d5d85770955114c9a9a10fbf0d25b6371d3d2614f8533b19b7f3e",
+  "options": {
+    "all_fields_exact": true,
+    "field_count": 23,
+    "values": {
+      "nx": 360,
+      "ny": 360,
+      "width_m": 0.009,
+      "gap_m": 0.009,
+      "depth_m": 0.025,
+      "lower_potential_V": 0.0,
+      "upper_potential_V": -80633.43519123226,
+      "magnetic_field_T[0]": 0.0,
+      "magnetic_field_T[1]": 0.0,
+      "magnetic_field_T[2]": 0.0,
+      "distributed_fields": 1,
+      "finite_foils": 1,
+      "lower_foil.left_m": 0.002,
+      "lower_foil.right_m": 0.007,
+      "lower_foil.bottom_m": 0.0018,
+      "lower_foil.top_m": 0.002,
+      "upper_foil.left_m": 0.002,
+      "upper_foil.right_m": 0.007,
+      "upper_foil.bottom_m": 0.007,
+      "upper_foil.top_m": 0.0072,
+      "finite_axial_extent": 1,
+      "short_z_m": -0.0125,
+      "feed_z_m": 0.0125
+    }
+  },
+  "particle_counts": {
+    "seed": 46726,
+    "final": 46842,
+    "allocated_id_increment": 320,
+    "seed_survivors": 46679,
+    "seed_ids_missing_at_final": 47,
+    "new_ids_present_at_final": 163,
+    "inferred_total_removed_count": 204
+  },
+  "particles": {
+    "charge_C": {
+      "count": 46842,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 1.602176634e-19,
+      "a_l2": 3.467592928423643e-17,
+      "b_l2": 3.467592928423643e-17,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "mass_kg": {
+      "count": 46842,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 9.1093837139e-31,
+      "a_l2": 1.9715450767589828e-28,
+      "b_l2": 1.9715450767589828e-28,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "weight": {
+      "count": 46842,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 0.031562858772902457,
+      "a_l2": 6.780105613687304,
+      "b_l2": 6.780105613687304,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "position_m": {
+      "count": 140526,
+      "linf_absolute": 6.938893903907228e-18,
+      "l2_absolute": 7.653100648486175e-17,
+      "rms_absolute": 2.0415455901664242e-19,
+      "reference_linf": 0.012499696279031422,
+      "a_l2": 2.455502106733129,
+      "b_l2": 2.455502106733129,
+      "relative_l2": 3.116715162858517e-17,
+      "relative_linf_global_scale": 5.551250005608065e-16,
+      "max_difference_index": 111461
+    },
+    "position_m_components": [
+      {
+        "count": 46842,
+        "linf_absolute": 3.469446951953614e-18,
+        "l2_absolute": 4.3080906682964476e-17,
+        "rms_absolute": 1.9905226329545e-19,
+        "reference_linf": 0.007053760397172069,
+        "a_l2": 1.0319270469677748,
+        "b_l2": 1.0319270469677748,
+        "relative_l2": 4.174801582103489e-17,
+        "relative_linf_global_scale": 4.918577831683302e-16,
+        "max_difference_index": 649
+      },
+      {
+        "count": 46842,
+        "linf_absolute": 3.469446951953614e-18,
+        "l2_absolute": 4.083975299257731e-17,
+        "rms_absolute": 1.8869717217010653e-19,
+        "reference_linf": 0.007863847787614902,
+        "a_l2": 1.5927348483951895,
+        "b_l2": 1.5927348483951895,
+        "relative_l2": 2.564127546636322e-17,
+        "relative_linf_global_scale": 4.4118948454442225e-16,
+        "max_difference_index": 2651
+      },
+      {
+        "count": 46842,
+        "linf_absolute": 6.938893903907228e-18,
+        "l2_absolute": 4.8302639767045143e-17,
+        "rms_absolute": 2.2317890938393627e-19,
+        "reference_linf": 0.012499696279031422,
+        "a_l2": 1.558144046169924,
+        "b_l2": 1.558144046169924,
+        "relative_l2": 3.100011188681684e-17,
+        "relative_linf_global_scale": 5.551250005608065e-16,
+        "max_difference_index": 37153
+      }
+    ],
+    "proper_velocity_m_s": {
+      "count": 140526,
+      "linf_absolute": 4.246830940246582e-07,
+      "l2_absolute": 2.0285599268734557e-05,
+      "rms_absolute": 5.4113982858908546e-08,
+      "reference_linf": 53045147.37697047,
+      "a_l2": 5348822650.806661,
+      "b_l2": 5348822650.806663,
+      "relative_l2": 3.79253540322098e-15,
+      "relative_linf_global_scale": 8.006068698548554e-15,
+      "max_difference_index": 95889
+    },
+    "proper_velocity_m_s_components": [
+      {
+        "count": 46842,
+        "linf_absolute": 4.246830940246582e-07,
+        "l2_absolute": 1.5267910471586658e-05,
+        "rms_absolute": 7.05442937291611e-08,
+        "reference_linf": 53045147.37697047,
+        "a_l2": 4942515874.23883,
+        "b_l2": 4942515874.238832,
+        "relative_l2": 3.0890969012695338e-15,
+        "relative_linf_global_scale": 8.006068698548554e-15,
+        "max_difference_index": 31963
+      },
+      {
+        "count": 46842,
+        "linf_absolute": 3.871973603963852e-07,
+        "l2_absolute": 9.056176548477075e-06,
+        "rms_absolute": 4.184341922149848e-08,
+        "reference_linf": 34170833.60067982,
+        "a_l2": 1698441367.5060737,
+        "b_l2": 1698441367.5060728,
+        "relative_l2": 5.332051327609158e-15,
+        "relative_linf_global_scale": 1.1331223724922004e-14,
+        "max_difference_index": 24702
+      },
+      {
+        "count": 46842,
+        "linf_absolute": 3.71481291949749e-07,
+        "l2_absolute": 9.81743927132286e-06,
+        "rms_absolute": 4.536077945395687e-08,
+        "reference_linf": 35759843.49544297,
+        "a_l2": 1138743827.1286788,
+        "b_l2": 1138743827.1286786,
+        "relative_l2": 8.621288684459742e-15,
+        "relative_linf_global_scale": 1.0388224769414566e-14,
+        "max_difference_index": 29275
+      }
+    ]
+  },
+  "raw_diagnostics": {
+    "time_s": {
+      "baseline": 2.572965307563373e-08,
+      "candidate": 2.572965307563373e-08,
+      "absolute_difference": 0.0,
+      "absolute_limit": 0.0
+    },
+    "particle_charge_C": {
+      "baseline": -2.3510596413905636e-16,
+      "candidate": -2.3510596413905636e-16,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "deposited_charge_C": {
+      "baseline": -2.3510596413904783e-16,
+      "candidate": -2.351059641390478e-16,
+      "absolute_difference": 4.930380657631324e-32,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "lower_field_charge_C": {
+      "baseline": 2.8168553582777582e-08,
+      "candidate": 2.8168553582777357e-08,
+      "absolute_difference": 2.2499312661442353e-22,
+      "absolute_limit": 1.2809575066738753e-20
+    },
+    "upper_field_charge_C": {
+      "baseline": -2.816855334764491e-08,
+      "candidate": -2.8168553347645882e-08,
+      "absolute_difference": 9.727644003623605e-22,
+      "absolute_limit": 1.2809575066738753e-20
+    },
+    "gauss_defect_C": {
+      "baseline": 2.6708007618112158e-20,
+      "candidate": 2.5510250091135373e-20,
+      "absolute_difference": 1.197757526976784e-21,
+      "absolute_limit": 1.2809575066738753e-20
+    },
+    "particle_charge_defect_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "field_energy_J": {
+      "baseline": 0.001135663619666731,
+      "candidate": 0.0011356636196667518,
+      "absolute_difference": 2.0816681711721685e-17,
+      "absolute_limit": 2.5822001127079593e-16
+    },
+    "particle_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "lower_absorbed_charge_C": {
+      "baseline": -2.957095667431326e-16,
+      "candidate": -2.957095667431326e-16,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "upper_absorbed_charge_C": {
+      "baseline": -6.072929377809059e-17,
+      "candidate": -6.072929377809059e-17,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "lower_absorbed_energy_J": {
+      "baseline": 8.621783786506409e-17,
+      "candidate": 8.62178378650641e-17,
+      "absolute_difference": 1.232595164407831e-32,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "upper_absorbed_energy_J": {
+      "baseline": 8.342427193508008e-15,
+      "candidate": 8.342427193508008e-15,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "lower_injected_charge_C": {
+      "baseline": -2.9577491828856964e-16,
+      "candidate": -2.9577491828856964e-16,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "upper_injected_charge_C": {
+      "baseline": -2.957749182885629e-16,
+      "candidate": -2.957749182885629e-16,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "injected_energy_J": {
+      "baseline": 1.7043419448130413e-16,
+      "candidate": 1.7043419448130413e-16,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "authored_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "authored_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "maximum_nodal_continuity_defect_C": {
+      "baseline": 1.279915864994533e-32,
+      "candidate": 1.279915864994533e-32,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "escaped_charge_C": {
+      "baseline": -5.0119168693974896e-21,
+      "candidate": -5.0119168693974896e-21,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "escaped_kinetic_energy_J": {
+      "baseline": 2.6070428967782895e-21,
+      "candidate": 2.6070428967782895e-21,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "short_absorbed_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "short_absorbed_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "axial_escaped_charge_C": {
+      "baseline": -5.0119168693974896e-21,
+      "candidate": -5.0119168693974896e-21,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "poisson_residual_C_per_m": {
+      "baseline": 4.940728875651119e-20,
+      "candidate": 4.928613327251872e-20,
+      "absolute_difference": 1.2115548399247124e-22,
+      "absolute_limit": 1.6454812032885355e-17
+    }
+  },
+  "seed_to_final_public_ledger_increments": {
+    "time_s": {
+      "baseline": 1.000000000001134e-12,
+      "candidate": 1.000000000001134e-12,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.6564036173038134e-22
+    },
+    "particle_charge_C": {
+      "baseline": -5.820164266800266e-19,
+      "candidate": -5.820164266800266e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "deposited_charge_C": {
+      "baseline": -5.820164266802238e-19,
+      "candidate": -5.820164266801745e-19,
+      "absolute_difference": 4.930380657631324e-32,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "lower_field_charge_C": {
+      "baseline": 4.4965538098382584e-21,
+      "candidate": 4.271560683223835e-21,
+      "absolute_difference": 2.2499312661442353e-22,
+      "absolute_limit": 1.2809575066738753e-20
+    },
+    "upper_field_charge_C": {
+      "baseline": 5.7716361804765e-19,
+      "candidate": 5.761908536472876e-19,
+      "absolute_difference": 9.727644003623605e-22,
+      "absolute_limit": 1.2809575066738753e-20
+    },
+    "gauss_defect_C": {
+      "baseline": -3.5734202462290796e-22,
+      "candidate": -1.555099551599692e-21,
+      "absolute_difference": 1.197757526976784e-21,
+      "absolute_limit": 1.2809575066738753e-20
+    },
+    "particle_charge_defect_C": {
+      "baseline": -1.9721522630525295e-31,
+      "candidate": -1.9721522630525295e-31,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "field_energy_J": {
+      "baseline": -2.862293735361732e-17,
+      "candidate": -7.806255641895632e-18,
+      "absolute_difference": 2.0816681711721685e-17,
+      "absolute_limit": 2.5822001127079593e-16
+    },
+    "particle_kinetic_energy_J": {
+      "baseline": 1.2310802881991799e-15,
+      "candidate": 1.2310802881992304e-15,
+      "absolute_difference": 5.048709793414476e-29,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "lower_absorbed_charge_C": {
+      "baseline": -8.130649729335392e-19,
+      "candidate": -8.130649729335392e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "upper_absorbed_charge_C": {
+      "baseline": -2.1083134560023447e-19,
+      "candidate": -2.1083134560023447e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "lower_absorbed_energy_J": {
+      "baseline": 2.6038649652727427e-19,
+      "candidate": 2.603864965272866e-19,
+      "absolute_difference": 1.232595164407831e-32,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "upper_absorbed_energy_J": {
+      "baseline": 2.941318091281229e-17,
+      "candidate": 2.941318091281229e-17,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "lower_injected_charge_C": {
+      "baseline": -8.029563726067276e-19,
+      "candidate": -8.029563726067276e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "upper_injected_charge_C": {
+      "baseline": -8.029563726067276e-19,
+      "candidate": -8.029563726067276e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "injected_energy_J": {
+      "baseline": 4.901445932682305e-19,
+      "candidate": 4.901445932682305e-19,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "authored_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "authored_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "maximum_nodal_continuity_defect_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "escaped_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "escaped_kinetic_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "short_absorbed_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "short_absorbed_energy_J": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 9.450068490640452e-26
+    },
+    "axial_escaped_charge_C": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "absolute_difference": 0.0,
+      "absolute_limit": 3.2246376786365515e-28
+    },
+    "poisson_residual_C_per_m": {
+      "baseline": -5.116081862298955e-23,
+      "candidate": -1.7231630261546079e-22,
+      "absolute_difference": 1.2115548399247124e-22,
+      "absolute_limit": 1.6454812032885355e-17
+    }
+  },
+  "history": {
+    "baseline_rows": 3,
+    "candidate_rows": 3,
+    "common_steps": [
+      437411,
+      437621
+    ],
+    "baseline_only_steps": [
+      437593
+    ],
+    "candidate_only_steps": [
+      437616
+    ],
+    "baseline_values": [
+      {
+        "time_s": 2.647844113112573e-08,
+        "step": 437411.0,
+        "macro_particles": 46726.0,
+        "gauss_defect_C": 2.542753202988007e-20,
+        "particle_charge_defect_C": -1.6150519751371322e-29,
+        "nodal_continuity_defect_C": 1.279915864994533e-32,
+        "field_energy_J": 0.0011356636196667342,
+        "kinetic_energy_J": 4.057882454284543e-13,
+        "source_reservoir_electrons": 4.767844719073557,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": -5.0119168693974896e-21
+      },
+      {
+        "time_s": 2.647931041619975e-08,
+        "step": 437593.0,
+        "macro_particles": 46846.0,
+        "gauss_defect_C": 2.6009867181117402e-20,
+        "particle_charge_defect_C": -1.64463425908292e-29,
+        "nodal_continuity_defect_C": 1.279915864994533e-32,
+        "field_energy_J": 0.001135663619666732,
+        "kinetic_energy_J": 4.0684484205175587e-13,
+        "source_reservoir_electrons": 4.079802905235674,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": -5.0119168693974896e-21
+      },
+      {
+        "time_s": 2.647944113112573e-08,
+        "step": 437621.0,
+        "macro_particles": 46842.0,
+        "gauss_defect_C": 2.6708007618112158e-20,
+        "particle_charge_defect_C": -1.6347734977676575e-29,
+        "nodal_continuity_defect_C": 1.279915864994533e-32,
+        "field_energy_J": 0.001135663619666731,
+        "kinetic_energy_J": 4.070193257166535e-13,
+        "source_reservoir_electrons": 5.485539207507216,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": -5.0119168693974896e-21
+      }
+    ],
+    "candidate_values": [
+      {
+        "time_s": 2.647844113112573e-08,
+        "step": 437411.0,
+        "macro_particles": 46726.0,
+        "gauss_defect_C": 2.6747712287514703e-20,
+        "particle_charge_defect_C": -1.6150519751371322e-29,
+        "nodal_continuity_defect_C": 1.279915864994533e-32,
+        "field_energy_J": 0.0011356636196667128,
+        "kinetic_energy_J": 4.057882454284543e-13,
+        "source_reservoir_electrons": 4.767844719073557,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": -5.0119168693974896e-21
+      },
+      {
+        "time_s": 2.6479420270906908e-08,
+        "step": 437616.0,
+        "macro_particles": 46843.0,
+        "gauss_defect_C": 2.6956161801878066e-20,
+        "particle_charge_defect_C": -1.6544950203981828e-29,
+        "nodal_continuity_defect_C": 1.279915864994533e-32,
+        "field_energy_J": 0.001135663619666797,
+        "kinetic_energy_J": 4.069926753170841e-13,
+        "source_reservoir_electrons": 5.261169118305343,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": -5.0119168693974896e-21
+      },
+      {
+        "time_s": 2.647944113112573e-08,
+        "step": 437621.0,
+        "macro_particles": 46842.0,
+        "gauss_defect_C": 2.5510250091135373e-20,
+        "particle_charge_defect_C": -1.6347734977676575e-29,
+        "nodal_continuity_defect_C": 1.279915864994533e-32,
+        "field_energy_J": 0.0011356636196667518,
+        "kinetic_energy_J": 4.0701932571665353e-13,
+        "source_reservoir_electrons": 5.485539207507216,
+        "short_absorbed_charge_C": 0.0,
+        "short_absorbed_energy_J": 0.0,
+        "axial_escaped_charge_C": -5.0119168693974896e-21
+      }
+    ],
+    "cadence": "wall-clock reports; unmatched intermediate rows validated independently but not compared by interpolation",
+    "endpoint_ledger_increments": {
+      "gauss_defect_C": {
+        "baseline": 1.2804755882320868e-21,
+        "candidate": -1.2374621963793294e-21,
+        "absolute_difference": 2.5179377846114162e-21
+      },
+      "particle_charge_defect_C": {
+        "baseline": -1.9721522630525295e-31,
+        "candidate": -1.9721522630525295e-31,
+        "absolute_difference": 0.0
+      },
+      "nodal_continuity_defect_C": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      },
+      "field_energy_J": {
+        "baseline": -3.2526065174565133e-18,
+        "candidate": 3.903127820947816e-17,
+        "absolute_difference": 4.228388472693467e-17
+      },
+      "kinetic_energy_J": {
+        "baseline": 1.2310802881991799e-15,
+        "candidate": 1.2310802881992304e-15,
+        "absolute_difference": 5.048709793414476e-29
+      },
+      "short_absorbed_charge_C": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      },
+      "short_absorbed_energy_J": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      },
+      "axial_escaped_charge_C": {
+        "baseline": 0.0,
+        "candidate": 0.0,
+        "absolute_difference": 0.0
+      }
+    }
+  },
+  "source_reservoirs": {
+    "all_values_exact": true,
+    "pool_metrics": [
+      {
+        "span": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 8.041720435603552e-13,
+          "a_l2": 8.041720435603552e-13,
+          "b_l2": 8.041720435603552e-13,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "integral": {
+          "count": 2048,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 6.5520705159929336e-15,
+          "a_l2": 9.989325125332837e-15,
+          "b_l2": 9.989325125332837e-15,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "weighted_temperature": {
+          "count": 2048,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 9.781099132986451e-12,
+          "a_l2": 1.4849143121718153e-11,
+          "b_l2": 1.4849143121718153e-11,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        }
+      },
+      {
+        "span": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 3.4564804858835654e-13,
+          "a_l2": 3.4564804858835654e-13,
+          "b_l2": 3.4564804858835654e-13,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "integral": {
+          "count": 2048,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 5.872149887042507e-13,
+          "a_l2": 9.113406849102177e-13,
+          "b_l2": 9.113406849102177e-13,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "weighted_temperature": {
+          "count": 2048,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 1.0313407049086952e-09,
+          "a_l2": 1.5916901794316005e-09,
+          "b_l2": 1.5916901794316005e-09,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        }
+      },
+      {
+        "span": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 6.226729622172729e-13,
+          "a_l2": 6.226729622172729e-13,
+          "b_l2": 6.226729622172729e-13,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "integral": {
+          "count": 256,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 1.4891525785942133e-12,
+          "a_l2": 2.5935227601148494e-12,
+          "b_l2": 2.5935227601148494e-12,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "weighted_temperature": {
+          "count": 256,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 2.645170331336666e-09,
+          "a_l2": 4.549005474512192e-09,
+          "b_l2": 4.549005474512192e-09,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        }
+      },
+      {
+        "span": {
+          "count": 1,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 6.226729622172729e-13,
+          "a_l2": 6.226729622172729e-13,
+          "b_l2": 6.226729622172729e-13,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "integral": {
+          "count": 256,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 1.4891525813223646e-12,
+          "a_l2": 2.5935227644499442e-12,
+          "b_l2": 2.5935227644499442e-12,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        },
+        "weighted_temperature": {
+          "count": 256,
+          "linf_absolute": 0.0,
+          "l2_absolute": 0.0,
+          "rms_absolute": 0.0,
+          "reference_linf": 2.6451703363436997e-09,
+          "a_l2": 4.549005482359524e-09,
+          "b_l2": 4.549005482359524e-09,
+          "relative_l2": 0.0,
+          "relative_linf_global_scale": 0.0,
+          "max_difference_index": null
+        }
+      }
+    ],
+    "pool_lengths": [
+      2048,
+      2048,
+      256,
+      256
+    ],
+    "baseline_electrons": 5.48553920750722,
+    "candidate_electrons": 5.48553920750722,
+    "seed_electrons": 4.767844719073557
+  },
+  "frame": {
+    "time_s": {
+      "count": 129600,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 2.647944113112573e-08,
+      "a_l2": 9.532598807201545e-06,
+      "b_l2": 9.532598807201545e-06,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "x_m": {
+      "count": 129600,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 0.008987499999999999,
+      "a_l2": 1.8706130679538144,
+      "b_l2": 1.8706130679538144,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "y_m": {
+      "count": 129600,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 0.008987499999999999,
+      "a_l2": 1.8706130679537707,
+      "b_l2": 1.8706130679537707,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "potential_V": {
+      "count": 129600,
+      "linf_absolute": 2.6338966563344e-09,
+      "l2_absolute": 1.890421463273614e-07,
+      "rms_absolute": 5.251170731315594e-10,
+      "reference_linf": 80633.43519123226,
+      "a_l2": 17780925.244579475,
+      "b_l2": 17780925.24457937,
+      "relative_l2": 1.0631738434702154e-14,
+      "relative_linf_global_scale": 3.266506815798912e-14,
+      "max_difference_index": 125624
+    },
+    "Ex_V_m": {
+      "count": 129600,
+      "linf_absolute": 4.075467586517334e-06,
+      "l2_absolute": 0.00016621283184959894,
+      "rms_absolute": 4.617023106933304e-07,
+      "reference_linf": 47559922.037823774,
+      "a_l2": 1052414951.1308525,
+      "b_l2": 1052414951.1308886,
+      "relative_l2": 1.579346926523539e-13,
+      "relative_linf_global_scale": 8.569121671974501e-14,
+      "max_difference_index": 103600
+    },
+    "Ey_V_m": {
+      "count": 129600,
+      "linf_absolute": 3.7811696529388428e-06,
+      "l2_absolute": 0.0001825280062716915,
+      "rms_absolute": 5.070222396435875e-07,
+      "reference_linf": 48349829.235886715,
+      "a_l2": 3912554748.6482224,
+      "b_l2": 3912554748.64821,
+      "relative_l2": 4.665187275264441e-14,
+      "relative_linf_global_scale": 7.820440553143347e-14,
+      "max_difference_index": 103959
+    },
+    "electron_density_cm3": {
+      "count": 129600,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 602597.156917396,
+      "a_l2": 4176384.3775648754,
+      "b_l2": 4176384.3775648754,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "height_average_electron_density_cm3": {
+      "count": 129600,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 554373.4417052625,
+      "a_l2": 3445053.3846119535,
+      "b_l2": 3445053.3846119535,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    },
+    "solid": {
+      "count": 129600,
+      "linf_absolute": 0.0,
+      "l2_absolute": 0.0,
+      "rms_absolute": 0.0,
+      "reference_linf": 1.0,
+      "a_l2": 56.568542494923804,
+      "b_l2": 56.568542494923804,
+      "relative_l2": 0.0,
+      "relative_linf_global_scale": 0.0,
+      "max_difference_index": null
+    }
+  },
+  "density_analysis": {
+    "transverse_bin_change_count": 0,
+    "slab_membership_change_count": 0,
+    "transverse_bin_change_ids": [],
+    "slab_membership_change_ids": [],
+    "basis": "Each saved density independently reconstructed from its own particles; paired identity/weight/position checks constrain bin changes. Different occupancy bins are not inferred crossing events.",
+    "all_density_components_identical": true
+  },
+  "runtime_residual_guards": {
+    "phase-cpu-v2-late-cpu7": {
+      "rhs_norm": 8.227406016442678e-05,
+      "residual_norm": 4.940728875651119e-20,
+      "guard_limit": 1.6454812032885355e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 46842,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "<workspace>/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/residual_guard_probe",
+        "<workspace>/outputs/pic-profile/phase-cpu-v2-late-cpu7/checkpoint_437621.bin"
+      ]
+    },
+    "gpu-off": {
+      "rhs_norm": 8.227406016442678e-05,
+      "residual_norm": 4.928613327251872e-20,
+      "guard_limit": 1.6454812032885355e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 46842,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "<workspace>/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/residual_guard_probe",
+        "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/checkpoint_437621.bin"
+      ]
+    },
+    "seed-late-phase": {
+      "rhs_norm": 8.227406016442678e-05,
+      "residual_norm": 4.945844957513418e-20,
+      "guard_limit": 1.6454812032885355e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 46726,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "<workspace>/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/residual_guard_probe",
+        "<workspace>/outputs/pic-profile/seed-late-phase/checkpoint_437411.bin"
+      ]
+    }
+  },
+  "field_error_budget_impulse_m_s": 0.0008826325368663135,
+  "checks": [
+    {
+      "name": "phase-cpu-v2-late-cpu7.particle_charge_reconstruction",
+      "passed": true,
+      "a": -2.3510596413905636e-16,
+      "b": -2.3510596413904754e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.82538137716007e-30,
+        "l2_absolute": 8.82538137716007e-30,
+        "rms_absolute": 8.82538137716007e-30,
+        "reference_linf": 2.3510596413905636e-16,
+        "a_l2": 2.3510596413905636e-16,
+        "b_l2": 2.3510596413904754e-16,
+        "relative_l2": 3.753788811559109e-14,
+        "relative_linf_global_scale": 3.753788811559109e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.deposition_charge",
+      "passed": true,
+      "a": -2.3510596413904783e-16,
+      "b": -2.3510596413905636e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.52955853770219e-30,
+        "l2_absolute": 8.52955853770219e-30,
+        "rms_absolute": 8.52955853770219e-30,
+        "reference_linf": 2.3510596413905636e-16,
+        "a_l2": 2.3510596413904783e-16,
+        "b_l2": 2.3510596413905636e-16,
+        "relative_l2": 3.627963488266625e-14,
+        "relative_linf_global_scale": 3.627963488266625e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.gauss_identity",
+      "passed": true,
+      "a": 2.6708007618112158e-20,
+      "b": 2.6708007618112158e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.6708007618112158e-20,
+        "a_l2": 2.6708007618112158e-20,
+        "b_l2": 2.6708007618112158e-20,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.poisson_guard",
+      "passed": true,
+      "rhs_norm": 8.227406016442678e-05,
+      "residual_norm": 4.940728875651119e-20,
+      "guard_limit": 1.6454812032885355e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 46842,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "<workspace>/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/residual_guard_probe",
+        "<workspace>/outputs/pic-profile/phase-cpu-v2-late-cpu7/checkpoint_437621.bin"
+      ]
+    },
+    {
+      "name": "gpu-off.particle_charge_reconstruction",
+      "passed": true,
+      "a": -2.3510596413905636e-16,
+      "b": -2.3510596413904754e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.82538137716007e-30,
+        "l2_absolute": 8.82538137716007e-30,
+        "rms_absolute": 8.82538137716007e-30,
+        "reference_linf": 2.3510596413905636e-16,
+        "a_l2": 2.3510596413905636e-16,
+        "b_l2": 2.3510596413904754e-16,
+        "relative_l2": 3.753788811559109e-14,
+        "relative_linf_global_scale": 3.753788811559109e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "gpu-off.deposition_charge",
+      "passed": true,
+      "a": -2.351059641390478e-16,
+      "b": -2.3510596413905636e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.578862344278503e-30,
+        "l2_absolute": 8.578862344278503e-30,
+        "rms_absolute": 8.578862344278503e-30,
+        "reference_linf": 2.3510596413905636e-16,
+        "a_l2": 2.351059641390478e-16,
+        "b_l2": 2.3510596413905636e-16,
+        "relative_l2": 3.648934375482039e-14,
+        "relative_linf_global_scale": 3.648934375482039e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "gpu-off.gauss_identity",
+      "passed": true,
+      "a": 2.5510250091135373e-20,
+      "b": 2.5510250091135373e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.5510250091135373e-20,
+        "a_l2": 2.5510250091135373e-20,
+        "b_l2": 2.5510250091135373e-20,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.poisson_guard",
+      "passed": true,
+      "rhs_norm": 8.227406016442678e-05,
+      "residual_norm": 4.928613327251872e-20,
+      "guard_limit": 1.6454812032885355e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 46842,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "<workspace>/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/residual_guard_probe",
+        "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/checkpoint_437621.bin"
+      ]
+    },
+    {
+      "name": "seed-late-phase.particle_charge_reconstruction",
+      "passed": true,
+      "a": -2.3452394771237634e-16,
+      "b": -2.345239477123677e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.628166150854817e-30,
+        "l2_absolute": 8.628166150854817e-30,
+        "rms_absolute": 8.628166150854817e-30,
+        "reference_linf": 2.3452394771237634e-16,
+        "a_l2": 2.3452394771237634e-16,
+        "b_l2": 2.345239477123677e-16,
+        "relative_l2": 3.6790128406999736e-14,
+        "relative_linf_global_scale": 3.6790128406999736e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed-late-phase.deposition_charge",
+      "passed": true,
+      "a": -2.345239477123676e-16,
+      "b": -2.3452394771237634e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 8.726773764007443e-30,
+        "l2_absolute": 8.726773764007443e-30,
+        "rms_absolute": 8.726773764007443e-30,
+        "reference_linf": 2.3452394771237634e-16,
+        "a_l2": 2.345239477123676e-16,
+        "b_l2": 2.3452394771237634e-16,
+        "relative_l2": 3.721058701736544e-14,
+        "relative_linf_global_scale": 3.721058701736544e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed-late-phase.gauss_identity",
+      "passed": true,
+      "a": 2.7065349642735066e-20,
+      "b": 2.7065349642735066e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.7065349642735066e-20,
+        "a_l2": 2.7065349642735066e-20,
+        "b_l2": 2.7065349642735066e-20,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed-late-phase.poisson_guard",
+      "passed": true,
+      "rhs_norm": 8.227406016442678e-05,
+      "residual_norm": 4.945844957513418e-20,
+      "guard_limit": 1.6454812032885355e-17,
+      "guard_passed": true,
+      "ndofs": 130321,
+      "essential_dofs": 3618,
+      "particles": 46726,
+      "cpu_only": true,
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "<workspace>/outputs/pic-profile/cpu-independent-review/checkpoint-validation-v2/residual_guard_probe",
+        "<workspace>/outputs/pic-profile/seed-late-phase/checkpoint_437411.bin"
+      ]
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.seed_global_clock",
+      "passed": true,
+      "a": 2.647844113112573e-08,
+      "b": 2.647844113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647844113112573e-08,
+        "a_l2": 2.647844113112573e-08,
+        "b_l2": 2.647844113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.final_global_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.progress_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.requested_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.window",
+      "passed": true,
+      "a": 1.000000000001134e-12,
+      "b": 1e-12,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.1339402196008912e-24,
+        "l2_absolute": 1.1339402196008912e-24,
+        "rms_absolute": 1.1339402196008912e-24,
+        "reference_linf": 1.000000000001134e-12,
+        "a_l2": 1.000000000001134e-12,
+        "b_l2": 1e-12,
+        "relative_l2": 1.1339402195996054e-12,
+        "relative_linf_global_scale": 1.1339402195996054e-12,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.gauss_defect_C",
+      "passed": true,
+      "a": 2.6708007618112158e-20,
+      "b": 2.6708007618112158e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.6708007618112158e-20,
+        "a_l2": 2.6708007618112158e-20,
+        "b_l2": 2.6708007618112158e-20,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.gauss_defect_C",
+      "passed": true,
+      "a": 2.542753202988007e-20,
+      "b": 2.7065349642735066e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.6378176128549948e-21,
+        "l2_absolute": 1.6378176128549948e-21,
+        "rms_absolute": 1.6378176128549948e-21,
+        "reference_linf": 2.7065349642735066e-20,
+        "a_l2": 2.542753202988007e-20,
+        "b_l2": 2.7065349642735066e-20,
+        "relative_l2": 0.06051344743276284,
+        "relative_linf_global_scale": 0.06051344743276284,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.6347734977676575e-29,
+      "b": -1.6347734977676575e-29,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.6347734977676575e-29,
+        "a_l2": 1.6347734977676575e-29,
+        "b_l2": 1.6347734977676575e-29,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.6150519751371322e-29,
+      "b": -1.6150519751371322e-29,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.6150519751371322e-29,
+        "a_l2": 1.6150519751371322e-29,
+        "b_l2": 1.6150519751371322e-29,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.field_energy_J",
+      "passed": true,
+      "a": 0.001135663619666731,
+      "b": 0.001135663619666731,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.001135663619666731,
+        "a_l2": 0.001135663619666731,
+        "b_l2": 0.001135663619666731,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.field_energy_J",
+      "passed": true,
+      "a": 0.0011356636196667342,
+      "b": 0.0011356636196667596,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.5370330836160804e-17,
+        "l2_absolute": 2.5370330836160804e-17,
+        "rms_absolute": 2.5370330836160804e-17,
+        "reference_linf": 0.0011356636196667596,
+        "a_l2": 0.0011356636196667342,
+        "b_l2": 0.0011356636196667596,
+        "relative_l2": 2.233965269012076e-14,
+        "relative_linf_global_scale": 2.233965269012076e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.kinetic_energy_J",
+      "passed": true,
+      "a": 4.070193257166535e-13,
+      "b": 4.070193257166535e-13,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.070193257166535e-13,
+        "a_l2": 4.070193257166535e-13,
+        "b_l2": 4.070193257166535e-13,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.kinetic_energy_J",
+      "passed": true,
+      "a": 4.057882454284543e-13,
+      "b": 4.057882454284543e-13,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.057882454284543e-13,
+        "a_l2": 4.057882454284543e-13,
+        "b_l2": 4.057882454284543e-13,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_final.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.history_seed.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.reservoir_final",
+      "passed": true,
+      "a": 5.485539207507216,
+      "b": 5.48553920750722,
+      "absolute_limit": 3.1181680284971774e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 3.552713678800501e-15,
+        "l2_absolute": 3.552713678800501e-15,
+        "rms_absolute": 3.552713678800501e-15,
+        "reference_linf": 5.48553920750722,
+        "a_l2": 5.485539207507216,
+        "b_l2": 5.48553920750722,
+        "relative_l2": 6.476507676653636e-16,
+        "relative_linf_global_scale": 6.476507676653636e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.reservoir_initial",
+      "passed": true,
+      "a": 4.767844719073557,
+      "b": 4.767844719073557,
+      "absolute_limit": 2.7102059442958974e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.767844719073557,
+        "a_l2": 4.767844719073557,
+        "b_l2": 4.767844719073557,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.progress_reservoir",
+      "passed": true,
+      "a": 5.485539207507216,
+      "b": 5.48553920750722,
+      "absolute_limit": 3.1181680284971774e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 3.552713678800501e-15,
+        "l2_absolute": 3.552713678800501e-15,
+        "rms_absolute": 3.552713678800501e-15,
+        "reference_linf": 5.48553920750722,
+        "a_l2": 5.485539207507216,
+        "b_l2": 5.48553920750722,
+        "relative_l2": 6.476507676653636e-16,
+        "relative_linf_global_scale": 6.476507676653636e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "gpu-off.seed_global_clock",
+      "passed": true,
+      "a": 2.647844113112573e-08,
+      "b": 2.647844113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647844113112573e-08,
+        "a_l2": 2.647844113112573e-08,
+        "b_l2": 2.647844113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.final_global_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.progress_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.requested_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.window",
+      "passed": true,
+      "a": 1.000000000001134e-12,
+      "b": 1e-12,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.1339402196008912e-24,
+        "l2_absolute": 1.1339402196008912e-24,
+        "rms_absolute": 1.1339402196008912e-24,
+        "reference_linf": 1.000000000001134e-12,
+        "a_l2": 1.000000000001134e-12,
+        "b_l2": 1e-12,
+        "relative_l2": 1.1339402195996054e-12,
+        "relative_linf_global_scale": 1.1339402195996054e-12,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "gpu-off.history_final.gauss_defect_C",
+      "passed": true,
+      "a": 2.5510250091135373e-20,
+      "b": 2.5510250091135373e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.5510250091135373e-20,
+        "a_l2": 2.5510250091135373e-20,
+        "b_l2": 2.5510250091135373e-20,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.history_seed.gauss_defect_C",
+      "passed": true,
+      "a": 2.6747712287514703e-20,
+      "b": 2.7065349642735066e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 3.1763735522036263e-22,
+        "l2_absolute": 3.1763735522036263e-22,
+        "rms_absolute": 3.1763735522036263e-22,
+        "reference_linf": 2.7065349642735066e-20,
+        "a_l2": 2.6747712287514703e-20,
+        "b_l2": 2.7065349642735066e-20,
+        "relative_l2": 0.0117359413202934,
+        "relative_linf_global_scale": 0.0117359413202934,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "gpu-off.history_final.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.6347734977676575e-29,
+      "b": -1.6347734977676575e-29,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.6347734977676575e-29,
+        "a_l2": 1.6347734977676575e-29,
+        "b_l2": 1.6347734977676575e-29,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.history_seed.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.6150519751371322e-29,
+      "b": -1.6150519751371322e-29,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.6150519751371322e-29,
+        "a_l2": 1.6150519751371322e-29,
+        "b_l2": 1.6150519751371322e-29,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.history_final.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.history_seed.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.history_final.field_energy_J",
+      "passed": true,
+      "a": 0.0011356636196667518,
+      "b": 0.0011356636196667518,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0011356636196667518,
+        "a_l2": 0.0011356636196667518,
+        "b_l2": 0.0011356636196667518,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.history_seed.field_energy_J",
+      "passed": true,
+      "a": 0.0011356636196667128,
+      "b": 0.0011356636196667596,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 4.683753385137379e-17,
+        "l2_absolute": 4.683753385137379e-17,
+        "rms_absolute": 4.683753385137379e-17,
+        "reference_linf": 0.0011356636196667596,
+        "a_l2": 0.0011356636196667128,
+        "b_l2": 0.0011356636196667596,
+        "relative_l2": 4.1242435735607556e-14,
+        "relative_linf_global_scale": 4.1242435735607556e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "gpu-off.history_final.kinetic_energy_J",
+      "passed": true,
+      "a": 4.0701932571665353e-13,
+      "b": 4.0701932571665353e-13,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.0701932571665353e-13,
+        "a_l2": 4.0701932571665353e-13,
+        "b_l2": 4.0701932571665353e-13,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.history_seed.kinetic_energy_J",
+      "passed": true,
+      "a": 4.057882454284543e-13,
+      "b": 4.057882454284543e-13,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.057882454284543e-13,
+        "a_l2": 4.057882454284543e-13,
+        "b_l2": 4.057882454284543e-13,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.history_final.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.history_seed.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.history_final.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.history_seed.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.history_final.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.history_seed.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.reservoir_final",
+      "passed": true,
+      "a": 5.485539207507216,
+      "b": 5.48553920750722,
+      "absolute_limit": 3.1181680284971774e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 3.552713678800501e-15,
+        "l2_absolute": 3.552713678800501e-15,
+        "rms_absolute": 3.552713678800501e-15,
+        "reference_linf": 5.48553920750722,
+        "a_l2": 5.485539207507216,
+        "b_l2": 5.48553920750722,
+        "relative_l2": 6.476507676653636e-16,
+        "relative_linf_global_scale": 6.476507676653636e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "gpu-off.reservoir_initial",
+      "passed": true,
+      "a": 4.767844719073557,
+      "b": 4.767844719073557,
+      "absolute_limit": 2.7102059442958974e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.767844719073557,
+        "a_l2": 4.767844719073557,
+        "b_l2": 4.767844719073557,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.progress_reservoir",
+      "passed": true,
+      "a": 5.485539207507216,
+      "b": 5.48553920750722,
+      "absolute_limit": 3.1181680284971774e-13,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 3.552713678800501e-15,
+        "l2_absolute": 3.552713678800501e-15,
+        "rms_absolute": 3.552713678800501e-15,
+        "reference_linf": 5.48553920750722,
+        "a_l2": 5.485539207507216,
+        "b_l2": 5.48553920750722,
+        "relative_l2": 6.476507676653636e-16,
+        "relative_linf_global_scale": 6.476507676653636e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "particles.charge_C",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 46842,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.602176634e-19,
+        "a_l2": 3.467592928423643e-17,
+        "b_l2": 3.467592928423643e-17,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "particles.mass_kg",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 46842,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 9.1093837139e-31,
+        "a_l2": 1.9715450767589828e-28,
+        "b_l2": 1.9715450767589828e-28,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "particles.weight",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 46842,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.031562858772902457,
+        "a_l2": 6.780105613687304,
+        "b_l2": 6.780105613687304,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "particles.position_m",
+      "passed": true,
+      "absolute_limit": 1e-12,
+      "metrics": {
+        "count": 140526,
+        "linf_absolute": 6.938893903907228e-18,
+        "l2_absolute": 7.653100648486175e-17,
+        "rms_absolute": 2.0415455901664242e-19,
+        "reference_linf": 0.012499696279031422,
+        "a_l2": 2.455502106733129,
+        "b_l2": 2.455502106733129,
+        "relative_l2": 3.116715162858517e-17,
+        "relative_linf_global_scale": 5.551250005608065e-16,
+        "max_difference_index": 111461
+      }
+    },
+    {
+      "name": "particles.proper_velocity_m_s",
+      "passed": true,
+      "absolute_limit": 0.005304514737697047,
+      "metrics": {
+        "count": 140526,
+        "linf_absolute": 4.246830940246582e-07,
+        "l2_absolute": 2.0285599268734557e-05,
+        "rms_absolute": 5.4113982858908546e-08,
+        "reference_linf": 53045147.37697047,
+        "a_l2": 5348822650.806661,
+        "b_l2": 5348822650.806663,
+        "relative_l2": 3.79253540322098e-15,
+        "relative_linf_global_scale": 8.006068698548554e-15,
+        "max_difference_index": 95889
+      }
+    },
+    {
+      "name": "raw_diagnostics.time_s",
+      "passed": true,
+      "a": 2.572965307563373e-08,
+      "b": 2.572965307563373e-08,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.572965307563373e-08,
+        "a_l2": 2.572965307563373e-08,
+        "b_l2": 2.572965307563373e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.time_s",
+      "passed": true,
+      "a": 1.000000000001134e-12,
+      "b": 1.000000000001134e-12,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.000000000001134e-12,
+        "a_l2": 1.000000000001134e-12,
+        "b_l2": 1.000000000001134e-12,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.particle_charge_C",
+      "passed": true,
+      "a": -2.3510596413905636e-16,
+      "b": -2.3510596413905636e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.3510596413905636e-16,
+        "a_l2": 2.3510596413905636e-16,
+        "b_l2": 2.3510596413905636e-16,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.particle_charge_C",
+      "passed": true,
+      "a": -5.820164266800266e-19,
+      "b": -5.820164266800266e-19,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.820164266800266e-19,
+        "a_l2": 5.820164266800266e-19,
+        "b_l2": 5.820164266800266e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.deposited_charge_C",
+      "passed": true,
+      "a": -2.3510596413904783e-16,
+      "b": -2.351059641390478e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 4.930380657631324e-32,
+        "l2_absolute": 4.930380657631324e-32,
+        "rms_absolute": 4.930380657631324e-32,
+        "reference_linf": 2.3510596413904783e-16,
+        "a_l2": 2.3510596413904783e-16,
+        "b_l2": 2.351059641390478e-16,
+        "relative_l2": 2.097088721541478e-16,
+        "relative_linf_global_scale": 2.097088721541478e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed_to_final_increment.deposited_charge_C",
+      "passed": true,
+      "a": -5.820164266802238e-19,
+      "b": -5.820164266801745e-19,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 4.930380657631324e-32,
+        "l2_absolute": 4.930380657631324e-32,
+        "rms_absolute": 4.930380657631324e-32,
+        "reference_linf": 5.820164266802238e-19,
+        "a_l2": 5.820164266802238e-19,
+        "b_l2": 5.820164266801745e-19,
+        "relative_l2": 8.471205333075957e-14,
+        "relative_linf_global_scale": 8.471205333075957e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "raw_diagnostics.lower_field_charge_C",
+      "passed": true,
+      "a": 2.8168553582777582e-08,
+      "b": 2.8168553582777357e-08,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.2499312661442353e-22,
+        "l2_absolute": 2.2499312661442353e-22,
+        "rms_absolute": 2.2499312661442353e-22,
+        "reference_linf": 2.8168553582777582e-08,
+        "a_l2": 2.8168553582777582e-08,
+        "b_l2": 2.8168553582777357e-08,
+        "relative_l2": 7.987386571101245e-15,
+        "relative_linf_global_scale": 7.987386571101245e-15,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed_to_final_increment.lower_field_charge_C",
+      "passed": true,
+      "a": 4.4965538098382584e-21,
+      "b": 4.271560683223835e-21,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.2499312661442353e-22,
+        "l2_absolute": 2.2499312661442353e-22,
+        "rms_absolute": 2.2499312661442353e-22,
+        "reference_linf": 4.4965538098382584e-21,
+        "a_l2": 4.4965538098382584e-21,
+        "b_l2": 4.271560683223835e-21,
+        "relative_l2": 0.05003679175864607,
+        "relative_linf_global_scale": 0.05003679175864607,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "raw_diagnostics.upper_field_charge_C",
+      "passed": true,
+      "a": -2.816855334764491e-08,
+      "b": -2.8168553347645882e-08,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 9.727644003623605e-22,
+        "l2_absolute": 9.727644003623605e-22,
+        "rms_absolute": 9.727644003623605e-22,
+        "reference_linf": 2.8168553347645882e-08,
+        "a_l2": 2.816855334764491e-08,
+        "b_l2": 2.8168553347645882e-08,
+        "relative_l2": 3.453370105155425e-14,
+        "relative_linf_global_scale": 3.453370105155425e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed_to_final_increment.upper_field_charge_C",
+      "passed": true,
+      "a": 5.7716361804765e-19,
+      "b": 5.761908536472876e-19,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 9.727644003623605e-22,
+        "l2_absolute": 9.727644003623605e-22,
+        "rms_absolute": 9.727644003623605e-22,
+        "reference_linf": 5.7716361804765e-19,
+        "a_l2": 5.7716361804765e-19,
+        "b_l2": 5.761908536472876e-19,
+        "relative_l2": 0.0016854222441339854,
+        "relative_linf_global_scale": 0.0016854222441339854,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "raw_diagnostics.gauss_defect_C",
+      "passed": true,
+      "a": 2.6708007618112158e-20,
+      "b": 2.5510250091135373e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.197757526976784e-21,
+        "l2_absolute": 1.197757526976784e-21,
+        "rms_absolute": 1.197757526976784e-21,
+        "reference_linf": 2.6708007618112158e-20,
+        "a_l2": 2.6708007618112158e-20,
+        "b_l2": 2.5510250091135373e-20,
+        "relative_l2": 0.04484638255698711,
+        "relative_linf_global_scale": 0.04484638255698711,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed_to_final_increment.gauss_defect_C",
+      "passed": true,
+      "a": -3.5734202462290796e-22,
+      "b": -1.555099551599692e-21,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.197757526976784e-21,
+        "l2_absolute": 1.197757526976784e-21,
+        "rms_absolute": 1.197757526976784e-21,
+        "reference_linf": 1.555099551599692e-21,
+        "a_l2": 3.5734202462290796e-22,
+        "b_l2": 1.555099551599692e-21,
+        "relative_l2": 0.7702127659574468,
+        "relative_linf_global_scale": 0.7702127659574468,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "raw_diagnostics.particle_charge_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.9721522630525295e-31,
+      "b": -1.9721522630525295e-31,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.9721522630525295e-31,
+        "a_l2": 1.9721522630525295e-31,
+        "b_l2": 1.9721522630525295e-31,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.field_energy_J",
+      "passed": true,
+      "a": 0.001135663619666731,
+      "b": 0.0011356636196667518,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.0816681711721685e-17,
+        "l2_absolute": 2.0816681711721685e-17,
+        "rms_absolute": 2.0816681711721685e-17,
+        "reference_linf": 0.0011356636196667518,
+        "a_l2": 0.001135663619666731,
+        "b_l2": 0.0011356636196667518,
+        "relative_l2": 1.8329971438047927e-14,
+        "relative_linf_global_scale": 1.8329971438047927e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed_to_final_increment.field_energy_J",
+      "passed": true,
+      "a": -2.862293735361732e-17,
+      "b": -7.806255641895632e-18,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.0816681711721685e-17,
+        "l2_absolute": 2.0816681711721685e-17,
+        "rms_absolute": 2.0816681711721685e-17,
+        "reference_linf": 2.862293735361732e-17,
+        "a_l2": 2.862293735361732e-17,
+        "b_l2": 7.806255641895632e-18,
+        "relative_l2": 0.7272727272727273,
+        "relative_linf_global_scale": 0.7272727272727273,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "raw_diagnostics.particle_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.particle_kinetic_energy_J",
+      "passed": true,
+      "a": 1.2310802881991799e-15,
+      "b": 1.2310802881992304e-15,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 5.048709793414476e-29,
+        "l2_absolute": 5.048709793414476e-29,
+        "rms_absolute": 5.048709793414476e-29,
+        "reference_linf": 1.2310802881992304e-15,
+        "a_l2": 1.2310802881991799e-15,
+        "b_l2": 1.2310802881992304e-15,
+        "relative_l2": 4.101040234182861e-14,
+        "relative_linf_global_scale": 4.101040234182861e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "raw_diagnostics.lower_absorbed_charge_C",
+      "passed": true,
+      "a": -2.957095667431326e-16,
+      "b": -2.957095667431326e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.957095667431326e-16,
+        "a_l2": 2.957095667431326e-16,
+        "b_l2": 2.957095667431326e-16,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.lower_absorbed_charge_C",
+      "passed": true,
+      "a": -8.130649729335392e-19,
+      "b": -8.130649729335392e-19,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 8.130649729335392e-19,
+        "a_l2": 8.130649729335392e-19,
+        "b_l2": 8.130649729335392e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.upper_absorbed_charge_C",
+      "passed": true,
+      "a": -6.072929377809059e-17,
+      "b": -6.072929377809059e-17,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 6.072929377809059e-17,
+        "a_l2": 6.072929377809059e-17,
+        "b_l2": 6.072929377809059e-17,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.upper_absorbed_charge_C",
+      "passed": true,
+      "a": -2.1083134560023447e-19,
+      "b": -2.1083134560023447e-19,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.1083134560023447e-19,
+        "a_l2": 2.1083134560023447e-19,
+        "b_l2": 2.1083134560023447e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.lower_absorbed_energy_J",
+      "passed": true,
+      "a": 8.621783786506409e-17,
+      "b": 8.62178378650641e-17,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.232595164407831e-32,
+        "l2_absolute": 1.232595164407831e-32,
+        "rms_absolute": 1.232595164407831e-32,
+        "reference_linf": 8.62178378650641e-17,
+        "a_l2": 8.621783786506409e-17,
+        "b_l2": 8.62178378650641e-17,
+        "relative_l2": 1.4296289433016327e-16,
+        "relative_linf_global_scale": 1.4296289433016327e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed_to_final_increment.lower_absorbed_energy_J",
+      "passed": true,
+      "a": 2.6038649652727427e-19,
+      "b": 2.603864965272866e-19,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.232595164407831e-32,
+        "l2_absolute": 1.232595164407831e-32,
+        "rms_absolute": 1.232595164407831e-32,
+        "reference_linf": 2.603864965272866e-19,
+        "a_l2": 2.6038649652727427e-19,
+        "b_l2": 2.603864965272866e-19,
+        "relative_l2": 4.73371384786332e-14,
+        "relative_linf_global_scale": 4.73371384786332e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "raw_diagnostics.upper_absorbed_energy_J",
+      "passed": true,
+      "a": 8.342427193508008e-15,
+      "b": 8.342427193508008e-15,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 8.342427193508008e-15,
+        "a_l2": 8.342427193508008e-15,
+        "b_l2": 8.342427193508008e-15,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.upper_absorbed_energy_J",
+      "passed": true,
+      "a": 2.941318091281229e-17,
+      "b": 2.941318091281229e-17,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.941318091281229e-17,
+        "a_l2": 2.941318091281229e-17,
+        "b_l2": 2.941318091281229e-17,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.lower_injected_charge_C",
+      "passed": true,
+      "a": -2.9577491828856964e-16,
+      "b": -2.9577491828856964e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.9577491828856964e-16,
+        "a_l2": 2.9577491828856964e-16,
+        "b_l2": 2.9577491828856964e-16,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.lower_injected_charge_C",
+      "passed": true,
+      "a": -8.029563726067276e-19,
+      "b": -8.029563726067276e-19,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 8.029563726067276e-19,
+        "a_l2": 8.029563726067276e-19,
+        "b_l2": 8.029563726067276e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.upper_injected_charge_C",
+      "passed": true,
+      "a": -2.957749182885629e-16,
+      "b": -2.957749182885629e-16,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.957749182885629e-16,
+        "a_l2": 2.957749182885629e-16,
+        "b_l2": 2.957749182885629e-16,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.upper_injected_charge_C",
+      "passed": true,
+      "a": -8.029563726067276e-19,
+      "b": -8.029563726067276e-19,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 8.029563726067276e-19,
+        "a_l2": 8.029563726067276e-19,
+        "b_l2": 8.029563726067276e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.injected_energy_J",
+      "passed": true,
+      "a": 1.7043419448130413e-16,
+      "b": 1.7043419448130413e-16,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.7043419448130413e-16,
+        "a_l2": 1.7043419448130413e-16,
+        "b_l2": 1.7043419448130413e-16,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.injected_energy_J",
+      "passed": true,
+      "a": 4.901445932682305e-19,
+      "b": 4.901445932682305e-19,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.901445932682305e-19,
+        "a_l2": 4.901445932682305e-19,
+        "b_l2": 4.901445932682305e-19,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.authored_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.authored_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.authored_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.authored_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.maximum_nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.maximum_nodal_continuity_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.escaped_kinetic_energy_J",
+      "passed": true,
+      "a": 2.6070428967782895e-21,
+      "b": 2.6070428967782895e-21,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.6070428967782895e-21,
+        "a_l2": 2.6070428967782895e-21,
+        "b_l2": 2.6070428967782895e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.escaped_kinetic_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "seed_to_final_increment.axial_escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "raw_diagnostics.poisson_residual_C_per_m",
+      "passed": true,
+      "a": 4.940728875651119e-20,
+      "b": 4.928613327251872e-20,
+      "absolute_limit": 1.6454812032885355e-17,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.2115548399247124e-22,
+        "l2_absolute": 1.2115548399247124e-22,
+        "rms_absolute": 1.2115548399247124e-22,
+        "reference_linf": 4.940728875651119e-20,
+        "a_l2": 4.940728875651119e-20,
+        "b_l2": 4.928613327251872e-20,
+        "relative_l2": 0.002452178353472283,
+        "relative_linf_global_scale": 0.002452178353472283,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "seed_to_final_increment.poisson_residual_C_per_m",
+      "passed": true,
+      "a": -5.116081862298955e-23,
+      "b": -1.7231630261546079e-22,
+      "absolute_limit": 1.6454812032885355e-17,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.2115548399247124e-22,
+        "l2_absolute": 1.2115548399247124e-22,
+        "rms_absolute": 1.2115548399247124e-22,
+        "reference_linf": 1.7231630261546079e-22,
+        "a_l2": 5.116081862298955e-23,
+        "b_l2": 1.7231630261546079e-22,
+        "relative_l2": 0.703099371060906,
+        "relative_linf_global_scale": 0.703099371060906,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_common.437411.time_s",
+      "passed": true,
+      "a": 2.647844113112573e-08,
+      "b": 2.647844113112573e-08,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647844113112573e-08,
+        "a_l2": 2.647844113112573e-08,
+        "b_l2": 2.647844113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.step",
+      "passed": true,
+      "a": 437411.0,
+      "b": 437411.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 437411.0,
+        "a_l2": 437411.0,
+        "b_l2": 437411.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.macro_particles",
+      "passed": true,
+      "a": 46726.0,
+      "b": 46726.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 46726.0,
+        "a_l2": 46726.0,
+        "b_l2": 46726.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.gauss_defect_C",
+      "passed": true,
+      "a": 2.542753202988007e-20,
+      "b": 2.6747712287514703e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.3201802576346322e-21,
+        "l2_absolute": 1.3201802576346322e-21,
+        "rms_absolute": 1.3201802576346322e-21,
+        "reference_linf": 2.6747712287514703e-20,
+        "a_l2": 2.542753202988007e-20,
+        "b_l2": 2.6747712287514703e-20,
+        "relative_l2": 0.049356754082137556,
+        "relative_linf_global_scale": 0.049356754082137556,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_common.437411.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.6150519751371322e-29,
+      "b": -1.6150519751371322e-29,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.6150519751371322e-29,
+        "a_l2": 1.6150519751371322e-29,
+        "b_l2": 1.6150519751371322e-29,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.field_energy_J",
+      "passed": true,
+      "a": 0.0011356636196667342,
+      "b": 0.0011356636196667128,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.1467203015212988e-17,
+        "l2_absolute": 2.1467203015212988e-17,
+        "rms_absolute": 2.1467203015212988e-17,
+        "reference_linf": 0.0011356636196667342,
+        "a_l2": 0.0011356636196667342,
+        "b_l2": 0.0011356636196667128,
+        "relative_l2": 1.8902783045487216e-14,
+        "relative_linf_global_scale": 1.8902783045487216e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_common.437411.kinetic_energy_J",
+      "passed": true,
+      "a": 4.057882454284543e-13,
+      "b": 4.057882454284543e-13,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.057882454284543e-13,
+        "a_l2": 4.057882454284543e-13,
+        "b_l2": 4.057882454284543e-13,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.source_reservoir_electrons",
+      "passed": true,
+      "a": 4.767844719073557,
+      "b": 4.767844719073557,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 4.767844719073557,
+        "a_l2": 4.767844719073557,
+        "b_l2": 4.767844719073557,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437411.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.time_s",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.step",
+      "passed": true,
+      "a": 437621.0,
+      "b": 437621.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 437621.0,
+        "a_l2": 437621.0,
+        "b_l2": 437621.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.macro_particles",
+      "passed": true,
+      "a": 46842.0,
+      "b": 46842.0,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 46842.0,
+        "a_l2": 46842.0,
+        "b_l2": 46842.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.gauss_defect_C",
+      "passed": true,
+      "a": 2.6708007618112158e-20,
+      "b": 2.5510250091135373e-20,
+      "absolute_limit": 1.2809575066738753e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 1.197757526976784e-21,
+        "l2_absolute": 1.197757526976784e-21,
+        "rms_absolute": 1.197757526976784e-21,
+        "reference_linf": 2.6708007618112158e-20,
+        "a_l2": 2.6708007618112158e-20,
+        "b_l2": 2.5510250091135373e-20,
+        "relative_l2": 0.04484638255698711,
+        "relative_linf_global_scale": 0.04484638255698711,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_common.437621.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.6347734977676575e-29,
+      "b": -1.6347734977676575e-29,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.6347734977676575e-29,
+        "a_l2": 1.6347734977676575e-29,
+        "b_l2": 1.6347734977676575e-29,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 1.279915864994533e-32,
+      "b": 1.279915864994533e-32,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.279915864994533e-32,
+        "a_l2": 1.279915864994533e-32,
+        "b_l2": 1.279915864994533e-32,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.field_energy_J",
+      "passed": true,
+      "a": 0.001135663619666731,
+      "b": 0.0011356636196667518,
+      "absolute_limit": 2.5822001127079593e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.0816681711721685e-17,
+        "l2_absolute": 2.0816681711721685e-17,
+        "rms_absolute": 2.0816681711721685e-17,
+        "reference_linf": 0.0011356636196667518,
+        "a_l2": 0.001135663619666731,
+        "b_l2": 0.0011356636196667518,
+        "relative_l2": 1.8329971438047927e-14,
+        "relative_linf_global_scale": 1.8329971438047927e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_common.437621.kinetic_energy_J",
+      "passed": true,
+      "a": 4.070193257166535e-13,
+      "b": 4.0701932571665353e-13,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 5.048709793414476e-29,
+        "l2_absolute": 5.048709793414476e-29,
+        "rms_absolute": 5.048709793414476e-29,
+        "reference_linf": 4.0701932571665353e-13,
+        "a_l2": 4.070193257166535e-13,
+        "b_l2": 4.0701932571665353e-13,
+        "relative_l2": 1.240410337893669e-16,
+        "relative_linf_global_scale": 1.240410337893669e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_common.437621.source_reservoir_electrons",
+      "passed": true,
+      "a": 5.485539207507216,
+      "b": 5.485539207507216,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.485539207507216,
+        "a_l2": 5.485539207507216,
+        "b_l2": 5.485539207507216,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 9.450068490640452e-26,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_common.437621.axial_escaped_charge_C",
+      "passed": true,
+      "a": -5.0119168693974896e-21,
+      "b": -5.0119168693974896e-21,
+      "absolute_limit": 3.2246376786365515e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 5.0119168693974896e-21,
+        "a_l2": 5.0119168693974896e-21,
+        "b_l2": 5.0119168693974896e-21,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.gauss_defect_C",
+      "passed": true,
+      "a": 1.2804755882320868e-21,
+      "b": -1.2374621963793294e-21,
+      "absolute_limit": 2.5619150133477505e-20,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.5179377846114162e-21,
+        "l2_absolute": 2.5179377846114162e-21,
+        "rms_absolute": 2.5179377846114162e-21,
+        "reference_linf": 1.2804755882320868e-21,
+        "a_l2": 1.2804755882320868e-21,
+        "b_l2": 1.2374621963793294e-21,
+        "relative_l2": 1.9664082687338502,
+        "relative_linf_global_scale": 1.9664082687338502,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_endpoint_increment.particle_charge_defect_C",
+      "passed": true,
+      "a": -1.9721522630525295e-31,
+      "b": -1.9721522630525295e-31,
+      "absolute_limit": 6.449275357273103e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.9721522630525295e-31,
+        "a_l2": 1.9721522630525295e-31,
+        "b_l2": 1.9721522630525295e-31,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.nodal_continuity_defect_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 6.449275357273103e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.field_energy_J",
+      "passed": true,
+      "a": -3.2526065174565133e-18,
+      "b": 3.903127820947816e-17,
+      "absolute_limit": 5.164400225415919e-16,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 4.228388472693467e-17,
+        "l2_absolute": 4.228388472693467e-17,
+        "rms_absolute": 4.228388472693467e-17,
+        "reference_linf": 3.903127820947816e-17,
+        "a_l2": 3.2526065174565133e-18,
+        "b_l2": 3.903127820947816e-17,
+        "relative_l2": 1.0833333333333333,
+        "relative_linf_global_scale": 1.0833333333333333,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_endpoint_increment.kinetic_energy_J",
+      "passed": true,
+      "a": 1.2310802881991799e-15,
+      "b": 1.2310802881992304e-15,
+      "absolute_limit": 1.8900136981280903e-25,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 5.048709793414476e-29,
+        "l2_absolute": 5.048709793414476e-29,
+        "rms_absolute": 5.048709793414476e-29,
+        "reference_linf": 1.2310802881992304e-15,
+        "a_l2": 1.2310802881991799e-15,
+        "b_l2": 1.2310802881992304e-15,
+        "relative_l2": 4.101040234182861e-14,
+        "relative_linf_global_scale": 4.101040234182861e-14,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "history_endpoint_increment.short_absorbed_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 6.449275357273103e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.short_absorbed_energy_J",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 1.8900136981280903e-25,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "history_endpoint_increment.axial_escaped_charge_C",
+      "passed": true,
+      "a": 0.0,
+      "b": 0.0,
+      "absolute_limit": 6.449275357273103e-28,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.0,
+        "a_l2": 0.0,
+        "b_l2": 0.0,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.frame_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.frame_reconstruction.height_average_electron_density_cm3",
+      "passed": true,
+      "absolute_limit": 3.151248175215997e-08,
+      "one_electron_density_cm3": 64000.000000000015,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 554373.4417052625,
+        "a_l2": 3445053.3846119535,
+        "b_l2": 3445053.3846119535,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.integrated_density_count.height_average_electron_density_cm3",
+      "passed": true,
+      "a": 1467.4160086337117,
+      "b": 1467.416008633712,
+      "absolute_limit": 3.3365177128728464e-10,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.2737367544323206e-13,
+        "l2_absolute": 2.2737367544323206e-13,
+        "rms_absolute": 2.2737367544323206e-13,
+        "reference_linf": 1467.416008633712,
+        "a_l2": 1467.4160086337117,
+        "b_l2": 1467.416008633712,
+        "relative_l2": 1.549483405560882e-16,
+        "relative_linf_global_scale": 1.549483405560882e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.frame_reconstruction.electron_density_cm3",
+      "passed": true,
+      "absolute_limit": 9.094947017729284e-08,
+      "one_electron_density_cm3": 1600000.0000000002,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 602597.156917396,
+        "a_l2": 4176384.3775648754,
+        "b_l2": 4176384.3775648754,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "phase-cpu-v2-late-cpu7.integrated_density_count.electron_density_cm3",
+      "passed": true,
+      "a": 62.46672695669126,
+      "b": 62.46672695669127,
+      "absolute_limit": 1.4203289301051715e-11,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 7.105427357601002e-15,
+        "l2_absolute": 7.105427357601002e-15,
+        "rms_absolute": 7.105427357601002e-15,
+        "reference_linf": 62.46672695669127,
+        "a_l2": 62.46672695669126,
+        "b_l2": 62.46672695669127,
+        "relative_l2": 1.137473932726979e-16,
+        "relative_linf_global_scale": 1.137473932726979e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "gpu-off.frame_clock",
+      "passed": true,
+      "a": 2.647944113112573e-08,
+      "b": 2.647944113112573e-08,
+      "absolute_limit": 3.6564036173038134e-22,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 2.647944113112573e-08,
+        "b_l2": 2.647944113112573e-08,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.frame_reconstruction.height_average_electron_density_cm3",
+      "passed": true,
+      "absolute_limit": 3.151248175215997e-08,
+      "one_electron_density_cm3": 64000.000000000015,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 554373.4417052625,
+        "a_l2": 3445053.3846119535,
+        "b_l2": 3445053.3846119535,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.integrated_density_count.height_average_electron_density_cm3",
+      "passed": true,
+      "a": 1467.4160086337117,
+      "b": 1467.416008633712,
+      "absolute_limit": 3.3365177128728464e-10,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 2.2737367544323206e-13,
+        "l2_absolute": 2.2737367544323206e-13,
+        "rms_absolute": 2.2737367544323206e-13,
+        "reference_linf": 1467.416008633712,
+        "a_l2": 1467.4160086337117,
+        "b_l2": 1467.416008633712,
+        "relative_l2": 1.549483405560882e-16,
+        "relative_linf_global_scale": 1.549483405560882e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "gpu-off.frame_reconstruction.electron_density_cm3",
+      "passed": true,
+      "absolute_limit": 9.094947017729284e-08,
+      "one_electron_density_cm3": 1600000.0000000002,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 602597.156917396,
+        "a_l2": 4176384.3775648754,
+        "b_l2": 4176384.3775648754,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "gpu-off.integrated_density_count.electron_density_cm3",
+      "passed": true,
+      "a": 62.46672695669126,
+      "b": 62.46672695669127,
+      "absolute_limit": 1.4203289301051715e-11,
+      "metrics": {
+        "count": 1,
+        "linf_absolute": 7.105427357601002e-15,
+        "l2_absolute": 7.105427357601002e-15,
+        "rms_absolute": 7.105427357601002e-15,
+        "reference_linf": 62.46672695669127,
+        "a_l2": 62.46672695669126,
+        "b_l2": 62.46672695669127,
+        "relative_l2": 1.137473932726979e-16,
+        "relative_linf_global_scale": 1.137473932726979e-16,
+        "max_difference_index": 0
+      }
+    },
+    {
+      "name": "frame.time_s",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 2.647944113112573e-08,
+        "a_l2": 9.532598807201545e-06,
+        "b_l2": 9.532598807201545e-06,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "frame.x_m",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.008987499999999999,
+        "a_l2": 1.8706130679538144,
+        "b_l2": 1.8706130679538144,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "frame.y_m",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 0.008987499999999999,
+        "a_l2": 1.8706130679537707,
+        "b_l2": 1.8706130679537707,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    },
+    {
+      "name": "frame.potential_V",
+      "passed": true,
+      "absolute_limit": 8.067926999253988e-06,
+      "roundoff_floor": 4.5834801307610326e-09,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 2.6338966563344e-09,
+        "l2_absolute": 1.890421463273614e-07,
+        "rms_absolute": 5.251170731315594e-10,
+        "reference_linf": 80633.43519123226,
+        "a_l2": 17780925.244579475,
+        "b_l2": 17780925.24457937,
+        "relative_l2": 1.0631738434702154e-14,
+        "relative_linf_global_scale": 3.266506815798912e-14,
+        "max_difference_index": 125624
+      }
+    },
+    {
+      "name": "frame.Ex_V_m",
+      "passed": true,
+      "absolute_limit": 0.004939331409012819,
+      "roundoff_floor": 0.0001833392052304413,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 4.075467586517334e-06,
+        "l2_absolute": 0.00016621283184959894,
+        "rms_absolute": 4.617023106933304e-07,
+        "reference_linf": 47559922.037823774,
+        "a_l2": 1052414951.1308525,
+        "b_l2": 1052414951.1308886,
+        "relative_l2": 1.579346926523539e-13,
+        "relative_linf_global_scale": 8.569121671974501e-14,
+        "max_difference_index": 103600
+      }
+    },
+    {
+      "name": "frame.Ey_V_m",
+      "passed": true,
+      "absolute_limit": 0.005018322128819113,
+      "roundoff_floor": 0.0001833392052304413,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 3.7811696529388428e-06,
+        "l2_absolute": 0.0001825280062716915,
+        "rms_absolute": 5.070222396435875e-07,
+        "reference_linf": 48349829.235886715,
+        "a_l2": 3912554748.6482224,
+        "b_l2": 3912554748.64821,
+        "relative_l2": 4.665187275264441e-14,
+        "relative_linf_global_scale": 7.820440553143347e-14,
+        "max_difference_index": 103959
+      }
+    },
+    {
+      "name": "frame.solid",
+      "passed": true,
+      "absolute_limit": 0.0,
+      "metrics": {
+        "count": 129600,
+        "linf_absolute": 0.0,
+        "l2_absolute": 0.0,
+        "rms_absolute": 0.0,
+        "reference_linf": 1.0,
+        "a_l2": 56.568542494923804,
+        "b_l2": 56.568542494923804,
+        "relative_l2": 0.0,
+        "relative_linf_global_scale": 0.0,
+        "max_difference_index": null
+      }
+    }
+  ],
+  "failures": [],
+  "input_manifest": [
+    {
+      "path": "<workspace>/outputs/pic-profile/phase-cpu-v2-late-cpu7/checkpoint_437621.bin",
+      "sha256": "bd675c56cb8f056e2041cd0734707285869f07adbce3d686623e8ffce79d15df"
+    },
+    {
+      "path": "<workspace>/outputs/pic-profile/phase-cpu-v2-late-cpu7/frame_27.csv",
+      "sha256": "2391992d39aa5934736853bf74459e5a5a96d38b84418023b8f886628e33cd6e"
+    },
+    {
+      "path": "<workspace>/outputs/pic-profile/phase-cpu-v2-late-cpu7/history.csv",
+      "sha256": "e53d6cf449bc9933c5307d1426f3a6055fc26013d289d3bc97c2bb1c30d8a1ef"
+    },
+    {
+      "path": "<workspace>/outputs/pic-profile/phase-cpu-v2-late-cpu7/parallel_execution.json",
+      "sha256": "9d58061eadbab9201559c49014058160f2a68174064f35769fb501d70f163775"
+    },
+    {
+      "path": "<workspace>/outputs/pic-profile/phase-cpu-v2-late-cpu7/progress.json",
+      "sha256": "894ae27ebff2d1ae8ce21a7a0300d02f9e0990c7c0deb0bfefeaa0b9f60599f0"
+    },
+    {
+      "path": "<workspace>/outputs/pic-profile/phase-cpu-v2-late-cpu7/restart.meta",
+      "sha256": "f2f66b2f09ef3c0a88d09f268ddef43b4852357133302614f59e0365b77b16ee"
+    },
+    {
+      "path": "<workspace>/outputs/pic-profile/phase-cpu-v2-late-cpu7/run-receipt.json",
+      "sha256": "3f2ed11e602e168f71559e24794f45c47dd6029ddac213a4b2b2fd61d6ed5bc9"
+    },
+    {
+      "path": "<workspace>/outputs/pic-profile/phase-cpu-v2-late-cpu7/scope.json",
+      "sha256": "54ed1268fbf345a1718c091cccf1338ed2996a60296ff54f23af697b9f64fdc4"
+    },
+    {
+      "path": "<workspace>/outputs/pic-profile/phase-cpu-v2-late-cpu7/seed.json",
+      "sha256": "6f9f375e9c224af518d1354691f57154e22b247bdfc00310db039ed1968e0b33"
+    },
+    {
+      "path": "<workspace>/outputs/pic-profile/seed-late-phase/checkpoint_437411.bin",
+      "sha256": "673d7af6ba12521425bb4a327eaa6d5be8e3f58b1b744362257f5467a0eba6db"
+    },
+    {
+      "path": "<workspace>/outputs/pic-profile/seed-late-phase/history.csv",
+      "sha256": "03613f21e986195419d65a0cdb83e36e49bb3a650a4e9d97fa2449563ccfcca9"
+    },
+    {
+      "path": "<workspace>/outputs/pic-profile/seed-late-phase/restart.meta",
+      "sha256": "067d78271a237cc9cc3dc7a4e125520ff6ec6e1d04ecffb85d07fad35f3ff4d3"
+    },
+    {
+      "path": "<workspace>/outputs/pic-profile/seed-late-phase/seed.json",
+      "sha256": "6f9f375e9c224af518d1354691f57154e22b247bdfc00310db039ed1968e0b33"
+    },
+    {
+      "path": "<workspace>/outputs/pic-testing-allocation.json",
+      "sha256": "344c8b62d7bcf312536f56410ca5152d51035ae3f609a7759354770a45cad873"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/checkpoint_437621.bin",
+      "sha256": "4f5ab008fd7cce9edc29c7e9c4ce40e98a0d161e4b42db03d8d99814d29802c4"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/frame_27.csv",
+      "sha256": "c69fa86baad8f90f8ae6af0d973a7eca3473a3e959508287e14b24b830828037"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/history.csv",
+      "sha256": "e0fa89bcd7baf1c461bce3049814d68b9a0bd71d38011bb3ea71ab7f9eb65771"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/parallel_execution.json",
+      "sha256": "9d58061eadbab9201559c49014058160f2a68174064f35769fb501d70f163775"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/progress.json",
+      "sha256": "dd8fc2ae7fc0056e5a078c0871be0c37d45f9132057f6c5ea2095af13c4d371e"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/restart.meta",
+      "sha256": "f2f66b2f09ef3c0a88d09f268ddef43b4852357133302614f59e0365b77b16ee"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/run-receipt.json",
+      "sha256": "20bb7904f5ffc1eed174c6bbf1f9f7200c9a4c08903a11ce2649961e5372b9f0"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/scope.json",
+      "sha256": "54ed1268fbf345a1718c091cccf1338ed2996a60296ff54f23af697b9f64fdc4"
+    },
+    {
+      "path": "/home/treefor/projects/runtimes/pic-cuda-force-evolving-v3-20261029/qualification-runs/gpu-off/seed.json",
+      "sha256": "6f9f375e9c224af518d1354691f57154e22b247bdfc00310db039ed1968e0b33"
+    }
+  ],
+  "limits": [
+    "Checkpoint has no nodal potential or crossing-event log; field comparison is limited to final saved CSV cell centers.",
+    "Only matching history steps are compared; no unrecorded intermediate state is inferred.",
+    "Saved residual norms are checked against CPU-reconstructed RHS guards; residual error vectors and solver maximum-relative history are not saved.",
+    "This is a short-window integration regression comparison, not physical, grid or timestep convergence.",
+    "CPU7 proof is recorded allocation/receipt evidence; no live production/cgroup state is changed or inferred."
+  ],
+  "replay_cpu_policy": {
+    "expected_replay_cpu": 7,
+    "comparator_cpu": 6,
+    "allocation": {
+      "path": "<workspace>/outputs/pic-testing-allocation.json",
+      "sha256": "344c8b62d7bcf312536f56410ca5152d51035ae3f609a7759354770a45cad873",
+      "status": "paused_job_frozen_core7_released_for_testing",
+      "updated_unix_s": 1793315492.8666961,
+      "testing_logical_cpus": [
+        6,
+        7
+      ],
+      "production_identity": {
+        "pid": 278902,
+        "exe": "/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/qualified/heating-history-pic-gpu",
+        "args": [
+          "/home/treefor/projects/runtimes/mfem-gpu-pic-20261029/qualified/heating-history-pic-gpu",
+          "/home/treefor/projects/Power-Flow/runs/restore_field_mpi8_domain40mm",
+          "<workspace>/outputs/heating-history-full.bin",
+          "<workspace>/outputs/electron-heating-pic-25um-full60ns-gpu-midplane110kV-height25mm",
+          "60",
+          "<workspace>/outputs/gap-pulse-midplane110kV.csv"
+        ],
+        "start_ticks": "5288339"
+      },
+      "native_stopped": true,
+      "production_cgroup_frozen": true,
+      "gpu_benchmarks_serial": true
+    }
+  },
+  "execution": {
+    "cpu": 6,
+    "nice": 15,
+    "threads": 1,
+    "lease": "<workspace>/outputs/pic-profile/testing-core.lock",
+    "gpu_work": false
+  },
+  "created_utc": "2026-10-30T01:14:02.611428+00:00"
+}

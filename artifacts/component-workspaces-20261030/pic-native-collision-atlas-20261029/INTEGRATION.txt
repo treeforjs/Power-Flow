@@ -1,0 +1,70 @@
+Native module API, core v1
+
+Namespace: raikou::collision_geometry, header include/physical_collision_atlas.hpp.
+Compile source/physical_collision_atlas.cpp or link build/libphysical_collision_atlas.a
+with existing OpenSSL::Crypto. The core library does not require MFEM; only its
+native controls include the frozen MFEM/native headers. C++20 frozen toolchain.
+
+IMPORTANT include path: export ONLY this prefix's include/ directory. Keep its
+inputs/ copies PRIVATE to building the separate library/test TUs. The driver
+must use its existing identical collision_scheduler.hpp include path; exposing
+two copies of a pragma-once-only header in one TU causes redefinitions. An actual
+unchanged root-header coexistence test is included. Pin the caller header SHA
+to the tested dependency before integrating; candidate semantics stay unchanged.
+
+  auto geometry = Geometry::from_native_options(arena.native_options());
+  FrameBinding frame(canonical_coordinate_frame_sha256); // canonical TOTAL E/B
+  auto atlas = CollisionAtlas::graded(geometry, frame, graded_options, atlas_limits);
+
+The canonical-only binding applies no shift and refuses native-field conversion.
+For the ORIGINAL 9 mm PIC/native-field convention, a separate explicit
+FrameBinding(geometry, canonical_sha, native_centered_xy_sha) owns one x/y-minus-
+4.5-mm raw-native conversion. NativeCenteredXYPointSI cannot be implicitly passed
+to locate(CanonicalPointSI). Atlas lookup always uses ORIGINAL canonical positions.
+Do not pre-transform inputs to existing Fields::value: that helper already owns
+the subtraction. native_field_point is for RAW native-grid sampling only. No
+inverse-transform/round-trip assertion recovers original double operands.
+
+  auto snapshot = arena.snapshot();
+  auto prefix = arena.state_prefix();
+  CanonicalCensusBinding binding{prefix, {}};
+  for (const auto& [id, packet] : snapshot->packets) {
+    require(packet.native_ids.size() <= limits.carriers-binding.expected_native_ids.size());
+    binding.expected_native_ids.insert(binding.expected_native_ids.end(),
+                                      packet.native_ids.begin(), packet.native_ids.end());
+  }
+  auto census = arena.rate_population(limits.carriers); // one complete validated read
+  auto occupied = atlas.occupied_cells(census, binding, census_limits);
+  require(arena.snapshot()==snapshot && arena.state_prefix()==prefix);
+  // Only NOW form existing chemistry-specific projectile/target lists, preserving
+  // census order and using occupied.entry_cell_ids[i] for census[i].
+  // Pass occupied.cells to the unchanged candidate builder.
+
+Caller must freeze/synchronize the accepted owner while obtaining this read.
+Before/after prefix/pointer checks are additional guards, not a concurrency lock.
+Expected IDs come independently from the SAME accepted canonical snapshot before
+any species/source/status filtering. The native owner remains responsible for
+canonical Count decomposition, exact runtime catalog and source/phase admission.
+This module validates every positive carrier, complete IDs, finite operands,
+physical membership and resource limits; it neither rounds Counts nor chooses
+chemistry. No source-layer electron receives an invented reaction exemption.
+External Active microscopic populations not in the native census require their
+own common-stage collision/optical-depth admission; this library cannot certify
+missing coupling. Adsorbed reservoirs never acquire a bulk gas volume.
+
+Atlas identity binds actual coordinate/foil bits, complete lookup roots/tree,
+leaf bounds/order/offsets, axial families, volume arithmetic policy, closure and
+frame identity. A numerical refinement band selects axial resolution only; no
+vacuum/gas strip is removed. Physical depth is the actual feed-minus-short extent
+and must equal the explicit declared depth. No observation slab is accepted as
+an implicit rate depth. Default and local-axis candidates retain full 25 mm.
+
+legacy_uniform() returns old IDs and volumes exactly where configurations match.
+legacy_uniform_identity() matches the ORIGINAL root Grid identity exactly for
+the tested configurations. identity() additionally binds the frame and full atlas
+schema; it deliberately differs. Keep the old Grid unchanged and bind any new
+driver/checkpoint mode explicitly; do not silently reinterpret an old exposure.
+
+No live-driver adapter, stochastic event, Poisson solve, physical source-layer
+reaction, PIC/GPU evolution, Debye/sheath convergence or full mechanism is
+qualified here. Parent owns actual integration and subsequent coupled tests.
