@@ -1,0 +1,179 @@
+Corrective heat/source owner v4 — component contract, 2026-10-30
+
+Status: separate corrective component. Full joint integration and production are
+held. This module does not choose an electron arrival process, packet statistics,
+new material law, layered initial composition or collision closure.
+
+Dependencies and build
+C++20, normal IEEE arithmetic with fp contraction disabled and no fast math.
+Target electrode-heat-source-v4 reuses unchanged sealed heat/source-v2 and v3.
+CMake verifies all 54 prerequisite file hashes against prerequisites.json and the
+actual source directories of the included targets. Include the sealed Hall
+axial_surface_path_port.hpp before source_owner.hpp. Actual Hall inputs retain
+v3's seal requirements. Native support linked by tests is a qualification fixture;
+parent must link one native implementation. Parent builds can disable tests.
+
+EXACT_PARTICLE_COUNT_HEADER must identify the EXISTING immutable
+raikou::mfem_backend::ExactParticleCount header, SHA256
+46e01fe22e67cc9deb0da9320edef4041f4b3ef433de8ce1eca484463b405501,
+from native source identity (not a Git commit)
+b8a9a27e6a0fcd8c54e49dd341503fed165da460180b608aa0ae024b0436fb0e.
+OpenSSL Crypto is its existing backend dependency. No replacement count backend
+is implemented. The backend represents admitted dyadic weights in 2^-1074 units,
+with its original bounded range and positive-carrier export; this is not a
+physical source quantum or electron-number floor.
+
+One physical source stock
+Owner::inventory(patch) is the ONLY accepted physical neutral source inventory.
+It starts by exact import of the authored normalized hi/lo initial input and
+thereafter retains every admitted debit in ExactParticleCount, even when no
+two-word export exists. Never copy its rounded value back into a Count2 stock.
+
+The retained heat-v2 Coupler is PRIVATE and used only as the existing thermal
+numerical engine. Its desorption is disabled and all of its legacy inventories
+are ZERO. They are neither a second source stock nor the input to desorption
+rates. thermal_state() exposes thermal diagnostic state, including these inert
+zero legacy slots; it is not the physical source-inventory API. No legacy source
+release path is called. Load refuses a heat payload carrying a shadow stock.
+
+Every release_quotes(epoch) and prepare(epoch,...) recomputes the rate view from
+the CURRENT canonical exact inventory via the existing rounded_for_rate().
+This is the selected binary64 rate/coverage evaluation, not an inventory update.
+The original frozen accepted-T law, prefactor, Temkin barrier/coverage convention,
+expm1/log small-hazard branches, conditional release time, neutral velocity
+distribution, proper-velocity conversion and adsorbed-reference formula remain.
+An overdraw caused by the rounded rate product now REFUSES; no nextafter stock
+retreat or packet-weight adjustment is performed. A nonrepresentable positive
+release refuses with its logarithmic unresolved scope.
+
+Caller supplies explicit NeutralLeaf{physical_weight, Draw} lists. A quote is
+read-only information copied by value; preparation recomputes it from the accepted
+base and cannot trust an edited quote. Sum all ACTUAL supplied positive leaf
+weights using ExactParticleCount::credited and require exact equality to the
+quoted source debit. Each output packet retains its supplied weight verbatim.
+No last-packet correction, equal-weight convention or production count policy
+is selected. The caller may explicitly author exact positive parts, including
+existing backend positive_carriers(), or have its proposed allocation refused.
+The ten-leaf old counterexample refuses; eight explicitly authored 0.125 leaves
+for a unit release are admitted without changes. Root must additionally bind
+these exact returned leaves to actual native gas credits at its common barrier.
+
+The original neutral heat load -(K+internal+adsorbed-reference increment) is
+passed once to the retained thermal engine as an internally tagged surface load.
+It is not external physical energy. Trial::heat_budget() reports it under the
+neutral K/internal/adsorbed-reference ports, with authored_heat_J restricted to
+caller-supplied other transfers. The internal heat engine's legacy cumulative
+authored-load slot includes the implementation load; do not add that slot to
+the neutral debit again. Owner::neutral_cumulative_J() separately retains the
+three accepted physical neutral totals, and checkpoints/hash bind them.
+Energy arithmetic remains the existing binary64 model with its thermal roundoff
+certificate; exact particle count does not imply exact real-valued energy.
+
+Immutable physical binding
+Owner is noncopyable and nonmovable, with private heat/count/layer state and a
+unique lifetime identity plus generation. PreparedPatch, Candidate and Handoff
+have private const payloads. No public conversion from mutable v3 proposals exists.
+A destroyed owner's proposals fail for a replacement owner at the same address.
+Thermal acceptance or load invalidates prior proposals. Trial is opaque and
+move-only; an unsuccessful preflight/commit preserves it and all accepted owners.
+
+PatchIdentity requires physical_surface_id, material_layer_id and the exact
+physical_area_m2 equal to the geometry's actual patch area. These strings are
+identity/admission fields, not an implemented layered material model. Frozen
+SourceSettings bind spectrum parameters, existing LayerPolicy and an explicit
+external sampling-policy identity. They do not qualify that sampling policy.
+Explicit slice center/height, global physical origin, source/thermal clock and
+mesh/material/species signatures retain v3's rules. Active records retain the
+physical layer/area, slice mapping, policy, canonical ID and energy-owner key.
+No implicit model, surface or geometry change is admitted on continuation/restart.
+
+Field privately deep-copies the actual Hall mesh and total midpoint E/B. Its
+SHA256 binds all mesh/operator operands, arrays and trial frame; retaining a
+nonconst original mesh alias cannot alter gathering. Prepared exposure keys also
+bind the actual field content, full owner configuration, physical patch/layer/area,
+source policy and sampling-policy identity. Same labels with different array bits
+produce different keys. Accepted T retains its real accepted timestamp; it is not
+relabeled as midpoint T. No new field solve or accepted-start substitution exists.
+
+FinalFieldView is mandatory for source import, handoff, final preflight and normal
+commit. It supplies the ACTUAL parent frame, mesh and total midpoint arrays.
+Preflight recomputes content/mesh identity, accepted source base, lifetime and
+generation, all source and handoff payloads and the existing heat ticket. Parent
+must call this final check against its actual final arrays, including compensation
+as supplied by the field owner, within the common acceptance critical section.
+This does not repair the separate draft root coordinator's mutable-field defect.
+
+Positive-contribution and logarithmic admission
+Finite-log expected electron count with a zero scalar is REFUSED explicitly, even
+when exp(log count) would be representable. Refusal carries quantity and
+log_abs_scope. The module neither silently reconstructs a different scalar count
+nor calls that exposure physically zero. The future exact/log count/arrival owner
+may add a separately qualified representation; no such policy is implemented here.
+A 300 K area_fraction=1e-250 exposure refuses with log count about -714.516494515.
+
+A positive packet weight must also support its nonzero weighted charge and energy
+operands. Numerical checks use the SAME source marks and unchanged unit-weight
+kernel evaluation as an admission diagnostic, then the actual-weight kernel.
+No new draws, replacement particle or altered weight is used. Nonzero weighted
+source, path, endpoint and ordinary-handoff operands that overflow or round to
+zero refuse with logarithmic scope. Neutral K/internal/reference operands receive
+the same zero/finite admission. Legitimately zero physical terms remain allowed.
+This checks represented packet operands; it is not arbitrary-precision field,
+shape-deposition or energy arithmetic. Existing strict work/continuity/model
+guards still apply to those operators. No cold source floor is added.
+
+Active ownership and actual event times
+Birth weights, random marks, IDs and external count-owner receipts are caller
+inputs copied immutably. SourceSettings' identity and token nonemptiness do not
+prove external count/RNG/ID validity. StagedCanonicalOwner still requires the
+root's real external owner preflight. QualificationOnly cannot be promoted by
+continuation or restart; qualification admission remains explicit.
+
+Owner owns the accepted Active-layer auxiliary map, keyed by the same canonical
+ID. advance_active reads that exact accepted base, not a caller-edited layer.
+advance_birth advances a same-trial birth only over its actual remaining source
+interval and requires a distinct continuation event identity. Birth and
+continuation heat transfers retain their separate actual times/sequences; their
+combined current/energy proposal retains one canonical particle. Every accepted
+Active layer must have a proposal reaching common end, or preparation refuses.
+Handoff requires a matching immutable actual ordinary-remainder proposal before
+the component removes Active ownership. Recollected removes that source ID.
+Native canonical membership, global birth-ID uniqueness, collision/reaction
+remaps, boundary collection/escape accounting and all-species global guards are
+still root integration requirements. This is not a second committed PIC population.
+
+Publication and restart
+prepare is private and pure with respect to accepted state. preflight may allocate
+while hashing; allocation failure returns false before mutation. commit preflights
+then publishes the component. For a multi-owner root barrier, FIRST preflight
+EVERY owner, then call publish_prevalidated on the same immutable trial in the
+same critical section. It performs only existing heat publication, state swaps,
+generation increment and proposal destruction: no allocation, field evaluation,
+callbacks, I/O or source recomputation. Do not call allocation-performing commit
+after publishing some other owner. Final external native/count/RNG/field tokens
+remain the root coordinator's responsibility.
+
+Component save embeds the unchanged accepted heat payload, exact count positive
+carriers, canonical Active map, policies, layer identities and neutral cumulative
+ports in one checked component file. Load uses a private fresh thermal engine and
+checks sizes, types, configuration/checksum and accepted clock/geometry before
+swapping accepted state. Exact residuals never pass through a two-word inventory
+codec. It is a frozen-runtime component checkpoint, not a portable ABI format,
+fsync durability protocol or all-owner atomic disk snapshot. Root full restart,
+external RNG/arrival residual, native gas and boundary/circuit state remain held.
+
+Resource caps are explicit refusal guards: up to 256 patches, 1024 cells per
+thermal axis, 4096 proposed source candidates/handoffs, 4096 neutral leaves per
+patch AND in total, 4096 accepted Active layers and 64 MiB component checkpoint.
+Existing count/kernel guards remain. Caps do not truncate or change weights.
+
+Focused evidence
+Tests close C1/C2/C3/C4 and the documented zero-scalar/log admission within this
+component, compare admitted neutral/electron phase space and heat against v2/v3,
+exercise actual cold/handoff and Active paths, exact same-base retries, final
+field/mesh refusal, owner ABA, physical area/policy refusal, missing Active-layer
+refusal, allocation-blocked publication and component restart. The independent
+Fraction oracle checks actual source plus emitted gas count exactly after each
+accepted multiscale debit. Sanitizers cover new inline owner/test code; existing
+frozen native/MFEM/OpenSSL libraries are not re-instrumented. No full joint test,
+arrival policy, material-scenario change or physical history is qualified.
