@@ -1,0 +1,33 @@
+-- The CXX compiler identification is GNU 16.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/sbin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/qualification-v2/build
+[ 50%] Building CXX object CMakeFiles/integration_qualification.dir/integration_qualification.cpp.o
+/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/qualification-v2/integration_qualification.cpp: In function ‘std::string {anonymous}::encode(const State&)’:
+/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/qualification-v2/integration_qualification.cpp:155:5: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
+  155 |     for(double x:s.specific_u)c.put(x);for(long double x:s.thermal_carry)c.put(x);for(double x:s.source_reservoir)c.put(x);for(double x:s.phi)c.put(x);for(double x:s.az)c.put(x);
+      |     ^~~
+/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/qualification-v2/integration_qualification.cpp:155:40: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
+  155 |     for(double x:s.specific_u)c.put(x);for(long double x:s.thermal_carry)c.put(x);for(double x:s.source_reservoir)c.put(x);for(double x:s.phi)c.put(x);for(double x:s.az)c.put(x);
+      |                                        ^~~
+/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/qualification-v2/integration_qualification.cpp:158:9: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
+  158 |         for(double x:{a.current_time_s,a.return_overlap_distance_m,a.handoff_distance_m,a.work_function_eV,a.source_energy_scale_eV,a.quantum_magnetic_energy_fraction})c.put(x);c.put(a.mesh_revision);c.put(a.material_revision);c.put(std::uint64_t(a.status));}
+      |         ^~~
+/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/qualification-v2/integration_qualification.cpp:158:178: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
+  158 |         for(double x:{a.current_time_s,a.return_overlap_distance_m,a.handoff_distance_m,a.work_function_eV,a.source_energy_scale_eV,a.quantum_magnetic_energy_fraction})c.put(x);c.put(a.mesh_revision);c.put(a.material_revision);c.put(std::uint64_t(a.status));}
+      |                                                                                                                                                                                  ^
+/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/qualification-v2/integration_qualification.cpp: In function ‘{anonymous}::State {anonymous}::decode(const std::string&)’:
+/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/qualification-v2/integration_qualification.cpp:163:5: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
+  163 |     for(double& x:s.specific_u)x=c.number();for(long double& x:s.thermal_carry)x=c.wide();for(double& x:s.source_reservoir)x=c.number();for(double& x:s.phi)x=c.number();for(double& x:s.az)x=c.number();
+      |     ^~~
+/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/qualification-v2/integration_qualification.cpp:163:45: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
+  163 |     for(double& x:s.specific_u)x=c.number();for(long double& x:s.thermal_carry)x=c.wide();for(double& x:s.source_reservoir)x=c.number();for(double& x:s.phi)x=c.number();for(double& x:s.az)x=c.number();
+      |                                             ^~~
+[100%] Linking CXX executable integration_qualification
+[100%] Built target integration_qualification
+{"passed":true,"emission_events":33,"nominal_guard_failures":46}
