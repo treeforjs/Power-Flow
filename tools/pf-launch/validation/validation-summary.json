@@ -1,0 +1,949 @@
+{
+  "pf_launch_final_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+  "host": "zenobia",
+  "notes": [
+    "a*: real launches on cores 6 and/or 7 (earlier revisions of pf_launch.py; launch path unchanged since)",
+    "c*: real launches with the final pf_launch.py",
+    "b*: dry-runs with the final pf_launch.py against the live lease state at that moment",
+    "build-mpi-probe: frozen-root mpicc build of validation/mpi_probe.c on CPU 6 through pf-launch"
+  ],
+  "runs": [
+    {
+      "name": "a1-n1-cpu6-host",
+      "receipt": "a1-n1-cpu6-host.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--cpus",
+        "6",
+        "--gpus",
+        "none",
+        "--execution",
+        "host",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/a1-n1-cpu6-host.json",
+        "--",
+        "python3",
+        "validation/rank_probe.py",
+        "/home/treefor/projects/runtimes/arch-base-20261028/root"
+      ],
+      "pf_launch_sha256": "16f4c26bd40c26f0927e2228cc6ddb8711b21bf696017be4d862dc85c0c72098",
+      "final_code": false,
+      "status": "completed",
+      "pf_launch_exit": 0,
+      "launcher": "exec",
+      "execution": "host",
+      "messages": [],
+      "ranks": [
+        {
+          "rank": 0,
+          "planned_cpus": [
+            6
+          ],
+          "observed_affinity": [
+            6
+          ],
+          "observed_nice": 15,
+          "cuda_visible_devices": "",
+          "exit_code": null
+        }
+      ],
+      "program_reported": [
+        {
+          "rank": "0",
+          "affinity": [
+            6
+          ],
+          "nice": 15,
+          "CUDA_VISIBLE_DEVICES": "",
+          "threads": [
+            "1",
+            "1",
+            "1"
+          ],
+          "inside_frozen_root": false,
+          "mpi_size": null,
+          "allreduce_rank_sum": null,
+          "ancestors": []
+        }
+      ]
+    },
+    {
+      "name": "a2-n1-cpu6-frozen",
+      "receipt": "a2-n1-cpu6-frozen.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--cpus",
+        "6",
+        "--gpus",
+        "none",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/a2-n1-cpu6-frozen.json",
+        "--",
+        "python3",
+        "validation/rank_probe.py",
+        "/home/treefor/projects/runtimes/arch-base-20261028/root"
+      ],
+      "pf_launch_sha256": "16f4c26bd40c26f0927e2228cc6ddb8711b21bf696017be4d862dc85c0c72098",
+      "final_code": false,
+      "status": "completed",
+      "pf_launch_exit": 0,
+      "launcher": "exec",
+      "execution": "frozen-root",
+      "messages": [],
+      "ranks": [
+        {
+          "rank": 0,
+          "planned_cpus": [
+            6
+          ],
+          "observed_affinity": [
+            6
+          ],
+          "observed_nice": 15,
+          "cuda_visible_devices": "",
+          "exit_code": null
+        }
+      ],
+      "program_reported": [
+        {
+          "rank": "0",
+          "affinity": [
+            6
+          ],
+          "nice": 15,
+          "CUDA_VISIBLE_DEVICES": "",
+          "threads": [
+            "1",
+            "1",
+            "1"
+          ],
+          "inside_frozen_root": true,
+          "mpi_size": null,
+          "allreduce_rank_sum": null,
+          "ancestors": []
+        }
+      ]
+    },
+    {
+      "name": "a3-n2-cpu6-7-frozen-mpi",
+      "receipt": "a3-n2-cpu6-7-frozen-mpi.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--cpus",
+        "6-7",
+        "--gpus",
+        "none",
+        "--wait",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/a3-n2-cpu6-7-frozen-mpi.json",
+        "--",
+        "validation/mpi_probe"
+      ],
+      "pf_launch_sha256": "16f4c26bd40c26f0927e2228cc6ddb8711b21bf696017be4d862dc85c0c72098",
+      "final_code": false,
+      "status": "completed",
+      "pf_launch_exit": 0,
+      "launcher": "mpirun",
+      "execution": "frozen-root",
+      "messages": [],
+      "ranks": [
+        {
+          "rank": 0,
+          "planned_cpus": [
+            6
+          ],
+          "observed_affinity": [
+            6
+          ],
+          "observed_nice": 15,
+          "cuda_visible_devices": "",
+          "exit_code": 0
+        },
+        {
+          "rank": 1,
+          "planned_cpus": [
+            7
+          ],
+          "observed_affinity": [
+            7
+          ],
+          "observed_nice": 15,
+          "cuda_visible_devices": "",
+          "exit_code": 0
+        }
+      ],
+      "program_reported": [
+        {
+          "rank": 0,
+          "affinity": [
+            6
+          ],
+          "nice": 15,
+          "CUDA_VISIBLE_DEVICES": "",
+          "threads": [
+            "1",
+            "1",
+            "1"
+          ],
+          "inside_frozen_root": null,
+          "mpi_size": 2,
+          "allreduce_rank_sum": 1,
+          "ancestors": []
+        },
+        {
+          "rank": 1,
+          "affinity": [
+            7
+          ],
+          "nice": 15,
+          "CUDA_VISIBLE_DEVICES": "",
+          "threads": [
+            "1",
+            "1",
+            "1"
+          ],
+          "inside_frozen_root": null,
+          "mpi_size": 2,
+          "allreduce_rank_sum": 1,
+          "ancestors": []
+        }
+      ]
+    },
+    {
+      "name": "a4-n2-cpu6-7-host-mpi",
+      "receipt": "a4-n2-cpu6-7-host-mpi.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--cpus",
+        "6-7",
+        "--gpus",
+        "none",
+        "--wait",
+        "--execution",
+        "host",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/a4-n2-cpu6-7-host-mpi.json",
+        "--",
+        "python3",
+        "validation/rank_probe.py",
+        "/home/treefor/projects/runtimes/arch-base-20261028/root"
+      ],
+      "pf_launch_sha256": "16f4c26bd40c26f0927e2228cc6ddb8711b21bf696017be4d862dc85c0c72098",
+      "final_code": false,
+      "status": "completed",
+      "pf_launch_exit": 0,
+      "launcher": "mpirun",
+      "execution": "host",
+      "messages": [],
+      "ranks": [
+        {
+          "rank": 0,
+          "planned_cpus": [
+            6
+          ],
+          "observed_affinity": [
+            6
+          ],
+          "observed_nice": 15,
+          "cuda_visible_devices": "",
+          "exit_code": 0
+        },
+        {
+          "rank": 1,
+          "planned_cpus": [
+            7
+          ],
+          "observed_affinity": [
+            7
+          ],
+          "observed_nice": 15,
+          "cuda_visible_devices": "",
+          "exit_code": 0
+        }
+      ],
+      "program_reported": [
+        {
+          "rank": "1",
+          "affinity": [
+            7
+          ],
+          "nice": 15,
+          "CUDA_VISIBLE_DEVICES": "",
+          "threads": [
+            "1",
+            "1",
+            "1"
+          ],
+          "inside_frozen_root": false,
+          "mpi_size": null,
+          "allreduce_rank_sum": null,
+          "ancestors": [
+            [
+              "python3",
+              "7",
+              15
+            ],
+            [
+              "prte",
+              "6-7",
+              15
+            ],
+            [
+              "python3",
+              "0-15",
+              0
+            ]
+          ]
+        },
+        {
+          "rank": "0",
+          "affinity": [
+            6
+          ],
+          "nice": 15,
+          "CUDA_VISIBLE_DEVICES": "",
+          "threads": [
+            "1",
+            "1",
+            "1"
+          ],
+          "inside_frozen_root": false,
+          "mpi_size": null,
+          "allreduce_rank_sum": null,
+          "ancestors": [
+            [
+              "python3",
+              "6",
+              15
+            ],
+            [
+              "prte",
+              "6-7",
+              15
+            ],
+            [
+              "python3",
+              "0-15",
+              0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a5-n2-cpu6-7-gpu0-frozen",
+      "receipt": "a5-n2-cpu6-7-gpu0-frozen.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--cpus",
+        "6-7",
+        "--gpus",
+        "0",
+        "--wait",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/a5-n2-cpu6-7-gpu0-frozen.json",
+        "--",
+        "python3",
+        "validation/rank_probe.py",
+        "/home/treefor/projects/runtimes/arch-base-20261028/root"
+      ],
+      "pf_launch_sha256": "16f4c26bd40c26f0927e2228cc6ddb8711b21bf696017be4d862dc85c0c72098",
+      "final_code": false,
+      "status": "completed",
+      "pf_launch_exit": 0,
+      "launcher": "mpirun",
+      "execution": "frozen-root",
+      "messages": [],
+      "ranks": [
+        {
+          "rank": 0,
+          "planned_cpus": [
+            6
+          ],
+          "observed_affinity": [
+            6
+          ],
+          "observed_nice": 15,
+          "cuda_visible_devices": "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9",
+          "exit_code": 0
+        },
+        {
+          "rank": 1,
+          "planned_cpus": [
+            7
+          ],
+          "observed_affinity": [
+            7
+          ],
+          "observed_nice": 15,
+          "cuda_visible_devices": "",
+          "exit_code": 0
+        }
+      ],
+      "program_reported": [
+        {
+          "rank": "0",
+          "affinity": [
+            6
+          ],
+          "nice": 15,
+          "CUDA_VISIBLE_DEVICES": "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9",
+          "threads": [
+            "1",
+            "1",
+            "1"
+          ],
+          "inside_frozen_root": true,
+          "mpi_size": null,
+          "allreduce_rank_sum": null,
+          "ancestors": [
+            [
+              "python3",
+              "6",
+              15
+            ],
+            [
+              "prte",
+              "6-7",
+              15
+            ],
+            [
+              "ld-linux-x86-64",
+              "6-7",
+              15
+            ]
+          ]
+        },
+        {
+          "rank": "1",
+          "affinity": [
+            7
+          ],
+          "nice": 15,
+          "CUDA_VISIBLE_DEVICES": "",
+          "threads": [
+            "1",
+            "1",
+            "1"
+          ],
+          "inside_frozen_root": true,
+          "mpi_size": null,
+          "allreduce_rank_sum": null,
+          "ancestors": [
+            [
+              "python3",
+              "7",
+              15
+            ],
+            [
+              "prte",
+              "6-7",
+              15
+            ],
+            [
+              "ld-linux-x86-64",
+              "6-7",
+              15
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a6-n1-cpu6-launcher-in-frozen",
+      "receipt": "a6-n1-cpu6-launcher-in-frozen.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--cpus",
+        "6",
+        "--gpus",
+        "none",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/a6-n1-cpu6-launcher-in-frozen.json",
+        "--",
+        "python3",
+        "validation/rank_probe.py",
+        "/home/treefor/projects/runtimes/arch-base-20261028/root"
+      ],
+      "pf_launch_sha256": "16f4c26bd40c26f0927e2228cc6ddb8711b21bf696017be4d862dc85c0c72098",
+      "final_code": false,
+      "status": "completed",
+      "pf_launch_exit": 0,
+      "launcher": "exec",
+      "execution": "frozen-root",
+      "messages": [],
+      "ranks": [
+        {
+          "rank": 0,
+          "planned_cpus": [
+            6
+          ],
+          "observed_affinity": [
+            6
+          ],
+          "observed_nice": 15,
+          "cuda_visible_devices": "",
+          "exit_code": null
+        }
+      ],
+      "program_reported": [
+        {
+          "rank": "0",
+          "affinity": [
+            6
+          ],
+          "nice": 15,
+          "CUDA_VISIBLE_DEVICES": "",
+          "threads": [
+            "1",
+            "1",
+            "1"
+          ],
+          "inside_frozen_root": true,
+          "mpi_size": null,
+          "allreduce_rank_sum": null,
+          "ancestors": [
+            [
+              "python",
+              "0-15",
+              0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "b1-dry-cores8",
+      "receipt": "b1-dry-cores8.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--dry-run",
+        "--cores",
+        "8",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/b1-dry-cores8.json",
+        "--",
+        "./prog"
+      ],
+      "pf_launch_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+      "final_code": true,
+      "status": "dry-run-refused",
+      "pf_launch_exit": 75,
+      "launcher": "exec",
+      "execution": "frozen-root",
+      "messages": [
+        "--cores 8: only 1 of 8 physical cores available (7); reserved: cores 0-5 (static: allocated to the Spheral work (Power-Flow uses cores 6-7)); leased: core 6 (/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock); at most 2 physical core(s) are unreserved on this host (6-7); use --cores 1 or --cores-available to accept fewer"
+      ]
+    },
+    {
+      "name": "b10-dry-reserved-cpu",
+      "receipt": "b10-dry-reserved-cpu.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--dry-run",
+        "--cpus",
+        "4",
+        "--gpus",
+        "none",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/b10-dry-reserved-cpu.json",
+        "--",
+        "./prog"
+      ],
+      "pf_launch_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+      "final_code": true,
+      "status": "dry-run-refused",
+      "pf_launch_exit": 75,
+      "launcher": "exec",
+      "execution": "frozen-root",
+      "messages": [
+        "--cpus: CPU 4 (physical core 4) is reserved: static: allocated to the Spheral work (Power-Flow uses cores 6-7)"
+      ]
+    },
+    {
+      "name": "b11-dry-launcher-in-frozen",
+      "receipt": "b11-dry-launcher-in-frozen.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--dry-run",
+        "--cores",
+        "2",
+        "--gpus",
+        "0",
+        "--wait",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/b11-dry-launcher-in-frozen.json",
+        "--",
+        "./prog"
+      ],
+      "pf_launch_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+      "final_code": true,
+      "status": "dry-run-refused",
+      "pf_launch_exit": 75,
+      "launcher": "exec",
+      "execution": "frozen-root",
+      "messages": [
+        "--cores 2: only 1 of 8 physical cores available (7); reserved: cores 0-5 (static: allocated to the Spheral work (Power-Flow uses cores 6-7)); cores 0-3 (simqueue-active: required path missing: /home/treefor/.local/state/simqueue/queue.sqlite3 (treated as reserved)); leased: core 6 (/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock); --wait queues until the leased cores are released, or use --cores 1 / --cores-available to accept fewer"
+      ]
+    },
+    {
+      "name": "b2-dry-cores8-available",
+      "receipt": "b2-dry-cores8-available.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--dry-run",
+        "--cores",
+        "8",
+        "--cores-available",
+        "--gpus",
+        "none",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/b2-dry-cores8-available.json",
+        "--",
+        "./prog"
+      ],
+      "pf_launch_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+      "final_code": true,
+      "status": "dry-run",
+      "pf_launch_exit": 0,
+      "launcher": "exec",
+      "execution": "frozen-root",
+      "messages": []
+    },
+    {
+      "name": "b3-dry-cores3",
+      "receipt": "b3-dry-cores3.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--dry-run",
+        "--cores",
+        "3",
+        "--gpus",
+        "none",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/b3-dry-cores3.json",
+        "--",
+        "./prog"
+      ],
+      "pf_launch_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+      "final_code": true,
+      "status": "dry-run-refused",
+      "pf_launch_exit": 75,
+      "launcher": "exec",
+      "execution": "frozen-root",
+      "messages": [
+        "--cores 3: only 1 of 8 physical cores available (7); reserved: cores 0-5 (static: allocated to the Spheral work (Power-Flow uses cores 6-7)); leased: core 6 (/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock); at most 2 physical core(s) are unreserved on this host (6-7); use --cores 1 or --cores-available to accept fewer"
+      ]
+    },
+    {
+      "name": "b4-dry-gpus-auto",
+      "receipt": "b4-dry-gpus-auto.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--dry-run",
+        "--cpus",
+        "6-7",
+        "--gpus",
+        "auto",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/b4-dry-gpus-auto.json",
+        "--",
+        "./prog"
+      ],
+      "pf_launch_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+      "final_code": true,
+      "status": "dry-run-refused",
+      "pf_launch_exit": 75,
+      "launcher": "exec",
+      "execution": "frozen-root",
+      "messages": [
+        "--cpus: CPU 6 (physical core 6) is leased: lock held on /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock; use --wait to queue for it"
+      ]
+    },
+    {
+      "name": "b5-dry-gpus-auto-wait",
+      "receipt": "b5-dry-gpus-auto-wait.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--dry-run",
+        "--cpus",
+        "6-7",
+        "--gpus",
+        "auto",
+        "--wait",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/b5-dry-gpus-auto-wait.json",
+        "--",
+        "./prog"
+      ],
+      "pf_launch_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+      "final_code": true,
+      "status": "dry-run-wait",
+      "pf_launch_exit": 75,
+      "launcher": "mpirun",
+      "execution": "frozen-root",
+      "messages": []
+    },
+    {
+      "name": "b6-dry-gpus-none-wait",
+      "receipt": "b6-dry-gpus-none-wait.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--dry-run",
+        "--cpus",
+        "6-7",
+        "--gpus",
+        "none",
+        "--wait",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/b6-dry-gpus-none-wait.json",
+        "--",
+        "./prog"
+      ],
+      "pf_launch_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+      "final_code": true,
+      "status": "dry-run-wait",
+      "pf_launch_exit": 75,
+      "launcher": "mpirun",
+      "execution": "frozen-root",
+      "messages": []
+    },
+    {
+      "name": "b7-dry-cores-auto",
+      "receipt": "b7-dry-cores-auto.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--dry-run",
+        "--cores",
+        "auto",
+        "--gpus",
+        "none",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/b7-dry-cores-auto.json",
+        "--",
+        "./prog"
+      ],
+      "pf_launch_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+      "final_code": true,
+      "status": "dry-run",
+      "pf_launch_exit": 0,
+      "launcher": "exec",
+      "execution": "frozen-root",
+      "messages": []
+    },
+    {
+      "name": "b8-dry-smt-siblings",
+      "receipt": "b8-dry-smt-siblings.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--dry-run",
+        "--cpus",
+        "6,14",
+        "--gpus",
+        "none",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/b8-dry-smt-siblings.json",
+        "--",
+        "./prog"
+      ],
+      "pf_launch_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+      "final_code": true,
+      "status": "dry-run-refused",
+      "pf_launch_exit": 64,
+      "launcher": "exec",
+      "execution": "frozen-root",
+      "messages": [
+        "--cpus: CPUs 6 and 14 are SMT siblings of physical core 6 (thread_siblings_list 6,14); one rank per physical core, so name at most one of them",
+        "--cpus: CPU 6 (physical core 6) is leased: lock held on /home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core.lock; use --wait to queue for it"
+      ]
+    },
+    {
+      "name": "b9-dry-gpu-absent",
+      "receipt": "b9-dry-gpu-absent.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--dry-run",
+        "--cpus",
+        "6",
+        "--gpus",
+        "1",
+        "--wait",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/b9-dry-gpu-absent.json",
+        "--",
+        "./prog"
+      ],
+      "pf_launch_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+      "final_code": true,
+      "status": "dry-run-refused",
+      "pf_launch_exit": 69,
+      "launcher": "exec",
+      "execution": "frozen-root",
+      "messages": [
+        "--gpus: GPU 1 not present (inventory: 0=GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9)"
+      ]
+    },
+    {
+      "name": "build-mpi-probe",
+      "receipt": "build-mpi-probe.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--cpus",
+        "6",
+        "--gpus",
+        "none",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/build-mpi-probe.json",
+        "--",
+        "mpicc",
+        "-O1",
+        "-o",
+        "mpi_probe",
+        "mpi_probe.c"
+      ],
+      "pf_launch_sha256": "16f4c26bd40c26f0927e2228cc6ddb8711b21bf696017be4d862dc85c0c72098",
+      "final_code": false,
+      "status": "completed",
+      "pf_launch_exit": 0,
+      "launcher": "exec",
+      "execution": "frozen-root",
+      "messages": [],
+      "ranks": [
+        {
+          "rank": 0,
+          "planned_cpus": [
+            6
+          ],
+          "observed_affinity": [
+            6
+          ],
+          "observed_nice": 15,
+          "cuda_visible_devices": "",
+          "exit_code": null
+        }
+      ]
+    },
+    {
+      "name": "c1-final-n1-cores1-wait-frozen",
+      "receipt": "c1-final-n1-cores1-wait-frozen.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--cores",
+        "1",
+        "--gpus",
+        "none",
+        "--wait",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/c1-final-n1-cores1-wait-frozen.json",
+        "--",
+        "python3",
+        "validation/rank_probe.py",
+        "/home/treefor/projects/runtimes/arch-base-20261028/root"
+      ],
+      "pf_launch_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+      "final_code": true,
+      "status": "completed",
+      "pf_launch_exit": 0,
+      "launcher": "exec",
+      "execution": "frozen-root",
+      "messages": [],
+      "ranks": [
+        {
+          "rank": 0,
+          "planned_cpus": [
+            7
+          ],
+          "observed_affinity": [
+            7
+          ],
+          "observed_nice": 15,
+          "cuda_visible_devices": "",
+          "exit_code": null
+        }
+      ],
+      "program_reported": [
+        {
+          "rank": "0",
+          "affinity": [
+            7
+          ],
+          "nice": 15,
+          "CUDA_VISIBLE_DEVICES": "",
+          "threads": [
+            "1",
+            "1",
+            "1"
+          ],
+          "inside_frozen_root": true,
+          "mpi_size": null,
+          "allreduce_rank_sum": null,
+          "ancestors": [
+            [
+              "ld-linux-x86-64",
+              "7",
+              15
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "c2-final-n1-mpirun-wait-frozen",
+      "receipt": "c2-final-n1-mpirun-wait-frozen.json",
+      "pf_launch_argv": [
+        "pf-launch",
+        "--cores",
+        "1",
+        "--launcher",
+        "mpirun",
+        "--gpus",
+        "none",
+        "--wait",
+        "--receipt",
+        "/home/treefor/sim-workspace/powerflow/outputs/pf-launch-v1-20261030/c2-final-n1-mpirun-wait-frozen.json",
+        "--",
+        "validation/mpi_probe"
+      ],
+      "pf_launch_sha256": "9fab7b4a218cff0c72952080a123f3f7b7930c253e32d18320ed8b54abfda24c",
+      "final_code": true,
+      "status": "completed",
+      "pf_launch_exit": 0,
+      "launcher": "mpirun",
+      "execution": "frozen-root",
+      "messages": [],
+      "ranks": [
+        {
+          "rank": 0,
+          "planned_cpus": [
+            7
+          ],
+          "observed_affinity": [
+            7
+          ],
+          "observed_nice": 15,
+          "cuda_visible_devices": "",
+          "exit_code": 0
+        }
+      ],
+      "program_reported": [
+        {
+          "rank": 0,
+          "affinity": [
+            7
+          ],
+          "nice": 15,
+          "CUDA_VISIBLE_DEVICES": "",
+          "threads": [
+            "1",
+            "1",
+            "1"
+          ],
+          "inside_frozen_root": null,
+          "mpi_size": 1,
+          "allreduce_rank_sum": 0,
+          "ancestors": []
+        }
+      ]
+    }
+  ]
+}

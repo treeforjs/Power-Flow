@@ -1,0 +1,4 @@
+#!/bin/sh
+# pf-launch command: runs pf_launch.py next to this file (symlinks resolved) with python3 from PATH.
+here=$(dirname "$(readlink -f "$0")")
+exec python3 "$here/pf_launch.py" "$@"

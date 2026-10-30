@@ -334,14 +334,15 @@ particle) is well under 1 ms for 1e5 particles even at a 1/64 FP64 rate; the wor
 Requirement: on any owned machine or cluster, the core count, the exact cores and the GPUs used by a run are launch options,
 changeable from run to run without editing code or wrapper scripts.
 
-Command (one tool, same on every machine):
+Command (one tool, same on every machine; version 1 is in tools/pf-launch with its README and site files):
 
     pf-launch [--site SITE.json] [--cores N | --cpus LIST] [--gpus none|auto|N|LIST] [--ranks-per-gpu K]
-              [--dry-run] [--receipt PATH] -- PROGRAM ARGS...
+              [--cores-available] [--wait] [--dry-run] [--receipt PATH] -- PROGRAM ARGS...
 
 - `--cores N` picks N free physical cores; `--cpus 4-7` / `0,2,5` names them; default `auto` = every physical core not reserved
   or leased. SMT siblings are never used as separate ranks (checked against `/sys/devices/system/cpu/*/topology/thread_siblings_list`).
-- `--gpus none|auto|N|0,1|GPU-UUID,...`: default `auto` = every GPU not leased; `none` forces CPU backends. Ranks map to GPUs by
+- `--gpus none|auto|count:N|0,1|GPU-UUID,...`: default `auto` = every GPU not leased; `none` forces CPU backends; a bare integer is a
+  GPU index (`--gpus 0` = GPU 0), a count is `count:N`. Ranks map to GPUs by
   `--ranks-per-gpu` (default: one solver rank per GPU); each rank gets its own `CUDA_VISIBLE_DEVICES`.
 - One MPI rank per selected physical core, pinned (taskset / `--cpu-bind` / Slurm binding), one thread per rank, nice level from the
   site file. N may be any count, including 1, 2, 3 or 5.
