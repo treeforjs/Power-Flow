@@ -223,9 +223,11 @@ model and dt and is not comparable.
 
 ## 5. Portable deployment
 
-Status 2026-10-30: cloud compute is out of scope (not affordable). Targets are the workstation (GPU-resident step on the
-RTX 3080 Ti) and the 64-core RTX PRO 4000 Blackwell station. The container/site-config work below is kept only as low-priority
-portability notes for that second station.
+Status 2026-10-30: paid cloud compute is out of scope. Near-term targets are the workstation (GPU-resident step on the
+RTX 3080 Ti) and the 64-core RTX PRO 4000 Blackwell station; further owned machines and one or more clusters are expected later.
+Portability therefore remains a design requirement (any N, per-site config and admission, container image of the frozen
+environment, hypre-cpu and multi-GPU backends, multi-node launch), built when that hardware is available. Cloud shapes below are
+reference only.
 
 
 Does not delay the workstation pilot; restart (A05/A11) becomes required only for preemptible cloud runs. Container image (Apptainer for
