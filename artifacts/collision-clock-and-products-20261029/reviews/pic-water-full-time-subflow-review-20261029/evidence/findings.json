@@ -1,0 +1,35 @@
+[
+  {
+    "id": "genesis-rng-config",
+    "classification": "pending_native_contract",
+    "source_lines": [
+      162,
+      168
+    ],
+    "finding": "Absent accepted owner completion, only next_interval==0 is checked. This does not bind initial seeds, next_event, collision grid or limits to the native genesis rng seal.",
+    "required": "Expose accepted FullTimeGenesis/Boundary RNG seal and bind the full-time state hash before checkpoint/restore/preparation, including zero-event states."
+  },
+  {
+    "id": "exact-private-exposures",
+    "classification": "pending_native_contract",
+    "source_lines": [
+      404,
+      429
+    ],
+    "finding": "private_prefix_ is captured but not compared by seal. Same RNG and common clock do not establish identical transport/event histories.",
+    "required": "Bind exact first and second native exposure receipts/opaque keys and completed state prefixes to the final outer candidate, and compare them against both ParentStage tokens."
+  },
+  {
+    "id": "counter-restore-boundary",
+    "classification": "source_guard_inconsistency_no_linked_repro",
+    "source_lines": [
+      242,
+      269,
+      343,
+      388,
+      421
+    ],
+    "finding": "Per-event and per-exposure guards allow a last increment from MAX-1 to MAX, while restore rejects MAX next_event/next_interval. No linked valid near-MAX native history was constructed; bounded history caps may make this unreachable.",
+    "required": "Keep live accepted state inside its own restart admission or declare consistent terminal checkpoint semantics; preflight two-stage capacity and prohibit increments that produce refused next counters."
+  }
+]

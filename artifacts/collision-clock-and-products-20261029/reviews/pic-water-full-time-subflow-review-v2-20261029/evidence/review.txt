@@ -1,0 +1,57 @@
+Independent revised full-time parent adapter DRAFT review — 2026-10-29
+
+Result: the three original source/contract findings have targeted source hooks
+or guards in the revised draft. No new actionable wrapper error was found in
+this narrow inspection. Native integration remains unqualified: no implemented
+full-time native arena was linked, no native transaction executed, and no new
+physical history accepted. Header SHA:
+87f7b13de6c341e7a12d2b95a69c6c61f1f63ea79e1e394b5e7dd6b2c4e64ee6.
+Original a8c576e8… review remains sealed separately.
+
+The exact revised source and declared native API are preserved under snapshot/.
+Strict-warning compilation succeeds. Its actual initial RNG/config hash helper
+passes the same28 checks and5 token copy/move traits, with identical reference
+hash7b6ffbff9f6cc5409aa5d36eb115449f3c552ebfd4e1f08981e0feb20563732f.
+No test stub replaced the native implementation; unused native functions were
+not linked or executed. Compilation3.65 CPU-s/789616KiB peak RSS; CPU7/nice15,
+one thread, frozen userspace, empty CUDA visibility and bounded resources.
+
+Reviewed fixes (line numbers in snapshot/source/native_parent_subflow.hpp):
+172–180: every full-time checkpoint/restore/preparation completion check compares
+the complete owner/configuration state hash against authoritative accepted
+boundary RNG seal plus exact arena prefix/revision/step. This includes genesis
+with no earlier stochastic completion. It depends on native full_time_boundary
+being derived from accepted owned state and validated on restore.
+237–238,262: per-exposure and event increments cannot leave next counter MAX.
+401–402: first stage requires room for two exposures. From N<=MAX-3, two increments
+leave at most MAX-1, within current restart admission. Original near-MAX finding
+was source logic, not an executed valid history; the new algebra closes it.
+450–464: final outer token must expose the same common binding and both exact
+opaque native exposure keys, completed state prefixes and ExposureBinding hashes,
+including common dt, local duration, physical stage, slot, sequence and frozen
+field. Per-stage before/after RNG hashes and sequence also match. The native port
+must keep these identities stable through its nested reaction compound and bind
+them to immutable outer candidate state, not caller-authored mutable metadata.
+465–475 retain the specific parent channel/data/model and final native candidate
+publication guard. All native and RNG owners still require one sole coordinator:
+preflight everything, then no-fail publication without an intervening mutation.
+
+Remaining native tests are explicitly NOT passed by this review:
+- Native v6.2-style child semantic validation must use the explicit half exposure,
+  including restart replay, not only common interval end-begin. At nonzero epochs
+  the authoritative dt differs from subtracting rounded endpoints.
+- Valid zero-event and reacting two-stage composition, changed/foreign/mixed-age
+  genesis seals, equal-RNG but different private histories, stale/moved/foreign
+  stage handles, and exact fresh-process restart.
+- Faults after first exposure, transport, second exposure and sealing leave all
+  accepted particles/fields/heat/source/RNG/counters unchanged; one successful
+  step advances each accepted owner exactly once.
+- Counter/resource refusals in the actual admitted native domain; caps apply per
+  half-exposure, so common native caps must also bound the combined history.
+- Native authoritative time, field, frame, mesh/material and restart ownership;
+  only draft getters/receipts exist in this review's snapshot.
+
+The conditional parent product model remains unchanged and incomplete as water
+chemistry. The generic attachment/fragmentation audit remains separate; this
+source does not admit those products or a multi-channel mechanism. Neither this
+review nor successful syntax establishes a physical full-time integration.

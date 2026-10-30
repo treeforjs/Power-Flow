@@ -1,0 +1,59 @@
+{
+  "commands": [
+    [
+      "/usr/bin/mpic++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-ffunction-sections",
+      "-fdata-sections",
+      "-Wall",
+      "-Wextra",
+      "-Wpedantic",
+      "-Werror",
+      "-I/home/treefor/projects/runtimes/pic-native-subflow-v6_2-review-20261029/native/source/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/pic-generic-products-native-audit-20261029/products/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/pic-native-subflow-v6_2-review-20261029/native/inputs",
+      "-I/home/treefor/projects/runtimes/pic-native-subflow-v6_2-review-20261029/native/vendor",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+      "-isystem",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+      "-c",
+      "/home/treefor/projects/runtimes/pic-generic-products-native-audit-20261029/probe.cpp",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-generic-products-native-audit-20261029/build/probes.o"
+    ],
+    [
+      "/usr/bin/mpic++",
+      "-Wl,--gc-sections",
+      "/home/treefor/projects/runtimes/pic-generic-products-native-audit-20261029/build/native.o",
+      "/home/treefor/projects/runtimes/pic-generic-products-native-audit-20261029/build/arena.o",
+      "/home/treefor/projects/runtimes/pic-generic-products-native-audit-20261029/build/probes.o",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+      "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+      "-lcrypto",
+      "-o",
+      "/home/treefor/projects/runtimes/pic-generic-products-native-audit-20261029/build/probes"
+    ],
+    [
+      "/usr/bin/time",
+      "-v",
+      "-o",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-generic-products-native-audit-20261029/resources.txt",
+      "/home/treefor/projects/runtimes/pic-generic-products-native-audit-20261029/build/probes",
+      "/home/treefor/projects/runtimes/pic-generic-products-native-audit-20261029/products/data/collisions/h2o-gas-20261029-outer3.json",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-generic-products-native-audit-20261029/run-binding.json",
+      "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-generic-products-native-audit-20261029"
+    ]
+  ],
+  "native_object_sha256": "dd606aaf7d24a4c93c4b8092cd454af123f1e9fcad7a5e8e33c38fab90367356",
+  "arena_object_sha256": "bb0c9fc69a6459dac5a8241cf2c81756ce1ec59ef8a259f453a489ae30b493af",
+  "reused_from_qualified_v6_2_source_identity": "5fa3a59f863e98f21e20af698b9c16417f3749344b555f18e3d2cba1e4f5a705"
+}

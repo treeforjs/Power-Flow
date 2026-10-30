@@ -1,0 +1,50 @@
+Independent explicit-exposure scheduler review — 2026-10-29
+
+Result: no new actionable scheduler error found in the reviewed change. This
+qualifies an isolated scheduling primitive only. No native composition, physical
+time advance, field solve, chemistry completeness or production deployment was
+executed or accepted here.
+
+Reviewed source is snapshot/source/collision_scheduler.hpp, SHA
+564c8bdb71c5d4b2d07decd56d99eb43bceafbd2a62c5e98cd0f490f2c0f3985.
+Unchanged indexed baseline snapshot/inputs/collision_scheduler.hpp is
+dedcd71da3b7cb70fa77813c4524219a154a814d6acd49122477345058a661dc.
+Both headers are compiled together under distinct namespaces; the old binary
+clock is the unmodified numeric/RNG oracle. No root header was edited.
+
+Evidence: probes.json records 55,207 assertions: 1,024 direct old/new legacy
+comparisons, 5,760 authoritative-exposure comparisons to the old clock at local
+origin, 43 invalid-state refusals, and two deliberately opposite timestamp
+rounding boundary cases. Choices, event weights/rates, waiting-time bits and
+full RNG/generation checkpoints agree at every comparison. Restart continuation,
+failed-prepare preservation of an outstanding valid handle, stale publication,
+nonzero consumed exposure and tiny positive subnormal exposure also pass.
+The tiny exposure is a local operator operand; the common endpoint must still
+advance in binary64. Exact Fraction endpoint examples are endpoint-oracle.json.
+
+Source evidence (line numbers in the pinned snapshot):
+45–58: physical Clock and authoritative local duration are separate operands.
+254–256: old prepare still uses rounded end-begin. 258–265: new prepare requires
+finite positive common/exposure, rounded end==begin+common_dt, exposure<=dt.
+270–276: finite nonnegative physical begin, strictly advancing finite endpoint,
+fixed stage containment and 0<=consumed<exposure remain guarded. Overflows,
+NaNs, collapsed intervals, one-ULP endpoint mismatches and overlong exposure
+refuse without touching scheduler state. 299–307: unchanged strict wait<remaining
+exposure decision and event resolution guard. 311–324: unchanged publication,
+shared lifetime identity, generation and RNG checkpoint behavior.
+
+Integration requirements: the external common owner must bind the exact
+common_dt_s and both exposure operands to its accepted step, completion record,
+configuration and restart. An endpoint alone cannot identify a unique dt after
+rounding; multiple caller durations can produce the same endpoint. The API
+correctly validates arithmetic consistency but does not authenticate the owner
+or insist exposure==dt/2. Proposal retains the supplied physical Clock and
+exposure_duration_s; event_subflow_elapsed_s must never become a flight time or
+absolute product birth time. The old native v6.2 completion schema is not
+silently reinterpreted; a new native composition contract is reviewed separately.
+
+All execution: exclusive CPU7 lease, nice15, frozen userspace, one thread,
+CUDA_VISIBLE_DEVICES empty, 1GiB virtual-memory and 60s CPU caps. Compilation
+1.63 CPU-s/321,976KiB peak RSS; probe execution 0.14 CPU-s/4,624KiB. Source,
+probe and resource receipts accompany this report. No broad candidate-builder
+rerun was necessary because construction source is byte-identical to baseline.

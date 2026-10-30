@@ -1,0 +1,70 @@
+--- indexed/collision_scheduler.hpp
++++ explicit-exposure/collision_scheduler.hpp
+@@ -48,6 +48,13 @@
+     std::string state_sha256,mesh_sha256,mechanism_sha256;
+     double frozen_physical_stage_s=0;
+     double collision_elapsed_s=0;
++};
++// The accepted physical interval and the collision exposure are distinct.
++// common_dt_s is authoritative even when end_s-begin_s rounds differently.
++// exposure_s is a frozen-position operator duration, never particle flight.
++struct ExposureClock {
++    Clock stage;
++    double common_dt_s=0,exposure_s=0;
+ };
+ struct Kinematics { double target_frame_energy_eV=0,moller_flux_m_s=0; };
+ inline Kinematics relative(const Packet& p,const Packet& n) {
+@@ -225,13 +232,14 @@
+     friend class Scheduler;
+     std::shared_ptr<const char> lifetime_;std::uint64_t generation_=0;
+     std::mt19937_64 random_after_;Clock clock_;std::optional<Candidate> event_;
+-    double event_subflow_elapsed_s_=0,total_rate_s_=0;
++    double event_subflow_elapsed_s_=0,total_rate_s_=0,exposure_duration_s_=0;
+ public:
+     const std::optional<Candidate>& event()const{return event_;}
+     const Clock& clock()const{return clock_;}
+     double event_subflow_elapsed_s()const{return event_subflow_elapsed_s_;}
+     double frozen_physical_stage_s()const{return clock_.frozen_physical_stage_s;}
+     double total_rate_s()const{return total_rate_s_;}
++    double exposure_duration_s()const{return exposure_duration_s_;}
+ };
+ class Scheduler {
+     std::mt19937_64 random_;std::uint64_t generation_=0;
+@@ -245,13 +253,27 @@
+     Scheduler(const Scheduler&)=delete;Scheduler& operator=(const Scheduler&)=delete;
+     Proposal prepare(const Clock& clock,const std::vector<Candidate>& input,
+         std::size_t candidate_limit=1000000)const {
++        return prepare_bounded(clock,input,candidate_limit,clock.end_s-clock.begin_s);
++    }
++    Proposal prepare_exposure(const ExposureClock& clock,const std::vector<Candidate>& input,
++        std::size_t candidate_limit=1000000)const {
++        positive(clock.common_dt_s,"invalid authoritative common duration");
++        positive(clock.exposure_s,"invalid explicit collision exposure");
++        require(clock.stage.end_s==clock.stage.begin_s+clock.common_dt_s,
++                "common endpoint differs from authoritative duration");
++        require(clock.exposure_s<=clock.common_dt_s,"collision exposure exceeds common duration");
++        return prepare_bounded(clock.stage,input,candidate_limit,clock.exposure_s);
++    }
++private:
++    Proposal prepare_bounded(const Clock& clock,const std::vector<Candidate>& input,
++        std::size_t candidate_limit,double duration)const {
+         require(input.size()<=candidate_limit,"scheduler candidate input limit");
+         require(std::isfinite(clock.begin_s)&&clock.begin_s>=0&&std::isfinite(clock.end_s)&&clock.end_s>clock.begin_s,"invalid accepted interval");
+         require(digest(clock.state_sha256)&&digest(clock.mesh_sha256)&&digest(clock.mechanism_sha256),"unbound input revision");
+         require(std::isfinite(clock.frozen_physical_stage_s)&&clock.frozen_physical_stage_s>=clock.begin_s&&clock.frozen_physical_stage_s<=clock.end_s,"frozen physical stage outside accepted interval");
+-        const double duration=clock.end_s-clock.begin_s;
++        positive(duration,"invalid collision duration");
+         require(std::isfinite(clock.collision_elapsed_s)&&clock.collision_elapsed_s>=0&&clock.collision_elapsed_s<duration,"invalid collision-subflow elapsed time");
+-        Proposal result;result.lifetime_=lifetime_;result.generation_=generation_;result.random_after_=random_;result.clock_=clock;
++        Proposal result;result.lifetime_=lifetime_;result.generation_=generation_;result.random_after_=random_;result.clock_=clock;result.exposure_duration_s_=duration;
+         long double total=0;
+         std::set<std::tuple<std::uint64_t,std::string,std::string,std::string>> keys;
+         auto canonical=input;
+@@ -285,6 +307,7 @@
+         require(result.event_.has_value(),"candidate sum lost selection");
+         return result;
+     }
++public:
+     bool can_publish(const Proposal& p)const noexcept{return p.lifetime_==lifetime_&&p.generation_==generation_&&generation_!=std::numeric_limits<std::uint64_t>::max();}
+     // RNG publication only. Parent must preflight all physical owners and commit
+     // the selected event first within one no-fail common state publication.

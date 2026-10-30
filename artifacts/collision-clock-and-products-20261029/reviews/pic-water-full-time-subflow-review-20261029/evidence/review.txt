@@ -1,0 +1,52 @@
+Independent full-time parent adapter DRAFT review — 2026-10-29
+
+Result: not qualified for deployment. This review is source/declaration-level;
+no implemented full-time native arena was linked and no native transaction or
+physical trajectory was executed. Original header SHA is
+a8c576e8029eed1383143cddb57025c2f27b2d4ea1a9c7151b888c92cf56a912,
+preserved unchanged under snapshot/source/native_parent_subflow.hpp.
+
+findings.json records two pending native API contracts: genesis RNG/configuration
+binding (lines162–168), and final exact first/last exposure histories (404–429).
+Both were already being coordinated by the parent/native owner; they are not
+new regressions in sealed v6.2. The draft declarations lack the corresponding
+getters/tokens. Matching RNG hashes cannot certify equal private particle or
+transport histories. Any common coordinator must preflight all owners before
+no-fail native and RNG publication; the RNG-only publish_prevalidated method
+is intentionally unsafe to invoke outside that sole coordinator contract.
+
+A third source finding is counter/restore consistency: last event/exposure
+increment may yield MAX, while restore rejects MAX. This is conditional source
+logic, not an executed native bypass; bounded historical records may prevent a
+valid near-MAX state from being reachable. Preserve a common admissible live and
+restart domain and test at the actual native admission boundary after linking.
+
+Declaration/configuration evidence: the unchanged header compiles with strict
+warnings. 28 executions of its actual initial_full_time_rng_sha256 helper verify
+repeatability and distinct seeds, grid, all six work limits and all three data/
+kernel/binding inputs. Five static token copy/move traits pass. This helper
+makes an appropriate exact seal, but the original no-completion branch does not
+compare it against accepted native authority. declaration-probes.json explicitly
+records zero native transactions. Compile used3.82 CPU-s/785084KiB peak RSS,
+exclusive CPU7/nice15/one thread/frozen userspace, no GPU.
+
+Other inspected invariants: exact dt/2 is carried as a local exposure; physical
+stage remains begin/end and elapsed SSA time remains separate. Stage successors
+use private scheduler/product streams, accepted state is untouched until the
+outer coordinator publishes, and token lifetime/generation prevent old/foreign
+owner reuse. Resource counters reset each exposure, so caps apply per half step;
+outer native common limits must separately bound the combined history. Product
+weights and carrier/cell rates are inherited from the single-channel operator;
+this review did not repeat that previously qualified matrix. Products remain
+three-state conditional parent ionization, not full water chemistry.
+
+Native integration tests still required: exact first/last native exposure keys
+and state prefixes; zero-event initial and continuing seals; half-duration child
+receipt bounds and restart replay (the completion payload still has the full
+common interval); mixed-age/foreign branches with equal RNG draws; failed first,
+transport, second and seal phases with exact rollback; fresh-process restart and
+stale handles; physical field/mesh/material/heat/source authority; counter and
+resource refusal. The public full-time restart contract was still draft here.
+
+Root subsequently supplied revised header87f7b13d…; it is a separate review,
+not an alteration of the source or evidence preserved in this directory.
