@@ -1,0 +1,25 @@
+2026 transport addendum - not validation of the present model
+
+D. R. Welch et al. (N. Bennett coauthor), PRAB 29, 093301, published 1 September 2026; DOI 10.1103/prpw-f8lt.
+
+Setup: planar 2D; conducting cathode, 0.3-mm preinitialized kinetic plasma, 2.5-mm plasma-edge/anode separation; periodic drift direction, fastest-mode-dependent length; 4.5 MV, transverse |Bz|=57 T, scanned to 228 T. Theory prescribes 3-eV, 10^16-to-10^14-cm^-3 profiles and sums electron/ion Spitzer conductivity tensors. Simulation uses mobile singly charged H/C/Fe ions, electrons, binary Coulomb scattering, and threshold-triggered space-charge-limited cathode replenishment (24 MV/m), rather than a thermionic-only source.
+
+Numerics: evolving electromagnetic fields with updated Magnetic Implicit integration, despite Poisson/uniform-B initialization; dx=12.5 um, dy=25 um, dt=40 fs; 900 electrons/225 ions per cell; 2-4 cells/skin depth; reported energy error below0.5% over2-5 ns.
+
+Feedback: ion conductivity strengthens resistive-plasma instability; growth is approximately proportional to mi^-1/2, and stronger B delays growth. Ey spectra/growth/saturation, density fronts, species heating and B/phi vortices are observables. MV potential islands degrade ion shielding and accelerate ions (~0.5 mm penetration at2 ns). Emission turn-on, upstream power flow and current loss are excluded; density-profile experimental validation remains future.
+
+Locators: Sec.II and Figs.1-6 (conductivity/theory); Sec.III and Fig.7 (geometry); printed page093301-7 (numerics); Figs.8-14 and Sec.IV (growth/nonlinear transport and limits).
+
+Model implications (interpretation):
+This is a mechanism/theory-versus-kinetic-simulation comparison, not validation of the present electrostatic, prescribed-B finite-foil model. A projected electrostatic potential cannot reproduce the complete evolving transverse-magnetic mode, collisional plasma dissipation, mobile-ion response, or magnetic feedback. Preinitialized surface plasma is not a water-desorption/ionization history. Energy conservation alone does not validate an EEDF or reaction rates.
+
+There is also a coordinate issue: the paper's drift-wave direction is resolved and periodic, with B normal to its simulation plane. The present driver supplies native B in the Poisson plane while advancing particles in three dimensions; a major E-cross-B direction can therefore be out of that plane, where self-consistent potential variation is absent. Matching a field magnitude or the nominal25-um spacing does not match the instability problem. The paper's implicit timestep is not permission to relax current explicit gyro/timestep guards.
+
+Restricted transferable benchmark (proposal):
+A transferable first test is a deliberately restricted collisionless electron-transport control: identical signed uniform E/B vectors, initial particles/weights, orbit window and boundary treatment, comparing relativistic gyro-motion, E-cross-B drift, energy and charge/flux bookkeeping before differing boundaries matter. It is a new common-limit numerical benchmark, not reproduction of the published instability.
+
+A later sheath comparison would require a shared initial field/distribution deck and matching periodic drift geometry, with ions immobile, collisions disabled and B held fixed in BOTH codes. Compare Ex/phi, electron density/energy distributions and wall flux during the agreed early-time interval. Those restrictions intentionally remove the paper's central feedback. Only after adding and qualifying mobile ions, collisions, electromagnetic evolution and matching source closure would its instability-growth/ion-front observables become appropriate targets. No such implementation or run is included here.
+
+Primary full text: https://journals.aps.org/prab/pdf/10.1103/prpw-f8lt
+Canonical article: https://doi.org/10.1103/prpw-f8lt
+Full text obtained from the official APS harvest endpoint; local PDF preserved with SHA256. Geometry, numerics and nonlinear figures were visually inspected. Bibliographic citation retains N. Bennett; the human-context name supplied is Nicki Bennett. No contact was made. No simulation, dependency, GPU or production change occurred.

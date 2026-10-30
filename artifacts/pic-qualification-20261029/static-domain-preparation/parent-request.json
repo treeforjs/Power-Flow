@@ -1,0 +1,168 @@
+{
+  "schema": "parent-static-domain-gpu-request-v1",
+  "status": "prepared_not_executed",
+  "runtime": "/home/treefor/projects/runtimes/pic-static-domain-20261029",
+  "input_bindings": "/home/treefor/projects/runtimes/pic-static-domain-20261029/input-bindings.json",
+  "input_bindings_sha256": "5fd2bb79104e935b14f08439d62a8fd9ded5df949b3979d1756ca5cb6937539e",
+  "verify_argv": [
+    "python",
+    "/home/treefor/projects/runtimes/pic-static-domain-20261029/tools/verify_inputs.py"
+  ],
+  "cpu_control": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation/cpu-qualified",
+  "cpu_control_result": {
+    "mode": "cpu-preflight",
+    "case_full_width_mm": 9,
+    "nodes": 130321,
+    "cells": 129600,
+    "nnz": 1168561,
+    "foil_dirichlet_nodes": 3618,
+    "particles": 46726,
+    "particle_state_unchanged": true,
+    "source_topology_bitwise_equal_to_capture": true,
+    "independent_source_bitwise_equal": false,
+    "independent_source_max_abs_error_C_per_m": 7.025792437124636e-31,
+    "direct_charge_C": -2.3452394771237634e-16,
+    "deposited_charge_C": -2.3452394771236805e-16,
+    "charge_error_C": 8.283039504820624e-30,
+    "phi_residual_C_per_m": 4.943050606136738e-20,
+    "phi_residual_limit_C_per_m": 1.6454812032885355e-17,
+    "psi_residual_C_per_m": 6.2595168881591445e-25,
+    "psi_residual_limit_C_per_m": 2.0406934163055318e-22,
+    "captured_field_failures": 0,
+    "max_E_difference_V_m": 0,
+    "max_B_difference_T": 0,
+    "factorizations": 0,
+    "field_solves": 0,
+    "same_operator_for_two_RHS": true,
+    "graded_mesh": false,
+    "no_particle_advance": true,
+    "passed": true
+  },
+  "cpu_control_gates": {
+    "independent_source_checked": true,
+    "source_roundoff_limit_C_per_m": 2.1329828788327753e-27,
+    "source_gate_passed": true,
+    "captured_nodal_comparison_performed": true,
+    "max_phi_error_V": 0,
+    "phi_error_limit_V": 8.067926999253988e-06,
+    "max_psi_error": 0,
+    "psi_error_limit": 1.0005684341886081e-10,
+    "nodal_gate_passed": true,
+    "capture_field_comparison_performed": true,
+    "original_E_abs_V_m": 1e-06,
+    "original_B_abs_T": 1e-13,
+    "original_field_relative": 5e-12
+  },
+  "scope": "Static field-only sensitivity, not a continuous restart, particle history or EEDF convergence run",
+  "production": "Keep the full run and cgroup processes frozen; no resume or production edits",
+  "execution_owner": "parent_only",
+  "environment": {
+    "PIC_STATIC_DOMAIN_PARENT_GPU": "1",
+    "LD_LIBRARY_PATH": "/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cu12/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cublas/lib:/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/lib"
+  },
+  "serial_locks": [
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core.lock",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-gpu.lock"
+  ],
+  "cpu_affinity": [
+    6
+  ],
+  "nice": 15,
+  "jobs": 1,
+  "cases": [
+    {
+      "full_width_mm": 9,
+      "nodes": 130321,
+      "cell_size_um": 25,
+      "output": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation/parent-gpu-9mm",
+      "argv": [
+        "/home/treefor/projects/runtimes/pic-static-domain-20261029/build/static_domain_gpu",
+        "gpu",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation/parent-gpu-9mm",
+        "9"
+      ],
+      "prerequisite": "Bound CPU prerequisite and production hold"
+    },
+    {
+      "full_width_mm": 13,
+      "nodes": 271441,
+      "cell_size_um": 25,
+      "output": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation/parent-gpu-13mm",
+      "argv": [
+        "/home/treefor/projects/runtimes/pic-static-domain-20261029/build/static_domain_gpu",
+        "gpu",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation/parent-gpu-13mm",
+        "13"
+      ],
+      "prerequisite": "9mm GPU control passed all captured phi/psi/E/B/source/residual gates with the same input bindings"
+    },
+    {
+      "full_width_mm": 17,
+      "nodes": 463761,
+      "cell_size_um": 25,
+      "output": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation/parent-gpu-17mm",
+      "argv": [
+        "/home/treefor/projects/runtimes/pic-static-domain-20261029/build/static_domain_gpu",
+        "gpu",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation/parent-gpu-17mm",
+        "17"
+      ],
+      "prerequisite": "9mm GPU control passed all captured phi/psi/E/B/source/residual gates with the same input bindings"
+    },
+    {
+      "full_width_mm": 25,
+      "nodes": 1002001,
+      "cell_size_um": 25,
+      "output": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation/parent-gpu-25mm",
+      "argv": [
+        "/home/treefor/projects/runtimes/pic-static-domain-20261029/build/static_domain_gpu",
+        "gpu",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cuda-gather-investigation/actual-midpoint-fixture",
+        "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/em-field-consistency-audit/static-domain-preparation/parent-gpu-25mm",
+        "25"
+      ],
+      "prerequisite": "9mm GPU control passed all captured phi/psi/E/B/source/residual gates with the same input bindings"
+    }
+  ],
+  "limits": {
+    "max_nodes": 1010000,
+    "max_particles": 46726,
+    "host_RSS_bytes": 4294967296,
+    "GPU_used_memory_increase_bytes": 8589934592,
+    "wall_seconds_per_case": 900,
+    "output_bytes_per_case": 67108864,
+    "factorizations_per_case": 1,
+    "RHS_solves_per_case": 2,
+    "enforcement": "Parent monitors and aborts diagnostic case on a cap breach; limits are ceilings, not measured predictions"
+  },
+  "validation_order": [
+    "Verify bound hashes and production hold before dispatch",
+    "Run only9mm GPU control first",
+    "Require result.passed and all control-gates plus same particle/input hashes",
+    "Only then consider13/17/25mm sequentially",
+    "Verify bound inputs unchanged after every case",
+    "Report field-only sensitivities, absolute errors and resource use; no accepted trajectory or EEDF claim"
+  ],
+  "graded_mesh": {
+    "status": "deferred",
+    "reason": "No graded source/gather mapping independently qualified; uniform25um only"
+  },
+  "comparison_policy": {
+    "E_abs_V_m": 1e-06,
+    "B_abs_T": 1e-13,
+    "field_relative": 5e-12,
+    "nodal_global_relative": 1e-10,
+    "nodal_roundoff_factor": 256,
+    "source_roundoff_factor": 1024,
+    "residual": "max(1e-30,2e-13*||b||2)",
+    "iterative_refinements": 2
+  },
+  "output_layout": {
+    "particle_fields": "64B record:FP64 E[3],B[3],phi,psi; original particle order/IDs bound by particles.bin hash",
+    "nodal_fields": "Raw FP64 MFEM nodal phi/psi, uniform mesh/DOF ordering from source",
+    "not_restart_checkpoint": true
+  }
+}
