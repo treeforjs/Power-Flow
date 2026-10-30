@@ -1,0 +1,477 @@
+--- a/source/include/raikou/mfem_pic_arena.h
++++ b/source/include/raikou/mfem_pic_arena.h
+@@ -1,5 +1,5 @@
+ #pragma once
+-#include "electrode_heat_feedback.hpp"
++#include "raikou/exact_particle_count.h"
+ #include "raikou/json.hpp"
+ #include "raikou/mfem_gap_pic.h"
+ #include <map>
+@@ -9,9 +9,9 @@
+ 
+ namespace raikou::mfem_backend {
+ using ArenaJson = nlohmann::json;
+-// Reuses the heat owner's public inventory type. This is the gas inventory
+-// after an accepted surface transfer, not a second owner of solid inventory.
+-using ArenaCount = electrode_heat::Count;
++// Exact gas count is distinct from the heat-owned adsorbed Count2 reservoir.
++// Count2 limbs import exactly; unsupported two-limb export throws.
++using ArenaCount = ExactParticleCount;
+ struct ArenaStateSpec {
+   std::string id;
+   int hydrogen = 0, oxygen = 0, charge_e = 0;
+--- a/source/src/mfem_pic_arena.cpp
++++ b/source/src/mfem_pic_arena.cpp
+@@ -279,26 +279,29 @@
+   BN_set_negative(n.get(), (bits >> 63) && m);
+   return n;
+ }
+-Big exact(ArenaCount n) {
+-  auto a = exact(n.hi), b = exact(n.lo);
+-  require(BN_add(a.get(), a.get(), b.get()), "count sum");
+-  return a;
+-}
++Big exact(ArenaCount n) { return n.copy_units(); }
+ void count_guard(ArenaCount n) {
+-  require(electrode_heat::canonical(n), "noncanonical heat-owner Count");
+-  auto a = exact(n);
+-  require(!BN_is_negative(a.get()), "negative exact Count");
+-}
+-bool zero(ArenaCount n) {
+-  auto a = exact(n);
+-  return BN_is_zero(a.get());
++  auto a = n.copy_units();
++  require(!BN_is_negative(a.get()) &&
++              BN_num_bits(a.get()) <= ArenaCount::maximum_bits,
++          "bounded exact count guard");
++}
++bool zero(ArenaCount n) { return n.zero(); }
++ArenaJson count_json(ArenaCount n) {
++  return {{"unit_exponent", -1074},
++          {"positive_carriers", n.positive_carriers()}};
+ }
+-ArenaJson count_json(ArenaCount n) { return ArenaJson::array({n.hi, n.lo}); }
+ ArenaCount read_count(const ArenaJson &j) {
+-  require(j.is_array() && j.size() == 2, "count schema");
+-  ArenaCount n{j.at(0).get<double>(), j.at(1).get<double>()};
+-  count_guard(n);
+-  return n;
++  require(j.is_object() && j.size() == 2 && j.at("unit_exponent") == -1074,
++          "exact count schema");
++  require(j.at("positive_carriers").is_array() &&
++              j.at("positive_carriers").size() <= ArenaCount::maximum_carriers,
++          "bounded exact count codec");
++  auto weights = j.at("positive_carriers").get<std::vector<double>>();
++  auto count = ArenaCount::from_positive_carriers(weights);
++  require(weights == count.positive_carriers(),
++          "exact count canonical positive representation");
++  return count;
+ }
+ bool digest(const std::string &s) {
+   return s.size() == 64 && std::all_of(s.begin(), s.end(), [](char c) {
+@@ -452,44 +455,10 @@
+ }
+ } // namespace
+ std::string PicArena::sha256(const std::string &s) { return sha_bytes(s); }
+-bool PicArena::exact_count_equal(ArenaCount a, ArenaCount b) {
+-  auto x = exact(a), y = exact(b);
+-  return BN_cmp(x.get(), y.get()) == 0;
+-}
+-ArenaCount PicArena::debit(ArenaCount n, double w) {
+-  count_guard(n);
+-  require(std::isfinite(w) && w > 0, "positive event weight");
+-  auto before = exact(n), amount = exact(w);
+-  require(BN_cmp(before.get(), amount.get()) >= 0,
+-          "insufficient exact inventory");
+-  require(BN_sub(before.get(), before.get(), amount.get()),
+-          "count subtraction");
+-  auto out = electrode_heat::add(n, -w);
+-  count_guard(out);
+-  auto represented = exact(out);
+-  require(BN_cmp(before.get(), represented.get()) == 0,
+-          "exact remainder exceeds two-word Count; unchanged-state refusal");
+-  return out;
+-}
++bool PicArena::exact_count_equal(ArenaCount a, ArenaCount b) { return a == b; }
++ArenaCount PicArena::debit(ArenaCount n, double w) { return n.debit(w); }
+ std::vector<double> PicArena::positive_carriers(ArenaCount n) {
+-  count_guard(n);
+-  auto remaining = exact(n);
+-  std::vector<double> out;
+-  while (!BN_is_zero(remaining.get())) {
+-    require(out.size() < 42, "native count carrier bound");
+-    int shift = std::max(0, BN_num_bits(remaining.get()) - 53);
+-    auto top = big();
+-    require(BN_rshift(top.get(), remaining.get(), shift), "carrier shift");
+-    double w = std::ldexp(double(BN_get_word(top.get())), shift - 1074);
+-    require(std::isfinite(w) && w > 0,
+-            "positive native carrier unrepresentable");
+-    auto word = exact(w);
+-    require(BN_cmp(word.get(), remaining.get()) <= 0 &&
+-                BN_sub(remaining.get(), remaining.get(), word.get()),
+-            "native carrier exact decomposition");
+-    out.push_back(w);
+-  }
+-  return out;
++  return n.positive_carriers();
+ }
+ struct PreparedArena::Impl {
+   PicArena *owner = nullptr;
+@@ -1161,7 +1130,7 @@
+   std::vector<double> potential;
+   for (int i = 0; i < pic_->potential_.Size(); ++i)
+     potential.push_back(pic_->potential_[i]);
+-  ArenaJson body = {{"schema", "canonical_native_arena_v6_2"},
++  ArenaJson body = {{"schema", "canonical_native_arena_exact_v1"},
+                     {"genesis", metadata(*genesis_)},
+                     {"genesis_native", native_rows_json(genesis_native_)},
+                     {"genesis_next_id", genesis_next_id_},
+@@ -1195,7 +1164,7 @@
+     require(input.eof(), "trailing arena restart data");
+     const auto &body = doc.at("payload");
+     require(doc.at("sha256") == sha_bytes(body.dump()) && body.size() == 14 &&
+-                body.at("schema") == "canonical_native_arena_v6_2" &&
++                body.at("schema") == "canonical_native_arena_exact_v1" &&
+                 body.at("source_sha256") == source_identity() &&
+                 body.at("initial_coupling_prefix") == prefix,
+             "arena restart identity/integrity");
+--- a/tests/test_arena.cpp
++++ b/tests/test_arena.cpp
+@@ -1,3 +1,5 @@
++#include "electrode_heat_feedback.hpp"
++#include "heat-v2-count.hpp"
+ #include "raikou/mfem_pic_arena.h"
+ #include "water_parent_bridge.hpp"
+ #include <climits>
+@@ -154,12 +156,16 @@
+       auto carriers = m::PicArena::positive_carriers(count);
+       check(!carriers.empty() && carriers.size() <= 42,
+             "positive native limbs for exact compensated remainder");
+-      check(m::PicArena::exact_count_equal(electrode_heat::add(count, wgt),
+-                                           {1, 0}),
++      check(m::PicArena::exact_count_equal(count.credited(wgt), {1, 0}),
+             "count exact debit/add restoration");
+     }
+-    reject([&] { m::PicArena::debit({1, -1e-20}, 1e-100); },
+-           "third residual beyond two words refused");
++    {
++      auto exact = m::PicArena::debit({1, -1e-20}, 1e-100);
++      check(exact.credited(1e-100) == m::ArenaCount(1, -1e-20),
++            "bounded exact count retains third residual");
++      reject([&] { exact.require_two_limb_values(); },
++             "lossy export back to Count2 explicitly refused");
++    }
+     reject([&] { m::PicArena::debit({1, -1e-20}, 1.); },
+            "rounded rate weight above exact inventory refused");
+     for (const auto weights :
+@@ -208,8 +214,8 @@
+             "reaction preserves external authored C/K ledgers");
+       check(s.pic.diagnostics().time_s == 0,
+             "native frozen physical clock unchanged by SSA elapsed time");
+-      check(s.arena->snapshot()->packets.at("water_ion").count.hi ==
+-                e.event_weight,
++      check(s.arena->snapshot()->packets.at("water_ion").count ==
++                m::ArenaCount(e.event_weight, 0),
+             "matched represented product weights");
+       if (weights.first > weights.second) {
+         auto remainder = s.arena->view("e/remainder");
+@@ -220,7 +226,8 @@
+       }
+       if (weights.second == 1e20) {
+         const auto &n = s.arena->snapshot()->packets.at("n");
+-        check(n.count.hi == 1e20 && n.count.lo == -.25 &&
++        check(n.count.require_two_limb_values()[0] == 1e20 &&
++                  n.count.require_two_limb_values()[1] == -.25 &&
+                   n.native_ids.size() > 1,
+               "subULP neutral debit retained in canonical Count AND native "
+               "carriers");
+@@ -251,7 +258,8 @@
+         if (corruption == 2)
+           body["registry"]["states"][0]["mass_kg"] = 1.;
+         if (corruption == 3)
+-          body["metadata"]["packets"][0]["count"][0] = 2.;
++          body["metadata"]["packets"][0]["count"]["positive_carriers"] =
++              J::array({2.});
+         if (corruption == 4)
+           body["metadata"]["packets"][0]["native_ids"][0] = 99999;
+         if (corruption == 5)
+@@ -468,14 +476,23 @@
+               arena.snapshot()->packets.count("resident"),
+           "actual native q0 collection/escape depletes canonical species");
+     check(arena.snapshot()->sinks.size() == 2, "species-resolved sinks once");
+-    check(arena.snapshot()->sinks[0]["count"] == J::array({2., 0.}) ||
+-              arena.snapshot()->sinks[1]["count"] == J::array({2., 0.}),
++    check(m::ArenaCount::from_positive_carriers(
++              arena.snapshot()
++                  ->sinks[0]["count"]["positive_carriers"]
++                  .get<std::vector<double>>()) == m::ArenaCount(2, 0) ||
++              m::ArenaCount::from_positive_carriers(
++                  arena.snapshot()
++                      ->sinks[1]["count"]["positive_carriers"]
++                      .get<std::vector<double>>()) == m::ArenaCount(2, 0),
+           "exact escaped neutral number receipt");
+     bool wall = false;
+     for (auto receipt : arena.snapshot()->sinks)
+       if (receipt["packet_id"] == "wall") {
+         wall = true;
+-        check(receipt["count"] == J::array({1., -1e-20}) &&
++        check(m::ArenaCount::from_positive_carriers(
++                  receipt["count"]["positive_carriers"]
++                      .get<std::vector<double>>()) ==
++                      m::ArenaCount(1, -1e-20) &&
+                   receipt["sink"] == "lower_foil" &&
+                   receipt["wall_heat_assumed"] == false,
+               "neutral wall receipt preserves two-word count and distinguishes "
+@@ -506,7 +523,8 @@
+       in >> doc;
+       auto &body = doc["payload"];
+       if (mutation == 0)
+-        body["metadata"]["sinks"][0]["count"] = {1e30, 0.};
++        body["metadata"]["sinks"][0]["count"]["positive_carriers"] =
++            J::array({1e30});
+       if (mutation == 1)
+         body["metadata"]["sinks"][0]["state"] = "electron";
+       if (mutation == 2)
+@@ -1011,6 +1029,44 @@
+               "foreign completion channel restores base");
+       }
+     }
++    {
++      electrode_heat::Count old{1, -1e-20};
++      electrode_heat_v2::Count heat{1, -1e-20};
++      auto a = m::ArenaCount::from_two_word(old),
++           b = m::ArenaCount::from_two_word(heat);
++      check(a == b,
++            "heat-v1 and heat-v2 Count2 inputs import identical exact fields");
++      auto out = b.require_two_word<electrode_heat_v2::Count>();
++      check(out.hi == heat.hi && out.lo == heat.lo,
++            "representable heat-v2 Count2 export is exact");
++      auto value = m::ArenaCount(1e20, 0);
++      const double tiny = 9.7827104392643903e-59;
++      for (int i = 0; i < 100; ++i)
++        value = value.debit(tiny);
++      check(value.credited(tiny).debit(tiny) == value,
++            "repeated actual cold source weight exact count remains stable");
++      reject(
++          [&] { value.require_two_limb_values(); },
++          "heterogeneous/multiple cold debits cannot be collapsed to Count2");
++      auto leaves = value.positive_carriers();
++      check(leaves.size() <= m::ArenaCount::maximum_carriers &&
++                m::ArenaCount::from_positive_carriers(leaves) == value,
++            "bounded positive carriers exactly preserve extended gas count");
++      auto owned = value.copy_units();
++      BN_zero(owned.get());
++      check(!value.zero(),
++            "mutable integer copy cannot mutate immutable count value");
++      auto scalar = m::ArenaCount(std::numeric_limits<double>::denorm_min(), 0);
++      check(scalar.positive_carriers() ==
++                std::vector<double>{std::numeric_limits<double>::denorm_min()},
++            "binary64 minimum positive count encodes without a source floor");
++      reject(
++          [&] {
++            m::ArenaCount(std::numeric_limits<double>::max(), 0)
++                .credited(std::numeric_limits<double>::max());
++          },
++          "count range remains explicitly bounded");
++    }
+     std::ofstream out(dir + "/arena-tests.json");
+     out << J({{"status", "passed"},
+               {"check_count", checks.size()},
+--- /dev/null
++++ b/source/include/raikou/exact_particle_count.h
+@@ -0,0 +1,195 @@
++#pragma once
++#include <algorithm>
++#include <array>
++#include <cmath>
++#include <cstdint>
++#include <cstring>
++#include <limits>
++#include <memory>
++#include <openssl/bn.h>
++#include <stdexcept>
++#include <utility>
++#include <vector>
++
++namespace raikou::mfem_backend {
++// Exact represented number, in binary64's existing2^-1074 units. This is a
++// numerical encoding of admitted weights, not a physical source quantum/floor.
++// Values are immutable and bounded to2098 bits (the finite binary64 range).
++class ExactParticleCount {
++public:
++  using Integer = std::unique_ptr<BIGNUM, decltype(&BN_free)>;
++  static constexpr int maximum_bits = 2098;
++  static constexpr std::size_t maximum_carriers = 42;
++  ExactParticleCount() noexcept = default;
++  // Count2 interoperability: retain its normalized hi/lo input exactly.
++  ExactParticleCount(double hi, double lo = 0) {
++    need(std::isfinite(hi) && std::isfinite(lo) && std::isfinite(hi + lo) &&
++             hi >= 0,
++         "nonfinite/negative Count2 input");
++    if (hi == 0)
++      need(lo == 0, "Count2 zero normalization");
++    else
++      need(std::abs(lo) <= .5 * (std::nextafter(hi, INFINITY) - hi),
++           "Count2 normalization");
++    auto n = integer(hi), low = integer(lo);
++    need(BN_add(n.get(), n.get(), low.get()), "Count2 import");
++    *this = adopt(std::move(n));
++  }
++  template <class Count2>
++  static ExactParticleCount from_two_word(const Count2 &n) {
++    return {n.hi, n.lo};
++  }
++  template <class Count2> Count2 require_two_word() const {
++    const auto w = require_two_limb_values();
++    return {w[0], w[1]};
++  }
++  bool zero() const noexcept { return !value_; }
++  bool operator==(const ExactParticleCount &other) const noexcept {
++    if (!value_ || !other.value_)
++      return value_ == other.value_;
++    return BN_cmp(value_->units.get(), other.value_->units.get()) == 0;
++  }
++  bool operator!=(const ExactParticleCount &other) const noexcept {
++    return !(*this == other);
++  }
++  Integer copy_units() const {
++    auto n = allocate();
++    if (value_)
++      need(BN_copy(n.get(), value_->units.get()), "count copy");
++    return n;
++  }
++  ExactParticleCount debit(double amount) const {
++    need(std::isfinite(amount) && amount > 0, "positive finite count debit");
++    auto n = copy_units(), w = integer(amount);
++    need(BN_cmp(n.get(), w.get()) >= 0, "insufficient exact inventory");
++    need(BN_sub(n.get(), n.get(), w.get()), "exact debit");
++    return adopt(std::move(n));
++  }
++  ExactParticleCount credited(double amount) const {
++    need(std::isfinite(amount) && amount >= 0,
++         "nonnegative finite count credit");
++    auto n = copy_units(), w = integer(amount);
++    need(BN_add(n.get(), n.get(), w.get()), "exact credit");
++    return adopt(std::move(n));
++  }
++  double rounded_for_rate() const { return rounded(copy_units().get()); }
++  std::array<double, 2> require_two_limb_values() const {
++    const double hi = rounded_for_rate();
++    auto remainder = copy_units(), high = integer(hi);
++    need(BN_sub(remainder.get(), remainder.get(), high.get()),
++         "Count2 export subtraction");
++    bool negative = BN_is_negative(remainder.get());
++    BN_set_negative(remainder.get(), 0);
++    double lo = rounded(remainder.get());
++    auto encoded = integer(lo);
++    need(BN_cmp(encoded.get(), remainder.get()) == 0,
++         "exact gas count cannot be represented in two limbs; conversion "
++         "refused");
++    if (negative)
++      lo = -lo;
++    return {hi, lo};
++  }
++  std::vector<double> positive_carriers() const {
++    auto remaining = copy_units();
++    std::vector<double> out;
++    while (!BN_is_zero(remaining.get())) {
++      need(out.size() < maximum_carriers,
++           "bounded positive-carrier representation");
++      const int shift = std::max(0, BN_num_bits(remaining.get()) - 53);
++      auto top = allocate();
++      need(BN_rshift(top.get(), remaining.get(), shift), "carrier shift");
++      const double weight =
++          std::ldexp(double(BN_get_word(top.get())), shift - 1074);
++      need(std::isfinite(weight) && weight > 0,
++           "native positive carrier unrepresentable");
++      auto word = integer(weight);
++      need(BN_cmp(word.get(), remaining.get()) <= 0 &&
++               BN_sub(remaining.get(), remaining.get(), word.get()),
++           "exact positive carrier decomposition");
++      out.push_back(weight);
++    }
++    return out;
++  }
++  static ExactParticleCount
++  from_positive_carriers(const std::vector<double> &weights) {
++    need(weights.size() <= maximum_carriers, "bounded count input limbs");
++    auto n = allocate();
++    for (double weight : weights) {
++      need(std::isfinite(weight) && weight > 0,
++           "positive finite count input limb");
++      auto w = integer(weight);
++      need(BN_add(n.get(), n.get(), w.get()), "count input limb sum");
++    }
++    return adopt(std::move(n));
++  }
++
++private:
++  struct Payload {
++    Integer units;
++    explicit Payload(Integer n) : units(std::move(n)) {};
++  };
++  std::shared_ptr<const Payload> value_;
++  static void need(bool ok, const char *message) {
++    if (!ok)
++      throw std::invalid_argument(message);
++  }
++  static Integer allocate() {
++    Integer n(BN_new(), BN_free);
++    if (!n)
++      throw std::bad_alloc();
++    return n;
++  }
++  static Integer integer(double x) {
++    static_assert(sizeof(double) == 8 &&
++                  std::numeric_limits<double>::is_iec559 &&
++                  std::numeric_limits<double>::digits == 53);
++    static_assert(sizeof(BN_ULONG) >= 8);
++    need(std::isfinite(x), "finite binary64 count operand");
++    std::uint64_t bits = 0;
++    std::memcpy(&bits, &x, 8);
++    const unsigned exponent = (bits >> 52) & 2047;
++    std::uint64_t mantissa = bits & ((1ULL << 52) - 1);
++    if (exponent)
++      mantissa |= 1ULL << 52;
++    auto n = allocate();
++    need(BN_set_word(n.get(), mantissa), "binary64 integer import");
++    if (exponent)
++      need(BN_lshift(n.get(), n.get(), int(exponent) - 1),
++           "binary64 integer shift");
++    BN_set_negative(n.get(), (bits >> 63) && mantissa);
++    return n;
++  }
++  static ExactParticleCount adopt(Integer n) {
++    need(!BN_is_negative(n.get()) && BN_num_bits(n.get()) <= maximum_bits,
++         "exact count outside bounded nonnegative binary64 range");
++    ExactParticleCount out;
++    if (!BN_is_zero(n.get()))
++      out.value_ = std::make_shared<const Payload>(std::move(n));
++    return out;
++  }
++  static double rounded(const BIGNUM *n) {
++    need(!BN_is_negative(n) && BN_num_bits(n) <= maximum_bits,
++         "bounded rate-count operand");
++    if (BN_is_zero(n))
++      return 0;
++    const int shift = std::max(0, BN_num_bits(n) - 53);
++    auto top = allocate();
++    need(BN_rshift(top.get(), n, shift), "rate count shift");
++    BN_ULONG word = BN_get_word(top.get());
++    if (shift) {
++      auto remainder = allocate(), half = allocate();
++      need(BN_copy(remainder.get(), n) &&
++               BN_mask_bits(remainder.get(), shift) &&
++               BN_set_bit(half.get(), shift - 1),
++           "rate count rounding operands");
++      const int compare = BN_cmp(remainder.get(), half.get());
++      if (compare > 0 || (compare == 0 && (word & 1)))
++        ++word;
++    }
++    const double result = std::ldexp(double(word), shift - 1074);
++    need(std::isfinite(result),
++         "rounded diagnostic count overflow; use exact positive carriers");
++    return result;
++  }
++};
++} // namespace raikou::mfem_backend
