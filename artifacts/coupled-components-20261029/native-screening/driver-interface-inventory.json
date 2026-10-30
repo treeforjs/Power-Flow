@@ -1,0 +1,73 @@
+{
+  "status": "source_inventory_not_joint_driver_implementation",
+  "interfaces": [
+    {
+      "port": "signed species charge",
+      "path": "/home/treefor/projects/runtimes/pic-plasma-screening-20261029/source/src/mfem_gap_pic.cpp",
+      "API": "GapPic::solve_fields",
+      "implemented": "Q1 sums q_s*w_s/depth over every stored species; common 2D Poisson RHS",
+      "gap": "No 3D spatial-z self-field; species registry/event ownership remains adapter-level."
+    },
+    {
+      "port": "field gather and actual force stage",
+      "path": "/home/treefor/projects/runtimes/pic-plasma-screening-20261029/source/include/raikou/mfem_gap_pic.h",
+      "API": [
+        "electric_field(x,y)",
+        "set_external_fields(E(x,y,t),B(x,y,t))",
+        "set_external_electric_3d(Ecorrection(x,y,z,t))",
+        "set_potentials(lower,upper)",
+        "set_push_observer(...)"
+      ],
+      "implemented": "Poisson-only electric_field; advance adds external E and replaces prescribed B at t+dt/2",
+      "gap": "Full total-E Maxwell ownership cannot be blindly added to native self field; background/residual work and boundary circuit ports must be bound."
+    },
+    {
+      "port": "charge continuity and current",
+      "path": "/home/treefor/projects/runtimes/pic-plasma-screening-20261029/source/include/raikou/mfem_gap_pic.h",
+      "API": [
+        "horizontal_transfers_C()",
+        "vertical_transfers_C()"
+      ],
+      "implemented": "Total signed two-half-drift edge charge transfers C; divided by dt gives edge A",
+      "gap": "No public species-resolved 3-vector compatible current-density/Jz port; conversion requires actual cochain geometry/volume and stage."
+    },
+    {
+      "port": "particle collection",
+      "path": "/home/treefor/projects/runtimes/pic-plasma-screening-20261029/source/src/mfem_gap_pic.cpp",
+      "API": "GapPic::drift / GapPicDiagnostics lower/upper_absorbed_charge_C and energy_J",
+      "implemented": "First-hit absorption with aggregate signed charge/incident kinetic energy",
+      "gap": "Finite-foil patch/face/normal metadata for thermal/material source coupling not retained in this native diagnostic API."
+    },
+    {
+      "port": "checked population insertion",
+      "path": "/home/treefor/projects/runtimes/pic-plasma-screening-20261029/source/coupled_pic.hpp",
+      "API": "hall::CoupledPic::authored + GapPic::add_authored_batch",
+      "implemented": "Sole ID owner; atomic signed-particle authored batch and checked electron/proton registry",
+      "gap": "Authored external source is not an internal reaction transaction; do not duplicate or bypass parent debit/product multiplicity and energy ledger."
+    },
+    {
+      "port": "compatible electromagnetic staged SI interface",
+      "path": "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-compatible-em-20261029/coupling_ports.hpp",
+      "API": [
+        "compatible::ports::FieldAdapter::prepare",
+        "prepared",
+        "commit",
+        "abort",
+        "checkpoint",
+        "restore",
+        "FieldStageSI",
+        "SpeciesPortSI",
+        "PreparedFrame"
+      ],
+      "implemented": "Binding/revision/clock/event IDs; SI staged fields/species charge/current/work; Gauss/divB/continuity admission",
+      "gap": "Scope::validate permits periodic 1D3V fixed geometry only and rejects foil/open boundaries, reaction/material/circuit/driver/heat requests; component owns separate particle inventory, so unify ownership before application use."
+    }
+  ],
+  "forbidden_shortcuts": [
+    "Add linear Boltzmann response on top of kinetic electrons",
+    "Treat authored source insertion as internal ionization",
+    "Add full Maxwell total E to the already gathered Poisson field",
+    "Co-evolve independent field-adapter and native PIC copies of electrons",
+    "Rescale foil field visually as screening"
+  ]
+}

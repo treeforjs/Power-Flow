@@ -1,0 +1,89 @@
+Minimal additive native mutation interface - inspected, not installed
+
+Current public/private source anchors (repository files, unchanged)
+  /home/treefor/projects/raikou-mfem/include/raikou/mfem_gap_pic.h
+    line20: GapParticle has id,x,u,q,m,weight; no species/state/event fields.
+    line93: add_particle is authored external injection.
+    lines115-116: solve_fields/advance.
+    line124: particles() is const; no internal batch mutation port exists.
+    lines131-132: x/y path charge-transfer views; no Jz view.
+    lines143-147: private particles_, ledger_, fields_current_, next_particle_id_.
+  /home/treefor/projects/raikou-mfem/src/mfem_gap_pic.cpp
+    lines166-181: add_particle assigns an ID and increments authored charge/K.
+    lines309-328: solve_fields deposits every particle q*w/depth through actual
+      Q1 shape and accumulates total charge; this path is generic in q/m.
+    lines423-451: drift constructs charge-continuous x/y edge transfers.
+    lines533-549: generic signed-charge and incident-K boundary sinks.
+    lines554-577: advance resets transfers, half-drifts/solves, Boris-kicks,
+      half-drifts/solves, then advances the clock. It has no MCC phase hook.
+    lines588-618: raw checkpoint/load lacks a species/state/event sidecar.
+    lines621-629: diagnostics excludes internal balanced chemistry from authored
+      source terms; it recomputes particle K over current resident packets.
+  /home/treefor/projects/raikou-mfem/examples/mfem_heating_history_pic.cpp
+    lines163-178: step limits and source-bound logic are electron-oriented.
+    lines201-206: thermal source then advance.
+    line208: existing2,000,000-particle/nonfinite guard.
+
+Proposed minimal API shape for a new qualified source version
+  Keep GapParticle/Options/Diagnostics/raw sealed ABI unchanged here. Add a
+  nonvirtual member interface or a single narrowly scoped friend adapter in a
+  new header such as include/raikou/mfem_pic_reaction_batch.h. Its implementation
+  belongs beside the native invariants in src/mfem_gap_pic.cpp; do not copy the
+  whole runtime file or route through add_particle/inject_thermal_electrons.
+
+  Conceptual typed operations (declarations only, not current GapPic APIs):
+    prepare_internal_particle_batch(request, accepted_interval_guard)
+      -> prepared native particle-vector/ID/sidecar mutation;
+    validate_internal_batch_prefix(prepared, accepted_interval_guard)
+      -> preflight current input particles/time/next-ID and all reservations;
+    publish_internal_particle_batch(prepared, accepted_interval_guard) noexcept
+      -> swap already allocated particles, assign reserved next-ID,
+         invalidate fields_current_; no authored/thermal/sink ledger increments.
+
+  Request must include the expected exact incoming primary values and native ID,
+  stable sidecar mapping, actual local event point/clock, complete charged
+  replacements/products and reserved product IDs, global particle cap and the
+  validated conservative event certificate. Stage every vector/map allocation.
+  Replace a scattered primary with the same native ID; allocate fresh IDs only
+  for new charged products. Attachment retires the incoming free-electron ID.
+  New neutrals stay in the one neutral owner. Retired IDs are never recycled.
+  The existing charged_native_view template already creates the exact native
+  value records from validated immutable states without source accounting.
+
+  Pure vector swap is a small mutation port; it is not a coupled acceptance
+  algorithm. Prefix validation/allocation can throw before acceptance. After a
+  common exclusive preflight, publication must perform no allocation, callback,
+  field solve, file I/O or additional validation that can fail. Keep every
+  species/source/energy sidecar synchronized with the same publication.
+
+Phase and deposition requirements
+  An initial qualification should permit batch commit only at a clearly guarded
+  accepted boundary before advance. Midpoint insertion needs an explicit,
+  time-refined field/collision split; adding a callback inside the Boris loop
+  changes which velocities/forces and birth times products receive. The present
+  transaction fixture does not choose or qualify that split.
+  solve_fields will then see positive/negative product charges together and
+  self-consistent electrostatic screening can begin. Local net charge cancellation
+  must use the same actual shape/point. Charge balance alone does not construct
+  compatible currents or qualify current-driven EM feedback; drift only has x/y
+  transfers today. The separate Hall adapter must own all3 compatible current
+  components and their centering, including currents changed by scattering.
+  Step limits must be rechecked for the new species/products; the current example
+  counts all weights as electron density. A multispecies step must use the
+  intended charge/mass-dependent plasma ordering while preserving existing
+  gyro/displacement/nonfinite/resource guards, not quietly weaken them.
+
+Remaining rollback port for the joint coordinator
+  Current advance is not transactional: it mutates particles, boundary sink
+  ledgers, transfer arrays, potential and solver diagnostics before returning.
+  A later field/EM/material failure cannot be undone by removing the products
+  alone. Joint accepted-step staging/backup must cover native particles/IDs,
+  complete ledger/time, potential/field-current flags, transfer arrays and any
+  accepted solver/cache statistics that matter, PLUS source reservoirs and
+  externally captured field/voltage/heat/material/neutral state. Qualify either
+  a common arena or a complete restore port under the exclusive guard. Do not
+  assume save/load or a fresh solve is a byte-exact in-memory rollback.
+  Preserve the old accepted epoch until every owner and guard succeeds. Package
+  sidecars/journals and native/EM/material checkpoints into one versioned accepted
+  restart epoch. None of this mutation/rollback port has been installed in the
+  shared repository or the sealed runtime by this candidate.

@@ -1,0 +1,73 @@
+{
+  "schema": "ss304-thermal-expansion-handoff-v1",
+  "status": "implemented_tested_pushed_benchmarks_and_guarded_geometry_port",
+  "repository": "https://github.com/treeforjs/Power-Flow",
+  "branch": "ss304-thermal-expansion-20261029",
+  "source_commit": "afb31031a8e94506fce9616f6c8f3171bd4da254",
+  "results_commit": "791e7d42183e57b824fe398bdadacf7004e3cd94",
+  "remote_verified": true,
+  "source_checkout": "/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source",
+  "base_commit": "3db247318c9d05a52b474c29dd97ec5b1246f7cc",
+  "integration_patch": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-expansion-20261029/integration.patch",
+  "patch_sha256": "78257ed9e1a06d16818e2dd5bcfd58c318481374e4d9964079d56cd73103adbf",
+  "integration_instruction": "Cherry-pick source commit or git am integration.patch. Results commit optional. Physical deformation must remain disabled until blockers resolved.",
+  "tests": {
+    "passed": 229,
+    "new_component_checks": 101,
+    "existing_material_transport_checks": 128,
+    "CPU": 7,
+    "nice": 15,
+    "threads": 1,
+    "GPU_used": false,
+    "shared_lock_used": true
+  },
+  "material": {
+    "record": "/home/treefor/projects/runtimes/ss304-thermal-expansion-20261029/source/data/materials/ss304-v1.json",
+    "grade": "304 / S30400 / 1.4301",
+    "selected_mechanics_data_range_K": [
+      293.15,
+      773.15
+    ],
+    "range_is_melting_temperature": false,
+    "stress_free_temperature_K": 300.0
+  },
+  "source_admission": {
+    "last_common_temperature_safe_time_s": 1.741391016488487e-08,
+    "first_surface_outside_mechanics_data_time_s": 1.7622896529063653e-08,
+    "lower_bulk": "explicit mirror; direct surface symmetry checked; bulk unverified"
+  },
+  "mechanics": "integrated eigenstrain; free/restrained static and transient rod mechanics; 3D trial stress requires explicit nu",
+  "geometry": "affine vertices, areas/normals, gap, rho/J, conservative overlap and geometric EM transforms; benchmark-only field gate",
+  "common_port": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-expansion-20261029/interfaces/ss304-geometry-port-v1.json",
+  "physical_deformation_ready": false,
+  "remaining_blockers": [
+    "connected foil/feed/short supports and multidimensional mechanics",
+    "plasticity/phase constitutive response where elastic trial invalid",
+    "qualified nonuniform thermal/EM mesh remap",
+    "consistent thermoelastic mechanical-work/caloric exchange",
+    "parent global commit/restart integration"
+  ],
+  "edge_stress_warning": {
+    "width_column": 255,
+    "x_center_m": 0.0024902343750000003,
+    "maximum_abs_displacement_m": 1.1932883721022303e-07,
+    "final_gap_m": 0.0049997613423255795,
+    "maximum_abs_elastic_trial_stress_Pa": 671142998.6175851,
+    "maximum_annealed_bar_proof_proxy_ratio": 5.750515480621028,
+    "first_proof_proxy_exceedance_s": 1.0079700733505375e-08,
+    "mass_relative_error": 0.0,
+    "production_deformation_admissible": false
+  },
+  "reports": "/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-expansion-20261029/benchmarks-final",
+  "white_plots": [
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-expansion-20261029/benchmarks-final/uniform-displacement-gap.png",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-expansion-20261029/benchmarks-final/transient-displacement-gap.png",
+    "/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-expansion-20261029/benchmarks-final/source-admissibility.png"
+  ],
+  "backup": "/home/treefor/Documents/Codex/reconstructed-source-20261029/ss304-thermal-expansion-20261029",
+  "backup_verified": true,
+  "shared_checkout_edited": false,
+  "dependencies_updated": false,
+  "production_launched": false,
+  "old_run_signaled": false
+}

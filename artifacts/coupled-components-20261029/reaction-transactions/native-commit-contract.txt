@@ -1,0 +1,102 @@
+Native event/deposition/thermal commit contract - integration boundary
+
+Implemented proposal interface
+  Transactions::prepare(event) validates the complete local event and produces
+  an immutable before/after snapshot without changing the owner. integration_ports
+  binds that proposal to a declared AcceptedInterval: step, begin/end, spatial
+  cell, deposition basis, reaction/PIC/neutral/EM/material input-prefix SHA256s.
+  The event/payload/catalog IDs and all product state/source lineage travel with
+  the proposal. Examples are tests/typed-integration-example.json and
+  tests/typed-integration-Jz-example.json. All example prefixes are manufactured.
+
+  ChargedPointTerm is a signed removal/insertion at one point, with q/e, mass,
+  represented weight, proper velocity and state ID. The incoming primary is
+  removed once; the same-ID scattered replacement and all charged products are
+  inserted together. Attachment removes the free electron and inserts an anion.
+  NeutralParentDebit is the SAME single reservation in PreparedReaction, not a
+  second instruction to debit the neutral host or the adsorbed surface source.
+  Neutral products retain the source/event/state IDs and resolved recoil.
+
+  InternalEnergyTransfer separates electron/ion/neutral translation, state
+  internal and reference changes. These sum to the numeric residual for this
+  closed nonradiative event. External event work, photons and additional wall
+  heat are explicitly zero in this prototype. The reference cost and resolved
+  recoil must not also be applied as gas or electrode heat. PIC electron energy
+  must not be evolved/heated by a duplicate Raikou F0 operator.
+
+Required native work, not implemented or qualified here
+  1. One canonical accepted-interval owner must import the ACTUAL current
+     particle, state, neutral inventory and clocks. Existing GapPic only exposes
+     const particles; add_particle records authored external charge/energy and
+     is unsuitable for an internal reaction. Provide an internal batched
+     removal/replacement/insertion interface with no authored-source increment,
+     or adopt a common arena owning native particles and sidecars together.
+     Do not maintain two independently evolving particle or neutral inventories.
+
+  2. Reserve native uint64 particle IDs, sidecar state/source/event IDs, vector
+     capacity, deposition storage and every partner's energy/source receipt
+     before publication. Validate all q,m,weight,u/K, geometry/conductor/axial
+     positions and resource limits. Newly created fast electrons/species require
+     the intended gyro/plasma/displacement and particle-count guards. Reject or
+     retry the complete accepted interval if any guard or reservation fails;
+     do not keep a parent debit after a rejected native/EM/material stage.
+
+  3. Under one exclusive accepted-step generation, preflight ALL prepared owner
+     versions, then perform a no-fail common publication or swap one combined
+     owner snapshot. can_publish()/try_publish() currently protect only this
+     reaction owner. Sequentially calling unrelated mutating owners, each of
+     which can fail, is not an atomic coupled commit. Keep diagnostic/event
+     output after acceptance; its failure policy must not create a partial
+     physical state. Stale prepared tokens are rejected without mutation.
+
+  4. Stage all signed charges with the SAME actual spatial basis and event point
+     before any field gather/solve. The local common-shape witness has zero net
+     reaction-created charge for ionization, dissociation and attachment. It is
+     not native Q1 deposition validation. Verify native nodal rho before/after,
+     continuity, species/source ledgers, and first/second-half collision timing.
+
+  5. Rebuild the actual accepted-interval particle current with every charged
+     primary/secondary/ion/anion velocity and trajectory. The typed three-vector
+     q*w*v moment difference has units C*m/s; it is NOT J[A/m2], an EM grid
+     operator, or path-integrated charge transfer. In particular, zero net charge
+     creation does not imply zero current change, and Jz is not zero by default.
+     The Hall EM owner must supply compatible vector deposition/gather,
+     stagger/time-centering, boundary/circuit ports and field feedback. Do not
+     insert an ad hoc Hall force or diffusion coefficient into the transaction.
+
+  6. Connect the heat/material owner with explicit degree-of-freedom receipts.
+     Resolved ion/neutral recoil and state/reference changes above are internal
+     redistribution, not deposited wall heat. Adsorbed-water release needs its
+     single inventory and adsorption/translation/internal/support energy debit.
+     Surface collection needs actual incident kinetic/internal/reference and
+     recombination/reflection/secondary partitions. Native incident K alone is
+     not deposited heat. Temperature/material changes must feed the next source
+     and boundary update through the common accepted state. The present zero
+     additional-wall-heat field is a limitation of closed volume events, not a
+     physical assertion that the coupled foil has no heat exchange.
+
+  7. Persist native particles, species/state ID mapping, full reaction prefix,
+     neutral/source owners, EM and heat/material state as ONE accepted epoch.
+     Use one versioned bundle or an atomic final manifest after durable hashed
+     members. The current sealed checkpoint stores no species/state sidecar;
+     do not append unversioned records to it. This standalone transaction restart
+     replays reaction-only evolution from its fixture genesis; it is not a full
+     moving-PIC/field/material restart and must not replay over a different
+     native force history. Bind actual owner-prefix hashes, not example labels.
+
+  8. Freeze physical channel data and selection outside this module. Required
+     inputs include supported incident/relative-energy range, exclusive products,
+     states, probabilities and recoil/secondary distributions with complete
+     energy ownership. No rate, threshold, RGA composition or equilibrium EEDF
+     fallback is supplied here. The strict-support sampling/data owner handles
+     that admission. Missing support must block the affected physical model.
+
+Cross-work boundaries
+  The Hall EM work remains in its separate prefix; no EM files were edited.
+  Bidirectional heat work remains in pic-electrode-heat-feedback-20261029;
+  no heat-owner files were edited or thermal rates invented. Water numerical
+  support remains in h2o-collision-data-20261029. SS304 material/deformation is
+  separate. This report is their integration contract, not a message or commit
+  into those owners. Global imposed/self/circuit/material work closure remains
+  subject to the existing energy-work-ownership audit and is not proved by
+  closed local reaction conservation.
