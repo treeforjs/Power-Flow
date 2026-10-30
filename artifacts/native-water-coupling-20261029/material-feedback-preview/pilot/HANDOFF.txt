@@ -1,0 +1,24 @@
+Bounded actual C19 electrode material-feedback pilot
+
+Three reduced-MQS histories completed to unchanged material-support rejection. Water, emission, plasma, vapor and mechanics are off. Each accepted interval updates actual v2 sigma(T), h(T), k(T) and phase online. C19 current is prescribed; no independent voltage is imposed.
+
+Case                       last accepted ns    Tmax K    rejected ns    unsupported hot J
+mesh32-dt250ps                49.320253   2975.287    49.535086 0.00614216239307
+mesh64-dt250ps                48.890585   2974.987    49.105419 0.00119081218253
+mesh64-dt125ps                48.998002   2986.101    49.105419 0.000165928912056
+
+The 64x8/125ps case first reaches solidus at 34.163900ns and liquidus at 38.249793ns. Minimum sigma used in its last accepted field interval is 486209.565979S/m, from 1390820.584145S/m initially. Total thermal gain 128.133937371J; remaining total hot headroom 733.357204505J, but local corner headroom is exhausted first.
+
+At the last fine accepted state, terminal work 1286.925564495J = magnetic change 1156.093993407J + thermal gain 128.133937371J + BE magnetic numerical damping 2.697633716J, residual 1.54e-10J. Damping is not heat.
+
+Across all cases max current reconstruction error is 7.66e-08A; max operand-scaled per-step EM residual 1.85e-11; max Joule mapping mismatch 1.29e-14J. Exact two-thermal-state/field/row checkpoint bytes match the uninterrupted eight-step prefix.
+
+At 242 common actual accepted times, halving 64x8 maximum interval changes peak T by at most 3.281053K. The coarser mesh differs from 64x8/125ps by up to 71.418209K. This does not establish corner/spatial convergence.
+
+Rejected-step certificates retain candidate fields and exact local residual joules at the material bounds. The diagnostic bounded state is never accepted; the last admitted thermal/EM checkpoint remains intact. Certificate energy identity residuals are below 4e-15J. No 3000K extrapolation, temperature clamp, extra source work or vapor cooling is used.
+
+Scope: fixed geometry/mass, insulated material, conditional nominal q2 density 8000 Cp-as-Cv, reduced z-invariant A_z MQS. The 773.15K mechanics data guard is unchanged and mechanics is inactive. No actual foil calibration, prehistory reconstruction, full axial/Hall/Maxwell/plasma run or physical sharp-corner convergence is claimed. Published C19 clock registration remains an explicit unverified scenario. Predicted loop voltage is an output of this reduced circuit; it is not imposed AK gap voltage.
+
+Evidence: results.json, execution-receipt.json, component-contract.json, restart-proof.json, chunk-commands.json and per-case trajectory.csv/STOP.json/rejected/. Code: isolated native/mfem_solid_material_feedback_pilot, with sealed heat/source-v2 prerequisite. All calculations use CPU 7/nice 15/frozen native dependencies in short exclusive leased chunks. Shared sources, other candidates and production/GPU processes were not edited or signaled.
+
+Plotting packages are absent from existing frozen/bundled Python; numeric trajectories and comparisons are delivered without installing dependencies.

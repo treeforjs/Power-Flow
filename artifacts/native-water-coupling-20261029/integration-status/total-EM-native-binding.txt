@@ -1,0 +1,106 @@
+Native total-field transport and axial field/heat binding, version 1
+
+Entry points
+  native_total_field_transport.hpp: foil::prepare_native_total_field_transport
+    is the 2D3V operator binding.
+  axial_particles.hpp: axial::prepare_native_total_field_transport is the 3D3V
+    overload used by the axial feed/short pilot.
+  axial_fields.hpp: axial::Fields::prepare returns a candidate total field and
+    field/circuit/conduction/outer/short-current receipts without committing.
+  axial_surface_path_port.hpp: import_surface_paths (relative coordinates) and
+    import_global_surface_paths (source-v2 absolute coordinates) consume already
+    weighted micro-layer paths, including zero-duration quantum bridges.
+  axial_thermal.hpp: Thermal::prepare/preflight/commit binds copied sealed native
+    electrode_heat::Coupler owners, one per foil per axial slice.
+  axial_system.hpp: prepare_joint/commit_joint is the bounded Joule-only reference
+    coordinator. It deliberately rejects particle collection until a boundary
+    owner is supplied. Root's common driver owns source/event/collection routing.
+
+Sole owners and immutable stages
+  Maxwell owns TOTAL E and B. Call no GapPic::solve_fields, electric_field,
+  set_external_fields, or advance in this EM mode. The old electrostatic-plus-
+  external mode is a different mode; the total-field API rejects its enum.
+  Only pic_boris is reused for momentum. The work displacement, path gather,
+  deposition, and joint nonlinear iteration have their own checks; a Boris call
+  alone does not establish energy closure.
+
+  Pass an immutable charged GapParticle view from the ONE canonical arena. Neutrals remain with their streaming/reaction owner; a temporary charged view is not a second accepted inventory. The adapter
+  owns no persistent particle population and allocates no IDs. Its updates and
+  boundary endpoints are staged proposals with the same IDs, q, m, and weight.
+  The caller alone applies removal/replacement/creation, ownership handoff, and
+  ID allocation in the global accepted transaction.
+
+  NativeInterval requires NativePhase::full_time_work_conjugate_v1 and binds accepted_revision, nonlinear trial_stage, begin_s, end_s,
+  authoritative dt_s, and arena/field/mesh/material/species identity strings.
+  end_s must equal begin_s + dt_s. Never reconstruct dt by subtracting rounded
+  absolute clocks. In each nonlinear iteration, re-evaluate transport from the
+  same accepted arena against that iteration's midpoint total fields.
+  Only a converged jointly admitted trial advances field, arena, and heat clocks.
+
+Motion and source paths
+  Canonical active micro-layer electrons appear in the arena and in
+  layer_owned_ids. They count in the all-species plasma guard but ordinary
+  transport excludes their motion. Exclusion IDs absent from the arena reject.
+  The source must seal and prepare its path/thermal/image/reference transactions
+  against the same accepted revision and trial field stage.
+
+  Current vectors are edge loads in A m, the integral of physical J times the
+  compatible vector basis. They are NOT raw particle current moments and NOT
+  nodal J samples. Deposit q*D/path_shape over the COMMON accepted dt, including
+  zero-duration tunneling bridges. Do not divide by a path's flight time. Charges
+  in micro-layer CurrentPaths already include weight; do not multiply by weight
+  or the represented depth again. Relative path vectors retain global Cartesian
+  components: add the physical patch origin, do not rotate B.
+
+  Native transport returns initial/endpoint nodal charge in C, integrated field
+  work in J, kinetic change, and continuity/work defects. A collected endpoint
+  remains in the current/charge receipt even though it is absent from updates.
+  The common driver must route endpoint charge and kinetic energy exactly once
+  to electrode/exterior/short owners before committing the arena removal.
+  Source image/internal/reference/Nottingham partitions are separate owners;
+  field_work_J is booked once against the field/circuit ledger.
+
+C19 current drive and geometry
+  The impressed feed branch carries the supplied TOTAL current, upper to lower
+  at z=+12.5 mm, with distributed cross-section contact weights. A PEC short sheet
+  connects the foils at z=-12.5 mm. Interior foil fields remain resistive/free.
+  Terminal voltage is predicted as minus E's line integral along the unit feed
+  branch; positive voltage means lower terminal minus upper terminal. No
+  conditional gap-voltage pulse is imposed as a second constraint.
+  Region measurements use the exact incidence operator and include conduction,
+  plasma, displacement, transverse transfer, and outer-boundary terms. There is
+  no independent +/-I condition on the solid when plasma conducts.
+
+  All scalar-potential derivatives in x,y,z are retained. Initialization solves
+  a declared supported-start DC scenario with phi=0 at the short, then extends
+  phi through vacuum and computes a closed-loop magnetostatic B. The magnetic
+  gauge uses tangential A=0 at the outer box and interior Coulomb test functions.
+  This is a recomputed finite-loop scenario, not replay of a sparse native Az/rate
+  pair. The original in-plane B orientation is preserved in the foil core; end
+  fields are allowed by the actual 3D geometry. No Hall velocity is added.
+
+Thermal and work
+  The frozen native SS304 evaluated-solid model is explicit: 300..1500 K,
+  rho_ref=8000 kg/m3 scenario, fixed reference volume, Cp-as-Cv approximation.
+  This is not a measured foil-density calibration or a compressible EOS.
+  Conductivity is sampled from accepted thermal state for each next EM interval.
+  The same midpoint solid current that debits field energy supplies cell Joule
+  power. Its edge and cell quadratures agree. Each thermal slice uses height=dz
+  once; no second extrusion or added Joule source is permitted.
+  Thermal prepares all owners before commit. A rejection retains all accepted
+  states. Thermal numerical energy residual is reported separately with the
+  native model's unchanged roundoff bound; it is not injected as heat.
+  The pilot omits axial heat diffusion, short heating, mechanics and vapor. The
+  parent mechanics temperature limit and source-data limits remain applicable.
+
+Scope
+  The small uniform air box and coarse axial grid qualify operators and bounded
+  coupled steps only. Production must use converged wide exterior and axial
+  resolution; the independently tested graded exterior must not revert to 9 mm.
+  Root owns the full arena, emission/reaction scheduler, broader boundary/heat
+  transactions, production coordinator, GPU integration, and long-run launch.
+
+Read phase-and-source-integration.txt before connecting the actual SSA/source-v2
+operators. It gives the variable-dt full-time schedule, typed phase rejection,
+source ownership/handoff rules, and the current accepted-start versus midpoint
+source-field integration gate. C++20 is required by these headers.

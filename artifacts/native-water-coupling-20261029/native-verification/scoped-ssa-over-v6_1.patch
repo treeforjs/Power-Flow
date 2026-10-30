@@ -1,0 +1,282 @@
+--- a/source/src/mfem_pic_arena.cpp
++++ b/source/src/mfem_pic_arena.cpp
+@@ -1161,7 +1161,7 @@
+   std::vector<double> potential;
+   for (int i = 0; i < pic_->potential_.Size(); ++i)
+     potential.push_back(pic_->potential_[i]);
+-  ArenaJson body = {{"schema", "canonical_native_arena_v6_1"},
++  ArenaJson body = {{"schema", "canonical_native_arena_v6_2"},
+                     {"genesis", metadata(*genesis_)},
+                     {"genesis_native", native_rows_json(genesis_native_)},
+                     {"genesis_next_id", genesis_next_id_},
+@@ -1195,7 +1195,7 @@
+     require(input.eof(), "trailing arena restart data");
+     const auto &body = doc.at("payload");
+     require(doc.at("sha256") == sha_bytes(body.dump()) && body.size() == 14 &&
+-                body.at("schema") == "canonical_native_arena_v6_1" &&
++                body.at("schema") == "canonical_native_arena_v6_2" &&
+                 body.at("source_sha256") == source_identity() &&
+                 body.at("initial_coupling_prefix") == prefix,
+             "arena restart identity/integrity");
+@@ -1471,12 +1471,52 @@
+   require(c.integration_owner_id == owner, "stochastic completion owner key");
+   return c;
+ }
++
++namespace {
++void validate_scoped_ssa(const ArenaJson &journal, std::size_t start,
++                         const ArenaStochasticCompletion &c) {
++  require(journal.is_array() && start <= journal.size(),
++          "stochastic scoped journal range");
++  const double duration = c.common_interval_end_s - c.common_interval_begin_s;
++  require(std::isfinite(duration) && duration > 0,
++          "stochastic scoped duration");
++  double previous_elapsed = 0;
++  for (std::size_t i = start; i < journal.size(); ++i) {
++    const auto &a = journal[i].at("payload");
++    require(a.at("kind") == "reaction",
++            "stochastic compound overlaps transport/exposure history");
++    const auto method = a.at("selection_method").get<std::string>();
++    // Forced conditional-kernel comparisons retain their explicit non-SSA tag.
++    // Their declared test offset is not certified as an actual waiting clock.
++    if (method == "forced_kernel_integration_only")
++      continue;
++    require(method == "ssa_weighted_pair_clock_v1",
++            "unsupported stochastic scoped selection");
++    require(a.at("physical_stage_s") == c.frozen_physical_stage_s &&
++                a.at("channel") == c.channel_id &&
++                a.at("dataset_sha256") == c.dataset_sha256 &&
++                a.at("kernel_manifest_sha256") == c.kernel_manifest_sha256 &&
++                a.at("kernel_binding_file_sha256") ==
++                    c.kernel_binding_file_sha256 &&
++                a.at("conditional_model") == c.model &&
++                a.at("clock_prefix") == c.common_clock_sha256,
++            "SSA child differs from bound common "
++            "stage/channel/data/kernel/model/clock");
++    const double elapsed = a.at("collision_elapsed_s");
++    require(std::isfinite(elapsed) && elapsed > previous_elapsed &&
++                elapsed <= duration,
++            "SSA child elapsed offset outside ordered common duration");
++    previous_elapsed = elapsed;
++  }
++}
++} // namespace
+ void PicArena::complete_stochastic(const ArenaStochasticCompletion &c) {
+   require(active_scope_ && completion_compound_,
+           "stochastic completion only inside its private compound");
+   completion_validate(c, channels_.at(c.channel_id),
+                       stochastic_completion(c.integration_owner_id),
+                       pic_->ledger_.time_s);
++  validate_scoped_ssa(accepted_->journal, compound_base_revision_, c);
+   auto next = std::make_shared<ArenaSnapshot>(*accepted_);
+   next->stochastic_completions[c.integration_owner_id] = completion_json(c);
+   ArenaJson audit = {{"kind", "stochastic_exposure"},
+@@ -1837,9 +1877,7 @@
+           }
+         require(found, "unknown stochastic base chain");
+       }
+-      for (std::size_t i = start; i < replay.journal.size(); ++i)
+-        require(replay.journal[i].at("payload").at("kind") == "reaction",
+-                "stochastic compound overlaps transport/exposure history");
++      validate_scoped_ssa(replay.journal, start, c);
+       replay.stochastic_completions[c.integration_owner_id] =
+           completion_json(c);
+     } else
+--- a/tests/test_arena.cpp
++++ b/tests/test_arena.cpp
+@@ -822,6 +822,195 @@
+                         {"integration_owner", record.integration_owner_id},
+                         {"sequence_checked", true}});
+     }
++
++    {
++      auto stamp = []() {
++        m::ArenaStochasticCompletion c;
++        c.integration_owner_id = "waterflow/scoped-ssa";
++        c.before_rng_clock_sha256 = std::string(64, 'a');
++        c.after_rng_clock_sha256 = std::string(64, 'b');
++        c.common_clock_sha256 = std::string(64, '1');
++        c.channel_id = w::parent_channel;
++        c.dataset_sha256 = datahash;
++        c.kernel_manifest_sha256 = manifest;
++        c.kernel_binding_file_sha256 = bindingfile;
++        c.model = w::parent_model;
++        c.common_interval_end_s = 1e-12;
++        return c;
++      };
++      for (int failure = 0; failure < 5; ++failure) {
++        Case c(.25, 64);
++        const auto initial = c.arena->state_prefix(),
++                   native = m::PicArena::fingerprint(c.pic);
++        auto completion = stamp();
++        reject(
++            [&] {
++              c.arena->prepare_compound_with_completion(2, [&](auto &a) {
++                for (int i = 0; i < 2; ++i) {
++                  auto event = c.event(bridge);
++                  event.id = "scoped/" + std::to_string(i);
++                  event.products[1].id =
++                      "scoped-secondary/" + std::to_string(i);
++                  event.products[2].id = "scoped-ion/" + std::to_string(i);
++                  event.provenance.selection_method =
++                      "ssa_weighted_pair_clock_v1";
++                  event.phase.clock_prefix = completion.common_clock_sha256;
++                  event.provenance.collision_elapsed_s =
++                      (i == 0 ? .25 : .75) * 1e-12;
++                  if (failure == 0)
++                    event.provenance.collision_elapsed_s = 2e-12;
++                  if (failure == 1)
++                    event.provenance.collision_elapsed_s =
++                        (i == 0 ? .75 : .25) * 1e-12;
++                  if (failure == 2)
++                    event.phase.clock_prefix = std::string(64, '2');
++                  if (failure == 3)
++                    event.provenance.collision_elapsed_s = .25e-12;
++                  if (failure == 4)
++                    event.provenance.collision_elapsed_s = 0;
++                  auto t = a.prepare(event);
++                  check(a.try_publish(t),
++                        "private hostile SSA-clock fixture event accepted "
++                        "before terminal validation");
++                }
++                return completion;
++              });
++            },
++            "SSA scoped elapsed range/order/common clock refused live");
++        check(c.arena->state_prefix() == initial &&
++                  m::PicArena::fingerprint(c.pic) == native &&
++                  c.arena->snapshot()->event_ids.empty(),
++              "bad SSA completion rolls back every private event and receipt");
++      }
++      Case c(.25, 64);
++      auto completion = stamp();
++      auto token = c.arena->prepare_compound_with_completion(2, [&](auto &a) {
++        for (int i = 0; i < 2; ++i) {
++          auto event = c.event(bridge);
++          event.id = "valid-scoped/" + std::to_string(i);
++          event.products[1].id = "valid-secondary/" + std::to_string(i);
++          event.products[2].id = "valid-ion/" + std::to_string(i);
++          event.provenance.selection_method = "ssa_weighted_pair_clock_v1";
++          event.phase.clock_prefix = completion.common_clock_sha256;
++          event.provenance.collision_elapsed_s = (i == 0 ? .25 : .75) * 1e-12;
++          auto t = a.prepare(event);
++          check(a.try_publish(t), "private ordered SSA-schema fixture event");
++        }
++        return completion;
++      });
++      check(c.arena->try_publish(token),
++            "ordered in-range same-context SSA receipts accepted");
++      c.arena->save(dir + "/scope-ssa.json");
++      m::GapPic fresh(options());
++      auto restored =
++          m::PicArena::restore(fresh, dir + "/scope-ssa.json", states(),
++                               channels(), "test/initial-joint-state");
++      check(restored->snapshot()->event_ids.size() == 2,
++            "valid scoped SSA history restores");
++      for (int bad = 0; bad < 3; ++bad) {
++        std::ifstream in(dir + "/scope-ssa.json");
++        J doc;
++        in >> doc;
++        auto &b = doc["payload"];
++        auto &rows = b["metadata"]["journal"];
++        if (bad == 0)
++          rows[0]["payload"]["collision_elapsed_s"] = 2e-12;
++        if (bad == 1) {
++          rows[0]["payload"]["collision_elapsed_s"] = .75e-12;
++          rows[1]["payload"]["collision_elapsed_s"] = .25e-12;
++        }
++        if (bad == 2)
++          rows[0]["payload"]["clock_prefix"] = std::string(64, '2');
++        std::string chain = rows[0]["payload"]["previous_chain"];
++        std::size_t bytes = 0;
++        for (auto &row : rows) {
++          row["payload"]["previous_chain"] = chain;
++          if (row["payload"]["kind"] == "stochastic_exposure")
++            row["payload"]["stage_after_reaction_chain"] = chain;
++          row["sha256"] = sha(row["payload"].dump());
++          chain = row["sha256"];
++          bytes += row.dump().size();
++        }
++        b["metadata"]["chain"] = chain;
++        b["metadata"]["journal_bytes"] = bytes;
++        doc["sha256"] = sha(b.dump());
++        const auto file = dir + "/corrupt-scoped-ssa.json";
++        {
++          std::ofstream out(file);
++          out << doc.dump();
++        }
++        m::GapPic untouched(options());
++        const auto before = m::PicArena::fingerprint(untouched);
++        reject(
++            [&] {
++              m::PicArena::restore(untouched, file, states(), channels(),
++                                   "test/initial-joint-state");
++            },
++            "rehash out-of-range/decreasing/foreign-clock SSA history refused");
++        check(m::PicArena::fingerprint(untouched) == before,
++              "invalid scoped history leaves native unchanged");
++      }
++      {
++        Case forced(.25, 64);
++        auto record = stamp();
++        record.integration_owner_id = "explicit-forced-kernel-comparison";
++        auto t =
++            forced.arena->prepare_compound_with_completion(1, [&](auto &a) {
++              auto e = forced.event(bridge);
++              e.provenance.collision_elapsed_s = 2e-12;
++              e.phase.clock_prefix = "forced/uncertified-waiting-clock";
++              auto child = a.prepare(e);
++              check(a.try_publish(child),
++                    "explicit forced-kernel comparison privately accepted");
++              return record;
++            });
++        check(forced.arena->try_publish(t),
++              "forced-kernel comparison kept distinct from SSA waiting-clock "
++              "certification");
++        forced.arena->save(dir + "/scope-forced-comparison.json");
++        m::GapPic copy(options());
++        auto saved = m::PicArena::restore(
++            copy, dir + "/scope-forced-comparison.json", states(), channels(),
++            "test/initial-joint-state");
++        check(saved->snapshot()->event_ids.size() == 1,
++              "explicit forced provenance remains distinct after restore");
++      }
++      {
++        Case alias(.25, 64);
++        std::vector<m::ArenaPacket> packets;
++        for (const auto &[id, p] : alias.arena->snapshot()->packets) {
++          (void)id;
++          packets.push_back(p);
++        }
++        alias.arena.reset();
++        auto catalog = channels();
++        auto other = catalog[0];
++        other.id = "conditional/other-registered-channel";
++        catalog.push_back(other);
++        alias.arena = std::make_unique<m::PicArena>(
++            alias.pic, states(), catalog, packets, "test/initial-joint-state");
++        auto record = stamp();
++        record.channel_id = other.id;
++        const auto before = alias.arena->state_prefix();
++        reject(
++            [&] {
++              alias.arena->prepare_compound_with_completion(1, [&](auto &a) {
++                auto e = alias.event(bridge);
++                e.provenance.selection_method = "ssa_weighted_pair_clock_v1";
++                e.provenance.collision_elapsed_s = .5e-12;
++                e.phase.clock_prefix = record.common_clock_sha256;
++                auto t = a.prepare(e);
++                check(a.try_publish(t), "private parent before foreign "
++                                        "registered completion channel");
++                return record;
++              });
++            },
++            "SSA event must match completion's registered channel and "
++            "data/model context");
++        check(alias.arena->state_prefix() == before,
++              "foreign completion channel restores base");
++      }
++    }
+     std::ofstream out(dir + "/arena-tests.json");
+     out << J({{"status", "passed"},
+               {"check_count", checks.size()},
