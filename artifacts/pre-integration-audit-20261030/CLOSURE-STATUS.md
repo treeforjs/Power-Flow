@@ -33,6 +33,12 @@ checkpoint verified unchanged; every corrective suite re-run with identical scie
 Stage 1 (artifacts/stage1-joint-step-20261030): first real all-owner joint step published; T2 28/28, T4-T7 pass; T1 passes off
 Hall node planes; T3 sampled sweep finds std::terminate in sealed JSON destructors; Hall node-plane guard defect found.
 
+Hall v2 + coordinator v5 (artifacts/hall-corrective-v2-20261030, artifacts/coordinator-v5-20261030): Stage 1 T1-T7 pass on CPU
+backends with the physical state bit-identical to Stage 1; GPU push + GPU field joint step passes (push bit parity on every
+iterate, field via guard receipt); node-plane guard fixed; 0 std::terminate in v2 code at 32-42% allocation-site coverage.
+Open sealed-code defects: v3 chemistry completion builder and candidate003 iostream swallow injected allocation failures and
+publish different bytes; sealed axial::push work-path iteration fails to converge for 1 of 20 random node-plane carriers.
+
 Next work and gate order: artifacts/coupled-pilot-plan-20261030/PLAN.md.
 
 Re-run notes: native `verify-final.py` needs the CPU7 lease held externally and overwrites its evidence directory (back it up and

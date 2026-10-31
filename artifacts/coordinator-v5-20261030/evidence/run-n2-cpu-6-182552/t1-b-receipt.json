@@ -1,0 +1,631 @@
+{
+ "schema": "stage1-v5-run-receipt-v1",
+ "command": {
+  "name": "t1-b",
+  "argv": [
+   "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+   "/home/treefor/projects/runtimes/pic-water-common-commit-v5-20261030/build/n2/test_stage1_v5",
+   "t1",
+   "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/data/shot_17133_current.csv",
+   "/home/treefor/projects/runtimes/pic-water-exact-count-subflow-20261029/inputs/h2o-gas.json",
+   "/home/treefor/sim-workspace/powerflow/outputs/pic-water-exact-count-subflow-20261029/run-binding.json",
+   "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v5-20261030/run-n2-cpu-6-182552/t1-b",
+   "cca72822c9b61900aae7572f29c5d57314f45aef17c4b01c9fd2346c6fa3c883",
+   "1e+18"
+  ],
+  "returncode": 0,
+  "expected_returncode": 0,
+  "ok": true,
+  "elapsed_s": 1.0162657529999706,
+  "log": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v5-20261030/run-n2-cpu-6-182552/t1-b.log",
+  "log_sha256": "9f9326e4a314cdd06e947ffc06ccb476a753f374aad35c7efb2d4fbe141ce9db"
+ },
+ "admission": {
+  "kind": "run",
+  "cpu_affinity": [
+   6
+  ],
+  "PF_CORE": "6",
+  "nice": 15,
+  "threads": 1,
+  "gpu": false,
+  "gpu_uuid": null,
+  "leases_verified_held": [
+   "/home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock"
+  ],
+  "rlimit_as_bytes": 3221225472,
+  "python": "/usr/bin/python",
+  "python_version": "3.14.8",
+  "frozen_launcher": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+  "frozen_launcher_sha256": "d149ac9c013dd630ca11ba69a6d91b603dd715e0ca3ee41e03e00d51122faa5c"
+ },
+ "binary_sha256": "358f26ae0779453dc14b1c84fb80a6c30c71963b6224eaa45a9f6122587e8955",
+ "inputs_sha256": {
+  "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/data/shot_17133_current.csv": "2c54d2dbaec6b6c8fcf2e45b5abd837aa72999f5fd14217f530277ffd5949076",
+  "/home/treefor/projects/runtimes/pic-water-exact-count-subflow-20261029/inputs/h2o-gas.json": "840663cdbcf4c39f1ab6f5407f9ecacb232a07c3c48002a4a182c8187792e4bf",
+  "/home/treefor/sim-workspace/powerflow/outputs/pic-water-exact-count-subflow-20261029/run-binding.json": "f7e2f3dfa314abfbde876dde390652a31d74fbae3bb2cd8d3782aa811f6b6505"
+ },
+ "result_file": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v5-20261030/run-n2-cpu-6-182552/t1-b/t1-result.json",
+ "result_sha256": "25119c1b51a808fa64c2e5221f80a7f7acaa781badf0e6efdb66f0c70b7dbd7b",
+ "summary": {
+  "T1": {
+   "checks": 50,
+   "failed": 0,
+   "passed": 50
+  }
+ },
+ "cases": [
+  {
+   "evidence": {
+    "initial_gauss_solver_bound_C": 1.7332512783829863e-23,
+    "max_divB_T_m": 1.1083185881727017e-12,
+    "max_divB_bound_T_m": 3.20621590337423e-10,
+    "max_gauss_bound_C": 1.7516999727376923e-23,
+    "max_gauss_defect_C": 1.740564405174864e-25
+   },
+   "name": "P1: joint genesis admitted (absolute Gauss and divB against the actual census)",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "midpoint": "35b9288fc795a812a4edbf39f947380a595bdcaff710e3e5c0f95b355a57aa6f",
+    "motion": "35b9288fc795a812a4edbf39f947380a595bdcaff710e3e5c0f95b355a57aa6f",
+    "role_seal": "f101ecc487618490c98c50a461ca56cfe7dbe90adffe7683791018096adbdabf"
+   },
+   "name": "P1: A10 motion digest equals the actual authoritative midpoint digest and differs from the role seal",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "refusal_point": 0
+   },
+   "name": "P1: can_publish accepts the genuine sealed trial",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "allocations_between_first_and_last_swap": 0,
+    "allocations_can_publish": 1549,
+    "allocations_release": 0,
+    "probe_calls": 2,
+    "published": true,
+    "refusal_point": 0
+   },
+   "name": "P1: real positive resident-only joint step published",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "allocations_between_first_and_last_swap": 0,
+    "allocations_can_publish": 1549,
+    "allocations_release": 0,
+    "probe_calls": 2,
+    "published": true,
+    "refusal_point": 0
+   },
+   "name": "P1: zero allocations between the first and last swap",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "dt_s": 1e-14,
+    "t0_s": 7.49788055492e-10,
+    "t1_s": 7.49798055492e-10
+   },
+   "name": "P1: all owners advanced to t0+dt and step 1",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "field": [
+     "fffa3a2f50827cf8be757cf9e33bc5949212512c9a9a0234eb2a1754f3d2655e",
+     "b04d3b64e939c84c4157c2ba2e47d7ecbe3194e277a7c14d387bc90685b21c76"
+    ],
+    "heat": [
+     "d66906b2e6f1deb4f782e860c5f66b0581135d12699d0bcfcbacf1b63ef06896",
+     "b0cede7a095b4849980f7383f07edcc9828f861dd30ff05f019d2f729288e669"
+    ],
+    "rng": [
+     "30bd416e1e0548a6506715191b09b3cd26ae6befb35a87353758022e40c3375a",
+     "90a01a352a5241a21f784d6fa1cbd5507ad9930890383be92420518170f8a5da"
+    ],
+    "source": "4676d67307b5f5fccc33f7d9c2ce745522eceebf8c4ca6050ef0b567758535a3"
+   },
+   "name": "P1: field, heat and RNG changed; source, mesh, material, frame and configuration unchanged",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "B_faces": 39015,
+    "B_faces_compensated_differs_from_high_word_average": 1582,
+    "B_faces_not_equal_to_recomputed_compensated_average": 0,
+    "B_low_nonzero_after": 37861,
+    "E_edges": 41676,
+    "E_edges_compensated_differs_from_high_word_average": 9756,
+    "E_edges_not_equal_to_recomputed_compensated_average": 0,
+    "E_low_nonzero_after": 39388
+   },
+   "name": "P1: authoritative midpoint equals the recomputed compensated average; differing high-word edges recorded",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "advance_family": 0,
+    "solve_fields": 0
+   },
+   "name": "P1: zero calls to wrapped GapPic::solve_fields/advance/advance_empty/advance_observed",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "native_save_error": ""
+   },
+   "name": "P1: native save after a completed step",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "refusal_point": 0,
+    "second_step_begin_s": 7.49798055492e-10
+   },
+   "name": "P1: outer reservation released; a second step prepares and preflights",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "after": "1bff6f0d6294476c6196299900d9531e58c6c7d352a6db78359e0ca52f3434e2",
+    "after_drop": "1bff6f0d6294476c6196299900d9531e58c6c7d352a6db78359e0ca52f3434e2"
+   },
+   "name": "P1: dropping the prepared second step leaves every owner byte-identical",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "initial_gauss_solver_bound_C": 1.7332512783829863e-23,
+    "max_divB_T_m": 1.1083185881727017e-12,
+    "max_divB_bound_T_m": 3.20621590337423e-10,
+    "max_gauss_bound_C": 1.7516999727376923e-23,
+    "max_gauss_defect_C": 1.740564405174864e-25
+   },
+   "name": "P2: joint genesis admitted (absolute Gauss and divB against the actual census)",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "midpoint": "2e5fabe0176cd30860c0998404f26cbebe927a9173c5758c6d69683cf537bd9f",
+    "motion": "2e5fabe0176cd30860c0998404f26cbebe927a9173c5758c6d69683cf537bd9f",
+    "role_seal": "35f4be2e831bf91239ea7000b9d77ebf444ce6ad910fe10a3e9cbd47e8671dd7"
+   },
+   "name": "P2: A10 motion digest equals the actual authoritative midpoint digest and differs from the role seal",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "refusal_point": 0
+   },
+   "name": "P2: can_publish accepts the genuine sealed trial",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "allocations_between_first_and_last_swap": 0,
+    "allocations_can_publish": 1550,
+    "allocations_release": 0,
+    "probe_calls": 2,
+    "published": true,
+    "refusal_point": 0
+   },
+   "name": "P2: real positive resident-only joint step published",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "allocations_between_first_and_last_swap": 0,
+    "allocations_can_publish": 1550,
+    "allocations_release": 0,
+    "probe_calls": 2,
+    "published": true,
+    "refusal_point": 0
+   },
+   "name": "P2: zero allocations between the first and last swap",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "dt_s": 1e-14,
+    "t0_s": 7.49788055492e-10,
+    "t1_s": 7.49798055492e-10
+   },
+   "name": "P2: all owners advanced to t0+dt and step 1",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "field": [
+     "fffa3a2f50827cf8be757cf9e33bc5949212512c9a9a0234eb2a1754f3d2655e",
+     "a7784959d34e8608e3a6312f5b0263d92de6bf2dd0a896648c6b81d377182a6e"
+    ],
+    "heat": [
+     "d66906b2e6f1deb4f782e860c5f66b0581135d12699d0bcfcbacf1b63ef06896",
+     "b0cede7a095b4849980f7383f07edcc9828f861dd30ff05f019d2f729288e669"
+    ],
+    "rng": [
+     "30bd416e1e0548a6506715191b09b3cd26ae6befb35a87353758022e40c3375a",
+     "97f1356810aa396520ff14154f4fdf24cd35eaa49071bb3686697ec38f58dcbc"
+    ],
+    "source": "4676d67307b5f5fccc33f7d9c2ce745522eceebf8c4ca6050ef0b567758535a3"
+   },
+   "name": "P2: field, heat and RNG changed; source, mesh, material, frame and configuration unchanged",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "B_faces": 39015,
+    "B_faces_compensated_differs_from_high_word_average": 1580,
+    "B_faces_not_equal_to_recomputed_compensated_average": 0,
+    "B_low_nonzero_after": 37861,
+    "E_edges": 41676,
+    "E_edges_compensated_differs_from_high_word_average": 9754,
+    "E_edges_not_equal_to_recomputed_compensated_average": 0,
+    "E_low_nonzero_after": 39388
+   },
+   "name": "P2: authoritative midpoint equals the recomputed compensated average; differing high-word edges recorded",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "advance_family": 0,
+    "solve_fields": 0
+   },
+   "name": "P2: zero calls to wrapped GapPic::solve_fields/advance/advance_empty/advance_observed",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "native_save_error": ""
+   },
+   "name": "P2: native save after a completed step",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "refusal_point": 0,
+    "second_step_begin_s": 7.49798055492e-10
+   },
+   "name": "P2: outer reservation released; a second step prepares and preflights",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "after": "9f69bb22172ac595bbfa93d66f54dd67397ab592bce91b927d18fd42515064da",
+    "after_drop": "9f69bb22172ac595bbfa93d66f54dd67397ab592bce91b927d18fd42515064da"
+   },
+   "name": "P2: dropping the prepared second step leaves every owner byte-identical",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "initial_gauss_solver_bound_C": 1.7332512783829863e-23,
+    "max_divB_T_m": 1.1083185881727017e-12,
+    "max_divB_bound_T_m": 3.20621590337423e-10,
+    "max_gauss_bound_C": 1.7516999727376923e-23,
+    "max_gauss_defect_C": 1.740564405174864e-25
+   },
+   "name": "P1-stage1-z1mm: joint genesis admitted (absolute Gauss and divB against the actual census)",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "midpoint": "9d4dd1a1509f9251edef4519251af36b080dd14a03938395f6e9bca82b59efc2",
+    "motion": "9d4dd1a1509f9251edef4519251af36b080dd14a03938395f6e9bca82b59efc2",
+    "role_seal": "1e0bc524a7f227883a454d2887262eb380041e62fd0688d9aa3295cd48938635"
+   },
+   "name": "P1-stage1-z1mm: A10 motion digest equals the actual authoritative midpoint digest and differs from the role seal",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "refusal_point": 0
+   },
+   "name": "P1-stage1-z1mm: can_publish accepts the genuine sealed trial",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "allocations_between_first_and_last_swap": 0,
+    "allocations_can_publish": 1549,
+    "allocations_release": 0,
+    "probe_calls": 2,
+    "published": true,
+    "refusal_point": 0
+   },
+   "name": "P1-stage1-z1mm: real positive resident-only joint step published",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "allocations_between_first_and_last_swap": 0,
+    "allocations_can_publish": 1549,
+    "allocations_release": 0,
+    "probe_calls": 2,
+    "published": true,
+    "refusal_point": 0
+   },
+   "name": "P1-stage1-z1mm: zero allocations between the first and last swap",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "dt_s": 1e-14,
+    "t0_s": 7.49788055492e-10,
+    "t1_s": 7.49798055492e-10
+   },
+   "name": "P1-stage1-z1mm: all owners advanced to t0+dt and step 1",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "field": [
+     "854acc936506746b7ce99967c7bc41e4b95c73d65695f670dced553af409246d",
+     "9f5d2a1448104e955328ae36fd7a485ad5ea9448f66c23cf44a5054578db4d83"
+    ],
+    "heat": [
+     "d66906b2e6f1deb4f782e860c5f66b0581135d12699d0bcfcbacf1b63ef06896",
+     "b0cede7a095b4849980f7383f07edcc9828f861dd30ff05f019d2f729288e669"
+    ],
+    "rng": [
+     "30bd416e1e0548a6506715191b09b3cd26ae6befb35a87353758022e40c3375a",
+     "90a01a352a5241a21f784d6fa1cbd5507ad9930890383be92420518170f8a5da"
+    ],
+    "source": "4676d67307b5f5fccc33f7d9c2ce745522eceebf8c4ca6050ef0b567758535a3"
+   },
+   "name": "P1-stage1-z1mm: field, heat and RNG changed; source, mesh, material, frame and configuration unchanged",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "B_faces": 39015,
+    "B_faces_compensated_differs_from_high_word_average": 1587,
+    "B_faces_not_equal_to_recomputed_compensated_average": 0,
+    "B_low_nonzero_after": 37861,
+    "E_edges": 41676,
+    "E_edges_compensated_differs_from_high_word_average": 9760,
+    "E_edges_not_equal_to_recomputed_compensated_average": 0,
+    "E_low_nonzero_after": 39388
+   },
+   "name": "P1-stage1-z1mm: authoritative midpoint equals the recomputed compensated average; differing high-word edges recorded",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "advance_family": 0,
+    "solve_fields": 0
+   },
+   "name": "P1-stage1-z1mm: zero calls to wrapped GapPic::solve_fields/advance/advance_empty/advance_observed",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "native_save_error": ""
+   },
+   "name": "P1-stage1-z1mm: native save after a completed step",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "refusal_point": 0,
+    "second_step_begin_s": 7.49798055492e-10
+   },
+   "name": "P1-stage1-z1mm: outer reservation released; a second step prepares and preflights",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "after": "da9e183f0e70466dcb520dea6d4f2bd185f16019f33f965bb6e6408cf4506f32",
+    "after_drop": "da9e183f0e70466dcb520dea6d4f2bd185f16019f33f965bb6e6408cf4506f32"
+   },
+   "name": "P1-stage1-z1mm: dropping the prepared second step leaves every owner byte-identical",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "initial_gauss_solver_bound_C": 1.7332512783829863e-23,
+    "max_divB_T_m": 1.1083185881727017e-12,
+    "max_divB_bound_T_m": 3.20621590337423e-10,
+    "max_gauss_bound_C": 1.7516999727376923e-23,
+    "max_gauss_defect_C": 1.740564405174864e-25
+   },
+   "name": "P2-stage1-z1mm: joint genesis admitted (absolute Gauss and divB against the actual census)",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "midpoint": "c93715804f63b982ae13442566d1f3e1b5326cca92fe7a171576df8e96ebe4eb",
+    "motion": "c93715804f63b982ae13442566d1f3e1b5326cca92fe7a171576df8e96ebe4eb",
+    "role_seal": "3ab3851c50fa09b400265e612c62327d0e6312ca81a66e09f7ca85bc5857f5f3"
+   },
+   "name": "P2-stage1-z1mm: A10 motion digest equals the actual authoritative midpoint digest and differs from the role seal",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "refusal_point": 0
+   },
+   "name": "P2-stage1-z1mm: can_publish accepts the genuine sealed trial",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "allocations_between_first_and_last_swap": 0,
+    "allocations_can_publish": 1550,
+    "allocations_release": 0,
+    "probe_calls": 2,
+    "published": true,
+    "refusal_point": 0
+   },
+   "name": "P2-stage1-z1mm: real positive resident-only joint step published",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "allocations_between_first_and_last_swap": 0,
+    "allocations_can_publish": 1550,
+    "allocations_release": 0,
+    "probe_calls": 2,
+    "published": true,
+    "refusal_point": 0
+   },
+   "name": "P2-stage1-z1mm: zero allocations between the first and last swap",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "dt_s": 1e-14,
+    "t0_s": 7.49788055492e-10,
+    "t1_s": 7.49798055492e-10
+   },
+   "name": "P2-stage1-z1mm: all owners advanced to t0+dt and step 1",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "field": [
+     "854acc936506746b7ce99967c7bc41e4b95c73d65695f670dced553af409246d",
+     "c9305f5764dadbac106507fd2a4a4d8f5f2e2f328de8e329d0d683c0fe68ec75"
+    ],
+    "heat": [
+     "d66906b2e6f1deb4f782e860c5f66b0581135d12699d0bcfcbacf1b63ef06896",
+     "b0cede7a095b4849980f7383f07edcc9828f861dd30ff05f019d2f729288e669"
+    ],
+    "rng": [
+     "30bd416e1e0548a6506715191b09b3cd26ae6befb35a87353758022e40c3375a",
+     "97f1356810aa396520ff14154f4fdf24cd35eaa49071bb3686697ec38f58dcbc"
+    ],
+    "source": "4676d67307b5f5fccc33f7d9c2ce745522eceebf8c4ca6050ef0b567758535a3"
+   },
+   "name": "P2-stage1-z1mm: field, heat and RNG changed; source, mesh, material, frame and configuration unchanged",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "B_faces": 39015,
+    "B_faces_compensated_differs_from_high_word_average": 1577,
+    "B_faces_not_equal_to_recomputed_compensated_average": 0,
+    "B_low_nonzero_after": 37861,
+    "E_edges": 41676,
+    "E_edges_compensated_differs_from_high_word_average": 9757,
+    "E_edges_not_equal_to_recomputed_compensated_average": 0,
+    "E_low_nonzero_after": 39388
+   },
+   "name": "P2-stage1-z1mm: authoritative midpoint equals the recomputed compensated average; differing high-word edges recorded",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "advance_family": 0,
+    "solve_fields": 0
+   },
+   "name": "P2-stage1-z1mm: zero calls to wrapped GapPic::solve_fields/advance/advance_empty/advance_observed",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "native_save_error": ""
+   },
+   "name": "P2-stage1-z1mm: native save after a completed step",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "refusal_point": 0,
+    "second_step_begin_s": 7.49798055492e-10
+   },
+   "name": "P2-stage1-z1mm: outer reservation released; a second step prepares and preflights",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "after": "987a916589b2f9c251bd6c3ea25830e34b7b074981a0a3d01ac176cd6f161576",
+    "after_drop": "987a916589b2f9c251bd6c3ea25830e34b7b074981a0a3d01ac176cd6f161576"
+   },
+   "name": "P2-stage1-z1mm: dropping the prepared second step leaves every owner byte-identical",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "first_exposure": 2,
+    "second_exposure": 0
+   },
+   "name": "P2 (z=0): at least one parent ionization event inside the published step",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "advance_family": 0,
+    "solve_fields": 0
+   },
+   "name": "no forbidden native solver/advance call in the whole process",
+   "passed": true,
+   "test": "T1"
+  }
+ ],
+ "files": {
+  "t1-receipt.json": {
+   "path": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v5-20261030/run-n2-cpu-6-182552/t1-b/t1-receipt.json",
+   "sha256": "2c4add04d54eb45d607185a31a35a2faa2dca9307399413e65f38056902ef95b"
+  },
+  "t1-timings.json": {
+   "path": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v5-20261030/run-n2-cpu-6-182552/t1-b/t1-timings.json",
+   "sha256": "6197151a7512e6c28594b52c61ab59e1c9ae440facccb25d692abdd0517779e9"
+  }
+ }
+}

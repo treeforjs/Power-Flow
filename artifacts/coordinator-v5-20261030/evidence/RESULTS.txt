@@ -1,0 +1,75 @@
+Coordinator v5 results — 2026-10-30
+
+Sources: runtimes/pic-water-common-commit-v5-20261030 (README.txt). Hall corrective v2: runtimes/hall-corrective-v2-20261030.
+Builds of record (same sources): build-n3 (native v5, candidate005, cca72822...) and build-c2 (native candidate003,
+c045c42d..., Stage 1 parity). Superseded (kept, not of record): build-b1..b3, build-c1, build-n1, build-n2 and their runs
+(run-b3-cpu-6-180256 ended "failed" only because Hall v2 sources were edited during the run; run-c1/n2 predate the
+injection-site attribution and the chemistry cap fix; series-n2 predates the 1e6 joint fix).
+
+(a) T1-T7, CPU backends (cpu-pcg + cpu motion), fixture at z = 0
+  run-n3-cpu-7-185005/stage1-v5-receipt.json   status passed (native v5)
+  run-c2-cpu-6-185005/stage1-v5-receipt.json   status passed (candidate003)
+  Both: T1 101/101 (P1, P2 at z = 0 and at the Stage 1 z = 1 mm; 2 parent ionization events in P2; zero allocations
+  between first and last swap; second step preflights; two fresh processes byte-identical; matrix reference = T1),
+  T2 28/28, T3 35/35, T4 10/10, T5 37/37, T6 6/6, T7 9/9; declaration test and 9 compile rejections pass (build receipts).
+  Stage 1 comparison (compare_stage1.py, stage1-identity-mapping.json in each run): at z = 1 mm the accepted physical
+  state equals Stage 1 bit for bit — Hall E, B, E_low, B_low, clock/revision, complete charge ledger, all 8 heat slice
+  files, every native particle/packet/count/ledger value (c2), chemistry checkpoint values, motion record endpoints,
+  paths and budget, midpoint compensation counts (9,756 E edges / 1,582 B faces differ from the high-word average);
+  0 non-digest differences; 56 changed digests (c2; 29 on n3, where native identities/export are excluded by design)
+  form a consistent one-to-one old -> new mapping. Intentional text changes: Hall api -v1 -> -v2, trial audit and
+  genesis record schemas -v4 -> -v5; added audit keys: field_solve_backend(+descriptor), motion_provider,
+  transport_record_v3_sha256 (and native v5 row_sha256).
+  Identity mapping summary (Stage 1 -> v5/c2): unchanged values: motion mesh 0c8e6c3b..., material 490e5424...,
+  frame 22c17f1f..., species 27ce0101..., census, kinetic policy, total-field midpoint digest, initial RNG.
+  Changed (new encodings, propagated): Hall configuration dd36e0cd -> 39ca1bbf (binary, + backend + carrier limits +
+  tolerance rules), Hall field state 4d1afd5a -> 9f5d2a14 (binary), heat 184a9075 -> b0cede7a (binary), midpoint role
+  seal 3b914e16 -> 1e0bc524, coordinator configuration 130a8061 -> 812e8b54, inactive source fbaaac82 -> 4676d673, common
+  clocks (4a343463 -> 18719f89 ...), native accepted prefix/journal chains/completion prefixes/outer step and the motion
+  record seal (through the bound digests). On native v5 the native identities additionally use the native v5 scheme.
+
+(b) Same step with GPU push + GPU field (n3): run-n3-gpu-6-190554/gpu-step-summary.json status passed
+  P1 and P2 at z = 0 publish (P2 with 2 parent events); every fixed-point iterate (2 per step) compared with the CPU
+  provider on the same census and midpoint: motion v3 record, current, initial/endpoint charge and endpoint free-charge
+  words identical; field accepted through the guard receipt: independent FP64 residual 4.55e-4 / 4.59e-4 of the 2e-13
+  target, max |Gauss| 1.74e-25 C (bound 1.75e-23), divB 1.11e-12 T/m (bound 3.2e-10), Gauss increment 6.05e-27 C, field
+  energy balance -6.6e-24 J, combined field/motion/heat balance 2.96e-15 J (same as CPU); backend gpu1-factored-cg bound
+  in the configuration identity (d42b1770... vs cpu-pcg configuration); two fresh processes byte-identical
+  (gpu-step-deterministic.json); GPU teardown drained, not quarantined. Device RTX 3080 Ti, sm_86 cubin, NVRTC 12.8.
+
+(c) Multi-step runs (n3, native v5; series-n3/series-summary.json; per-step ledgers step-ledger.jsonl /
+  hall-loop-ledger.jsonl; per-phase medians in each *-summary.json). Native v5 removes the 818-step cap.
+  median ms/step (CPU -> GPU), steps:
+    joint 2 carriers     52.5 -> 52.3   2000 + 2000 steps (20 ps); GPU push parity checked on all 4203 iterates
+    joint 1e4            179.6 -> 158.1  200 + 200 steps; parity 27/27 iterates
+    joint 1e5            1218 -> 1104    30 + 30 steps; parity 11/11
+    joint 1e6 (GPU only) 12,425          5 steps (Hall/native/chemistry caps 1e6, budgets 8/4 GiB)
+    Hall-only loop 1e4   105.8 -> 84.6   50 + 50 steps; parity 13/13
+    Hall-only loop 1e5   606.8 -> 495.2  20 + 20 steps; parity 8/8
+    Hall-only loop 1e6   4,755 (GPU)     10 steps
+  Phase medians (ms, CPU / GPU):
+    2 carriers:  field prepare (host compensated-word arithmetic incl. 2 solves) 31.1 / 27.6, field solve 3.2 / 1.0,
+                 motion 2.5 / 6.0 (GPU value includes the per-step CPU parity motion), heat 2.1, can_publish 9.1,
+                 chemistry 1.2, native admission 0.5
+    1e4:  motion 45.2 / 16.0, field prepare 44.3 / 41.4, solve 4.7 / 1.4, v2 JSON record seal 17.6 / 22.1, native
+          motion admission 23 / 25, can_publish 18.2 / 18.6, chemistry 9.3 / 10.1
+    1e5:  motion 286 / 120, v2 JSON seal 206 / 226, native motion admission 281 / 293, can_publish 113 / 116, chemistry
+          99 / 104, census digest 25 / 38, motion v3 digest 28 / 41, deposit support 24 / 37, field prepare 31 / 42
+    1e6 (GPU): motion 1264 (device ~100 ms per iterate), v2 JSON seal 2406, native motion admission 3115, can_publish
+          1243, chemistry 1563, census digest 478, v3 digest 398, deposit support 497, admit census 299
+  The 45-cell field solve is no longer significant; the GPU removes the push cost; the remaining floor is host O(N)
+  work, dominated by the JSON motion record that native candidate003/v5 require (Hall seal + native verification).
+
+(d) T3 fault points (allocation countdown sweep, matrix/allocation-sweep.json):
+  n3: 20,005 of 48,071 allocation sites of one step (42 %); c2: 18,974 of 58,805 (32 %); Stage 1 had 1 % of 1,015,312.
+  std::terminate in Hall v2 code: 0 (both). All crashes are in sealed code, JSON destructors under noexcept: n3 239
+  (native 128, v3 parent subflow 111), c2 381 (native003 314, v3 subflow 67). 12 prepare and 9 can_publish throw
+  points refuse with all owners byte-identical; 802 (n3) / 756 (c2) fresh trials after injected failures reproduce T1.
+  New finding (sealed code): a few injected failures are swallowed and the step still publishes different bytes:
+  n3 3 points, c2 4 points; injection sites: parent-chemistry completion builder (v3 ParentSubflow::build_events ->
+  collision Scheduler::checkpoint / native CollisionScope::state_prefix, run inside the native compound) and, on
+  candidate003, an iostream formatted output in native begin_full_time_step (std::ostream sets badbit instead of
+  propagating bad_alloc; reproduced at k = 721 with injection-sites/c1-721.log: different native accepted prefix,
+  native save then fails). None of these injection sites is in Hall v2 code.
+
+Hall corrective v2 component evidence: /home/treefor/projects/.workspace/outputs/hall-corrective-v2-20261030/b5/.

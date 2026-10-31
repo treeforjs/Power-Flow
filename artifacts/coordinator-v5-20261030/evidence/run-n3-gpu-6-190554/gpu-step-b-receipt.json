@@ -1,0 +1,229 @@
+{
+ "schema": "stage1-v5-run-receipt-v1",
+ "command": {
+  "name": "gpu-step-b",
+  "argv": [
+   "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+   "/home/treefor/projects/runtimes/pic-water-common-commit-v5-20261030/build/n3/test_stage1_v5",
+   "gpu-step",
+   "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/data/shot_17133_current.csv",
+   "/home/treefor/projects/runtimes/pic-water-exact-count-subflow-20261029/inputs/h2o-gas.json",
+   "/home/treefor/sim-workspace/powerflow/outputs/pic-water-exact-count-subflow-20261029/run-binding.json",
+   "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v5-20261030/run-n3-gpu-6-190554/gpu-step-b",
+   "cca72822c9b61900aae7572f29c5d57314f45aef17c4b01c9fd2346c6fa3c883",
+   "1e+18",
+   "--field",
+   "gpu",
+   "--push",
+   "gpu",
+   "--uuid",
+   "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9",
+   "--nvrtc",
+   "/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/tools/nvrtc/nvidia/cuda_nvrtc/lib/libnvrtc.so.12"
+  ],
+  "returncode": 0,
+  "expected_returncode": 0,
+  "ok": true,
+  "elapsed_s": 2.0171298879995447,
+  "log": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v5-20261030/run-n3-gpu-6-190554/gpu-step-b.log",
+  "log_sha256": "98af851a73ad4a2e33a32577da32628051d4be48bf2b037eca8b76dc635aedc7"
+ },
+ "admission": {
+  "kind": "gpu",
+  "cpu_affinity": [
+   6
+  ],
+  "PF_CORE": "6",
+  "nice": 15,
+  "threads": 1,
+  "gpu": true,
+  "gpu_uuid": "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9",
+  "leases_verified_held": [
+   "/home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock",
+   "/home/treefor/projects/.workspace/outputs/pic-profile/testing-gpu.lock",
+   "/home/treefor/projects/.workspace/outputs/pic-profile/testing-gpu-GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9.lock"
+  ],
+  "rlimit_as_bytes": null,
+  "python": "/usr/bin/python",
+  "python_version": "3.14.8",
+  "frozen_launcher": "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+  "frozen_launcher_sha256": "d149ac9c013dd630ca11ba69a6d91b603dd715e0ca3ee41e03e00d51122faa5c"
+ },
+ "binary_sha256": "992c9de0a284720ccf503f4d1d43595ba394f1f5c43e095d2ec86456eedf7d9e",
+ "inputs_sha256": {
+  "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/data/shot_17133_current.csv": "2c54d2dbaec6b6c8fcf2e45b5abd837aa72999f5fd14217f530277ffd5949076",
+  "/home/treefor/projects/runtimes/pic-water-exact-count-subflow-20261029/inputs/h2o-gas.json": "840663cdbcf4c39f1ab6f5407f9ecacb232a07c3c48002a4a182c8187792e4bf",
+  "/home/treefor/sim-workspace/powerflow/outputs/pic-water-exact-count-subflow-20261029/run-binding.json": "f7e2f3dfa314abfbde876dde390652a31d74fbae3bb2cd8d3782aa811f6b6505"
+ },
+ "result_file": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v5-20261030/run-n3-gpu-6-190554/gpu-step-b/gpu-step-result.json",
+ "result_sha256": "01954a86857f925671369ee2464580887e2bc08542d83207ec671c073e1f575c",
+ "summary": {
+  "GPU": {
+   "checks": 8,
+   "failed": 0,
+   "passed": 8
+  }
+ },
+ "cases": [
+  {
+   "evidence": {
+    "iterates_compared": 2,
+    "iterates_identical": 2,
+    "per_iterate": [
+     {
+      "carriers": 2,
+      "cpu_s": 0.001340036,
+      "current_and_charge_arrays_identical": true,
+      "device_s": 0.004156989,
+      "endpoint_free_charge_words_identical": true,
+      "record_v3_identical": true,
+      "record_v3_sha256": "ab98b6d715b169cfa9040cf00553c99d570fe23d9cdf68906bd4c32013d46e1a"
+     },
+     {
+      "carriers": 2,
+      "cpu_s": 0.001344636,
+      "current_and_charge_arrays_identical": true,
+      "device_s": 0.001832765,
+      "endpoint_free_charge_words_identical": true,
+      "record_v3_identical": true,
+      "record_v3_sha256": "162a4ce06742917d1241fe0ea83fb8cd19aa846ddbcc4cfa64caebb1a281cc1a"
+     }
+    ]
+   },
+   "name": "P1: GPU push bit-identical to the CPU provider on every fixed-point iterate (motion v3 record, current, charge arrays, endpoint charge words)",
+   "passed": true,
+   "test": "GPU"
+  },
+  {
+   "evidence": {
+    "backend": "gpu1-factored-cg",
+    "backend_residual": 3.095326809779298e-26,
+    "candidate_field_sha256": "250b6f0f1368645569dd8b7135ab6526ccdaa0a3e973bafa9f28a641a64baf6f",
+    "candidate_heat_sha256": "b0cede7a095b4849980f7383f07edcc9828f861dd30ff05f019d2f729288e669",
+    "combined_field_motion_heat_balance_J": 2.9621577717163235e-15,
+    "configuration_sha256": "d42b1770df356c20b4066b9c75f7cd5c03a15e2baa72634a7dec7b8f0ec1eaae",
+    "field_energy_balance_J": -6.617444900424222e-24,
+    "field_heat_balance_J": 2.9621577717163235e-15,
+    "fixed_point_iterations": 2,
+    "gauss_increment_C": 6.048030647658749e-27,
+    "independent_residual": 3.095326809779298e-26,
+    "max_divB_T_m": 1.1083185211174762e-12,
+    "max_divB_bound_T_m": 3.20621590337423e-10,
+    "max_gauss_C": 1.740564405174865e-25,
+    "max_gauss_bound_C": 1.7516999909169863e-23,
+    "residual_over_target": 0.0004554757934310435,
+    "residual_target": 6.795809688287887e-23,
+    "solver_iterations": 4
+   },
+   "name": "P1: GPU field accepted through the guard receipt (independent residual, absolute Gauss, divB, Gauss increment, energy)",
+   "passed": true,
+   "test": "GPU"
+  },
+  {
+   "evidence": {
+    "allocations_between_first_and_last_swap": 0,
+    "allocations_can_publish": 1549,
+    "allocations_release": 0,
+    "probe_calls": 2,
+    "published": true,
+    "refusal_point": 0
+   },
+   "name": "P1: joint step with GPU backends published (zero allocations between first and last swap)",
+   "passed": true,
+   "test": "GPU"
+  },
+  {
+   "evidence": {},
+   "name": "P1: the backend is recorded in the configuration identity",
+   "passed": true,
+   "test": "GPU"
+  },
+  {
+   "evidence": {
+    "iterates_compared": 2,
+    "iterates_identical": 2,
+    "per_iterate": [
+     {
+      "carriers": 8,
+      "cpu_s": 0.001351066,
+      "current_and_charge_arrays_identical": true,
+      "device_s": 0.001894815,
+      "endpoint_free_charge_words_identical": true,
+      "record_v3_identical": true,
+      "record_v3_sha256": "85f83e93471ccb19c21e73e01c1a3b7ad5cb1e7504b7bf1e61ab2509988c1e74"
+     },
+     {
+      "carriers": 8,
+      "cpu_s": 0.001348766,
+      "current_and_charge_arrays_identical": true,
+      "device_s": 0.001866555,
+      "endpoint_free_charge_words_identical": true,
+      "record_v3_identical": true,
+      "record_v3_sha256": "adaef21e00377d6d48bad058eac42350febde81e66e54c5b09e336f76d05c47e"
+     }
+    ]
+   },
+   "name": "P2: GPU push bit-identical to the CPU provider on every fixed-point iterate (motion v3 record, current, charge arrays, endpoint charge words)",
+   "passed": true,
+   "test": "GPU"
+  },
+  {
+   "evidence": {
+    "backend": "gpu1-factored-cg",
+    "backend_residual": 3.117644776004997e-26,
+    "candidate_field_sha256": "1777ff5f3a04de0826322ce7a25caa21a69c8731969143f99e2a249f4bd495f3",
+    "candidate_heat_sha256": "b0cede7a095b4849980f7383f07edcc9828f861dd30ff05f019d2f729288e669",
+    "combined_field_motion_heat_balance_J": 2.9621577717163235e-15,
+    "configuration_sha256": "d42b1770df356c20b4066b9c75f7cd5c03a15e2baa72634a7dec7b8f0ec1eaae",
+    "field_energy_balance_J": -6.617444900424222e-24,
+    "field_heat_balance_J": 2.9621577717163235e-15,
+    "fixed_point_iterations": 2,
+    "gauss_increment_C": 6.048030647658713e-27,
+    "independent_residual": 3.1176447760049967e-26,
+    "max_divB_T_m": 1.1083185211174762e-12,
+    "max_divB_bound_T_m": 3.20621590337423e-10,
+    "max_gauss_C": 1.7405644051748658e-25,
+    "max_gauss_bound_C": 1.7516999909169863e-23,
+    "residual_over_target": 0.00045875987100966055,
+    "residual_target": 6.795809688287547e-23,
+    "solver_iterations": 4
+   },
+   "name": "P2: GPU field accepted through the guard receipt (independent residual, absolute Gauss, divB, Gauss increment, energy)",
+   "passed": true,
+   "test": "GPU"
+  },
+  {
+   "evidence": {
+    "allocations_between_first_and_last_swap": 0,
+    "allocations_can_publish": 1550,
+    "allocations_release": 0,
+    "probe_calls": 2,
+    "published": true,
+    "refusal_point": 0
+   },
+   "name": "P2: joint step with GPU backends published (zero allocations between first and last swap)",
+   "passed": true,
+   "test": "GPU"
+  },
+  {
+   "evidence": {},
+   "name": "P2: the backend is recorded in the configuration identity",
+   "passed": true,
+   "test": "GPU"
+  }
+ ],
+ "files": {
+  "gpu-step-receipt.json": {
+   "path": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v5-20261030/run-n3-gpu-6-190554/gpu-step-b/gpu-step-receipt.json",
+   "sha256": "c25e8efa3c3d607e0769f83448da0690fbdde91d6d479e1d42e5b43279c98278"
+  },
+  "gpu-step-deterministic.json": {
+   "path": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v5-20261030/run-n3-gpu-6-190554/gpu-step-b/gpu-step-deterministic.json",
+   "sha256": "a3d40864533a777a6cda07381d0e2c32f2871c946bfa4de2850b0cdfd281f041"
+  },
+  "gpu-teardown.json": {
+   "path": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v5-20261030/run-n3-gpu-6-190554/gpu-step-b/gpu-teardown.json",
+   "sha256": "b7bed4b1c74b595cce9477373d06619a85653f047470834b2fbde16fdf0cf5e9"
+  }
+ }
+}
