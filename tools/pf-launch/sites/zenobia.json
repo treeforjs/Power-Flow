@@ -115,7 +115,8 @@
     "Physical cores 0-3 are allocated to the Spheral work, 4-5 to the raikou-mfem port and 6-7 to Power-Flow: reserved_cores lists 0-5 unconditionally, so --cores auto resolves to 6-7 and --cores 3 or more refuses unless --cores-available.",
     "The simqueue-active probe (cores 0-3) is kept as an extra recorded signal; it is redundant with the static reservation. Errors, a missing queue database (e.g. inside the frozen sandbox, where the home state directory is hidden) or unrecognized output count as reserved.",
     "Leases: core 6 = testing-core.lock, core 7 = testing-core7.lock, other cores testing-core<K>.lock, GPU testing-gpu-<UUID>.lock plus the older generic testing-gpu.lock, all flock(2) and compatible with flock(1).",
-    "Execution: the frozen root via run-frozen; mpirun runs inside the sandbox (one bwrap for the whole job) because the sandbox's private /tmp and PID namespace would separate per-rank sandboxes from the PMIx server."
+    "Execution: the frozen root via run-frozen; mpirun runs inside the sandbox (one bwrap for the whole job) because the sandbox's private /tmp and PID namespace would separate per-rank sandboxes from the PMIx server.",
+    "pf-launch 1.1: the simqueue-active probe calls the SimQueue 0.6 runtime (the 0.5 CLI refuses the migrated schema-7 database). Before the 0.6 switchover the probe errors and counts as reserved, which the static reservation of cores 0-5 already covers."
   ],
   "nice": 15,
   "default_gpus": "auto",
@@ -149,7 +150,7 @@
       ],
       "probe": {
         "argv": [
-          "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/simq",
+          "/home/treefor/projects/runtimes/simqueue-0.6.0-20261030/simq",
           "active"
         ],
         "timeout_s": 20,

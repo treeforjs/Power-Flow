@@ -1,0 +1,80 @@
+{
+  "schema": "simqueue-node-config-v1",
+  "node": "zenobia",
+  "default_partition": "spheral",
+  "memory_schedulable": "28G",
+  "gpus": [
+    {
+      "uuid": "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9",
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 3080 Ti",
+      "memory": "12288M",
+      "budget": "11G"
+    }
+  ],
+  "lock_files": {
+    "enabled": true,
+    "core_path": "/home/treefor/projects/.workspace/outputs/pic-profile/testing-core{core}.lock",
+    "core_overrides": {
+      "6": "/home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock"
+    },
+    "gpu_path": "/home/treefor/projects/.workspace/outputs/pic-profile/testing-gpu-{uuid}.lock",
+    "gpu_extra": {
+      "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9": [
+        "/home/treefor/projects/.workspace/outputs/pic-profile/testing-gpu.lock"
+      ]
+    },
+    "notes": "Same flock(2) lease files as any-core.sh, both-cores.sh and pf-launch. Job units take them for their lifetime; the scheduler only observes /proc/locks."
+  },
+  "launch": {
+    "backend": "systemd-user",
+    "unit_prefix": "simq-job",
+    "slice": "simq.slice",
+    "wrapper_python": "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen",
+    "kill_grace_seconds": 10,
+    "poll_seconds": 1
+  },
+  "partitions": [
+    {
+      "name": "spheral",
+      "description": "Zapdos-Raikou-Spheral work",
+      "cpus": "0-3",
+      "gpus": [],
+      "default_cpus": "all",
+      "default_mem": "18G",
+      "max_mem": "20G",
+      "swap_max": "1G",
+      "default_time": "2-00:00:00",
+      "max_time": "14-00:00:00"
+    },
+    {
+      "name": "raikou-mfem",
+      "description": "raikou-mfem port",
+      "cpus": "4-5",
+      "gpus": ["GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"],
+      "default_cpus": "all",
+      "default_mem": "4G",
+      "max_mem": "12G",
+      "swap_max": "1G",
+      "default_time": "12:00:00",
+      "max_time": "7-00:00:00"
+    },
+    {
+      "name": "powerflow",
+      "description": "Power-Flow",
+      "cpus": "6-7",
+      "gpus": ["GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"],
+      "default_cpus": "all",
+      "default_mem": "4G",
+      "max_mem": "12G",
+      "swap_max": "1G",
+      "default_time": "12:00:00",
+      "max_time": "7-00:00:00"
+    }
+  ],
+  "notes": [
+    "Each partition names physical cores by their lowest logical CPU (0-7); SMT siblings 8-15 are never allocated.",
+    "memory_schedulable is the sum of --mem over concurrent jobs (31 GiB RAM; about 3 GiB left for the system).",
+    "The GPU is shared by raikou-mfem and powerflow: exclusive per job unless --gpu-mem is given and the 11G budget allows sharing."
+  ]
+}

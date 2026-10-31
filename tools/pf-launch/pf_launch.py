@@ -33,7 +33,7 @@ import subprocess
 import sys
 import time
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 SITE_SCHEMA = "pf-launch-site/1"
 RANK_PLAN_SCHEMA = "pf-launch-rank-plan/1"
 
@@ -735,6 +735,140 @@ def select_cores(topology: Topology, request, reserved=None, busy=None, preferen
     return out
 
 
+# --------------------------------------------------------------------------- SimQueue allocations
+
+SIMQ_ENV_KEYS = ("SIMQ_JOB_ID", "SIMQ_PARTITION", "SIMQ_NODE", "SIMQ_CPU_LIST", "SIMQ_CPU_COUNT", "SIMQ_NCPUS",
+                 "SIMQ_GPUS", "SIMQ_GPU_MODE", "SIMQ_GPU_MEM", "SIMQ_MEM", "SIMQ_TIME_LIMIT", "SIMQ_UNIT")
+
+
+def simqueue_allocation(env: dict):
+    """The SimQueue allocation this process runs in, or None.
+
+    SimQueue 0.6 exports SIMQ_JOB_ID with SIMQ_CPU_LIST and SIMQ_GPUS (empty when no GPU is allocated).
+    A SimQueue 0.5 job has SIMQ_CPU_LIST but no SIMQ_GPUS: its cores are the allocation and GPUs are
+    still selected (and leased) locally.
+    """
+    if not env.get("SIMQ_JOB_ID") or ("SIMQ_CPU_LIST" not in env and "SIMQ_GPUS" not in env):
+        return None
+    allocation = {"env": {k: env.get(k) for k in SIMQ_ENV_KEYS if k in env}, "error": None}
+    try:
+        allocation["cpus"] = parse_cpu_list(env.get("SIMQ_CPU_LIST", ""))
+    except ValueError as error:
+        allocation["cpus"] = []
+        allocation["error"] = f"invalid SIMQ_CPU_LIST {env.get('SIMQ_CPU_LIST')!r}: {error}"
+    allocation["gpus_managed"] = "SIMQ_GPUS" in env
+    allocation["gpus"] = [g.strip() for g in env.get("SIMQ_GPUS", "").split(",") if g.strip()]
+    return allocation
+
+
+def select_simq_cores(topology: Topology, request, allocation: dict, allow_fewer=False) -> dict:
+    """Ranks from the SimQueue allocation: pf-launch picks no cores of its own."""
+    out = {"ranks": [], "refusals": [], "notes": []}
+    refuse = lambda *a, **k: out["refusals"].append(_refusal(*a, **k))  # noqa: E731
+    cpus = list(allocation["cpus"])
+    job = allocation["env"].get("SIMQ_JOB_ID")
+    if allocation.get("error"):
+        refuse(EXIT_CONFIG, allocation["error"])
+        return out
+    if not cpus:
+        refuse(EXIT_CONFIG, f"SimQueue job {job}: SIMQ_CPU_LIST is empty")
+        return out
+    unknown = [c for c in cpus if c not in topology.cpu_core]
+    if unknown:
+        refuse(EXIT_ABSENT, f"SimQueue allocation CPU(s) {format_cpu_list(unknown)} not present on this host")
+        return out
+    kind, value = request
+    if kind == "list":
+        outside = [c for c in value if c not in cpus]
+        if outside:
+            refuse(EXIT_BUSY, f"--cpus: CPU(s) {format_cpu_list(outside)} are not in SimQueue job {job}'s "
+                              f"allocation (SIMQ_CPU_LIST={format_cpu_list(cpus)})")
+            return out
+        chosen = list(value)
+    elif kind == "auto":
+        chosen = cpus
+    else:
+        n = int(value)
+        if n < 1:
+            refuse(EXIT_USAGE, "--cores must be at least 1")
+            return out
+        if n <= len(cpus):
+            chosen = cpus[:n]
+        elif allow_fewer:
+            chosen = cpus
+            out["notes"].append(f"--cores {n}: SimQueue allocation has {len(cpus)} core(s); running {len(cpus)} "
+                                f"rank(s) (--cores-available)")
+        else:
+            refuse(EXIT_BUSY, f"--cores {n} exceeds SimQueue job {job}'s allocation of {len(cpus)} core(s) "
+                              f"(SIMQ_CPU_LIST={format_cpu_list(cpus)}); use --cores {len(cpus)} or --cores-available")
+            return out
+    by_core = {}
+    for cpu in chosen:
+        by_core.setdefault(topology.cpu_core[cpu], []).append(cpu)
+    for core, members in by_core.items():
+        if len(members) > 1:
+            refuse(EXIT_USAGE, f"CPUs {' and '.join(map(str, members))} are SMT siblings of physical core {core}; "
+                               f"one rank per physical core")
+    if out["refusals"]:
+        return out
+    out["notes"].append(f"SimQueue allocation (job {job}, partition {allocation['env'].get('SIMQ_PARTITION', '?')}): "
+                        f"CPUs {format_cpu_list(cpus)}; the queue's job unit holds the core leases")
+    out["ranks"] = [{"rank": i, "cpu": cpu, "core": topology.cpu_core[cpu], "siblings": topology.siblings(cpu)}
+                    for i, cpu in enumerate(chosen)]
+    return out
+
+
+def select_simq_gpus(inventory, request, nranks: int, ranks_per_gpu: int, allocation: dict) -> dict:
+    """GPUs from the SimQueue allocation (SIMQ_GPUS); no GPU leases are taken."""
+    out = {"gpus": [], "refusals": [], "notes": []}
+    refuse = lambda *a, **k: out["refusals"].append(_refusal(*a, **k))  # noqa: E731
+    allocated = []
+    for uuid in allocation["gpus"]:
+        gpu = find_gpu(inventory, uuid)
+        allocated.append(gpu if gpu is not None else {"index": None, "uuid": uuid, "name": None})
+    usable = math.ceil(nranks / ranks_per_gpu) if nranks > 0 else 0
+    job = allocation["env"].get("SIMQ_JOB_ID")
+    held = ",".join(allocation["gpus"]) or "none"
+    kind, value = request
+    if kind == "none":
+        out["notes"].append("--gpus none: every rank runs with CUDA_VISIBLE_DEVICES empty")
+    elif kind == "auto":
+        out["gpus"] = allocated[:usable]
+        if not allocated:
+            out["notes"].append(f"--gpus auto: SimQueue job {job} has no GPU allocated; ranks run CPU-only")
+    elif kind == "count":
+        n = int(value)
+        if n > len(allocated):
+            refuse(EXIT_BUSY, f"--gpus count:{n}: SimQueue job {job} has {len(allocated)} GPU(s) allocated "
+                              f"(SIMQ_GPUS={held}); submit with --gpus {n}")
+        elif n > usable:
+            refuse(EXIT_USAGE, f"--gpus count:{n}: {nranks} rank(s) at --ranks-per-gpu {ranks_per_gpu} use at most "
+                               f"{usable} GPU(s)")
+        else:
+            out["gpus"] = allocated[:n]
+    elif kind == "list":
+        selected = []
+        for token in value:
+            gpu = find_gpu(inventory, token)
+            uuid = gpu["uuid"] if gpu is not None else (token if str(token).startswith("GPU-") else None)
+            match = next((g for g in allocated if g["uuid"] == uuid), None)
+            if match is None:
+                refuse(EXIT_BUSY, f"--gpus: GPU {token} is not in SimQueue job {job}'s allocation (SIMQ_GPUS={held})")
+                continue
+            if match in selected:
+                refuse(EXIT_USAGE, f"--gpus: GPU {token} named twice")
+                continue
+            selected.append(match)
+        if len(selected) > usable:
+            refuse(EXIT_USAGE, f"--gpus: {len(selected)} GPU(s) selected but {nranks} rank(s) at --ranks-per-gpu "
+                               f"{ranks_per_gpu} use at most {usable}")
+        if not out["refusals"]:
+            out["gpus"] = selected
+    else:
+        raise ValueError(f"unknown GPU request {kind!r}")
+    return out
+
+
 def select_gpus(inventory, request, nranks: int, ranks_per_gpu: int = 1, reserved=None, busy=None,
                 wait=False, inventory_note=None) -> dict:
     """Resolve a GPU request.  Returns {"gpus": [...], "refusals": [...], "notes": [...]}.
@@ -1031,11 +1165,19 @@ def build_plan(opts, site: dict, site_info: dict, system: System) -> dict:
     slurm_mode = launcher == "srun"
     plan["slurm"] = None
     use_leases = not slurm_mode  # inside an allocation the scheduler owns cores and GPUs
+    simq = None if slurm_mode or in_slurm else simqueue_allocation(env)
+    plan["simqueue"] = None if simq is None else dict(simq["env"], gpus_managed=simq["gpus_managed"])
+    use_core_leases = use_leases and simq is None
+    use_gpu_leases = use_leases and (simq is None or not simq["gpus_managed"])
 
     # reservations and leases (local placement only)
     if slurm_mode:
         reservations = {"cores": {}, "gpus": {}, "probes": []}
         plan["notes"].append("Slurm allocation: site reservations not evaluated; the allocation owns the cores")
+    elif simq is not None:
+        reservations = {"cores": {}, "gpus": {}, "probes": []}
+        plan["notes"].append(f"SimQueue allocation (SIMQ_JOB_ID={simq['env'].get('SIMQ_JOB_ID')}): site reservations "
+                             "not evaluated and no core leases taken; the queue's job unit holds them")
     else:
         reservations = evaluate_reservations(site, topology, system, inventory)
         cg = system.cgroup_cpus()
@@ -1045,11 +1187,12 @@ def build_plan(opts, site: dict, site_info: dict, system: System) -> dict:
                     reservations["cores"].setdefault(core, []).append("outside this process's cgroup cpuset")
     plan["reservations"] = reservations
     busy_cores, busy_gpus = {}, {}
-    if use_leases:
+    if use_core_leases:
         for core in topology.primaries():
             path = core_lease_path(site, core)
             if path and system.lease_busy(path):
                 busy_cores[core] = path
+    if use_gpu_leases:
         for gpu in inventory:
             for path in gpu_lease_paths(site, gpu):
                 if system.lease_busy(path):
@@ -1089,6 +1232,11 @@ def build_plan(opts, site: dict, site_info: dict, system: System) -> dict:
         plan["slurm"] = {k: env.get(k) for k in ("SLURM_JOB_ID", "SLURM_JOB_NODELIST", "SLURM_NNODES",
                                                   "SLURM_NTASKS", "SLURM_CPUS_ON_NODE", "SLURM_JOB_CPUS_PER_NODE",
                                                   "SLURM_JOB_GPUS", "SLURM_STEP_GPUS")}
+    elif core_request is not None and simq is not None:
+        selection = select_simq_cores(topology, core_request, simq, allow_fewer=opts.cores_available)
+        plan["refusals"].extend(selection["refusals"])
+        plan["notes"].extend(selection["notes"])
+        ranks = selection["ranks"]
     elif core_request is not None:
         selection = select_cores(topology, core_request, reservations["cores"], busy_cores,
                                  preference=site.get("core_preference"), allow_fewer=opts.cores_available,
@@ -1116,6 +1264,8 @@ def build_plan(opts, site: dict, site_info: dict, system: System) -> dict:
     elif slurm_mode:
         gpu_sel = {"gpus": [], "refusals": [], "notes": [
             f"Slurm: GPUs assigned per node from the step's visible GPUs, rank SLURM_LOCALID // {ranks_per_gpu}"]}
+    elif simq is not None and simq["gpus_managed"]:
+        gpu_sel = select_simq_gpus(inventory, gpu_request, ncores, ranks_per_gpu, simq)
     else:
         n_for_gpus = ncores
         if not n_for_gpus and core_request is not None:
@@ -1147,7 +1297,8 @@ def build_plan(opts, site: dict, site_info: dict, system: System) -> dict:
         plan["slurm_gpu_request"] = {"kind": gpu_request[0], "value": gpu_request[1]}
 
     # leases to take, nice, environment
-    order = lease_order(site, [r["core"] for r in ranks], gpus) if use_leases else []
+    order = (lease_order(site, [r["core"] for r in ranks] if use_core_leases else [],
+                         gpus if use_gpu_leases else []) if use_leases else [])
     core_paths = {core_lease_path(site, r["core"]) for r in ranks if r["core"] is not None}
     plan["core_leases"] = [p for p in order if p in core_paths]
     plan["gpu_leases"] = [p for p in order if p not in core_paths]
@@ -1286,6 +1437,7 @@ def build_receipt(plan: dict, *, status: str, pf_code: int, child_argv, start_ti
                            "reservation_probes": (plan.get("reservations") or {}).get("probes", []),
                            "leased_elsewhere": {str(k): v for k, v in (plan.get("busy") or {}).get("cores", {}).items()},
                            "slurm": plan.get("slurm"),
+                           "simqueue": plan.get("simqueue"),
                            "nice": plan.get("nice")},
         "selected_gpus": {"request": plan.get("gpu_request"), "uuids": [g["uuid"] for g in plan.get("gpus", [])],
                           "ranks_per_gpu": plan.get("ranks_per_gpu"),
@@ -1349,6 +1501,11 @@ def format_plan(plan: dict, program, dry_run: bool) -> str:
         lines.append(f"  launcher   not resolved (no ranks); execution {where}")
     lines.append(f"  cores      {plan.get('core_request')} -> CPUs "
                  f"{','.join(str(r['cpu']) for r in plan.get('ranks', []) if r['cpu'] is not None) or '-'}")
+    simq = plan.get("simqueue")
+    if simq:
+        lines.append(f"             SimQueue job {simq.get('SIMQ_JOB_ID')} partition {simq.get('SIMQ_PARTITION')}: "
+                     f"CPUs {simq.get('SIMQ_CPU_LIST')}, GPUs {simq.get('SIMQ_GPUS') or 'none'}"
+                     f"{'' if simq.get('gpus_managed') else ' (0.5 queue: GPUs leased locally)'}")
     reservations = plan.get("reservations") or {}
     if reservations.get("cores"):
         lines.append(f"             reserved: {describe_reasons(reservations['cores'])}")
@@ -1359,8 +1516,8 @@ def format_plan(plan: dict, program, dry_run: bool) -> str:
     if busy.get("cores"):
         lines.append("             leased elsewhere: " + "; ".join(f"core {c} ({p})" for c, p in sorted(busy["cores"].items())))
     lines.append(f"  gpus       {plan.get('gpu_request')} -> "
-                 + (", ".join(f"{g['index']} {g['uuid']} ({g['name']}, cc {g['compute_cap']}, {g['memory_total']}, "
-                              f"driver {g['driver_version']})" for g in plan.get("gpus", [])) or "none"))
+                 + (", ".join(f"{g.get('index')} {g['uuid']} ({g.get('name')}, cc {g.get('compute_cap')}, {g.get('memory_total')}, "
+                              f"driver {g.get('driver_version')})" for g in plan.get("gpus", [])) or "none"))
     for proc in plan.get("processes") or []:
         cpus = ",".join(str(c) for c in proc["cpus"]) if proc["cpus"] else "srun binding"
         sib = ""
@@ -1518,7 +1675,7 @@ def launch(opts, program, site, site_info, system, out, err) -> int:
             return EXIT_BUSY
         break
 
-    if opts.wait:
+    if opts.wait and not plan.get("simqueue"):
         recheck = evaluate_reservations(site, system.topology(), system, plan["inventory"])
         now_reserved = [c for c in plan_cores(plan) if c in recheck["cores"]]
         if now_reserved:

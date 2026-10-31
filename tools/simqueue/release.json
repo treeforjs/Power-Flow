@@ -1,0 +1,66 @@
+{
+  "schema": "simqueue-release-v1",
+  "version": "0.6.0",
+  "runtime": "/home/treefor/projects/runtimes/simqueue-0.6.0-20261030",
+  "derived_from": "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/source",
+  "interpreter": "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen",
+  "installed": false,
+  "install_command": "./switchover.py install --execute (dry run without --execute)",
+  "node_config": "config/zenobia-node.json",
+  "tests": {
+    "receipt": "/home/treefor/sim-workspace/powerflow/outputs/simqueue-0.6.0-20261030/test-receipt-full.json",
+    "total_run": 167,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "cores_leased": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "duration_s": 112.742,
+    "existing_0_5_suites": {
+      "test_simqueue.py": 42,
+      "test_ensemble.py": 53,
+      "test_exclusive_mode.py": 9
+    },
+    "existing_suite_edits": "three assertions changed from the literal schema version 6 to store.SCHEMA_VERSION (test_simqueue.py x2, test_ensemble.py x1); no other change",
+    "existing_not_run": "test_shield_helper.py (16 tests) needs privileged/simqueue-shield, which is not part of the 0.5 runtime either",
+    "new_suites": {
+      "test_scheduler.py": 26,
+      "test_node_worker.py": 30,
+      "test_migration.py": 4,
+      "test_switchover.py": 3
+    }
+  },
+  "migration_check": {
+    "live_database_copy": "/home/treefor/sim-workspace/powerflow/outputs/simqueue-0.6.0-20261030/migration/live-copy-20261030T233734Z.sqlite3",
+    "method": "sqlite3 -readonly <live> .backup <copy>; migrated only in a temporary copy of that copy",
+    "result": "schema 6 -> 7, 17 jobs, every 0.5 column of every row unchanged, ensembles/meta unchanged",
+    "test": "test_migration.MigrationTests.test_copy_of_live_database (SIMQ_LIVE_DB_COPY)"
+  },
+  "real_config_validation": {
+    "receipt": "/home/treefor/sim-workspace/powerflow/outputs/simqueue-0.6.0-20261030/validation-real-config-20261030T234312Z/receipt.json",
+    "checks": {
+      "pf_long_succeeded_and_adopted": true,
+      "spheral_finished_while_down_reconciled": true,
+      "spheral_affinity_0_3": true,
+      "pf_exit3_failed_with_3": true,
+      "gpu_canary_succeeded": true,
+      "relocated_code_adopted": true,
+      "no_cpu_double_allocation": true
+    },
+    "passed": true
+  },
+  "pf_launch_1_1": {
+    "path": "/home/treefor/projects/runtimes/pf-launch-v1.1-20261030",
+    "pf_launch_sha256": "b16f87526ba37d5c60a5081e4d03cbf859cc1b423ffda043664009b6e883fd56",
+    "tests": {
+      "existing": 61,
+      "new": 9,
+      "python3_and_frozen": "70 passed each"
+    },
+    "integration": "test_node_worker.PfLaunchInsideAllocationTests (real job unit)"
+  }
+}

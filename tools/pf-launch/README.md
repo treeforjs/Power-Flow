@@ -1,4 +1,4 @@
-# pf-launch v1
+# pf-launch v1.1
 
 Portable launcher for Power-Flow runs (coupled pilot plan, section 7). The number of cores, the exact
 cores and the GPUs are chosen per run with flags. No code or wrapper script changes between runs or
@@ -63,7 +63,7 @@ runs through the frozen root unless `--execution host` is given, and it writes a
 ## 64-core RTX PRO 4000 Blackwell station
 
 ```sh
-cd pf-launch-v1-20261030
+cd pf-launch-v1.1-20261030
 ./pf-launch --detect                      # writes sites/<hostname>.json from /sys, NUMA and nvidia-smi
 $EDITOR sites/<hostname>.json             # see "Completing a detected site file"
 ./pf-launch --dry-run --cores 16 --gpus 0 -- ./prog
@@ -126,6 +126,37 @@ leases are not used, because the scheduler owns the allocation. The receipt dire
 shared filesystem so that per-rank reports from all nodes reach the receipt. Check the cluster's srun
 binding with one `--dry-run` and one short run; the receipt shows each rank's observed affinity and warns
 if two ranks on one node share a physical core.
+
+## Inside a SimQueue allocation (new in 1.1)
+
+When `SIMQ_JOB_ID` is set together with `SIMQ_CPU_LIST` and/or `SIMQ_GPUS` (SimQueue 0.6 exports all of
+them for every job), pf-launch treats the job as an allocation, the same way it treats a Slurm allocation:
+
+- **Cores** come from `SIMQ_CPU_LIST` (one logical CPU per allocated physical core). `--cores auto` (the
+  default) runs one rank per allocated CPU, `--cores N` takes the first N, `--cores-available` shrinks a
+  larger request, and `--cpus LIST` must name CPUs inside the allocation (exit 75 otherwise). pf-launch picks
+  no cores of its own and does not evaluate the site's static reservations or probes: the queue decided.
+- **GPUs** come from `SIMQ_GPUS` (UUIDs; empty means no GPU). `auto` uses the allocated GPUs, a list or
+  `count:N` must stay inside the allocation (exit 75 otherwise), `none` empties `CUDA_VISIBLE_DEVICES`.
+- **Leases are not taken.** The queue's job unit already holds the core and GPU lease files for the job's
+  lifetime; taking them again would block on itself (pf-launch 1.0 refuses with exit 75 inside a SimQueue
+  0.6 job for exactly this reason).
+- **Launchers** are unchanged (exec for one rank, mpirun for several); srun is not used.
+- The receipt records the allocation under `selected_cores.simqueue` (the `SIMQ_*` variables).
+- `SLURM_JOB_ID` takes precedence: inside a real Slurm allocation the Slurm path is used. SimQueue does not
+  export `SLURM_*` variables, so the two cannot be confused.
+- A SimQueue 0.5 job (`SIMQ_CPU_LIST` but no `SIMQ_GPUS`) gets its cores from the allocation and selects and
+  leases GPUs locally, as before.
+
+```sh
+simq submit -p powerflow -c 2 --gpus 1 -t 4:00:00 -- pf-launch --gpus auto -- ./prog   # ranks on the 2 allocated cores
+simq submit -p powerflow -c 1 -- pf-launch -- ./prog                                   # one rank, CPU-only
+```
+
+The zenobia site file's `simqueue-active` probe now calls the SimQueue 0.6 runtime.
+
+Tests: `tests/test_simqueue_allocation.py` (fake topology and leases). The SimQueue 0.6 suite additionally
+runs pf-launch 1.1 inside a real job unit (`PfLaunchInsideAllocationTests`) and shows that 1.0 refuses there.
 
 ## Behaviour
 
@@ -213,7 +244,7 @@ started; 75 reserved or leased; 78 site file problem or identity admission failu
 ## Tests
 
 ```sh
-cd pf-launch-v1-20261030
+cd pf-launch-v1.1-20261030
 python3 -m unittest discover -s tests -v
 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen python -m unittest discover -s tests
 ```

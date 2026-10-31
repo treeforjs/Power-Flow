@@ -1,0 +1,8 @@
+#!/bin/sh
+# SimQueue 0.6 node scheduler (zenobia).  Same pinned interpreter as 0.5.
+set -eu
+unset SIMQUEUE_PCORES
+export SIMQUEUE_PROJECT_ROOT=/home/treefor/projects
+export SIMQUEUE_STATE_DIR=/home/treefor/.local/state/simqueue
+export SIMQUEUE_CONFIG=/home/treefor/.local/state/simqueue/node.json
+exec /home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen /home/treefor/projects/runtimes/simqueue-0.6.0-20261030/source/simq "$@"
