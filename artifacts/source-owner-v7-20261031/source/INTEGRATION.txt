@@ -1,0 +1,123 @@
+Heat/source owner v7 -- what native v8, Hall and coordinator v8 must change to wire it in -- 2026-10-31
+
+Nothing here has been integrated. Owner v7 at its benchmark settings is owner v6.1 (same digests and decisions;
+the sealed v6 qualification passes against it), so coordinator v8 can switch the binding first and enable the
+surface model per patch afterwards. Section numbers refer to API-v7.txt.
+
+A. Step data flow with v7 (one accepted step n -> n+1)
+  step n    Hall closed proposal produces first-hit sinks (hc::SinkRecord: native id, state, weight, charge, mass,
+            incident proper velocity, native hit point, field-frame point, flight, boundary/axis, collected,
+            conductor) and applies its own sink wall heat (incident kinetic energy) -> publication.
+  step n+1  (1) coordinator maps the published collected sinks of step n on foils 0/1 to WallHit per slice owner;
+            (2) wall = owner.respond(epoch, hits, run_seed, step_index) on every slice owner (pure);
+            (3) quotes = owner.release_quotes(epoch, wall) -> arrival v1.1 plans n = SR(D/w0) neutral leaves (the
+                stimulated release rides on the approved quantized route; arrival unchanged for neutrals);
+            (4) emission: per patch and enhancement class k: owner.prepare_class(...) -> one arrival electron stream
+                per (patch, class); births through owner.sample_birth (matching displacement, sub-cell return);
+            (5) wall births (wall.births()) -> native births at the hit point at the step start;
+            (6) owner.prepare(epoch, field, view, sources, handoffs, leaves, other, qualification, &wall,
+                &interval_evidence) -> trial loads include the wall loads (channel surface-v7-wall-response);
+            (7) Hall proposal with those loads; preflight; publication of every owner as today.
+  The one-step lag of the wall response (hit in step n, response applied at the start of n+1) is <= dt; at 10 fs
+  an emitted 5 eV electron moves 13 nm in that time (200 um cells). It is recorded per birth (parent hit time).
+
+B. Native v8 (sink events feeding source births)
+  B1 Expose the per-record first-hit sinks of the accepted step (native v6 FullTimeSinkRecord with the Hall-side
+     fields) to the coordinator after publication, not only flows->sinks->tallies; keep them until the next
+     step's source preparation (restart: part of the accepted state that the next step consumes).
+  B2 New birth origin "surface-v7-wall-response": native accepts births authored by the source owner from a
+     WallResponse: identity = (wall response content sha256, parent carrier id, ordinal), species, weight exactly
+     the parent weight (exact count credit, one credit per birth: births = sum of event outputs, checked by the
+     owner), position = parent hit point converted from the field frame (native = field - native_to_field_shift),
+     proper velocity from the response, birth time = step start (lumped; the lag is recorded). The species catalog
+     must contain every species the enabled channels can produce: with water chemistry v-current (e-, H2O, H2O+)
+     the products are e- and H2O (H2O+ neutralizes to H2O; electrons from SEE/IIEE); fragments and atoms (H, OH, O,
+     H2, from H3O+, OH+, O+, H+, H2+) appear only when those ions exist and need catalog entries first. Until then
+     the coordinator refuses a wall response with a product outside the catalog (no silent drop).
+  B3 Matching-plane emission births (sample_birth, API 5): a birth at face point + L n (L <= sub-cell extent,
+     sub-micrometre to tens of micrometres) with a zero-duration bridge path from the face point to the birth point
+     carrying charge -q w; native records the bridge with the birth (the field work F L q w is the ledger's
+     resolved matching field work, no longer "unrepresented").
+  B4 Born-and-collected emission births: an electron with outcome ReturnedSubcell returns within the sub-cell layer
+     in the same step. Native must support a birth that is credited and sunk in the same step at the same point
+     (or the coordinator does not stage it: then arrival v1.2 must accept "planned births withdrawn as sub-cell
+     returns" with an exact count record). Net charge, electrons and energy of the cycle are zero (owner ledger).
+  B5 Sink kinds: sinks on the short bridge / axial / outer planes stay absorbed (no wall model there) unless a
+     patch with a v7 wall model is declared on those surfaces.
+
+C. Hall (wall heat)
+  C1 Keep the sink wall heat of collected carriers (incident kinetic energy at the impact point and time). The v7
+     wall load of each event is the remainder (energy in minus energy out minus incident kinetic energy: work
+     function of absorbed electrons, recombination energy of ions, adsorption energy of stuck molecules, minus the
+     kinetic energy and work-function cost of every emitted or reflected particle). It arrives one step later as a
+     source-trial SurfaceLoad, channel "surface-v7-wall-response" (hall_source_binding_v7::channel_of), with
+     negative values allowed (energy leaving with secondaries/reflected particles). Hall must account the channel in
+     its load ledger and accept negative authored heat on this channel (as for the desorption debits).
+     Alternative (WallModel::hall_applies_incident_kinetic = false): Hall stops applying sink wall heat for
+     carriers routed to v7 and v7 loads carry the whole wall heat; then the heat of the impact moves one step later.
+  C2 Electron reference: an absorbed electron now deposits K + phi (phi in the v7 load). The coordinator/Hall
+     energy ledger must move the collected electrons' work-function energy from "electron reference / unrepresented"
+     into the wall heat it is now part of (no double count: the emission Nottingham load already debits E + Et =
+     K/e + phi at birth).
+  C3 Charged newborns from wall responses take their macro-charge from the conductor bank at the hit point (as
+     emission births do); the incident sink already returned its charge to the bank in step n.
+  C4 Bridge deposits for matching-plane births (B3): deposit the zero-duration bridge (charge-conserving path
+     deposit, face point -> birth point) and book its field work; the absolute Gauss check must see the displaced
+     charge as a path, not as a defect.
+  C5 Step cap: the source owner's trial interval bound is OwnerOptions::interval.cap_s (configured; 1e-14 default).
+     The remaining literal 1e-14 on the coupled path is Hall's neutral stream bound (kinetic_boundary.cpp:57,
+     "neutral authoritative interval") -- a Hall version must make it configurable before particle-carrying steps
+     can exceed 10 fs.
+
+D. Coordinator v8
+  D1 Binding: hall_source_binding_v7 (bind(hall, slice, OwnerOptions)); SourceSettings.surface per patch:
+     surface_v7::ss304_surface(registry) for the model, default for the benchmark; record the registry
+     (parameters-v7.json digest), the owner options and the wall seed in the configuration identity and receipts.
+  D2 Sink -> WallHit: species = surface_v7::species_index(sink.state); patch = the slice owner of the hit z
+     (clamp(floor((z - zmin)/dz))) and the face of the hit (boundary + axis + sign) and the along-coordinate of the
+     patch partition; weight, incident proper velocity, field-frame point, hit time = begin + flight. Refuse a sink
+     that maps to no patch with a wall model (unless the step is benchmark).
+  D3 respond/quotes/prepare as in A; seed = the arrival run seed (the v7 key is salted, distinct streams), step =
+     the accepted step index (< 2^40). One respond per slice owner per step, before release_quotes.
+  D4 Emission streams: one arrival electron stream per (patch, enhancement class); stream ids patch*K + k < 2^16.
+     sample_birth with BirthPolicy{subcell_extent = 0.1 h_min, return_extent = 0.1 h_min, source log-current
+     timescale from the previous accepted state (dt / |d ln J|), image tolerances 0.03}; ReturnedSubcell -> B4.
+  D5 Step length: choose dt so that t + dt is exact in binary64 (dt a multiple of ulp(t)); otherwise the sealed v3
+     continuation check (end - t <= dt_s) can refuse an active source layer after one rounding (README Findings).
+     Step controller: keep a RateSample history (owner.rate_sample(epoch, field, origins) per accepted step);
+     criterion dt <= owner.interval_bound({prev, now}).bound_s when the owner has error targets; coupled maximum
+     = min(Hall cap, source owner cap_s, Hall neutral bound C5). The owner refuses a step above its bound with a
+     typed Refusal (step-size refusal: retry at the controller's smaller rung).
+  D6 Ledger columns (per step): wall events by species; births by channel (elastic, rediffused, true, PE, KE,
+     reflected, thermal, specular, fragment); stuck molecules; stimulated release (H_stim, D, n w0); wall energy
+     quanta in/out/wall (exact int128 text); energy-capped, yield-clamped, outside-data and refused counts; returned
+     sub-cell births; per-class emission counts and phase-map regimes of every patch (diagnostic).
+  D7 GPU (optional): the wall kernel (device/sw7_kernels.cu) is bit-identical to the CPU reference
+     (test_wall_gpu_v7); a GPU evaluator may replace the CPU loop of respond only behind a per-step bitwise check of
+     its outputs against the owner's CPU evaluation of a keyed sample (or all events while counts are small).
+  D8 Restart: the owner checkpoint format is unchanged (stock = coverage carries the surface history); the sinks
+     of the last accepted step (B1) must be part of the restart state.
+
+E. Acceptance tests for the integrated version
+  E1 benchmark build: coordinator v8 with owner v7 at benchmark settings reproduces the v6.1/v7 ledgers bit for bit.
+  E2 model build: every step's wall ledger closes exactly; Hall thermal closure includes the v7 channel; native
+     birth credit = owner births; stock + released = initial + stuck exactly; GPU/CPU wall parity on the run's hits.
+  E3 interval: adaptive steps above 10 fs with Hall and source caps raised, refused above the source bound.
+
+F. With the SS304 phase thermal owner (ss304-phase-thermal-owner-v1-20261031)
+  F1 Coordinator: adapt thermal.patch_reports() of the accepted phase-owner state to electrode_heat_v7::PhaseView
+     (revision, time = the accepted clock, digest = the phase owner's state digest or a digest of the reports,
+     PatchPhase{mean_T, max_T, liquid_fraction, melt_depth_m, recession_m, evaporated atoms Fe/Cr/Ni}) and pass it
+     in OwnerOptions::phase; the patch layout of the phase owner (Config::patches) must equal the source owner's.
+     Until the heat-v2 Coupler view is removed (owner v7.1: the Coupler remains the geometry/clock view), keep a
+     heat-only slice Coupler with the same geometry for areas, normals and epochs; the temperatures come from the
+     phase view.
+  F2 Emission above 3000 K: OwnerOptions::emission_T_max_K = 5000 (the phase owner's domain); liquid patches emit
+     through the liquid class (D4 streams: one more class per patch while a liquid fraction is reported).
+  F3 Water: OwnerOptions::water_law_T_max_K = 3000; water_writeoff_T_K (e.g. 2900 K) so that no sub-w0 residue
+     reaches the cap; the arrival owner keeps releasing D through SR(D/w0) below it.
+  F4 Loads: source-owner loads to the phase owner (StepInput.loads): emission Nottingham, wall responses, desorption
+     debits, water write-off; never evaporative cooling (phase-owner internal). Ledger columns: water desorbed
+     (thermal, stimulated), water written off, metal vapor atoms (phase owner), side by side.
+  F5 Metal neutrals (evap_mode 2): their first hits return to the phase owner as deposits (INTEGRATION 1.6 there);
+     the source owner's wall kernel has no Fe/Cr/Ni species and must not receive them.

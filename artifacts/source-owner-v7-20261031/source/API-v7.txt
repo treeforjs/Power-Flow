@@ -1,0 +1,200 @@
+Heat/source owner v7 -- electrode surface physics -- component contract, 2026-10-31
+
+Owner v6.1 (pic-electrode-heat-source-v6.1-20261031, sealed) is read in place. v7 is a versioned copy in
+namespace electrode_heat_v7 (binding hall_source_binding_v7, arrival adapter pf_arrival_v11::source_v7) with the
+surface model of this document. It closes pf-pilot-1 limitations L3 (emission assumptions) and L9 (wall
+boundaries) as far as the cited data allow, and audit item A15 for the source owner. Integration into native v8,
+Hall and coordinator v8 is specified in INTEGRATION.txt and not performed here. Data, tags and citations:
+DATA-v7.txt and the generated parameter registry (OUT/<label>/run-*/normal-test_surface_v7/parameters-v7.json).
+
+0. Files
+  native/mfem_electrode_heat_source_v7/
+    source_owner.hpp            owner v7 (v6.1 text + v7 additions; header comment lists them)
+    trial_binding_v7.hpp        namespace electrode_heat_v7k: the sealed v3 pieces that hold a TrialField, with the
+                                trial interval bound as a parameter (generated from the sealed text, section 3)
+    admission_v7.hpp, mesh_identity_v7.hpp, component_checkpoint_v7.hpp
+                                copies of the v6.1 helpers in namespace electrode_heat_v7 (distinct types, so v6.1 and
+                                v7 can be compiled into one program); fast_emission.hpp/.cpp of v6.1 are used in place
+    surface_model_v7.hpp        registry, work-function model, enhancement classes, wall-model container, photo hook,
+                                exact ledger (Sums), interval bound
+    surface_data_v7.hpp         the cited parameter set "ss304-oxide-water-v7" (every value through Registry::use)
+    device/sw7_math.h           deterministic exp/log/sincos/lgamma/incomplete gamma (host and NVRTC)
+    device/sw7_wall.h           wall kernel (one hit -> outcome), Philox surface stream layout v7, integer quanta
+    device/sw7_kernels.cu       NVRTC entry points: per-event kernel, fixed-tree ledger reduction, layout probe
+  binding/hall_source_binding_v7.hpp   v6.1 binding with v7 types, bind(..., OwnerOptions), wall-load channel
+  compat-v6/                    includes that compile the sealed v6 qualification against v7 unchanged
+  tests/                        test_source_v7.cpp, test_surface_v7.cpp, test_wall_gpu_v7.cpp, event_set_v7.hpp
+  run_source_v7.py              build | run | gpu, receipted, frozen launcher, core and GPU leases
+
+1. Benchmark identity (v6.1 behaviour)
+  SourceSettings gains `surface_v7::SurfaceOptions surface` (default: benchmark) and the Owner constructor gains a
+  trailing `OwnerOptions options = {}` (default: interval cap 1e-14 s, no error targets). With every setting at its
+  default the owner is owner v6.1: every digest (configuration, state, field content, mesh, prepared patch,
+  candidate, handoff, trial), every value, refusal text and decision, and the checkpoint bytes are those of v6.1.
+  Any non-default option appends the record "heat-source-owner-v7" + options to the configuration identity.
+  SurfaceOptions::benchmark() is true for: work_function.benchmark (phi = SourceSettings::spectrum.work_function_eV,
+  the clean-surface 4.3 eV benchmark), one enhancement class (beta 1, area fraction 1), wall model off, photo off.
+
+2. Surface state (work function of oxidized SS304 with adsorbed water)
+  phi(theta, T) = phi_ox + dphi_1ML g(theta) + dphi_dT (T - T_ref),  g = theta (1 + c)/(1 + c theta) (theta <= 1), 1 above
+  theta = exact accepted stock / (patch area x Patch::monolayer_m2) (Owner::surface_coverage; 0 without stock).
+  T = accepted Hall patch-mean surface temperature. Coverage carries the temperature and desorption history: it is
+  the exact stock after every thermal, stimulated and quantized release and every sticking credit. phi is put on the
+  grid 2^-12 eV (one fast-spectrum configuration per value; 0.12 meV half step). Cited set: phi_ox 4.35 eV
+  [4.19, 5.3], dphi_1ML -0.97 eV [-1.20, -0.60], c 1.2 [0, 3], dphi_dT 0 [-4.6e-4, 0] eV/K (DATA-v7.txt). phi
+  outside the kernel domain 2..6 eV refuses. Every emission exposure, phase map, birth and wall event of the step
+  uses phi of the accepted state; the coverage change of the step takes effect at the next accepted state
+  (explicit, first order; section 3).
+
+3. Trial interval bound (configurable) and the source-owner step bound
+3.1 OwnerOptions::interval.cap_s (default 1e-14 s = the v3 literal) replaces "dt_s <= 1e-14" of the sealed v3
+    TrialFrame::validate in every v7 path: electrode_heat_v7k::validate(frame, cap) is the v3 condition with the
+    configured cap; Field(mesh, frame, E, B, cap) builds its trial field with it; the owner refuses a Field whose cap
+    differs from its own ("v7 field trial interval bound differs from the owner configuration"). 0 < cap <= 1e-12.
+    The cap enters the configuration identity and the Field content digest only when it differs from 1e-14.
+3.2 Accuracy basis. Emission (and desorption) exposures are explicit: the expected count of a step is the rate at
+    the accepted start-of-step state times dt. For a rate R(t), N_true = int R dt, N_used = R(t0) dt, so the
+    relative error is |d ln R/dt| dt / 2 + O(dt^2): first order (observed order 1.00 for the expected emitted
+    electrons in coordinator v7's calibration, README 6.2; 1.0 +- 0.15 in tests/test_surface_v7 interval group).
+    The desorption hazard is exact for a frozen temperature (exponential integrator), so its error is the same
+    first-order term with R = k_des(T(t)); the thermal step (Hall owns T) enters through the measured change of the
+    rates between accepted states; the coverage update enters through phi(theta) and the Temkin barrier in the
+    same rates. Hence one bound for all of them:
+      dt <= 2 eps safety / max_i |d ln R_i/dt|,
+    over every (patch, class) emission rate and every patch release rate whose expected count per step is at least
+    count_floor (a relative error of a negligible count is irrelevant), with |d ln R/dt| measured between the two
+    last accepted states (RateSample from Owner::rate_sample; surface_v7::interval_bound). Policy fields:
+    emission_relative_error, desorption_relative_error (eps; 0 = no bound, v6.1), safety (default 0.5), count_floor
+    (default 1e-3). With a nonzero target, Owner::prepare requires IntervalEvidence{previous, current} ending at
+    the epoch, recomputes the bound and refuses dt above it with a typed Refusal ("source interval bound",
+    detail "v7 step exceeds the source-owner interval bound"); the accepted bound, limiting quantity, rate and dt
+    are recorded in Trial::interval_record() and in the trial content digest (receipt).
+3.3 Hard limit 1e-12 s: the sealed source kernels' full-interval gyro guard dt qe/me |B| <= 0.05 refuses every
+    step above 1 ps once |B| > 0.028 T, and the v7 qualification exercises the kernels up to 1e-13 s only.
+    Other guards that scale with dt (gyro, micro-layer substeps, handoff work) are unchanged and remain refusals.
+
+4. Field enhancement and emission phase map
+4.1 SurfaceOptions::enhancement = classes (beta_k, a_k, local extent r_k, label), sum a_k = 1. Class k is one
+    exposure of the sealed planar-barrier thermal-field kernel (Murphy-Good integral with the Schottky-Nordheim
+    image barrier, numerical JWKB action; sealed surface_emission, v6.1 fast exact path) at the local field
+    beta_k F, phi of section 2 and area a_k A:
+      PreparedPatch Owner::prepare_class(epoch, j, k, binding, field, origin, exposure)
+    (prepare_patch = class 0). The class area fraction multiplies exposure.area_fraction; the sealed exposure
+    admission (2^-40 relative) applies per class. The exposure key and prepared content carry k, beta, a_k, phi,
+    theta. Accessors: enhancement_class(), beta(), macroscopic_field_V_m(), work_function_eV(), coverage().
+    The time-resolved image layer (begin_source/advance_*) is admitted for beta = 1 only (the sealed layer uses the
+    mesh field along the path); enhanced classes use sample_birth (section 5).
+4.2 Owner::phase_map(j, F, T) -> PhaseEntry per class: beta, a_k, local field, phi, theta, T, log J, J, Schottky
+    lowering, Fermi decay width d, kT/d, current fraction above the barrier top, mean metal energy, in-domain flag,
+    refusal text, and a diagnostic regime label of the one source integral (never a second population):
+    retarding-thermal (F <= 0), thermionic-schottky (>= half of the current above the barrier top), field-emission
+    (kT/d < 0.2), thermal-field (otherwise), underflow, outside-kernel-domain (beta F > 5e9 V/m or barrier
+    collapse; the refusal is recorded, never clamped).
+4.3 Scenario classes "ss304-foil-sites-v7": flat; roughness hemisphere beta 3 (a 0.1); FN sites beta 100
+    (a 1e-9) and beta 500 (a 1e-12). No measured beta or emitter-area distribution exists for broad-area 304 or
+    rolled foil (open item); the classes are scenario parameters with bands (DATA-v7.txt).
+
+5. Emission births at the macroscopic matching plane; sub-cell return
+  BirthPhase Owner::sample_birth(prepared, weight, normal_u, transverse_u, azimuth_u, event_id, BirthPolicy)
+  * F > 0: the class spectrum (computed at beta F) is handed off at the macroscopic one-sided field F through the
+    sealed se::sample_conditional on a view of the distribution with extraction field F and Schottky lowering at
+    F. The packet is placed at the calculated matching distance L (barrier exit, (phi - E)/F, image-force and
+    image-energy criteria) along the outward normal (displacement_m = L n: the sub-cell matching displacement),
+    with kinetic energy K = (E + Et - phi + F L) e (image tail restored), and the exact ledger: wall heat
+    -(E + Et) e w (Nottingham), outgoing K w, electron reference phi e w, image 0, matching field work F L e w;
+    residual 0 within rounding. This places the electron where the macroscopic (PIC) potential gives it its
+    energy; the enhanced near-tip field changes rate and spectrum, not the far-field energy reference. Refusals
+    (L beyond BirthPolicy::subcell_extent_m, acceleration/source-variation, straight-projection gyro angle) are
+    the sealed ones and are never resampled.
+  * F < 0: thermal surface-step packet; the turning distance z = K/(e|F|) bounds the normal excursion for any B
+    (B does no work). If z <= return_extent_m the electron returns within the sub-cell layer: outcome
+    ReturnedSubcell, cycle ledger = emission + collection (se::collect_at_material_surface) with zero net charge,
+    electrons and wall heat (rounding only); no PIC birth. Otherwise Handoff at the surface step.
+  * F = 0: surface-step packet, Handoff.
+
+6. Wall responses (replacing full absorption of first hits)
+6.1 WallResponse Owner::respond(epoch, span<const WallHit>, seed, step): pure, bound to the owner state, epoch and
+    generation. WallHit = {carrier id, species index, patch, weight, incident proper velocity, hit point (field
+    frame x, y), hit time}. Hits are evaluated in the canonical order (patch, carrier id); one first hit per carrier
+    and step; a patch without the v7 wall model refuses (benchmark: first hits stay with the Hall sink).
+    Per event the kernel (device/sw7_wall.h, identical source on CPU and GPU) returns up to 12 outputs, each a
+    macro-particle of the incident weight: species, channel, kinetic energy (integer quanta of 2^-30 eV), proper
+    velocity; stuck flag; stimulated-desorption cross section (quanta of 2^-100 m^2); energy quanta in/out/wall;
+    charges; status bits (energy cap, yield clamp, outside data; invalid and RNG-budget events are refused).
+6.2 Channels (parameters and citations in DATA-v7.txt):
+    electrons   Furman-Pivi (2002) stainless set: elastic (truncated Gaussian), rediffused ((E/E0)^(q+1)), true
+                secondaries (binomial M = 10 with delta'_ts = delta_ts/(1 - delta_e - delta_r), Eqs. 39-46; energies:
+                total ~ Gamma(n p_n, eps_n) truncated, split Dirichlet(p_n): exactly the FP joint density, App. D),
+                cosine emission. v7 changes, recorded per event: energy conservation with the work function (n
+                electrons need n (phi + K_k) <= E0 + phi: the count is capped at floor(E0/phi) + 1 and the kinetic
+                total at E0 - (n - 1) phi; FP constrains only sum K <= E0); delta'_ts > M at oblique incidence and
+                delta_e + delta_r >= 1 clamped (the stainless angular parameters come from TiN/Al data and exceed
+                the model limits beyond ~18 and ~43 degrees); above the fitted range (1.1 keV) the backscatter
+                plateau 0.81 is blended log-linearly to the measured Fe backscatter coefficient (0.28) at 3.93 keV.
+                ESD cross section of adsorbed water sigma(E) (threshold 10 eV).
+    ions        neutralized at the surface (probability 1, recommended); potential emission Baragiola
+                0.032 (0.78 E_rec - 2 phi) when E_rec > 2 phi (upper bound for molecular ions); kinetic emission by
+                additivity over constituent atoms at equal velocity from oxidized Inconel 625 data (Alonso 1979),
+                threshold 40 eV per atom; counts by stochastic rounding (exact mean); PE electrons uniform below
+                E_rec - 2 phi, KE electrons with the FP n = 1 spectrum; reflection of the neutralized projectile with
+                Thomas-Janev-Smith R_N, R_E (H set mu >= 20 recommended; O set mu ~ 3 'very poor'); otherwise the
+                thermalized product sticks (water: s0 (1 - theta)) or leaves with the wall Maxwell flux; H3O+ adds
+                an H fragment; ion-stimulated desorption sigma(E) (scenario, no H2O data).
+    neutrals    H2O sticks with s0 (1 - theta) (Tuzi 1997), else diffuse (accommodation alpha, wall Maxwell flux)
+                or specular (1 - alpha); H, H2 with the light accommodation; no wall chemistry (open).
+    photo       optional hook (off): photo_exposure() gives the expected photoelectrons Y(h nu) Phi A dt with the
+                stainless yield table (Grard 1973 / Feuerbacher & Fitton 1972) and the Einstein bound h nu - phi.
+6.3 Energy convention (per physical particle; references: wall electrons at the Fermi level, molecules at rest in
+    the gas, adsorbed molecule at -E_ads): incident electron K + phi; incident ion K + E_rec - phi; incident
+    neutral K. Outputs: emitted electron K_k + phi; molecule K; stuck molecule -E_ads with E_ads the patch's
+    adsorbed reference (desorption_eV (1 - binding_alpha theta), the same convention as the v6.1 neutral release).
+    Wall heat = in - out, exactly, in integer quanta (int64 per event, int128 sums). Electron wall heat >= 0.
+6.4 Exact ledgers: Sums per (patch, weight) with event counts by species and channel, stuck molecules, emitted
+    electrons, charges, energy quanta (k_in, e_in, e_out, wall, ads, k_out), cross-section quanta, RNG words. Every
+    event satisfies e_in = e_out + wall, e_out = sum K + n_e phi - E_ads, charge_out = -n_e (checked in respond).
+    Sums are integers: independent of evaluation order and partition.
+6.5 Loads: one eh::Transfer per event with nonzero (wall - k_in) quanta (k_in is the incident kinetic energy the
+    Hall sink already applies; WallModel::hall_applies_incident_kinetic = false gives the whole wall heat), channel
+    "surface-v7-wall-response", at the hit point, authored heat w (q 2^-30 eV) e (binary64, one rounding).
+6.6 Stimulated desorption through the quantized release: hazard H_j = sum over weight classes w sum sigma_q
+    2^-100 / A_j; Owner::release_quotes(epoch, wall) adds H_j to the thermal hazard of the step (fraction
+    1 - exp(-H), same exact-stock checks); the arrival owner draws n = SR(D/w0) leaves of exactly w0 from that quote
+    (approved route, unchanged); Owner::prepare(..., &wall, ...) debits n w0 exactly, then credits every stuck
+    molecule (weight w) to the exact stock, and joins the wall loads to the trial loads. The desorbed molecules
+    carry the v6.1 neutral energy debit (kinetic + internal + adsorbed reference) from the wall: the impact energy
+    that drives ESD/ISD is already in the wall heat of the event.
+6.7 Randomness: Philox4x32-10 (pf_arrival/philox_core.h, read in place), surface stream layout v7: key = run seed
+    XOR 0x5357375357375357 (distinct from the arrival key of the same seed); counter c0 = block | purpose << 16 |
+    step bits 32..39 << 24, c1 = step bits 0..31, c2/c3 = carrier id low/high; purpose 0x21 wall events, 0x22
+    photo; word budget 4096 per event (exhaustion refuses the event; never resampled). Keyed by event: rank and
+    partition independent.
+
+7. GPU
+  device/sw7_kernels.cu compiled by hall_gpu::Session (hall-gpu-resident-v1 common layer: libcuda and NVRTC
+  dlopen'ed, --fmad=false --prec-div=true --prec-sqrt=true --ftz=false, architecture from the device at run time).
+  sw7_wall_events: one thread per event, the CPU function; sw7_reduce_blocks/sw7_reduce_final: fixed shared-memory
+  tree per 256-thread block and one sequential pass, 64-bit fields in 32-bit limbs, no atomics; sw7_sizes: struct
+  layout probe. Bit identity with the CPU reference is a test (test_wall_gpu_v7). Only +,-,*,/,sqrt and integer
+  operations are used (device/sw7_math.h provides exp, log, sincos, lgamma, incomplete gamma).
+
+8. Tests (run_source_v7.py; results in README.txt)
+  test_source_v6_on_v7  the sealed v6 qualification (9 cases) against v7 at benchmark settings
+  test_source_v7        a02 (5 probes, v6.1 vs v7), identity (every digest and checkpoint byte), interval (3),
+                        surface, births, wall (2), phase (2: phase-owner temperatures, liquid class at 4000 K,
+                        default 3000 K cap, water above 3000 K, residue write-off, stale phase, metal vapor) -- 15
+  test_surface_v7       math (3), rng (1), emission oracles (8), workfn (1), see (8), ions (3), ledger (2),
+                        partition (1), interval (1), hot (4: <= 3000 K identity, laws and convergence to 5000 K,
+                        validity map), registry (1) -- 33
+  test_wall_gpu_v7      layout, parity (1e6 events), reduction, repeat, teardown -- 5
+  Sanitizers: UBSan and ASan builds of the three CPU binaries (same case counts).
+
+9. Bounded and open (details in DATA-v7.txt)
+  Bounded scenario parameters: phi_ox band 4.19-5.3 eV; water dphi on oxide (metal proxy); beta classes and area
+  fractions; SEE angular parameters (TiN/Al) and zero-energy reflectivity 0.02-1; high-energy backscatter blend;
+  ion kinetic emission (Inconel proxy, molecular additivity upper bound); O reflection (mu ~ 3 'very poor');
+  ISD of water (no data); ESD sigma(E) above 300 eV held; sticking 9e-4-0.2; accommodation of water.
+  Open: no oxide-specific water dphi; no measured beta distribution; no H2O+/H3O+ IIEE or fragmentation data; no
+  wall chemistry (H, O recombination, OH formation); no dphi/dT for SS; the sealed SN kernel remains unmagnetized
+  and planar (the magnetized-emission and oblique studies remain separate); sub-cell returns in extracting
+  fields with strong tangential B are left to the Hall push (time-resolved); returned births need the born-and-
+  collected route of INTEGRATION.txt.

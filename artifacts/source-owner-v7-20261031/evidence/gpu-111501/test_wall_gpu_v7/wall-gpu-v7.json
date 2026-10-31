@@ -1,0 +1,156 @@
+{
+ "cases": [
+  {
+   "evidence": {
+    "device_host": [
+     [
+      2024,
+      2024
+     ],
+     [
+      72,
+      72
+     ],
+     [
+      584,
+      584
+     ],
+     [
+      72,
+      72
+     ],
+     [
+      496,
+      496
+     ],
+     [
+      560,
+      560
+     ],
+     [
+      200,
+      200
+     ],
+     [
+      2020,
+      2020
+     ],
+     [
+      208,
+      208
+     ]
+    ]
+   },
+   "group": "layout",
+   "name": "struct sizes and field offsets equal on host and device",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "compile": {
+     "arch_option": "--gpu-architecture=sm_86",
+     "image_kind": "cubin",
+     "image_sha256": "a9ac456e7ff7c37b81c001a1e04ad4b51295aa637da08c33d1695117ef533a44",
+     "nvrtc": "12.8",
+     "nvrtc_library_sha256": "43731e24cd89e3749826304f304e8aa11fbecf1188715271b1f5018d6212b5e6",
+     "options": [
+      "--gpu-architecture=sm_86",
+      "--fmad=false",
+      "--prec-div=true",
+      "--prec-sqrt=true",
+      "--ftz=false",
+      "--std=c++17"
+     ]
+    },
+    "cpu_seconds": 2.746093008,
+    "device": {
+     "cc": "8.6",
+     "driver": "NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  615.78.08  Release Build  (root@)  ",
+     "name": "NVIDIA GeForce RTX 3080 Ti",
+     "uuid": "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
+    },
+    "differing_events": 0,
+    "events": 1000000,
+    "first_difference": -1,
+    "gpu_kernel_ms": 1264.3311080932617
+   },
+   "group": "parity",
+   "name": "1e6 wall events: every SW7Out byte of the NVRTC kernel equals the CPU reference",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "gpu_cpu": [
+     [
+      "31160499944331194772",
+      "31160499944331194772"
+     ],
+     [
+      "5068899690623274959",
+      "5068899690623274959"
+     ],
+     [
+      "26091600253707919813",
+      "26091600253707919813"
+     ],
+     [
+      "31156205901165057287",
+      "31156205901165057287"
+     ],
+     [
+      "1283164428627",
+      "1283164428627"
+     ],
+     [
+      "20852768094041204",
+      "20852768094041204"
+     ],
+     [
+      "1246906",
+      "1246906"
+     ],
+     [
+      "698973",
+      "698973"
+     ],
+     [
+      "1462",
+      "1462"
+     ],
+     [
+      "-250013",
+      "-250013"
+     ],
+     [
+      "-698973",
+      "-698973"
+     ]
+    ]
+   },
+   "group": "reduction",
+   "name": "fixed-tree GPU sums (integer limbs, no atomics) of 11 ledger fields equal the CPU int128 sums",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "differing": 0,
+    "ms_128": 1181.8609161376953,
+    "ms_256": 1264.3311080932617,
+    "ms_256_again": 1234.9368438720703
+   },
+   "group": "repeat",
+   "name": "repeated run and 128-thread blocks: identical outputs and sums",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "first_error": ""
+   },
+   "group": "teardown",
+   "name": "session teardown drained and released",
+   "passed": true
+  }
+ ],
+ "failed": 0,
+ "schema": "wall-gpu-v7-qualification-v1"
+}

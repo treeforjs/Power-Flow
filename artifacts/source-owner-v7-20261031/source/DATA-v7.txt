@@ -1,0 +1,191 @@
+Heat/source owner v7 -- surface parameter data, tags and citations -- 2026-10-31
+
+The parameter values live in one place, native/mfem_electrode_heat_source_v7/surface_data_v7.hpp, entered through
+surface_v7::Registry::use(name, value, low, high, unit, tag, source, location, note). The full registry (every
+row with band, tag, source id, location and note) is written by test_surface_v7 to
+  OUT/<label>/run-*/normal-test_surface_v7/parameters-v7.json
+and checked there (tag, source, location present; band contains the value; names unique). This file gives the
+source ids, the access level of each source, and the bounded/open items. No value was taken from a source that
+was not read at the stated access level; figure readings are marked "fig" with their reading error.
+
+Tags
+  measured        value measured on the stated material/surface (or read from a published figure, marked fig)
+  recommended     fitted/recommended value of the cited compilation or model paper, used as published
+  model_derived   derived here or in the source from cited quantities by a stated relation
+  scenario        no measurement exists for this foil; a declared scenario value with a sensitivity band
+  benchmark       the v6.1 benchmark value (selectable; not a property of the foil)
+
+Access levels: FT full text read; ABS abstract read; SEC value seen in a secondary source citing the primary;
+FIG value read from a published figure.
+
+1. Sources (id -> citation; access; what is used)
+furman_pivi_2002     M. A. Furman and M. T. F. Pivi, "Probabilistic model for the simulation of secondary electron
+                     emission", Phys. Rev. ST Accel. Beams 5, 124404 (2002), doi:10.1103/PhysRevSTAB.5.124404; FT
+                     (Cornell copy of the journal PDF; LBNL-49771/SLAC-PUB-9912 tables identical). Table I
+                     (stainless column), Table II (p_n, eps_n, M = 10), Eqs. 25-53, App. D. Fit to R. Kirby data
+                     (SLAC 304 rolled sheet, etched + passivated, unconditioned, 0-1100 eV). Angular parameters
+                     e1, e2, r1, r2, t1-t4 from TiN/Al data. Reproduces delta_max 2.05 at 292 eV (test).
+joy_database_2004    D. C. Joy, electron-solid interaction database (2004), section "Iron (Z=26)" backscatter and
+                     "Stainless Steel" SEY; FT. Fe eta: Hunger & Kuchler, phys. stat. sol. (a) 56, K45 (1979);
+                     Palluel (1947); Sternglass, Phys. Rev. 95, 345 (1954). As-received stainless SEY table =
+                     Baglin et al. EPAC 2000 Fig. 3 (used as an independent check, not as input).
+baglin_epac2000      V. Baglin, J. Bojko, O. Grobner, B. Henrist, N. Hilleret, C. Scheuerlein, M. Taborelli, "The
+                     secondary electron yield of technical materials and its variation with surface treatments",
+                     EPAC 2000, p. 217; FT. Water/carbon effects (Fig. 5), as-received equivalence below 300 eV.
+other SEY            Kirby & King, NIM A 469 (2001) 1 (SLAC-PUB-8212), FT; Ji, Spentzouris, Zwaska NAPAC2016
+                     THPOA45 Table 1, FT; Hilleret ICFA 2000 slides, FT; Cimino et al. PRL 93, 014801 (2004),
+                     doi:10.1103/PhysRevLett.93.014801, FT (bands of see.scale and fp.P1e_hat only).
+grard_1973           R. J. L. Grard, J. Geophys. Res. 78, 2885 (1973), doi:10.1029/JA078i016p02885, FT, Fig. 5a
+                     (stainless photoyield, data of Feuerbacher & Fitton, J. Appl. Phys. 43, 1563 (1972), ABS);
+                     FIG +-0.05 decade. Photo hook only (off by default).
+baragiola_1979       R. A. Baragiola, E. V. Alonso, J. Ferron, A. Oliva-Florio, Surf. Sci. 90, 240 (1979),
+                     doi:10.1016/0039-6028(79)90341-8; FT. gamma_PE = 0.032 (0.78 E_i - 2 phi) (p. 241, Fig. 1;
+                     noble-gas fit); molecular-ion effects pp. 247-248.
+alonso_1979          E. V. Alonso, R. A. Baragiola, J. Ferron, A. Oliva-Florio, Radiat. Eff. 45, 119 (1979),
+                     doi:10.1080/00337577908208417; FT. Fig. 3 (FIG, +-5-10 %): kinetic emission of H+, H2+, O+ on
+                     clean and oxidized Inconel 625 (proxy for oxidized 304); gas-covered threshold 20-60 eV (p. 119);
+                     oxide enhancement Fig. 4.
+thomas_janev_smith_1991
+                     E. W. Thomas, R. K. Janev, J. Smith, IAEA INDC(NDS)-249 (1991); FT. Journal: NIM B 69, 427
+                     (1992), doi:10.1016/0168-583X(92)95298-6 (ABS). Eq. (4), Table 1 (eps_L H->Fe 0.3934 keV^-1),
+                     Table 2 (constants: mu >= 20 set; mu ~ 3 set 'very poor'), Appendix tables (H on Fe, 10 %).
+nist_webbook/nist_asd  NIST Chemistry WebBook (IE of H2O 12.621 +- 0.002, OH 13.017, H2 15.42593 eV; PA(H2O)
+                     691 kJ/mol) and NIST Atomic Spectra Database (IE of H 13.598434599702, O 13.618055 eV); FT.
+neau_2000            A. Neau et al., J. Chem. Phys. 113, 1762 (2000), doi:10.1063/1.481979 (ABS) and Manne Siegbahn
+                     Laboratory Annual Report 1999 sec. 4.8 (FT): H3O+ + e -> H2O + H 6.4 eV. Lower band: H3O
+                     radical IE 4.3 eV, Gellene & Porter, J. Chem. Phys. 81, 5570 (1984) (ABS, calculated).
+edwards_1979+mathewson_1976
+                     D. Edwards Jr., IEEE Trans. Nucl. Sci. NS-26, 4089 (1979) Table I, FT (1 keV Ar+ on SS304,
+                     unbaked ~10x baked, attributed in part to ~1 ML water; H2O not reported); A. G. Mathewson,
+                     CERN-ISR-VA/76-5 (1976) via Malyshev CAS 2017 slide 33 (SEC, FIG): energy shape. Scenario only.
+tuzi_1997            Y. Tuzi, T. Tanaka, K. Takeuchi, Y. Saito, Shinku 40, 377 (1997), doi:10.3131/jvsj.40.377; FT
+                     (English figures/tables). Sticking of H2O on SS: Fig. 3 (as received, electropolished), Fig. 4,
+                     Eq. 4, Table 1 (precursor fit 293-343 K).
+trott_2011           W. M. Trott et al., SAND2011-5640P (OSTI 1688664) p. 17 / Rev. Sci. Instrum. 82, 035120 (2011);
+                     FT (slides). Thermal accommodation on 304 SS: Ar 0.95, N2 0.87, He 0.46 (untreated).
+chiggiato_2015       P. Chiggiato, arXiv:1501.07162, Table 7 p. 11; FT. TAC compilation (H2 0.29 technical Pt,
+                     0.15 clean Pt; AISI 304 N2 0.8, Ar 0.87).
+esd_compilation_v7   ESD of adsorbed water: Petrik & Kimmel, PCCP (2018), doi:10.1039/C8CP01284A, FT (alpha-Al2O3
+                     D2O monolayer depleted at 3e16 cm^-2, 100 eV -> sigma >= 8e-17 cm^2, first-order inference,
+                     model_derived); Lane, Petrik, Orlando, Kimmel, JCP 127, 224706 (2007), doi:10.1063/1.2804767,
+                     ABS (threshold ~10 eV, eta linear in theta below 1 ML); Abdulgalil et al., ACS Earth Space
+                     Chem. 1, 209 (2017), doi:10.1021/acsearthspacechem.7b00028, ABS (ice 1.6-5.2e-16 cm^2 at
+                     200-300 eV); McCracken, Barton, Dillon (1967) via Drinkwine & Lichtman (review), SEC (technical SS
+                     initial total sigma ~1e-16 cm^2, ~1e-20 after long bombardment); Dupuy et al. JAP 128 (2020),
+                     arXiv:2010.09538, FT (ice yield maximum 300-400 eV).
+drinkwine_lichtman   M. J. Drinkwine, D. Lichtman, "Electron stimulated desorption: a critical review" (UW-Milwaukee;
+                     UNT ark:/67531/metadc1445703), FT.
+walton_1999          S. G. Walton, J. C. Tucek, R. L. Champion, Y. Wang, J. Appl. Phys. 85, 1832 (1999),
+                     doi:10.1063/1.369330; FT. 302 SS 4.75 eV clean; -0.2 eV (10 L O2), -0.4 eV (60 L O2).
+marlow_2023          Marlow, Josten, Leiting, J. Appl. Phys. 133, 085104 (2023), doi:10.1063/5.0142185; FT. 304
+                     ("V2A") 4.19 +- 0.02 eV after Ar sputtering (UPS); air-exposed literature range 4.20-5.3 eV
+                     (refs 14-17, SEC).
+thiel_madey_1987     P. A. Thiel, T. E. Madey, Surf. Sci. Rep. 7, 211 (1987), doi:10.1016/0167-5729(87)90001-X; FT
+                     (page images pp. 211-308). Table 5 p. 250: H2O on Fe polycr. Delta phi_max -0.97 +- 0.08 eV,
+                     Ni -1.10 (initial dipole 0.56 D), Co -1.20, Au -0.60; sign rules p. 249; Table 1 (H2O dipole and
+                     polarizability).
+akbi_2014            Akbi, ICEC 2014 (VDE), ABS: Ag dphi/dT -4.58e-4 eV/K. (Ni -1.7e-4 eV/K, Z. Naturforsch. A 29,
+                     1516 (1974): not verified.)
+forbes_edgcombe_valdre_2003
+                     R. G. Forbes, C. J. Edgcombe, U. Valdre, Ultramicroscopy 95, 57 (2003): hemisphere on a plane
+                     beta = 3; hemisphere-on-post formulas (SEC via de Souza arXiv:1909.10338).
+descoeudres_2009_calatroni_2010
+                     Calatroni et al., LINAC2010 MOP070 Table 1, FT (Cu beta 77 +- 28 after conditioning); Descoeudres
+                     et al., PRSTAB 12, 092001 (2009), ABS; Forbes et al. J. Phys. 8, 125 (2015), FT (spurious FN betas).
+bastaninejad_2012    M. BastaniNejad et al., PRSTAB 15, 083502 (2012), doi:10.1103/PhysRevSTAB.15.083502; FT. Tables
+                     II-IV: diamond-polished 304 beta 214-1156; FN-intercept areas 1e-25-1e-22 m^2.
+latham_1995          R. V. Latham, High Voltage Vacuum Insulation (1995), SEC via BastaniNejad ref. [23]: typical
+                     emitter areas 1e-16-1e-12 m^2.
+high temperature     Wilson, J. Appl. Phys. 37, 2261 (1966), doi:10.1063/1.1708797, ABS: effective thermionic phi of
+                     outgassed 304 SS 4.3 eV (Fe 4.47, Ni 4.41, Cr 3.90). Gordon & Chapman, NASA TN D-6888 (1972), FT,
+                     Table I: molten Mo/Nb/Re/Ta/W at T_m within ~0.1 V of solid values. Fomenko, Handbook of
+                     Thermionic Properties (1966), doi:10.1007/978-1-4684-7293-6, FT: Fe recommended 4.31 eV, thermionic
+                     spread 4.04-4.6 eV (p. 20); A_R: Fe beta 26, gamma 1.5, Ni 30, Co 41, Cr 48 A cm^-2 K^-2 (Wahlin,
+                     Phys. Rev. 61, 509 (1942); 73, 1458 (1948), SEC). Tolias, Nucl. Mater. Energy 31, 101195 (2022)
+                     sec. 2.9, FT: dphi/dT tens to hundreds of ueV/K, either sign. Kyritsakis & Djurabekova, Comput.
+                     Mater. Sci. 128, 15 (2017) sec. 2.3, FT: regime test (thermionic formulas for n_T < 0.6, field
+                     formulas for n_F > 2.3, else numerical integration -- the kernel always integrates). Forbes, R. Soc.
+                     Open Sci. 6, 190912 (2019) eq. (3.1), FT: barrier-collapse field phi^2/c_S^2 (14.1 V/nm at 4.5 eV).
+                     Benilov & Benilova, JAP 114, 063307 (2013) (ABS) / ICPIG 2013 (FT): vacuum-arc cathodes 3000-5000 K,
+                     vapor/sheath control. Ashcroft & Mermin (1976) Table 2.1 (SEC): free-electron E_F(Fe) 11.1 eV.
+                     SS304 phase thermal owner v1 (runtimes/ss304-phase-thermal-owner-v1-20261031) INTEGRATION.txt 2.1-2.4.
+oracles              Murphy & Good, Phys. Rev. 102, 1464 (1956), doi:10.1103/PhysRev.102.1464 (formula via Forbes);
+                     R. G. Forbes, Appl. Phys. Lett. 89, 113122 (2006), doi:10.1063/1.2354582, FT: a = 1.541434e-6 A
+                     eV V^-2, b = 6.830890 eV^-3/2 V nm^-1, c_S^2 = 1.439964 eV^2 V^-1 nm, v(f) ~ 1 - f + (f/6) ln f
+                     (|error| <= 0.0024), t(f) ~ 1 + f/9 - (f/18) ln f (0.4 %); MG temperature factor
+                     pi w/sin(pi w), w = kT/d (Levchenko arXiv:physics/0608135, SEC); A0 = 120.173 A cm^-2 K^-2
+                     (CODATA, model_derived). These are test oracles, not model inputs.
+source_owner_v6.1 / coordinator_v7_calibration / this_component
+                     the benchmark 4.3 eV; observed first order of the expected emission count; derivations stated in
+                     API-v7.txt.
+
+2. The cited set "ss304-oxide-water-v7" (value [band] tag; source)
+  Work function
+    wf.oxide                   4.35 eV [4.19, 5.3] recommended; walton_1999 (302 SS, 60 L O2), band marlow_2023
+    wf.water_dphi_1ML          -0.97 eV [-1.20, -0.60] recommended; thiel_madey_1987 (Fe polycr. proxy; oxide open)
+    wf.water_depolarization_c  1.2 [0, 3] model_derived; Helmholtz initial slope with mu0 0.56 D, N_ML 1e19 m^-2
+    wf.dphi_dT                 0 eV/K [-4.6e-4, 0] scenario; akbi_2014 (Ag) as band
+    wf.grid                    2^-12 eV model_derived; wf.benchmark_clean 4.3 eV benchmark
+  Field enhancement (scenario "ss304-foil-sites-v7")
+    roughness  beta 3 [1, 3] model_derived (hemisphere on a plane), area fraction 0.1 [0, 0.5] scenario, extent 1 um
+    site100    beta 100 [50, 300] scenario, area fraction 1e-9 [3e-12, 3e-8] scenario, extent 0.1 um
+    site500    beta 500 [214, 1156] measured (BastaniNejad), area fraction 1e-12 [3e-21, 3e-8] scenario, extent 20 nm
+  Electrons (Furman-Pivi stainless, recommended): P1e_inf 0.07, P1e_hat 0.5 [0.02, 1], Ee_hat 0, W 100 eV, p 0.9,
+    sigma_e 1.9 eV, e1 0.26, e2 2, P1r_inf 0.74, Er 40 eV, r 1, q 0.4, r1 0.26, r2 2, delta_ts_hat 1.22,
+    E_ts_hat 310 eV, s 1.813, t1 0.66, t2 0.8, t3 0.7, t4 1, M 10, p_n {1.6, 2, 1.8, 4.7, 1.8, 2.4, 1.8, 1.8, 2.3,
+    1.8}, eps_n {3.9, 6.2, 13, 8.8, 6.25, 2.25, 9.2, 5.3, 17.8, 10} eV; fit range 1100 eV; see.scale 1 [0.5, 1.2]
+    scenario; backscatter eta_Fe 0.237-0.294 at 1-31 keV measured (joy_database_2004), blend to 3.93 keV
+    model_derived.
+  Ions: PE (0.032, 0.78, 2) recommended; KE H/O per-atom tables (alonso_1979 fig, measured; threshold 40 eV
+    model_derived; 1.2 and 2.5 keV H points from H2+ per atom, a lower bound of the atomic yield); ke.scale 1
+    [0.5, 1] scenario; TJS constants (H set recommended, O set model_derived), eps range 1e-3-40, reflection.scale 1
+    [0.5, 1] scenario; recombination energies measured (H3O+ 6.4 [4.3, 6.44]).
+  Neutrals: H2O sticking 0.01 [9e-4, 0.2] recommended (tuzi_1997); theta_max 1 model_derived; accommodation 0.9
+    [0.8, 1] (trott_2011), H/H2 0.3 [0.15, 0.6] (chiggiato_2015) recommended.
+  Stimulated desorption: ESD sigma (m^2) 0 at 10 eV, 3.6e-21 at 50, 8e-21 at 100, 2e-20 at 300 eV, held above;
+    model_derived (esd_compilation_v7), esd.scale 1 [1e-4, 2.6] scenario. ISD sigma 0 at 10 eV, 0.71e-19 (0.5 keV),
+    1e-19 (1 keV), 1.375e-19 (2 keV), 1.5e-19 (3 keV) scenario [x0.01, x10]; isd.scale 1 [0, 10] scenario.
+  High temperature: wf.liquid_steel 4.3 eV [4.04, 4.6] model_derived (wilson_1966 + gordon_chapman_1972; no
+    measured liquid value); wf.dphi_dT band widened to [-4.6e-4, +4.6e-4] eV/K (tolias_2022, either sign);
+    emission.richardson_lambda 1 [0.0125, 1] scenario (A_R/A0 of Fe, Ni, Co, Cr); emission.T_max 5000 K;
+    water.law_T_max 3000 K (phase owner); free_electron.E_F_Fe 11.1 eV.
+  Photo (off): yield 5e-7 (5.1 eV) to 0.19 (14-19 eV) to 0.125 (25 eV) measured (grard_1973, fig).
+
+3. Bounded items (in the model, with the band to use in sensitivity runs)
+  B1  phi_ox 4.19-5.3 eV: the native passive film (2-5 nm, Cr-enriched) of air-exposed 304 has no primary
+      measurement with known oxide thickness; 4.35 eV is the measured 302 value after initial oxidation.
+  B2  water Delta phi on the oxide: metal (Fe) value -0.97 eV used, band -1.2 to -0.6 eV; depolarization c 0-3.
+  B3  field-enhancement classes and area fractions (scenario; no distribution in the literature).
+  B4  SEE: angular parameters from TiN/Al (clamps beyond ~18 deg for delta'_ts and ~43 deg for delta_e + delta_r,
+      counted per event); zero-energy reflectivity 0.02-1 (disputed); high-energy backscatter blend 1.1-3.93 keV;
+      see.scale 0.5-1.2 (conditioning, water).
+  B5  ion kinetic emission: Inconel 625 oxide proxy, molecular additivity an upper bound (~20 %), clean metal ~1/2;
+      potential emission a noble-gas fit (molecular PEE "very small": upper bound); threshold 20-60 eV.
+  B6  O-like reflection set (mu ~ 3) 'very poor'; below eps 1e-3 (O below 29 eV) outside the fit (flagged).
+  B7  ESD sigma(E) of adsorbed water from oxide/ice/technical-surface data (no H2O curve for SS); above 300 eV held.
+  B8  ISD of water: no data for any projectile (scenario).
+  B9  sticking 9e-4-0.2 by surface history; accommodation of water 0.8-1.
+  B10 energy cap of true secondaries (work-function energy conservation), counted per event.
+  B11 liquid-steel work function 4.04-4.6 eV (solid thermionic value carried into the melt); Richardson factor
+      0.0125-1 (must be paired with its phi); SEE/IIEE/reflection of the molten surface use the solid stainless sets.
+
+4. Open items (not modelled; listed so that no result is read as covering them)
+  O1  Delta phi of water on Cr/Fe oxides and on 304; Delta phi(theta) curves; dphi/dT of SS or its oxides.
+  O2  measured beta / emitter-area distribution of rolled 304 foil.
+  O3  IIEE of H2O+, H3O+, OH+ on any steel or oxide; PEE of molecular water ions; fragmentation and survival of
+      H2O+/H3O+ on oxides (only qualitative data on Au and oxidized Fe/Ni).
+  O4  wall chemistry: H and O recombination (gamma ~0.1 H, 0.07-0.17 O on SS), OH formation, H uptake; reflected
+      and thermal H, O, OH leave as atoms/radicals.
+  O5  SEY of 304 with native oxide plus a known water coverage; stainless reflectivity below 20 eV; true-secondary
+      peak of SS (no numerical value found).
+  O6  ISD yield of H2O itself; PSD (hook only).
+  O7  photon source: the photo hook has no photon flux in the coupled model.
+  O9  measured work function of liquid Fe/Ni/Cr/steel and of Fe/steel at 3000-5000 K; dphi/dT of Fe/steel.
+  O10 emission from a strongly evaporating surface (above ~3134 K, the boiling point of Fe at 1 atm): vapor/Knudsen
+      layer, vapor ionization and the sheath above it are outside the planar vacuum-barrier model; above ~1e5 A/cm^2
+      (Richardson current at 5000 K) space charge or the vapor sheath controls the current, which the PIC/plasma must
+      resolve.
+  O11 oxide loss on the solid surface at high temperature (no oxide-removal law): solid area keeps phi_ox; molten
+      area is oxide-free (liquid class).
+  O8  magnetized/oblique barrier (the planar unmagnetized SN kernel is kept; see pic-magnetized-emission and
+      pic-oblique-emission studies).
