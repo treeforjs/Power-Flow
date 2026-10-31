@@ -1,0 +1,185 @@
+Water chemistry v3 -- what native v8 must add to link it
+=========================================================
+
+Component: /home/treefor/projects/runtimes/pic-water-chemistry-v3-20261031 (plain directory, nothing committed).
+Native v8 is built on native v7 (native-full-time-candidate007, superaccumulator kinetic/work sums, block-Merkle
+motion digest, device census ordering); nothing in v7 or in any sealed component is changed by this document.
+Item numbers below are the work native v8 must do; "C3" refers to this component.
+
+0. What C3 provides (sealed by sha256 in the qualification receipt)
+  include/pf_chem_v3/det_math.h        deterministic log, log1p, sincos(2 pi u), kinetic energy forms (host + NVRTC)
+  include/pf_chem_v3/chem_rng.h        chemistry stream layout v3 on the arrival owner Philox4x32-10 core
+                                       (pic-arrival-owner-v1-20261030/include/pf_arrival/philox_core.h, read in place)
+  include/pf_chem_v3/chem_kinematics.h relativistic kinematics in eV units (c = 1), boosts, angular laws
+  include/pf_chem_v3/chem_tables.h     table records (blob "PFCHEMV3" v1) and their evaluation, majorant RMQ
+  include/pf_chem_v3/chem_event.h      the per-carrier collision stage (mcc_carrier) and its records
+  include/pf_chem_v3/chem_host.hpp     host side: blob loader/validator, ExactSum (exact superaccumulator),
+                                       CPU reference step, canonical record digest, ledgers, tracked-target
+                                       debit resolution, quantized neutral release
+  device/chem_kernels.cu               NVRTC program (pfc_mcc_step, pfc_math_parity) compiled from the same headers
+  data/tables/chemistry-v3.blob        production tables (identity = sha256 of the file; see the receipt)
+  data/tables/chemistry-v3-manifest.json  provenance, coverage, seams, interpolation errors, species table
+  data/tables/PROCESSES.txt            human-readable species/process/coverage table generated from the manifest
+  SCOPE.md                             data choices, coverage map, open channels, swarm validation, tests
+Build flags (host): C++20, -ffp-contract=off -fno-fast-math, no -march, -I include/pf_chem_v3 -I <arrival>/include/pf_arrival,
+OpenSSL libcrypto. Device: the shared GPU layer hall-gpu-resident-v1-20261030/common (NVRTC 12.8 dlopen'ed; it adds
+--fmad=false --prec-div=true --prec-sqrt=true --ftz=false and picks the architecture of the actual device).
+The CPU reference and the device kernel produce bit-identical records (receipt: gpu stage).
+
+1. Placement in the full-time step (replaces the v2 parent subflow)
+  1.1 C3 replaces ParentSubflow's pairwise exposure SSA (one stochastic owner, e + H2O parent ionization only) with a
+      per-carrier null-collision Monte Carlo over every registered projectile species against the targets present in
+      the carrier's collision cell. The v2 scope identities, the composite channel binding and the
+      parent-channel-coverage-ledger-v2 are retired for runs that link C3; histories and checkpoints written with v2
+      keep their v2 meaning and are not reinterpreted.
+  1.2 Two collision stages per accepted step, on the existing exposure-clock grammar: stage 1 on the accepted start
+      state before births/transport (StepConfig.dt_s = the authoritative dt/2, purpose PFC_PURPOSE_MCC = 0x30),
+      stage 2 on the post-motion state after the motion row (dt_s = the same dt/2, purpose PFC_PURPOSE_MCC_SECOND =
+      0x34). Both use StepConfig.step = the accepted step index of the base state (as the arrival owner) and the same
+      run seed as the arrival owner (the purpose byte separates every stream; chem_rng.h states the injective layout).
+      dt/2 must be passed as the exposure-clock operand, never recovered from timestamps.
+  1.3 Stage-1 products enter the frame as first-slot reaction products (native IDs below the birth base B_s);
+      stage-2 products as second-slot products. Both stages run before the step is sealed; nothing is published by C3.
+  1.4 The carriers sit at fixed positions during a stage (operator split). Within a stage a carrier may undergo several
+      events (each changes its state and the majorant is re-evaluated); the guard quantity CarrierOut.nu_dt_max
+      (= max nu_max * dt_s) goes to the adaptive-dt controller (PLAN.md section 8): recommended guard nu_max dt/2 <= 0.1.
+
+2. Species registry (native v8 must register exactly these species states)
+  2.1 22 species, index order fixed by the blob (PROCESSES.txt lists them): e, H2O, H2O+, OH+, H+, O+, H2+, O++, H3O+,
+      H-, O-, OH-, H, OH, O, H2, Fe, Fe+, Cr, Cr+, Ni, Ni+. State names "pfc-v3/<name>".
+  2.2 Masses: mass_kg = SpeciesRec.mass_eV * 1.602176634e-19 / 299792458^2, evaluated once on the host in binary64 and
+      recorded in the registry identity. Every carrier of a C3 species must use that mass and SpeciesRec.charge, so that
+      the canonical kinetic energy ke_from_u(mass_eV, u) of C3 and the native kinetic ledgers describe the same carrier.
+      Masses come from ATcT 0 K formation enthalpies + CODATA 2022 + NIST atomic masses (ions in the stationary-electron
+      convention); metal atoms use the natural isotopic mean mass. SpeciesRec.ref_eV is the species' chemical reference
+      energy; every reaction Q in the tables equals the reference-energy difference (products - reactants) exactly as
+      built, so internal/reference energy is accounted once per physical event.
+  2.3 Registry identity = sha256 of (blob sha256, species names in order, mass_kg bits, charge). It enters the genesis
+      and every chemistry RNG/clock state hash in place of the v2 scope identity.
+
+3. Inputs of one stage (built by native v8 from the accepted census, canonical order)
+  3.1 CarrierIn (48 bytes) for every carrier whose species is the projectile of at least one group:
+      id = native carrier ID (< 2^48; refuse otherwise), u = proper velocity (m/s), weight = the carrier's binary64
+      count (one positive carrier per packet), species = registry index, cell = collision-atlas cell of the carrier's
+      position (pic-native-collision-atlas-20261029 locate on the canonical position). Neutral carriers are not
+      projectiles in v3 (neutral-neutral collisions are open, SCOPE.md).
+  3.2 CellTargets (536 bytes) per collision cell with up to PFC_MAX_TARGETS = 12 target species present:
+      species, n = (exact sum of the weights of that species' carriers in the cell) / (atlas cell volume) rounded once,
+      drift = weighted mean proper velocity, s = sqrt(weighted variance / 3) (1D thermal standard deviation). The sums
+      are exact (v7 superaccumulator) in canonical order, so the inputs are partition independent. A cell with more than
+      12 target species present refuses the stage (typed). Background gas not represented by carriers (if a source
+      owner provides one) enters as an additional slot with its density, drift and temperature.
+  3.3 StepConfig: seed, step, dt_s, trunc_sigmas = 7 (target Maxwellian truncation; tail probability 1.3e-10 recorded as
+      a declared truncation), purpose, max_candidates (default 4096), max_events (default 64).
+
+4. Outputs and how native v8 applies them (all in canonical order: carrier ID, then candidate index)
+  4.1 CarrierOut per carrier (384 bytes): status, number of events, candidates, final species, u_final, nu_dt_max and up
+      to 16 coverage slots (region, sigma-free exposure, bound).
+      Status OK or CONSUMED: apply. Any other status (CAND_CAP, EVENT_CAP, KEY_DOMAIN, MAJORANT, COVER_CAP, BAD_INPUT)
+      refuses the whole step proposal (typed refusal "chemistry_v3/<status>"); the coordinator reduces dt.
+  4.2 EventRec per real event (384 bytes): process index, target species, weight W, event time within the stage,
+      projectile u before, sampled target u, target-frame energy, canonical kinetic energies in/out, Q, lab-frame
+      internal energy, and up to 6 products (species, destination, proper velocity, kinetic energy).
+      Destinations:
+      SURVIVOR  the projectile carrier keeps its native ID; its velocity becomes the product velocity (the last event's
+                survivor velocity = CarrierOut.u_final).
+      BIRTH     a new charged carrier (electron or ion) of weight W at the projectile's position. Native IDs are issued
+                by native's monotone counter in canonical order (carrier ID, candidate index, product index); logical
+                packet ID "chem-v3/s<step>/g<stage>/c<carrier>/e<candidate>/k<product>" in a new reserved namespace
+                (refuse it for authored IDs, as native v6 does for "arrival-v1/").
+      RESERVOIR a neutral product deposited into the per-(cell, species) quantized-release reservoir (section 6).
+      GAS       the target, returned to its gas inventory (elastic, excitation, detachment partners); no carrier is
+                created or moved: its kinetic-energy change (ke_out - ke_in_target) is the gas-heating term of
+                section 5 (field-target approximation: tracked target packets keep their velocities).
+      A projectile without a SURVIVOR product is consumed (removed carrier, sink kind "chemistry_consumed").
+  4.3 Target debits. Processes whose target does not reappear as GAS consume it (ionization, dissociation, attachment,
+      ion-molecule reactions, recombination). For tracked targets (carriers), native v8 resolves debits exactly as
+      chem_host.hpp resolve_debits: events in canonical order (cell, carrier ID, candidate); the cell inventory of the
+      target species (exact count at stage start minus admitted debits) must cover W, otherwise the event and every
+      later event of that carrier in the stage are refused and the carrier keeps its state from before the refused
+      event (prefix rule; the refusal count is a ledger field). Admitted debits are taken from the target species'
+      carriers in the cell in ascending native ID, exact count subtraction (a carrier reaching zero is removed;
+      a partially debited carrier keeps its velocity). Ion targets (dissociative recombination, mutual neutralization)
+      are debited the same way, so charge stays exact.
+  4.4 Stage records are produced on the GPU or the CPU; native v8 hashes CarrierOut and EventRec bytes in canonical order
+      (step_digest of chem_host.hpp: tag "pfc-chem-v3-step-records-v1") and binds the digest in the step seal and the
+      motion/chemistry journal rows. The records are bit-identical between CPU and GPU and for any carrier partition
+      (receipt: core partition test 1/2/5/8, gpu stage with three launch geometries and a split launch).
+
+5. Ledgers (exact; native v8 adds them to the step ledger and to the checkpoint)
+  Per stage, per step and cumulative, all sums ExactSum (integer multiples of 2^-1074; products W x energy exact by
+  Dekker two-product) so they are order and partition independent; v7's superaccumulator may replace ExactSum if it
+  holds the same exact values.
+  5.1 Energy (eV, physical = per-particle value x W): ke_in_projectile, ke_in_target, ke_out_survivor, ke_out_birth,
+      ke_out_reservoir, ke_out_gas, q_reference, internal[ROT, VIB, ELEC, ION_INTERNAL, FRAGMENT], defect, with the
+      exact identity in = out + q + internal + defect (defect = rounding residual of the kinematics; per event bounded
+      by 2^-40 of its energy scale; measured maximum 6e-14 relative over 1e6 events). Gas heating per (cell, species) =
+      ke_out_gas - ke_in_target of GAS-returning events; it goes to the neutral thermal owner. ROT/VIB internal energy
+      is gas internal energy (relaxes to heat); ELEC, ION_INTERNAL and FRAGMENT are excitation energy whose fate
+      (radiation or heat) is not modeled by C3 and is reported as such.
+  5.2 Counts and charge: created/destroyed exact weight per species; charge created/destroyed (elementary charges);
+      nuclei H, O, Fe, Cr, Ni created/destroyed. Every event conserves charge and nuclei exactly (integer stoichiometry,
+      checked at table build and per event).
+  5.3 Per process: event count and exact weight; events by coverage class (DATA, MODEL); refused debits.
+  5.4 Coverage (successor of parent-channel-coverage-ledger-v2, schema "pfc-chem-v3-coverage-ledger-1"):
+      per coverage region r (159 regions; names in the blob strings: group | unresolved process set | energy decade):
+      exposure X_r = sum W n v dt (sigma-free; with a replacement sigma'(E) it reprocesses the expectation) and bound
+      B_r = sum W n v sigma_bound dt (expected unresolved events; absent when a region has no bound). Per event: the
+      process tag (measured/recommended/calculated/model_derived) and coverage class, so model-derived events
+      (e.g. ionization above 1 keV, the 12.65-13.5 eV onset) are traceable through the product IDs.
+      Refusal policy v3 (configuration, bound into the step identity): refuse iff a bounded region has
+      B_r > max(event_limit, f * A) with A the applied events of the step, or an unbounded region has X_r > 0 and is
+      not in the admitted list. Recommended admitted list: the no-data placeholders named in SCOPE.md section 5
+      (negative-ion reactions/detachment, OH+ DR, ion-ion recombination) and every region above 1e7 eV.
+  5.5 Guards: max nu_max dt (adaptive dt), status counts, candidate counts.
+
+6. Neutral products: quantized-release reservoir (approved route n = SR(D/w0))
+  6.1 Per (cell, neutral species): exact count C, exact momentum P (eV), exact kinetic energy K (eV), and this step's
+      entries (weight, u, position of the projectile carrier at the event). Admitted RESERVOIR products are deposited.
+  6.2 Once per accepted step (after stage 2): x = C/w0, n = floor(x) + Bernoulli(x - floor(x)) (exact Bernoulli of the
+      arrival core on the chemistry stream: purpose 0x31, carrier = species << 32 | cell, event 0), reduced so that
+      n w0 <= C exactly. Each released packet has weight w0, the velocity and position of an entry picked with
+      probability proportional to its weight (purpose 0x32, event = packet index), or the reservoir mean velocity and
+      last deposit position when the step deposited nothing; C, P, K are debited exactly. The packets become native
+      neutral carriers through the native v6 birth scope (births of kind "chem-v3 release", stream = species) with
+      exactly w0 each; the remainders stay in the reservoir. In the common case W = w0 every event releases exactly
+      one packet with its own velocity.
+  6.3 The reservoir state (C, P, K, last position per (cell, species)) is part of the accepted state, its digest and the
+      checkpoint; restart requires the same blob identity and w0.
+
+7. Coverage of the parent-ionization items of v2 (A13/A14; details in SCOPE.md)
+  - 12.621-13.5 eV onset gap: no measured value exists inside it; 12.65-13.5 eV is now covered by the swarm-fitted
+    MuroranIT onset (tag model_derived, class MODEL); 12.6178-12.65 eV remains UNRESOLVED with bound 2.83e-24 m2.
+    (The ATcT ionization energy is 12.6175 eV; 12.621 eV was the earlier rounded value.)
+  - 1 keV seam (+26.8 % in v2): removed. Every ionization channel continues above 1 keV with the measured gross-
+    ionization energy dependence of Munoz 2007 (to 5 keV) normalized to the Song 2021 partial at 1 keV (continuous);
+    the residual normalization difference of the two measured data sets is +0.9 % at 1 keV (recorded).
+  - 10 keV seam (+2.6 % in v2): removed. Above 5 keV one RBEB energy dependence normalized at 5 keV (continuous,
+    model_derived). No measured total above 5 keV was obtainable (Schutten 1966, Rieke & Prepejchal 1972 not retrieved).
+  - v3 parent H2O+ cross section above 1 keV is 18-23 % below the v2 bands (outer3 BEB x Tan, RBEB x Tan): measured
+    gross ionization is ~11 % below BEB and the measured parent fraction at 1 keV (0.613) is below the dipole value
+    (0.694). Above 1 keV the channel fractions are held at their 1 keV values (model).
+
+8. GPU path
+  pfc_mcc_step(TableView, CoverView, StepConfig, carriers, cells, n_cells, n, first, events, outs): one thread per
+  carrier, each output slot owned by one thread (no atomics, no reductions). The blob is uploaded once (TableView and
+  CoverView are rebased with Blob::view_at/cover_at). Per stage: upload CarrierIn and CellTargets, launch, download
+  CarrierOut and the populated EventRec slots; ledgers, debits and releases stay on the host (exact sums). Compile the
+  NVRTC program with the shared GPU layer; the CompileRecord (architecture option, NVRTC version, image sha) goes into
+  the execution envelope. Measured on the RTX 3080 Ti (receipt qual-002):
+  5e4 carriers / 2.7e4 events: kernel 18-21 ms vs CPU reference 103 ms; 5e4 carriers / 7.8e4 events: 45-48 ms vs 172 ms.
+  Event-record memory scales as carriers x max_events x 384 bytes on the device and for host staging; size max_events
+  to the dt guard (a test with 2e5 carriers x 64 slots, holding host reference, staging and device copies at once, ran
+  out of host memory on the workstation).
+
+9. Checkpoint, restart and identities native v8 must bind
+  blob sha256 (table identity), registry identity (2.3), RNG layout "pfc-chem-stream-v3" + purposes, StepConfig
+  constants (trunc_sigmas, caps), w0 of the release, refusal-policy configuration, cumulative ledgers (section 5) and
+  reservoirs (section 6). A checkpoint written with another blob identity is refused (no reinterpretation).
+
+10. Tests native v8 must add when linking (C3's own tests are in the receipt)
+  - Stage parity: native census -> CarrierIn/CellTargets -> C3 records equal to a C3 replay from the saved inputs.
+  - N-parity: 1/2/3/4/5/8 ranks give byte-identical chemistry records, ledgers and reservoir digests.
+  - Debit refusal + prefix truncation and the reservoir release through the native birth scope.
+  - Exact ledger closure over a coupled window (energy identity of section 5.1 plus native kinetic/field ledgers).
+  - Mutation tests: a changed blob byte, registry mass, purpose or step index refuses.

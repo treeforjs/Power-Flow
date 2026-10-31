@@ -1,0 +1,632 @@
+{
+ "id": "pipeline-test-1",
+ "energy_bottom_eV": 0.0001,
+ "energy_top_eV": 10000000.0,
+ "thermo": {
+  "atct_file": "data/sources/thermo-atct/atct-selected.json",
+  "atomic_mass_constant_eV": 931494103.72,
+  "electron_rest_energy_eV": 510998.95069,
+  "atoms": {
+   "H": {
+    "mass_u": 1.00782503223,
+    "atct": "H (g)"
+   },
+   "O": {
+    "mass_u": 15.99491461957,
+    "atct": "O (g)"
+   }
+  },
+  "sources": {
+   "atct": "B. Ruscic and D. H. Bross, Active Thermochemical Tables (ATcT) values based on ver. 1.202 of the Thermochemical Network, Argonne National Laboratory (2024), ATcT.anl.gov, DOI 10.17038/CSE/2440256; DHf(0 K)",
+   "codata": "CODATA 2022 via physics.nist.gov/cuu: m_u c^2 = 931.494 103 72 MeV, m_e c^2 = 0.510 998 950 69 MeV",
+   "masses": "NIST Atomic Weights and Isotopic Compositions: 1H 1.00782503223(9) u, 16O 15.99491461957(17) u"
+  }
+ },
+ "species": [
+  {
+   "name": "e",
+   "kind": "electron",
+   "charge": -1,
+   "atoms": {}
+  },
+  {
+   "name": "H2O",
+   "kind": "neutral",
+   "charge": 0,
+   "atoms": {
+    "H": 2,
+    "O": 1
+   },
+   "atct": "H2O (g)"
+  },
+  {
+   "name": "H2O+",
+   "kind": "cation",
+   "charge": 1,
+   "atoms": {
+    "H": 2,
+    "O": 1
+   },
+   "atct": "[H2O]+ (g)"
+  },
+  {
+   "name": "OH+",
+   "kind": "cation",
+   "charge": 1,
+   "atoms": {
+    "H": 1,
+    "O": 1
+   },
+   "atct": "[OH]+ (g)"
+  },
+  {
+   "name": "H+",
+   "kind": "cation",
+   "charge": 1,
+   "atoms": {
+    "H": 1
+   },
+   "atct": "H+ (g)"
+  },
+  {
+   "name": "O+",
+   "kind": "cation",
+   "charge": 1,
+   "atoms": {
+    "O": 1
+   },
+   "atct": "O+ (g)"
+  },
+  {
+   "name": "H2+",
+   "kind": "cation",
+   "charge": 1,
+   "atoms": {
+    "H": 2
+   },
+   "atct": "[H2]+ (g)"
+  },
+  {
+   "name": "O++",
+   "kind": "cation",
+   "charge": 2,
+   "atoms": {
+    "O": 1
+   },
+   "atct": "[O]+2 (g)"
+  },
+  {
+   "name": "H3O+",
+   "kind": "cation",
+   "charge": 1,
+   "atoms": {
+    "H": 3,
+    "O": 1
+   },
+   "atct": "[H3O]+ (g)"
+  },
+  {
+   "name": "H-",
+   "kind": "anion",
+   "charge": -1,
+   "atoms": {
+    "H": 1
+   },
+   "atct": "H- (g)"
+  },
+  {
+   "name": "O-",
+   "kind": "anion",
+   "charge": -1,
+   "atoms": {
+    "O": 1
+   },
+   "atct": "O- (g)"
+  },
+  {
+   "name": "OH-",
+   "kind": "anion",
+   "charge": -1,
+   "atoms": {
+    "H": 1,
+    "O": 1
+   },
+   "atct": "[OH]- (g)"
+  },
+  {
+   "name": "H",
+   "kind": "neutral",
+   "charge": 0,
+   "atoms": {
+    "H": 1
+   },
+   "atct": "H (g)"
+  },
+  {
+   "name": "OH",
+   "kind": "neutral",
+   "charge": 0,
+   "atoms": {
+    "H": 1,
+    "O": 1
+   },
+   "atct": "OH (g)"
+  },
+  {
+   "name": "O",
+   "kind": "neutral",
+   "charge": 0,
+   "atoms": {
+    "O": 1
+   },
+   "atct": "O (g)"
+  },
+  {
+   "name": "H2",
+   "kind": "neutral",
+   "charge": 0,
+   "atoms": {
+    "H": 2
+   },
+   "atct": "H2 (g)"
+  }
+ ],
+ "constants": {
+  "bohr_m": 5.2918e-11,
+  "rydberg_eV": 13.6057,
+  "relativistic_from_eV": 10000.0
+ },
+ "groups": [
+  {
+   "projectile": "e",
+   "target": "H2O",
+   "processes": [
+    {
+     "id": "e+H2O elastic MT (test)",
+     "kind": "ELASTIC",
+     "angular": "ISO",
+     "tag": "recommended",
+     "products": [
+      [
+       "e",
+       "SURVIVOR"
+      ],
+      [
+       "H2O",
+       "GAS"
+      ]
+     ],
+     "sigma": {
+      "type": "raikou",
+      "file": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-gas-20261029.json",
+      "channel": "H2O:elastic_momentum"
+     }
+    },
+    {
+     "id": "e+H2O v010 (test)",
+     "kind": "EXCITE",
+     "loss_eV": 0.198,
+     "sink": "VIB",
+     "tag": "recommended",
+     "products": [
+      [
+       "e",
+       "SURVIVOR"
+      ],
+      [
+       "H2O",
+       "GAS"
+      ]
+     ],
+     "sigma": {
+      "type": "raikou",
+      "file": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-gas-20261029.json",
+      "channel": "H2O:excite_v010"
+     }
+    },
+    {
+     "id": "e+H2O A1B1 -> OH+H (test)",
+     "kind": "DISSOC",
+     "loss_eV": 7.49,
+     "tag": "recommended",
+     "products": [
+      [
+       "e",
+       "SURVIVOR"
+      ],
+      [
+       "OH",
+       "RESERVOIR"
+      ],
+      [
+       "H",
+       "RESERVOIR"
+      ]
+     ],
+     "sigma": {
+      "type": "raikou",
+      "file": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-gas-20261029.json",
+      "channel": "H2O:electronic_A1B1"
+     }
+    },
+    {
+     "id": "e+H2O -> 2e+H2O+ (test)",
+     "kind": "IONIZE",
+     "tag": "recommended",
+     "sink": "ION_INTERNAL",
+     "kinetic_fraction": 0.0,
+     "orbitals": [
+      {
+       "label": "1b1",
+       "B": 12.61,
+       "U": 61.91,
+       "N": 2,
+       "w": 1.0
+      },
+      {
+       "label": "3a1",
+       "B": 15.57,
+       "U": 59.52,
+       "N": 2,
+       "w": 1.0
+      },
+      {
+       "label": "1b2",
+       "B": 19.83,
+       "U": 48.36,
+       "N": 2,
+       "w": 0.08
+      }
+     ],
+     "products": [
+      [
+       "e",
+       "SURVIVOR"
+      ],
+      [
+       "e",
+       "BIRTH"
+      ],
+      [
+       "H2O+",
+       "BIRTH"
+      ]
+     ],
+     "sigma": {
+      "type": "piecewise",
+      "segments": [
+       {
+        "source": {
+         "type": "raikou",
+         "file": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-gas-20261029.json",
+         "channel": "H2O:ion_yield:H2O+"
+        },
+        "class": "DATA"
+       },
+       {
+        "source": {
+         "type": "beb",
+         "orbitals": [
+          {
+           "label": "1b1",
+           "B": 12.61,
+           "U": 61.91,
+           "N": 2,
+           "w": 1.0
+          },
+          {
+           "label": "3a1",
+           "B": 15.57,
+           "U": 59.52,
+           "N": 2,
+           "w": 1.0
+          },
+          {
+           "label": "1b2",
+           "B": 19.83,
+           "U": 48.36,
+           "N": 2,
+           "w": 0.08
+          }
+         ],
+         "bohr_m": 5.2918e-11,
+         "rydberg_eV": 13.6057,
+         "mc2_eV": 510998.95069,
+         "relativistic_from_eV": 10000.0,
+         "lo": 1000.0,
+         "hi": 10000000.0,
+         "per_decade": 64,
+         "locator": "test"
+        },
+        "class": "MODEL",
+        "tag": "model_derived"
+       }
+      ]
+     }
+    },
+    {
+     "id": "e+H2O -> 2e+OH+ +H (test)",
+     "kind": "IONIZE",
+     "tag": "recommended",
+     "sink": "FRAGMENT",
+     "kinetic_fraction": 0.5,
+     "orbitals": [
+      {
+       "label": "1b2",
+       "B": 19.83,
+       "U": 48.36,
+       "N": 2,
+       "w": 0.7
+      }
+     ],
+     "products": [
+      [
+       "e",
+       "SURVIVOR"
+      ],
+      [
+       "e",
+       "BIRTH"
+      ],
+      [
+       "OH+",
+       "BIRTH"
+      ],
+      [
+       "H",
+       "RESERVOIR"
+      ]
+     ],
+     "sigma": {
+      "type": "raikou",
+      "file": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-gas-20261029.json",
+      "channel": "H2O:ion_yield:OH+"
+     }
+    },
+    {
+     "id": "e+H2O -> 3e+O++ +2H (test)",
+     "kind": "IONIZE",
+     "tag": "recommended",
+     "sink": "FRAGMENT",
+     "kinetic_fraction": 0.5,
+     "orbitals": [
+      {
+       "label": "2a1",
+       "B": 36.88,
+       "U": 70.71,
+       "N": 2,
+       "w": 1.0
+      }
+     ],
+     "products": [
+      [
+       "e",
+       "SURVIVOR"
+      ],
+      [
+       "e",
+       "BIRTH"
+      ],
+      [
+       "e",
+       "BIRTH"
+      ],
+      [
+       "O++",
+       "BIRTH"
+      ],
+      [
+       "H",
+       "RESERVOIR"
+      ],
+      [
+       "H",
+       "RESERVOIR"
+      ]
+     ],
+     "sigma": {
+      "type": "raikou",
+      "file": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-gas-20261029.json",
+      "channel": "H2O:ion_yield:O_atomic_2plus"
+     }
+    },
+    {
+     "id": "e+H2O -> H- + OH (test)",
+     "kind": "CAPTURE",
+     "tag": "recommended",
+     "products": [
+      [
+       "H-",
+       "BIRTH"
+      ],
+      [
+       "OH",
+       "RESERVOIR"
+      ]
+     ],
+     "sigma": {
+      "type": "raikou",
+      "file": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-gas-20261029.json",
+      "channel": "H2O:attachment_yield:Hminus"
+     }
+    }
+   ],
+   "xi": {
+    "segments": [
+     {
+      "lo": 0.1,
+      "hi": 100.0,
+      "sigma_m": {
+       "type": "raikou",
+       "file": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-gas-20261029.json",
+       "channel": "H2O:elastic_momentum"
+      },
+      "sigma_el": {
+       "type": "raikou",
+       "file": "/home/treefor/projects/runtimes/h2o-collision-data-20261029/data/collisions/h2o-gas-20261029.json",
+       "channel": "H2O:elastic_integral_song2021"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "projectile": "H2O+",
+   "target": "H2O",
+   "processes": [
+    {
+     "id": "H2O+ + H2O -> H3O+ + OH (test constant k)",
+     "kind": "CAPTURE",
+     "tag": "model_derived",
+     "products": [
+      [
+       "H3O+",
+       "BIRTH"
+      ],
+      [
+       "OH",
+       "RESERVOIR"
+      ]
+     ],
+     "sigma": {
+      "type": "rate_k",
+      "projectile": "H2O+",
+      "target": "H2O",
+      "k_m3_s": 2e-15,
+      "lo": 0.001,
+      "hi": 1000.0,
+      "locator": "pipeline test value"
+     }
+    },
+    {
+     "id": "H2O+ + H2O charge exchange (test)",
+     "kind": "CHARGE_X",
+     "angular": "FORWARD",
+     "tag": "model_derived",
+     "products": [
+      [
+       "H2O",
+       "RESERVOIR"
+      ],
+      [
+       "H2O+",
+       "BIRTH"
+      ]
+     ],
+     "sigma": {
+      "type": "inline",
+      "E": [
+       0.01,
+       10.0,
+       1000.0
+      ],
+      "sigma": [
+       2e-19,
+       1e-19,
+       5e-20
+      ],
+      "locator": "pipeline test values"
+     }
+    },
+    {
+     "id": "H2O+ + H2O elastic (test)",
+     "kind": "ELASTIC",
+     "angular": "ISO",
+     "tag": "model_derived",
+     "products": [
+      [
+       "H2O+",
+       "SURVIVOR"
+      ],
+      [
+       "H2O",
+       "GAS"
+      ]
+     ],
+     "sigma": {
+      "type": "inline",
+      "E": [
+       0.001,
+       1.0,
+       1000.0
+      ],
+      "sigma": [
+       1e-18,
+       3e-19,
+       5e-20
+      ],
+      "locator": "pipeline test values"
+     }
+    }
+   ]
+  },
+  {
+   "projectile": "e",
+   "target": "H3O+",
+   "processes": [
+    {
+     "id": "e + H3O+ -> H2O + H (test)",
+     "kind": "CAPTURE",
+     "tag": "model_derived",
+     "products": [
+      [
+       "H2O",
+       "RESERVOIR"
+      ],
+      [
+       "H",
+       "RESERVOIR"
+      ]
+     ],
+     "sigma": {
+      "type": "inline",
+      "E": [
+       0.001,
+       1.0,
+       30.0
+      ],
+      "sigma": [
+       1e-16,
+       1e-19,
+       1e-21
+      ],
+      "locator": "pipeline test values"
+     }
+    },
+    {
+     "id": "e + H3O+ -> OH + H + H (test)",
+     "kind": "CAPTURE",
+     "tag": "model_derived",
+     "products": [
+      [
+       "OH",
+       "RESERVOIR"
+      ],
+      [
+       "H",
+       "RESERVOIR"
+      ],
+      [
+       "H",
+       "RESERVOIR"
+      ]
+     ],
+     "sigma": {
+      "type": "inline",
+      "E": [
+       0.001,
+       1.0,
+       30.0
+      ],
+      "sigma": [
+       2e-16,
+       2e-19,
+       2e-21
+      ],
+      "locator": "pipeline test values"
+     }
+    }
+   ]
+  }
+ ]
+}
