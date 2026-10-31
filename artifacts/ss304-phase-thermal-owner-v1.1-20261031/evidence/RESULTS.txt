@@ -1,0 +1,44 @@
+SS304 phase thermal owner v1.1 -- results of record (2026-10-31)
+
+Runtime: /home/treefor/projects/runtimes/ss304-phase-thermal-owner-v1.1-20261031 (README.txt, INTEGRATION.txt,
+DATA-SOURCES.json). Builds and runs through run_owner_v1_1.py inside arch-base-20261028/run-frozen (GCC 16.2.1); CPU
+stages on the lent core 3, GPU stages under both GPU locks on core 6/7. Every run directory holds run-receipt.json.
+
+Labels
+  c2   -O2 -ffp-contract=off -fno-fast-math
+       c2/cpu-regression-113359  test_regression   4 passed, 0 failed
+       c2/cpu-owner-113407       test_owner (v1 suite, v1 mode)   49 passed, 0 failed
+       c2/cpu-law-113407         test_law          200,057 passed, 0 failed
+       c2/cpu-v11-113400         test_v11          26 passed, 0 failed
+       c2/cpu-archs-113350       nvrtc_archs       3 passed (NVRTC 12.8 cubins: sm_86 916,584 B, sm_89 916,456 B,
+                                                    sm_120 1,203,552 B)
+       c2/gpu-parity-113350      test_gpu          11 passed, 0 failed
+  c2s  same sources with -fsanitize=address,undefined (halt on UB): regression 4/0, owner 49/0, law 200,057/0,
+       v11 26/0, GPU parity 10/0 (timing suite not run under ASan); no sanitizer report in any log.
+       c2s/cpu-archs-113432 failed: the sanitized host tool cannot dlopen libnvrtc-builtins through $ORIGIN (the same
+       ASan loader interaction as v1 b2s); the sanitized GPU run sets LD_LIBRARY_PATH and compiles; the plain c2
+       build compiles all three targets.
+  c1, dev: development runs (superseded).
+
+Key numbers
+  regression     v1.1 with options off = v1 bit for bit (E, Fe/Cr/Ni words, flags, ledger words) through 600 steps of
+                 evaporation + loads + deposits, 200 quantized steps, 60 Stefan steps with sub-steps, and a merge
+  pulse heating  law vs Pichler et al. 2020 Table 6 (1800-2800 K): v1.1 H 0.07 %, rho_e 0.04 %, D 0.29 % (the table's
+                 18 kg/m3 offset from its own fit); v1 H 1.8 %, rho_e 4.3 %, D 3.5 %. Owner heated by a uniform Joule
+                 pulse: v1.1 reproduces H(T), rho_e(T) to 1e-15; v1 1.8 %, 4.3 %
+  vapor          1 bar at the JANAF boiling points of Fe, Cr, Ni, Mn, Si within 2.2e-5 decades; gamma_Ni(inf) 0.66 at
+                 1873 K; internal-energy channel: latent heat = JANAF to 3e-16 at every row, E_int >= 0
+  Knudsen        Knight sonic T 0.6691, rho 0.3081, p 0.2062, net 0.8157, recoil 0.5498 p_sat; owner evaporation for
+                 back pressure 0 / 0.6 / 1.5 p_sat: 5.14e7 / 3.62e7 / 0 atoms (ratio = Knight net fraction to 1e-6)
+  Mn             nominal 304 vacuum: Mn share of evaporated atoms 91 % (1700 K), 73 % (2000 K), 16 % (3000 K)
+  melt flow      Poiseuille layer first step 8e-16, Marangoni layer 2e-14 (exact atom words); capillary leveling
+                 6.156684731e-9 vs discrete eigen-rate 6.156684235e-9 (8e-8) and lubrication theory 6.144e-9 (0.2 %)
+  ledger (all v1.1 options, 2 slices, 3000 steps of 10 ps, 2400-3750 K, J x B, back pressures, radiation, Mn
+                 deposits): exact energy and atom ledgers every 100 steps and final; Mn 9.1 % of evaporated atoms
+                 (bulk 1.0 %); max melt speed 427 m/s, max displacement 40 um, max Reynolds 7.1e5 (outside the
+                 lubrication model, README O5); digest 971714da1941164202b93fb2957b9b6e47cc2424b27d0c9f50b8ed940ef58e2c
+  refusals       geometry-departure after 4 steps at 0.002 EM cell; phase-explosion with T_c 4000 K at 3599.93 K
+  GPU            bit identity in v1 mode (200 steps), all v1.1 options (300 steps), quantized + internal energy,
+                 capillary flow with 251 sub-steps; device Merkle = host digest; caller-provided session; full Hall
+                 foil 262,500 cells: 22.3 ms per step GPU, 143 ms CPU, device digest 1.4 ms
+  v1 suite digest of the v1 ledger scenario on v1.1 (v1 mode): e3dc58b774df0567cd5889611f835aa02a47fdf421521cd6463c6bc69ba9e4dd

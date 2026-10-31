@@ -1,0 +1,140 @@
+SS304 phase thermal owner v1 -- integration contract (2026-10-31)
+
+What this component replaces: the Hall thermal owner's heat-v2 slice Couplers (hall_corrective_v3::ThermalV3, evaluated
+solid law 298.2-1500 K, typed refusal beyond 1500 K) and every private metal mass/energy inventory. After integration
+there is one owner of foil metal mass (Fe, Cr, Ni atoms) and condensed-phase energy for all foil slices, valid
+298.2-5000 K through melting into strong vaporization. Nothing here is integrated yet; Hall v3.2 (another worker) and
+the source/native owners are unchanged by this release.
+
+Entry points: source/phase_owner.hpp (namespace ss304_phase_v1: Config, Owner, Trial, StepInput, SurfaceLoad, Deposit,
+Release, Quote, PatchReport, Ledger, PhaseRefusal), source/gpu_engine.hpp (GpuEngine, NVRTC backend on the sealed
+hall-gpu-resident-v1 common/ session). Header-only CPU reference; the GPU engine adds gpu_engine.cpp and the sealed
+common/hall_gpu_common.cpp (link -ldl -lcrypto). Compile with -std=c++20 -O2 -ffp-contract=off -fno-fast-math.
+
+----------------------------------------------------------------------------------------------------------------------
+1. Hall (the version after v3.2)
+
+1.1 Construction (replaces ThermalV3::make_owners)
+    Config c;
+    for k in [g.kshort, g.kfeed) for body in {0, 1}:            // slice index s = 2 (k - kshort) + body, Hall's order
+        c.slices.push_back({body, k, -0.0025, body ? 0.0025 : -0.0027});
+    c.width = 0.005; c.thickness = 0.0002; c.height = g.dz;
+    c.nx_em = lround(0.005 / g.dx); c.ny_em = lround(0.0002 / g.dy); c.rx = 1 (or more for a finer thermal x grid);
+    c.y_edges = graded_rows(0.0002, 0.25e-6, 1.3, 10e-6, c.ny_em);   // 42 rows at ny_em = 1; surface rows 0.25 um
+    c.rho_ref = 8000; c.T0 = 300; c.start_time = Hall start time;
+    c.joule_mode = 1 (sigma-weighted split, parallel axial conductors; 0 reproduces Hall v3's uniform power density);
+    c.evap_mode  = 1 for the first integration (expected HKL flux; the evaporated atoms leave through the ledger as
+                   'escaped metal vapor' without PIC particles), 2 once the native owner releases metal neutrals (1.6);
+    c.patches    = the source owner's patch layout per (slice, face) as fractions tiling [0, 1]; default: one patch
+                   per face (4 per slice).
+    Owner thermal(c)                                   // CPU reference, or
+    Owner thermal(c, std::make_unique<GpuEngine>(GpuOptions{uuid, nvrtc_path}))
+  The GPU engine opens its own hall_gpu::Session on the same device. If Hall's ResidentOwner session must be shared,
+  GpuEngine needs a constructor that borrows a Session& (not built here; the session contract allows one stream per
+  session; two sessions on one device were not exercised).
+
+1.2 Mapping EM foil cells <-> owner EM index
+    Hall cell c with body >= 0, axial index k, field indices (i, j):
+        s  = 2 (k - kshort) + body
+        ie = i - i_foil_begin   (i_foil_begin = first EM column with x >= -0.0025)
+        je = j - j_foil_begin   (first EM row of that foil, y >= y0 of the body)
+        owner index e = thermal.em_index(s, je, ie) = (s ny_em + je) nx_em + ie
+    Build this map once; check that every foil cell maps to exactly one e and back.
+
+1.3 sigma(T) for the field operator (replaces ThermalV3::conductivity)
+    const auto sig = thermal.sigma_em();     // S/m per owner EM cell, accepted state
+    result[c] = sig[e(c)] for foil cells.
+  sigma_em is the volume average of 1/rho_e(T) over the thermal sub-cells (parallel conductors for an axial field).
+  Hall v3 evaluated sigma at the EM cell centre point of a Q1 field; with a uniform temperature both agree to
+  1e-15 (test_owner hall). With a molten surface layer they differ by design.
+
+1.4 One thermal step (replaces ThermalV3::prepare / preflight / commit)
+    StepInput in;
+    in.dt = dt;                                  // any dt; the owner sub-cycles below its explicit stability bound
+    in.em_power_W[e(c)] = field.cell_joule_W[c]  // or in.em_energy_J[e] = accumulated Joule energy (J) of several
+                                                 // field steps (super-cycling; then in.dt = their total duration)
+    in.field_state_sha256 = field_state_hash;
+    for each Hall SurfaceLoad l (wall heat, emission cooling, desorption binding/kinetic/internal, ion impact, certified
+        source exchange):
+        in.loads.push_back({s(l.body, l.slice), l.transfer.x, l.transfer.y, transfer_energy_J(l.transfer),
+                            l.transfer.producer, l.channel, l.transfer.sequence});
+    Trial t = thermal.prepare(in);               // typed PhaseRefusal; accepted state unchanged on refusal
+    ... joint preflight: thermal.preflight(t) ... ; thermal.commit(std::move(t)) inside the all-owner publication.
+  Hall keeps its own exactly-once checks that the owner does not repeat: reserved hall-v3/ producer names, the
+  'no external Joule channel' rule, the surface-transfer flag, and the energy-owner watermark (owner_sequence). The
+  owner enforces strictly increasing sequence per producer across steps and uniqueness within a step.
+  Closure: t.record() carries exact 128-bit words: dE (thermal delta), joule, loads, deposit_E, boundary (0 in
+  production), evap_ref, evap_kin, release_E and per-element atom words; dE = joule + loads + deposit_E + boundary
+  - evap_ref - evap_kin - release_E holds exactly (checked inside prepare; a violation is an implementation defect,
+  std::logic_error). Hall's thermal_delta = Joule + wall + external closure becomes
+        thermal_delta_J = joule + wall + external + metal_return - evaporation_reference - evaporation_kinetic
+                          - release_energy,
+  with the evaporation/release terms as new coordinator ledger columns ('metal vapor reference', 'metal vapor
+  kinetic'). Joule operand check: record.joule (exact sum of the per-EM-cell energies rounded once to 2^-96 J)
+  differs from field.joule_J only by Hall's own summation rounding (keep the 1e-22 + 2e-12 |J| bound).
+  dt_max: Hall's 1e-14 s field step is far below the owner's sub-step bound (24 ps with 0.25 um surface rows), so
+  every Hall step is one sub-step; calling the owner every K field steps with accumulated energies is exact in the
+  ledger and lags sigma(T) by K steps (test_owner supercycle: 10x accumulation, 2e-9 K difference).
+
+1.5 Remove from Hall
+    - ThermalV3::capacity / admit_loads and the 1500 K load-capacity refusals (net-heating-exceeds-capacity etc.):
+      the owner refuses only outside 298.2-5000 K (kinds temperature-above-domain, temperature-below-domain), on
+      depletion (surface-depletion-within-step, column-depleted), invalid or duplicate inputs, and the sub-step
+      budget.
+    - ThermalDeclaration heat-only source patches: replaced by owner patches (Config::patches) and PatchReport.
+    - material_binding(): replace by {"owner": "ss304-phase-thermal-owner-v1", "law_sha256": thermal.law_sha256(),
+      "config_sha256": thermal.config_sha256()} (new configuration identity; the Hall v3 heat digest changes).
+    - heat digest: thermal.state_sha256() (SHA-256 over every state word, ledgers and watermarks). On the GPU
+      engine this downloads the whole state (68 B per cell, 18 MB for the 200 um geometry); per-step sealing needs
+      a device-side Merkle digest like Hall v3.1 k_leaves (not built; open item O7).
+    - max_temperature_K(), energy_J(), save()/load(): owner equivalents with the same names.
+
+1.6 Native metal vapor (evap_mode = 2), when the native owner is ready
+    Per step, before prepare:
+        Quote q = thermal.quote(dt);                 // expected atoms per patch and element over dt at the accepted
+                                                     // state, q.sha256 binds revision, time and dt
+        for each patch p, element i: n = SR(q.expected_atoms[p][i] / w0) with the arrival owner's counter-based
+            draw keyed by (run seed, step, patch, element) -- the approved quantized-release route n = SR(D/w0);
+        the native owner creates n macro neutrals of species Fe/Cr/Ni (weight w0 atoms, positions uniform on the
+            patch, velocities from the flux-weighted half-Maxwellian at q.mean_T[p], IDs from the global allocator)
+            and reports their actual total kinetic energy K;
+        in.releases.push_back({p, i, n, w0, K}); in.quote_sha256 = q.sha256;
+    The owner checks n in {floor, ceil}(D/w0), w0 integer, n w0 < 2^53, one release per (patch, element), the
+    quote digest; splits the atoms over the patch surface cells in proportion to the cell quotes (exact) and debits
+    eps0_i per atom plus the actual K. Returning metal neutrals (first hit on a foil) come back as
+        in.deposits.push_back({s, x, y, element, atoms = w, kinetic_J, producer, sequence});
+    and must then run with Config::law.beta_r = 0 (the 18% Knudsen-layer return of the default is otherwise counted
+    twice). Native changes: three neutral species (masses 55.845, 51.9961, 58.6934 u, charge 0, no reactions until
+    cross sections are added), the release and first-hit-deposit interfaces above, escape ledger columns per element.
+
+----------------------------------------------------------------------------------------------------------------------
+2. Source owner (after v7)
+
+2.1 Temperature view: replace the heat-v2 slice Coupler const view (surface_T of a Q1 field) by
+        thermal.patch_reports()[p].mean_T     (area-weighted surface-cell temperature of the patch)
+    and, where a point value is needed, the surface cell temperature (Owner::temperatures(), cell centre 0.125 um
+    below the surface with the recommended rows). PatchReport also carries max_T, liquid_fraction, melt_depth_m,
+    HKL flux per element, cumulative evaporated atoms and recession.
+2.2 Water desorption law: keep its domain 298.2-3000 K (capped, not extended). Justification (test_law, water
+    survival along linear ramps from 300 K with the source law k = (kT/h) exp(-0.87 (1 - 0.5 theta) eV / kT),
+    theta0 = 1): the remaining fraction at 3000 K is below 1e-347 for ramps up to 1e12 K/s, 1e-48 at 1e13 K/s and
+    4e-6 only at 1e14 K/s (100,000 K/ns). The pilot heated at about 2.5e10 K/s. At 3000 K the law's rate is
+    2.2e12 /s (theta = 0). Rule for the source owner: a patch with nonzero water inventory reported above 3000 K is a
+    typed refusal (it cannot occur below ~1e13 K/s); a sub-w0 quantization residue that the release route leaves
+    must be released or written off explicitly by the source/arrival owners before the patch passes 3000 K.
+    Above the alloy solidus the oxide-surface law is in any case an analytical continuation without data.
+2.3 Electron emission: the sealed emission kernel was exercised for T 0-3000 K (source v6.1 tests). Foil surfaces
+    can now exceed 3000 K, so the emission law needs an extension with evidence or its own typed cap (open, O8).
+2.4 Loads: evaporative cooling is owned here and must not be sent as a source-owner load. Desorption
+    binding/kinetic/internal energies, emission cooling and certified source exchanges stay source-owner loads.
+
+----------------------------------------------------------------------------------------------------------------------
+3. Coordinator ledgers (new columns)
+    metal atoms: initial, deposited, evaporated (expected mode), released (quantized), current -- per element, exact
+    energy: thermal delta, Joule admitted, loads, metal return, evaporation reference (eps0 per atom), evaporation
+    kinetic (2 kT per atom expected, or actual K), boundary (0 in production)
+    Exact closure per step and cumulative: Owner::ledger_closes().
+
+4. Recommended first coupled use
+    evap_mode 1, beta_r 0.18, joule_mode 1, rx 1, rows graded_rows(0.0002, 0.25e-6, 1.3, 10e-6, ny_em), GPU engine for
+    the full foil geometry (CPU reference: about 90 ms per 10 fs step for 2 x 125 slices; GPU timing in RESULTS).

@@ -1,0 +1,54 @@
+{
+ "schema": "ss304-phase-owner-v1.1-run-receipt-v1",
+ "stage": "gpu",
+ "label": "c2s",
+ "name": "parity",
+ "admission": {
+  "stage": "gpu",
+  "core": 6,
+  "nice": 15,
+  "gpu_locks_held": [
+   true,
+   true
+  ],
+  "python": "3.14.8",
+  "frozen_launcher_sha256": "d149ac9c013dd630ca11ba69a6d91b603dd715e0ca3ee41e03e00d51122faa5c",
+  "time_unix": 1793468069.5893824
+ },
+ "binary_sha256": "88305adbdded515325be5d1ce14d622fe8f035b000208b9b0fa5b258198081f6",
+ "build_receipt": "/home/treefor/projects/.workspace/outputs/ss304-phase-thermal-owner-v1.1-20261031/c2s/build/build-receipt.json",
+ "own_sources_unchanged_since_build": true,
+ "sealed_unchanged": true,
+ "environment": {
+  "PATH": "/usr/bin:/bin",
+  "LC_ALL": "C",
+  "OMP_NUM_THREADS": "1",
+  "OPENBLAS_NUM_THREADS": "1",
+  "MKL_NUM_THREADS": "1",
+  "PYTHONNOUSERSITE": "1",
+  "ASAN_OPTIONS": "protect_shadow_gap=0:detect_leaks=0",
+  "UBSAN_OPTIONS": "print_stacktrace=1:halt_on_error=1"
+ },
+ "command": {
+  "name": "parity",
+  "argv": [
+   "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+   "/usr/bin/env",
+   "LD_LIBRARY_PATH=/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/tools/nvrtc/nvidia/cuda_nvrtc/lib",
+   "/home/treefor/projects/runtimes/ss304-phase-thermal-owner-v1.1-20261031/build/c2s/test_gpu",
+   "/home/treefor/projects/.workspace/outputs/ss304-phase-thermal-owner-v1.1-20261031/c2s/gpu-parity-113429",
+   "/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/tools/nvrtc/nvidia/cuda_nvrtc/lib/libnvrtc.so.12",
+   "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9",
+   "v1",
+   "v11",
+   "quantized",
+   "leveling",
+   "merkle",
+   "borrowed"
+  ],
+  "returncode": 0,
+  "elapsed_s": 41.41234049000195,
+  "log": "/home/treefor/projects/.workspace/outputs/ss304-phase-thermal-owner-v1.1-20261031/c2s/gpu-parity-113429/parity.log",
+  "log_sha256": "ecff1bcbf76d3e8472ac4d7d17c3ca5aa084510a5281e540bab8585291d9c7fd"
+ }
+}
