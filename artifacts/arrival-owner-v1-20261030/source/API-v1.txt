@@ -1,0 +1,292 @@
+Arrival / count / RNG / ID owner v1 -- component contract, 2026-10-30
+
+Status: new component for pilot prerequisite H6 (PLAN.md section 2). It decides how
+many newborn macroparticles each source stream produces in an accepted step, their
+exact weights, their random marks, their birth times and their identities, and keeps
+a per-step ledger. It is pure with respect to accepted state except Owner::commit and
+Owner::restore. It changes no sealed component: source owner v5, native candidate005,
+Hall and the shared GPU layer are read in place. Joint integration is held until the
+native birth API (H2) exists; section 8 states what H2 must provide.
+
+Headers (include/pf_arrival/):
+  philox_core.h          Philox4x32-10, stream layout, exact conversions, exact
+                         Bernoulli, stochastic rounding, birth marks. Host C++ and
+                         NVRTC device code from the same bytes.
+  canonical.hpp          canonical binary encoding and SHA-256 (no JSON hashing)
+  arrival_owner.hpp      policy, decisions, births, plan assembly, IDs, staged step,
+                         native receipt check, ledger, owner state and checkpoint
+  source_v5_adapter.hpp  inputs from / outputs to heat/source owner v5
+device/arrival_parity.cu NVRTC parity program (tests only)
+
+1. Build
+C++20, IEEE binary64, -ffp-contract=off, -fno-fast-math. Device: NVRTC through the
+shared GPU layer (hall-gpu-resident-v1-20261030/common), which always adds
+--fmad=false --prec-div=true --prec-sqrt=true --ftz=false and selects the
+architecture from the device. Define PF_ARRIVAL_EXACT_COUNT_HEADER as the existing
+ExactParticleCount header (SHA256 46e01fe22e67cc9deb0da9320edef4041f4b3ef433de8ce1eca484463b405501);
+no other count backend exists here. OpenSSL libcrypto provides SHA-256 (and the
+BIGNUM arithmetic of ExactParticleCount).
+
+2. Random numbers
+2.1 Generator. Philox4x32-10 (Salmon, Moraes, Dror, Shaw, SC11; Random123):
+  round(c, k): (hi0, lo0) = 0xD2511F53 * c0, (hi1, lo1) = 0xCD9E8D57 * c2 (32x32->64),
+               c' = (hi1 ^ c1 ^ k0, lo1, hi0 ^ c3 ^ k1, lo0);
+  10 rounds; before rounds 2..10, k0 += 0x9E3779B9, k1 += 0xBB67AE85 (mod 2^32).
+  Known-answer vectors (Random123 kat_vectors, philox4x32 R=10), counter key -> output:
+   00000000x4 00000000x2 -> 6627e8d5 e169c58d bc57ac4c 9b00dbd8
+   ffffffffx4 ffffffffx2 -> 408f276d 41c83b0e a20bc7c6 6d5451fd
+   243f6a88 85a308d3 13198a2e 03707344 a4093822 299f31d0 -> d16cfe09 94fdcceb 5001e420 24126ea1
+2.2 Stream layout v1. A stream key is (run seed, accepted step index, stream id,
+  candidate index, purpose tag); the word index j is the only other input.
+   key     k0 = seed bits 0..31, k1 = seed bits 32..63
+   counter c0 = block b; c1 = candidate; c2 = stream (bits 0..15) | purpose (bits 16..23)
+           | step bits 32..39 (bits 24..31); c3 = step bits 0..31
+   domain  step < 2^40, stream < 2^16, purpose 1..255, candidate < 2^32, block < 2^32.
+  The map is injective on the domain, so distinct tuples never share a counter.
+  Block b = (w0, w1, w2, w3) gives the 64-bit words R(2b) = w1<<32 | w0 and
+  R(2b+1) = w3<<32 | w2.
+  "Stream id" is the source patch id of the RNG key: a configured u16 per source
+  stream (one source patch exposure or release). "Step" is the accepted step index
+  of the base state (source v5: TrialFrame::accepted_revision, which the source v3
+  BirthSample::count_owner_revision must equal).
+  Purpose tags: 1 count decision (candidate 0), 2 electron marks (candidate = birth
+  index), 3 neutral marks (candidate = leaf index). 0 is invalid; 0xF0..0xFF are for
+  qualification fixtures only.
+  No state is carried between draws: every number is a function of the key tuple and
+  j. Any partition of the births over ranks, threads or devices, and any processing
+  order, therefore produces the same numbers; a nonlinear re-evaluation or a retried
+  step from the same base produces the same draws.
+2.3 Exact conversions (no rounding occurs; integer operand < 2^53, scaling by 2^-53):
+   u01_open(R)      = (2*floor(R/2^12) + 1) * 2^-53        in the OPEN interval (0,1):
+                      2^52 equally likely values 2^-53 ... 1 - 2^-53, symmetric under
+                      u -> 1 - u (u01_open(~R) = 1 - u01_open(R)), mean exactly 1/2.
+   u01_half_open(R) = floor(R/2^11) * 2^-53                in [0, 1 - 2^-53]
+                      (2^53 values; provided, not used by policy v1).
+  The source kernels require open uniforms (micro_layer.cpp: un, ut, ua in (0,1);
+  heat-v2 Draw: all six in (0,1); v3 time_uniform in (0,1)); policy v1 uses u01_open
+  for every mark.
+2.4 Exact Bernoulli(p), binary64 p in [0,1): with U = 0.R(0)R(1)R(2)... in base 2^64,
+  return 1 iff U < p. Every bit of p lies in 2^-1..2^-1074, so p * 2^1088 is an
+  integer of 17 base-2^64 digits; digits are compared most significant first and the
+  first unequal digit decides; if all 17 are equal, U >= p. Hence P(1) = p exactly
+  (no 2^-53 resolution limit; a p of 1e-300 has probability exactly 1e-300 as a
+  binary64 value). Expected words consumed: 1 + O(2^-64).
+2.5 Stochastic rounding SR(x), binary64 x in [0, 2^52): n = floor(x) (exact
+  conversion), f = x - n (exact: equals x for n = 0, Sterbenz for n >= 1),
+  SR(x) = n + Bernoulli(f) on words R(0..16) of the count stream. E[SR(x)] = x exactly
+  for the binary64 x; Var = f(1 - f).
+2.6 Marks. Electron birth k: R(0..3) of (seed, step, stream, k, 2) ->
+  normal_uniform, transverse_uniform, azimuth_uniform, time_uniform. Neutral leaf k:
+  R(0..5) of (seed, step, stream, k, 3) -> Draw{normal, radius, angle, along, z, time}.
+2.7 Host and device compile philox_core.h unchanged; it uses only 32/64-bit integer
+  arithmetic, one exact integer-to-binary64 conversion and one multiplication by a
+  power of two, so both produce identical bits (measured in section 9).
+
+3. Arrival policy pf-arrival-policy-v1 (part of the configuration identity)
+3.1 Configuration: run_seed (u64); streams {stream_id < 2^16 unique, kind electron |
+  neutral, source patch index < 256, native species state, target weight w0 (positive
+  NORMAL binary64), maximum births per step 1..4096}; per-step totals: electron births
+  <= 1..4096, neutral leaves <= 1..4096 (source v5 caps: 4096 candidates, 4096 leaves
+  per patch and in total). At most one neutral stream per source patch (source v5
+  releases one exact debit per patch and step). Several electron streams may share a
+  patch (several exposures/quadrature points).
+  Configuration identity = SHA-256 of the canonical record "pf-arrival-configuration-v1"
+  (policy version, RNG version string "philox4x32-10/stream-layout-v1/u01-open-52/
+  bernoulli-exact-17x64/stochastic-round-v1", electron and neutral time-law tags, ID
+  namespace "arrival-v1", seed, caps, every stream field in stream-id order).
+  Bind Policy::sampling_policy_identity() = "pf-arrival-owner-v1/<identity>" as source
+  v5 SourceSettings::sampling_policy_identity: the source configuration signature,
+  exposure keys and candidates then bind this exact arrival configuration.
+3.2 Electron stream (input: source v5 PreparedPatch expected_number N,
+  log_expected_number L, its v3 Exposure begin/duration, the frame end):
+   refuse N nonfinite/negative, L flagged but nonfinite, or finite L with N = 0
+   (an unrepresented positive count; source v4/v5 refuse it as well);
+   N = 0 without a log: exact zero, no births, no draw;
+   x = fl(N / w0); refuse if x > per-stream cap (log scope L - log w0);
+   n = SR(x) on the count stream; n births of weight exactly w0;
+   debit = n * w0 exactly (ExactParticleCount, credited n times).
+  E[n w0] = x w0, which equals N up to the one division rounding (<= 2^-53 relative)
+  on top of source v5's admitted scalar error (<= 2^-40 relative to exp(L)-defined N).
+  N is used rather than exp(L) because source v5 has already admitted N within 2^-40
+  of the finite-log count, and a division is portable (no libm in the count path).
+3.3 Neutral stream (input: source v5 ReleaseQuote released (exact Count D), its
+  log, Owner::inventory(patch) (exact), the step clock):
+   refuse D with more than one positive carrier (v1 partitions one binary64 value;
+   source v5 quotes are Count(binary64)); refuse D above the exact inventory;
+   D = 0: no leaves, no draw;
+   x = fl(d / w0) for d the binary64 value of D; refuse if x > per-stream cap;
+   r = SR(x); target = max(1, r) (floor rule: a positive debit needs at least one
+   leaf; the physical total is exactly D whatever the count);
+   write d = M 2^E exactly (normal: M = 2^52 + mantissa, E = biased exponent - 1075;
+   subnormal: M = mantissa, E = -1074);
+   merge rule: births n = min(target, M) (at most M leaves of one quantum 2^E);
+   leaf k (0 <= k < n) has weight (floor(M/n) + [k < M mod n]) * 2^E.
+  Every leaf is an integer < 2^53 times 2^E with E >= -1074, hence an exact binary64;
+  the leaves sum to M 2^E = D exactly; they differ by at most one quantum.
+  The merge rule cannot trigger in v1: if d is subnormal then x = d / w0 < 1 because
+  w0 >= 2^-1022, so target = 1 <= M; if d is normal then M >= 2^52 > 4096 >= target.
+  An exact partition into the target count therefore always exists; the ledger flag
+  "merged" is recorded and is false in every qualification case. The only
+  non-representable debits are multi-carrier debits, which are refused.
+3.4 Per-step totals are checked after the draws (deterministic): refusal step-cap.
+  Every refusal is typed (RefusalKind: configuration, step-index, stream-input,
+  expected-count, macroparticle-cap, step-cap, debit-representation, inventory, clock,
+  id-space, stale, native-receipt, checkpoint, incomplete) with quantity, identity
+  (step/stream/birth), log scope where meaningful, observed and reference values; it
+  refuses the whole step proposal and leaves the owner unchanged.
+3.5 Birth times and remaining flight.
+  Electrons (time law uniform-held-exposure-v1): tau = fl(begin + fl(u_time *
+  duration)), the same binary64 expression as source v3 BirthTime::UniformHeldExposure,
+  so the source candidate's birth event time equals tau bit for bit; tau lies in
+  [begin, fl(begin + duration)]; remaining flight = fl(end - tau) (exact by Sterbenz
+  for the pilot clock). The source layer carries the electron from tau (Active layer,
+  advance_birth over end - tau) or hands it off.
+  Neutrals: the release time is source physics (source v5 conditional release-time
+  law from Draw.time); it is read back from the source v5 Trial packets
+  (source_v5_adapter.hpp neutral_times) and bound with Staged::bind_source_times,
+  which requires begin <= t <= end; remaining flight = fl(end - t).
+3.6 Emission energy, angle and position are NOT sampled here: the electron marks go
+  to Owner::begin_source (source v1 emission law: normal-energy CDF, transverse
+  quantile, azimuth); the neutral Draw goes to Owner::prepare (heat-v2 neutral
+  velocity distribution, position along the patch, release time).
+
+4. Plans and partitioned evaluation
+  decide(policy, step, input) is a pure function per stream; evaluate_birth(policy,
+  decision, k) is a pure function per birth; assemble(policy, step, decisions,
+  births in any order) sorts births into canonical order (stream id, index),
+  re-verifies coverage (each (stream, k < n) exactly once), the exact sum of every
+  stream's leaves against its debit, and the per-step caps, and forms the plan.
+  StepPlan::encode() is the canonical record "pf-arrival-plan-v1"; its SHA-256 is the
+  plan identity. Workers may evaluate any subset of births with only the policy and
+  the step input; the merged plan is byte-identical to the serial plan.
+
+5. Identities
+5.1 Birth key (step, stream id, index) is unique by construction (one accepted step
+  index per step, unique stream ids, indices 0..n-1).
+5.2 Logical native packet ID: "arrival-v1/s<step>/p<stream>/k<index>" (decimal, no
+  leading zeros) -- an injective text form of the birth key in the reserved namespace
+  "arrival-v1/". Existing producers use other names (authored genesis packets;
+  chemistry products "conditional/native-parent/<n>[/secondary|/ion|/unscattered-
+  primary]").
+5.3 Canonical order of one step: ascending stream id, then index. rank r = position.
+5.4 Global birth ordinal = Owner::next_ordinal + r (contiguous from 0 over the run);
+  source v3 BirthSample::event_id = ordinal + 1.
+5.5 Native ID = B_s + r, where B_s is native's next native ID at the birth insertion
+  point of step s. Native IDs are issued only by native's one monotone counter
+  (genesis carriers in supply order, reaction products, and -- with H2 -- the birth
+  block), never reused. The birth block [B_s, B_s + n_s) is issued by advancing the
+  counter from B_s, so it cannot collide with any earlier ID (all < B_s) or later ID
+  (all >= B_s + n_s); within the block, ranks are distinct. Each leaf weight is one
+  binary64, i.e. exactly one positive carrier of its ExactParticleCount, so one
+  logical packet = one native carrier = one native ID (as in genesis).
+  Native keeps carriers in ascending native ID order, so the census lists a step's
+  births contiguously in canonical order; neither B_s nor r depends on rank count,
+  worker partition or evaluation order.
+  Source v3 BirthSample::canonical_particle_id = native ID (the one canonical
+  electron of the prospective arena; source v5 keys its Active layers by it).
+5.6 Staging: Owner::stage(plan, B_s) fills ordinal and native ID of every birth and
+  forms the staged token SHA-256("pf-arrival-staged-v1", owner state digest, plan
+  digest, B_s, first ordinal) = BirthSample::count_owner_token; the owner state digest
+  = BirthSample::count_owner_base_hash. Refusal id-space if B_s = 0 or B_s + n_s >
+  2^64 - 1, or ordinal exhaustion.
+5.7 Commit: Owner::commit(staged, NativeBirthReceipt{base, next_id_after, entries})
+  requires the staged step to bind the current accepted owner (stale otherwise),
+  every birth time bound (incomplete otherwise), base = B_s, next_id_after = B_s + n_s,
+  and entry k = (packet ID, species state, native ID B_s + k, weight bits) of the k-th
+  canonical birth (native-receipt otherwise). Steps are strictly consecutive
+  (step-index otherwise); every accepted step is committed, with or without births.
+5.8 Checkpoint (small, size independent of history): Owner::save() =
+  "pf-arrival-owner-checkpoint-v1" { state record "pf-arrival-owner-state-v1":
+  configuration identity, next step, next ordinal, last anchor {flag, step, B_s, n_s,
+  first ordinal}, ledger chain head, per stream {id, exact expected sum, exact sampled
+  sum, births, steps, merges, floors, binary64 variance sum} } + SHA-256 trailer.
+  Owner::restore(policy, bytes) refuses foreign configuration, any byte change,
+  truncation, trailing bytes, noncanonical counts or bools, and an anchor
+  inconsistent with the ordinal counter. The native next ID is native state; on a
+  joint restart the coordinator restores both and the next B_s is read from native.
+
+6. Ledger (canonical binary, SHA-256 chained; no JSON hashing)
+  Genesis head = SHA-256("pf-arrival-ledger-genesis-v1", configuration identity,
+  first step). Per committed step the record "pf-arrival-ledger-step-v1": configuration
+  identity, previous head, step, plan digest, staged token, B_s, n_s, first ordinal,
+  electron births, neutral leaves, every decision (stream, kind, patch, expected,
+  log expected, has-log, w0, x, SR result, target, births, merged, floored, M, E,
+  exact debit carriers, exact inventory-before carriers, exposure/step clock), and the
+  SHA-256 of the birth rows "pf-arrival-birth-rows-v1" (per birth: step, stream,
+  index, kind, weight, six marks, time, remaining flight, packet ID, ordinal, native
+  ID). New head = SHA-256("pf-arrival-ledger-chain-v1", previous head, record digest).
+  chain(genesis_head, records) recomputes and verifies the chain.
+  Sampled versus expected: each record holds N (or D), x, n and the exact debit; the
+  owner keeps exact running sums of expected and sampled per stream and the sum of
+  f(1-f), so (sampled - expected)/(w0 sqrt(sum f(1-f))) is the running standardized
+  deviation of a stream. RefusalLog keeps refused attempts in a separate chain
+  ("pf-arrival-refusal-v1"); it is diagnostic and never part of accepted state.
+
+7. Source owner v5 adapter (source_v5_adapter.hpp)
+  electron_input(stream, PreparedPatch, Exposure, frame end) -> ElectronExposure;
+  neutral_input(policy, stream, ReleaseQuote, Owner, Epoch) -> NeutralRelease;
+  neutral_leaves(staged, patches) -> per patch NeutralLeaf{weight, Draw} lists for
+  Owner::prepare; birth_sample(staged, birth, PreparedPatch, accepted revision) ->
+  v3::BirthSample (weight w0, marks, UniformHeldExposure, event_id = ordinal + 1,
+  canonical_particle_id = native ID, count-owner revision/base hash/token,
+  StagedCanonicalOwner); neutral_times(Trial, staged, stream, source patch id).
+  Source v5 re-checks the leaf sum exactly ("v5 exact newborn leaf sum differs from
+  exact source debit") and may refuse tiny leaves typed (G1 weighted representation);
+  such refusals are source outcomes and refuse the step.
+
+8. What the native birth API (H2) must provide to consume this owner
+  a. The prospective next native ID B_s at the birth insertion point of a step,
+     fixed for every nonlinear re-evaluation of that step (after the first-exposure
+     reaction products, before motion), readable before source preparation.
+  b. A birth credit that takes the staged births in canonical order and creates, per
+     birth, one logical packet (ID "arrival-v1/s<step>/p<stream>/k<index>", species
+     state, origin naming the source event) with count = Count(weight) (one positive
+     carrier), assigning native IDs B_s, B_s+1, ... in that order from its one monotone
+     counter; it refuses any other order, a duplicate or foreign ID, a packet ID in the
+     reserved "arrival-v1/" namespace from any other producer, and ID exhaustion.
+  c. Per birth: position and proper velocity from the source owner (electron: source
+     layer state / handoff endpoint; neutral: source v5 packet x and
+     proper_velocity_m_s), physical birth time tau and remaining flight end - tau, so
+     the motion of a newborn covers only [tau, end] (an Active source electron is in
+     the prospective census but excluded from ordinary motion until handoff).
+  d. One exact ExactParticleCount equality per stream at its common barrier: native
+     credit (sum of the births' carriers) = source debit (neutral: ReleaseQuote
+     released = source v5 Trial inventory decrease; electron: n * w0 = sum of the
+     source candidates' weights), and an open common predicate that admits the source
+     digest change (V3 accepts_closed_step currently requires an unchanged source).
+  e. A receipt NativeBirthReceipt{B_s, next ID after the block, entries (packet ID,
+     state, native ID, weight) in ascending native ID} for Owner::commit, and a native
+     journal row binding the staged token, the plan digest, B_s and n_s (so the native
+     history and the arrival ledger cross-reference each other).
+  f. Restart: the native next ID is checkpointed by native; the arrival owner
+     checkpoint (section 5.8) is restored alongside; B_s of the next step is read from
+     native.
+
+9. Qualification
+  RESULTS.txt (receipts: /home/treefor/projects/.workspace/outputs/pic-arrival-owner-v1-20261030/final/):
+  Philox known-answer vectors, host/device bit parity (1,048,576 records, 19.9M values,
+  0 mismatches), order/partition independence (1, 2, 3, 5, 8 chunks), exact debit sweeps
+  (pure and through source v5 Owner::prepare / begin_source), stochastic-rounding
+  unbiasedness with stated confidence, refusal cases, native census mapping (native v5
+  genesis), normal and ASan/UBSan builds, independent exact oracle.
+
+10. Limits
+  - Source v5 releases a positive exact debit every step while its stock and hazard
+    are positive; the floor rule then creates at least one neutral leaf per active
+    patch and step, even when D << w0. A long run at a low release rate therefore
+    grows the population by about one neutral per patch-step (input to H7 merge
+    policy, or a source version that releases in w0-sized Bernoulli quanta).
+  - Debits whose leaves are too small for source v5 (G1 weighted representation, about
+    D < 1e-280 in the qualification fixture) are refused by source v5; the arrival
+    owner cannot change the debit.
+  - Electron count noise is the stochastic-rounding variance f(1-f) per stream-step
+    (minimum-variance unbiased integer), not Poisson shot noise; v1 does not model the
+    physical emission statistics.
+  - The electron count uses the binary64 scalar N (admitted by source v5 within 2^-40
+    of its finite-log value); the finite log is recorded in the ledger only.
+  - Ordering of births relative to reaction products in the native counter is fixed
+    by H2 (a); this owner only requires that B_s be read from native.
+  - Sealed heat engine (observed, outside arrival scope): neutral releases of about 5e21
+    molecules and more per 1.25e-4 m2 patch-step are refused untyped by the heat engine;
+    a stock of 1e200 aborts the process in MFEM CGSolver::Mult instead of refusing
+    (RESULTS.txt item 6).

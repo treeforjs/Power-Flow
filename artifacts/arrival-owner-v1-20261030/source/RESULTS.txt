@@ -1,0 +1,90 @@
+Arrival owner v1 -- qualification results, 2026-10-30
+
+Run: label "final", receipts in /home/treefor/projects/.workspace/outputs/pic-arrival-owner-v1-20261030/final/
+(receipt.json: every command, lease wrapper, return code, log SHA-256, binary SHA-256 and the prerequisite
+hashes verified before each stage: ExactParticleCount 46e01fe2..., source v5 seal c055b523... (23 files,
+source identity 38aacb38...), native v5 archive 715729114e... (identity cca72822...), shared GPU layer
+files, NVRTC library). Builds under both-cores.sh, CPU runs under any-core.sh --wait (cores 6/7, nice 15,
+one thread, CUDA_VISIBLE_DEVICES empty), GPU runs holding testing-gpu.lock and the device lock; all inside
+run-frozen (GCC 16.2.1). Normal builds -O2; sanitized builds -O1 -fsanitize=address,undefined
+-fno-sanitize-recover=all. Core targets compile with -Wall -Wextra -Wpedantic -Werror.
+
+1. test_core (normal and ASan/UBSan): 17,109,559 checks, PASS; result files identical apart from wall time.
+   - Philox4x32-10: the 3 Random123 known-answer vectors match (all 12 words).
+   - Stream layout: block = Philox(documented counter, key); counter injective over 540 edge tuples.
+   - Conversions: 200,000 random words: u01_open in (0,1) on the exact odd lattice (2k+1)2^-53,
+     symmetric u01_open(~R) = 1 - u01_open(R); u01_half_open on k 2^-53; edges 2^-53 and 1 - 2^-53.
+   - Exact Bernoulli: 17 digits reproduce p * 2^1088 exactly (BIGNUM) for 6,012 values incl. subnormals;
+     108,216 digit-comparison cases with injected words matching p for 0..17 leading digits equal the
+     definition U < p.
+   - Stochastic rounding, 4,194,304 draws per x, |z| <= 5 each (8 values; family-wise false-alarm
+     probability <= 4.6e-6, confidence >= 99.9995 %): z = 0.52 (0.5), 1.51 (0.3), -0.37 (0.999),
+     0.03 (1e-4), 1.42 (1.25), 1.67 (7.875), 0.50 (4095.4), 1.18 (0.0625); integers reproduced exactly.
+     u01_open: 256-bin chi-square 246.2 <= 377.2 (1 - 1e-6 quantile), mean z = 0.18 (4,194,304 draws).
+   - Exact debit sweeps: 4,132 neutral debits from 2^-1074 to DBL_MAX (structured + 4,000 random) with
+     x = D/w0 in [1e-9, 4096]: leaves sum exactly to D (ExactParticleCount), one native carrier per leaf,
+     leaves differ by at most one quantum; floor rule exercised 360 times; merge rule never triggered
+     (proved unreachable, API-v1.txt 3.3); 2,109 electron cases from N = 1e-300 to 1e300: n = SR(N/w0),
+     weight w0, debit = n w0 exactly, birth times inside the exposure; above-cap cases refused.
+   - Order/partition independence: 6 steps (incl. step 2^39 + 5) x chunk counts 1, 2, 3, 5, 8 x 3 random
+     shuffles/uneven splits (90 comparisons) and reversed input order: plan bytes, plan digest, ordinals,
+     native IDs, packet IDs and staged tokens identical to the serial plan; missing/duplicated/altered
+     births refused.
+   - Multi-step owner (40 steps, mock native counter with genesis carriers and reaction products
+     interleaved): ledger heads and state digests identical for 1, 2, 3, 5, 8 workers; chain recomputes
+     from genesis; an altered record is detected; 67,732 unique packet IDs/ordinals, ordinals contiguous;
+     checkpoint after 20 steps is 912 bytes, restore + 20 more steps reproduces the uninterrupted head
+     dbff98ca55cb5b1a5918963ee934c90700c934a033598b60e3d86ec234341a74; corrupted (3 positions),
+     truncated, trailing-byte and foreign-configuration checkpoints refused.
+   - Refusals (typed, owner state unchanged): 12 configuration cases, 17 decision cases (NaN/negative
+     count, finite log with zero scalar, NaN log, two per-stream caps, unknown stream, two kind mismatches,
+     step >= 2^40, two clock cases, multi-carrier debit, debit above inventory, neutral cap, per-step cap,
+     duplicate stream), 12 staging/commit cases
+     (skipped/replayed step, native base 0, ID exhaustion, unbound times, receipt base/order/weight/
+     species/next-ID/missing entry, source time outside the step) recorded in the refusal log, and a stale
+     staged step.
+   Outputs: core-*/core-results.json, checkpoint-step-120.bin, ledger-steps-100-139.bin, oracle-input.json.
+
+2. oracle.py (independent Python integers/Fractions from the written spec): 12,703 checks, PASS --
+   known answers, 2,000 key records (block words, 4 electron + 6 neutral marks, SR), 400 neutral
+   partitions (count, weights, exact Fraction sum = D), 300 electron counts.
+
+3. gpu_parity (RTX 3080 Ti GPU-a7b9b458..., cc 8.6, NVRTC 12.8 cubin sm_86, options --fmad=false
+   --prec-div=true --prec-sqrt=true --ftz=false --std=c++17, header bytes embedded at build time,
+   SHA-256 eec776fc... = include/pf_arrival/philox_core.h): 1,048,576 key records (domain edges included),
+   19,922,944 values compared per run (4.19M Philox words, 3.15M conversions, 4.19M electron marks,
+   6.29M neutral marks, 1.05M stochastic roundings over 8 input classes incl. subnormals, 1.05M exact
+   Bernoulli draws): 0 mismatches; 2 fresh processes x 3 in-process repeats identical; kernel 0.24 ms
+   per 1M records (host reference 69 ms); clean teardown (released, not quarantined).
+
+4. test_source_v5 against the sealed source owner v5 (normal and ASan/UBSan): 60,961 checks, PASS;
+   identical outcome digest 44f311388205afa528fb19dfce90c21304521b9c1fc27bd81d7f411df5cee381.
+   - Neutral: 13 stocks (1e-300 .. 1e20) x 3 hazards (full, 0.63, 1e-6 release) x 5 targets, plus cap
+     cases and 3 committed steps: 177 releases admitted by Owner::prepare (debits 6.3e-281 .. 1e20,
+     38,613 leaves, up to 4,096 per patch) with source inventory after = before - D exactly, packet
+     weights = leaves bit for bit and summing exactly to the quote, release times inside the step;
+     21 releases (debits 1e-306 .. 1e-280, leaf weights <= 1e-283) refused by typed source v5 G1
+     refusals (neutral kinetic J, wall support impulse x/y); admitted leaves down to 1.7e-282;
+     1 arrival cap refusal (x = 5000); the exact leaf-sum guard of
+     source v5 never refused. Arrival step index follows the source accepted revision across commits.
+   - Electrons: fields 1e8, 1e9, 3e9 V/m at 1500 K, area fractions 1 .. 1e-300, targets x = 0.4 .. 1000.5:
+     expected counts 1.4e-280 .. 1.09e8 per step; 4,285 births through Owner::begin_source (up to 1,001 per
+     stream), each with canonical ID = native ID, the arrival marks and count-owner token/base hash
+     retained, weight w0, birth event time = arrival tau bit for bit, remaining flight = frame end -
+     layer time; continuation over the remaining flight reaches the step end; weights sum exactly to
+     n w0; 29 births refused typed by source v5 (G1 at w0 ~ 1e-281); 3 exposures refused typed
+     (exposure scalar, area fraction 1e-300).
+   - The arrival configuration identity changes the source configuration signature.
+
+5. test_native_census against native v5 (libpic_native_v5.a, genesis path; normal and ASan/UBSan):
+   679 checks, PASS; identical native state prefix 50e399b3... 135 births of 4 streams supplied after
+   2 pre-existing carriers: one carrier per leaf, native IDs 3..137 = base + canonical rank, census
+   packet IDs/species/weights equal the staged births, the receipt is accepted by Owner::commit; a
+   shuffled supply order produces a different numbering and is refused (native-receipt).
+
+6. Probe of large neutral stocks against sealed source v5 (recorded, not gated): releases of about
+   5e21 molecules and more per 1.25e-4 m2 patch-step are refused by the heat engine untyped ("thermal
+   step outside phase/data domain or Newton stagnation"); a stock of 1e200 makes the process exit inside
+   MFEM CGSolver::Mult (IsFinite verification, exit code 134) instead of refusing. Both are sealed
+   heat-engine behaviour outside arrival scope; the abort is a defect to fix in the source/heat version
+   that implements H5.
