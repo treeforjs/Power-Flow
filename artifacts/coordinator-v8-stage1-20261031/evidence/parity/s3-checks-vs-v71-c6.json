@@ -1,0 +1,71 @@
+{
+ "mode": "checks",
+ "reference": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v7.1-20261031/c6-checks-cpu",
+ "candidate": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v8-20261031/s3-checks-cpu",
+ "cases_reference": 48,
+ "cases_candidate": 48,
+ "passed_reference": 48,
+ "passed_candidate": 48,
+ "reference_cases_first_same_names_and_outcomes": false,
+ "evidence_differences": [
+  {
+   "test": "T6",
+   "name": "genesis time other than the first C19 knot refuses",
+   "differences": {
+    "refusal": [
+     "coordinator v7.1: genesis time differs from the first supported C19 knot",
+     "coordinator v8: genesis time differs from the first supported C19 knot"
+    ]
+   }
+  },
+  {
+   "test": "T6",
+   "name": "a missing foil-slice source owner refuses",
+   "differences": {
+    "refusal": [
+     "coordinator v7.1: one source owner per Hall foil slice",
+     "coordinator v8: one source owner per Hall foil slice"
+    ]
+   }
+  },
+  {
+   "test": "spot",
+   "name": "the coupled step refuses dt above the unchanged 10 fs guard",
+   "differences": {
+    "refusal": [
+     "coordinator v7.1: dt within the configured step cap",
+     "coordinator v8: dt within the configured step cap"
+    ]
+   }
+  },
+  {
+   "test": "V7",
+   "name": "prepare refuses dt above a configured cap of 5 fs and a configured cap above the field owner maximum, owners unchanged",
+   "differences": {
+    "refusal_cap": [
+     "coordinator v7.1: configured step cap within the field owner maximum",
+     "coordinator v8: configured step cap within the field owner maximum"
+    ],
+    "refusal_dt": [
+     "coordinator v7.1: dt within the configured step cap",
+     "coordinator v8: dt within the configured step cap"
+    ]
+   }
+  },
+  {
+   "test": "V7.1",
+   "name": "binding pair hall-v3.2+native-v7",
+   "differences": {
+    "hall": [
+     "v3.2",
+     "v3.3"
+    ],
+    "native": [
+     "v7",
+     "v7.1"
+    ]
+   }
+  }
+ ],
+ "new_cases": []
+}

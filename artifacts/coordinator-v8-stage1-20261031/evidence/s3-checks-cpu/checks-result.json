@@ -1,0 +1,428 @@
+{
+ "cases": [
+  {
+   "evidence": {
+    "census": 429,
+    "electron_births": 43,
+    "h2o_births": 42,
+    "parent_events": 0,
+    "sinks": 10
+   },
+   "name": "positive coupled step published (births, motion, sinks, exposures)",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "allocations": 0
+   },
+   "name": "zero allocations between the first and last swap",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {},
+   "name": "accepted owners changed by the step",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {},
+   "name": "a second step prepares and preflights",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {},
+   "name": "no legacy native solve/advance call",
+   "passed": true,
+   "test": "T1"
+  },
+  {
+   "evidence": {
+    "refusal_point": 7
+   },
+   "name": "foreign source transition seal: refused, every owner unchanged",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "refusal_point": 4
+   },
+   "name": "Hall proposal of a twin owner set (dt/2): refused, every owner unchanged",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "refusal_point": 8
+   },
+   "name": "source trial of a twin source owner: refused, every owner unchanged",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "refusal_point": 7
+   },
+   "name": "arrival staging of a twin arrival owner with another run seed: refused, every owner unchanged",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "refusal_point": 2
+   },
+   "name": "native token of a twin arena: refused, every owner unchanged",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "refusal_point": 104
+   },
+   "name": "live source owner state differs from the accepted record: refused, owners unchanged",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {},
+   "name": "after every refusal the unmutated step publishes the T1 reference state bit for bit",
+   "passed": true,
+   "test": "T2"
+  },
+  {
+   "evidence": {
+    "passed_points": 12
+   },
+   "name": "every preparation fault point refuses with every owner unchanged",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "passed_points": 10
+   },
+   "name": "every can_publish fault point refuses with every owner unchanged",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {},
+   "name": "after the fault sweep a fresh step reproduces the T1 reference",
+   "passed": true,
+   "test": "T3"
+  },
+  {
+   "evidence": {
+    "refusal": "full-time outer requires accepted full-time boundary"
+   },
+   "name": "a second concurrent step preparation (sibling outer reservation) refuses, owners unchanged",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {},
+   "name": "a moved-from trial refuses",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {},
+   "name": "the trial publishes once; a second publication refuses with owners unchanged",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {},
+   "name": "the published state is the T1 reference",
+   "passed": true,
+   "test": "T4"
+  },
+  {
+   "evidence": {
+    "refusal": "absolute Gauss constraint disagrees with actual declared charge: node=7382 defect_C=2.7236980285326902e-20 bound_C=1.7359249942890829e-23 field_activity_C=4.7036488322694674e-13",
+    "stage": 4
+   },
+   "name": "a lone electron (no compensating charge) refuses (absolute Gauss)",
+   "passed": true,
+   "test": "T6"
+  },
+  {
+   "evidence": {
+    "refusal": "coordinator v8: genesis time differs from the first supported C19 knot",
+    "stage": 1
+   },
+   "name": "genesis time other than the first C19 knot refuses",
+   "passed": true,
+   "test": "T6"
+  },
+  {
+   "evidence": {
+    "refusal": "initial/restored net charge differs from actual canonical carriers",
+    "stage": 4
+   },
+   "name": "a declared gross charge that differs from the census refuses",
+   "passed": true,
+   "test": "T6"
+  },
+  {
+   "evidence": {
+    "refusal": "coordinator v8: one source owner per Hall foil slice",
+    "stage": 1
+   },
+   "name": "a missing foil-slice source owner refuses",
+   "passed": true,
+   "test": "T6"
+  },
+  {
+   "evidence": {
+    "refusal": "electrode heat: v6 thermal view is not the declared heat-only slice of this source configuration",
+    "stage": 4
+   },
+   "name": "a source patch not declared on the Hall thermal owner refuses",
+   "passed": true,
+   "test": "T6"
+  },
+  {
+   "evidence": {
+    "refusal": "genesis packet ID in the reserved arrival-v1/ namespace",
+    "stage": 7
+   },
+   "name": "an authored packet in the reserved arrival namespace refuses",
+   "passed": true,
+   "test": "T6"
+  },
+  {
+   "evidence": {
+    "refusal": "electrode heat: v6 quantized release: every neutral leaf has weight exactly w0"
+   },
+   "name": "source v6 refuses a neutral leaf whose weight is not w0",
+   "passed": true,
+   "test": "spot"
+  },
+  {
+   "evidence": {
+    "refusal": "arrival owner v1.1 refusal: kind=step-index; quantity=accepted step index; identity=step=1; the next accepted step is 0; whole step proposal refused"
+   },
+   "name": "arrival v1.1 refuses a plan for another than the next accepted step",
+   "passed": true,
+   "test": "spot"
+  },
+  {
+   "evidence": {
+    "refusal": "field-only publication requires an empty actual census"
+   },
+   "name": "Hall refuses a field-only (vacuum) step while carriers are present",
+   "passed": true,
+   "test": "spot"
+  },
+  {
+   "evidence": {
+    "refusal": "coordinator v8: dt within the configured step cap"
+   },
+   "name": "the coupled step refuses dt above the unchanged 10 fs guard",
+   "passed": true,
+   "test": "spot"
+  },
+  {
+   "evidence": {},
+   "name": "every spot-check refusal left every owner unchanged",
+   "passed": true,
+   "test": "spot"
+  },
+  {
+   "evidence": {},
+   "name": "after the spot checks a fresh step reproduces the T1 reference",
+   "passed": true,
+   "test": "spot"
+  },
+  {
+   "evidence": {
+    "v6": 1,
+    "v7": 1
+   },
+   "name": "predicate v7 admits the 10 fs step and agrees with the V3/native-v6 predicate",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {
+    "refusal_point": 7,
+    "v6": 0,
+    "v7": 0
+   },
+   "name": "foreign source seal: both predicates refuse, owners unchanged",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {
+    "refusal_point": 7,
+    "v6": 1,
+    "v7": 0
+   },
+   "name": "a step whose dt differs from the controller decision by one ulp is refused by predicate v7, owners unchanged",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {
+    "refusal_point": 7
+   },
+   "name": "a step clock with a cap above the field owner maximum is refused by predicate v7, owners unchanged",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {
+    "refusal_point": 7
+   },
+   "name": "a step clock without a decision digest is refused by predicate v7, owners unchanged",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {
+    "refusal_cap": "coordinator v8: configured step cap within the field owner maximum",
+    "refusal_dt": "coordinator v8: dt within the configured step cap"
+   },
+   "name": "prepare refuses dt above a configured cap of 5 fs and a configured cap above the field owner maximum, owners unchanged",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {
+    "equal": 4,
+    "predicate_evaluations_compared": 4,
+    "time_s": 7.498007665461271e-10
+   },
+   "name": "steps of 9.17 fs (rung 3) and 5 fs (rung 8) publish under predicate v7 (V3 predicate agrees)",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {},
+   "name": "dt ladder: rung 0 is the particle cap bit for bit, rung 8 half of it, rung -8 twice it, strictly decreasing; with a 100 fs cap the top rung is the largest rung below the cap",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {
+    "refusal": "manufactured step-size refusal: motion full-census plasma guard"
+   },
+   "name": "a step-size refusal after the Hall proposal is classified as a step-size guard and leaves every owner unchanged",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {},
+   "name": "the retried step (5 fs) equals a direct 5 fs step from the same state bit for bit",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {},
+   "name": "a non-step-size fault is not retried",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {
+    "charged": 1268,
+    "criterion": "plasma",
+    "partitions": [
+     {
+      "dt_s": "0x1.4a62b1ca9b0ddp-48",
+      "identical": true,
+      "omega_p_max": "0x1.7815b73361364p+42",
+      "parts": 1
+     },
+     {
+      "dt_s": "0x1.4a62b1ca9b0ddp-48",
+      "identical": true,
+      "omega_p_max": "0x1.7815b73361364p+42",
+      "parts": 2
+     },
+     {
+      "dt_s": "0x1.4a62b1ca9b0ddp-48",
+      "identical": true,
+      "omega_p_max": "0x1.7815b73361364p+42",
+      "parts": 3
+     },
+     {
+      "dt_s": "0x1.4a62b1ca9b0ddp-48",
+      "identical": true,
+      "omega_p_max": "0x1.7815b73361364p+42",
+      "parts": 8
+     }
+    ]
+   },
+   "name": "controller inputs and decision are bit-identical for the census in 1, 2, 3 and 8 parts in reversed order",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {
+    "criterion": "plasma",
+    "criterion_value": 0.029624219667391132,
+    "dt_s": 4.585020216023356e-15,
+    "measured": 0.029624219667391132,
+    "predicted": 0.029624219667391132
+   },
+   "name": "the controller's omega_p dt equals the Hall motion plasma guard value of the step (summation order only)",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {
+    "controller_dt_s": 1.621049443313762e-15,
+    "criterion": "plasma",
+    "criterion_value": 0.0296237343009949,
+    "omega_p_dt_at_10fs": 0.18274417491201153,
+    "refusal": "motion full-census plasma guard"
+   },
+   "name": "Hall refuses 10 fs on a dense blob (plasma guard, step-size class), owners unchanged; the controller's dt publishes",
+   "passed": true,
+   "test": "V7"
+  },
+  {
+   "evidence": {
+    "planes": [
+     "0x1.0624dd2f1a9fcp-9",
+     "0x1.cac083126e978p-8",
+     "0x1.d7dbf487fcb92p-10",
+     "0x1.0624dd2f1a9fbp-9",
+     "0x1.0624dd2f1a9fcp-9",
+     "0x1.cac083126e978p-8",
+     "0x1.cac083126e978p-8",
+     "0x1.d7dbf487fcb92p-8"
+    ]
+   },
+   "name": "generic foil-plane rule gives the coordinator v6 planes on the 200 um mesh bit for bit",
+   "passed": true,
+   "test": "V7.1"
+  },
+  {
+   "evidence": {
+    "hall": "v3.3",
+    "native": "v7.1"
+   },
+   "name": "binding pair hall-v3.3+native-v7.1",
+   "passed": true,
+   "test": "V7.1"
+  },
+  {
+   "evidence": {
+    "orders": true,
+    "values": true
+   },
+   "name": "exact weight sum equals the ArenaCount rounded value on 2000 random sums and is order independent",
+   "passed": true,
+   "test": "V7.1"
+  }
+ ],
+ "failed": 0,
+ "forbidden_native_calls": 0
+}

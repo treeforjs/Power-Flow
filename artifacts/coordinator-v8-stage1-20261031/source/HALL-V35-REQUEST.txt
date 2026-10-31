@@ -1,0 +1,96 @@
+Hall v3.5 request from coordinator v8 -- genesis at a pre-run checkpoint (restore_as_genesis) -- 2026-10-31
+
+Why
+  Coordinator v8 runs the Hall-only pre-run in its own Model (prerun mode) and reproduces the Hall v3.3 20 ns checkpoint
+  word for word (outputs .../pic-water-common-commit-v8-20261031/hallcompare-20ns/hall-compare.json: E, B, E_low, B_low,
+  free/conductor/exterior charge, the admitted Gauss ledger of all 14,812 nodes, the 8 slice thermal states and the clock).
+  A coupled run cannot start from that state with Hall v3.3 + native v7.1, because three sealed checks tie the Hall field
+  revision to the native accepted step, and a native genesis is at step 0 while the restored Hall owner is at revision
+  194,026:
+    Hall prepare_closed_proposal: MotionBinding.accepted_step == Hall revision ("closed proposal common clock mismatch");
+    native motion admission: record.accepted_step == native step (the record digest binds the same field);
+    Hall preflight_final / V3 owner_values_match: native boundary accepted_step == Hall (endpoint) revision.
+  The genesis is refused at "genesis owners disagree with the accepted native boundary". Two Hall v3.3 restore checks also
+  refuse the pre-run checkpoint in the coordinator Model: the Model configuration (the coordinator declares the source
+  owners' heat-only patches per foil slice: material and configuration identity) and the motion mesh digest (the pre-run
+  used the plain foil planes of the Hall test fixtures, the coordinator the aligned planes of coordinator v7.1, README 3).
+
+1. The call
+  ResidentOwner (host Owner likewise, for its own checkpoint format):
+
+    struct GenesisTransfer {                       // what may differ between the checkpoint and the restoring Model
+      bool thermal_declaration = true;             // heat-only patch declarations added (none removed or altered)
+      bool native_geometry = true;                 // other native foil planes (motion mesh digest), vacuum state only
+      bool carrier_limits = true;                  // carrier cap / memory budget (no carriers in a vacuum state)
+      // dt_max, solve backend record and motion forms: as ResidentOwner::restore (configuration_with)
+    };
+    struct GenesisProvenance {                     // recorded in the new owner, bound into its identity (section 3)
+      std::string checkpoint_schema;               // "hall-v3.2-resident-checkpoint-v1" (or its successor)
+      std::string configuration_sha256;            // recorded configuration of the checkpoint (R)
+      std::string field_sha256, heat_sha256;       // the checkpoint's seals under R
+      std::string kinetic_ledgers_sha256;          // (empty-ledger digest for a vacuum pre-run)
+      std::string motion_mesh_sha256;              // recorded motion mesh digest of the checkpoint
+      std::uint64_t revision;                      // pre-run revision N (194,026 for the 20 ns checkpoint)
+      double time_s;                               // the clock, kept
+      std::string transfer_text;                   // operands that differ (declaration digest added, geometry, limits, ...)
+      std::string sha256() const;                  // "hall-v3.5-genesis-provenance-v1" + every field above, binary encoding
+    };
+    static std::unique_ptr<ResidentOwner> ResidentOwner::restore_as_genesis(
+        std::shared_ptr<const Model> model, std::shared_ptr<gpu::Device> device, const native::GapPicOptions& geometry,
+        std::span<const native::ArenaRateEntry> census, const std::filesystem::path& dir,
+        gpu::ResidentOptions options = {}, GenesisTransfer transfer = {});
+    const GenesisProvenance& genesis_provenance() const noexcept;   // empty for a bootstrap or a plain restore
+
+2. What is checked (in this order; any failure refuses with no owner kept)
+  a. Checkpoint integrity exactly as ResidentOwner::restore: schema and keys, byte cap, canonical words; the resident
+     Merkle state digest of the uploaded words under the RECORDED configuration R equals field_sha256; the thermal seal
+     heat_sha256 and the kinetic-ledger seal under R. (R is recomputed from the recorded operands and the restoring
+     Model's mesh/drive/material law/rules, as configuration_with does today, extended by the transfer operands below.)
+  b. Configuration transfer: the restoring Model equals R except for the admitted operands: dt_max, solve backend record,
+     motion forms (as today); thermal declaration -- the restoring declaration may only ADD heat-only patches (no
+     desorption, zero inventory, Hall's own checked() rule) on slices of the same foils; native geometry and carrier
+     limits -- only when the checkpoint is a vacuum state. Mesh, drive (C19 trace), material law, seed rule, update rule,
+     admitted-Gauss-ledger rule, motion work rule and every guard text must be equal.
+  c. Vacuum state (required by the geometry/limits transfer and by the genesis): free charge net and gross zero at every
+     node, kinetic ledgers empty (no sinks, births or loads), bank residue absent. The census passed in must carry the same
+     free charge (zero net per node: an empty census or co-located charge-neutral pairs, as at a fresh genesis).
+  d. Admission of the state in the restoring Model: host admit and device admit (absolute Gauss |D - L| <= B with the
+     restored admitted Gauss ledger L, divB), the census charge check, the clock guard.
+  e. Rebase: accepted revision := 0, time kept; the ThermalV3 slices' revision := 0 (their temperatures, cumulative
+     energies, watermarks and time unchanged), so clock_guard (field revision == thermal revision) holds; kinetic ledgers
+     empty; the admitted Gauss ledger and every field/charge word unchanged.
+  f. Identity: the state digest of the rebased owner (revision 0) is computed under the restoring Model's configuration
+     and additionally binds GenesisProvenance::sha256() (e.g. a record "hall-v3.5-genesis-provenance" in the state record),
+     so a rebased state is never confused with a DC-seed bootstrap; heat_sha256 likewise (the slice revisions changed).
+     Saving the rebased owner (save) and restoring it (restore) work as today and keep the provenance (checkpoint key
+     "genesis_provenance").
+
+3. How coordinator v8 binds it (genesis_v8.hpp, already structured for it)
+  - GenesisV8::admit with GenesisRequestV8::hall_checkpoint set calls HallTraits<H>::restore_as_genesis (today: restore)
+    for the provisional owner (predicted census) and for the real owner (actual census); both must give the same
+    field/heat digests.
+  - Native genesis binding: field_sha256 / heat_sha256 = the rebased owner's digests, time_s = the checkpoint time;
+    native stays at accepted step 0, so the Hall revision and the native step advance together from 0.
+  - The coordinator genesis record (genesis.json) adds "hall_checkpoint": {dir, provenance (every field above),
+    provenance_sha256}; the genesis common clock binds provenance_sha256 (appended after the predicted census digest, for
+    checkpoint starts only: a fresh genesis keeps the v7.1 clock); origin_provenance
+    "coordinator-v8/genesis-at-hall-checkpoint".
+  - Sources, arrival and chemistry bind to the rebased owner exactly as to a bootstrapped one (source owners read the
+    Hall slice thermal views; their start time stays the drive start; their stock starts at the declared initial
+    coverage -- the pre-run had no source owners: recorded as a limitation, the desorption during the pre-run is not in
+    the stock).
+  - Whole-run checkpoints of such a run hold the rebased owner (its own save); restore is the plain restore.
+
+4. Tests the coordinator will run against v3.5
+  - The Hall v3.3 20 ns checkpoint through restore_as_genesis into the coordinator Model: every word, the Gauss ledger and
+    the slice temperatures equal to the checkpoint; revision 0; provenance fields equal to the checkpoint's seals.
+  - Refusals: a flipped word in the checkpoint (seal); a non-vacuum checkpoint; a declaration that alters or removes a
+    patch; a different drive trace or mesh.
+  - A coupled pilot run from it (launch interface pf-coupled-v8 --hall-checkpoint DIR), ledgers closing, whole-run
+    checkpoints and a fresh-process restore continuing bit-identically.
+  Stage 1 validated the same path at revision-0 Hall checkpoints (README section 4).
+
+5. Also needed from Hall v3.4/v3.5 for coordinator v8 stage 2 (not part of this call)
+  - The resident checkpoint schema of v3.4 (divB gross ledger) restored by the coordinator binding unchanged in form.
+  - Session& and pf_v7::gpu::Forms& of the resident owner (v3.4 DeviceStep::session()/forms()) and the device census
+    inputs in StepInputs, so the coordinator attaches native v7.1's FullTimeDevice lane to the same session and stream.

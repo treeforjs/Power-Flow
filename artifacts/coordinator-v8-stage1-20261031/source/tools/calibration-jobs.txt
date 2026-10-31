@@ -1,0 +1,14 @@
+# dt calibration (CPU backends, build s1 = Hall v3.3 + native v7.1 + source v7). CAPS: every coupled owner at 1 ps.
+cal-pilot-f2.5 run --fixture pilot --dt 2.5e-15 --steps 8000 --progress-every 2000
+cal-pilot-f5 run --fixture pilot --dt 5e-15 --steps 4000 --progress-every 2000
+cal-pilot-ctl-lte1e-8 run --fixture pilot --dt-mode adaptive --hall-dt-max 1e-12 --source-dt-max 1e-12 --neutral-dt-max 1e-12 --charged-only-particle-cap --dt-cap 1e-12 --sync-every 1e-12 --window 2e-11 --progress-every 500
+cal-pilot-ctl-lte1e-8-prod run --fixture pilot --dt-mode adaptive --hall-dt-max 1e-12 --source-dt-max 1e-12 --neutral-dt-max 1e-12 --charged-only-particle-cap --dt-cap 1e-12 --sync-every 1e-12 --window 2e-11 --progress-every 500 --source-interval-preset production
+cal-pilot-ctl-lte1e-7 run --fixture pilot --dt-mode adaptive --hall-dt-max 1e-12 --source-dt-max 1e-12 --neutral-dt-max 1e-12 --charged-only-particle-cap --dt-cap 1e-12 --sync-every 1e-12 --window 2e-11 --progress-every 500 --lte-tol 1e-7
+cal-pilot-ctl-lte1e-6 run --fixture pilot --dt-mode adaptive --hall-dt-max 1e-12 --source-dt-max 1e-12 --neutral-dt-max 1e-12 --charged-only-particle-cap --dt-cap 1e-12 --sync-every 1e-12 --window 2e-11 --progress-every 500 --lte-tol 1e-6
+cal-pilot-ctl-lte1e-6-prod run --fixture pilot --dt-mode adaptive --hall-dt-max 1e-12 --source-dt-max 1e-12 --neutral-dt-max 1e-12 --charged-only-particle-cap --dt-cap 1e-12 --sync-every 1e-12 --window 2e-11 --progress-every 500 --lte-tol 1e-6 --source-interval-preset production
+cal-qual-f10 run --fixture qual --steps 200 --progress-every 100
+cal-qual-f5 run --fixture qual --dt 5e-15 --steps 400 --progress-every 100
+cal-qual-f2.5 run --fixture qual --dt 2.5e-15 --steps 800 --progress-every 100
+cal-qual-ctl-pc10 run --fixture qual --dt-mode adaptive --hall-dt-max 1e-12 --source-dt-max 1e-12 --neutral-dt-max 1e-12 --charged-only-particle-cap --dt-cap 1e-12 --sync-every 1e-13 --window 2e-12 --progress-every 100
+cal-qual-ctl-pc100 run --fixture qual --dt-mode adaptive --hall-dt-max 1e-12 --source-dt-max 1e-12 --neutral-dt-max 1e-12 --charged-only-particle-cap --dt-cap 1e-12 --particle-cap 1e-13 --sync-every 1e-13 --window 2e-12 --progress-every 100
+cal-qual-ctl-pc100-prod run --fixture qual --dt-mode adaptive --hall-dt-max 1e-12 --source-dt-max 1e-12 --neutral-dt-max 1e-12 --charged-only-particle-cap --dt-cap 1e-12 --particle-cap 1e-13 --sync-every 1e-13 --window 2e-12 --progress-every 100 --source-interval-preset production

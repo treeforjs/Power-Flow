@@ -1,0 +1,325 @@
+{
+ "label": "s3",
+ "tag": "rs3r",
+ "resident": true,
+ "cases": [
+  {
+   "case": "qual: reference run with checkpoints",
+   "passed": true,
+   "rc": 0,
+   "wall_s": 5.5,
+   "checkpoints": [
+    10,
+    20,
+    30
+   ],
+   "totals": {
+    "electron_births": 1416,
+    "h2o_births": 1306,
+    "parent_events": 7,
+    "sinks": 10
+   }
+  },
+  {
+   "case": "qual: restore at step 0 in a fresh process continues bit-identically to step 30",
+   "passed": true,
+   "rc": 0,
+   "mode": "direct",
+   "replayed": null,
+   "cross_checks": null,
+   "restore_s": 0.728341869,
+   "rows": 30,
+   "tail": ""
+  },
+  {
+   "case": "qual: restore at step 10 in a fresh process continues bit-identically to step 30",
+   "passed": true,
+   "rc": 0,
+   "mode": "replay",
+   "replayed": 10,
+   "cross_checks": {
+    "arrival": true,
+    "chemistry": true,
+    "coordinator_state": true,
+    "hall": true,
+    "native_bytes": true,
+    "sources": true
+   },
+   "restore_s": 2.164077935,
+   "rows": 20,
+   "tail": ""
+  },
+  {
+   "case": "qual: restore at step 20 in a fresh process continues bit-identically to step 30",
+   "passed": true,
+   "rc": 0,
+   "mode": "replay",
+   "replayed": 20,
+   "cross_checks": {
+    "arrival": true,
+    "chemistry": true,
+    "coordinator_state": true,
+    "hall": true,
+    "native_bytes": true,
+    "sources": true
+   },
+   "restore_s": 2.945466892,
+   "rows": 10,
+   "tail": ""
+  },
+  {
+   "case": "dense: reference run with checkpoints",
+   "passed": true,
+   "rc": 0,
+   "wall_s": 6.2,
+   "checkpoints": [
+    10,
+    20,
+    30
+   ],
+   "totals": {
+    "electron_births": 916,
+    "h2o_births": 834,
+    "parent_events": 2,
+    "sinks": 10
+   }
+  },
+  {
+   "case": "dense: restore at step 10 in a fresh process continues bit-identically to step 30",
+   "passed": true,
+   "rc": 0,
+   "mode": "replay",
+   "replayed": 10,
+   "cross_checks": {
+    "arrival": true,
+    "chemistry": true,
+    "coordinator_state": true,
+    "hall": true,
+    "native_bytes": true,
+    "sources": true
+   },
+   "restore_s": 2.49078714,
+   "rows": 20,
+   "tail": ""
+  },
+  {
+   "case": "dense: restore at step 20 in a fresh process continues bit-identically to step 30",
+   "passed": true,
+   "rc": 0,
+   "mode": "replay",
+   "replayed": 20,
+   "cross_checks": {
+    "arrival": true,
+    "chemistry": true,
+    "coordinator_state": true,
+    "hall": true,
+    "native_bytes": true,
+    "sources": true
+   },
+   "restore_s": 3.45763995,
+   "rows": 10,
+   "tail": ""
+  },
+  {
+   "case": "pilot: reference run with checkpoints",
+   "passed": true,
+   "rc": 0,
+   "wall_s": 6.4,
+   "checkpoints": [
+    20,
+    40,
+    60
+   ],
+   "totals": {
+    "electron_births": 0,
+    "h2o_births": 0,
+    "parent_events": 0,
+    "sinks": 0
+   }
+  },
+  {
+   "case": "pilot: restore at step 20 in a fresh process continues bit-identically to step 60",
+   "passed": true,
+   "rc": 0,
+   "mode": "replay",
+   "replayed": 20,
+   "cross_checks": {
+    "arrival": true,
+    "chemistry": true,
+    "coordinator_state": true,
+    "hall": true,
+    "native_bytes": true,
+    "sources": true
+   },
+   "restore_s": 2.596743232,
+   "rows": 40,
+   "tail": ""
+  },
+  {
+   "case": "pilot: restore at step 40 in a fresh process continues bit-identically to step 60",
+   "passed": true,
+   "rc": 0,
+   "mode": "replay",
+   "replayed": 40,
+   "cross_checks": {
+    "arrival": true,
+    "chemistry": true,
+    "coordinator_state": true,
+    "hall": true,
+    "native_bytes": true,
+    "sources": true
+   },
+   "restore_s": 3.719350904,
+   "rows": 20,
+   "tail": ""
+  },
+  {
+   "case": "crash at stage 0 of the step-20 checkpoint write: recovery takes checkpoint 10 and continues bit-identically",
+   "passed": true,
+   "crash_rc": 86,
+   "temporary": [
+    "ckpt-000000000020.tmp"
+   ],
+   "committed": [
+    "ckpt-000000000000",
+    "ckpt-000000000010"
+   ],
+   "resumed_from_step": 10,
+   "skipped": [
+    {
+     "dir": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v8-20261031/rs3r-qual-crash-s0/checkpoints/ckpt-000000000020.tmp",
+     "reason": "incomplete (temporary directory, never committed)"
+    }
+   ],
+   "mode": "replay"
+  },
+  {
+   "case": "crash at stage 1 of the step-20 checkpoint write: recovery takes checkpoint 10 and continues bit-identically",
+   "passed": true,
+   "crash_rc": 86,
+   "temporary": [
+    "ckpt-000000000020.tmp"
+   ],
+   "committed": [
+    "ckpt-000000000000",
+    "ckpt-000000000010"
+   ],
+   "resumed_from_step": 10,
+   "skipped": [
+    {
+     "dir": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v8-20261031/rs3r-qual-crash-s1/checkpoints/ckpt-000000000020.tmp",
+     "reason": "incomplete (temporary directory, never committed)"
+    }
+   ],
+   "mode": "replay"
+  },
+  {
+   "case": "crash at stage 2 of the step-20 checkpoint write: recovery takes checkpoint 10 and continues bit-identically",
+   "passed": true,
+   "crash_rc": 86,
+   "temporary": [
+    "ckpt-000000000020.tmp"
+   ],
+   "committed": [
+    "ckpt-000000000000",
+    "ckpt-000000000010"
+   ],
+   "resumed_from_step": 10,
+   "skipped": [
+    {
+     "dir": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v8-20261031/rs3r-qual-crash-s2/checkpoints/ckpt-000000000020.tmp",
+     "reason": "incomplete (temporary directory, never committed)"
+    }
+   ],
+   "mode": "replay"
+  },
+  {
+   "case": "crash at stage 3 of the step-20 checkpoint write: recovery takes checkpoint 10 and continues bit-identically",
+   "passed": true,
+   "crash_rc": 86,
+   "temporary": [
+    "ckpt-000000000020.tmp"
+   ],
+   "committed": [
+    "ckpt-000000000000",
+    "ckpt-000000000010"
+   ],
+   "resumed_from_step": 10,
+   "skipped": [
+    {
+     "dir": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v8-20261031/rs3r-qual-crash-s3/checkpoints/ckpt-000000000020.tmp",
+     "reason": "incomplete (temporary directory, never committed)"
+    }
+   ],
+   "mode": "replay"
+  },
+  {
+   "case": "tamper truncated-native: restore refused",
+   "passed": true,
+   "rc": 2,
+   "refusal": "fatal: coordinator v8 checkpoint: file size/digest differs from the manifest: native.json"
+  },
+  {
+   "case": "tamper flipped-hall-byte: restore refused",
+   "passed": true,
+   "rc": 2,
+   "refusal": "fatal: coordinator v8 checkpoint: file size/digest differs from the manifest: hall/checkpoint.json"
+  },
+  {
+   "case": "tamper missing-owner-file: restore refused",
+   "passed": true,
+   "rc": 2,
+   "refusal": "fatal: coordinator v8 checkpoint: recorded file missing: source-3.bin"
+  },
+  {
+   "case": "tamper owner-removed-from-manifest: restore refused",
+   "passed": true,
+   "rc": 2,
+   "refusal": "fatal: coordinator v8 restore: owner missing from the manifest: arrival"
+  },
+  {
+   "case": "tamper mismatched-native-version: restore refused",
+   "passed": true,
+   "rc": 2,
+   "refusal": "fatal: coordinator v8 restore: native owner version differs"
+  },
+  {
+   "case": "tamper mismatched-hall-binding: restore refused",
+   "passed": true,
+   "rc": 2,
+   "refusal": "fatal: coordinator v8 restore: Hall owner binding or owner type differs"
+  },
+  {
+   "case": "tamper flipped-manifest-byte: restore refused",
+   "passed": true,
+   "rc": 2,
+   "refusal": "fatal: coordinator v8 checkpoint: manifest seal mismatch"
+  },
+  {
+   "case": "tamper flipped-arrival-byte-resealed: restore refused",
+   "passed": true,
+   "rc": 2,
+   "refusal": "fatal: arrival owner v1.1 refusal: kind=checkpoint; quantity=arrival owner checkpoint; identity=restore; checksum mismatch; whole step proposal refused"
+  },
+  {
+   "case": "tamper flipped-coordinator-state-resealed: restore refused",
+   "passed": true,
+   "rc": 2,
+   "refusal": "fatal: coordinator v8 restore: replayed coordinator_state differs from the checkpoint's own record"
+  },
+  {
+   "case": "tamper flipped-genesis-checkpoint-byte: restore refused",
+   "passed": true,
+   "rc": 2,
+   "refusal": "fatal: coordinator v8 checkpoint: file size/digest differs from the manifest: chemistry.json"
+  },
+  {
+   "case": "restore launched with 3 ranks recorded (checkpoint written with 1) continues bit-identically",
+   "passed": true,
+   "ranks_recorded": 1,
+   "ranks_now": 3
+  }
+ ],
+ "passed": 25,
+ "total": 25
+}
