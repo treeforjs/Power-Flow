@@ -1,0 +1,115 @@
+Host work remaining in the coupled step after coordinator v7.1 -- 2026-10-31 (input for Hall v3.3 and native v8)
+
+Measured: coordinator v7.1 build c6, owner pair Hall corrective v3.2 (Owner, host arithmetic) + native v7, GPU field solver (gpu1)
+and GPU push (RTX 3080 Ti), load fixture (N authored carriers: 49 % electrons, 49 % H2O+ co-located, 2 % H2O of weight 1e6;
+no births, sinks or events in the window), dt 10 fs, single core, median of the steps after the first. Tables:
+outputs/pic-water-common-commit-v7.1-20261031/profile/ (v7.1.json/.txt; before-after.* with the v7 host-work baseline).
+us/c = per-carrier slope between 1e5 and 1e6 carriers; "mesh" = extra time on the 50 um mesh (652,686 edges) over 200 um
+(41,676 edges) at 1e4 carriers. Code locations: file:line in the sealed sources (read-only survey of the step path).
+
+Host step (ms)                 1e4/200um  1e4/50um  1e5/200um  1e5/50um  1e6/200um  1e6/50um
+  total                            150      1194        964      1724      22305      9781
+  chemistry subflow                 19        36        297       177      15895      2639
+  Hall                              94      1037        423      1278       4038      4889
+  native                            11        25        116       112       1219      1169
+  coordinator (v7.1)                12        42         71        79        717       670
+  source                            12        42         12        40         15        44
+  arrival                         0.2       2.0        0.3       0.4        1.4       1.2
+  device (field solve, push run)   6.6        44         31        64        262       299
+
+Ranked (cost at 1e6 carriers, 200 um / 50 um, ms per step)
+
+ 1. Chemistry subflow exposures (parent coverage v2 + collision scheduler), 2 per step      15,891 / 2,635   17.3 / 2.7 us/c
+    Pair work over sum(electrons x waters) per collision cell (superlinear in N; the 200 um grid has 7x fewer gap cells
+    per carrier than 50 um), done twice: scheduler candidates (collision_scheduler.hpp:184-224, long-double relative()
+    kinematics, 5 string copies per row, sort on string tuples 225-226) and ExposureAccumulator::segment
+    (parent_coverage_v2_scope.hpp:848-872, the same pair loop again for coverage); Scheduler::prepare_bounded copies and
+    re-sorts the sorted list and builds a set of string tuples (268-309). The build_events loop (subflow:207-280) rebuilds
+    the whole population each iteration (E+1 per exposure): native rate_population, "native-carrier/<id>" strings, two
+    std::map<string,...> (subflow:163-177), although an event changes at most 5 packets.
+    Proposed: one device pair kernel over cell-sorted carriers that yields both the candidate rates and the coverage
+    classes (fixed-order sums); integer packet keys instead of strings; population updated per event (O(changed
+    packets)); no re-sort of sorted candidates. Owners: chemistry subflow (next coverage version) + native v8 (typed,
+    incremental collision population API).
+
+ 2. Hall DepositSupportBuilder::build, per fixed-point iterate (k >= 2)                       1,615 / 1,606   1.61 us/c
+    census_charge.hpp:113-145 (pointer vector, is_sorted, per-carrier node range with long double, 3 nn arrays, finish
+    147-155), on endpoints just downloaded from the device. Proposed: device kernel on the push's endpoint arrays (fixed
+    order per node). Owner: Hall v3.3.
+
+ 3. Hall preflight_final (once per step)                                                       977 / 1,084   0.99 us/c + 96 ms mesh
+    Recomputes in preflight what prepare computed: residents + admit_census (O(N) row copies with 2 strings, CIC Words
+    deposit; root_api:173), census v2 Merkle (root_api:176), motion record v7 Merkle (root_api:177), charge_of_endpoints
+    (host CIC of all endpoints, root_api:185-190, which the device already returned), and O(mesh): admit(candidate),
+    state_sha256(candidate), heat/ledger digests, midpoint words and seal (owner.hpp:249-271). Proposed (HALL-LINK.txt 5):
+    device recomputation of the census and section roots, device free-charge words compared bitwise, accepted-state
+    checks cached per generation; reuse native's census digest (native computes it once per trial).
+
+ 4. Hall GPU push host parts (per iterate)                                                     1,031 /   1,004   1.05 us/c
+    admit 538: hall_adapter.hpp:52-85 order_census (unconditional std::sort, 10 SoA copies, std::map keyed by packet ID
+    string), set_carriers / set_flights re-upload per iterate (hall_gpu_push_v3.cpp:208-265);
+    assemble 289: host fold with pf_v7::ExactSum per charged carrier and O(ne) field scales (push_fold_v32.hpp:31-95) on
+    15N + 9S downloaded words, per-carrier receipt rows with string copies (gpu_backends.cpp:258-281), record_v7 block
+    lists on every iterate (Owner's MotionContext defer_record_v3 = false; only the accepted iterate is used);
+    upload 204. Device run itself 260 ms (0.26 us/c).
+    Proposed: forms library device entry points (kinetic_aligned / sum_products / block_list, API-007.txt 3; bit-equal to
+    the host, RESULTS-007) for K, W, scales and section roots; record only for the accepted iterate; census and flights
+    uploaded once per proposal; integer packet keys. Owner: Hall v3.3.
+
+ 5. Native v7 per step                                                                         1,212 /   1,136   1.22 us/c
+    begin 323, birth credit 332, census 319, motion admission 211, seal 27:
+    full_time_census (SHA over (id, weight) of all carriers, per-packet lower_bound, BIGNUM sums on a memo miss, string
+    rows; .inc:2302-2389) at begin, births, native_census, every chemistry rate_population and every event;
+    PicArena::matches (all carriers + mesh_xy compared) inside live() of nearly every accessor (~13 calls on the step
+    path plus per chemistry iteration) and 5 can_publish calls per step (arena.cpp:336-355, 930-936);
+    full state copies: begin x2, births, fork, compound x2 per exposure, build_reaction per event, seal x3;
+    census_cache block list (.inc:1167-1246); motion_v7 recomputes Hall's record digest, exact sums and section roots and
+    the E/B/J digests on the host (.inc:1459-1885).
+    Proposed (native v8): generation counter in place of matches(); copy-on-write state in place of full copies; typed
+    population view without strings; device admission (native v7.1, in progress) accepting device-computed roots and
+    sums; reuse the trial census digest. Owner: native v8.
+
+ 6. Hall admit_census (once per proposal, prepare)                                               311 /   339   0.31 us/c + 29 ms mesh
+    residents() copies N rows with 2 strings (owner.hpp:30-35); charge_of_census CIC Words + kinetic-interior check
+    (census_charge.hpp:32-50); admit_constraints on the accepted field (O(mesh), already admitted at the last publish).
+    Proposed: census as typed device arrays; device CIC with fixed node order; cache the accepted-field admission per
+    generation. Owner: Hall v3.3.
+
+ 7. Coordinator v7.1 (what is left after section 4 of README.txt)                                704 /   637   0.72 us/c
+    totals 405 (the one accepted-population traversal: native rate_population ~0.3 us/c with two string copies per
+    carrier, then species check and ledger totals) and controller inputs 299 / 227 (plasma node terms, |B|/|E| bounds at
+    the carrier cells, speeds). O(1) observe (3.7 + 1.9 ms), receipt 0.05 ms.
+    Proposed: native v8 typed population view (removes the string copies); controller inputs as a device reduction on the
+    push's device census (node terms bucketed by node in fixed order, maxima); ledger totals incrementally from births,
+    sink tallies and event deltas (exact for counts and weights; the long-double energy sums need an exact or device form
+    to stay bit-stable).
+
+ O(mesh) items (cost on the 50 um mesh at 1e4 carriers; they grow with the mesh, not with N)
+ 8. Hall Model::prepare host arithmetic, per iterate                                                687 ms (43 ms on 200 um)
+    About 25 full-mesh passes per iterate (field_model.hpp:147-246): admit(old) repeated every iterate (151; already done
+    in admit_census), conduction/operator diagonal and the accepted-field words, curl and Ampere words rebuilt every
+    iterate although they depend only on sigma, dt and the accepted field (170-178), host a/diag rebuild and compare per
+    solve (gpu_backends.cpp:151-185), energy, bank, Gauss-ledger and region loops, admit(candidate).
+    Proposed: the resident owner (Hall v3.1/v3.2 ResidentOwner: field step 2.8 ms on the device) on the coupled path, or
+    at least per-proposal caching of the iterate-invariant parts. Owner: Hall v3.3.
+ 9. Hall preflight O(mesh) part 96 ms; residual check 23 ms (host apply + long-double norms; the device CG has a true
+    residual); field seal 17 ms (state_sha256, recomputed in preflight); heat 7.6 ms; conductivity + digest computed 3x per
+    step (root_api:133, owner.hpp:197 and 251). Owner: Hall v3.3.
+10. Heat/source owner v6.1: source field 31 ms (27 ms mesh): MeshIdentity::of compares the whole live mesh to its snapshot
+    every step (mesh_identity.hpp:43-84), Field copies E and B by value and fingerprints and hashes them
+    (source_owner.hpp:86, axial_trial_field.hpp:9-12), Field::matches repeats the mesh compare and E/B memcmp per slice in
+    prepare and again in preflight (source_owner.hpp:91, 378, 435). Proposed: identity of the immutable Hall model
+    object; hash the accepted field once per accepted state (the coordinator already digests it). Owner: source owner v7.
+11. Native A1 admission inputs: 14 ms mesh (E/B/J digests and field scales, .inc:1537-1644), values Hall and the
+    coordinator already hold. Owner: native v8 (accept producer digests with device verification).
+12. Coordinator: midpoint total_field_sha256 in prepare (binding checks, 9.7 ms) and again in can_publish (9.4 ms), both
+    recomputing Midpoint::total_field_sha256() (Hall caches it); accepted-field digest for the source frame (part of the
+    source field item); LTE ring copy and probe field energies 0.4-0.6 ms. Proposed: one digest per accepted state and per
+    proposal on the device; keep one independent recomputation (native A1 already recomputes the midpoint digest).
+
+ Not measured by this fixture (no births, sinks or events in the window), from the code:
+  - Hall bank_transfer: a fresh 2 x nn FreeCharge and a full-node scan per charged sink and newborn, per iterate
+    (census_charge.hpp:167-192): O((S + B) nn); restrict to the 8 CIC nodes. Owner: Hall v3.3.
+  - SinkLedger/BirthLedger tallies (BIGNUM) three times per step (owner.hpp:202, root_api.hpp:33, 90): O(S + B).
+  - Native per event: full_time_census, a native copy, copy-on-write of packets and ID sets (arena.cpp:988-1270).
+  - Arrival owner v1.1: O(streams) only; state_sha256 uncached, about 6 times per step (~1 ms); no carrier or mesh loop.
