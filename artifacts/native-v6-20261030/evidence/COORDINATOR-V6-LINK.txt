@@ -1,0 +1,119 @@
+Native v6 identities and the coordinator link (births, sinks, binary motion v3, v6 predicate)
+
+v6 source identity: aa4d8f03100e64bed759c739013d91cac1bd66c8a9b2ab6bc3105af7973452c9 (formula as v5: sha256 of the compact sorted JSON {path: sha256} over source/, inputs/)
+v6 core archive:    build/libpic_native_v6.a sha256 1c2525958457dfe5ff16def07341cd000625e1eefaf38d44a054766efc3d86bc
+                    (sealed exact-count native.o + v6 arena.o + v6 canonical.o)
+v6 Hall adapters:   build/libpic_hall_motion_adapter_v6.a sha256 7fcac96a019414e23905804e181b330b73bef84918397df2923c65f1cf7551e2
+                    (v2 JSON route; source/src/mfem_pic_hall_motion_adapter.cpp bytes unchanged from v5)
+                    build/libpic_hall_motion_v3_adapter_v6.a sha256 597c7e1eaa2992dd0e520b9793424cc41cd5936939ec2997e3b3d2834d2e648f
+                    (binary motion v3 route; compiled against hall-corrective-v2-20261030/source/motion_receipt.hpp)
+Coordinator-side headers (not in the core): source/adapters/arrival_v1_births.hpp (arrival owner v1 adapter),
+source/adapters/common_commit_v6.hpp (v6 predicate over the unchanged V3 contract header).
+
+A. Old -> new identity mapping (native v5 -> native v6)
+ Identity                              native v5 (cca72822...)                 native v6
+ ------------------------------------  --------------------------------------  ------------------------------------------
+ source identity                       cca72822...c883                         aa4d8f03100e64bed759c739013d91cac1bd66c8a9b2ab6bc3105af7973452c9
+ core / adapter archives               715729114e...159f2 / 072e0f5f...f518    1c2525958457dfe5ff16def07341cd000625e1eefaf38d44a054766efc3d86bc / 7fcac96a019414e23905804e181b330b73bef84918397df2923c65f1cf7551e2
+ history WITHOUT birth/sink rows:
+   state_prefix() = accepted_arena_sha256 = completed exposure prefixes = Hall staged_arena_sha256,
+   initial_coupling_prefix, registry/options digests, journal row and chain digests,
+   outer_step_sha256, completion_sha256, accepted_arena_revision / accepted_step,
+   transport_trial_sha256 (v2 JSON route), census digest, kinetic policy hash,
+   checkpoint schema and keys, next ID     -> UNCHANGED, bit for bit. Evidence: identity parity trace
+                                              (tests/parity_trace.cpp compiled unchanged against v5 and v6,
+                                              60 steps with forced reaction events, K = 4, 15 anchors:
+                                              every per-step field equal except anchor_head_sha256);
+                                              genesis checkpoint of the ported controls equal except
+                                              source_sha256 and history.anchor_root_sha256.
+   Example (v5 storage-control genesis, tests/full_time_fixture.hpp fresh()):
+     accepted_arena_sha256 1ae15143cd57f06a879827734554f67ef633b195b805bbf8bad2da1c4feb23b1 (v5 and v6)
+ history anchors (storage, not state)  native-full-time-history-anchor-v5,     ...-anchor-v6 (+ window birth/sink row and
+                                       anchor-root-v5, anchor-chain-v5         carrier counters, flows digest),
+                                                                               anchor-root-v6, anchor-chain-v6; values change
+                                                                               (layout and source identity), K semantics as v5
+ snapshot digest WITH births/sinks     -                                       v5 encoding + text "native-full-time-flows-v6"
+                                                                               + flows digest -> accepted prefix changes
+ journal rows                          kinds 1..5                              + kind 6 birth (one per step with a credit,
+                                                                               also for an empty credit), kind 7 sink;
+                                                                               revision +1 for each such row
+ source seal                           invariant within a closed history       may change only at a step with a birth row
+                                                                               (source_before -> source_after bound there)
+ binary motion v3 route                -                                       motion row record_schema = v3 schema,
+                                                                               transport_trial_sha256 = record_v3 digest
+                                                                               (not the v2 seal): accepted prefixes differ
+                                                                               from the JSON route for the same physics;
+                                                                               native carrier rows are identical
+ Where coordinators bind native identities (all read from live owners; none hard-coded): unchanged list of
+ COORDINATOR-V4-LINK.txt section A; v6 adds candidate_full_time_flows() (birth receipt / sink ledger).
+
+B. Linking v6 (coordinator v4/v5 runner changes)
+ 1. N = R / 'pic-reaction-transactions-20261029/native-full-time-candidate006'; IDENTITY and NATIVE_LIB /
+    NATIVE_LIB_SHA as above; the v2 JSON adapter source path follows from N (bytes unchanged).
+ 2. No v3/v4/v5 coordinator source must change for steps without births and sinks (v5 parity).
+ 3. Binary motion v3 (drops the JSON record): compile and link libpic_hall_motion_v3_adapter_v6.a (or
+    source/src/mfem_pic_hall_motion_v3_adapter.cpp with -I hall-corrective-v2-20261030/source) and use
+      binding.transport_trial_sha256 = receipt.record_v3_sha256();
+      trial.prepare_total_field_motion(binding, raikou::mfem_backend::bind_hall_total_field_motion_v3(receipt));
+    in one expression (the receipt's endpoint array is referenced). MotionAssembly::seal_v2 and
+    motion_record are no longer needed; the coordinator's "exposures transport trial == motion seal" check
+    compares the v3 digest. trial.census_sha256() is computed once per trial and equals
+    hall_driver::canonical_census_sha256(census): pass it to the Hall proposal to stop per-iterate census
+    hashing there; native admission compares the record's census digest with it.
+    Measured on this host (OUT/final/bench, median, Hall corrective v2 CPU motion at zero field):
+      carriers  v5: Hall v2 JSON seal + JSON record build + native JSON admission + release = total (ms)
+                v6: v3 adapter bind + native v3 admission (census cached / computed in admission) (ms)
+         10000  v5:      16.0 +       4.8 +      17.4 +       2.7 =      40.8
+                v6:       0.6 +       1.6 /       2.6   (v6 JSON route admission      16.9; census digest once per trial       1.0)
+        100000  v5:     159.3 +      43.2 +     185.9 +      32.0 =     420.5
+                v6:       0.8 +      16.3 /      30.2   (v6 JSON route admission     183.7; census digest once per trial      13.4)
+       1000000  v5:    1764.4 +     418.3 +    1925.4 +     349.5 =    4457.6
+                v6:       6.0 +     170.6 /     312.1   (v6 JSON route admission    1964.9; census digest once per trial     143.9)
+ 4. Births (per step, after the first exposure): scope = outer.birth_scope(); B_s = scope.base_native_id();
+    arrival: staged = owner.stage(owner.plan(input), B_s); source v5 prepare (neutral leaves, electron
+    begin_source); staged.bind_source_times(...); credit = arrival_v1::credit(policy, staged, kinematics,
+    stream debits, scope.source_before_sha256(), source seal after); births = scope.prepare(credit) (repeatable
+    for every re-evaluation, B_s fixed); trial = outer.fork_transport_trial(births); the motion provider must
+    produce the flows record (births with flight end - tau, sinks); motion binding source_after = credit
+    source_after; outer.seal({..., source_after, ...}); predicate (section C); publish native; then
+    owner.commit(staged, arrival_v1::receipt(*token.candidate_full_time_flows()->births)) and the source owner.
+    Commit the arrival owner every step (an empty credit is valid and binds the plan).
+    Declare maximum_records >= 2M + 6 (M = first-slot reaction budget) when births or sinks are possible.
+ 5. Sinks: hand the sealed step's FullTimeSinkLedger (candidate_full_time_flows()->sinks) to the Hall
+    conductor/exterior banks and wall heat (API-006.txt section 2: surfaces 0/1/3 collected_at_conductor ->
+    conductor bank of that foil / bridge; 2/4 escaped_exterior -> exterior bank; charge = e (positive_charge_e
+    - negative_charge_e) per surface; incident kinetic energy per surface; per-species tallies for internal/
+    reference energy). The ledger digest is in the sink row and in ledger_sha256.
+ 6. Restart: save the native checkpoint and the arrival owner checkpoint together; on restart read
+    PicArena::read_full_time_flow_totals(checkpoint) and require arrival_v1::require_restart_alignment(totals,
+    restored_owner); B_s of the next step comes from native. Nonempty native disk restore remains deferred.
+
+C. Common predicate for steps whose source digest changes (births)
+ V3 accepts_closed_step (common_commit_contract.hpp, unchanged) refuses a candidate whose source seal differs
+ from the accepted one. v6 provides, in source/adapters/common_commit_v6.hpp (include with
+ -I pic-water-common-commit-v3-20261030/source; no V3/V4 file is edited):
+   bool accepts_closed_or_birth_step(const ExpectedStep& e, const ObservedOwners& current,
+       const ProposedOwners& candidate, const FullTimeStepFlows* flows, const ArrivalEvidence& arrival) noexcept
+ accepted iff
+   (1) candidate.after.source is a digest and equals candidate.after.native.source_sha256;
+   (2) if the sealed native step has a birth receipt R (flows->births):
+         R.accepted_step == e.before.accepted_step, R.source_before == e.before.source_sha256,
+         R.source_after == candidate.after.native.source_sha256, R.next_id_after - R.base == |R.entries|,
+         and the arrival evidence of the step (staged token, plan digest, B_s, birth count) equals R's
+       otherwise the source seal is unchanged and no arrival step is staged;
+   (3) every V3 accepts_closed_step condition holds with the bound source transition substituted (the
+       candidate's source seal replaced by the accepted one).
+ Exceptions return false. Controls in tests/test_v6_flows.cpp (predicate section): V3 refuses the birth step,
+ v6 accepts it, and refuses a foreign arrival token, a missing birth receipt, an unbound source seal and a
+ receipt whose transition the candidate does not show.
+
+D. Hall side (separate Hall version): what native v6 admits
+ The flows record (API-006.txt section 4, schema canonical-full-time-total-field-motion-v3-flows-binary):
+ newborn carriers (trial.birth_flights(): native ID, tau, end - tau) move only over [tau, end] from their
+ birth position (possibly on the emitting foil face, leaving it); first-hit truncation at fraction f of the
+ carrier's straight segment D with the sealed kinetic policy (kinetic_boundary.cpp first_kinetic_hit
+ arithmetic, later exact tie wins, fraction 1 is a hit), hit point start + f D with the plane coordinate,
+ flight F f, remaining F (1 - f) discarded; one FullTimeSinkRecord per removed carrier; all carriers of a
+ logical packet are removed together; current/charge deposits over the truncated paths; kinetic budget over
+ survivors (endpoint u) and sinks (incident u). Native recomputes the record digest, the first hit, the hit
+ point, the truncated path and the budget, and refuses any inconsistency (typed FullTimeFlowRefusal).

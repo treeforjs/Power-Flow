@@ -1,0 +1,45 @@
+Native v6 (candidate006) results -- verification run 'final'
+Receipts: /home/treefor/projects/.workspace/outputs/pic-profile/reaction-transactions-20261029/native-full-time-candidate006/final
+ (receipt-commands.json: every build/run command with lease wrapper, return code, log SHA-256;
+  verification-result.json; build-artifact-hashes.json; per-suite outputs and logs)
+Source identity aa4d8f03100e64bed759c739013d91cac1bd66c8a9b2ab6bc3105af7973452c9; base native v5 cca72822c9b61900aae7572f29c5d57314f45aef17c4b01c9fd2346c6fa3c883 (sealed, unchanged: hashed before/after).
+
+v5 parity (no births/sinks)
+ legacy: 368 legacy assertions, result/proof JSON identical to
+   native v5 final evidence and to the ASan/UBSan run.
+ ported candidate003 controls: 157 checks, names identical to v5,
+   allocation-failure sweep {'cases': 48, 'refusals': 32, 'successes': 16} (identical to v5);
+   genesis checkpoint differs from v5 only in /genesis/history/anchor_root_sha256, /metadata/history/anchor_root_sha256, /source_sha256.
+ v5 own controls (test_v5_history, only the anchor-chain tag literal adapted to v6): 100 checks
+   normal, 96 ASan/UBSan reduced, names identical to v5.
+ identity parity trace (60 steps, forced events, K = 4): differing fields ['anchor_head_sha256'].
+
+v6 controls (tests/test_v6_flows.cpp): 133 checks normal, 132 ASan/UBSan reduced
+ (normal-only: long run: resident memory bounded after warm-up (< 8 MiB growth)).
+ kinetic first-hit port vs sealed Hall helper: 195057 segments, 0 mismatches
+   (none 159123, lower 4113, upper 5922, outer x/y 23904,
+   short bridge 369, axial 1626).
+ long run (default suite, 10000 steps, K = 1024): births 17500, sunk 17500,
+   steps with births and sinks 9236, anchors 9,
+   window rows 5444, VmRSS 36860 -> 37276 KiB.
+ long run 200000 steps: births 350140, sunk 350139, anchors 195 (334425 bytes),
+   window rows 2220, ever-packet IDs 2, maximum packets 4,
+   VmRSS after 1000 steps 35452 KiB, end 37736 KiB, 30.7 s.
+
+Source v5 + arrival v1 sweep (tests/test_v6_source_arrival.cpp): 558 checks; 91 cases,
+ 89 admitted steps with 89 exact per-stream equalities (native credit = source
+ debit), 14883 births (14617 on the emitting face, 266 interior,
+ 266 from active electron layers), 2 multi-step cases with source and
+ arrival commits; refused: source 6 (typed source v5 G1 weighted-representation refusals of tiny leaves),
+ arrival 0, exposure 0. ASan/UBSan reduced:
+ 171 checks, 31 equalities.
+
+Admission benchmark (median, see COORDINATOR-V6-LINK.txt section B.3 for the table):
+      carriers  v5: Hall v2 JSON seal + JSON record build + native JSON admission + release = total (ms)
+                v6: v3 adapter bind + native v3 admission (census cached / computed in admission) (ms)
+         10000  v5:      16.0 +       4.8 +      17.4 +       2.7 =      40.8
+                v6:       0.6 +       1.6 /       2.6   (v6 JSON route admission      16.9; census digest once per trial       1.0)
+        100000  v5:     159.3 +      43.2 +     185.9 +      32.0 =     420.5
+                v6:       0.8 +      16.3 /      30.2   (v6 JSON route admission     183.7; census digest once per trial      13.4)
+       1000000  v5:    1764.4 +     418.3 +    1925.4 +     349.5 =    4457.6
+                v6:       6.0 +     170.6 /     312.1   (v6 JSON route admission    1964.9; census digest once per trial     143.9)

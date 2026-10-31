@@ -1,0 +1,222 @@
+Native full-time v6 (candidate006) -- births, first-hit sinks, binary motion v3
+Base: native v5 (candidate005, source identity cca72822c9b61900aae7572f29c5d57314f45aef17c4b01c9fd2346c6fa3c883,
+sealed; not modified). v6 source identity: SOURCE-SHA256.json (same formula as v5: sha256 of the compact
+sorted JSON map {path: sha256} over source/ and inputs/). Pilot plan items: H2 (births), the native side
+of H3 (collection/escape), and the binary motion record v3 recognizer requested with Hall corrective v2.
+
+0. Unchanged when no birth credit and no sink occur
+ Every v5 encoding, row, snapshot digest, accepted-state identity, revision count and refusal is
+ unchanged when a history contains no birth row and no sink row: the 368 legacy assertions, the 157
+ ported candidate003 controls and the v5 controls pass unchanged (section 9), and the parity trace
+ (tests/parity_trace.cpp, compiled unchanged against v5 and v6) reproduces every v5 accepted prefix,
+ revision, RNG seal, cumulative row/byte count and genesis identity bit for bit. Differences without
+ births/sinks are storage only: anchor records/roots/chains (v6 layout and v6 source identity), see
+ COORDINATOR-V6-LINK.txt section A. New refusals that cannot occur in a v5 history: the reserved
+ "arrival-v1/" packet namespace (genesis, reaction products, untouched remainders).
+
+1. Births (H2): contract (a)-(f) of arrival owner v1 API-v1.txt section 8
+ PrivateFullTimeStep::birth_scope() -> BirthScope              once per outer, after the first exposure
+                                                                and before transport (typed birth_scope
+                                                                refusal otherwise)
+ BirthScope::base_native_id()                                   (a) B_s = native next ID at the birth
+                                                                insertion point (after first-exposure
+                                                                reaction products, before motion);
+                                                                readable before source preparation;
+                                                                fixed for every re-evaluation
+ BirthScope::source_before_sha256(), accepted_step()
+ BirthScope::prepare(FullTimeBirthCredit) -> PreparedBirths     pure, repeatable (each nonlinear
+                                                                re-evaluation prepares from the same base)
+ PrivateFullTimeStep::fork_transport_trial(const PreparedBirths&) trial from the post-birth frame (counts
+                                                                toward the 4-fork cap); births enter the
+                                                                outer only with the accepted motion
+ PreparedBirths::receipt() / flights()
+ PrivateTransportTrial::birth_flights(), source_after_sha256()   newborn (native ID, tau, end - tau)
+ PreparedArena::candidate_full_time_flows()                     births receipt + sink ledger of a sealed step
+ Adapter (header only, source/adapters/arrival_v1_births.hpp): credit(Policy, Staged, kinematics, stream
+ debits, source before/after) -> FullTimeBirthCredit; receipt(FullTimeBirthReceipt) ->
+ pf_arrival::NativeBirthReceipt for Owner::commit; require_restart_alignment(native totals, Owner).
+
+ FullTimeBirthCredit {arrival_step, base_native_id, plan_sha256, staged_token_sha256,
+   source_before_sha256, source_after_sha256, streams[{stream_id, state, exact source_debit}],
+   births[{step, stream_id, index, packet_id, state, origin, weight, position_m, proper_velocity_m_s,
+   birth_time_s, remaining_flight_s, native_id}]}
+ Checks, in order (FullTimeFlowRefusal kinds; nothing changes on refusal):
+  birth_scope      stale scope (outer frame changed), wrong phase, second reservation, foreign
+                   PreparedBirths at fork
+  birth_binding    arrival_step != outer accepted step; base != B_s; plan/token/source digests not
+                   64-hex; source_before != accepted source seal; undeclared stream; species of a birth
+                   != its stream species; stream species not registered; a birth step != arrival step
+  birth_order      births not strictly ascending in (stream id, index); indices of a stream not exactly
+                   0..n-1 in order (duplicate, missing, reordered); > 8192 births or streams per step
+  birth_identity   packet ID != "arrival-v1/s<step>/p<stream>/k<index>" (decimal, no leading zeros);
+                   packet ID present in the frame or the ever-ID set; native ID != B_s + rank;
+                   empty origin (the source event)
+  birth_exhaustion B_s = 0 or B_s + n > 2^64 - 1 (pure contract birth_id_block_guard)
+  birth_count      weight not one positive finite binary64; per stream: exact sum of the births'
+                   weights (native credit) != source_debit (one exact ExactParticleCount equality per
+                   stream; neutral: ReleaseQuote released = source v5 Trial inventory decrease;
+                   electron: n w0 = sum of the source candidates' weights)
+  birth_kinematics position neither a strictly interior vacuum point nor a foil-face point (on exactly
+                   one face of one foil, not an edge/corner, inside the kinetic box) with the proper
+                   velocity pointing out of the metal; birth time outside [begin, end]; remaining
+                   flight != end - tau (bitwise); nonfinite kinetic energy
+  FullTimeResourceRefusal carrier_cap (births above the outer carrier budget), step_records / window_rows
+                   (rows left for birth, motion, sink, second slot and boundary: 5 + M, M = first-slot
+                   reaction budget; declare maximum_records >= 2M + 6 when births/sinks are possible)
+ Effect (in the prepared frame only): one logical packet per birth {packet_id, state, origin, last_event
+ "", Count(weight) (one positive carrier), native_ids {B_s + rank}}; native rows appended in ascending
+ native ID (they are the largest IDs); next ID = B_s + n; the frame's source seal = source_after; one
+ journal row kind 6 (below); cumulative flows updated (births, birth rows, last nonempty birth block).
+ Arrival IDs are injective by construction (birth step = accepted step, canonical order, reserved
+ namespace) and are not inserted into the ever-packet-ID set, so births add no identity entries.
+ (b) reserved namespace: create_full_time refuses an authored "arrival-v1/" ID, and the full-time
+ reaction builder refuses a new product or untouched-remainder ID in it (birth_namespace). A newborn
+ packet may react later: a scattered primary keeps its arrival ID; a target remainder keeps its ID.
+ (c) motion: newborns are in the trial census; the motion record must state them (flows schema, births
+ section) and each newborn path starts at its birth position with flight = end - tau; v2 JSON and plain
+ v3 records refuse a births trial. A foil-face newborn's straight segment must reach no kinetic boundary
+ (native port of the Hall first-hit test, which reports no hit for the face it leaves).
+ (e) FullTimeBirthReceipt {accepted_step, base, next_id_after, plan_sha256, staged_token_sha256,
+ source_before/after, births_root_sha256, row_sha256, entries (packet ID, state, native ID, weight) in
+ ascending native ID, streams}; row_sha256 is the journal row digest (window export "full_time_birth").
+ (f) native next ID and the last nonempty birth block (step, B_s, n_s, plan, token) are part of the
+ accepted state (flows) and of the checkpoint; PicArena::full_time_flow_totals() and
+ PicArena::read_full_time_flow_totals(checkpoint) return them; the arrival checkpoint restored alongside
+ must satisfy require_restart_alignment (same step, ordinal = cumulative births, same last block); B_s of
+ the next step is read from native. Nonempty native disk restore remains deferred (v5 typed refusal
+ after validating the exported anchors and window, now including birth/sink rows).
+
+2. Sinks (H3, native side): record format for the Hall side
+ Motion admission accepts first-hit sink records in the binary flows record (section 4). One record per
+ removed carrier, ascending native ID, disjoint from the endpoint rows; endpoints + sinks = census:
+  FullTimeSinkRecord {
+    u64 native_id
+    kind     1 collected_at_conductor | 2 escaped_exterior
+    surface  0 lower_foil | 1 upper_foil | 2 outer_xy | 3 short_bridge | 4 axial
+             (= hall_driver::KineticSink; kind 1 for surfaces 0, 1, 3; kind 2 for 2, 4)
+    u64 axis (0 x, 1 y, 2 z) and f64 plane_m: the hit plane (native coordinates)
+    f64 fraction f in [0, 1] of the carrier's straight segment
+    3 f64 segment_m D: full native displacement of the carrier flight F (F = dt, newborn: end - tau)
+    3 f64 hit_point_m = start + f D componentwise, then [axis] = plane (kinetic_boundary.cpp:63 order)
+    3 f64 incident_proper_velocity_m_s (neutral: unchanged u)
+    f64 flight_s = F f (time to the hit from the carrier's start), f64 discarded_flight_s = F - flight_s }
+  The carrier's path row: start = census position + shift, displacement = (hit_point + shift) - start,
+  flight = flight_s. The current/charge deposits of the record cover the truncated path only.
+ Native verification against native-finite-target-kinetic-policy-v1 (native port of the sealed
+ first_kinetic_hit: same operands, operation order and tie rule; compared bitwise with the Hall helper
+ on 2e5 segments in the tests):
+  sink_record         kind/surface/axis inconsistent; nonfinite field; hit point != start + f D with
+                      the plane coordinate; neutral: D != F u / gamma (Hall neutral-stream arithmetic) or
+                      incident u != u; path flight/displacement not the truncated path
+  sink_outside_step   f outside [0, 1]; flight_s != F f; flight_s > F; discarded != F - flight_s
+  sink_not_crossing   native first hit of (start, D) is none, or a different surface/fraction/axis/plane
+  sink_duplicate      a carrier removed twice, a sink of a carrier outside the census, a carrier with
+                      both an endpoint and a sink, a census carrier with neither
+  sink_partial_packet only some carriers of one logical packet removed (co-located carriers move together)
+ Carriers without a sink record keep the v5 strict-interior endpoint rule and the v5 foil segment guard.
+ Kinetic budget: K = sum over census in ascending ID of w (KE(end or incident u) - KE(start)) in long
+ double, compared with the record's kinetic_change bitwise; work defect and guards as v2.
+ Effect: removed packets leave the packet map (their IDs stay retired in the ever-ID set), their native
+ rows leave the native rows; one journal row kind 7; cumulative per-surface totals updated.
+ FullTimeSinkLedger (PreparedArena::candidate_full_time_flows()->sinks, also the sink row digest):
+  accepted_step, transport_trial_sha256, carriers, records (as admitted), removed_packets (sorted),
+  tallies per (surface, species state): kind, charge_e, carriers, exact weight, exact kinetic energy,
+  surfaces (all five, ascending): kind, carriers, exact weight, exact kinetic energy, exact positive and
+  negative elementary charge (weight x |charge_e| per species), records_root_sha256, ledger_sha256,
+  row_sha256. Exact sums are ExactParticleCount values (units 2^-1074): weights are the carriers' binary64
+  weights; kinetic energy terms are fl(w KE(incident u)) (one rounding each, pic_kinetic_energy_J).
+ Hall side (charge banks and wall heat, separate Hall version): surfaces 0/1/3 (collected_at_conductor)
+ -> conductor bank of that foil/bridge; 2/4 (escaped_exterior) -> exterior bank. Net free charge leaving
+ the plasma = e (positive_charge_e - negative_charge_e) per surface; the incident kinetic energy is the
+ wall heat input of collected carriers (exterior: energy leaving through the exterior); species internal
+ and reference energies are given by the tallies' species and weights. The ledger digest binds the step.
+
+3. Journal rows (row tag native-full-time-journal-row-v5 unchanged; new kinds)
+ kind 6 birth: accepted_step, base B_s, count n_s, next_id_after, begin_s, end_s, plan_sha256,
+   staged_token_sha256, source_before_sha256, source_after_sha256, births_root (block Merkle over the
+   birth records [u64 native ID, u64 step, u64 stream, u64 index, text packet ID, text state,
+   text origin, f64 weight, 3 f64 x, 3 f64 u, f64 tau, f64 remaining]; leaf tag native-v6/birth-block,
+   root tag native-v6/birth-root), streams (count, then u64 stream id, u64 births, text state, exact
+   credit as canonical positive carriers).
+ kind 7 sink: accepted_step, census, survivors, carriers, packets, transport_trial_sha256, records_root
+   (leaf native-v6/sink-block, root native-v6/sink-root over the sink records in section 2 order),
+   ledger_sha256, removed_packets_sha256 (tag native-v6/removed-packets, sorted packet IDs).
+ Window grammar: outer begin, first-slot reactions + exposure, at most one birth row (the only place the
+ source seal may change: source_before = current, then source = source_after), one motion row (flows
+ schema required after a birth row), at most one sink row directly after a flows motion row binding its
+ transport identity with survivors + carriers = census, second-slot reactions + exposure, boundary.
+
+4. Binary motion v3 (typed, no JSON)
+ FullTimeMotionRecordV3 {schema, binding (accepted_step, staged_arena_revision, trial_stage, begin/end/dt,
+   staged arena, trial field, mesh, material, species, common clock, kinetic policy digests), budget[7],
+   census_sha256, coverage, current/endpoint charge/initial charge array digests, endpoints (span of
+   GapParticle), kinetic_policy[12], native_to_field_m, neutral_motion_owner, DKD/Poisson flags, paths
+   (span of FullTimeMotionPath {u64 id, 3 f64 start, 3 f64 displacement, f64 flight}), sinks, births,
+   record_sha256}.
+ bind_total_field_motion_v3(record, storage) -> FullTimeMotionAdmission (core, no Hall dependency);
+ bind_hall_total_field_motion_v3(const hall_driver::MotionReceipt&) (archive
+ libpic_hall_motion_v3_adapter_v6.a, compiled against hall-corrective-v2-20261030/source/
+ motion_receipt.hpp): zero copy of the endpoint array (the receipt must outlive the admission), one copy
+ of the path array, array digests motion-array-binary64-v1; no JSON value.
+ Digest full_time_motion_record_v3_sha256 (streamed SHA-256, no per-carrier allocation):
+  schema canonical-full-time-total-field-motion-v3-binary: exactly the Hall corrective v2 record_v3
+   encoding (README item 5): text tag, text "canonical-full-time-total-field-motion-v2", text "binding",
+   text phase, 3 u64, 3 f64, 7 texts; text "budget", 7 f64; text key + text value for census_sha256,
+   coverage, current_A_m_sha256, endpoint_charge_C_sha256; text "endpoints", u64 n, n x [u64 id, 9 f64];
+   text "initial_charge_C_sha256" + value; text "kinetic_policy", policy schema text, 12 f64, 4 policy
+   texts; text "native_DKD_called", u64 0; text "native_Poisson_called", u64 0; text
+   "native_to_field_m", 3 f64; text "neutral_motion_owner" + value; text "paths", u64 n, n x [u64 id,
+   3 f64, 3 f64, f64]; text "ordinary_total_field". Coverage all_native_carriers_no_sources_no_boundaries.
+  schema canonical-full-time-total-field-motion-v3-flows-binary: same with this tag and coverage
+   all_native_carriers_births_and_first_hit_sinks; endpoints = survivors; after the paths section text
+   "sinks", u64 count, per record u64 id, u64 kind, u64 surface, u64 axis, f64 plane, f64 fraction,
+   3 f64 segment, 3 f64 hit point, 3 f64 incident u, f64 flight, f64 discarded; text "births", u64 count,
+   per newborn u64 id, f64 tau, f64 flight. Required for any trial with births; carries the sinks.
+ Admission (PrivateTransportTrial::prepare_total_field_motion with a v3 admission), same checks as the v2
+ recognizer, typed motion_record unless stated: schema/coverage/mode texts; record digest == record_sha256
+ == binding transport_trial_sha256; staged revision/prefix, accepted step, begin/end/dt, mesh/material/
+ clock, trial field and species digests, kinetic policy digest and its 12 operands bitwise, frame shift
+ (-w/2, -g/2, 0); array digests; census digest == the trial's cached census digest; endpoint/path/sink
+ bijection over the census in ascending ID (paths every carrier; endpoints + sinks disjoint and
+ complete); path start = census position + shift; resident flight = dt, newborn flight = end - tau;
+ endpoint strictly interior (invalid_argument, v5 text), unchanged charge/mass/weight, path displacement
+ = endpoint - start in the field frame, foil segment guard; kinetic/work budget and guards; multi-carrier
+ packets stay co-located. O(carriers) over the binary arrays; allocations: one endpoint-row vector, one
+ path-leaf vector, no per-carrier allocation, no JSON.
+ PrivateTransportTrial::census_sha256(): canonical-motion-census-v1 digest of the trial census computed at
+ most once per trial (equal to hall_driver::canonical_census_sha256); a coordinator may pass it to the
+ Hall side so the per-iterate census hashing can be dropped there; native admission compares the
+ record's census digest with it (no recomputation).
+ Motion row: record_schema = the v3 schema, transport_trial_sha256 = the v3 record digest (the v2 seal for
+ the JSON route); other fields as v5. The v2 JSON route is unchanged (parity) and refuses births trials.
+ PreparedPrivateMotion::audit() for a v3 admission returns the record schema/digest, counts, sink
+ records and the native row digest (the record arrays stay with the caller).
+
+5. Accepted state, anchors, checkpoint
+ ArenaSnapshot::full_time_flows (null until the first birth credit or sink): last nonempty birth block,
+ cumulative births, birth rows, sunk carriers, sink rows, per-surface exact totals. Digest tag
+ native-full-time-flows-v6; appended to the logical snapshot digest only when present (text
+ "native-full-time-flows-v6", text digest), so histories without flows keep v5 identities.
+ Anchors: tag native-full-time-history-anchor-v6 = v5 fields + window_birth_rows, window_births,
+ window_sink_rows, window_sunk_carriers (after window_motions) + flows_sha256 (text, empty when none,
+ after previous_dt_s). Root tag native-full-time-anchor-root-v6, chain tag native-full-time-anchor-chain-v6.
+ verify_full_time_anchor_chain: the source seal may change between anchors only when the window has
+ birth rows; birth/sink row counts <= K; counters consistent; everything else as v5.
+ Checkpoint (save): v5 schema and keys; metadata gains "flows" (native-full-time-flows-v6 JSON with its
+ digest) when present; next_id as v5.
+
+6. Common predicate: COORDINATOR-V6-LINK.txt section C and source/adapters/common_commit_v6.hpp.
+
+7. Other public additions
+ full_time_birth_packet_id, full_time_reserved_packet_id, full_time_first_kinetic_hit (native port),
+ FullTimeFlowRefusal (std::invalid_argument), FullTimeKineticHit, FullTimeFlowTotals, FullTimeStepFlows.
+
+8. Qualification boundary
+ Births are credited from genuine arrival owner v1 plans and genuine source v5 leaves/candidates (sweep
+ test). Motion with births and sinks comes from the test's zero-field reference provider (straight drift,
+ sealed Hall first-hit helper; record sealed by an independent encoder), not from a Hall provider: the Hall
+ version producing flows records (partial flights, first-hit truncation, truncated-path deposits,
+ conductor/exterior banks, wall heat) is separate work. Plain v3 records come from the genuine Hall
+ corrective v2 provider at zero total field. No field solve, no joint coupled step.
+
+9. Results: RESULTS-006.txt (filled by the verification run).
