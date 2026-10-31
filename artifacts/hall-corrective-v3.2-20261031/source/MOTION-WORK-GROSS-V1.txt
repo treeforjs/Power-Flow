@@ -1,0 +1,122 @@
+motion-work-gross-v1 -- tolerance of the per-step motion work identity (Hall v3.2; amendment to native v7
+API-007.txt 1.1 and HALL-LINK.txt 2c). Replaces the net form |defect| <= 1e-20 + 1e-10 (|K| + |W|).
+Reference implementation: source/motion_work_gross_v1.hpp (Hall v3.2; uses only the native v7 forms library
+forms/include/pf_v7/forms.hpp, pf_v7::ExactSum). Encoding and rounding conventions: API-007.txt section 0
+(RN = binary64 round to nearest, ties to even; no fused operations).
+
+1. Formula
+ Per motion step (one census, one trial field):
+   K       = kinetic_change_J (API-007 1.1, exact form)
+   W       = field_work_J (API-007 1.1, exact form)
+   defect  = RN(K - W)                                   (budget[2], unchanged)
+   tol     = RN( RN( RN(1e-20 + RN(1e-10 x RN(G_K + G_W))) + RN(2^-47 x C_K) ) + RN( RN(8e-18 x E^) x Q ) )
+   admitted iff  status == 0  and  defect is finite  and  tol is finite  and  |defect| <= tol
+ Refusal text (Hall): "canonical motion work mismatch" (unchanged); in the device-motion assembly the
+ combined budget text "device motion budget outside the sealed guards" (unchanged).
+ The binary64 constants are the literals 1e-20, 1e-10, 8e-18 (RN of the decimal values) and 2^-47 = 32 x 2^-52
+ (exactly 0x1p-47; RN(2^-47 x C_K) is exact unless C_K < 2^-975).
+ Evaluation order of the final operations (C++ reference, no contraction):
+   gross = G_K + G_W; relative = 1e-10 * gross; t = 1e-20 + relative; rounding = 0x1p-47 * C_K; t = t + rounding;
+   length = 8e-18 * E^; fixed_point = length * Q; tol = t + fixed_point.
+
+2. Scales
+ Carriers: the census carriers of the step (API-007 1.1: residents and newborns of the trial, newborns at
+ their birth state), each with weight w_i > 0, charge q_i, mass m_i, start proper velocity u_start_i (census
+ row) and end proper velocity u_end_i (endpoint record of a survivor, incident proper velocity of a sink
+ record) -- the same pairs as the K terms. Sinks and newborns are included; neutral carriers (q_i == 0, i.e.
+ +0.0 or -0.0) are excluded from G_K, C_K and Q (their d_i is exactly 0 and they exchange no work with the field).
+   KE      = pic_kinetic_energy_J (API-007 1.1; pf7::kinetic_energy)
+   K0_i    = KE(m_i, u_start_i)
+   d_i     = RN(KE(m_i, u_end_i) - K0_i)              (the K term of carrier i; pf7::kinetic_change)
+   K1_i    = RN(K0_i + d_i)
+   G_K     = RN( SUM_i w_i x |d_i| )                    exact products and sum (ExactSum add_product(w_i, |d_i|))
+   C_K     = RN( SUM_i (w_i x K0_i + w_i x K1_i) )      exact (ExactSum add_product(w_i, K0_i), add_product(w_i, K1_i))
+   Q       = RN( SUM_i |q_i| x w_i )                    exact (ExactSum add_product(|q_i|, w_i))
+ Field: E = the trial (midpoint) total-field edge values used for W, J = current_A_m, dt = binding dt_s, both
+ indexed by the Hall axial mesh edges e = 0 .. ne-1 (numbering and endpoint nodes of section 3).
+   G_W     = RN( dt x RN( SUM_e |E_e| x |J_e| ) )       exact products and sum, then one product (the field_work_J form)
+   E^      = max { |E_e| : node a_e or node b_e is an endpoint of an edge e' with J_e' != 0 }, 0 when no J_e' != 0
+             (exact maximum of binary64 values; J_e' != 0 compares the value with 0.0: -0.0 counts as zero)
+ status: the OR of the pf7 status bits of the four exact sums (sum_nonfinite_input 1, sum_overflow 2,
+   sum_too_many_terms 4), sum_overflow when RN(dt x sum) is not finite, sum_nonfinite_input when E^ is not finite.
+ Any exact method gives the same bits (API-007 1.1); the device fold of Hall uses the same host ExactSum on the
+ downloaded per-carrier terms; the native v7 forms kernels (sum_products) give the same bits.
+
+3. Hall axial mesh (edge numbering for E, J and E^; identity: mesh_sha256 of the record)
+ nx = ny = n (transverse cells), nz = axial + 2 air cells; node(i,j,k) = (k (ny+1) + j)(nx+1) + i.
+ x edges e = ex(i,j,k) = (k (ny+1) + j) nx + i,              k 0..nz, j 0..ny, i 0..nx-1: a = node(i,j,k), b = node(i+1,j,k)
+ y edges e = nex + (k ny + j)(nx+1) + i,   nex = nx (ny+1)(nz+1): a = node(i,j,k), b = node(i,j+1,k)
+ z edges e = nex + ney + (k (ny+1) + j)(nx+1) + i, ney = (nx+1) ny (nz+1): a = node(i,j,k), b = node(i,j,k+1)
+ (hall-finite-foil-em-20261029/axial_mesh.hpp Mesh::ex/ey/ez/node; default mesh n = 45, axial 4, air 1:
+ ne = 41,676, nn = 14,812.) "Near the carrier current" = the edges with at least one endpoint node on an edge
+ that carries nonzero plasma current: the cells traversed by the carrier paths (every edge of a traversed
+ cell receives a Whitney deposit unless the path is exactly axis-aligned) and their face neighbours.
+
+4. Derivation of the terms
+ The identity: the work-kick push (8dddec0 foil_particles.hpp work_kick, ported bit for bit on the device)
+ gives, in exact arithmetic, KE(u1) - KE(u0) = q E_g(D_k) . D_(k+1) for the gathered field E_g of the path
+ iterate D_k and the new displacement D_(k+1) (Boris: |u+| = |u-|, gamma1^2 - gamma+^2 and gamma-^2 - gamma0^2
+ telescope to (2/dt) a . D / c^2). The deposit and the path gather are adjoint (Whitney edge weights l_e(D)):
+ q w Sum_e E_e l_e(D) = dt Sum_e E_e J_e,i. So K - W vanishes in exact arithmetic for the converged path up to:
+ (a) Work-path fixed point. The iteration stops when |D_(k+1) - D_k|_inf <= 1e-18 m; the deposit uses D_(k+1),
+     the kick used E_g(D_k). Per carrier |K_i - W_i| <= |q w| |delta|_2 (|E_g| + |grad_D W|), |delta|_2 <=
+     sqrt(3) 1e-18 m. Each component of E_g is a convex combination of same-axis edge values of the traversed
+     cells, so |E_g| <= sqrt(3) E^; grad_D W = int_0^1 [E + s (grad E)^T D] ds with the Whitney field linear
+     across a cell (|grad E| <= 2 sqrt(3) E^ / h) and |D| <= 0.2 h (displacement guard), so |grad_D W| <=
+     sqrt(3) E^ (1 + 0.2 sqrt(3)) < 1.4 sqrt(3) E^. Sum: <= |q w| sqrt(3) 1e-18 sqrt(3) 2.4 E^ = 7.2e-18 m E^ |q w|;
+     coefficient 8e-18 m on E^ Q. Sinks: the incident energy is constructed as K0 + q E(path).(hit - start) on
+     the deposit's own path (no fixed-point residual); newborns follow the resident push over [tau, end].
+ (b) Kinetic-value rounding. KE in binary64 has relative error <= 6 eps (5 roundings in n, 3 in g + 1, the
+     product and the quotient); d_i adds eps |d_i|; the computed u1 of the Boris rotation and kick carries
+     <= ~8 eps relative error per component, i.e. <= 16 eps K1 in KE(u1). Per carrier <= (6 + 6 + 16) eps
+     (K0 + K1) + eps |d_i| <= 28 eps (K0 + K1) + eps |d_i|; coefficient 32 eps = 2^-47 on C_K. This term does
+     not scale with the exchange (ions: d_i << K0), which is why the net form fails where the net exchange
+     passes through zero.
+ (c) Exchange-relative rounding: the D formula, gathers and deposit weights (relative eps-level errors of each
+     carrier's exchange |q w E_g . D| ~ w |d_i|) and the deposit accumulation of J (m_e eps of the absolute
+     deposit on an edge with m_e contributions): 1e-10 on G_K + G_W (G_K bounds the per-carrier exchange,
+     G_W the field side). The deposit accumulation is bounded rigorously only per edge: m_e eps sum_i |J_e,i|;
+     with |l_e| summing to |D|_1 <= sqrt(3) 0.2 h per carrier it is <= eps m_max 0.35 h E^ Q, i.e. covered by
+     the 8e-18 m E^ Q term while m_max <= 520 deposits per edge at h = 200 um; above that the bound relies on
+     the 1e-10 relative term (the realistic accumulated error grows as sqrt(m) eps). Stated limit.
+ (d) The sums themselves are exact (one rounding each): no sequence-length term.
+ 1e-20 J: the unchanged absolute floor.
+ The old form 1e-20 + 1e-10 (|K| + |W|) contains (c) only relative to the NET exchange, and none of (a), (b):
+ where the net exchange crosses zero it falls to 1e-20 J while (a) and (b) do not.
+
+5. Cases it must refuse (margin = |defect| / tol at the step of the smallest net exchange |K| / G_K, where the
+   tolerance is the tightest relative to the physics; end to end through Hall MotionAssembly::assemble)
+                                                         dense light   dense medium  10 eV heavy blob
+ unmodified motion (control)                               admitted      admitted      admitted
+ one electron's kinetic change off by 1e-3 of 1.5 kT w     1.74e5        9.31e4        1.28e5      refused
+ push field 1e-6 (relative) away from the work field       31.3          31.5          33.1        refused
+   (stale or foreign field; detection limit about 3e-8 relative)
+ one carrier's mean gross exchange counted with wrong sign 7.82e4        7.87e4        8.26e4      refused
+ one ulp of K                                              admitted (6.5e-27 J; no tolerance resolves it, the net
+   form neither): exactness of K is native's bitwise recomputation of the exact sum (API-007 1.1) and the record.
+ Every case of the net form that is not a rounding artefact stays refused: the new tolerance is larger than the
+ net one only by the terms (a), (b) and the gross-for-net replacement in (c).
+ Fixtures: Hall v3.2 test_v32 dense (coordinator v7 dense blob generator, seed 20261101, 400 electron/H2O+
+ pairs, without the qual sources), resident owner, GPU push (CPU push gives the same bits), Hall build b3:
+ light   w 3.45e10, 3 eV, dt 10 fs (omega_p dt 0.030): step 338, tol 1.43e-16 J (fixed point 1.41e-16, relative
+         2.14e-18, rounding 1.37e-19), defect 3.69e-20 J
+ medium  w 8e10, 3 eV, dt 10 fs (omega_p dt 0.046): step 70, tol 6.19e-16 J, defect 2.78e-20 J
+ heavy   w 1.6e11, 10 eV, dt 5.4 fs: step 101, tol 3.01e-15 J, defect 1.06e-18 J
+
+6. Measurements (Hall b3 outputs: /home/treefor/projects/.workspace/outputs/hall-corrective-v3.2-20261031/b3/gpu-dense-*,
+   gpu-blob10-gpu-*, dense-steps.jsonl per step: K, W, defect, the five scales, v3.1 and v3.2 tolerances)
+                       steps  omega_p t   max |defect|/tol   net form exceeded at   midpoint retries
+ light 10 fs           403    12.0 rad    9.39e-4             step 90 (2.70 rad)      3
+ medium 10 fs          405    18.3 rad    9.51e-4             step 69 (3.15 rad)      5
+ heavy 10 eV 5.4 fs    150     5.2 rad    7.79e-4             step 85 (2.97 rad)      0
+ The net form fails at the phase reported by coordinator v7 (omega_p t 2.6-2.8 light); with motion-work-gross-v1
+ every step is admitted. CPU push and GPU push: K, W, defect and the five scales bit-identical at every step
+ (light fixture, 403 steps). The tolerance is dominated by the fixed-point term (a) (about 99 %); the observed
+ defects are 2.6e-4 .. 3.5e-4 of the tolerance at the zero crossing.
+
+7. Native v7 check (for the bit cross-check)
+ Native recomputes G_K, C_K and Q from the census and the endpoint/sink records it already holds (same pairs as
+ K), G_W and E^ from E (trial field edge values; digest trial_field_sha256), J (current_A_m; digest
+ current_A_m_sha256) and the edge endpoints of section 3 (mesh_sha256). The tolerance and the admission are then
+ bit-identical to Hall's. If native does not hold E and J, they are passed with the record and checked against
+ those digests.

@@ -1,0 +1,131 @@
+{
+ "cases": [
+  {
+   "evidence": {
+    "accepted_steps": 150,
+    "carriers_end": 800,
+    "dt_s": 5.4e-15,
+    "elapsed_from_start_s": 8.099999999945409e-13,
+    "electron_eV": 10.0,
+    "end_time_s": 7.505980554919945e-10,
+    "first_step_v31_gauss_form_exceeded": -1,
+    "first_step_v31_work_tolerance_exceeded": 85,
+    "max_combined_over_bound": 54.23489826428744,
+    "max_defect_over_v32_tolerance": 0.0007790512140521166,
+    "max_gauss_v31_form_ratio": 0.9627995667059198,
+    "max_gauss_v32_guard_ratio": 0.010032174996435548,
+    "max_joint_over_v32_tolerance": 0.0007790433183694835,
+    "min_abs_K_over_G_K": 0.0006259957533740837,
+    "omega_p_t_at_first_v31_work_excess": 2.965964410786982,
+    "omega_p_t_rad": 5.233567018273016,
+    "push": "gpu-push-v3-sinks",
+    "refusal": "",
+    "refused_at_step": -1,
+    "retries_two_half_steps": 0,
+    "steps_requested": 150,
+    "time_at_first_v31_gauss_excess_s": 0.0,
+    "wall_s": 4.1248794559999995,
+    "weight": 160000000000.0
+   },
+   "group": "dense",
+   "name": "dense blob runs the requested steps without refusal (v3.2 work tolerance and admitted Gauss ledger)",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "K_J": 1.4623665017406383e-09,
+    "W_J": 1.4623665006789977e-09,
+    "cases": [
+     {
+      "case": "one electron kinetic change off by 1e-3 of 1.5 kT w",
+      "defect_over_tolerance": 127925.66867573388,
+      "injected_J": 3.8452239215999996e-10,
+      "refused": true,
+      "result": {
+       "accepted": false,
+       "refusal": "device motion budget outside the sealed guards"
+      }
+     },
+     {
+      "case": "push field 1e-6 (relative) away from the work field",
+      "defect_over_tolerance": 33.05938705958866,
+      "injected_J": 9.93697273666812e-14,
+      "refused": true,
+      "result": {
+       "accepted": false,
+       "refusal": "device motion budget outside the sealed guards"
+      }
+     },
+     {
+      "case": "one carrier's mean gross exchange with the wrong sign",
+      "defect_over_tolerance": 82647.58501662395,
+      "injected_J": 2.48424318416703e-10,
+      "refused": true,
+      "result": {
+       "accepted": false,
+       "refusal": "device motion budget outside the sealed guards"
+      }
+     }
+    ],
+    "control": {
+     "accepted": true
+    },
+    "defect_J": 1.0616406144829675e-18,
+    "one_ulp_of_K": {
+     "note": "below every tolerance (v3.1 1e-10|K| included); exactness of K is the native x87 recomputation and the record digests",
+     "result": {
+      "accepted": true
+     },
+     "ulp_J": 2.0679515313825692e-25
+    },
+    "scales": {
+     "C_K_J": 0.0002978398071258837,
+     "E_hat_V_m": 18046797.249389507,
+     "G_K_J": 3.295380561924037e-07,
+     "G_W_J": 9.936972736668121e-08,
+     "Q_C": 2.05078609152e-05,
+     "terms_J": {
+      "fixed_point": 2.9608096636423516e-15,
+      "kinetic_rounding": 2.11627911373486e-18,
+      "relative_gross": 4.2890778355908493e-17
+     },
+     "tolerance_J": 3.005826721111995e-15,
+     "v31_tolerance_J": 3.0247330024196364e-19
+    },
+    "step": 101
+   },
+   "group": "work-guard",
+   "name": "end-to-end at the step of the smallest |K|/G_K: unmodified motion admitted; inconsistent kinetic changes refused exactly when they exceed the v3.2 tolerance (margins stated)",
+   "passed": true
+  }
+ ],
+ "configuration_sha256": "7f4e22abb94af03cd382a5f0de8ae1fbf933bbcdf19207cfd66563a3367b04f2",
+ "failed": 0,
+ "run": {
+  "accepted_steps": 150,
+  "carriers_end": 800,
+  "dt_s": 5.4e-15,
+  "elapsed_from_start_s": 8.099999999945409e-13,
+  "electron_eV": 10.0,
+  "end_time_s": 7.505980554919945e-10,
+  "first_step_v31_gauss_form_exceeded": -1,
+  "first_step_v31_work_tolerance_exceeded": 85,
+  "max_combined_over_bound": 54.23489826428744,
+  "max_defect_over_v32_tolerance": 0.0007790512140521166,
+  "max_gauss_v31_form_ratio": 0.9627995667059198,
+  "max_gauss_v32_guard_ratio": 0.010032174996435548,
+  "max_joint_over_v32_tolerance": 0.0007790433183694835,
+  "min_abs_K_over_G_K": 0.0006259957533740837,
+  "omega_p_t_at_first_v31_work_excess": 2.965964410786982,
+  "omega_p_t_rad": 5.233567018273016,
+  "push": "gpu-push-v3-sinks",
+  "refusal": "",
+  "refused_at_step": -1,
+  "retries_two_half_steps": 0,
+  "steps_requested": 150,
+  "time_at_first_v31_gauss_excess_s": 0.0,
+  "wall_s": 4.1248794559999995,
+  "weight": 160000000000.0
+ },
+ "schema": "hall-v3.2-dense-v1"
+}

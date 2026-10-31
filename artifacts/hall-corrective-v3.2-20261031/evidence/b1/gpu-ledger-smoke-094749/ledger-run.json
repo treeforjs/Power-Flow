@@ -1,0 +1,615 @@
+{
+ "cases": [
+  {
+   "evidence": {
+    "end_time_s": 7.557880554919894e-10,
+    "first_sample_with_v31_form_ratio_over_1": {
+     "step": -1,
+     "time_s": 0.0
+    },
+    "max_step_guard_ratio": 0.010032174996435548,
+    "max_step_implied_ratio": 0.015396001028096332,
+    "ms_per_step": 2.836666918333333,
+    "refusal": "",
+    "refused_at_step": -1,
+    "revision": 600,
+    "steps_requested": 600,
+    "v31_refusal_of_record": {
+     "node": 3747,
+     "step": 48650,
+     "time_s": 1.2363e-09
+    },
+    "wall_s": 1.702000151
+   },
+   "group": "ledger-run",
+   "name": "field-only run at 10 fs from the supported start passes 1.24 ns (v3.1 refused at step 48,650, 1.2363 ns) with every guard",
+   "passed": false
+  },
+  {
+   "evidence": {
+    "D_over_L_max_where_abs_L_above_1e-3_max": 291.8308191512957,
+    "D_over_L_min_where_abs_L_above_1e-3_max": -324.72041804645,
+    "host_admission": {
+     "accepted": true
+    },
+    "max_abs_L_C": 2.7081730280088797e-25,
+    "max_guard_ratio_abs_D_minus_L_over_bound": 0.010031701986162999,
+    "max_implied_ratio_abs_D_over_bound_plus_abs_L": 0.015382729970207207,
+    "max_v31_form_ratio_abs_D_over_bound": 0.015623055209809344,
+    "node3747": {
+     "D_C": -1.9531557102051824e-25,
+     "D_minus_L_C": 2.9042786145120478e-46,
+     "D_over_L": 1.0,
+     "L_C": -1.9531557102051824e-25,
+     "bound_C": 1.7332687873874878e-23,
+     "guard_ratio": 1.675607750884151e-23,
+     "node": 3747,
+     "v31_form_ratio": 0.011268625642010924
+    },
+    "node_of_max_abs_L": {
+     "D_C": -2.7081730280088797e-25,
+     "D_minus_L_C": 6.6122567927319355e-46,
+     "D_over_L": 1.0,
+     "L_C": -2.7081730280088797e-25,
+     "bound_C": 1.7334464940688953e-23,
+     "guard_ratio": 3.814514503537444e-23,
+     "node": 3784,
+     "v31_form_ratio": 0.015623055209809344
+    },
+    "node_of_max_guard_ratio": {
+     "D_C": -1.7425703399053928e-25,
+     "D_minus_L_C": -1.740564405174864e-25,
+     "D_over_L": 868.7073977954586,
+     "L_C": -2.0059347305290123e-28,
+     "bound_C": 1.7350639079746107e-23,
+     "guard_ratio": 0.010031701986162999,
+     "node": 10933,
+     "v31_form_ratio": 0.01004326314377402
+    },
+    "nodes_considered": 4420
+   },
+   "group": "ledger-run",
+   "name": "end state: host recomputation of the guard (|D-L|/bound <= 1), the v3.1 form |D|/bound > 1, D/L at the drift nodes",
+   "passed": false
+  },
+  {
+   "evidence": {
+    "final_ledger_sha256": "2d6011db154798e30fcaac22086e408ddbdda38f0a12ef16b1acd9d41d579ef7",
+    "final_physical_sha256": "f9b5437841a21384bd4513410217b992cdea7106acb6a158f0b98a8389a3a28d",
+    "same_chain": true,
+    "same_start": true
+   },
+   "group": "checkpoint-resident",
+   "name": "resident save/restore (same process, new device state): restored digests equal the saved ones and 20 continued steps are bit-identical (every field and heat digest, final physical state and ledger)",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "configuration_default": "8729e49262bcedae5999ccbd30d10d7cd93fe342308902f272d9db76decad368",
+    "configuration_dt13": "1ea425af0484c50ee48cd8eacfba0651db884805dda259787d7769ae365c8149"
+   },
+   "group": "checkpoint-resident",
+   "name": "restore into a Model with dt upper bound 1e-13 (configuration recomputed from the recorded operands): same physical state and ledger after the same steps, different identities",
+   "passed": true
+  },
+  {
+   "evidence": {},
+   "group": "checkpoint-resident",
+   "name": "restore into a Model with other carrier limits refused",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "at_node": 11075,
+    "elementary_charge_over_largest_admissible_injection": 9072.268017813269,
+    "first_unexpected": null,
+    "host_s": 32.046697996,
+    "largest_admissible_injection_anywhere_C_max_n(bound_n+|D_n-L_n|)": 1.76601554413312e-23,
+    "max_abs_L_C": 2.7081730280088797e-25,
+    "refused": 29624,
+    "refused_at_other_node": 0,
+    "tested": 29624
+   },
+   "group": "injection",
+   "name": "an injected elementary charge (+e and -e, free charge) at every node of the late state is refused by the absolute Gauss guard at that node",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "rows": [
+     {
+      "D_minus_L_C": 2.9042786145120478e-46,
+      "L_C": -1.9531557102051824e-25,
+      "bound_C": 1.7332687873874878e-23,
+      "node": 3747,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.733270520656275e-23
+     },
+     {
+      "D_minus_L_C": 6.6122567927319355e-46,
+      "L_C": -2.7081730280088797e-25,
+      "bound_C": 1.7334464940688953e-23,
+      "node": 3784,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7334482275153892e-23
+     },
+     {
+      "D_minus_L_C": -1.740564405174864e-25,
+      "L_C": -2.0059347305290123e-28,
+      "bound_C": 1.7350639079746107e-23,
+      "node": 10933,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7524713044959114e-23
+     },
+     {
+      "D_minus_L_C": -4.0040397325090725e-43,
+      "L_C": -3.4527531988699473e-26,
+      "bound_C": 1.76601554413312e-23,
+      "node": 11075,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.766017310148664e-23
+     },
+     {
+      "D_minus_L_C": -1.8513774776182836e-26,
+      "L_C": 2.594046749892624e-31,
+      "bound_C": 1.7335265829380988e-23,
+      "node": 10325,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7353796957936774e-23
+     },
+     {
+      "D_minus_L_C": -6.593409147199437e-56,
+      "L_C": 4.477170639437746e-28,
+      "bound_C": 1.7332561267778906e-23,
+      "node": 384,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7332578600340174e-23
+     },
+     {
+      "D_minus_L_C": 1.8877178818241623e-26,
+      "L_C": 3.174729422910248e-34,
+      "bound_C": 1.7341026247528568e-23,
+      "node": 10393,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7359920786250238e-23
+     },
+     {
+      "D_minus_L_C": 7.457345944201437e-26,
+      "L_C": 2.7206930818689646e-33,
+      "bound_C": 1.7360568295688963e-23,
+      "node": 9933,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7435159190272735e-23
+     },
+     {
+      "D_minus_L_C": -6.373210766368215e-45,
+      "L_C": -4.545027095399396e-27,
+      "bound_C": 1.734729777205611e-23,
+      "node": 5872,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7347315119353882e-23
+     },
+     {
+      "D_minus_L_C": 6.319469401402578e-26,
+      "L_C": -6.912930397945132e-29,
+      "bound_C": 1.733905868838864e-23,
+      "node": 10784,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7402270784656048e-23
+     },
+     {
+      "D_minus_L_C": 5.700033073909691e-56,
+      "L_C": 4.5091083928548495e-28,
+      "bound_C": 1.7332554200903217e-23,
+      "node": 529,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7332571533457418e-23
+     },
+     {
+      "D_minus_L_C": -1.9916855110229986e-26,
+      "L_C": 2.5391686771020577e-36,
+      "bound_C": 1.7333259504649326e-23,
+      "node": 3499,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7353193712935916e-23
+     },
+     {
+      "D_minus_L_C": -9.976283522902539e-28,
+      "L_C": 1.9155099281644884e-36,
+      "bound_C": 1.7339085334616136e-23,
+      "node": 4693,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.734010030305139e-23
+     },
+     {
+      "D_minus_L_C": 1.2215319714802147e-26,
+      "L_C": 1.0939761877279575e-31,
+      "bound_C": 1.734356466659578e-23,
+      "node": 12464,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.735579734209057e-23
+     },
+     {
+      "D_minus_L_C": 5.555130789085882e-26,
+      "L_C": 2.0349851235642903e-34,
+      "bound_C": 1.7360765101433257e-23,
+      "node": 7649,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7416333825640525e-23
+     },
+     {
+      "D_minus_L_C": 3.4230610035560895e-27,
+      "L_C": 2.4419889011098923e-36,
+      "bound_C": 1.7344857955593447e-23,
+      "node": 5067,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.734829836487802e-23
+     },
+     {
+      "D_minus_L_C": 8.775501964388718e-27,
+      "L_C": -7.561877316198827e-36,
+      "bound_C": 1.7346490536389466e-23,
+      "node": 5773,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7355283393619894e-23
+     },
+     {
+      "D_minus_L_C": -1.1910868117953516e-26,
+      "L_C": 5.581637671939891e-36,
+      "bound_C": 1.7332972778269082e-23,
+      "node": 2257,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.734490099127068e-23
+     },
+     {
+      "D_minus_L_C": 2.1180179696568065e-26,
+      "L_C": -2.2825827222899557e-36,
+      "bound_C": 1.7345825821883785e-23,
+      "node": 5309,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7367023368586356e-23
+     },
+     {
+      "D_minus_L_C": 7.896459176465234e-50,
+      "L_C": 6.11998369596814e-28,
+      "bound_C": 1.7339872025398512e-23,
+      "node": 10947,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7339889365270538e-23
+     },
+     {
+      "D_minus_L_C": -2.3431394965425e-55,
+      "L_C": -3.6661476454233053e-29,
+      "bound_C": 1.7339024412940016e-23,
+      "node": 13659,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7339041751964427e-23
+     },
+     {
+      "D_minus_L_C": 1.5281734157538048e-55,
+      "L_C": 2.8802013830780814e-27,
+      "bound_C": 1.7333775454545495e-23,
+      "node": 6311,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7333792788320948e-23
+     },
+     {
+      "D_minus_L_C": 1.6960779054657395e-49,
+      "L_C": 2.424831459524072e-28,
+      "bound_C": 1.733713495944644e-23,
+      "node": 13147,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7337152296581397e-23
+     },
+     {
+      "D_minus_L_C": -3.7287841481424266e-27,
+      "L_C": -1.8989690779933253e-36,
+      "bound_C": 1.733565933457663e-23,
+      "node": 6174,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.733940545811289e-23
+     },
+     {
+      "D_minus_L_C": 1.9412895614395105e-49,
+      "L_C": -9.739090828863969e-30,
+      "bound_C": 1.73357113686949e-23,
+      "node": 14500,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7335728704406268e-23
+     },
+     {
+      "D_minus_L_C": 4.546286041394236e-56,
+      "L_C": 1.035167779110848e-27,
+      "bound_C": 1.733252288121189e-23,
+      "node": 69,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7332540213734772e-23
+     },
+     {
+      "D_minus_L_C": -1.441808060315705e-26,
+      "L_C": 1.269577391424224e-34,
+      "bound_C": 1.7360634443411126e-23,
+      "node": 7691,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.737506989906681e-23
+     },
+     {
+      "D_minus_L_C": 1.2346488911151921e-26,
+      "L_C": 7.819126827970887e-34,
+      "bound_C": 1.736182175331699e-23,
+      "node": 7849,
+      "ok": true,
+      "q_equal_D_minus_L_admitted_host_device": true,
+      "refused_both_signs_device": true,
+      "refused_both_signs_host": true,
+      "threshold_C": 1.7374185616396382e-23
+     }
+    ]
+   },
+   "group": "injection",
+   "name": "admissible window per node is [D-L-bound, D-L+bound] (seed level, independent of |L|): |q| = (bound+|D-L|)(1+1e-6) refused for both signs on host and device at 28 nodes (3747, max |L|, max ratio, max bound, 24 random); q = D-L admitted",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "after": {
+     "D_C": 2.7081730280088797e-25,
+     "D_minus_L_C": 5.416346056017759e-25,
+     "D_over_L": -1.0,
+     "L_C": -2.7081730280088797e-25,
+     "bound_C": 1.7334464940688985e-23,
+     "guard_ratio": 0.031246110419618632,
+     "node": 3784,
+     "v31_form_ratio": 0.015623055209809318
+    },
+    "device": {
+     "accepted": true
+    },
+    "host": {
+     "accepted": true
+    },
+    "injected_C": -5.416346056017759e-25,
+    "literal_form_admits": true,
+    "node": 3784
+   },
+   "group": "injection",
+   "name": "charge 2L at the node of largest |L| (admissible under |D| <= bound + |L|) is refused by |D-L| <= bound (host and device)",
+   "passed": false
+  },
+  {
+   "evidence": {
+    "device": {
+     "accepted": false,
+     "refusal": "absolute Gauss constraint disagrees with actual declared charge: node=7337 defect_C=2.1196796867820038e-11 bound_C=1.856420478271157e-23 field_activity_C=4.7135792592559222e-13 admitted_gauss_ledger_C=-7.3000041435112586e-34 uncorrected_defect_C(abs)=2.1196796867820038e-11"
+    },
+    "host": {
+     "accepted": false,
+     "refusal": "absolute Gauss constraint disagrees with actual declared charge: node=7337 defect_C=2.1196796867820038e-11 bound_C=1.856420478271157e-23 field_activity_C=4.7135792592559232e-13 admitted_gauss_ledger_C=-7.3000041435112586e-34 uncorrected_defect_C=2.1196796867820038e-11"
+    },
+    "margin_abs_D_minus_L_over_bound": 2394394513707.951,
+    "margin_literal_form_abs_D_over_bound_plus_abs_L": 2394394513674.941,
+    "time_s": 7.557880554919894e-10,
+    "worst_node": {
+     "D_C": 4.8113364319019935e-11,
+     "D_minus_L_C": 4.8113364319019935e-11,
+     "D_over_L": -1.7367722368983187e+23,
+     "L_C": -2.7702748406978815e-34,
+     "bound_C": 2.0094167458023338e-23,
+     "guard_ratio": 2394394513707.951,
+     "node": 7384,
+     "v31_form_ratio": 2394394513707.951
+    }
+   },
+   "group": "A09-gauss",
+   "name": "A09 charge injected into the late state (t > 1.24 ns, ledger accumulated) refused on host and device; margins stated",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "device": {
+     "accepted": false,
+     "refusal": "absolute divB constraint failed"
+    },
+    "divB_scan": {
+     "bound_T_per_m": 1.4135394171678628e-10,
+     "cell": 5061,
+     "cells_violating": 2,
+     "divB_T_per_m": 49.999999999999766,
+     "max_divB_over_bound": 353722007272.9114
+    },
+    "divB_scan_unperturbed": {
+     "bound_T_per_m": 3.95460938209501e-11,
+     "cell": 1011,
+     "cells_violating": 0,
+     "divB_T_per_m": 3.146627824956505e-13,
+     "max_divB_over_bound": 0.007956861274853736
+    },
+    "host": {
+     "accepted": false,
+     "refusal": "absolute divB constraint failed"
+    }
+   },
+   "group": "A09-divB",
+   "name": "0.01 T face perturbation of the late state refused on host and device; margin stated",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "node": 3784,
+    "preflight_after_device_ledger_ulp": false,
+    "restore_ledger_plus_1e-20_resealed": {
+     "accepted": false,
+     "refusal": "absolute Gauss constraint disagrees with actual declared charge: node=3784 defect_C=-9.9999999999999995e-21 bound_C=1.7334464940688953e-23 field_activity_C=1.717135332636152e-14 admitted_gauss_ledger_C=9.9997291826971985e-21 uncorrected_defect_C=-2.7081730280088797e-25"
+    },
+    "restore_ledger_ulp_not_resealed": {
+     "accepted": false,
+     "refusal": "checkpoint field/charge seal mismatch"
+    },
+    "restore_resealed_control": {
+     "accepted": true
+    }
+   },
+   "group": "ledger-tamper",
+   "name": "one-ulp change of one accepted ledger word on the device refused at preflight (leaves recomputed)",
+   "passed": true
+  },
+  {
+   "evidence": {},
+   "group": "ledger-tamper",
+   "name": "resident checkpoint: one-ulp ledger change without reseal refused (seal)",
+   "passed": true
+  },
+  {
+   "evidence": {},
+   "group": "ledger-tamper",
+   "name": "resident checkpoint: resealed ledger change of 1e-20 C refused by the absolute Gauss guard; resealed unmodified control restores",
+   "passed": true
+  }
+ ],
+ "checkpoint": "/home/treefor/projects/.workspace/outputs/hall-corrective-v3.2-20261031/b1/gpu-ledger-smoke-094749/checkpoint-end",
+ "configuration_sha256": "8729e49262bcedae5999ccbd30d10d7cd93fe342308902f272d9db76decad368",
+ "device": {
+  "compute_capability": "8.6",
+  "driver_api_version": 13040,
+  "driver_library": "/usr/lib/libcuda.so.615.78.08",
+  "driver_library_sha256": "f73320931be3c4eabc120a1a7fea25f34f324c0f93e35891f98e81a722b5dfc3",
+  "kernel_module_version": "NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  615.78.08  Release Build  (root@)  ",
+  "multiprocessors": 80,
+  "name": "NVIDIA GeForce RTX 3080 Ti",
+  "ordinal": 0,
+  "pci_bus_id": "0000:01:00.0",
+  "primary_context_flags": 4,
+  "primary_context_was_active": false,
+  "total_memory_bytes": 12541296640,
+  "uuid": "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
+ },
+ "end_scan": {
+  "max_abs_L_C": 2.7081730280088797e-25,
+  "max_guard_ratio_abs_D_minus_L_over_bound": 0.010031701986162999,
+  "max_implied_ratio_abs_D_over_bound_plus_abs_L": 0.015382729970207207,
+  "max_v31_form_ratio_abs_D_over_bound": 0.015623055209809344,
+  "node_of_max_abs_L": {
+   "D_C": -2.7081730280088797e-25,
+   "D_minus_L_C": 6.6122567927319355e-46,
+   "D_over_L": 1.0,
+   "L_C": -2.7081730280088797e-25,
+   "bound_C": 1.7334464940688953e-23,
+   "guard_ratio": 3.814514503537444e-23,
+   "node": 3784,
+   "v31_form_ratio": 0.015623055209809344
+  },
+  "node_of_max_guard_ratio": {
+   "D_C": -1.7425703399053928e-25,
+   "D_minus_L_C": -1.740564405174864e-25,
+   "D_over_L": 868.7073977954586,
+   "L_C": -2.0059347305290123e-28,
+   "bound_C": 1.7350639079746107e-23,
+   "guard_ratio": 0.010031701986162999,
+   "node": 10933,
+   "v31_form_ratio": 0.01004326314377402
+  }
+ },
+ "failed": 3,
+ "run": {
+  "end_time_s": 7.557880554919894e-10,
+  "first_sample_with_v31_form_ratio_over_1": {
+   "step": -1,
+   "time_s": 0.0
+  },
+  "max_step_guard_ratio": 0.010032174996435548,
+  "max_step_implied_ratio": 0.015396001028096332,
+  "ms_per_step": 2.836666918333333,
+  "refusal": "",
+  "refused_at_step": -1,
+  "revision": 600,
+  "steps_requested": 600,
+  "v31_refusal_of_record": {
+   "node": 3747,
+   "step": 48650,
+   "time_s": 1.2363e-09
+  },
+  "wall_s": 1.702000151
+ },
+ "schema": "hall-v3.2-ledger-run-v1"
+}

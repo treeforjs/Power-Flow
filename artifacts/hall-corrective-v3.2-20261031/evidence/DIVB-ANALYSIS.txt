@@ -1,0 +1,97 @@
+Hall v3.2 field-only pre-run: absolute divB refusal at 4.1456 ns -- analysis and fix options, 2026-10-31
+
+Run: SimQueue job 126, build s1 (sealed v3.2), 9 mm box 45x4+1 (200 um), dt 100 fs, from the DC seed at 0.749788 ns.
+Refusal "absolute divB constraint failed" (unchanged guard: per cell |divB_c| <= 128 eps sum_faces (|B_a| + |B_b|)/h) at
+t = 4.14560 ns (step 34,158 + 1,456 from the 4 ns checkpoint); checkpoints at 1, 2, 3, 4 ns are valid.
+Diagnostic program (not part of v3.2; links the sealed sources read-only): runtimes/hall-corrective-v3.2-diag-20261031
+(tests/diag_divb.cpp); outputs .workspace/outputs/hall-corrective-v3.2-20261031/diag/g1/.
+
+1. Where and why
+ Refusing cell (i,j,k) = (22,35,3): x centre, inside the upper foil (the one-cell-thick foil, y 2.5..2.7 mm), mid foil height.
+   divB there: -2.371e-14 T/m at 0.75 ns (3 steps after the DC seed), -2.434e-14 (1 ns), -2.642e-14 (2 ns), -2.800e-14 (3 ns),
+   -2.897e-14 (4 ns), -2.912e-14 at the refusal: 81 % is the DC seed's own rounding divergence, 19 % accumulated drift.
+   The bound fell from 1.09e-13 (4.139 ns) to 2.86e-14 T/m (4.1456 ns): the magnetic field inside the foil passes through zero
+   (largest face |B| of the cell 6.2e-2 T at 1 ns, 6.2e-3 T at 4 ns, ~3e-5 T at the refusal; sum |B|/h = 1.006 T/m against
+   ~1,500 T/m in the feed-end cells). The check is relative to the instantaneous local |B|, so ANY nonzero residual divergence
+   (seed rounding or drift) is refused when |B| in that cell crosses zero closely enough.
+ Second population (drift-dominated): the top air layer at the feed end next to the foil faces, (22,8,5), (22,35,5), (22,36,5):
+   divB -7.5e-14 (0.75 ns), -3.0e-13 (1 ns), -3.7e-12 (2 ns), -1.09e-11 (3 ns), -2.04e-11 T/m (4 ns), ratio 0.46 at 4 ns,
+   growing with the drive current: these cells would reach the bound at roughly 6-7 ns without any zero crossing.
+
+2. Per step or per unit simulated time? (10 fs data)
+ From the 4 ns checkpoint at 100 fs and at 10 fs: refusal at 4.14556 ns in both, same cell, same values (divB -2.9123e-14 /
+   -2.9129e-14 T/m). Per-step increment at (22,35,5): -7.44e-16 T/m per 100 fs step, -7.21e-17 per 10 fs step: -7.3e-3 T/(m s)
+   in both, i.e. per unit simulated time (systematic rounding of a quasi-static update, as for the Gauss drift). The 2.75 ns
+   cross-check states agree as well: -8.867e-12 (100 fs) vs -8.873e-12 T/m (10 fs) at (22,8,5). The sum of the sampled step
+   increments reproduces the drift (-1.06e-12 T/m over 4.00 -> 4.145 ns at (22,35,5)).
+
+3. Is the update divergence-free in exact arithmetic?
+ Update: B_f -= dt s_f, s_f = fl(sum_k c_k midE_k) (four plain binary64 products and sums; k_update_B and Model::prepare),
+   B words updated with Words arithmetic; c_k = fl(+-1/h). Check: divB_c = sum_axes (B_a - B_b)/h (division).
+ In exact arithmetic with the stored coefficients the discrete divergence of the update is not identically zero: for x and y
+   edges the two cell faces give fl(1/dz)/dy - fl(1/dy)/dz = 1.43e-16 / (dy dz) (z edges cancel since dx = dy); with the check
+   in coefficient form (multiplying by the stored fl(1/h)) it is identically zero. Measured in quad precision on the sampled
+   steps: exact-arithmetic increment <= 1.3e-31 T/m per step (coefficient form <= 1e-34, quad noise) against actual increments
+   1e-18 .. 1e-15 T/m. The drift is the rounding of the update (the plain double face sum s_f; the Words B update itself adds
+   only O(eps^2)), plus the DC seed's rounding divergence (B0 from the DC solve in double).
+
+4. Finer meshes (field-only from the DC seed, 100 fs, same drive)
+ 100 um (90x4+1): no refusal to 4.5 ns; largest divB/bound 0.035 (top air layer at the box edge, (0,88,5)).
+ 50 um (180x4+1): no refusal to 3.0 ns; largest 0.055 ((13,90,5) and (179,179,3), box edge / corner).
+ 200 um (45x4+1): refused at 4.1456 ns (foil-interior zero crossing); ratio 0.46 in the feed cells at 4 ns.
+ The refusal time is not a smooth function of h: the fine meshes drift more slowly in their worst cells (0.035 / 0.055 vs
+   0.46 at similar times), but every mesh carries seed and drift divergence in cells whose |B| reverses (foil interiors under
+   the skin-depth field reversal, cells near field nulls), so a refusal can come at any zero crossing; a 20 ns or coupled
+   window cannot be guaranteed on any mesh with the current check. (The 25 um mesh is refused earlier, at construction:
+   resolution-series F1.)
+
+5. Fix options
+ (a) Per-cell accumulated-admitted divB ledger (like the Gauss ledger): M_c += the step's computed divergence increment;
+     check |divB_c - M_c| <= 128 eps scale_c.
+     Needs (a1) a new per-step guard bounding the increment by its rounding size (e.g. |delta divB_c| <= 8 eps dt
+     sum_f sum_k |c_k midE_k| / h_f), otherwise the ledger admits divergence created by a faulty update; and (a2) the seed
+     divergence: M_c must start at the bootstrap value d_c(0) (admitted by the unchanged bootstrap check), because d_c(0) alone
+     is refused at a zero crossing (the refusing cell: d_c(0) = -2.37e-14, bound at refusal 2.86e-14 and still falling).
+     Risks: one changed and one new guard; a 12,150-cell (default mesh) state array in digests and checkpoints; the absolute
+     check then only detects edits outside a step, and eps-level systematic divergence creation by the update stays admissible
+     by construction. Physics bits unchanged (v3.1/v3.2 parity kept).
+     A09 50 T/m: bootstrap refused (M = 0 before the bootstrap check; margin 3.5e11); injected mid-run refused (M unchanged by
+     an out-of-step edit; margin 2.8e11 at 1.3 ns).
+ (b) Structural: keep the discrete divergence at O(eps^2).
+     (b1) Double-word face increments: s_f = sum_k c_k midE_k as a compensated exact-product sum (Words; fma two-products;
+          error <= ~2 eps^2 relative), B_f -= dt s_f in Words; the DC seed B0 recomputed as the double-word curl of the seed
+          vector potential (seed divergence O(eps^2)); the check unchanged (division form: exact-arithmetic mismatch
+          <= 1e-31 per step, negligible) or in coefficient form (identically zero). Accumulated divergence after N steps
+          <= N O(eps^2) sum|dB|/h (~1e-25 relative at 2e6 steps): a refusal would need a cell's |B| to fall below ~1e-12 of its
+          history. Risks: physics bits change at the rounding level (B update and seed): bitwise parity with v3.1/v3.2 is lost
+          and must be re-established against a new reference (host/device parity, component and coordinator parity at
+          rounding tolerance, configuration identity change); the seed change touches the sealed Hall DC-seed construction
+          (Hall-side recomputation of B0 from A0). Cost: a few extra fma per face (negligible).
+          A09 50 T/m: guard unchanged -> refused, margins unchanged (3.5e11 bootstrap, 2.8e11 mid-run).
+     (b2) Face fluxes Phi_f = B_f area_f updated by shared edge circulations (each edge term computed once, exact 4-term
+          sums), divergence = sum +-Phi identically zero: same benefit, larger change (representation used by the rhs, energy,
+          midpoint, push gather).
+     (b3) Vector potential on edges, B = curl A on demand: divergence zero at every evaluation (no accumulation), but the
+          rounding is relative to |A|, which grows with time (A = -int E dt): B precision degrades over long windows.
+ (c) Budget floor: R_c += 8 eps sum_f |dB_f| / h_f per step (state), check |divB_c| <= 128 eps scale_c + R_c(+ seed term):
+     self-contained, physics unchanged, but the allowance grows with the field's total variation (a loosening); A09 margin
+     > 1e11 to 20 ns.
+
+6. Recommendation
+ (b1) for Hall v3.3: it removes the cause (O(eps) rounding of every B update and of the seed) instead of admitting it, adds
+ no state and no guard, keeps the absolute divB check's meaning and its A09 margins, and costs nothing per step. v3.3
+ already changes several device paths and needs a new parity baseline, so the bit-level change of B can be qualified there
+ (host and device in the same Words operations; parity against v3.2 at rounding level; the 2.75 ns 10/100 fs cross-check and
+ the 20 ns pre-run repeated). If bit parity with v3.1/v3.2 must be kept, (a) with (a1) and (a2).
+
+7. Pre-run data to the refusal (s1/gpu-prerun-20ns-111310: series.jsonl, plots/, checkpoints 1-4 ns)
+ time    terminal V   drive I    W_E        W_B      max surface E_n (MV/m)        foil T max / mean   Gauss |D-L|/B  v3.1 |D|/B
+ 1 ns    50.9 kV      6.41 kA    4.52e-4 J  0.224 J  24.3 / 24.9 (inner / outer)   300.002 / 300.002   0.0051         0.52
+ 2 ns    70.0 kV      8.58 kA    8.33e-4 J  0.415 J  33.4 / 34.2                   300.028 / 300.013   0.0047         2.76
+ 3 ns    77.8 kV      12.12 kA   1.03e-3 J  0.933 J  37.1 / 38.3                   300.137 / 300.041   0.0046         5.66
+ 4 ns    84.9 kV      16.19 kA   1.25e-3 J  1.84 J   40.7 / 42.3                   300.431 / 300.104   0.0045         9.75
+ 4.14 ns 86.2 kV      16.77 kA   1.30e-3 J  2.00 J                                 300.493 / 300.116   0.0045         10.46
+ Peak terminal voltage 89.3 kV at 3.55 ns; largest surface normal field 44.8 MV/m (outer faces), 42.9 MV/m (inner faces);
+ both foils identical by symmetry. Gauss guard <= 0.0100 throughout (bootstrap value), max |L| 1.83e-22 C at 4.14 ns, the
+ uncorrected v3.1 form 10.5 (the ledger carries the whole drift). 100 fs: 3.19 ms/step incl. sampling (34,158 steps, 109 s).
+ Qualification run on the 9 mm box (port inductance ~32 % low against the circuit study); not a production start state.

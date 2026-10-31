@@ -1,0 +1,102 @@
+Hall corrective v3.2 -- results, 2026-10-31
+
+Sources: runtimes/hall-corrective-v3.2-20261031 (README.txt), sealed copy Power-Flow/artifacts/hall-corrective-v3.2-20261031/source
+(SOURCE-SHA256.json, 48 files), build of record s1 (same C++ sources as the acceptance build a1). Device RTX 3080 Ti (sm_86,
+NVRTC 12.8, --fmad=false --prec-div=true --prec-sqrt=true --ftz=false); one core per run (6/7, loaned 0/1/3 for CPU-only runs);
+inside arch-base-20261028/run-frozen; every run directory has run-receipt.json.
+
+1. Admitted Gauss ledger (README section 1: |D_n - L_n| <= B_n, L_n += delta_n - c_n per accepted step)
+ Field-only run at 10 fs from the supported start (a1/gpu-ledger-run-*): 55,000 steps to 1.2998 ns, 2.89 ms/step, no refusal.
+   v3.1 form |D|/B (what v3.1 checked) crosses 1 between the samples at steps 48,500 (0.997) and 48,750 (1.002) at node 3747,
+   matching the v3.1 refusal of record (step 48,650, 1.2363 ns); 1.137 at the end.
+   v3.2 guard max_n |D-L|/B: <= 0.010032 at every step (the bootstrap value: the DC seed solve residual at a vacuum node);
+   0.0068 at the end. Implied ratio max |D|/(B + |L|): 0.53 at the end.
+   Ledger ratio: (D_n - D0_n)/L_n = 1 - 4e-16 .. 1 + 4e-16 at all 1,493 nodes with |L_n| >= 1e-25 C; max |D_n - L_n - D0_n|
+   over all nodes 1.1e-39 C (word rounding). Node 3747 at 1.2998 ns: D = L = -1.971e-23 C, D - L = 1.8e-44 C, B = 1.733e-23 C.
+ Injected charge (end state of that run, host arithmetic): +e and -e in the free charge at every node: 29,624 / 29,624 refused
+   by the absolute Gauss guard at that node. Largest admissible injection anywhere max_n (B_n + |D_n - L_n|) = 4.8e-23 C
+   (e / 4.8e-23 = 3,325). Window test at 28 nodes (3747, max |L|, max ratio, max bound, 24 random), host and device:
+   |q| = (B + |D-L|)(1 + 1e-6) refused for both signs, q = D - L admitted. Charge 2L at node 3747 (-3.94e-23 C): admitted by the
+   literal form |D| <= B + |L|, refused by v3.2 (host and device).
+ A09 counterexamples: inconsistent charge (-e x 1e9 at the audit point, 4.811e-11 C at node 7384): bootstrap (host Model::admit,
+   Owner, ResidentOwner, device admission) refused, margin |D-L|/B = 2.39e12 (B = 2.01e-23 C); injected into the 1.30 ns state
+   (ledger accumulated) refused on host and device, margin 2.17e12 (literal-form margin 2.17e12). divB 0.01 T on one face:
+   50.0 T/m against 1.41e-10 T/m, margin 3.5e11 at bootstrap (host, Owner, resident, device) and 2.8e11 at 1.30 ns; resealed host
+   checkpoints with the face perturbation or the A09 charge refused by the guards. A bootstrap ledger that would cover the A09
+   mismatch is refused ("bootstrap admitted Gauss ledger must be zero").
+ Ledger tamper: one ulp of an accepted ledger word on the device refused at preflight (leaf recomputation); one ulp in a host or
+   resident checkpoint without reseal refused (seal); a resealed ledger change of 1e-20 C refused by the absolute Gauss guard;
+   resealed unmodified control restores.
+ Checkpoint of the resident owner: save at 1.2998 ns; restore in the same process (new device state) and in a fresh process
+   (a1/gpu-restore-continue-*): the restored field/heat digests equal the saved ones and 500 continued steps are bit-identical
+   (every field and heat digest, final physical state and ledger); restore into a Model with dt bound 1e-13 (configuration
+   recomputed from the recorded operands): same physical state and ledger after the same steps; a Model with other carrier
+   limits is refused.
+ Coupled steps: with 20 electrons collected on the lower foil (dense blob + sink carriers) the uncorrected v3.1 form exceeds 1 at
+   step 4 (1.097; bank transfers and admitted continuity defects), the v3.2 guard stays at 0.0100 (both motion forms, CPU and
+   GPU push). The 10 eV heavy blob (w 1.6e11, 5.4 fs): v3.1 form up to 0.963, v3.2 guard 0.0100.
+
+2. Parity with v3.1 / Hall v3 (physical state)
+ Resident vs host arithmetic (a1): parity-vacuum 200 steps x 2 backends 16/16, parity-coupled 2 carriers x 50 steps 8/8 and
+   1e4 carriers x 3 steps 8/8: E, B, E_low, B_low, clock, complete ledger including the admitted Gauss ledger, midpoint, cell
+   Joule power, heat bit-identical every step; units 5/5; negative 4/4.
+ Vacuum 10,000 steps (a1/gpu-vacuum10k-*): final physical digest 32f31874... = v3.1 (a2/a5); 2.92 ms/step (v3.1 2.80);
+   guards: max |Gauss|/bound (max/max) 0.0099, divB 0.0035, energy 2.2e-6, residual/target 0.199.
+ Hall v3 component tests on the v3.2 sources (a1/v3-evidence-comparison.json): 30/30 components with the same outcomes, the
+   14 parity-scenario steps and 24 motion-record entries identical to the Hall v3 evidence b7/cpu-211226; the 21 sink fixtures
+   identical except the 19 candidate_field_sha256 values (identity change, README 1.6).
+ Coordinator v5 T1-T7 on v3.2 (coordinator-parity/run-a1-105019): T1 101, T2 28, T3 35, T4 10, T5 37, T6 6, T7 9 passed;
+   declaration and 9 compile rejections pass; T1 byte-identical in two fresh processes; against the Hall v3 run run-p3-221714:
+   Hall field words, charge ledger and 8 heat slices identical for P1, P2 and both z = 1 mm populations, 109 digests remapped
+   one to one, 0 non-digest differences.
+
+3. Motion work tolerance (MOTION-WORK-GROSS-V1.txt; native v7 amendment A1, cross-checked bitwise by native)
+ Coordinator v7 dense fixtures (Hall-only, without the qual sources), 10 fs: light (3.45e10) 403 steps to omega_p t = 12.0 rad,
+   medium (8e10) 405 steps to 18.3 rad, heavy 10 eV (1.6e11, 5.4 fs) 150 steps to 5.2 rad; max |defect|/tol 9.4e-4, 9.5e-4,
+   7.8e-4; the v3.1 (net) form is exceeded at steps 90 (2.70 rad), 69 (3.15 rad), 85 (2.97 rad). End to end through
+   MotionAssembly::assemble at the step of the smallest |K|/G_K: one electron's kinetic change off by 1e-3 of 1.5 kT w refused
+   (margins 9.3e4 - 1.7e5), push field 1e-6 relative away from the work field refused (31 - 33), one carrier's mean exchange
+   with the wrong sign refused (7.8e4 - 8.3e4); one ulp of K admitted by any tolerance (exact recomputation by native).
+ CPU push vs GPU push: K, W, defect and the five scales bit-identical at every step (403 steps; 150 steps with 20 sinks).
+
+4. Native v7 motion forms (MotionForms{native_v7}; HALL-LINK 1-4, A1)
+ Dense blob with 20 sink collections, 150 steps, v7 forms: CPU push and GPU push give the same census v2 digest, exact K and W,
+   defect, scales and motion record v7 digest at every step (and the v3 forms the same v3 records). Trial E/B spans reproduce
+   trial_field_sha256 at every step. Native v7 admission of these receipts: through the coordinator v7 binding pair (not run here).
+
+5. Step size: 10 fs vs 100 fs, 0.749788 -> 2.75 ns (s1/gpu-xc-*, s1/crosscheck.json)
+ End state at 2.75 ns: E energy-norm relative difference 1.10e-7 (bound 1.2e-6), B 3.0e-9, terminal voltage 7.7e-8 relative.
+ Series (202 landing times every 10 ps): terminal voltage max |dV| 11.3 V of 88.7 kV (1.28e-4; bound 5e-4); W_E max relative
+   difference 1.9e-5 (early small-W_E samples), W_B 1.1e-8; surface fields 0.9e-5 .. 2.1e-5; foil max temperature 2.8e-10 K
+   of a 0.096 K rise; Gauss guard max 0.010032 in both; max |L| 8.41e-23 (100 fs) vs 8.36e-23 C (10 fs); v3.1 form reaches 4.85 /
+   4.82 (v3.1 would have refused at 1.236 ns); divB/bound (max/max) <= 0.0114. Within the bounds: 100 fs used for the pre-run.
+ Timings: 100 fs 3.14 ms/step (20,139 steps, 63 s); 10 fs 2.87 ms/step (200,222 steps, 574 s).
+
+6. Pre-run 0.749788 -> 20 ns at 100 fs (qualification run of the ledger and the resident path on the 9 mm box; not the
+   production start state: the 9 mm box underestimates the port inductance by ~32 %, c19-circuit-drive-v1)
+ SimQueue job 126 (build s1, 1 core + GPU, run_prerun.sh s1 prerun): refused at t = 4.1456 ns by the unchanged absolute divB
+ guard ("absolute divB constraint failed"), 34,158 steps in 109 s (3.19 ms/step incl. 341 series rows and 4 checkpoints).
+ Analysis, fix options and the data to 4.14 ns: DIVB-ANALYSIS.txt (cause: B passes through zero inside the one-cell foil at
+ a cell carrying the DC seed's rounding divergence plus drift; drift per unit simulated time, identical at 10 fs; pure
+ rounding of the B update). Valid checkpoints: s1/gpu-prerun-20ns-111310/checkpoint-{1,2,3,4}.000000ns (resident checkpoints:
+ state, admitted Gauss ledger, heat slices, kinetic ledgers). Series and plots: same directory (series.jsonl, plots/*.png).
+ Data: terminal voltage 50.9 / 70.0 / 77.8 / 84.9 kV at 1 / 2 / 3 / 4 ns (peak 89.3 kV at 3.55 ns), drive 6.41 / 8.58 / 12.12 /
+ 16.19 kA, W_B 0.224 / 0.415 / 0.933 / 1.84 J, max surface normal field 44.8 MV/m (outer faces) and 42.9 MV/m (inner), foil max
+ temperature 300.43 K at 4 ns (300.49 K at 4.14 ns); Gauss guard <= 0.0100 throughout, max |L| 1.83e-22 C, the uncorrected v3.1
+ form reaches 10.5 by 4.14 ns.
+
+7. Finer meshes (diagnostic, field-only from the DC seed at 100 fs): 100 um 90x4+1 to 4.5 ns and 50 um 180x4+1 to 3.0 ns
+ without refusal; largest divB/bound 0.035 and 0.055 (DIVB-ANALYSIS.txt section 4).
+
+8. Open issues for starting the coupled run from 20 ns
+ - The 20 ns state does not exist: the field-only run stops at 4.1456 ns on this mesh (absolute divB check, section 6); a
+   decision on the divB fix (DIVB-ANALYSIS.txt: recommended structural double-word B face increments and seed, Hall v3.3) and a
+   repeated pre-run are needed; the production pre-run moves to the graded 35-45 mm box with the circuit drive.
+ - Hand-off mechanics are in place: ResidentOwner::save/restore with bit-identical continuation; restore into a Model with
+   another dt bound, solve backend record or motion forms (configuration recomputed from the recorded operands); a checkpoint
+   from the 9 mm mesh does not restore on another mesh.
+ - Other owners still bound the coupled step (heat/source owner 1e-14); the coupled run's census, sources and native v7
+   binding pair (coordinator v7) must use the v3.2 motion forms (MotionForms{native_v7}) and the v7 census state table.
+ - Host work per carrier on the v7 path (census v2, section block lists, exact sums on the host) and per step (independent
+   residual, digests) remain (coordinator plan: Hall v3.3).
+ - Native v7 admission of Hall v3.2 receipts has not been run here (coordinator v7 binding pair).

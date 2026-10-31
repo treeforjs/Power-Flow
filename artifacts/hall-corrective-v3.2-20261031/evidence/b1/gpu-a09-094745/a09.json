@@ -1,0 +1,194 @@
+{
+ "cases": [
+  {
+   "evidence": {
+    "Model_admit": {
+     "accepted": false,
+     "refusal": "absolute Gauss constraint disagrees with actual declared charge: node=7337 defect_C=2.1196796867820038e-11 bound_C=1.8564202310374979e-23 field_activity_C=4.7131443212031686e-13"
+    },
+    "Owner_bootstrap": {
+     "accepted": false,
+     "refusal": "absolute Gauss constraint disagrees with actual declared charge: node=7337 defect_C=2.1196796867820038e-11 bound_C=1.8564202310374979e-23 field_activity_C=4.7131443212031686e-13"
+    },
+    "ResidentOwner_bootstrap": {
+     "accepted": false,
+     "refusal": "absolute Gauss constraint disagrees with actual declared charge: node=7337 defect_C=2.1196796867820038e-11 bound_C=1.8564202310374979e-23 field_activity_C=4.7131443212031686e-13"
+    },
+    "census_charge_total_C": -1.6021766339999998e-10,
+    "control_Model_admit": {
+     "accepted": true
+    },
+    "control_device_admission": {
+     "accepted": true
+    },
+    "device_admission": {
+     "accepted": false,
+     "refusal": "absolute Gauss constraint disagrees with actual declared charge: node=7337 defect_C=2.1196796867820038e-11 bound_C=1.8564202310374979e-23 field_activity_C=4.7131443212031676e-13"
+    },
+    "initial_gauss_solve_bound_C": 1.7332512783829863e-23,
+    "margin_worst_node_abs_D_minus_L_over_bound": 2394394808306.3276,
+    "scan_control": {
+     "max_abs_L_C": 0.0,
+     "max_guard_ratio_abs_D_minus_L_over_bound": 0.010032174996435323,
+     "max_implied_ratio_abs_D_over_bound_plus_abs_L": 0.010032174996435323,
+     "max_v31_form_ratio_abs_D_over_bound": 0.010032174996435323,
+     "node_of_max_abs_L": null,
+     "node_of_max_guard_ratio": {
+      "D_C": -1.740564405174864e-25,
+      "D_minus_L_C": -1.740564405174864e-25,
+      "D_over_L": 0.0,
+      "L_C": 0.0,
+      "bound_C": 1.7349821008837356e-23,
+      "guard_ratio": 0.010032174996435323,
+      "node": 10916,
+      "v31_form_ratio": 0.010032174996435323
+     }
+    },
+    "scan_with_A09_charge": {
+     "max_abs_L_C": 0.0,
+     "max_guard_ratio_abs_D_minus_L_over_bound": 2394394808306.3276,
+     "max_implied_ratio_abs_D_over_bound_plus_abs_L": 2394394808306.3276,
+     "max_v31_form_ratio_abs_D_over_bound": 2394394808306.3276,
+     "node_of_max_abs_L": null,
+     "node_of_max_guard_ratio": {
+      "D_C": 4.8113364319019935e-11,
+      "D_minus_L_C": 4.8113364319019935e-11,
+      "D_over_L": 0.0,
+      "L_C": 0.0,
+      "bound_C": 2.0094164985703783e-23,
+      "guard_ratio": 2394394808306.3276,
+      "node": 7384,
+      "v31_form_ratio": 2394394808306.3276
+     }
+    }
+   },
+   "group": "A09-gauss",
+   "name": "4.81e-11 C inconsistent charge refused at bootstrap (host Model/Owner, resident bootstrap, device admission); margin |D-L|/bound at the worst node",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "Owner_bootstrap": {
+     "accepted": false,
+     "refusal": "bootstrap admitted Gauss ledger must be zero"
+    },
+    "ResidentOwner_bootstrap": {
+     "accepted": false,
+     "refusal": "bootstrap admitted Gauss ledger must be zero"
+    }
+   },
+   "group": "A09-gauss",
+   "name": "a bootstrap ledger that would cover the A09 mismatch is refused (host and resident)",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "Model_admit": {
+     "accepted": false,
+     "refusal": "absolute divB constraint failed"
+    },
+    "Owner_bootstrap": {
+     "accepted": false,
+     "refusal": "absolute divB constraint failed"
+    },
+    "ResidentOwner_bootstrap": {
+     "accepted": false,
+     "refusal": "absolute divB constraint failed"
+    },
+    "device_admission": {
+     "accepted": false,
+     "refusal": "absolute divB constraint failed"
+    },
+    "divB_scan_control": {
+     "bound_T_per_m": 3.954609382095081e-11,
+     "cell": 1011,
+     "cells_violating": 0,
+     "divB_T_per_m": 3.1466278216086554e-13,
+     "max_divB_over_bound": 0.007956861266387906
+    },
+    "divB_scan_perturbed": {
+     "bound_T_per_m": 1.413539416401321e-10,
+     "cell": 5061,
+     "cells_violating": 2,
+     "divB_T_per_m": 50.00000000000004,
+     "max_divB_over_bound": 353722007464.73157
+    },
+    "face": 5174
+   },
+   "group": "A09-divB",
+   "name": "50 T/m single-face divB refused (host Model/Owner, resident bootstrap, device admission); margin divB/bound",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "ledger_nonzero_after_3_steps": true,
+    "ledger_tamper_node": 3552,
+    "restore_ledger_one_ulp_not_resealed": {
+     "accepted": false,
+     "refusal": "checkpoint field/charge seal mismatch"
+    },
+    "restore_ledger_plus_1e-20_resealed": {
+     "accepted": false,
+     "refusal": "absolute Gauss constraint disagrees with actual declared charge: node=3552 defect_C=-9.9999999999999995e-21 bound_C=1.733353983729807e-23 field_activity_C=9.0340578451346439e-15 admitted_gauss_ledger_C=9.9999828117055891e-21 uncorrected_defect_C=-1.7188294410317581e-26"
+    },
+    "restore_resealed_A09_charge": {
+     "accepted": false,
+     "refusal": "absolute Gauss constraint disagrees with actual declared charge: node=7337 defect_C=2.1196796867820038e-11 bound_C=1.8564202310374979e-23 field_activity_C=4.7131443212030868e-13 admitted_gauss_ledger_C=-1.708385359430624e-42 uncorrected_defect_C=2.1196796867820038e-11"
+    },
+    "restore_resealed_divB": {
+     "accepted": false,
+     "refusal": "absolute divB constraint failed"
+    },
+    "restore_unmodified": {
+     "accepted": true
+    }
+   },
+   "group": "checkpoint-host",
+   "name": "host Owner checkpoint carries the ledger (nonzero after 3 steps) and restores to the same digest",
+   "passed": true
+  },
+  {
+   "evidence": {},
+   "group": "A09-divB",
+   "name": "resealed host checkpoint with the 0.01 T face perturbation refused",
+   "passed": true
+  },
+  {
+   "evidence": {},
+   "group": "A09-gauss",
+   "name": "resealed host checkpoint with the A09 free charge (and its census) refused by the absolute Gauss guard",
+   "passed": true
+  },
+  {
+   "evidence": {},
+   "group": "ledger-tamper",
+   "name": "host checkpoint: one-ulp ledger change without reseal refused (seal)",
+   "passed": true
+  },
+  {
+   "evidence": {},
+   "group": "ledger-tamper",
+   "name": "host checkpoint: resealed ledger change of 1e-20 C refused by the absolute Gauss guard",
+   "passed": true
+  }
+ ],
+ "configuration_sha256_cpu": "fc5fa6bb9527b3865829dceb4dc6ffa03b0cbf47a5182595ee1ffe53c5a2bccf",
+ "configuration_sha256_resident": "8729e49262bcedae5999ccbd30d10d7cd93fe342308902f272d9db76decad368",
+ "device": {
+  "compute_capability": "8.6",
+  "driver_api_version": 13040,
+  "driver_library": "/usr/lib/libcuda.so.615.78.08",
+  "driver_library_sha256": "f73320931be3c4eabc120a1a7fea25f34f324c0f93e35891f98e81a722b5dfc3",
+  "kernel_module_version": "NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  615.78.08  Release Build  (root@)  ",
+  "multiprocessors": 80,
+  "name": "NVIDIA GeForce RTX 3080 Ti",
+  "ordinal": 0,
+  "pci_bus_id": "0000:01:00.0",
+  "primary_context_flags": 4,
+  "primary_context_was_active": false,
+  "total_memory_bytes": 12541296640,
+  "uuid": "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
+ },
+ "failed": 0,
+ "schema": "hall-v3.2-a09-v1"
+}
