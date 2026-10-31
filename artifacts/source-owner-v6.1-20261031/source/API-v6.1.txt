@@ -1,0 +1,87 @@
+Heat/source owner v6.1 -- performance revision of owner v6 -- 2026-10-31
+
+Owner v6 (pic-electrode-heat-source-v6-20261030, API-v6.txt) is sealed and read in place. v6.1 is a
+versioned copy in namespace electrode_heat_v6_1 (binding: hall_source_binding_v6_1). Its contract is the
+v6 contract: every public entry point, refusal, tolerance and texts of identity are unchanged, and every
+digest has the v6 value (same bytes encoded). Only the cost of evaluation changes.
+
+1. Digests and results that are identical to v6 (by construction; verified in tests/test_source_v6_1.cpp and
+   by coordinator v6.1)
+   configuration_sha256 (owner signature, still the text "heat-source-owner-v6"), state_sha256, release
+   quotes, PreparedPatch (exposure key including its v6 content digest, expected count, log count, wall
+   heat diagnostic, the prepared flux and spectrum), Candidate and Handoff content, Trial content and loads,
+   Field content_sha256 and mesh_sha256, component checkpoint bytes ("heat-source-v6-component-1"),
+   every accept/refuse decision.
+
+2. Changes
+2.1 detail::Encoding appends integers, doubles and contiguous double arrays as little-endian 8-byte words in
+    bulk (one copy per array). Same byte sequence as the v6 per-byte loop (static_assert: little-endian host).
+2.2 MeshIdentity (mesh_identity.hpp). An immutable snapshot of an axial::Mesh: a private const copy that
+    is never mutated, its v6 mesh digest computed once, a process-unique generation number.
+      MeshIdentity::snapshot(g)   new snapshot, hashed once
+      MeshIdentity::of(g)         the snapshot last taken of the object at &g, reused only while g is exactly
+                                  equal to it (every member that the mesh digest encodes, doubles bit for bit);
+                                  otherwise a new snapshot
+      same_as(g)                  &g is the snapshot object (identity of an immutable object), or exact
+                                  member-wise equality with the snapshot
+    same_as(g) is true exactly when the v6 digest of g equals the cached digest (the digest is a function of
+    those members), without the collision caveat. It detects every in-place mutation of a caller's nonconst
+    mesh (A02 probes: dx, zmin, VE[0], edges[0].length; v6.1 tests also VN[last] and short_node[last]).
+2.3 Field.
+      Field(const axial::Mesh& g, frame, E, B)                  v6 signature: mesh identity MeshIdentity::of(g)
+      Field(std::shared_ptr<const MeshIdentity>, frame, E, B)   v6.1: explicit identity (no copy, no hash)
+    The content digest is computed once at construction (as in v6). matches(view) is
+      frame() == view.frame  &&  identity.same_as(view.mesh)  &&  view.E, view.B bit-identical to the
+      field's own arrays
+    which is the v6 decision (frame equal, mesh digest equal, content digest equal) by exact comparison
+    instead of re-hashing the whole mesh (about 9 MB of encoding) and both arrays on every call. v6 spent
+    about 10 ms per call on the 200 um Hall mesh; v6.1 about 0.2 ms (exact mesh comparison) or O(1) when the
+    view references the snapshot itself. New accessor: mesh_identity().
+2.4 prepare_patch. The sealed electrode_heat_v3::prepare_patch steps, verbatim, with the spectrum from
+    emission::evaluate (fast_emission.hpp/.cpp), which returns a surface_emission::Distribution bit-identical
+    to the sealed surface_emission::evaluate:
+      - F <= 0, T > 0: the sealed evaluate uses F only to store extraction_field_V_m; the first call for a
+        (T bits, configuration) runs the sealed evaluate, later calls copy it and store their F (512 entries).
+      - F >= 1 V/m, T > 0: the sealed quadrature with the same expressions and order; Gauss-Legendre rules and
+        action-node tables computed once per order by the same code; energy nodes whose quadrature weight
+        exp(l - largest) is exactly +0 in binary64 are not evaluated. A node is dropped only when a rigorous
+        upper bound U of its log weight satisfies U < M - 800 (M: the exact log weight of an evaluated node),
+        so l - largest < -800 and exp() underflows to +0 (below -745.14); dropped nodes add +0 to the
+        long-double normalization sum and have p == 0 in the moment loop, as in the sealed kernel. The bound
+        uses only monotone correctly rounded operations: every action term w s^2 / sqrt(mid + half cos) is at
+        least w s^2 / sqrt(max(mid + half, mid - half)); the long-double sum of nonnegative terms is monotone;
+        softplus(G) >= G; the panel-width and supply logs are bounded per quadrature cell (+1e-9). The sealed
+        guard on a dropped node ("Nonfinite Schottky-Nordheim action") is shown to pass by a finite upper
+        bound of its action; when that cannot be shown, the node is evaluated exactly. Remaining action sums
+        run four energies at a time: binary64 terms with vector sqrt/div/mul/add (IEEE, no contraction),
+        each long-double sum accumulated in the sealed term order.
+      - T == 0: the sealed evaluate.
+      A self-check per configuration compares the fast result with the sealed evaluate on reference inputs
+      before use; on any difference the configuration is served by the sealed evaluate only.
+    New accessor PreparedPatch::flux() (the prepared se::PreparedFlux: stage, spectrum, expected count),
+    used by coordinator v6.1 to sample emitted packets without preparing the patch a second time.
+2.5 state_sha256() is cached per (owner generation, thermal revision, thermal time bits); the digest depends
+    only on members that change with the generation (inventory, layers, neutral cumulative) and on the
+    thermal clock. state_sha256_uncached() is the v6 computation.
+2.6 binding/hall_source_binding_v6_1.hpp: the sealed binding with the v6.1 types, plus the arrival v1.1
+    adapter entry points used by the coordinator (pf_arrival_v11::source_v6_1::electron_input,
+    neutral_times; the bodies of pf_arrival_v11::source_v6).
+
+3. Considered and not adopted
+    A patch-level "bounded negligible exposure" (no evaluation when an upper bound of the expected count is
+    below a threshold) would keep the decision outcome (no births) but not the bits: arrival v1.1 encodes the
+    exact expected count N, its log and N/w0 in the step plan digest and accumulates N exactly
+    (expected_sum) and f(1-f) (variance_sum) in its state digest, so every later step digest and the
+    arrival ledger columns would change. The bound is applied inside the quadrature instead, where it is
+    exact.
+
+4. Files
+    native/mfem_electrode_heat_source_v6_1/  source_owner.hpp, admission.hpp, component_checkpoint.hpp,
+                                             mesh_identity.hpp, fast_emission.hpp, fast_emission.cpp
+                                             (compile fast_emission.cpp with the sealed kernel's flags:
+                                             -O2 -ffp-contract=off -fno-fast-math)
+    binding/hall_source_binding_v6_1.hpp
+    compat-v6/                               includes that let the sealed v6 qualification test compile
+                                             against v6.1 unchanged (v6 header path and binding name)
+    tests/test_source_v6_1.cpp               emission sweep, A02 probes on v6 and v6.1, digest identity, timings
+    run_source_v6_1.py                       build | run, receipted, frozen launcher, core leases
