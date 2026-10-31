@@ -14,6 +14,12 @@ job ends at its time limit).  A later job may then start only if starting it
 does not move that shadow time later (EASY backfill).  Jobs without a time
 limit are treated as never ending, so they can backfill only into resources
 the reserved job will not need.
+
+Borrowing (0.6.1) is layered on top in ``borrow.py``: jobs submitted with
+``--borrow`` are planned after every owner job, and cores they occupy are
+"soft": free for owners (who preempt the borrower) but chosen only after
+truly free cores.  With no borrow jobs the functions here behave exactly as
+in 0.6.0.
 """
 
 from __future__ import annotations
@@ -39,6 +45,12 @@ class Request:
     mem: int = 0
     time_limit: int | None = None
     blocked: bool = False  # a paused ensemble holds its queue position
+    # 0.6.1 borrowing (ignored by plan(); see borrow.py)
+    borrow: bool = False
+    max_cpus: int | None = None  # borrow: take up to this many cores (>= ncpus)
+    borrow_from: tuple[str, ...] | None = None  # borrow: lenders; None = every lending partition
+    exclusive_timing: bool = False  # owner: its cores and SMT siblings are never lent
+    on_preempt: str = "requeue"
 
 
 @dataclass(frozen=True)
@@ -48,6 +60,9 @@ class Allocation:
     gpu_claim: int = 0  # bytes per GPU
     gpu_exclusive: bool = False
     mem: int = 0
+    borrow: bool = False
+    # borrow: (cpu, partition, class) per core; class is free | leased-idle | owner-idle
+    placement: tuple[tuple[int, str, str], ...] = ()
 
 
 @dataclass
@@ -67,6 +82,8 @@ class Pool:
     gpu_exclusive: set[str] = field(default_factory=set)
     gpu_blocked: set[str] = field(default_factory=set)  # held outside the queue
     mem_free: int | None = None
+    # 0.6.1: free for owners but occupied by a borrower; chosen last
+    soft_cpus: set[int] = field(default_factory=set)
 
     def copy(self) -> "Pool":
         return Pool(
@@ -76,6 +93,7 @@ class Pool:
             gpu_exclusive=set(self.gpu_exclusive),
             gpu_blocked=set(self.gpu_blocked),
             mem_free=self.mem_free,
+            soft_cpus=set(self.soft_cpus),
         )
 
     def _gpu_available(self, uuid: str, claim: int | None) -> bool:
@@ -92,10 +110,13 @@ class Pool:
                 return None
             cpus = tuple(sorted(request.cpu_list))
         else:
-            candidates = sorted(cpu for cpu in partition.cpus if cpu in self.free_cpus)
+            candidates = sorted(
+                (cpu for cpu in partition.cpus if cpu in self.free_cpus),
+                key=lambda cpu: (cpu in self.soft_cpus, cpu),
+            )
             if len(candidates) < request.ncpus:
                 return None
-            cpus = tuple(candidates[: request.ncpus])
+            cpus = tuple(sorted(candidates[: request.ncpus]))
         if self.mem_free is not None and request.mem > self.mem_free:
             return None
         chosen: list[str] = []

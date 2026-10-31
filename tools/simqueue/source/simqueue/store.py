@@ -23,7 +23,7 @@ TERMINAL_STATES = ("succeeded", "failed", "canceled", "interrupted")
 MEMBER_TERMINAL_STATES = ("succeeded", "failed", "canceled", "interrupted")
 MIGRATION_SENTINEL = Path("/run/simqueue/exclusive-installing")
 IDEMPOTENCY_KEY_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,254}$")
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 8
 # Columns added by the 0.6 node scheduler (schema 7).  Existing rows keep NULL
 # or the default, which reads as "0.5 legacy job" everywhere.
 NODE_JOB_COLUMNS = (
@@ -46,6 +46,20 @@ NODE_JOB_COLUMNS = (
     ("runtime_dir", "TEXT"),
     ("adopted_at", "TEXT"),
 )
+# Columns added by 0.6.1 (schema 8): opportunistic borrowing.  Existing rows
+# read as owner jobs (borrow = 0) that were never preempted.
+BORROW_JOB_COLUMNS = (
+    ("borrow", "INTEGER NOT NULL DEFAULT 0"),
+    ("borrow_from", "TEXT"),
+    ("max_borrow_cores", "INTEGER"),
+    ("on_preempt", "TEXT"),
+    ("exclusive_timing", "INTEGER NOT NULL DEFAULT 0"),
+    ("frozen_at", "TEXT"),
+    ("preempt_pending", "TEXT"),
+    ("preempt_reason", "TEXT"),
+    ("preempt_count", "INTEGER NOT NULL DEFAULT 0"),
+    ("placement_json", "TEXT"),
+)
 SCHEDULING_FIELDS = (
     "partition",
     "cpu_request",
@@ -55,7 +69,14 @@ SCHEDULING_FIELDS = (
     "swap_bytes",
     "time_limit_s",
     "priority",
+    "borrow",
+    "borrow_from",
+    "max_borrow_cores",
+    "on_preempt",
+    "exclusive_timing",
 )
+# Dispatch order: owner jobs before borrow jobs, then priority, then queue order.
+DISPATCH_ORDER = "borrow, priority DESC, queue_order, id"
 ENSEMBLE_CONTROL_PROTOCOL = 1
 ENSEMBLE_DRAIN_EXIT_CODE = 75
 ENSEMBLE_DRAIN_PROTOCOL_ENV = "SIMQ_ENSEMBLE_DRAIN_PROTOCOL"
@@ -202,6 +223,8 @@ def _scheduling_values(values: dict[str, Any] | None) -> dict[str, Any]:
     result: dict[str, Any] = {field: None for field in SCHEDULING_FIELDS}
     result["gpus_requested"] = 0
     result["priority"] = 0
+    result["borrow"] = 0
+    result["exclusive_timing"] = 0
     for key, value in (values or {}).items():
         if key not in SCHEDULING_FIELDS:
             raise ValueError(f"unknown scheduling field {key!r}")
@@ -367,6 +390,17 @@ class QueueStore:
 
                 CREATE INDEX IF NOT EXISTS ensemble_members_state_idx
                     ON ensemble_members(job_id, state, member_index);
+
+                CREATE TABLE IF NOT EXISTS job_events (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    job_id      INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+                    at          TEXT NOT NULL,
+                    kind        TEXT NOT NULL,
+                    detail_json TEXT NOT NULL DEFAULT '{}'
+                );
+
+                CREATE INDEX IF NOT EXISTS job_events_job_idx
+                    ON job_events(job_id, id);
                 """
             )
             connection.execute("BEGIN IMMEDIATE")
@@ -398,7 +432,7 @@ class QueueStore:
                 # IDs are the historical FIFO order. Seed the new explicit
                 # ordering from them exactly once during the v6 migration.
                 connection.execute("UPDATE jobs SET queue_order = id")
-            for name, declaration in NODE_JOB_COLUMNS:
+            for name, declaration in NODE_JOB_COLUMNS + BORROW_JOB_COLUMNS:
                 if name not in columns:
                     connection.execute(f"ALTER TABLE jobs ADD COLUMN {name} {declaration}")
             ensemble_columns = {
@@ -458,6 +492,12 @@ class QueueStore:
                 """
                 INSERT OR IGNORE INTO queue_meta(key, value)
                     VALUES ('schema7_migrated_at', strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+                """
+            )
+            connection.execute(
+                """
+                INSERT OR IGNORE INTO queue_meta(key, value)
+                    VALUES ('schema8_migrated_at', strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
                 """
             )
             connection.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
@@ -1412,6 +1452,7 @@ class QueueStore:
                             WHEN 'queued' THEN 1
                             ELSE 2
                         END,
+                        CASE WHEN state = 'queued' THEN borrow ELSE 0 END,
                         CASE WHEN state = 'queued' THEN -priority ELSE 0 END,
                         CASE WHEN state = 'queued' THEN queue_order ELSE 0 END,
                         CASE WHEN state IN ('starting', 'running', 'cancelling')
@@ -1444,16 +1485,21 @@ class QueueStore:
                     f"{'promoted' if direction == 'front' else 'demoted'}"
                 )
             rows = connection.execute(
-                """
-                SELECT id, priority FROM jobs
+                f"""
+                SELECT id, priority, borrow FROM jobs
                 WHERE state = 'queued'
-                ORDER BY priority DESC, queue_order, id
+                ORDER BY {DISPATCH_ORDER}
                 """
             ).fetchall()
             ordered_ids = [int(row["id"]) for row in rows]
-            priorities = [int(row["priority"] or 0) for row in rows]
+            classes = [int(row["borrow"] or 0) for row in rows]
             old_position = ordered_ids.index(job_id)
-            new_position = 0 if direction == "front" else len(ordered_ids) - 1
+            # Borrow jobs always sort after owner jobs: a move reaches the
+            # front or back of the job's own class.
+            own_class = classes[old_position]
+            same = [index for index, value in enumerate(classes) if value == own_class]
+            priorities = [int(rows[index]["priority"] or 0) for index in same]
+            new_position = same[0] if direction == "front" else same[-1]
             changed = old_position != new_position
             if changed:
                 ordered_ids.pop(old_position)
@@ -1578,7 +1624,7 @@ class QueueStore:
                 FROM jobs AS j
                 LEFT JOIN ensembles AS e ON e.job_id = j.id
                 WHERE j.state = 'queued'
-                ORDER BY j.priority DESC, j.queue_order, j.id
+                ORDER BY j.borrow, j.priority DESC, j.queue_order, j.id
                 LIMIT 1
                 """
             ).fetchone()
@@ -1644,6 +1690,11 @@ class QueueStore:
                 (state, finished_at or utc_now(), exit_code, message, result, job_id),
             ).rowcount
             if changed:
+                borrow = connection.execute("SELECT borrow FROM jobs WHERE id = ?", (job_id,)).fetchone()
+                if borrow is not None and borrow["borrow"]:
+                    self._event(connection, job_id, "finished", {
+                        "state": state, "exit_code": exit_code, "result": result, "message": message,
+                    })
                 self._finish_dangling_members(
                     connection,
                     job_id,
@@ -1671,11 +1722,17 @@ class QueueStore:
         lock_paths: list[dict[str, str]],
         runtime_dir: str,
         busy_cpus: set[int],
+        borrow: bool = False,
+        placement: dict[str, Any] | None = None,
+        owner_idle_cpus: set[int] | None = None,
     ) -> dict[str, Any] | None:
         """Atomically move a queued job to ``starting`` with its allocation.
 
         The allocation is re-checked against every active job inside the
-        write transaction, so no core is ever recorded twice.
+        write transaction, so no core is ever recorded twice.  The only
+        overlaps allowed (0.6.1): an owner job may take cores of a borrow job
+        that is frozen or being stopped, and a borrow job may use the
+        *owner_idle_cpus* of running owner jobs.
         """
         from .config import parse_cpu_list  # local import keeps module order simple
 
@@ -1708,18 +1765,26 @@ class QueueStore:
                 return None
             placeholders = ",".join("?" for _ in ACTIVE_STATES)
             for active in connection.execute(
-                f"SELECT id, cpu_list FROM jobs WHERE state IN ({placeholders})",
+                f"SELECT id, cpu_list, borrow, frozen_at, preempt_pending FROM jobs "
+                f"WHERE state IN ({placeholders})",
                 ACTIVE_STATES,
             ).fetchall():
                 try:
                     taken = set(parse_cpu_list(str(active["cpu_list"] or "")))
                 except ValueError:
                     taken = set()
-                if taken & requested:
-                    connection.rollback()
-                    raise RuntimeError(
-                        f"allocation {cpu_list} for job {job_id} overlaps active job {active['id']}"
-                    )
+                shared = taken & requested
+                if not shared:
+                    continue
+                other_borrows = bool(active["borrow"])
+                if not borrow and other_borrows and (active["frozen_at"] or active["preempt_pending"]):
+                    continue
+                if borrow and not other_borrows and shared <= set(owner_idle_cpus or ()):
+                    continue
+                connection.rollback()
+                raise RuntimeError(
+                    f"allocation {cpu_list} for job {job_id} overlaps active job {active['id']}"
+                )
             if requested & busy_cpus:
                 connection.rollback()
                 return None
@@ -1739,7 +1804,9 @@ class QueueStore:
                     mem_bytes = ?, swap_bytes = ?, time_limit_s = ?, partition = ?,
                     launch_backend = 'systemd-user', unit_name = ?, job_dir = ?,
                     lock_paths_json = ?, runtime_dir = ?, result = NULL,
-                    pid = NULL, pgid = NULL, boot_id = NULL, process_start_ticks = NULL
+                    pid = NULL, pgid = NULL, boot_id = NULL, process_start_ticks = NULL,
+                    frozen_at = NULL, preempt_pending = NULL, preempt_reason = NULL,
+                    placement_json = ?
                 WHERE id = ? AND state = 'queued'
                 """,
                 (
@@ -1757,9 +1824,12 @@ class QueueStore:
                     str(job_dir),
                     json.dumps(lock_paths, sort_keys=True),
                     runtime_dir,
+                    None if placement is None else json.dumps(placement, sort_keys=True),
                     job_id,
                 ),
             ).rowcount
+            if changed == 1 and borrow:
+                self._event(connection, job_id, "started", placement or {})
             if changed == 1 and row["ensemble_job_id"] is not None:
                 connection.execute(
                     """
@@ -1812,11 +1882,167 @@ class QueueStore:
                     gpu_list = NULL, gpu_claim_bytes = NULL, gpu_exclusive = NULL,
                     unit_name = NULL, job_dir = NULL, lock_paths_json = NULL,
                     launch_backend = NULL, result = NULL,
+                    frozen_at = NULL, preempt_pending = NULL, preempt_reason = NULL,
+                    placement_json = NULL,
                     launch_token = lower(hex(randomblob(16))), message = ?
                 WHERE id = ?
                 """,
                 (message, job_id),
             )
+        return True
+
+    # ----- borrowing (0.6.1) ----------------------------------------------
+
+    @staticmethod
+    def _event(connection: sqlite3.Connection, job_id: int, kind: str, detail: dict[str, Any]) -> None:
+        connection.execute(
+            "INSERT INTO job_events(job_id, at, kind, detail_json) VALUES (?, ?, ?, ?)",
+            (job_id, utc_now(), kind, json.dumps(detail, sort_keys=True, default=str)),
+        )
+
+    def add_event(self, job_id: int, kind: str, detail: dict[str, Any] | None = None) -> None:
+        with self.connect() as connection:
+            self._event(connection, job_id, kind, detail or {})
+
+    def job_events(self, job_id: int) -> list[dict[str, Any]]:
+        with self.connect() as connection:
+            rows = connection.execute(
+                "SELECT * FROM job_events WHERE job_id = ? ORDER BY id", (job_id,)
+            ).fetchall()
+        events = []
+        for row in rows:
+            item = dict(row)
+            try:
+                item["detail"] = json.loads(item.pop("detail_json") or "{}")
+            except ValueError:
+                item["detail"] = {}
+            events.append(item)
+        return events
+
+    def mark_preempted(
+        self,
+        job_id: int,
+        *,
+        mode: str,
+        reason: str,
+        by_job: int | None = None,
+        escalated: bool = False,
+    ) -> bool:
+        """Record a preemption of a running borrow job.
+
+        ``freeze`` sets ``frozen_at``; ``requeue``/``cancel`` set
+        ``preempt_pending`` (the unit is being stopped; the job is requeued
+        or canceled once it has ended).
+        """
+        if mode not in ("freeze", "requeue", "cancel"):
+            raise ValueError(f"invalid preemption mode {mode!r}")
+        now = utc_now()
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT state, borrow, frozen_at, preempt_pending, cpu_list FROM jobs WHERE id = ?", (job_id,)
+            ).fetchone()
+            if row is None or row["state"] not in ACTIVE_STATES or not row["borrow"] or row["preempt_pending"]:
+                connection.rollback()
+                return False
+            if mode == "freeze":
+                if row["frozen_at"]:
+                    connection.rollback()
+                    return False
+                connection.execute(
+                    """
+                    UPDATE jobs SET frozen_at = ?, preempt_count = preempt_count + 1,
+                        message = ?
+                    WHERE id = ?
+                    """,
+                    (now, f"frozen: {reason}", job_id),
+                )
+            else:
+                connection.execute(
+                    """
+                    UPDATE jobs SET preempt_pending = ?, preempt_reason = ?, frozen_at = NULL,
+                        preempt_count = preempt_count + CASE WHEN frozen_at IS NULL THEN 1 ELSE 0 END,
+                        message = ?
+                    WHERE id = ?
+                    """,
+                    (mode, reason, f"preempted ({mode}): {reason}", job_id),
+                )
+            self._event(connection, job_id, "preempted", {
+                "mode": mode, "reason": reason, "by_job": by_job, "escalated": escalated,
+                "cpus": row["cpu_list"], "was_frozen_since": row["frozen_at"],
+            })
+            if by_job is not None:
+                self._event(connection, by_job, "reclaimed", {"from_job": job_id, "mode": mode, "cpus": row["cpu_list"]})
+        return True
+
+    def mark_resumed(self, job_id: int, placement: dict[str, Any] | None) -> bool:
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT state, frozen_at, preempt_pending FROM jobs WHERE id = ?", (job_id,)
+            ).fetchone()
+            if row is None or row["state"] not in ACTIVE_STATES or not row["frozen_at"] or row["preempt_pending"]:
+                connection.rollback()
+                return False
+            connection.execute(
+                """
+                UPDATE jobs SET frozen_at = NULL, message = NULL,
+                    placement_json = COALESCE(?, placement_json)
+                WHERE id = ?
+                """,
+                (None if placement is None else json.dumps(placement, sort_keys=True), job_id),
+            )
+            self._event(connection, job_id, "resumed", {"frozen_since": row["frozen_at"], **(placement or {})})
+        return True
+
+    def mark_frozen_outside(self, job_id: int) -> bool:
+        """A borrow job's unit was frozen by someone else: record it so that
+        the scheduler resumes it once its cores are lendable."""
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            changed = connection.execute(
+                """
+                UPDATE jobs SET frozen_at = ?, message = 'frozen outside the scheduler'
+                WHERE id = ? AND borrow = 1 AND frozen_at IS NULL AND preempt_pending IS NULL
+                  AND state IN ('starting', 'running', 'cancelling')
+                """,
+                (utc_now(), job_id),
+            ).rowcount
+            if changed:
+                self._event(connection, job_id, "frozen-outside", {})
+        return bool(changed)
+
+    def requeue_preempted(self, job_id: int, message: str, *, detail: dict[str, Any] | None = None) -> bool:
+        """Return a preempted borrow job to the queue under the same ID and
+        queue position, with a fresh launch token."""
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT state, cancel_requested_at FROM jobs WHERE id = ?", (job_id,)
+            ).fetchone()
+            if row is None or row["state"] not in ACTIVE_STATES:
+                connection.rollback()
+                return False
+            if row["cancel_requested_at"] is not None:
+                connection.rollback()
+                return False
+            connection.execute(
+                """
+                UPDATE jobs
+                SET state = 'queued', cpu_list = NULL, started_at = NULL,
+                    finished_at = NULL, exit_code = NULL, pid = NULL, pgid = NULL,
+                    boot_id = NULL, process_start_ticks = NULL,
+                    gpu_list = NULL, gpu_claim_bytes = NULL, gpu_exclusive = NULL,
+                    unit_name = NULL, job_dir = NULL, lock_paths_json = NULL,
+                    launch_backend = NULL, result = NULL, adopted_at = NULL,
+                    frozen_at = NULL, preempt_pending = NULL, preempt_reason = NULL,
+                    placement_json = NULL,
+                    launch_token = lower(hex(randomblob(16))), message = ?
+                WHERE id = ?
+                """,
+                (message, job_id),
+            )
+            self._event(connection, job_id, "requeued", {"message": message, **(detail or {})})
         return True
 
     def mark_unit_running(self, job_id: int, *, pid: int | None, boot_id: str | None) -> None:
@@ -1873,7 +2099,7 @@ class QueueStore:
                        e.gpu_budget_bytes AS ensemble_gpu_budget
                 FROM jobs AS j LEFT JOIN ensembles AS e ON e.job_id = j.id
                 WHERE j.state IN ('queued', 'starting', 'running', 'cancelling')
-                ORDER BY j.priority DESC, j.queue_order, j.id
+                ORDER BY j.borrow, j.priority DESC, j.queue_order, j.id
                 """
             ).fetchall()
         return [dict(row) for row in rows]
@@ -1936,10 +2162,10 @@ class QueueStore:
         """Return waiting jobs in explicit dispatch order."""
         with self.connect() as connection:
             rows = connection.execute(
-                """
+                f"""
                 SELECT * FROM jobs
                 WHERE state = 'queued'
-                ORDER BY priority DESC, queue_order, id
+                ORDER BY {DISPATCH_ORDER}
                 """
             ).fetchall()
         return [dict(row) for row in rows]

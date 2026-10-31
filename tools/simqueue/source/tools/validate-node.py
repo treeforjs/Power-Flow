@@ -140,7 +140,8 @@ def main() -> int:
     shutil.copytree(SOURCE / "simqueue", relocated / "simqueue", ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copy2(SOURCE / "simq", relocated / "simq")
     init = relocated / "simqueue" / "__init__.py"
-    init.write_text(init.read_text().replace('"0.6.0"', '"0.6.0+relocated"'))
+    version = init.read_text().split('__version__ = "', 1)[1].split('"', 1)[0]
+    init.write_text(init.read_text().replace(f'"{version}"', f'"{version}+relocated"'))
     restarted = start_worker(relocated, "--drain")
     restarted.wait(timeout=3 * 3600)
     event("relocated worker drained", returncode=restarted.returncode)
@@ -161,7 +162,7 @@ def main() -> int:
                                     for i in receipt["intervals"]),
         "pf_exit3_failed_with_3": rows[pf_fail]["state"] == "failed" and rows[pf_fail]["exit_code"] == 3,
         "gpu_canary_succeeded": rows[gpu]["state"] == "succeeded" and "RTX 3080 Ti" in receipt["gpu_canary_log"],
-        "relocated_code_adopted": "0.6.0+relocated" in receipt["worker_log"] and f"adopted job {pf_long}" in receipt["worker_log"],
+        "relocated_code_adopted": "+relocated" in receipt["worker_log"] and f"adopted job {pf_long}" in receipt["worker_log"],
     }
     by_job = {i["job"]: i for i in receipt["intervals"]}
     overlap = []

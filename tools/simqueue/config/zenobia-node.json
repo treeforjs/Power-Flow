@@ -24,7 +24,8 @@
         "/home/treefor/projects/.workspace/outputs/pic-profile/testing-gpu.lock"
       ]
     },
-    "notes": "Same flock(2) lease files as any-core.sh, both-cores.sh and pf-launch. Job units take them for their lifetime; the scheduler only observes /proc/locks."
+    "notes": "Same flock(2) lease files as any-core.sh, both-cores.sh and pf-launch. Owner job units take them for their lifetime; the scheduler only observes /proc/locks. Borrow jobs hold borrow-core<K>.lock shared instead, never the core lease; holding borrow-core<K>.lock exclusively from outside the queue marks core K as not lendable.",
+    "borrow_path": "/home/treefor/projects/.workspace/outputs/pic-profile/borrow-core{core}.lock"
   },
   "launch": {
     "backend": "systemd-user",
@@ -33,6 +34,20 @@
     "wrapper_python": "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen",
     "kill_grace_seconds": 10,
     "poll_seconds": 1
+  },
+  "borrow": {
+    "enabled": true,
+    "slice": "simqborrow.slice",
+    "slice_cpu_weight": "idle",
+    "unit_cpu_weight": 1,
+    "idle_window_s": 30,
+    "busy_window_s": 2,
+    "idle_threshold": 0.1,
+    "cpu_idle_threshold": 0.15,
+    "busy_threshold": 0.25,
+    "freeze_max_s": 1800,
+    "default_on_preempt": "requeue",
+    "notes": "Borrow jobs (simq submit --borrow) run in simqborrow.slice, a top-level slice of the user manager with cpu.idle=1, as units with CPUWeight=1, SCHED_IDLE and idle I/O class: every owner job unit and every process of the terminal sessions wins the CPU. A lease holder or owner job is idle when its process tree used at most idle_threshold cores above a whole number over idle_window_s and the core itself was at most cpu_idle_threshold busy; a borrower lent such a core is preempted when the tree uses more than the cores left to it plus busy_threshold over busy_window_s. A frozen borrower is requeued after freeze_max_s or shortly before its time limit."
   },
   "partitions": [
     {
@@ -45,36 +60,52 @@
       "max_mem": "20G",
       "swap_max": "1G",
       "default_time": "2-00:00:00",
-      "max_time": "14-00:00:00"
+      "max_time": "14-00:00:00",
+      "lend": true,
+      "lend_leased_idle": false,
+      "timing_sensitive": false
     },
     {
       "name": "raikou-mfem",
       "description": "raikou-mfem port",
       "cpus": "4-5",
-      "gpus": ["GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"],
+      "gpus": [
+        "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
+      ],
       "default_cpus": "all",
       "default_mem": "4G",
       "max_mem": "12G",
       "swap_max": "1G",
       "default_time": "12:00:00",
-      "max_time": "7-00:00:00"
+      "max_time": "7-00:00:00",
+      "lend": true,
+      "lend_leased_idle": false,
+      "timing_sensitive": false
     },
     {
       "name": "powerflow",
       "description": "Power-Flow",
       "cpus": "6-7",
-      "gpus": ["GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"],
+      "gpus": [
+        "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
+      ],
       "default_cpus": "all",
       "default_mem": "4G",
       "max_mem": "12G",
       "swap_max": "1G",
       "default_time": "12:00:00",
-      "max_time": "7-00:00:00"
+      "max_time": "7-00:00:00",
+      "lend": true,
+      "lend_leased_idle": false,
+      "timing_sensitive": false
     }
   ],
   "notes": [
     "Each partition names physical cores by their lowest logical CPU (0-7); SMT siblings 8-15 are never allocated.",
     "memory_schedulable is the sum of --mem over concurrent jobs (31 GiB RAM; about 3 GiB left for the system).",
-    "The GPU is shared by raikou-mfem and powerflow: exclusive per job unless --gpu-mem is given and the 11G budget allows sharing."
+    "The GPU is shared by raikou-mfem and powerflow: exclusive per job unless --gpu-mem is given and the 11G budget allows sharing.",
+    "Lending (0.6.1): every partition lends its free cores and the idle cores of its running jobs to borrow jobs (lend: true). Cores leased by tools outside the queue (any-core.sh, both-cores.sh, pf-launch) are not lent (lend_leased_idle: false): such holders have no time limit and no way to mark timing runs.",
+    "powerflow is not timing_sensitive as a partition: timing-sensitive Power-Flow runs submit with --exclusive-timing, which keeps the job's cores and their SMT siblings unlent while it runs, and its other core stays usable by borrow jobs. Set timing_sensitive: true on a partition to keep borrow jobs off all of its cores and siblings, including its own borrow jobs.",
+    "No GPU is ever lent: borrow jobs cannot request GPUs."
   ]
 }

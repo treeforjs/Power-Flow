@@ -1,29 +1,39 @@
-# SimQueue 0.6 on zenobia: operations
+# SimQueue 0.6.1 on zenobia: operations
 
 SimQueue 0.6 is a single-node, Slurm-shaped scheduler. One worker
 (`simqueue.service`) schedules the whole node; every job runs in its own
 transient systemd user service, independent of the worker.
 
+0.6.1 adds **opportunistic borrowing**: restartable work submitted with
+`simq submit --borrow` (builds, tests) may run on idle cores of any partition
+that lends them, at the lowest CPU priority, and is frozen, requeued or
+canceled the moment an owner needs those cores. Owners never wait for a
+borrower. With no `--borrow` job in the queue, 0.6.1 schedules exactly as
+0.6.0 (see "Borrowing idle cores" below).
+
 | Item | Path |
 |---|---|
-| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.6.0-20261030` |
+| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.6.1-20261031` |
+| Previous runtime (kept: running 0.6.0 job units execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.6.0-20261030` |
 | Interpreter (unchanged from 0.5) | `/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen` |
-| Code | `source/simqueue/` (`nodeworker.py`, `scheduler.py`, `units.py`, `jobwrap.py`, `locks.py`, `nodeconfig.py`, plus the 0.5 modules) |
+| Code | `source/simqueue/` (`nodeworker.py`, `scheduler.py`, `borrow.py`, `telemetry.py`, `units.py`, `jobwrap.py`, `locks.py`, `nodeconfig.py`, plus the 0.5 modules) |
 | Node configuration (template) | `config/zenobia-node.json` |
 | Node configuration (live) | `~/.local/state/simqueue/node.json` (`SIMQUEUE_CONFIG`) |
-| Database | `~/.local/state/simqueue/queue.sqlite3` (schema 7) |
+| Database | `~/.local/state/simqueue/queue.sqlite3` (schema 8; 0.6.0 used schema 7) |
+| Borrow slice | `~/.config/systemd/user/simqborrow.slice` (`CPUWeight=idle`) |
 | Per-job files | `~/.local/state/simqueue/jobs/NNNNNN-<token>/{spec,status,stop-post}.json` |
 | Logs | `~/.local/state/simqueue/logs/NNNNNN.log`, `~/.local/state/simqueue/worker.log` |
-| Switchover / rollback | `switchover.py` (dry run unless `--execute`) |
-| Tests | `source/run-tests.py` (takes the cores' lease files first) |
+| Upgrade 0.6.0 to 0.6.1 / rollback | `upgrade.py` (dry run unless `--execute`) |
+| Switchover from 0.5 (historical) | `switchover.py` |
+| Tests | `source/run-tests.py` (takes the cores' lease files first; stops when other work needs those cores) |
 
 ## Partitions on zenobia
 
-| Partition | Cores (logical CPU per core) | GPU | Default / max memory | Default / max time | Default cores |
-|---|---|---|---|---|---|
-| `spheral` (default) | 0-3 | none | 18G / 20G | 2-00:00:00 / 14-00:00:00 | all 4 |
-| `raikou-mfem` | 4-5 | RTX 3080 Ti | 4G / 12G | 12:00:00 / 7-00:00:00 | both |
-| `powerflow` | 6-7 | RTX 3080 Ti | 4G / 12G | 12:00:00 / 7-00:00:00 | both |
+| Partition | Cores (logical CPU per core) | GPU | Default / max memory | Default / max time | Default cores | Lending (0.6.1) |
+|---|---|---|---|---|---|---|
+| `spheral` (default) | 0-3 | none | 18G / 20G | 2-00:00:00 / 14-00:00:00 | all 4 | lends free and idle-in-job cores |
+| `raikou-mfem` | 4-5 | RTX 3080 Ti | 4G / 12G | 12:00:00 / 7-00:00:00 | both | lends free and idle-in-job cores |
+| `powerflow` | 6-7 | RTX 3080 Ti | 4G / 12G | 12:00:00 / 7-00:00:00 | both | lends free and idle-in-job cores; `--exclusive-timing` jobs are never lent |
 
 SMT siblings 8-15 are never allocated. Swap per job: 1G. Memory is a counted
 resource: the sum of `--mem` over running jobs stays within 28G
@@ -48,6 +58,8 @@ simq log -f ID
 simq cancel ID           # works with or without a running worker
 simq priority ID N       # higher runs first; promote/demote still move to the ends
 simq ensemble submit -p powerflow sweep.json          # an ensemble runs inside its own allocation
+simq submit --borrow -p powerflow --max-borrow-cores 4 -- make -j"$(nproc)"   # 0.6.1: borrow idle cores
+simq submit -p powerflow --exclusive-timing -- ./timing-run.sh               # 0.6.1: never lend its cores
 ```
 
 Options: `-p/--partition`, `-c/--cores/--cpus-per-task N`, `--cpus LIST`,
@@ -63,7 +75,8 @@ Scheduling: waiting jobs are ordered by priority, then queue order. Each worker
 pass starts every job that fits, except that once a job is blocked, a later
 job starts only if (given all time limits) it cannot delay that blocked job
 (EASY backfill). A paused ensemble holds its position and blocks later jobs of
-its own partition only.
+its own partition only. Borrow jobs (0.6.1) always sort after every owner job,
+whatever their priority, and never take part in backfill reservations.
 
 ### Environment of every job
 
@@ -116,6 +129,158 @@ core K is `/home/treefor/projects/.workspace/outputs/pic-profile/testing-core<K>
 - A job that moves its processes into another unit (for example
   `bounded-job.py`, which creates its own scope) keeps the leases through the
   processes that stay in the job unit (the wrapper and `bounded-job.py`).
+- Borrow jobs (0.6.1) never take a core's lease file. They hold
+  `borrow-core<K>.lock` (same directory) shared instead, so the core's own
+  lease stays free for its owner: a tool such as any-core.sh can take it at
+  any time, and the scheduler then preempts the borrower within a pass.
+
+## Borrowing idle cores (0.6.1)
+
+### Submitting borrow jobs
+
+```sh
+simq submit --borrow -p raikou-mfem -c 2 -- ./run-tests.sh            # alias: --opportunistic
+simq submit --borrow-from spheral,powerflow -p raikou-mfem -- make     # only these lenders (implies --borrow)
+simq submit --borrow --mem 4G --max-borrow-cores 6 -- make -j"$(nproc)"  # elastic: 1..6 cores, as many as are idle
+simq submit --borrow --on-preempt freeze -- ./long-build.sh           # freeze | requeue (default) | cancel
+simq submit -p powerflow --exclusive-timing -- ./benchmark.sh         # owner job whose cores are never lent
+simq submit --test-only --borrow -c 2 -- /bin/true                    # where it would run now, and how
+```
+
+- A borrow job is restartable work. It may run on the cores of its own
+  partition (`-p`, default `spheral`) and on lendable cores of every partition
+  that lends (or of the partitions named by `--borrow-from`), in that order of
+  preference, as long as no owner job of that partition is waiting for those
+  cores. One job may span several partitions.
+- `-c N` is the number of cores it needs (default: the partition default, as
+  for owner jobs). `--max-borrow-cores M` lets it take up to `M` cores when that
+  many are idle; with `--max-borrow-cores` and no `-c`, the minimum is 1. The
+  job sees its cores in `SIMQ_CPU_LIST`/`SIMQ_NCPUS` and `nproc` (affinity),
+  plus `SIMQ_BORROW=1` and `SIMQ_ON_PREEMPT`.
+- Memory and time defaults and limits are those of its own partition
+  (spheral's default memory is 18G: give builds and tests an explicit
+  `--mem`, since a borrow job starts only when its memory fits the node's free
+  schedulable memory). Borrow jobs cannot request GPUs (no GPU borrowing) or
+  name explicit CPUs.
+- Owners never wait: when an owner job is ready to start on cores a borrow job
+  uses, the scheduler preempts the borrow job and starts the owner in the same
+  pass. `--on-preempt` decides what happens to the borrow job:
+  - `requeue` (default): the unit is stopped (SIGTERM, then SIGKILL after
+    `kill_grace_seconds`); the job returns to the queue under the same ID and
+    position and starts again from the beginning later.
+  - `freeze`: every process of the job is frozen with the cgroup freezer
+    (`systemctl --user freeze`); it keeps its memory and is thawed when its
+    cores are lendable again. A job frozen longer than `freeze_max_s`
+    (30 min) or within 60 s of its time limit is requeued instead; so is a
+    frozen job whose memory an owner needs (freezing does not release memory).
+  - `cancel`: the job ends `canceled` with result `preempted`.
+- Every start, preemption (mode, reason, owner job), freeze, resume, requeue
+  and end of a borrow job is recorded in the job history (`simq show ID`,
+  table `job_events`); the owner job's history records which borrow jobs it
+  reclaimed cores from. `simq` lists borrow jobs with `~` before the
+  partition and shows `frozen` for frozen ones.
+
+### Where borrow jobs may run (lendable cores)
+
+| Class | Core | Lent when | Borrower preempted when |
+|---|---|---|---|
+| `free` | no queue job, no lease holder, and the CPU itself idle (work pinned there without a lease file keeps it) | partition `lend` (always for the job's own partition) and no owner job of that partition is waiting | an owner job needs it; anyone takes the core's lease file |
+| `owner-idle` | allocated to a running owner job of the partition that leaves it unused | partition `lend`, job not `--exclusive-timing` | the owner job's process tree uses more than the cores it kept |
+| `leased-idle` | lease file held outside the queue (any-core.sh, both-cores.sh, pf-launch), holder idle | partition `lend` and `lend_leased_idle` | the holder's process tree becomes busy, or another process takes the lease |
+
+Idle and busy are measured by the worker (only while borrow jobs exist):
+
+- a *holder tree* is every process that has the core's lease file open (from
+  `/proc/<pid>/fd`; the pid in `/proc/locks` is only the process that took
+  the lock and may have exited) plus all descendants; for an owner job it is
+  the unit's wrapper and its descendants (including processes that
+  `bounded-job.py` moves into its own scope);
+- a tree is idle on `k` of its `n` cores when its CPU use over `idle_window_s`
+  (30 s) leaves `k` cores unused, rounding usage up only beyond
+  `idle_threshold` (0.1 core), and the lent CPU itself was at most
+  `cpu_idle_threshold` (15 %) busy over the same window;
+- a tree is busy when, over `busy_window_s` (2 s), it uses more than the cores
+  not lent plus `busy_threshold` (0.25 core): with one leased core, any use
+  above a quarter core. Detection takes one or two worker passes (about 1-3 s);
+  meanwhile CPU priority already gives the holder the CPU.
+
+Holding `borrow-core<K>.lock` exclusively from outside the queue (for example
+`flock -x .../pic-profile/borrow-core6.lock sleep 3600`) marks core K as not
+lendable; borrowers there are preempted.
+
+### Partition policy (node configuration)
+
+| Key | Default | Meaning |
+|---|---|---|
+| `lend` | `true` | other partitions' borrow jobs may use this partition's free cores and the unused cores of its running jobs |
+| `lend_leased_idle` | `false` | also lend cores whose lease is held outside the queue while the holder tree is idle |
+| `timing_sensitive` | `false` | never place any borrow job (not even the partition's own) on its cores or on their SMT siblings |
+
+Per job, `--exclusive-timing` makes an owner job's cores and their SMT
+siblings unlendable while it runs (and preempts a borrower on a sibling when
+it starts). SimQueue never allocates SMT siblings (8-15) to any job, borrow
+jobs included, so on zenobia the sibling clauses hold by construction; they
+are enforced explicitly for configurations whose partitions list sibling
+CPUs (`allow_smt_siblings`).
+
+Node-wide settings live in the `borrow` section (`enabled`, `slice`,
+`slice_cpu_weight`, `unit_cpu_weight`, `idle_window_s`, `busy_window_s`,
+`idle_threshold`, `cpu_idle_threshold`, `busy_threshold`, `freeze_max_s`,
+`default_on_preempt`) and `lock_files.borrow_path`.
+
+**zenobia choices** (`config/zenobia-node.json`):
+
+- `spheral`, `raikou-mfem`, `powerflow`: `lend: true`. A partition's free cores,
+  and the unused cores of a job that only uses part of its allocation (tests,
+  builds), go to borrow jobs; a full simulation uses its cores and lends
+  nothing.
+- `lend_leased_idle: false` everywhere. Work started with any-core.sh,
+  both-cores.sh or pf-launch has no time limit and no way to mark a timing
+  run, and an idle phase of such a tool (between two test runs) is not a
+  promise that the core stays idle. Those cores are never lent.
+- `powerflow` is not `timing_sensitive` as a whole: Power-Flow timing and
+  benchmark runs submit with `--exclusive-timing`, which keeps their cores
+  (and siblings) unlent while they run, while the partition's other core stays
+  usable. Set `timing_sensitive: true` to keep borrowers off the whole
+  partition instead.
+- No GPU is lent.
+
+### CPU priority
+
+Owners keep the CPU even before a preemption takes effect:
+
+- borrow units run in `simqborrow.slice`, a slice directly under the user
+  manager (a sibling of `app.slice`, `session.slice` and `simq.slice`) with
+  `CPUWeight=idle` (cgroup `cpu.idle=1`): its processes run only when no
+  process of any sibling slice wants that CPU. The slice must not contain
+  `-`: `simq-borrow.slice` would sit inside `simq.slice` and its idle weight
+  would only apply against owner job units;
+- each borrow unit has `CPUWeight=1`, `CPUSchedulingPolicy=idle`
+  (`SCHED_IDLE`, checked and set again by `jobwrap.py` before the command
+  starts, inherited by every process) and `IOSchedulingClass=idle`;
+- the cpu controller is delegated to the user manager
+  (`cgroup.controllers`: `cpu memory pids`); cpuset is not, so affinity
+  remains `CPUAffinity` per process, as for owners.
+
+Measured on zenobia (tests): a busy process outside the queue pinned to a
+borrower's core left the borrower under 5 % of that core.
+`simq doctor` reports the slice weight, the cpu controller and the freezer.
+
+### Lease hygiene: `simq partitions`
+
+```sh
+simq partitions               # samples lease holders for 1 s
+simq partitions --sample 3    # longer window; --sample 0 skips sampling; --json for scripts
+```
+
+Every core is shown as `free`, `job N` (owner job), `external lease busy` /
+`external lease idle` (CPU use of the holder's process tree over the sample
+window, its number of processes, and each holder's pid and command), `external
+lease (not sampled)`, or `stale lease` (held according to `/proc/locks` but no
+holder process is visible); borrow jobs on a core and `not lendable` markers
+follow. The `POLICY` column shows `lend`, `lend,leased-idle`, `no-lend` or
+`timing-sensitive`. In `--json`, each core keeps the 0.6.0 `state` text and
+adds `class`, `holders`, `usage_cores`, `borrowers` and `no_borrow`.
 
 ## Running the worker as the node scheduler
 
@@ -137,7 +302,8 @@ There is no `CPUAffinity`: the worker only polls (about one `systemctl show`
 per second) and places each job unit explicitly. `~/.local/bin/simq` exports the
 same three variables and runs the 0.6 runtime with the pinned interpreter.
 
-Each job is `simq-job-<id>-<token12>.service` in `simq.slice` with
+Each owner job is `simq-job-<id>-<token12>.service` in `simq.slice` (a borrow
+job: in `simqborrow.slice`, with the properties above) with
 `CPUAffinity=` (the allocated CPUs), `MemoryMax=`, `MemorySwapMax=`,
 `OOMPolicy=kill`, `RuntimeMaxSec=` (time limit), `WorkingDirectory=`,
 `KillMode=control-group`, `TimeoutStopSec=10s`, `--collect`, its log as
@@ -169,6 +335,59 @@ systemctl --user start simqueue.service     # adopts running jobs, records jobs 
 simq; tail ~/.local/state/simqueue/worker.log   # look for "adopted job N"
 ```
 
+### Upgrading 0.6.0 to 0.6.1: `upgrade.py`
+
+```sh
+cd /home/treefor/projects/runtimes/simqueue-0.6.1-20261031
+./upgrade.py install                         # dry run: preflight and the exact actions
+./upgrade.py install --execute               # upgrade; running job units keep running
+./upgrade.py status
+```
+
+`install --execute`:
+
+1. Preflight: 0.6.1 runtime sealed; its `config/zenobia-node.json` valid and
+   identical to the live `node.json` apart from the 0.6.1 keys (`borrow`,
+   `lend`, `lend_leased_idle`, `timing_sensitive`, `borrow_path`, notes);
+   the wrapper runs 0.6.0; database schema 7; lists the active jobs.
+2. Stops `simqueue.service` (job units keep running).
+3. Backs up the database (sqlite3 backup API, source opened read-only), the
+   wrapper, the `simqueue` link, the three simqueue unit files, `node.json` and
+   `worker.log` to `~/.local/state/simqueue-backups/0.6.0-to-0.6.1-<UTC>/`
+   with a manifest of sha256 sums.
+4. Installs the 0.6.1 wrapper, link, `simqueue.service` and
+   `simqborrow.slice`. From here on every `simq` call runs 0.6.1.
+5. Migrates the database to schema 8 (new columns and the `job_events`
+   table; nothing else changes) and checks that every schema-7 column of every
+   existing row is unchanged; installs the 0.6.1 `node.json`.
+6. daemon-reload, enable, start.
+7. Verifies that the 0.6.1 worker started and adopted every job unit that was
+   active before (or recorded its end) within `--adoption-timeout` (60 s);
+   records `simq doctor`, `simq partitions` and the borrow slice weight in the
+   receipt (`--require-doctor` also fails the install on a doctor problem).
+   If the verification fails, it rolls back by itself. Receipt:
+   `<backup>/install-receipt.json`.
+
+Rollback (0.6.0 again; jobs keep running and are adopted by 0.6.0):
+
+```sh
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.0-to-0.6.1-<UTC>                 # dry run
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.0-to-0.6.1-<UTC> --execute
+./upgrade.py rollback --backup ... --execute --cancel-borrow-jobs   # when borrow jobs are queued or running
+```
+
+It refuses while borrow jobs are queued or active (0.6.0 would run them as
+owner jobs) unless `--cancel-borrow-jobs`; stops the worker; keeps the
+schema-8 database as `<backup>/queue-0.6.1-at-rollback.sqlite3`; restores the
+wrapper, link, unit files and `node.json` byte for byte and removes
+`simqborrow.slice`; then sets the database back to schema 7 in place (all
+rows stay, including owner jobs started under 0.6.1 that still run; the 0.6.1
+columns stay and are ignored by 0.6.0) and checks that the 0.6.0 code opens
+it; starts the 0.6.0 worker and verifies that it adopted every active job.
+Owner job units started by 0.6.1 run the 0.6.1 `jobwrap.py`, so the 0.6.1
+runtime directory must stay until they end (as the 0.6.0 one must stay after
+the upgrade).
+
 - Keep the old runtime directory until its last job has finished: running units
   execute that runtime's `jobwrap.py`.
 - A newer build must keep reading schema 7 (or migrate it in place); the worker
@@ -191,6 +410,9 @@ simq; tail ~/.local/state/simqueue/worker.log   # look for "adopted job N"
   and marks it `interrupted` once its processes are gone.
 
 ## Switchover from 0.5
+
+(Historical: the 0.5 to 0.6.0 switchover ran at 2026-10-31T00:00Z. In the
+0.6.1 runtime, `switchover.py` would install 0.6.1 directly over 0.5.)
 
 State at time of writing: the 0.5 queue is idle (Spheral job 17 was canceled at
 23:10Z on 2026-10-30; nothing queued). A 0.5 job runs as a child of the 0.5
@@ -343,7 +565,20 @@ needs one node definition per core group (several `slurmd -N` instances or
 `NodeName` with `CPUSpecList`), or accepting shared cores with per-partition
 `MaxCPUsPerNode`.
 
-## Validation (2026-10-30)
+## Validation of 0.6.1 (2026-10-31)
+
+See `release.json` and
+`/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/`: test
+receipts per suite, the observation of cores 6-7 through the scheduler while
+another session held their leases (`receipts/powerflow-lease-observation.json`:
+both cores classified busy with holder pids and commands, the borrow job never
+placed, the real leases never taken), the CPU-priority measurement, the
+owner-idle reclaim latency, the schema 7 to 8 migration of a read-only copy of
+the live database, and the `upgrade.py` dry run against the live installation.
+Real job units ran only on cores 0-3, in chunks started when two of those
+cores were free of other work (`core-usage-notes.md`).
+
+## Validation of 0.6.0 (2026-10-30)
 
 See `release.json` and
 `/home/treefor/sim-workspace/powerflow/outputs/simqueue-0.6.0-20261030/`:
@@ -354,6 +589,35 @@ a relocated copy of the code, a spheral job that finished while the worker was
 down, the GPU canary).
 
 ## Known limitations
+
+0.6.1 borrowing:
+
+- A frozen borrow job keeps its memory (and page cache, open files and file
+  locks). Memory is reclaimed only by requeueing (done automatically when an
+  owner needs it, after `freeze_max_s`, or near the time limit); a frozen
+  build that holds a lock in a tree an owner also uses (for example a git or
+  build-directory lock) blocks that owner until the borrower is requeued. Use
+  `--on-preempt requeue` (default) for such work.
+- Time spent frozen counts against the job's time limit.
+- `requeue` and `cancel` give the borrower `kill_grace_seconds` (10 s) to
+  exit; the owner starts at once, so for those seconds the dying borrower
+  (at idle priority) and its memory overlap the owner.
+- Idle/busy detection follows process trees. Work that a lease holder or an
+  owner job starts outside its own process tree (for example through another
+  systemd service) is not seen by the busy check; placement still requires
+  the CPU itself to be idle, and CPU priority still favors the owner.
+- CPU priority (idle slice, `SCHED_IDLE`) does not cover shared caches,
+  memory bandwidth or SMT; a borrower on a neighboring core can still slow a
+  memory-bound owner. Use `--exclusive-timing` or `timing_sensitive` for
+  timing work.
+- Processes outside the user manager (system services, login-session scopes)
+  meet the borrow slice only through `user@1000.service`'s weight.
+- Borrow jobs are placed greedily in queue order: a small borrow job can take
+  cores a larger one is waiting for.
+- `simq submit --test-only` for a borrow job sees only free cores (it has no
+  usage history for leased or allocated cores).
+
+0.6.0:
 
 - Job units do not survive a reboot or a restart of the user manager; such jobs
   are marked `interrupted`.

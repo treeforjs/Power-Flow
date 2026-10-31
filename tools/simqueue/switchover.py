@@ -252,7 +252,7 @@ class Plan:
         print(f"simqueue.service ExecStart: {exec_start[:160]}")
         wrapper = self.bin / "simq"
         wrapper_text = wrapper.read_text(errors="replace") if wrapper.exists() else ""
-        if "simqueue-0.6.0" in exec_start or "simqueue-0.6.0" in wrapper_text:
+        if "simqueue-0.6." in exec_start or "simqueue-0.6." in wrapper_text:
             self.problem("0.6 already appears to be installed")
         return summary
 
@@ -319,17 +319,18 @@ class Plan:
             result = subprocess.run(
                 [PYTHON, "-c",
                  "import sys; sys.path.insert(0, sys.argv[1]);"
-                 "from simqueue.store import QueueStore; QueueStore(); print('migrated')",
+                 "from simqueue.store import QueueStore, SCHEMA_VERSION; QueueStore(); print('migrated', SCHEMA_VERSION)",
                  str(self.runtime / "source")],
                 env=self.simq_env(), text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
             )
             if result.returncode != 0:
                 raise RuntimeError(f"migration failed: {result.stderr.strip()}; run rollback --backup {backup}")
             after = self.database_summary(self.database)
-            if after["user_version"] != 7 or after["jobs"] != summary["jobs"] or \
+            expected = int(result.stdout.split()[-1])
+            if after["user_version"] != expected or after["jobs"] != summary["jobs"] or \
                     after["legacy_columns_sha256"] != summary["legacy_columns_sha256"]:
                 raise RuntimeError(f"migration verification failed: {after}; run rollback --backup {backup}")
-            print(f"database migrated: schema 7, {after['jobs']} jobs, rows unchanged")
+            print(f"database migrated: schema {expected}, {after['jobs']} jobs, rows unchanged")
         self.step("migrated")
         # 4. install files
         self.write_file(self.state / "node.json", Path(self.args.config).read_text(), 0o600)

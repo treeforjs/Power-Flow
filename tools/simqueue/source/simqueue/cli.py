@@ -104,6 +104,7 @@ def _abbreviate(value: str, width: int) -> str:
 
 def _print_node_job_rows(jobs: Sequence[dict[str, Any]]) -> None:
     root = project_root()
+    borrow_shown = False
     print(
         f"{'ID':>5}  {'STATE':<11} {'PARTITION':<11} {'CPU':<7} {'GPU':<4} "
         f"{'TIME':>8}  {'NAME':<24} DIRECTORY / REASON"
@@ -123,11 +124,20 @@ def _print_node_job_rows(jobs: Sequence[dict[str, Any]]) -> None:
         message = str(job.get("message") or "")
         if job["state"] == "queued" and message.startswith("pending: "):
             detail = message[len("pending: "):]
+        partition = str(job.get("partition") or "-")
+        state = str(job["state"])
+        if job.get("borrow"):
+            borrow_shown = True
+            partition = "~" + partition
+            if job.get("frozen_at") and state in ACTIVE_STATES:
+                state = "frozen"
         print(
-            f"{job['id']:>5}  {job['state']:<11} {_abbreviate(str(job.get('partition') or '-'), 11):<11} "
+            f"{job['id']:>5}  {state:<11} {_abbreviate(partition, 11):<11} "
             f"{_abbreviate(cpu, 7):<7} {gpu:<4} {_job_age(job):>8}  "
             f"{_abbreviate(str(job['name']), 24):<24} {_abbreviate(detail, 60)}"
         )
+    if borrow_shown:
+        print("~ borrow job: preemptible, idle CPU priority (simq show ID for its placement and history)")
 
 
 def _print_job_rows(
@@ -307,7 +317,11 @@ def _nudge_worker(store: QueueStore) -> str:
     return "detached"
 
 
-NODE_OPTIONS = ("partition", "cpus", "gpus", "gpu_mem", "mem", "time", "priority")
+NODE_OPTIONS = (
+    "partition", "cpus", "gpus", "gpu_mem", "mem", "time", "priority",
+    "borrow_from", "max_borrow_cores", "on_preempt",
+)
+NODE_FLAGS = ("borrow", "exclusive_timing")
 
 
 def _node_request(
@@ -323,6 +337,7 @@ def _node_request(
     explicit: dict[str, Any] = {}
     cpu_request = None
     cpu_list_arg = getattr(args, "cpus", None)
+    borrow = _borrow_options(args, config, partition.name)
     if cpu_list_arg is not None:
         cpus = parse_cpu_list(cpu_list_arg)
         if not cpus:
@@ -339,9 +354,21 @@ def _node_request(
     requested = cores
     if requested is None:
         requested = len(parse_cpu_list(cpu_request)) if cpu_request else partition.resolve_default_cpus()
+        if borrow is not None and borrow["max_borrow_cores"] is not None:
+            requested = 1  # elastic: 1 .. --max-borrow-cores
     if cpu_request is not None and requested != len(parse_cpu_list(cpu_request)):
         raise ValueError("--cores and --cpus disagree on the number of cores")
-    if requested < 1 or requested > len(partition.cpus):
+    if borrow is not None:
+        reachable = borrow["reachable"]
+        if requested < 1 or requested > reachable:
+            raise ValueError(
+                f"--cores must be between 1 and {reachable} for a borrow job "
+                f"(cores of {', '.join(borrow['eligible'])})"
+            )
+        maximum = borrow["max_borrow_cores"]
+        if maximum is not None and not requested <= maximum <= reachable:
+            raise ValueError(f"--max-borrow-cores must be between {requested} (--cores) and {reachable}")
+    elif requested < 1 or requested > len(partition.cpus):
         raise ValueError(
             f"--cores must be between 1 and {len(partition.cpus)} in partition {partition.name}"
         )
@@ -401,11 +428,81 @@ def _node_request(
         "time_limit_s": time_limit,
         "priority": priority or 0,
     }
+    # 0.6.1 fields enter the idempotency fingerprint only when given.
+    if borrow is not None:
+        scheduling.update(
+            {
+                "borrow": 1,
+                "borrow_from": borrow["borrow_from"],
+                "max_borrow_cores": borrow["max_borrow_cores"],
+                "on_preempt": borrow["on_preempt"],
+            }
+        )
+        explicit["borrow"] = 1
+        for key in ("borrow_from", "max_borrow_cores"):
+            if borrow[key] is not None:
+                explicit[key] = borrow[key]
+        if borrow["on_preempt_given"]:
+            explicit["on_preempt"] = borrow["on_preempt"]
+    if getattr(args, "exclusive_timing", False):
+        scheduling["exclusive_timing"] = 1
+        explicit["exclusive_timing"] = 1
     return requested, scheduling, explicit
+
+
+def _borrow_options(args: argparse.Namespace, config: NodeConfig, home: str) -> dict[str, Any] | None:
+    """Validate the 0.6.1 borrow options; ``None`` for an owner job."""
+    from .borrow import eligible_partitions, protected_cpus
+    from .scheduler import Request
+
+    borrow_from_text = getattr(args, "borrow_from", None)
+    maximum = getattr(args, "max_borrow_cores", None)
+    on_preempt = getattr(args, "on_preempt", None)
+    borrow = bool(getattr(args, "borrow", False)) or borrow_from_text is not None or maximum is not None
+    if getattr(args, "exclusive_timing", False) and borrow:
+        raise ValueError("--exclusive-timing is for owner jobs; a borrow job cannot request it")
+    if not borrow:
+        if on_preempt is not None:
+            raise ValueError("--on-preempt needs --borrow")
+        return None
+    if not config.borrow.enabled:
+        raise ValueError(f"borrowing is disabled in the node configuration ({config.path})")
+    if getattr(args, "cpus", None) is not None:
+        raise ValueError("--cpus cannot be combined with --borrow; the scheduler places borrow jobs")
+    if getattr(args, "gpus", None) or getattr(args, "gpu_mem", None) is not None:
+        raise ValueError("borrow jobs cannot use GPUs")
+    names: list[str] | None = None
+    if borrow_from_text is not None:
+        names = [name.strip() for name in borrow_from_text.split(",") if name.strip()]
+        if not names:
+            raise ValueError("--borrow-from needs at least one partition")
+        for name in names:
+            part = config.partition(name)
+            if name != home and not part.lends():
+                why = "is timing-sensitive" if part.timing_sensitive else "does not lend (lend: false)"
+                raise ValueError(f"--borrow-from: partition {name} {why}")
+    if maximum is not None and maximum < 1:
+        raise ValueError("--max-borrow-cores must be positive")
+    probe = Request(job_id=0, partition=home, ncpus=1, borrow=True,
+                    borrow_from=None if names is None else tuple(names))
+    eligible = eligible_partitions(config, probe)
+    protected = protected_cpus(config)
+    reachable = sum(len([c for c in config.partitions[name].cpus if c not in protected]) for name in eligible)
+    if reachable == 0:
+        raise ValueError(f"no partition lends cores to a borrow job of partition {home}")
+    return {
+        "borrow_from": None if names is None else json.dumps(names),
+        "max_borrow_cores": maximum,
+        "on_preempt": on_preempt or config.borrow.default_on_preempt,
+        "on_preempt_given": on_preempt is not None,
+        "eligible": eligible,
+        "reachable": reachable,
+    }
 
 
 def _reject_node_options_without_config(args: argparse.Namespace) -> None:
     given = [name for name in NODE_OPTIONS if getattr(args, name, None) is not None]
+    given += [name for name in NODE_FLAGS if getattr(args, name, False)]
     if given:
         rendered = ", ".join("--" + name.replace("_", "-") for name in given)
         raise ValueError(
@@ -426,30 +523,54 @@ def _describe_request(job: dict[str, Any]) -> str:
     parts.append(f"time {format_time_limit(job.get('time_limit_s'))}")
     if int(job.get("priority") or 0):
         parts.append(f"priority {job['priority']}")
+    if job.get("borrow"):
+        text = "borrow"
+        if job.get("max_borrow_cores") is not None:
+            text += f" {job['requested_cores']}-{job['max_borrow_cores']} cores"
+        if job.get("borrow_from"):
+            try:
+                text += " from " + ",".join(json.loads(str(job["borrow_from"])))
+            except ValueError:
+                pass
+        text += f", on preempt {job.get('on_preempt') or 'requeue'}"
+        parts.append(text)
+    if job.get("exclusive_timing"):
+        parts.append("exclusive timing")
     return ", ".join(parts)
 
 
 def _test_only(config: NodeConfig, store: QueueStore, requested: int, scheduling: dict[str, Any]) -> int:
     """Validate a request and report where it would run now, like
     ``sbatch --test-only``.  Nothing is queued or launched."""
-    from .locks import busy_resources, lock_plan_for
-    from .nodeworker import job_request, running_entries
-    from .scheduler import INFINITY, build_pool, plan
+    from .borrow import plan_node
+    from .locks import borrow_lock_plan, busy_resources, lock_plan_for
+    from .nodeworker import borrower_entries, job_request, running_entries
+    from .scheduler import INFINITY, build_pool
 
     now = time.time()
     jobs = store.node_jobs()
     running = running_entries(jobs, config, now)
-    allocated_cpus = {cpu for item in running for cpu in item.allocation.cpus}
+    owner_of = {cpu: int(item.job_id) for item in running if item.job_id is not None for cpu in item.allocation.cpus}
     allocated_gpus = {gpu for item in running for gpu in item.allocation.gpus}
-    busy_cpus, busy_gpus = busy_resources(config, allocated_cpus=allocated_cpus, allocated_gpus=allocated_gpus)
+    busy_cpus, busy_gpus = busy_resources(config, allocated_cpus=set(owner_of), allocated_gpus=allocated_gpus)
     pool = build_pool(config, running, external_cpus=busy_cpus, external_gpus=busy_gpus)
     waiting = [j for j in jobs if j["state"] == "queued"]
     probe = dict(scheduling, id=0, requested_cores=requested)
-    # A new submission goes behind every queued job of equal or higher priority.
-    position = sum(1 for j in waiting if int(j.get("priority") or 0) >= int(scheduling["priority"] or 0))
+    # A new submission goes behind every queued job of its class (owner jobs
+    # before borrow jobs) with equal or higher priority.
+    probe_class = int(scheduling.get("borrow") or 0)
+    position = sum(
+        1 for j in waiting
+        if int(j.get("borrow") or 0) < probe_class
+        or (int(j.get("borrow") or 0) == probe_class
+            and int(j.get("priority") or 0) >= int(scheduling["priority"] or 0))
+    )
     waiting.insert(position, probe)
     queue = [job_request(j, config) for j in waiting]
-    decision = plan(config, pool, running, queue, now)
+    borrowers = borrower_entries([j for j in jobs if j["state"] in ACTIVE_STATES], config)
+    # Without the worker's usage history, leased and allocated cores count
+    # as busy here; only free cores are shown as lendable.
+    decision = plan_node(config, pool, running, queue, now, borrowers=borrowers, owner_of=owner_of)
     started = {request.job_id: allocation for request, allocation in decision.starts}
     payload: dict[str, Any] = {
         "schema_version": "simqueue-test-only-v1",
@@ -460,19 +581,27 @@ def _test_only(config: NodeConfig, store: QueueStore, requested: int, scheduling
     }
     if 0 in started:
         allocation = started[0]
+        locks = (
+            borrow_lock_plan(config, allocation.cpus)
+            if allocation.borrow
+            else lock_plan_for(config, allocation.cpus, allocation.gpus, gpu_shared=not allocation.gpu_exclusive)
+        )
         payload.update(
             {
                 "would_start_now": True,
                 "cpu_list": format_cpu_list(allocation.cpus),
                 "gpus": list(allocation.gpus),
                 "gpu_mode": "none" if not allocation.gpus else ("exclusive" if allocation.gpu_exclusive else "shared"),
-                "lease_files": [
-                    {"path": lock.path, "mode": lock.mode}
-                    for lock in lock_plan_for(config, allocation.cpus, allocation.gpus,
-                                              gpu_shared=not allocation.gpu_exclusive)
-                ],
+                "lease_files": [{"path": lock.path, "mode": lock.mode} for lock in locks],
             }
         )
+        if allocation.borrow:
+            payload["borrow_placement"] = [
+                {"cpu": cpu, "partition": part, "class": cls} for cpu, part, cls in allocation.placement
+            ]
+        preempted = [item.job_id for item in decision.preemptions]
+        if preempted:
+            payload["would_preempt_borrow_jobs"] = preempted
     else:
         payload["would_start_now"] = False
         payload["reason"] = decision.skipped.get(0, "waiting behind earlier jobs")
@@ -565,6 +694,17 @@ def _submit(args: argparse.Namespace, store: QueueStore) -> int:
                 "priority": int(job.get("priority") or 0),
             }
         )
+        if job.get("borrow"):
+            payload.update(
+                {
+                    "borrow": True,
+                    "borrow_from": None if not job.get("borrow_from") else json.loads(str(job["borrow_from"])),
+                    "max_borrow_cores": job.get("max_borrow_cores"),
+                    "on_preempt": job.get("on_preempt"),
+                }
+            )
+        if job.get("exclusive_timing"):
+            payload["exclusive_timing"] = True
     try:
         mode = _nudge_worker(store) if job["state"] not in TERMINAL_STATES else "terminal"
     except WorkerStartError as error:
@@ -943,6 +1083,41 @@ def _show(job_id: int, store: QueueStore) -> int:
                 ("Job files", job.get("job_dir") or "-"),
             ]
         )
+    if job.get("borrow") or job.get("exclusive_timing"):
+        placement_text = "-"
+        if job.get("placement_json"):
+            try:
+                placement = json.loads(str(job["placement_json"]))
+                placement_text = "; ".join(
+                    f"CPU {item['cpu']} {item.get('partition')} ({item.get('class')}"
+                    + (f", job {item['owner_job']}" if item.get("owner_job") is not None else "")
+                    + ")"
+                    for item in placement.get("cpus", [])
+                ) or "-"
+            except (ValueError, KeyError, TypeError):
+                placement_text = str(job["placement_json"])
+        if job.get("borrow"):
+            borrow_from = "every lending partition"
+            if job.get("borrow_from"):
+                try:
+                    borrow_from = ", ".join(json.loads(str(job["borrow_from"])))
+                except ValueError:
+                    borrow_from = str(job["borrow_from"])
+            fields.extend(
+                [
+                    ("Class", "borrow job (preemptible; idle CPU priority)"),
+                    ("Borrow from", f"{job.get('partition')} and {borrow_from}"),
+                    ("Cores", f"{job['requested_cores']}" + (
+                        f" to {job['max_borrow_cores']}" if job.get("max_borrow_cores") is not None else "")),
+                    ("On preempt", job.get("on_preempt") or "requeue"),
+                    ("Placement", placement_text),
+                    ("Frozen since", job.get("frozen_at") or "-"),
+                    ("Preemption pending", job.get("preempt_pending") or "-"),
+                    ("Preemptions", job.get("preempt_count") or 0),
+                ]
+            )
+        else:
+            fields.append(("Exclusive timing", "yes: its cores and their SMT siblings are never lent"))
     if job["state"] == "queued":
         queued = store.queued_jobs()
         position = next(
@@ -968,6 +1143,13 @@ def _show(job_id: int, store: QueueStore) -> int:
     width = max(len(label) for label, _ in fields)
     for label, value in fields:
         print(f"{label:<{width}}  {value}")
+    events = store.job_events(job_id)
+    if events:
+        print("History:")
+        for event in events:
+            detail = event.get("detail") or {}
+            text = ", ".join(f"{key}={value}" for key, value in sorted(detail.items()) if value not in (None, "", []))
+            print(f"  {event['at']}  {event['kind']:<14} {text}")
     return 0
 
 
@@ -1139,13 +1321,26 @@ def _doctor(store: QueueStore) -> int:
     return 0 if not pcores.startswith("ERROR") and service_ok else 1
 
 
-def _node_status(config: NodeConfig, store: QueueStore) -> dict[str, Any]:
+def _node_status(config: NodeConfig, store: QueueStore, *, sample_s: float = 0.0) -> dict[str, Any]:
+    """Node state for ``simq partitions``.
+
+    Every core is classified as ``free``, ``job`` (an owner queue job),
+    ``borrowed`` (only borrow jobs on it), ``external-busy`` /
+    ``external-idle`` (core lease held outside the queue; CPU use of the
+    holder's process tree over *sample_s* seconds), ``external`` (not
+    sampled) or ``stale`` (lease held but no holder process visible).
+    """
+    import dataclasses
+
+    from .borrow import in_use_cores
     from .locks import busy_resources, process_description
-    from .nodeworker import running_entries
+    from .nodeworker import borrower_entries, running_entries
+    from .telemetry import NodeTelemetry, command_summary
 
     jobs = store.node_jobs()
     now = time.time()
     running = running_entries(jobs, config, now)
+    borrowers = borrower_entries([j for j in jobs if j["state"] in ACTIVE_STATES], config)
     owner: dict[int, int] = {}
     gpu_users: dict[str, list[dict[str, Any]]] = {}
     mem_used = 0
@@ -1161,20 +1356,76 @@ def _node_status(config: NodeConfig, store: QueueStore) -> dict[str, Any]:
                 }
             )
         mem_used += item.allocation.mem
+    borrowed_mem = sum(b.mem for b in borrowers if not b.pending)
+    on_cpu: dict[int, list[dict[str, Any]]] = {}
+    for borrower in borrowers:
+        for cpu in borrower.cpus:
+            on_cpu.setdefault(cpu, []).append(
+                {
+                    "job_id": borrower.job_id,
+                    "class": borrower.placement.get(cpu, "free"),
+                    "frozen": borrower.frozen_since is not None,
+                    "stopping": borrower.pending,
+                }
+            )
     busy_cpus, busy_gpus = busy_resources(
         config, allocated_cpus=set(owner), allocated_gpus=set(gpu_users)
     )
+    groups_by_cpu: dict[int, Any] = {}
+    if busy_cpus:
+        window = max(0.2, sample_s) if sample_s > 0 else config.borrow.idle_window_s
+        probe_config = dataclasses.replace(
+            config, borrow=dataclasses.replace(config.borrow, idle_window_s=window, busy_window_s=window)
+        )
+        telemetry = NodeTelemetry(probe_config)
+        telemetry.sample(owners=[], external=busy_cpus, borrowers=borrowers)
+        if sample_s > 0:
+            time.sleep(sample_s)
+            telemetry.sample(owners=[], external=busy_cpus, borrowers=borrowers)
+        for group in telemetry.groups:
+            for cpu in group.cpus:
+                groups_by_cpu[cpu] = (group, telemetry.group_trees.get(group.key, set()))
+    no_borrow: set[int] = set()
+    from .locks import lock_holders
+
+    borrow_paths = {path: cpu for cpu in config.node_cpus() for path in config.locks.borrow_lock_paths(cpu)}
+    for path, found in lock_holders(list(borrow_paths)).items():
+        if any(h.mode == "WRITE" for h in found):
+            no_borrow.add(borrow_paths[path])
     partitions = []
     for part in config.partitions.values():
         cpus = []
         for cpu in part.cpus:
+            entry: dict[str, Any] = {"cpu": cpu, "borrowers": on_cpu.get(cpu, []), "no_borrow": cpu in no_borrow}
             if cpu in owner:
-                state = f"job {owner[cpu]}"
+                entry.update({"state": f"job {owner[cpu]}", "class": "job", "job_id": owner[cpu]})
             elif cpu in busy_cpus:
-                state = "lease held: " + process_description(busy_cpus[cpu][0].pid)
+                entry["state"] = "lease held: " + process_description(busy_cpus[cpu][0].pid)
+                entry["lock_pids"] = sorted({h.pid for h in busy_cpus[cpu] if h.pid})
+                group_tree = groups_by_cpu.get(cpu)
+                if group_tree is None:
+                    entry["class"] = "external"
+                else:
+                    group, tree = group_tree
+                    roots = [int(x.split(":")[0]) for x in group.key.split(",") if x and not group.stale]
+                    entry["holders"] = [{"pid": pid, "command": command_summary(pid)} for pid in roots]
+                    entry["tree_pids"] = len(tree)
+                    entry["holder_cpus"] = list(group.cpus)
+                    if group.stale:
+                        entry["class"] = "stale"
+                        entry["holder"] = group.description
+                    elif group.usage_idle is None:
+                        entry["class"] = "external"
+                    else:
+                        entry["usage_cores"] = round(group.usage_idle, 3)
+                        entry["usage_window_s"] = sample_s
+                        in_use = in_use_cores(group.usage_idle, config.borrow.idle_threshold)
+                        entry["class"] = "external-idle" if in_use < len(group.cpus) else "external-busy"
+            elif on_cpu.get(cpu):
+                entry.update({"state": "free", "class": "borrowed"})
             else:
-                state = "free"
-            cpus.append({"cpu": cpu, "state": state})
+                entry.update({"state": "free", "class": "free"})
+            cpus.append(entry)
         queued = [j for j in jobs if j["state"] == "queued" and (j.get("partition") or config.default_partition) == part.name]
         partitions.append(
             {
@@ -1187,6 +1438,10 @@ def _node_status(config: NodeConfig, store: QueueStore) -> dict[str, Any]:
                 "default_time_s": part.default_time,
                 "max_time_s": part.max_time,
                 "queued": len(queued),
+                "queued_borrow": sum(1 for j in queued if j.get("borrow")),
+                "lend": part.lend,
+                "lend_leased_idle": part.lend_leased_idle,
+                "timing_sensitive": part.timing_sensitive,
             }
         )
     gpus = []
@@ -1212,40 +1467,91 @@ def _node_status(config: NodeConfig, store: QueueStore) -> dict[str, Any]:
         "paused": store.is_paused(),
         "memory_schedulable": config.memory_schedulable,
         "memory_allocated": mem_used,
+        "memory_borrowed": borrowed_mem,
         "lock_files": config.locks.enabled,
+        "sample_s": sample_s,
+        "borrow": {
+            "enabled": config.borrow.enabled,
+            "slice": config.borrow.slice,
+            "jobs": len(borrowers),
+            "frozen": sum(1 for b in borrowers if b.frozen_since is not None),
+        },
         "partitions": partitions,
         "gpus": gpus,
     }
+
+
+def _policy_text(part: dict[str, Any]) -> str:
+    if part["timing_sensitive"]:
+        return "timing-sensitive"
+    if not part["lend"]:
+        return "no-lend"
+    return "lend" + (",leased-idle" if part["lend_leased_idle"] else "")
+
+
+def _core_text(cpu: dict[str, Any]) -> str:
+    cls = cpu.get("class")
+    if cls == "job":
+        text = f"job {cpu['job_id']}"
+    elif cls == "borrowed":
+        text = "free"
+    elif cls in ("external-busy", "external-idle"):
+        word = "busy" if cls == "external-busy" else "idle"
+        text = (f"external lease {word} ({cpu['usage_cores']:.2f} cores over {cpu['usage_window_s']:g} s, "
+                f"{cpu.get('tree_pids', 0)} process(es))")
+    elif cls == "stale":
+        text = f"stale lease: {cpu.get('holder')}"
+    elif cls == "external":
+        text = "external lease (not sampled)"
+    else:
+        text = "free"
+    for holder in cpu.get("holders", [])[:4]:
+        text += f"\n        holder pid {holder['pid']}: {holder['command']}"
+    for borrower in cpu.get("borrowers", []):
+        if borrower["frozen"]:
+            state = "frozen"
+        elif borrower["stopping"]:
+            state = f"being stopped ({borrower['stopping']})"
+        else:
+            state = "running"
+        text += f"\n        borrow job {borrower['job_id']} ({borrower['class']}, {state})"
+    if cpu.get("no_borrow"):
+        text += "\n        borrow lease held exclusively: not lendable"
+    return text
 
 
 def _partitions(args: argparse.Namespace, store: QueueStore) -> int:
     config = load_node_config()
     if config is None:
         raise ValueError(f"no node configuration ({config_path()}); this queue runs in 0.5 mode")
-    status = _node_status(config, store)
+    if args.sample < 0 or args.sample > 60:
+        raise ValueError("--sample must be between 0 and 60 seconds")
+    status = _node_status(config, store, sample_s=args.sample)
     if args.json:
         print(json.dumps(status, ensure_ascii=False, indent=2, sort_keys=True))
         return 0
     print(f"Node {status['node']}  config {status['config']}" + ("  [queue paused]" if status["paused"] else ""))
     if status["memory_schedulable"] is not None:
+        borrowed = f" (+{format_size(status['memory_borrowed'])} borrow jobs)" if status["memory_borrowed"] else ""
         print(
-            f"Memory: {format_size(status['memory_allocated'])} allocated of "
+            f"Memory: {format_size(status['memory_allocated'])} allocated{borrowed} of "
             f"{format_size(status['memory_schedulable'])} schedulable"
         )
-    print(f"{'PARTITION':<13} {'CPUS':<8} {'FREE':<5} {'GPUS':<5} {'MEM(def/max)':<13} {'TIME(def/max)':<27} QUEUED")
+    print(f"{'PARTITION':<13} {'CPUS':<8} {'FREE':<5} {'GPUS':<5} {'MEM(def/max)':<13} {'TIME(def/max)':<27} "
+          f"{'QUEUED':<7} POLICY")
     for part in status["partitions"]:
         cpus = [c["cpu"] for c in part["cpus"]]
-        free = sum(1 for c in part["cpus"] if c["state"] == "free")
+        free = sum(1 for c in part["cpus"] if c["class"] in ("free", "borrowed"))
         name = part["name"] + ("*" if part["default"] else "")
         times = f"{format_time_limit(part['default_time_s'])}/{format_time_limit(part['max_time_s'])}"
         mems = f"{format_size(part['default_mem'])}/{format_size(part['max_mem'])}"
+        queued = str(part["queued"]) + (f" ({part['queued_borrow']}~)" if part["queued_borrow"] else "")
         print(
             f"{name:<13} {format_cpu_list(cpus):<8} {free:<5} {len(part['gpus']):<5} {mems:<13} "
-            f"{times:<27} {part['queued']}"
+            f"{times:<27} {queued:<7} {_policy_text(part)}"
         )
         for cpu in part["cpus"]:
-            if cpu["state"] != "free":
-                print(f"    CPU {cpu['cpu']}: {cpu['state']}")
+            print(f"    CPU {cpu['cpu']}: {_core_text(cpu)}")
     for gpu in status["gpus"]:
         print(
             f"GPU {gpu['index'] if gpu['index'] is not None else '-'} {gpu['uuid']} {gpu['name']}: "
@@ -1331,6 +1637,32 @@ def _node_doctor(config: NodeConfig, store: QueueStore) -> int:
             linger = result.stdout.strip()
     except OSError:
         pass
+    controllers_path = Path(
+        f"/sys/fs/cgroup/user.slice/user-{os.getuid()}.slice/user@{os.getuid()}.service/cgroup.controllers"
+    )
+    try:
+        controllers = controllers_path.read_text(encoding="ascii").split()
+    except OSError:
+        controllers = []
+    freezer = controllers_path.with_name("cgroup.freeze").exists()
+    borrow_detail = "disabled"
+    if config.borrow.enabled:
+        weight = _systemctl_property("CPUWeight", unit=config.borrow.slice)
+        borrow_detail = (
+            f"slice {config.borrow.slice} CPUWeight={weight or '?'} (wanted {config.borrow.slice_cpu_weight}); "
+            f"units CPUWeight={config.borrow.unit_cpu_weight}, SCHED_IDLE, idle I/O; "
+            f"cpu controller {'delegated' if 'cpu' in controllers else 'NOT delegated'}; "
+            f"freezer {'available' if freezer else 'unavailable'}"
+        )
+        if "cpu" not in controllers:
+            problems.append("the cpu controller is not delegated to the user manager (borrow jobs need cpu.weight)")
+        if not freezer:
+            problems.append("cgroup freezer unavailable (--on-preempt freeze cannot work)")
+    lending = "; ".join(
+        f"{p.name}=" + ("timing-sensitive" if p.timing_sensitive else
+                        ("lend" + (",leased-idle" if p.lend_leased_idle else "") if p.lend else "no-lend"))
+        for p in config.partitions.values()
+    )
     fields = [
         ("SimQueue", f"{__version__} ({runtime})"),
         ("Mode", "node scheduler (partitions, concurrent jobs, one systemd unit per job)"),
@@ -1344,6 +1676,8 @@ def _node_doctor(config: NodeConfig, store: QueueStore) -> int:
             for p in config.partitions.values()
         )),
         ("Lease files", lock_detail),
+        ("Lending", lending),
+        ("Borrow jobs", borrow_detail),
         ("Queue", "paused" if store.is_paused() else "accepting jobs"),
         ("Worker unit", "simqueue.service"),
         ("Service installed", load_state),
@@ -1414,6 +1748,31 @@ def _add_node_request_options(parser: argparse.ArgumentParser, *, cpus: bool, gp
     parser.add_argument("--priority", type=int, metavar="N", help="node mode: priority (higher first; default 0)")
 
 
+def _add_borrow_options(parser: argparse.ArgumentParser) -> None:
+    group = parser.add_argument_group("borrowing (0.6.1)")
+    group.add_argument(
+        "--borrow", "--opportunistic", dest="borrow", action="store_true",
+        help="restartable work (builds, tests): may start on idle cores of any lending partition; "
+        "runs at idle CPU priority and is preempted whenever an owner job needs the cores",
+    )
+    group.add_argument(
+        "--borrow-from", metavar="P1,P2",
+        help="borrow only from these partitions (besides the job's own); implies --borrow",
+    )
+    group.add_argument(
+        "--max-borrow-cores", type=int, metavar="N",
+        help="take up to N cores when that many are idle (at least -c, default 1); implies --borrow",
+    )
+    group.add_argument(
+        "--on-preempt", choices=("freeze", "requeue", "cancel"),
+        help="what preemption does to a borrow job (default requeue; freeze resumes it later)",
+    )
+    group.add_argument(
+        "--exclusive-timing", action="store_true",
+        help="owner job: its cores and their SMT siblings are never lent while it runs",
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     invoked_as = Path(sys.argv[0]).name
     program = invoked_as if invoked_as in {"simq", "simqueue"} else "simq"
@@ -1473,6 +1832,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="node mode: validate the request and show where it would run now; queue nothing",
     )
+    _add_borrow_options(submit)
     submit.add_argument("command", nargs=argparse.REMAINDER, help="command after --")
 
     listing = subparsers.add_parser("list", aliases=["ls", "status"], help="list jobs")
@@ -1587,6 +1947,10 @@ def build_parser() -> argparse.ArgumentParser:
         "partitions", aliases=["sinfo"], help="show partitions, free cores, GPUs and lease holders"
     )
     partitions.add_argument("--json", action="store_true")
+    partitions.add_argument(
+        "--sample", type=float, default=1.0, metavar="SECONDS",
+        help="CPU sampling window for lease holders (default 1.0; 0 skips sampling)",
+    )
     priority = subparsers.add_parser("priority", help="set a queued job's priority (higher runs first)")
     priority.add_argument("job_id", type=int, metavar="ID")
     priority.add_argument("value", type=int, metavar="PRIORITY")

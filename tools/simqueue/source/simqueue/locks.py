@@ -60,6 +60,20 @@ def lock_plan_for(
     return [plans[key] for key in sorted(plans)]
 
 
+def borrow_lock_plan(config: NodeConfig, cpus: Iterable[int]) -> list[LockPlan]:
+    """Leases of a borrow job (0.6.1): the shared borrow lease of each core.
+
+    The core's exclusive lease stays free, so its owner (a queue job or a
+    tool such as any-core.sh) can take it at any time; the scheduler then
+    preempts the borrower.
+    """
+    plans: dict[str, LockPlan] = {}
+    for cpu in cpus:
+        for path in config.locks.borrow_lock_paths(cpu):
+            plans[path] = LockPlan(path, "shared", f"borrow:{cpu}")
+    return [plans[key] for key in sorted(plans)]
+
+
 def _device_key(path: str) -> tuple[str, int] | None:
     try:
         stat = os.stat(path)

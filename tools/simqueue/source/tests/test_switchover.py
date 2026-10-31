@@ -19,6 +19,7 @@ from pathlib import Path
 from node_fixture import PYTHON_FROZEN, NodeFixture
 
 from simqueue.config import format_cpu_list
+from simqueue.store import SCHEMA_VERSION
 
 
 RUNTIME = Path(__file__).resolve().parents[2]
@@ -147,7 +148,7 @@ class SwitchoverTests(NodeFixture, unittest.TestCase):
         result = self.switchover("install", "--execute", "--canary", "pa=run", "--canary", "pb=test-only",
                                  "--foreground-worker", "--canary-timeout", "120")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertEqual(self.user_version(), 7)
+        self.assertEqual(self.user_version(), SCHEMA_VERSION)
         wrapper = (self.home / ".local" / "bin" / "simq").read_text()
         self.assertIn(str(RUNTIME / "source" / "simq"), wrapper)
         self.assertIn("SIMQUEUE_CONFIG=", wrapper)

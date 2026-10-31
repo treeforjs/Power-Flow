@@ -12,6 +12,11 @@ the scheduler's code, process or version.
     recorded environment, wait until every other process in the unit's
     cgroup has exited, record the exit status and exit with it.
 
+A borrow job (spec ``"borrow": true``, SimQueue 0.6.1) holds the shared
+borrow leases of its cores instead of the exclusive core leases, and runs
+the command under ``SCHED_IDLE`` (set by the unit; checked and, if needed,
+set here before the command starts, so every process of the job inherits it).
+
 ``jobwrap.py stop-post SPEC``
     ExecStopPost hook.  Records systemd's $SERVICE_RESULT, $EXIT_CODE and
     $EXIT_STATUS so that the final result is recoverable even if the wrapper
@@ -124,6 +129,20 @@ def _cpu_set(text: str) -> set[int]:
     return cpus
 
 
+def _ensure_sched_idle() -> str:
+    """Make this process SCHED_IDLE (inherited by the command); return the
+    resulting policy name."""
+    names = {getattr(os, "SCHED_OTHER", 0): "other", getattr(os, "SCHED_BATCH", 3): "batch",
+             getattr(os, "SCHED_IDLE", 5): "idle", getattr(os, "SCHED_FIFO", 1): "fifo",
+             getattr(os, "SCHED_RR", 2): "rr"}
+    try:
+        if os.sched_getscheduler(0) != os.SCHED_IDLE:
+            os.sched_setscheduler(0, os.SCHED_IDLE, os.sched_param(0))
+        return names.get(os.sched_getscheduler(0), "unknown")
+    except (AttributeError, OSError) as error:
+        return f"error: {error}"
+
+
 class Wrapper:
     def __init__(self, spec_path: Path) -> None:
         self.spec_path = spec_path
@@ -185,6 +204,8 @@ class Wrapper:
         _log(f"GPUs:      {spec.get('gpu_text', 'none')}\n")
         _log(f"memory:    {spec.get('mem_text', '-')}\n")
         _log(f"time:      {spec.get('time_text', '-')}\n")
+        if spec.get("borrow"):
+            _log(f"borrowed:  {spec.get('borrow_text', '-')}\n")
         _log(f"unit:      {spec['unit']}\n")
         _log(f"command:   {shlex.join(argv)}\n")
         _log("========================================\n")
@@ -210,6 +231,12 @@ class Wrapper:
             return self.refuse(f"working directory is unavailable: {cwd}", kind="cwd")
         if not resolved.is_relative_to(root):
             return self.refuse(f"working directory now resolves outside {root}: {resolved}", kind="cwd")
+
+        if spec.get("borrow"):
+            policy = _ensure_sched_idle()
+            self.status["sched_policy"] = policy
+            if policy != "idle":
+                return self.refuse(f"cannot run a borrow job under SCHED_IDLE (policy {policy})", kind="placement")
 
         lock_fds: list[int] = []
         held: list[dict] = []

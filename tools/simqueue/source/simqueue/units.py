@@ -6,6 +6,14 @@ with the CPU affinity, memory limits, time limit, working directory and
 placement environment set on the unit.  The scheduler can therefore stop,
 crash or be replaced without affecting running jobs; on restart it re-adopts
 them by unit name and launch token.
+
+Borrow jobs (0.6.1) run in a separate top-level slice whose CPU weight is
+``idle`` (cgroup ``cpu.idle``), with ``CPUWeight=1``, ``SCHED_IDLE`` and idle
+I/O class on the unit itself, so every other process of the user manager
+(owner job units, terminal sessions, tools holding leases) wins the CPU.
+They are preempted with the cgroup freezer (``systemctl --user freeze``) or
+by stopping the unit; a frozen unit must be thawed before systemd accepts a
+stop request.
 """
 
 from __future__ import annotations
@@ -18,7 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
-from .nodeconfig import LaunchConfig
+from .nodeconfig import BorrowConfig, LaunchConfig
 
 
 JOBWRAP = Path(__file__).resolve().with_name("jobwrap.py")
@@ -33,6 +41,7 @@ SHOW_PROPERTIES = (
     "ExecMainCode",
     "InvocationID",
     "Environment",
+    "FreezerState",
 )
 ACTIVE_STATES = {"active", "activating", "deactivating", "reloading", "refreshing"}
 
@@ -58,6 +67,7 @@ class UnitState:
     exec_main_code: int | None
     invocation_id: str
     environment: str
+    freezer_state: str = ""
 
     @property
     def active(self) -> bool:
@@ -66,6 +76,10 @@ class UnitState:
     @property
     def found(self) -> bool:
         return self.load_state not in ("not-found", "")
+
+    @property
+    def frozen(self) -> bool:
+        return self.freezer_state in ("frozen", "freezing")
 
     def has_token(self, token: str) -> bool:
         return f"SIMQ_LAUNCH_TOKEN={token}" in self.environment
@@ -90,6 +104,7 @@ def build_run_command(
     spec_path: str,
     setenv: dict[str, str],
     wrapper: Path = JOBWRAP,
+    borrow: BorrowConfig | None = None,
 ) -> list[str]:
     python = launch.wrapper_python
     stop_post = _systemd_value(
@@ -99,7 +114,7 @@ def build_run_command(
         launch.systemd_run,
         "--user",
         f"--unit={unit}",
-        f"--slice={launch.slice}",
+        f"--slice={launch.slice if borrow is None else borrow.slice}",
         "--service-type=exec",
         "--collect",
         "--quiet",
@@ -119,7 +134,15 @@ def build_run_command(
     ]
     if runtime_max_s is not None:
         command.append(f"--property=RuntimeMaxSec={int(runtime_max_s)}s")
-    if nice:
+    if borrow is not None:
+        command.extend(
+            [
+                f"--property=CPUWeight={int(borrow.unit_cpu_weight)}",
+                "--property=CPUSchedulingPolicy=idle",
+                "--property=IOSchedulingClass=idle",
+            ]
+        )
+    elif nice:
         command.append(f"--property=Nice={int(nice)}")
     for key, value in sorted(setenv.items()):
         command.append(f"--setenv={key}={value}")
@@ -177,6 +200,7 @@ def _parse_show(text: str, names: list[str]) -> dict[str, UnitState]:
             exec_main_code=number("ExecMainCode"),
             invocation_id=block.get("InvocationID", ""),
             environment=block.get("Environment", ""),
+            freezer_state=block.get("FreezerState", ""),
         )
     return states
 
@@ -209,20 +233,56 @@ def show_units(launch: LaunchConfig, names: list[str]) -> dict[str, UnitState]:
     return states
 
 
-def stop_unit(launch: LaunchConfig, name: str) -> bool:
+def _systemctl(launch: LaunchConfig, *arguments: str, timeout: float = 30) -> subprocess.CompletedProcess[str] | None:
     try:
-        result = subprocess.run(
-            [launch.systemctl, "--user", "stop", "--no-block", "--", name],
+        return subprocess.run(
+            [launch.systemctl, "--user", *arguments],
             stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            timeout=30,
+            timeout=timeout,
             check=False,
         )
     except (OSError, subprocess.TimeoutExpired):
-        return False
-    return result.returncode == 0
+        return None
+
+
+def stop_unit(launch: LaunchConfig, name: str) -> bool:
+    # systemd refuses to stop a frozen unit ("Cannot perform operation on
+    # frozen unit"); thawing a unit that is not frozen is a no-op.
+    _systemctl(launch, "thaw", "--", name)
+    result = _systemctl(launch, "stop", "--no-block", "--", name)
+    return result is not None and result.returncode == 0
+
+
+def freeze_unit(launch: LaunchConfig, name: str) -> bool:
+    """Freeze every process of the unit (cgroup v2 freezer); returns once frozen."""
+    result = _systemctl(launch, "freeze", "--", name)
+    return result is not None and result.returncode == 0
+
+
+def thaw_unit(launch: LaunchConfig, name: str) -> bool:
+    result = _systemctl(launch, "thaw", "--", name)
+    return result is not None and result.returncode == 0
+
+
+def ensure_borrow_slice(launch: LaunchConfig, borrow: BorrowConfig) -> str | None:
+    """Give the borrow slice its CPU weight (runtime drop-in); returns an
+    error text, or ``None`` when the slice is configured."""
+    current = _systemctl(launch, "show", "--property=CPUWeight", "--value", "--", borrow.slice)
+    wanted = str(borrow.slice_cpu_weight)
+    if current is not None and current.returncode == 0 and current.stdout.strip() == wanted:
+        return None
+    result = _systemctl(launch, "set-property", "--runtime", "--", borrow.slice, f"CPUWeight={wanted}")
+    if result is None or result.returncode != 0:
+        detail = "" if result is None else (result.stderr or result.stdout).strip()
+        return f"cannot set CPUWeight={wanted} on {borrow.slice}: {detail or 'systemctl failed'}"
+    check = _systemctl(launch, "show", "--property=CPUWeight", "--value", "--", borrow.slice)
+    if check is None or check.stdout.strip() != wanted:
+        shown = "?" if check is None else check.stdout.strip()
+        return f"{borrow.slice} reports CPUWeight={shown} after setting {wanted}"
+    return None
 
 
 def read_json(path: Path) -> dict[str, Any] | None:

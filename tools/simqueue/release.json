@@ -1,66 +1,198 @@
 {
   "schema": "simqueue-release-v1",
-  "version": "0.6.0",
-  "runtime": "/home/treefor/projects/runtimes/simqueue-0.6.0-20261030",
-  "derived_from": "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/source",
+  "version": "0.6.1",
+  "runtime": "/home/treefor/projects/runtimes/simqueue-0.6.1-20261031",
+  "derived_from": "/home/treefor/projects/runtimes/simqueue-0.6.0-20261030",
   "interpreter": "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen",
   "installed": false,
-  "install_command": "./switchover.py install --execute (dry run without --execute)",
+  "install_command": "./upgrade.py install --execute (dry run without --execute)",
+  "rollback_command": "./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.0-to-0.6.1-<UTC> --execute [--cancel-borrow-jobs]",
   "node_config": "config/zenobia-node.json",
+  "database_schema": {
+    "from": 7,
+    "to": 8,
+    "change": "new jobs columns (borrow, borrow_from, max_borrow_cores, on_preempt, exclusive_timing, frozen_at, preempt_pending, preempt_reason, preempt_count, placement_json) and table job_events; rollback sets user_version back to 7 in place"
+  },
+  "features": [
+    "simq submit --borrow/--opportunistic, --borrow-from P1,P2, --max-borrow-cores N, --on-preempt freeze|requeue|cancel",
+    "owner jobs preempt borrow jobs at once; preemptions recorded in job_events (simq show)",
+    "borrow jobs: simqborrow.slice (CPUWeight=idle, cpu.idle=1), unit CPUWeight=1, SCHED_IDLE, IOSchedulingClass=idle, shared borrow-core<K>.lock instead of the core lease",
+    "partition policy lend / lend_leased_idle / timing_sensitive; per-job --exclusive-timing",
+    "simq partitions: per-core free / job / external lease busy / idle / stale with holder pids and commands from a CPU sample of each holder tree",
+    "borrow jobs always sort after owner jobs",
+    "upgrade.py install/rollback (dry run by default) with adoption verification and automatic rollback"
+  ],
+  "zenobia_policy": {
+    "spheral": {
+      "lend": true,
+      "lend_leased_idle": false,
+      "timing_sensitive": false
+    },
+    "raikou-mfem": {
+      "lend": true,
+      "lend_leased_idle": false,
+      "timing_sensitive": false
+    },
+    "powerflow": {
+      "lend": true,
+      "lend_leased_idle": false,
+      "timing_sensitive": false,
+      "note": "timing runs submit with --exclusive-timing"
+    }
+  },
   "tests": {
-    "receipt": "/home/treefor/sim-workspace/powerflow/outputs/simqueue-0.6.0-20261030/test-receipt-full.json",
-    "total_run": 167,
+    "runs": {
+      "pure: test_borrow_scheduler.py, test_borrow_store_cli.py, test_migration_061.py, test_scheduler.py": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-pure.json",
+        "tests_run": 83,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "skipped_detail": [],
+        "cores_leased": null,
+        "runner": "pure suites (no process launched, no lease taken)"
+      },
+      "test_borrow_units.py": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-borrow-units.json",
+        "tests_run": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "skipped_detail": [],
+        "cores_leased": [
+          0,
+          3
+        ],
+        "runner": "run-tests.py"
+      },
+      "test_node_worker.py": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_node_worker.json",
+        "tests_run": 30,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 3,
+        "skipped_detail": [
+          "test_node_worker.ConcurrencyTests.test_whole_partition_job_waits_for_all_cores: needs a two-core partition",
+          "test_node_worker.LeaseTests.test_outside_lease_holder_is_respected_and_job_units_hold_leases: needs a two-core partition",
+          "test_node_worker.PfLaunchInsideAllocationTests.test_pf_launch_10_refuses_on_its_own_jobs_leases: /home/treefor/projects/Power-Flow/tools/pf-launch is no longer pf-launch 1.0"
+        ],
+        "cores_leased": [
+          0,
+          1,
+          3
+        ],
+        "runner": "run-tests.py"
+      },
+      "test_switchover.py": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_switchover.json",
+        "tests_run": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "skipped_detail": [],
+        "cores_leased": [
+          0,
+          1,
+          3
+        ],
+        "runner": "run-tests.py"
+      },
+      "test_upgrade.py": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_upgrade.json",
+        "tests_run": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "skipped_detail": [],
+        "cores_leased": [
+          0,
+          1,
+          3
+        ],
+        "runner": "run-tests.py"
+      },
+      "test_ensemble.py": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_ensemble.json",
+        "tests_run": 53,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "skipped_detail": [],
+        "cores_leased": [
+          2,
+          3
+        ],
+        "runner": "run-tests.py"
+      },
+      "test_simqueue.py": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_simqueue.json",
+        "tests_run": 42,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "skipped_detail": [],
+        "cores_leased": [
+          2,
+          3
+        ],
+        "runner": "run-tests.py"
+      },
+      "test_exclusive_mode.py": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_exclusive_mode-4cpu.json",
+        "tests_run": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "skipped_detail": [],
+        "cores_leased": null,
+        "runner": "pure suites (no process launched, no lease taken)"
+      },
+      "test_migration.py": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_migration.json",
+        "tests_run": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1,
+        "skipped_detail": [
+          "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set"
+        ],
+        "cores_leased": null,
+        "runner": "pure suites (no process launched, no lease taken)"
+      }
+    },
+    "total_run": 241,
     "failures": 0,
     "errors": 0,
-    "skipped": 0,
-    "cores_leased": [
-      0,
-      1,
-      2,
-      3
-    ],
-    "duration_s": 112.742,
-    "existing_0_5_suites": {
+    "skipped": 4,
+    "how": "suites that start processes ran through run-tests.py on two leased cores of 0-3 that had been free of other work for 60 s (guard on); pure suites ran without leases; see core-usage-notes.md",
+    "existing_0_6_0_suites": {
       "test_simqueue.py": 42,
       "test_ensemble.py": 53,
-      "test_exclusive_mode.py": 9
-    },
-    "existing_suite_edits": "three assertions changed from the literal schema version 6 to store.SCHEMA_VERSION (test_simqueue.py x2, test_ensemble.py x1); no other change",
-    "existing_not_run": "test_shield_helper.py (16 tests) needs privileged/simqueue-shield, which is not part of the 0.5 runtime either",
-    "new_suites": {
+      "test_exclusive_mode.py": 9,
       "test_scheduler.py": 26,
       "test_node_worker.py": 30,
       "test_migration.py": 4,
       "test_switchover.py": 3
-    }
+    },
+    "existing_suite_edits": "node_fixture.copy_runtime and one assertion in test_node_worker.py use the running __version__ instead of the literal 0.6.0; test_switchover.py compares the schema with store.SCHEMA_VERSION instead of the literal 7 (switchover.py likewise); test_pf_launch_10_refuses_on_its_own_jobs_leases skips when Power-Flow/tools/pf-launch/pf_launch.py is no longer 1.0 (it became 1.1.0 at 2026-10-30 18:01, after the 0.6.0 run, so the test fails on 0.6.0 as well); no other change",
+    "existing_not_run": "test_shield_helper.py (16 tests) needs privileged/simqueue-shield, as for 0.6.0",
+    "new_suites": {
+      "test_borrow_scheduler.py": 43,
+      "test_borrow_store_cli.py": 11,
+      "test_migration_061.py": 3,
+      "test_borrow_units.py": 12,
+      "test_upgrade.py": 5
+    },
+    "not_run_for_0_6_1": [
+      "test_node_worker ConcurrencyTests.test_whole_partition_job_waits_for_all_cores and LeaseTests.test_outside_lease_holder_is_respected_and_job_units_hold_leases: need four leased CPUs (two-core partitions); cores 0-3 were never all free of Spheral work during a 30-minute wait",
+      "test_node_worker PfLaunchInsideAllocationTests.test_pf_launch_10_refuses_on_its_own_jobs_leases: Power-Flow/tools/pf-launch is pf-launch 1.1.0 since 2026-10-30 18:01",
+      "test_migration MigrationTests.test_copy_of_live_database: needs a schema-6 (0.5) live copy; the live database is schema 7, covered by test_migration_061.test_copy_of_live_database"
+    ]
   },
   "migration_check": {
-    "live_database_copy": "/home/treefor/sim-workspace/powerflow/outputs/simqueue-0.6.0-20261030/migration/live-copy-20261030T233734Z.sqlite3",
-    "method": "sqlite3 -readonly <live> .backup <copy>; migrated only in a temporary copy of that copy",
-    "result": "schema 6 -> 7, 17 jobs, every 0.5 column of every row unchanged, ensembles/meta unchanged",
-    "test": "test_migration.MigrationTests.test_copy_of_live_database (SIMQ_LIVE_DB_COPY)"
+    "live_database_copy": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/migration/live-copy-20261031T040055Z.sqlite3",
+    "method": "sqlite3 online backup API with the live file opened mode=ro; copy made read-only (0444); migrated only in a temporary copy of that copy",
+    "result_receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/receipts/live-copy-migration.json"
   },
-  "real_config_validation": {
-    "receipt": "/home/treefor/sim-workspace/powerflow/outputs/simqueue-0.6.0-20261030/validation-real-config-20261030T234312Z/receipt.json",
-    "checks": {
-      "pf_long_succeeded_and_adopted": true,
-      "spheral_finished_while_down_reconciled": true,
-      "spheral_affinity_0_3": true,
-      "pf_exit3_failed_with_3": true,
-      "gpu_canary_succeeded": true,
-      "relocated_code_adopted": true,
-      "no_cpu_double_allocation": true
-    },
-    "passed": true
-  },
-  "pf_launch_1_1": {
-    "path": "/home/treefor/projects/runtimes/pf-launch-v1.1-20261030",
-    "pf_launch_sha256": "b16f87526ba37d5c60a5081e4d03cbf859cc1b423ffda043664009b6e883fd56",
-    "tests": {
-      "existing": 61,
-      "new": 9,
-      "python3_and_frozen": "70 passed each"
-    },
-    "integration": "test_node_worker.PfLaunchInsideAllocationTests (real job unit)"
-  }
+  "notes": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/core-usage-notes.md"
 }

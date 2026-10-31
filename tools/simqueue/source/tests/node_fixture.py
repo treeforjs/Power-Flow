@@ -298,8 +298,12 @@ class NodeFixture:
         shutil.copytree(REPOSITORY / "simqueue", target / "simqueue",
                         ignore=shutil.ignore_patterns("__pycache__"))
         shutil.copy2(REPOSITORY / "simq", target / "simq")
+        from simqueue import __version__
+
         init = target / "simqueue" / "__init__.py"
-        text = init.read_text(encoding="utf-8").replace('__version__ = "0.6.0"', f'__version__ = "0.6.0+{version_suffix}"')
+        text = init.read_text(encoding="utf-8").replace(
+            f'__version__ = "{__version__}"', f'__version__ = "{__version__}+{version_suffix}"'
+        )
         init.write_text(text, encoding="utf-8")
         return target
 

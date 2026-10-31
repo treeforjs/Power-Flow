@@ -1,5 +1,39 @@
 # simqueue
 
+## 0.6.1: borrowing idle cores
+
+`simq submit --borrow` (alias `--opportunistic`) marks restartable work
+(builds, tests). Such a job may run on idle cores of any partition that
+lends them (`--borrow-from P1,P2` restricts the lenders; `--max-borrow-cores N`
+lets it take up to N cores when that many are idle), after every owner job,
+at the lowest CPU priority: a top-level `simqborrow.slice` with
+`CPUWeight=idle`, the unit with `CPUWeight=1`, `SCHED_IDLE` and idle I/O
+class. It holds only the shared `borrow-core<K>.lock` of its cores, never
+the core's own lease file. When an owner job is ready to start on its cores,
+when a tool takes such a core's lease, or when the owner of an idle core it
+was lent becomes busy, the scheduler preempts it according to
+`--on-preempt freeze|requeue|cancel` (default requeue; freeze uses the cgroup
+freezer and thaws the job when its cores are lendable again) and records
+the preemption in the job history (`simq show ID`).
+
+Lendable cores: free cores (never while an owner job of that partition is
+waiting), the unused cores of running owner jobs (partition `lend`, default
+true; never for jobs submitted with `--exclusive-timing`), and cores whose
+lease is held outside the queue by an idle process tree (partition
+`lend_leased_idle`, default false). A `timing_sensitive` partition lends
+nothing, not even to its own borrow jobs, and no borrower ever runs on an SMT
+sibling of its cores. `simq partitions` classifies every core (free, queue
+job, external lease busy/idle with the holders' pids and commands, stale)
+from a short CPU sample of each holder's process tree.
+
+Implementation: `borrow.py` (pure planning on top of the 0.6.0 EASY
+planner, which is unchanged), `telemetry.py` (process-tree and per-CPU usage),
+the node worker (preemption, freeze/thaw, adoption of frozen jobs), schema 8
+(borrow columns and a `job_events` table). Without borrow jobs the worker
+takes the 0.6.0 code path. `../upgrade.py` installs 0.6.1 over 0.6.0 and
+rolls back; `../OPERATIONS.md` documents both, the zenobia policy and the
+known limitations.
+
 ## 0.6: node scheduler
 
 With a node configuration (`SIMQUEUE_CONFIG`, else `<state dir>/node.json`,
@@ -55,6 +89,9 @@ from 0.5 and the mapping to Slurm are in `../OPERATIONS.md`.
 
 Tests: `./run-tests.py --cores LIST` takes the lease files of the cores it uses,
 pins itself there at nice 15 and runs real job units only on those cores.
+It refuses to start, or stops at once (all `simqt*` units ended, leases
+released), when the live queue has a job for the spheral cores or a process
+outside the run is pinned onto the leased cores.
 
 ## 0.5 reference
 

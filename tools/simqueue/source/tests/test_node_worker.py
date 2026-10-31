@@ -167,7 +167,9 @@ class AdoptionTests(NodeFixture, unittest.TestCase):
         log = self.worker_log()
         self.assertIn(f"adopted job {long_a}", log)
         self.assertIn(f"adopted job {long_b}", log)
-        self.assertIn("0.6.0+relocated", log)
+        from simqueue import __version__
+
+        self.assertIn(f"{__version__}+relocated", log)
         self.assertGreater(records[long_a]["end"], killed_at)
 
     def test_cancel_while_worker_down_and_cancel_after_adoption(self) -> None:
@@ -717,6 +719,8 @@ class PfLaunchInsideAllocationTests(NodeFixture, unittest.TestCase):
     def test_pf_launch_10_refuses_on_its_own_jobs_leases(self) -> None:
         if not (PF_LAUNCH_10 / "pf_launch.py").exists():
             self.skipTest("pf-launch 1.0 not present")
+        if 'VERSION = "1.0' not in (PF_LAUNCH_10 / "pf_launch.py").read_text():
+            self.skipTest(f"{PF_LAUNCH_10} is no longer pf-launch 1.0")
         receipt = self.base / "pf10.json"
         job_id = self.pf_job(PF_LAUNCH_10, receipt)
         self.run_drain()

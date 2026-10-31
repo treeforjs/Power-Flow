@@ -23,6 +23,8 @@ PARTITION_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 GPU_UUID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 DEFAULT_WRAPPER_PYTHON = "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen"
 UNLIMITED_WORDS = {"unlimited", "infinite", "none"}
+ON_PREEMPT_MODES = ("freeze", "requeue", "cancel")
+DEFAULT_BORROW_SLICE = "simqborrow.slice"
 SIZE_PATTERN = re.compile(r"^([0-9]+)\s*([A-Za-z]*)$")
 SIZE_UNITS = {
     # Slurm convention: a bare number is MiB and single-letter suffixes are binary.
@@ -169,6 +171,24 @@ class LockConfig:
     core_overrides: dict[int, str] = field(default_factory=dict)
     gpu_path: str | None = None
     gpu_extra: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    borrow_path: str | None = None
+
+    def borrow_lock_paths(self, cpu: int) -> tuple[str, ...]:
+        """Shared "borrow" lease of a core (0.6.1).
+
+        A borrower holds this file shared instead of the core's exclusive
+        lease, so the core's own lease stays free for its owner.  Holding it
+        exclusively from outside the queue marks the core as not lendable.
+        Default: ``borrow-core<K>.lock`` next to the core's lease file.
+        """
+        if not self.enabled:
+            return ()
+        if self.borrow_path:
+            return (self.borrow_path.replace("{core}", str(cpu)),)
+        core = self.core_lock_paths(cpu)
+        if not core:
+            return ()
+        return (str(Path(core[0]).with_name(f"borrow-core{cpu}.lock")),)
 
     def core_lock_paths(self, cpu: int) -> tuple[str, ...]:
         if not self.enabled:
@@ -207,9 +227,34 @@ class Partition:
     enforce_time_limit: bool
     nice: int
     description: str = ""
+    # 0.6.1 lending policy (see OPERATIONS.md, "Borrowing idle cores").
+    lend: bool = True
+    lend_leased_idle: bool = False
+    timing_sensitive: bool = False
 
     def resolve_default_cpus(self) -> int:
         return len(self.cpus) if self.default_cpus is None else self.default_cpus
+
+    def lends(self) -> bool:
+        """Whether jobs of other partitions may borrow this partition's cores."""
+        return self.lend and not self.timing_sensitive
+
+
+@dataclass(frozen=True)
+class BorrowConfig:
+    """Node-wide settings for opportunistic (``--borrow``) jobs."""
+
+    enabled: bool = True
+    slice: str = DEFAULT_BORROW_SLICE
+    slice_cpu_weight: str = "idle"
+    unit_cpu_weight: int = 1
+    idle_window_s: float = 30.0
+    busy_window_s: float = 2.0
+    idle_threshold: float = 0.10
+    cpu_idle_threshold: float = 0.15
+    busy_threshold: float = 0.25
+    freeze_max_s: float | None = 1800.0
+    default_on_preempt: str = "requeue"
 
 
 @dataclass(frozen=True)
@@ -236,6 +281,8 @@ class NodeConfig:
     memory_schedulable: int | None
     allow_smt_siblings: bool
     raw: dict[str, Any]
+    borrow: BorrowConfig = field(default_factory=BorrowConfig)
+    smt_siblings: dict[int, tuple[int, ...]] = field(default_factory=dict)
 
     def partition(self, name: str | None) -> Partition:
         key = name or self.default_partition
@@ -253,6 +300,23 @@ class NodeConfig:
 
     def partitions_for_cpu(self, cpu: int) -> list[str]:
         return [name for name, part in self.partitions.items() if cpu in part.cpus]
+
+    def partition_of(self, cpu: int) -> Partition | None:
+        for part in self.partitions.values():
+            if cpu in part.cpus:
+                return part
+        return None
+
+    def siblings(self, cpu: int) -> tuple[int, ...]:
+        """Other logical CPUs on the same physical core as *cpu*."""
+        return tuple(c for c in self.smt_siblings.get(cpu, ()) if c != cpu)
+
+    def with_siblings(self, cpus: Any) -> set[int]:
+        result: set[int] = set()
+        for cpu in cpus:
+            result.add(cpu)
+            result.update(self.siblings(cpu))
+        return result
 
 
 def _read_text(path: Path) -> str | None:
@@ -274,6 +338,21 @@ def physical_core_of(cpu: int) -> int | None:
     except ValueError:
         return None
     return min(values) if values else None
+
+
+def sibling_map(cpus: Any) -> dict[int, tuple[int, ...]]:
+    """SMT siblings of each CPU in *cpus*, read from sysfs."""
+    result: dict[int, tuple[int, ...]] = {}
+    for cpu in cpus:
+        text = _read_text(Path(f"/sys/devices/system/cpu/cpu{cpu}/topology/thread_siblings_list"))
+        if text is None:
+            continue
+        try:
+            values = parse_cpu_list(text)
+        except ValueError:
+            continue
+        result[cpu] = tuple(v for v in values if v != cpu)
+    return result
 
 
 def online_cpus() -> tuple[int, ...] | None:
@@ -324,6 +403,8 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             "launch",
             "partitions",
             "notes",
+            "borrow",
+            "smt_siblings",
         },
         "node config",
     )
@@ -363,7 +444,8 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         gpus[uuid] = GpuSpec(uuid, gpu_index, str(item.get("name", "")), memory, budget)
 
     lock_raw = _object(document.get("lock_files", {"enabled": False}), "lock_files")
-    _unknown(lock_raw, {"enabled", "core_path", "core_overrides", "gpu_path", "gpu_extra", "notes"}, "lock_files")
+    _unknown(lock_raw, {"enabled", "core_path", "core_overrides", "gpu_path", "gpu_extra", "borrow_path", "notes"},
+             "lock_files")
     enabled = lock_raw.get("enabled", False)
     if not isinstance(enabled, bool):
         raise ConfigError("lock_files.enabled must be true or false")
@@ -379,7 +461,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         if not isinstance(value, list) or not all(isinstance(v, str) and v.startswith("/") for v in value):
             raise ConfigError("lock_files.gpu_extra maps a GPU UUID to an array of absolute paths")
         extras[str(key)] = tuple(value)
-    for key in ("core_path", "gpu_path"):
+    for key in ("core_path", "gpu_path", "borrow_path"):
         value = lock_raw.get(key)
         if value is not None and (not isinstance(value, str) or not value.startswith("/")):
             raise ConfigError(f"lock_files.{key} must be an absolute path template")
@@ -391,6 +473,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         core_overrides=overrides,
         gpu_path=lock_raw.get("gpu_path"),
         gpu_extra=extras,
+        borrow_path=lock_raw.get("borrow_path"),
     )
 
     launch_raw = _object(document.get("launch", {}), "launch")
@@ -446,7 +529,8 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         _unknown(
             item,
             {"name", "cpus", "cores", "gpus", "default_mem", "max_mem", "default_time", "max_time",
-             "default_cpus", "swap_max", "enforce_time_limit", "nice", "description"},
+             "default_cpus", "swap_max", "enforce_time_limit", "nice", "description",
+             "lend", "lend_leased_idle", "timing_sensitive"},
             f"partitions[{index}]",
         )
         name = item.get("name")
@@ -507,6 +591,12 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             raise ConfigError(f"partition {name}: enforce_time_limit must be true or false")
         if isinstance(nice, bool) or not isinstance(nice, int) or not 0 <= nice <= 19:
             raise ConfigError(f"partition {name}: nice must be 0..19")
+        policy: dict[str, bool] = {}
+        for key, default in (("lend", True), ("lend_leased_idle", False), ("timing_sensitive", False)):
+            value = item.get(key, default)
+            if not isinstance(value, bool):
+                raise ConfigError(f"partition {name}: {key} must be true or false")
+            policy[key] = value
         partitions[name] = Partition(
             name=name,
             cpus=cpus,
@@ -520,10 +610,27 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             enforce_time_limit=enforce,
             nice=nice,
             description=str(item.get("description", "")),
+            lend=policy["lend"],
+            lend_leased_idle=policy["lend_leased_idle"],
+            timing_sensitive=policy["timing_sensitive"],
         )
     default_partition = document.get("default_partition")
     if default_partition not in partitions:
         raise ConfigError("default_partition must name a configured partition")
+    borrow = _parse_borrow(document.get("borrow", {}))
+    node_cpus = sorted({cpu for part in partitions.values() for cpu in part.cpus})
+    raw_siblings = document.get("smt_siblings")
+    if raw_siblings is not None:
+        sibling_raw = _object(raw_siblings, "smt_siblings")
+        siblings: dict[int, tuple[int, ...]] = {}
+        for key, value in sibling_raw.items():
+            if not str(key).isdigit():
+                raise ConfigError("smt_siblings maps a CPU number to a CPU list")
+            siblings[int(key)] = tuple(c for c in _cpu_list(value, f"smt_siblings[{key}]") if c != int(key))
+    elif check_topology:
+        siblings = sibling_map(node_cpus)
+    else:
+        siblings = {}
     return NodeConfig(
         path=path,
         node=node,
@@ -535,6 +642,64 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         memory_schedulable=memory_schedulable,
         allow_smt_siblings=allow_smt,
         raw=document,
+        borrow=borrow,
+        smt_siblings=siblings,
+    )
+
+
+def _parse_borrow(value: Any) -> BorrowConfig:
+    raw = _object(value, "borrow")
+    _unknown(
+        raw,
+        {"enabled", "slice", "slice_cpu_weight", "unit_cpu_weight", "idle_window_s", "busy_window_s",
+         "idle_threshold", "cpu_idle_threshold", "busy_threshold", "freeze_max_s", "default_on_preempt",
+         "notes"},
+        "borrow",
+    )
+    defaults = BorrowConfig()
+    enabled = raw.get("enabled", defaults.enabled)
+    if not isinstance(enabled, bool):
+        raise ConfigError("borrow.enabled must be true or false")
+    slice_name = raw.get("slice", defaults.slice)
+    # A dash nests a slice under its prefix ("simq-borrow.slice" is a child of
+    # simq.slice).  The borrow slice must sit directly under the user manager
+    # so that its idle weight applies against every other user slice.
+    if (not isinstance(slice_name, str) or not slice_name.endswith(".slice") or "-" in slice_name
+            or re.fullmatch(r"[A-Za-z0-9_.]+\.slice", slice_name) is None):
+        raise ConfigError("borrow.slice must name a top-level slice without '-', e.g. simqborrow.slice")
+    slice_weight = raw.get("slice_cpu_weight", defaults.slice_cpu_weight)
+    if slice_weight != "idle" and not (isinstance(slice_weight, int) and not isinstance(slice_weight, bool)
+                                       and 1 <= slice_weight <= 10000):
+        raise ConfigError("borrow.slice_cpu_weight must be 'idle' or 1..10000")
+    unit_weight = raw.get("unit_cpu_weight", defaults.unit_cpu_weight)
+    if isinstance(unit_weight, bool) or not isinstance(unit_weight, int) or not 1 <= unit_weight <= 10000:
+        raise ConfigError("borrow.unit_cpu_weight must be 1..10000")
+
+    def number(key: str, low: float, high: float) -> float:
+        item = raw.get(key, getattr(defaults, key))
+        if isinstance(item, bool) or not isinstance(item, (int, float)) or not low <= float(item) <= high:
+            raise ConfigError(f"borrow.{key} must be a number in [{low}, {high}]")
+        return float(item)
+
+    freeze_max = raw.get("freeze_max_s", defaults.freeze_max_s)
+    if freeze_max is not None and (isinstance(freeze_max, bool) or not isinstance(freeze_max, (int, float))
+                                   or freeze_max <= 0):
+        raise ConfigError("borrow.freeze_max_s must be a positive number or null")
+    mode = raw.get("default_on_preempt", defaults.default_on_preempt)
+    if mode not in ON_PREEMPT_MODES:
+        raise ConfigError(f"borrow.default_on_preempt must be one of {', '.join(ON_PREEMPT_MODES)}")
+    return BorrowConfig(
+        enabled=enabled,
+        slice=slice_name,
+        slice_cpu_weight=str(slice_weight),
+        unit_cpu_weight=unit_weight,
+        idle_window_s=number("idle_window_s", 0.5, 3600),
+        busy_window_s=number("busy_window_s", 0.2, 600),
+        idle_threshold=number("idle_threshold", 0.0, 1.0),
+        cpu_idle_threshold=number("cpu_idle_threshold", 0.0, 1.0),
+        busy_threshold=number("busy_threshold", 0.0, 1.0),
+        freeze_max_s=None if freeze_max is None else float(freeze_max),
+        default_on_preempt=mode,
     )
 
 
@@ -570,4 +735,7 @@ def describe_partition(partition: Partition) -> dict[str, Any]:
         "enforce_time_limit": partition.enforce_time_limit,
         "nice": partition.nice,
         "description": partition.description,
+        "lend": partition.lend,
+        "lend_leased_idle": partition.lend_leased_idle,
+        "timing_sensitive": partition.timing_sensitive,
     }

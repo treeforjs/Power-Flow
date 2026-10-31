@@ -6,6 +6,12 @@ transient systemd user service, and reconciles the database with those units.
 It never owns job processes: stopping, crashing or upgrading the worker does
 not affect running jobs, and a restarted worker (of any 0.6 build) re-adopts
 them by unit name and launch token.
+
+0.6.1 adds borrow jobs (``simq submit --borrow``): they start on lendable
+cores of any partition after every owner job has been considered, run at idle
+CPU priority, and are frozen, requeued or canceled as soon as an owner needs
+their cores (see ``borrow.py``).  With no borrow job in the queue the worker
+behaves exactly as 0.6.0.
 """
 
 from __future__ import annotations
@@ -23,9 +29,11 @@ from typing import Any, Callable
 
 from . import __version__
 from .config import format_cpu_list, parse_cpu_list, project_root, state_dir
-from .locks import busy_resources, lock_plan_for, process_description
+from .borrow import Borrower, Preemption, plan_node
+from .locks import borrow_lock_plan, busy_resources, lock_plan_for, process_description
 from .nodeconfig import NodeConfig, format_size, format_time_limit
 from .scheduler import INFINITY, Allocation, Request, Running, build_pool, plan
+from .telemetry import NodeTelemetry
 from .store import (
     ACTIVE_STATES,
     ENSEMBLE_CONTROL_PROTOCOL,
@@ -39,10 +47,13 @@ from .units import (
     UnitError,
     UnitState,
     build_run_command,
+    ensure_borrow_slice,
+    freeze_unit,
     read_json,
     show_units,
     start_unit,
     stop_unit,
+    thaw_unit,
 )
 
 
@@ -124,6 +135,7 @@ def job_request(job: dict[str, Any], config: NodeConfig) -> Request:
             mem = partition.default_mem
         if time_limit is None:
             time_limit = partition.default_time
+    max_cpus = job.get("max_borrow_cores")
     return Request(
         job_id=int(job["id"]),
         partition=str(partition_name),
@@ -134,13 +146,78 @@ def job_request(job: dict[str, Any], config: NodeConfig) -> Request:
         mem=int(mem or 0),
         time_limit=None if time_limit is None else int(time_limit),
         blocked=bool(job.get("ensemble_launch_paused")),
+        borrow=bool(job.get("borrow")),
+        max_cpus=None if max_cpus is None else int(max_cpus),
+        borrow_from=_borrow_from(job),
+        exclusive_timing=bool(job.get("exclusive_timing")),
+        on_preempt=str(job.get("on_preempt") or config.borrow.default_on_preempt),
     )
 
 
+def _borrow_from(job: dict[str, Any]) -> tuple[str, ...] | None:
+    raw = job.get("borrow_from")
+    if not raw:
+        return None
+    try:
+        value = json.loads(str(raw))
+    except ValueError:
+        return None
+    if not isinstance(value, list):
+        return None
+    return tuple(str(item) for item in value)
+
+
+def job_placement(job: dict[str, Any]) -> dict[str, Any]:
+    try:
+        value = json.loads(str(job.get("placement_json") or "{}"))
+    except ValueError:
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+def _job_cpus(job: dict[str, Any]) -> tuple[int, ...]:
+    try:
+        return parse_cpu_list(str(job.get("cpu_list") or ""))
+    except ValueError:
+        return ()
+
+
+def borrower_entries(jobs: list[dict[str, Any]], config: NodeConfig) -> list[Borrower]:
+    """Active borrow jobs (running, frozen or being stopped)."""
+    entries: list[Borrower] = []
+    for job in jobs:
+        if job["state"] not in ACTIVE_STATES or not job.get("borrow"):
+            continue
+        placement = job_placement(job)
+        items = [item for item in placement.get("cpus", []) if isinstance(item, dict) and "cpu" in item]
+        started = _parse_time(job.get("started_at"))
+        limit = job.get("time_limit_s")
+        entries.append(
+            Borrower(
+                job_id=int(job["id"]),
+                home=str(job.get("partition") or config.default_partition),
+                cpus=_job_cpus(job),
+                mem=int(job.get("mem_bytes") or 0),
+                on_preempt=str(job.get("on_preempt") or config.borrow.default_on_preempt),
+                placement={int(item["cpu"]): str(item.get("class") or "free") for item in items},
+                owners={int(item["cpu"]): int(item["owner_job"]) for item in items
+                        if item.get("owner_job") is not None},
+                holder_keys={int(item["cpu"]): str(item["holder_key"]) for item in items if item.get("holder_key")},
+                frozen_since=_parse_time(job.get("frozen_at")),
+                pending=job.get("preempt_pending") or None,
+                borrow_from=_borrow_from(job),
+                deadline=None if started is None or limit is None else started + int(limit),
+                order=int(job.get("queue_order") or job["id"]),
+            )
+        )
+    return entries
+
+
 def running_entries(jobs: list[dict[str, Any]], config: NodeConfig, now: float) -> list[Running]:
+    """Owner jobs only: borrow jobs hold no reservation against owners."""
     entries: list[Running] = []
     for job in jobs:
-        if job["state"] not in ACTIVE_STATES:
+        if job["state"] not in ACTIVE_STATES or job.get("borrow"):
             continue
         allocation = job_allocation(job, config)
         started = _parse_time(job.get("started_at"))
@@ -237,6 +314,10 @@ class NodeWorker:
         self.job_root = state_dir() / "jobs"
         self.runtime_dir = str(Path(__file__).resolve().parents[2])
         self.last_started = 0
+        self.telemetry = NodeTelemetry(config)
+        self._telemetry_used = False
+        self._slice_checked_at: float | None = None
+        self._slice_error: str | None = None
 
     # ----- infrastructure ------------------------------------------------
 
@@ -332,9 +413,12 @@ class NodeWorker:
                 self.store.mark_unit_running(job_id, pid=unit.main_pid or None, boot_id=_boot_id())
             if startup:
                 self.store.mark_adopted(job_id)
+                borrow_note = ""
+                if job.get("borrow"):
+                    borrow_note = ", borrow job" + (", frozen" if unit.frozen else "")
                 self.log(
                     f"adopted job {job_id} (unit {unit.name}, main pid {unit.main_pid}, "
-                    f"CPUs {job.get('cpu_list')}, GPUs {job.get('gpu_list') or 'none'})"
+                    f"CPUs {job.get('cpu_list')}, GPUs {job.get('gpu_list') or 'none'}{borrow_note})"
                 )
             if job.get("cancel_requested_at"):
                 last = self._stop_sent.get(job_id)
@@ -344,8 +428,30 @@ class NodeWorker:
                     self._stop_sent[job_id] = now
                     if last is None:
                         self.log(f"stopping unit {unit.name} for canceled job {job_id}")
+                return
+            if job.get("borrow"):
+                self._reconcile_borrow_unit(job, unit)
             return
         self._finalize_unit_job(job, unit, status, stop_post)
+
+    def _reconcile_borrow_unit(self, job: dict[str, Any], unit: UnitState) -> None:
+        job_id = int(job["id"])
+        if job.get("preempt_pending"):
+            last = self._stop_sent.get(job_id)
+            now = time.monotonic()
+            if last is None or now - last > STOP_RESEND_SECONDS:
+                stop_unit(self.config.launch, unit.name)
+                self._stop_sent[job_id] = now
+            return
+        if not unit.freezer_state:
+            return
+        if job.get("frozen_at") and unit.freezer_state in ("running", "thawing"):
+            # The recorded intent is frozen (its cores were given to an owner).
+            if freeze_unit(self.config.launch, unit.name):
+                self.log(f"job {job_id}: unit {unit.name} was running although recorded frozen; froze it again")
+        elif not job.get("frozen_at") and unit.frozen:
+            if self.store.mark_frozen_outside(job_id):
+                self.log(f"job {job_id}: unit {unit.name} was frozen outside the scheduler; recorded as frozen")
 
     def _append_job_log(self, job: dict[str, Any], text: str) -> None:
         try:
@@ -391,6 +497,17 @@ class NodeWorker:
         job_id = int(job["id"])
         cancel = bool(job.get("cancel_requested_at"))
         service_result = (stop_post or {}).get("service_result") or (unit.result if unit.found else None)
+        pending = job.get("preempt_pending")
+        if pending and not cancel:
+            done = (
+                status is not None
+                and status.get("phase") == "finished"
+                and status.get("returncode") == 0
+                and status.get("command_started", True)
+            )
+            if not done:
+                self._finish_preempted(job, str(pending), status, stop_post, service_result)
+                return
         if status is not None and status.get("phase") == "refused":
             reason = str(status.get("reason") or "launch refused")
             if status.get("refusal") == LOCK_BUSY_REFUSAL and not cancel:
@@ -479,6 +596,37 @@ class NodeWorker:
             self._finish(job, state="interrupted", exit_code=returncode,
                          message=detail + "; retry explicitly if appropriate", result=service_result)
 
+    def _finish_preempted(
+        self,
+        job: dict[str, Any],
+        mode: str,
+        status: dict | None,
+        stop_post: dict | None,
+        service_result: str | None,
+    ) -> None:
+        job_id = int(job["id"])
+        reason = str(job.get("preempt_reason") or "preempted")
+        returncode = (status or {}).get("returncode")
+        self._stop_sent.pop(job_id, None)
+        if mode == "cancel":
+            finished_at = None
+            if status is not None and status.get("finished_unix"):
+                finished_at = _iso(float(status["finished_unix"]))
+            elif stop_post is not None and stop_post.get("recorded_unix"):
+                finished_at = _iso(float(stop_post["recorded_unix"]))
+            self._finish(job, state="canceled", exit_code=returncode,
+                         message=f"preempted: {reason}; canceled (--on-preempt cancel)",
+                         result="preempted", finished_at=finished_at)
+            return
+        detail = {"returncode": returncode, "service_result": service_result}
+        if self.store.requeue_preempted(job_id, f"pending: preempted ({reason}); requeued", detail=detail):
+            self._append_job_log(
+                job,
+                f"simq: preempted ({reason}); requeued at {utc_now()}\n"
+                f"===== simq job {job_id} preempted; requeued under the same ID =====\n",
+            )
+            self.log(f"job {job_id}: preempted ({reason}); requeued under the same ID")
+
     def _reconcile_legacy_job(self, job: dict[str, Any]) -> None:
         """A job started by a 0.5 worker as its child process.
 
@@ -522,9 +670,15 @@ class NodeWorker:
     # ----- dispatch --------------------------------------------------------
 
     def dispatch(self) -> int:
+        jobs = self.store.node_jobs()
+        if any(job.get("borrow") for job in jobs):
+            return self._dispatch_with_borrowers(jobs)
+        if self._telemetry_used:
+            self.telemetry.reset()
+            self._telemetry_used = False
+        # Without borrow jobs: exactly the 0.6.0 dispatch.
         if self.store.is_paused():
             return 0
-        jobs = self.store.node_jobs()
         queued = [j for j in jobs if j["state"] == "queued"]
         if not queued:
             return 0
@@ -546,7 +700,17 @@ class NodeWorker:
                 break
             if self._launch(by_id[request.job_id], request, allocation, busy_cpus=set(busy_cpus)):
                 started += 1
-        for job_id, reason in decision.skipped.items():
+        self._record_reasons(decision.skipped, decision.reservation, busy_cpus)
+        self.last_started = started
+        return started
+
+    def _record_reasons(
+        self,
+        skipped: dict[int, str],
+        reservation: tuple[int, float] | None,
+        busy_cpus: dict[int, list],
+    ) -> None:
+        for job_id, reason in skipped.items():
             if reason == "resources busy":
                 holders = [
                     f"CPU {cpu}: {process_description(h.pid)}"
@@ -555,15 +719,148 @@ class NodeWorker:
                 ]
                 if holders:
                     reason = "resources busy; lease held outside the queue (" + "; ".join(holders) + ")"
-            if decision.reservation and decision.reservation[0] == job_id:
-                shadow = decision.reservation[1]
+            if reservation and reservation[0] == job_id:
+                shadow = reservation[1]
                 if shadow != INFINITY:
                     reason += f"; reserved to start by {_iso(shadow)}"
             if self._reasons.get(job_id) != reason:
                 self._reasons[job_id] = reason
                 self.store.set_message(job_id, f"pending: {reason}")
+
+    # ----- borrowing (0.6.1) ---------------------------------------------
+
+    def _dispatch_with_borrowers(self, jobs: list[dict[str, Any]]) -> int:
+        config = self.config
+        paused = self.store.is_paused()
+        now = self.clock()
+        active = [j for j in jobs if j["state"] in ACTIVE_STATES]
+        queued = [j for j in jobs if j["state"] == "queued"]
+        owners = [j for j in active if not j.get("borrow")]
+        borrow_active = [j for j in active if j.get("borrow")]
+        running = running_entries(owners, config, now)
+        owner_of = {cpu: int(item.job_id) for item in running if item.job_id is not None
+                    for cpu in item.allocation.cpus}
+        allocated_gpus = {gpu for item in running for gpu in item.allocation.gpus}
+        busy_cpus, busy_gpus = busy_resources(config, allocated_cpus=set(owner_of), allocated_gpus=allocated_gpus)
+        pool = build_pool(config, running, external_cpus=busy_cpus, external_gpus=busy_gpus)
+        borrowers = borrower_entries(borrow_active, config)
+        self._telemetry_used = True
+        cores = self.telemetry.sample(owners=owners, external=busy_cpus, borrowers=borrowers)
+        exclusive = {cpu for job in owners if job.get("exclusive_timing") for cpu in _job_cpus(job)}
+        requests = [job_request(j, config) for j in queued]
+        decision = plan_node(
+            config, pool, running, requests, now,
+            borrowers=borrowers, cores=cores, owner_of=owner_of,
+            exclusive_owner_cpus=exclusive, starts_allowed=not paused,
+        )
+        active_by_id = {int(j["id"]): j for j in borrow_active}
+        for item in decision.preemptions:
+            if item.job_id in active_by_id:
+                self._preempt(active_by_id[item.job_id], item)
+        for job_id, placement in decision.resumes:
+            if job_id in active_by_id:
+                self._resume(active_by_id[job_id], placement, owner_of, cores)
+        by_id = {int(j["id"]): j for j in queued}
+        started = 0
+        skipped = dict(decision.skipped)
+        for request, allocation in decision.starts:
+            if self.stop_requested:
+                break
+            busy = set(busy_cpus)
+            if allocation.borrow:
+                error = self._borrow_slice_ready()
+                if error is not None:
+                    skipped[request.job_id] = f"borrow slice unavailable: {error}"
+                    continue
+                busy -= {cpu for cpu, _, cls in allocation.placement if cls == "leased-idle"}
+            try:
+                launched = self._launch(by_id[request.job_id], request, allocation, busy_cpus=busy,
+                                        owner_of=owner_of, cores=cores)
+            except RuntimeError as error:
+                # The claim re-checks every active job: a borrow job whose
+                # preemption did not take effect keeps its cores until the
+                # next pass.
+                self.log(f"job {request.job_id}: not started this pass: {error}")
+                skipped[request.job_id] = "waiting for a preempted borrow job"
+                continue
+            if launched:
+                started += 1
+        self._record_reasons(skipped, decision.reservation, busy_cpus)
         self.last_started = started
         return started
+
+    def _borrow_slice_ready(self) -> str | None:
+        now = time.monotonic()
+        if self._slice_checked_at is not None and (self._slice_error is None or now - self._slice_checked_at < 60):
+            return self._slice_error
+        self._slice_checked_at = now
+        self._slice_error = ensure_borrow_slice(self.config.launch, self.config.borrow)
+        if self._slice_error is None:
+            self.log(f"borrow slice {self.config.borrow.slice}: CPUWeight={self.config.borrow.slice_cpu_weight}")
+        else:
+            self.log(f"borrow slice not ready: {self._slice_error}")
+        return self._slice_error
+
+    def _placement_document(
+        self,
+        home: str,
+        on_preempt: str,
+        placement: tuple[tuple[int, str, str], ...],
+        owner_of: dict[int, int],
+        cores: dict[int, Any],
+    ) -> dict[str, Any]:
+        items = []
+        for cpu, partition, cls in placement:
+            entry: dict[str, Any] = {"cpu": cpu, "partition": partition, "class": cls}
+            if cls == "owner-idle":
+                entry["owner_job"] = owner_of.get(cpu)
+            if cls == "leased-idle" and cpu in cores:
+                entry["holder_key"] = cores[cpu].holder_key
+                entry["holder"] = cores[cpu].holder
+            items.append(entry)
+        return {"home": home, "on_preempt": on_preempt, "cpus": items}
+
+    def _preempt(self, job: dict[str, Any], item: Preemption) -> None:
+        job_id = int(job["id"])
+        unit = str(job.get("unit_name") or "")
+        reason = item.reason
+        mode = item.mode
+        escalated = item.escalated
+        if mode == "freeze":
+            if not self.store.mark_preempted(job_id, mode="freeze", reason=reason, by_job=item.by_job):
+                return
+            if unit and freeze_unit(self.config.launch, unit):
+                self.log(f"froze borrow job {job_id} ({unit}): {reason}")
+                self._append_job_log(job, f"simq: frozen at {utc_now()}: {reason}\n")
+                return
+            reason += "; freezing failed, stopping instead"
+            mode, escalated = "requeue", True
+        if not self.store.mark_preempted(job_id, mode=mode, reason=reason, by_job=item.by_job, escalated=escalated):
+            return
+        if unit:
+            stop_unit(self.config.launch, unit)
+            self._stop_sent[job_id] = time.monotonic()
+        self.log(f"preempting borrow job {job_id} ({mode}{', escalated from freeze' if escalated else ''}): {reason}")
+        self._append_job_log(job, f"simq: preempted at {utc_now()} ({mode}): {reason}\n")
+
+    def _resume(
+        self,
+        job: dict[str, Any],
+        placement: tuple[tuple[int, str, str], ...],
+        owner_of: dict[int, int],
+        cores: dict[int, Any],
+    ) -> None:
+        job_id = int(job["id"])
+        unit = str(job.get("unit_name") or "")
+        if not unit or not thaw_unit(self.config.launch, unit):
+            self._note_once(job_id, f"thaw-failed-{job.get('frozen_at')}", f"job {job_id}: cannot thaw {unit}")
+            return
+        home = str(job.get("partition") or self.config.default_partition)
+        on_preempt = str(job.get("on_preempt") or self.config.borrow.default_on_preempt)
+        document = self._placement_document(home, on_preempt, placement, owner_of, cores)
+        self.store.mark_resumed(job_id, document)
+        self.log(f"resumed borrow job {job_id} ({unit}) on CPUs {job.get('cpu_list')}")
+        self._append_job_log(job, f"simq: resumed at {utc_now()}\n")
 
     def _launch(
         self,
@@ -572,10 +869,22 @@ class NodeWorker:
         allocation: Allocation,
         *,
         busy_cpus: set[int],
+        owner_of: dict[int, int] | None = None,
+        cores: dict[int, Any] | None = None,
     ) -> bool:
         config = self.config
         partition = config.partitions[request.partition]
-        locks = lock_plan_for(config, allocation.cpus, allocation.gpus, gpu_shared=not allocation.gpu_exclusive)
+        borrow = allocation.borrow
+        placement_doc: dict[str, Any] | None = None
+        owner_idle: set[int] = set()
+        if borrow:
+            locks = borrow_lock_plan(config, allocation.cpus)
+            placement_doc = self._placement_document(
+                partition.name, request.on_preempt, allocation.placement, owner_of or {}, cores or {}
+            )
+            owner_idle = {cpu for cpu, _, cls in allocation.placement if cls == "owner-idle"}
+        else:
+            locks = lock_plan_for(config, allocation.cpus, allocation.gpus, gpu_shared=not allocation.gpu_exclusive)
         mem = allocation.mem or partition.default_mem
         swap = partition.swap_max
         claimed = self.store.claim_allocation(
@@ -593,6 +902,7 @@ class NodeWorker:
             lock_paths=[{"path": lock.path, "mode": lock.mode, "resource": lock.resource} for lock in locks],
             runtime_dir=self.runtime_dir,
             busy_cpus=busy_cpus,
+            **({"borrow": True, "placement": placement_doc, "owner_idle_cpus": owner_idle} if borrow else {}),
         )
         if claimed is None:
             return False
@@ -612,6 +922,9 @@ class NodeWorker:
                 time_limit=request.time_limit,
                 unit=unit,
             )
+            if borrow:
+                placement["SIMQ_BORROW"] = "1"
+                placement["SIMQ_ON_PREEMPT"] = request.on_preempt
             environment = job_environment(claimed, placement)
             argv = json.loads(str(claimed["argv_json"]))
             if not isinstance(argv, list) or not argv or not all(isinstance(a, str) for a in argv):
@@ -647,6 +960,12 @@ class NodeWorker:
                 "scheduler_runtime": self.runtime_dir,
                 "require_unit": True,
             }
+            if borrow:
+                spec["borrow"] = True
+                spec["borrow_text"] = (
+                    "; ".join(f"CPU {cpu} from {part} ({cls})" for cpu, part, cls in allocation.placement)
+                    + f"; on preempt: {request.on_preempt}"
+                )
             spec_path = job_dir / "spec.json"
             _atomic_json(spec_path, spec)
             unit_env = {key: value for key, value in placement.items() if key.startswith("SIMQ_")}
@@ -666,6 +985,7 @@ class NodeWorker:
                 spec_path=str(spec_path),
                 setenv=unit_env,
                 wrapper=JOBWRAP,
+                borrow=config.borrow if borrow else None,
             )
             start_unit(command)
         except (UnitError, OSError, ValueError) as error:
@@ -681,9 +1001,10 @@ class NodeWorker:
                          result=None)
             return False
         self.log(
-            f"started job {job_id} ({claimed['name']}) on partition {partition.name}: "
+            f"started {'borrow ' if borrow else ''}job {job_id} ({claimed['name']}) on partition {partition.name}: "
             f"CPUs {placement['SIMQ_CPU_LIST']}, GPUs {placement['SIMQ_GPUS'] or 'none'}, "
             f"mem {format_size(mem)}, time {format_time_limit(request.time_limit)}, unit {unit}"
+            + (f"; {spec.get('borrow_text')}" if borrow else "")
         )
         return True
 
