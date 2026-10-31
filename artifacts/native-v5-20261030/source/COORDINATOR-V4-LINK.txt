@@ -1,0 +1,82 @@
+Native v5 identities and the coordinator v4 link change list
+
+v5 source identity: cca72822c9b61900aae7572f29c5d57314f45aef17c4b01c9fd2346c6fa3c883
+v5 core archive:    build/libpic_native_v5.a sha256 715729114e5a7d3975bd7ee7db92c570e61f78c907f3e999812b34e7a74159f2
+                    (sealed exact-count native.o + v5 arena.o + v5 canonical.o)
+v5 Hall adapter:    build/libpic_hall_motion_adapter_v5.a sha256 072e0f5fcdac870cc91a197e7667abc8d72aee88da41621ca6408c458040f518
+                    (source/src/mfem_pic_hall_motion_adapter.cpp: bytes unchanged from candidate003)
+
+A. Old -> new identity mapping (hash scheme changes are intentional)
+ Native identity                 candidate003 (c045...)                     native v5
+ ------------------------------  -----------------------------------------  -----------------------------------------
+ source identity                 c045c42d...a08d                            cca72822c9b61900aae7572f29c5d57314f45aef17c4b01c9fd2346c6fa3c883 (same formula)
+ state_prefix() =                sha(JSON: "native-full-time-exact-config-  sha(binary "native-full-time-exact-config-
+  boundary.accepted_arena_sha256  v2"+initial+registry+options JSON+         v5": initial, registry v5, options v5,
+  = completed exposure prefixes   metadata JSON incl. whole journal+native   snapshot digest, carrier Merkle root,
+  = Hall staged_arena_sha256      rows JSON+next_id+time JSON)               next id, full ledger digest, arrays)
+ initial_coupling_prefix         sha(genesis JSON dump)                     sha(binary genesis-v5 + configuration
+                                                                            digest: carrier cap, budget, ID cap)
+ registry digest (checkpoint)    sha(registry JSON)                         sha(binary registry-v5)
+ journal chain / row digests     sha(row JSON dump)                         sha(binary row-v5); genesis chain binary
+ outer_step_sha256               sha("arena-full-time-outer-v1"+prefix+     sha(binary "arena-full-time-outer-v5",
+                                 common JSON)                               prefix, common)
+ FullTimeExposureReceipt::       sha(completion JSON dump)                  sha(binary completion-v5)
+  completion_sha256
+ checkpoint schema               canonical_native_arena_full_time_exact_v2  ..._exact_v5 (genesis restore only;
+                                                                            nonempty: validated, typed refusal)
+ transport_trial_sha256          Hall v2 record seal                        UNCHANGED
+ census digest                   canonical-motion-census-v1                 UNCHANGED (== Hall canonical_census_sha256)
+ kinetic policy hash             native-finite-target-kinetic-policy-v1     UNCHANGED
+ accepted_arena_revision,        rows ever appended (5 per zero-event step  UNCHANGED for the same history (global
+  accepted_step                  + reactions), capped at 4096 rows          cumulative count, never reset by anchors)
+ new                             -                                          history_policy_sha256, anchor root/head,
+                                                                            anchor digests (not part of any state id)
+ Example (candidate003 storage-control genesis, tests/full_time_fixture.hpp fresh()):
+   accepted_arena_sha256 2754c8fb...53fd -> 1ae15143cd57f06a879827734554f67ef633b195b805bbf8bad2da1c4feb23b1
+   initial_coupling_prefix 4fa53d77...d12a -> 209b59f04e62b9022d940b8ae665cdc00e539b3fd8e22a1bca95a580d8839fc4
+   genesis journal chain 1589d723...f781 -> 6177762a2d72ae775cb5be4db5c2c7efe5e8c76c7672226020ddc2b44b319be5
+
+ Where v3/v4 bind native identities (all read from live owners; none is hard-coded):
+  * v3 closed_parent_joint_step.hpp / v4 closed_parent_joint_step_v4.hpp: common_clock_sha256 includes
+    "arena" = arena.state_prefix() -> value changes; ObservedOwners.actual_native_prefix and
+    boundary.accepted_arena_sha256 -> v5 scheme; Hall MotionBinding.staged_arena_sha256 =
+    motion_scope.state_prefix() -> v5 scheme (Hall only carries it).
+  * v3 native_parent_subflow.hpp: compares common.accepted_arena_sha256 with arena.state_prefix(),
+    stage.private_prefix_ with receipt.completed_state_prefix, and pc::digest() of completion_sha256
+    and outer_step_sha256 -> unchanged logic, new values.
+  * v4 genesis_v4.hpp: genesis JSON records native_state_prefix -> new value; predicted/actual census
+    digests unchanged.
+  * v4 fixture "byte-identical" evidence: native save() bytes -> v5 export bytes.
+  * Unchanged: closed_parent_configuration_sha256 (no native identity), species/frame identities,
+    Hall/chemistry/field/heat/RNG hashes.
+
+B. Exactly what coordinator v4 (RT/pic-water-common-commit-v4-20261030) must change to link v5
+ run_stage1.py only; no v4 or v3 source/test file needs editing:
+  1. N = R / 'pic-reaction-transactions-20261029/native-full-time-candidate005'
+  2. IDENTITY = 'cca72822c9b61900aae7572f29c5d57314f45aef17c4b01c9fd2346c6fa3c883'
+  3. NATIVE_LIB = N / 'build/libpic_native_v5.a'; NATIVE_LIB_SHA = '715729114e5a7d3975bd7ee7db92c570e61f78c907f3e999812b34e7a74159f2'
+  4. The adapter source path N / 'source/src/mfem_pic_hall_motion_adapter.cpp' and the include order
+     (N/source/include ... N/inputs ...) follow from N; v5 inputs/hall-motion-v2 are byte-identical
+     to Hall 8dddec0, so the existing provider byte-identity pin passes unchanged.
+  5. Update the recorded decision strings that name libpic_native_candidate003.a (wording only).
+ Evidence (OUT/v4-link-check): the unmodified v4 Stage 1 sources (test_stage1_joint.cpp, alloc_hook.cpp,
+ v4/v3 headers) compile with -Wall -Wextra -Wpedantic -Werror against v5 headers using the v4 include
+ order and options, and link with libpic_native_v5.a and the genuine Hall objects. Its T1 mode on v5:
+ 27/28 checks pass, exactly as the coordinator's own candidate003 run (run-s1d-6-164057): both fail only
+ "P1-plan-position: prepare joint step" with the Hall error "actual particle endpoint charge/current
+ mismatch". P1 and P2 (with two parent ionization events) publish real all-owner joint steps on v5
+ with zero allocations between the first and last swap, native save after the step, second-step
+ preflight and byte-identical drop. All Hall, chemistry, field, heat, RNG, midpoint, Gauss/divB
+ evidence values are identical to the candidate003 run; only native-identity hashes and the
+ native allocation counts inside can_publish differ.
+ Notes for v4:
+  * ArenaSnapshot::packets is SharedMap and ever_packet_ids/event_ids are SharedSet: read code
+    (at/count/find/iteration/size/==) compiles unchanged; snapshot()->journal is empty in
+    full-time mode (use full_time_history_status / export_full_time_anchor_chain).
+  * maximum_native_records stays a per-outer bound (7..4096); there is no global 4096-row cap.
+  * Default create_full_time (5 arguments) = carrier cap 100000, budget 2 GiB, K = 1024. To record
+    another K or a larger carrier cap, call the FullTimeConfiguration overload and pin
+    full_time_history_status().history_policy_sha256 in the coordinator manifest. GenesisRequestV4
+    keeps its own <=100000 check; Hall motion v2 also refuses censuses above 100000.
+  * New typed refusals derive from std::invalid_argument (existing catch blocks still apply).
+  * Allocation-sweep counts inside native calls change; zero allocations between swaps holds.

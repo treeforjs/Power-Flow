@@ -1,0 +1,147 @@
+Native full-time v5 (candidate005) — bounded history, binary identities, structural sharing
+Base: candidate003, source identity c045c42d2f57082e3fb5e12172c440d2470e681a38df9ac406bd7e063609a08d,
+rebuilt byte-for-byte from native-full-time-candidate003-source.tar.gz (reference/candidate003-c045).
+v5 source identity: see SOURCE-SHA256.json (same formula as candidate003:
+sha256 of the compact sorted JSON map {path: sha256} over source/ and inputs/).
+
+Unchanged (candidate003 semantics retained)
+ * Legacy serial routes (prepare, prepare_compound*, prepare_transport, stage) refuse a full-time
+   owner before callbacks/solver/advance (A01). Legacy JSON journal, legacy prefixes, legacy save/
+   restore and every legacy byte are unchanged: the 368 legacy assertions and proof JSON are
+   identical to the exact-count baseline.
+ * One live outer per owner, single-issue exposure slots, one builder authority, weak owner
+   lifetime rechecked after callbacks, four transport forks, one unconsumed private token (A03).
+ * RNG chain: first completion before == accepted rng; second continues the same owner/channel/
+   data/kernel/model with sequence+1; final seal == second completion after (A04, shared guards).
+ * Typed Hall v2 motion admission only (recognizer unchanged: canonical-full-time-total-field-
+   motion-v2 + native-finite-target-kinetic-policy-v1); JSON motion refused.
+ * Typed checked codecs for restart input (A06): integer/boolean/scalar types, bounds, duplicate
+   keys, depth and parser-event limits; typed option codec bound into identity.
+ * Exact dyadic counts (ExactParticleCount); per-step record budget 7..4096 per outer.
+
+Changed
+1. Canonical binary encodings (include/raikou/mfem_pic_canonical.h)
+   u64 = 8 bytes little-endian; i64 as two's complement u64; f64 = IEEE-754 binary64 bit pattern
+   (exact, -0 distinct from +0); bool = one byte 0/1 (other bytes refuse); text = u64 length +
+   bytes; every record starts with its version tag (text); sequences carry explicit counts in a
+   stated canonical order. SHA-256 over these bytes; digests are lower-case hex.
+   Records and tags (all new in v5 unless stated):
+    native-gap-options-v5            typed GapPicOptions (bound into every state identity)
+    native-full-time-registry-v5     species and channels (sorted by id)
+    authored-full-time-genesis-v5    genesis binding + native configuration digest  -> initial prefix
+    native-full-time-configuration-v5  carrier cap, memory budget, identity cap, per-carrier model,
+                                     fixed bytes, carrier block size
+    native-full-time-journal-genesis-v5  initial journal chain
+    native-full-time-packets-v5      packet map: id, state, origin, last_event, exact count as its
+                                     canonical positive-carrier decomposition (u64 n + n f64), ids
+    native-v5/string-set             ever-packet-ID set and event-ID set (sorted)
+    native-full-time-completions-v5  stochastic completions (sorted by owner)
+    native-full-time-context-v5      typed accepted/private-outer context
+    native-gap-ledger-v5             complete 25-field native ledger (incl. time)
+    native-v5/carrier-block, native-v5/merkle-node, native-v5/merkle-empty, native-v5/carrier-root
+                                     block Merkle digest of native carrier rows (below)
+    native-v5/path-block, native-v5/path-root   same structure over Hall path records
+    native-full-time-snapshot-v5     logical snapshot: packet, ID-set, completion and context
+                                     digests, journal chain head, cumulative rows/bytes, steps,
+                                     previous dt (storage/anchors excluded)
+    native-full-time-exact-config-v5 ACCEPTED-STATE IDENTITY (state_prefix, accepted_arena_sha256,
+                                     completed exposure prefixes): initial prefix, registry,
+                                     options, snapshot digest, carrier root, next native ID, ledger
+                                     digest, fields flag, transfer/potential arrays (empty)
+    arena-full-time-outer-v5         outer_step_sha256 (accepted prefix + common binding)
+    native-full-time-completion-v5   FullTimeExposureReceipt::completion_sha256
+    native-full-time-journal-row-v5  typed journal rows (kinds 1..5, below)
+    native-full-time-history-anchor-v5, native-full-time-anchor-root-v5,
+    native-full-time-anchor-chain-v5, native-full-time-history-policy-v5
+    canonical-motion-census-v1       UNCHANGED (must equal hall_driver::canonical_census_sha256)
+    native-finite-target-kinetic-policy-v1  UNCHANGED (Hall policy hash)
+   Each immutable piece is hashed once and cached: packet map, ID sets (cache in the shared
+   copy-on-write payload, cleared by any mutation); snapshot digest (cached on the immutable
+   snapshot); native carrier digest (cached per frame/token, reused across tokens and passed to
+   the accepted owner at publication). JSON is produced only for human-readable export
+   (token audits, the checkpoint file, the optional motion audit).
+
+2. Journal rows hold digests, not JSON. Kinds: 1 outer begin (common, outer commitment);
+   2 reaction (the complete typed reaction receipt: ids, counts, kinematics, products, phase,
+   provenance, energy/momentum defects); 3 exposure (binding, completion, scoped chains);
+   4 motion; 5 terminal boundary. The motion row stores: Hall seal (transport_trial_sha256),
+   census digest, block Merkle roots of the per-carrier endpoint rows and of the per-carrier Hall
+   path rows, species/trial-field/kinetic-policy/current/charge array digests, staged prefix and
+   revision, owner seals, the seven budget scalars, carrier count, translation. Its size is
+   independent of the carrier count (1646 bytes for 2 and for 42 carriers). The complete Hall
+   record and native endpoints remain available to the caller through
+   PreparedPrivateMotion::audit() for that step (built on request) and are not retained.
+   Hall v2 still seals its record over JSON text; v5 verifies that seal once per motion.
+
+3. Bounded history with chained anchors
+   FullTimeHistoryPolicy {anchor_interval_steps K (default 1024), maximum_anchors (65536),
+   maximum_anchor_bytes (64 MiB), maximum_window_rows (2^20), maximum_window_bytes (256 MiB)}.
+   When a step with accepted_step % K == 0 is sealed, PrivateFullTimeStep::seal validates the
+   whole unanchored window from the previous anchor (dedicated grammar, row digests and
+   previous-chain links, revision/byte/step/previous-dt counters, completion replay, event
+   identities, RNG chain and owner seals) and compacts it into one anchor; publication swaps
+   pointers only (no allocation). Anchor record fields (canonical, tag ...-history-anchor-v5):
+   source identity, history-policy digest, K, sequence, previous anchor digest (genesis root for
+   sequence 0), first/last step, base/tail revision, base/tail journal chain, window rows/bytes,
+   cumulative bytes, window reaction and motion counts, accepted boundary at the last step
+   (accepted_arena_sha256 = accepted-state digest, field/heat/source/RNG/mesh/material/frame/
+   clock seals, time, step, revision), logical snapshot digest, native carrier root, native ledger
+   digest, completions digest, event-ID and packet-ID set digests, next native ID, previous dt.
+   Root = SHA256(tag, source identity, policy digest, genesis boundary, genesis chain).
+   verify_full_time_anchor_chain(serialized, root, head) checks tags/lengths/trailing bytes,
+   digests, previous links, sequence, constant policy and K, contiguous step/revision/chain
+   ranges, cumulative bytes, K motions per anchor, monotone time, invariant mesh/material/frame/
+   source seals, and the final head. export_full_time_anchor_chain() serializes the chain
+   (tag, policy digest, K, count, genesis boundary, genesis chain, anchors as length-prefixed
+   canonical records). Disk restore from it is NOT implemented (deferred).
+   K is recorded in every anchor and in history_policy_sha256 but is NOT part of any accepted-
+   state identity: any K gives identical boundaries, prefixes, revisions and RNG seals.
+   Memory: window <= K steps of rows; anchors grow by one fixed-size record (~1.6 KiB) per K
+   steps up to the explicit caps. Every cap refuses with FullTimeResourceRefusal (kinds
+   anchor_count, anchor_bytes, window_rows, window_bytes, identity_count, carrier_cap,
+   memory_budget, configuration, restore_deferred), checked before callbacks where the step
+   could otherwise exceed it (begin pre-checks anchor capacity and window room; compound
+   reserves both slots). Nothing is dropped or truncated. Window nodes release iteratively.
+
+4. Structural sharing. ArenaSnapshot::packets is SharedMap, ever_packet_ids/event_ids are
+   SharedSet (immutable shared payload, copy-on-write, std::map/std::set read interface:
+   at/count/find/begin/end/size/empty/==, emplace/erase/insert mutate). Snapshot copies at the
+   former deep-copy sites (begin, compound completion, motion, seal) copy pointers; the
+   unanchored window is a persistent list shared by all frames. The legacy JSON journal member
+   stays empty in full-time mode; use full_time_history_status()/export_full_time_anchor_chain().
+
+5. Configurable carrier cap (replaces the fixed 100000 in full-time mode)
+   FullTimeNativeLimits {maximum_carriers (default 100000, <= 2^27), memory_budget_bytes
+   (default 2 GiB), maximum_identity_entries (2^22)} in FullTimeConfiguration, passed to the new
+   create_full_time overload (the five-argument overload uses the defaults). The cap is checked
+   against the stated budget: maximum_carriers x 2048 B + 64 MiB <= budget, else
+   memory_budget refusal. Cap, budget, identity cap and model constants are bound into the
+   configuration identity (initial prefix), so different caps give different accepted states.
+   Legacy mode keeps 100000. Hall motion v2 itself refuses censuses above 100000.
+
+6. Carrier digest (block Merkle). Native rows are kept in ascending native-ID order in full-time
+   mode (reaction results are sorted; genesis already is). Block k = IDs [k*1024+1, (k+1)*1024];
+   leaf = SHA256(tag, k, n, n x 80-byte rows [u64 id, 3 f64 x, 3 f64 u, f64 q, f64 m, f64 w]);
+   nodes pair left to right with a node tag, odd node carried up; root binds block size, record
+   and leaf counts. A new state reuses the parent's leaf for every byte-identical block, so a
+   reaction rehashes only touched blocks. Leaves are independent: a device can compute them; the
+   host recomputes the root from the supplied leaves and verifies a sample of leaves against host
+   rows (verify_carrier_leaves). The GPU side is NOT implemented.
+
+7. Exact-count validation memo: full-time population checks use binary search over the sorted
+   rows; the exact BIGNUM sums per packet are memoized per (immutable packets payload kept alive
+   by the memo, SHA-256 of the ascending (native ID, weight) sequence). All structural, species,
+   co-location and finiteness checks still run every time.
+
+Restart
+ save() writes schema canonical_native_arena_full_time_exact_v5 (JSON export with configuration,
+ history policy, metadata incl. exported anchors, history base and window rows as canonical hex).
+ restore_full_time() restores a genesis checkpoint exactly; for a nonempty checkpoint it decodes
+ and verifies the exported anchor chain and window (digests, grammar) and then refuses with
+ FullTimeResourceRefusal::restore_deferred. Candidate003 v2 checkpoints refuse (schema).
+
+Qualification boundary
+ Positive closed steps were executed with the genuine Hall v2 motion provider at identically zero
+ total field (no field solve; synthetic field/heat digests); this exercises the native motion
+ admission with real receipts but is not a physical or joint qualification. Births, sinks,
+ collection, competing channel sets, whole-owner restart and the GPU block-hash path remain open.

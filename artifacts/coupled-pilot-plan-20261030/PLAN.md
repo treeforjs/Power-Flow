@@ -138,7 +138,7 @@ fresh native genesis bound to that Hall state, with unreleased source quotes car
 Must be built first:
 | ID | Kind | Missing today | Build |
 |---|---|---|---|
-| H1 | blocking | A11 bounded history | Native v5 in-memory anchors every K steps; motion rows store endpoint hashes instead of full JSON. Disk restart can wait. |
+| H1 | DONE in native v5 (artifacts/native-v5-20261030) | A11 bounded history | Native v5 in-memory anchors every K steps; motion rows store endpoint hashes instead of full JSON. Disk restart can wait. |
 | H2 | blocking | Native birth API | Native v5 source scope crediting source-v4 Trial leaves (exact debit `source_owner.hpp:183`) to native H2O and electron packets via one exact ExactParticleCount equality, with physical birth time and remaining flight; an open common predicate (V3 `accepts_closed_step` requires an unchanged source digest, contract:95). |
 | H3 | blocking | Collection/escape | Native v5 sink records; Hall motion v3 with first-hit truncation (`kinetic_boundary.cpp:63`); collected charge free -> conductor bank in a new Hall field version, plus wall heat. |
 | H4 | blocking | Parent-channel coverage | Qualified kernels for the onset gap and > 8 keV, or a versioned refusal scope recording unresolved counts (no silent skipping). |
