@@ -1,0 +1,73 @@
+SS304 phase thermal owner v1 -- results of record (2026-10-31)
+
+Runtime: /home/treefor/projects/runtimes/ss304-phase-thermal-owner-v1-20261031 (README.txt, INTEGRATION.txt,
+DATA-SOURCES.json). Builds and runs through run_owner_v1.py inside arch-base-20261028/run-frozen (GCC 16.2.1), CPU
+stages on the lent core 3 (flock testing-core3.lock, taskset, nice 15), GPU stages under both GPU locks on core 6/7
+(any-core.sh). Every run directory holds run-receipt.json (admission, binary hash, source and sealed-input hashes).
+
+Labels
+  b2   -O2 -ffp-contract=off -fno-fast-math                      b2/cpu-law-104212, b2/cpu-owner-104213, b2/gpu-parity-104213
+  b2s  same sources + -fsanitize=address,undefined (halt on UB)    b2s/cpu-law-104229, b2s/cpu-owner-104230
+       (b2s/gpu-parity-104246 aborted before any test: under ASan libnvrtc could not dlopen libnvrtc-builtins through
+        $ORIGIN; fixed in run_owner_v1.py by LD_LIBRARY_PATH for sanitized GPU runs)
+  b3s  b2s sources + that run-script change only                  b3s/gpu-parity-104529
+  b1, dev: development runs (superseded).
+
+test_law (b2 and b2s: 200,040 passed, 0 failed)
+  law_sha256 7d3fa6743331ac8be2ee9454cca6ef106d5c594c2ba021fb45febb3d14b7167c
+  bit identity with the sealed heat-v2 law: 479,962 points on 298.2-1500 K (evaluated_solid_1500) and 600,013 points
+    on 298.2-1800 K (nominal_1800): 0 differences in h, Cp, k, rho_e, sigma, liquid fraction, 8000 h
+  inverse T(h): within 1 ulp of the sealed bisection, never further from h; closest double over 298.2-5000 K
+  Mills 2004 Table 3: solid H within 0.60% (rounded table), liquid H 1773-1900 K within 0.18%, densities and liquid k
+  vapor: JANAF transcription exact; Fe(l) vs Alcock 1984 max 0.0049 decades (1.1%), Ni(l) 0.0103 decades (2.4%);
+    above the boiling points equal to -logKf(liquid) within 0.00046 decades; Cr liquid/Alcock-solid ratio 0.99-1.35
+    (JANAF liquid/crystal ratio up to 1.40 over 1700-2100 K)
+  constant eps0 latent heat vs JANAF dHvap: 2.6% (2000-3500 K), 5.3% (1700-4000 K, Ni at 1700 K), 10.6% (5000 K, Cr)
+  pt_exp / pt_log within 1 ulp of glibc (2e6 samples); fixed-point round trip and exact floor division (1e6 samples)
+  HKL nominal 304, beta_r = 0.18:
+      T (K)   mass flux kg/m2/s   cooling W/m2   recession m/s   p_Fe / p_Cr / p_Ni (Pa, pure liquid)
+      2000    0.0313              2.1e5          4.7e-6          37.2 / 123 / 19.2
+      3000    33.1                2.0e8          5.7e-3          5.5e4 / 1.25e5 / 4.7e4
+      4000    893                 5.1e9          0.18            1.72e6 / 3.62e6 / 1.97e6
+      5000    5860                3.0e10         1.43            1.23e7 / 2.67e7 / 1.68e7
+  water desorption (source law, theta0 = 1, linear ramps from 300 K): log10 remaining fraction at 3000 K < -347 for
+    1e9-1e12 K/s, -48.0 at 1e13 K/s, -5.43 at 1e14 K/s; rate at 3000 K (theta = 0) 2.16e12 /s
+
+test_owner (b2 and b2s: 49 passed, 0 failed)
+  uniform     3,007 steps 300 -> 4998.7 K through the mushy zone, max relative T error vs the exact enthalpy solution
+              5.9e-14; typed refusal 'temperature-above-domain' above 5000 K with the state digest unchanged
+  conduction  constant flux, 250/500/1000 rows: profile error 8.0e-5 / 2.0e-5 / 5.0e-6 (order 1.99)
+  mode        2-D 40 x 20 cosine mode: 4.4e-13 K from the exact discrete eigen-solution, 0.0085 K (of 27 K) from the
+              continuum decay
+  stefan      two-phase Neumann (St = 0.4, lambda = 0.3554): front error 0.044% / 0.058% / 0.011% (150/300/600 rows);
+              temperature error away from the front 0.89 / 0.27 / 0.28 K (floor from the finite slab and mushy width)
+  refusals    zero dt, nonfinite Joule, interior load point, duplicate producer sequence, cooling below 298.2 K,
+              sub-step budget, release outside quantized mode: typed, state unchanged; stale trial fails preflight
+  checkpoint  save/load digest equal; 30 further steps bit-identical; replayed producer sequence refused
+  quantized   400 steps at 3800 K with SR(D/w0), w0 = 1e6: 2,081,687 macros, released atoms = n w0 exactly; foreign
+              quote digest, out-of-range count and duplicate release refused
+  supercycle  10 accumulated-energy steps vs 100 power steps: same admitted Joule word ratio 1 +- 1e-14, max dT 2e-9 K
+  hall        8 slices x 1050 cells, 42 graded rows (0.25 um surface rows): tau_max 24 ps, 1 sub-step at 10 fs,
+              2.9 ms per step on one CPU core; uniform 300 K sigma per EM cell = 1/rho(300 K) within 1e-15
+  bennett     Bennett et al. 2023 Eq. (1) (constant c_v 3.9 J/cm3/K, no conduction, linear ramp to 150 T in 100 ns,
+              sigma 1.3e6 S/m): owner surface-cell rise 2908.79827 K vs exact cell integral 2908.79828 K (5e-9) and
+              Eq. (1) 2922.2 K at the surface; Eq. (1) gives 1700 K at 103.8 T (paper: 'melts near 1700 K, or 104 T').
+              With the SS304 phase law (T-dependent Cp, latent heat, conduction) the surface cell reaches the solidus
+              at 114.5 T and the liquidus at 134.7 T.
+  merge       evaporation at 4990 K initial, 20 nm surface rows: 2 merges in 73,395 steps of 1 ps, recession 64 nm,
+              ledgers exact
+  ledger      2 slices, nonuniform Joule, wall heat, emission cooling, Fe deposits, expected evaporation: 4,595 steps to
+              4500 K (molten through the thickness); exact energy and atom ledgers every 200 steps and final; Joule
+              8.271 J, evaporation reference 1.08e-4 J, kinetic 1.76e-5 J, evaporated Fe/Cr/Ni 9.1e13 / 5.7e13 / 1.2e13
+              atoms; patch totals equal the ledger
+
+test_gpu (b2: 6 passed, 0 failed; b3s sanitized: 5 passed, 0 failed, timing suite not run under ASan)
+  device RTX 3080 Ti sm_86, driver 615.78.08, NVRTC 12.8 cubin, options --fmad=false --prec-div=true --prec-sqrt=true
+  --ftz=false --std=c++17
+  evaporation  300 steps (to 4978 K) with loads, deposits, expected HKL: 0 mismatches (state digest every step,
+               step records, patch reports and sigma every 25 steps)
+  quantized    150 steps: quotes and states bit-identical
+  stefan       60 steps x 24 sub-steps with prescribed temperature: bit-identical
+  merge        27,835 steps through the first surface-cell merge: bit-identical
+  hall         full foil geometry 2 x 125 slices, 262,500 cells: GPU = CPU after 3 steps; 6.7 ms per 10 fs step on the
+               GPU (including the per-step uploads, downloads and synchronizations) vs 92.6 ms on one CPU core
