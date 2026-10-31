@@ -1,0 +1,88 @@
+SS304 phase thermal owner v1.2 -- results of record (2026-10-31)
+
+Runtime: /home/treefor/projects/runtimes/ss304-phase-thermal-owner-v1.2-20261031 (README.txt, INTEGRATION.txt,
+DATA-SOURCES.json). Launcher: run_owner_v1_2.py (receipted builds and runs inside arch-base-20261028/run-frozen,
+GCC 16.2.1, -O2 -ffp-contract=off; NVRTC 12.8 with --fmad=false --prec-div=true --prec-sqrt=true --ftz=false).
+Device: NVIDIA GeForce RTX 3080 Ti (sm_86, GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9). CPU stages on leased cores 6/7
+(nice 15), GPU stages with both GPU locks then a core lease.
+
+Labels of record: e3 (final sources) and e3s (same sources, -fsanitize=address,undefined). Every run receipt has
+own_sources_unchanged_since_build = true and sealed_unchanged = true (sealed: heat-v2 material headers,
+hall-gpu-resident-v1 common/, NVRTC, the committed v1 and v1.1 owner sources). Earlier labels d1, d1s, e1, e1s, e2,
+e2s are superseded development builds (e2 = e3 without the per-element surface kernel and the two-level slice
+reduction; the CPU results of e1, e2 and e3 are identical, ledger12 digest c80a211f...); dev/ holds unreceipted
+development runs.
+
+----------------------------------------------------------------------------------------------------------------------
+1. CPU programs (e3; e3s identical pass counts, no sanitizer report)
+   run directory               program           checks
+   e3/cpu-regression-131146    test_regression   4 passed  (e3s: 4)
+   e3/cpu-v12-131148           test_v12          41 passed (e3s: 41)
+   e3/cpu-v11-131155           test_v11          26 passed (e3s: 26)
+   e3/cpu-owner-131200         test_owner        49 passed (e3s: 49)
+   e3/cpu-law-131227           test_law          200057 passed (e3s: 200057)
+   e3/cpu-archs-131124         nvrtc_archs       3 passed: cubins sm_86 1,292,328 B (26b74c3c...), sm_89 1,292,328 B
+                                                 (6cbe264f...), sm_120 1,762,488 B (0761e8fa...)
+
+1.1 Regression against the committed v1.1 owner (read in place), every step: energy, atom, flag and face-mass words,
+    ledger words, step records, cell and face-column Merkle roots, patch reports, sigma vector:
+      v1 mode, evaporation/loads/deposits, 367 steps (both owners refuse identically at step 368: temperature above
+      the law domain); quantized releases and quotes, 200 steps; all v1.1 options (lubrication flow from J x B, Mn,
+      activities, Knudsen layer, radiation, internal energy), 600 steps; v1 mode through a surface-cell merge, 27,835
+      steps. 0 mismatches.
+
+1.2 Depth-averaged layer benchmarks (test_v12)
+      dam break, Stoker, h_L 1.4 mm / h_R 0.6 mm, g 1000 m/s2, t 40 ms:
+        columns  middle depth (Stoker 0.95425 mm)  shock x (RH 44.47 mm)  L1 error / disturbance
+        200      0.95261 mm (-0.17 %)              45.0 mm (0.5 column)   8.57 %
+        400      0.95332 mm (-0.10 %)              44.5 mm (0.06 column)  4.95 %   (ratio 1.73)
+      moving bore, RH speed 1.5275 m/s: measured 1.540 m/s (25 ms, 0.6 column); upstream depth 1.39877 mm (-0.09 %),
+        velocity 0.87221 m/s (-0.08 %)
+      dam break along z (200 slices) = along x: max depth difference 0, velocity difference 0
+      flat surface over melt depth 0.2-1.0 mm, g 1000 m/s2, 200 steps: max |u| 1.1e-16 m/s
+      low Re: Poiseuille u 0.0222222112 m/s vs f h^2/(3 mu) 0.0222222222 (5e-7), Re 0.52; Marangoni u -6.6666658e-3
+        vs tau h/(2 mu) -6.6666667e-3 (1.4e-7), Re 0.16; depth-averaged flux / v1.1 lubrication flux 1 - 5e-7 and
+        1 - 7e-7
+      work: booked Lorentz work 1.8956e-12 J vs sum f u h A dt 1.8966e-12 J (5e-4); interior dissipation 1.38949e-12 J
+        vs 3 mu u^2/h of each column 1.38943e-12 J (4e-5); Marangoni interior dissipation 1.69641e-13 J vs
+        3 mu u^2/h + tau^2 h/(4 mu) 1.69874e-13 J (1.4e-3)
+      lubrication model with book_work: W_L 4.44444444444364e-18 J vs f q dx dz dt 4.444444444444445e-18 J; dE = W_L
+        + W_S exactly
+      ejection: edge outflow per step 6.222222222003e-12 kg vs rho u h dz dt 6.222222222222e-12 kg; per-patch ejecta
+        sum = ledger; departure: ejected 8.47e-9 kg, outward displacement <= 0.0289 EM cell (limit 0.02)
+      sub-cycling (SS304 foil, 1024 field steps of 2.5 ps, power varying per step): window Joule word = sum of the
+        per-field-step words exactly; K = 4: max |T - T_per-step| 5.1e-5 K (bound 0.249 K), sigma change 1.6e-5;
+        K = 16: 6.9e-5 K (bound 0.794 K), sigma change 5.2e-5
+      checkpoint with a moving layer (K 4.2e-15 J): restored owner continues bit for bit
+      full v1.2 ledger (4 slices, two bodies, every option, K = 4, 3000 windows of 10 ps, J x B, back pressures, loads,
+        deposits): exact every step; max T 3770 K; max Re 2.35 (same forcing in the v1.1 lubrication model: Re
+        7.08e5, melt speed 427 m/s); max layer speed 9.0e-4 m/s; W_L -1.21e-12 J (the Lorentz force opposes the
+        Marangoni-driven flow here), W_S 1.447e-10 J, dissipation 1.403e-10 J, kinetic 3.28e-12 J, ejected 1.83e-17 kg
+        (3.78e-11 J); sigma change max 1.29e-5; digest c80a211f1b0907541577e57cf0ca727a2782ce4989c9628ab85075b1db9b6e5e;
+        Merkle leaves with the layer-flow section = host recomputation
+
+----------------------------------------------------------------------------------------------------------------------
+2. GPU (e3/gpu-parity-131812, test_gpu, 19 checks passed)
+   GPU = CPU bit for bit (state digest incl. layer-flow section, records incl. v1.2 columns, patch reports, sigma):
+   v1 mode (200 steps), every v1.1 option (300), quantized releases, capillary flow with 251 sub-steps per step,
+   device Merkle = host, caller-provided session; every v1.2 option with sub-cycling K = 4 (200 windows, inertial
+   layer along x and z, ejection), dam break with CFL halvings, edge and departure ejection, device accumulation from
+   resident field data on the caller's session = host accumulation on the CPU engine (40 windows of 8 field steps).
+   Sanitized (e3s): see Sec. 4.
+
+3. Cost on the Hall foil (125 k x 2 bodies x 25 columns x 42 rows = 262,500 cells; every v1.2 option; molten surface;
+   field step 10 fs; stability sub-step 7.5 ps, so one owner sub-step per window up to K = 746)
+      K (field steps per owner step)    1      4      8      16     32
+      ms per field step                 3.00   0.75   0.38   0.19   0.093
+      owner step per window (ms)        2.99   2.98   2.99   2.98   2.94   (engine 2.4-2.5 ms, host 0.5 ms)
+      accumulation per field step       0.0013-0.0016 ms (device input, one kernel, no synchronization)
+   Single owner step without sub-cycling: v1.1 options 3.20 ms (v1.1 engine: 22.6 ms), v1.2 options 3.85 ms.
+   Device time per owner step (profile, 99 steps): sub-step cells (per-element surface physics + cell step) 0.69 ms,
+   melt-layer passes 0.66 ms, finish thermodynamics + face columns 0.31 ms, slice reduction + conductivity 0.24 ms,
+   patch sums 0.15 ms, download 0.13 ms, start pass 0.13 ms, zero + upload 0.09 ms.
+   Target <= 2 ms per field step: met from K = 2 (1.5 ms); K = 8 gives 0.38 ms. Stated accuracy bound: per window
+   StepRecord::sigma_change_max and window_heating_K (Sec. 1.2: 5e-5 and 0.79 K at K = 16 on a 3e6 W/EM-cell foil).
+
+4. Sanitizers (-fsanitize=address,undefined): e3s CPU programs (Sec. 1, same pass counts, no report) and the GPU
+   parity program e3s/gpu-parity-132111 (suites v11 merkle borrowed v12 dam eject accdev): 14 passed, no sanitizer
+   report (ASAN_OPTIONS protect_shadow_gap=0, detect_leaks=0 for the GPU stage as in v1.1).
