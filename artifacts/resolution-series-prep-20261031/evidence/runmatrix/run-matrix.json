@@ -1,0 +1,1745 @@
+{
+ "schema": "resolution-series-run-matrix-v1",
+ "assumptions": {
+  "window": {
+   "t0_s": 7.49788055492e-10,
+   "T_on_s": 1e-08,
+   "coupled_length_s": 2e-09,
+   "note": "Hall-only particle-free pre-run 0.75 ns -> T_on, then a fresh native genesis and the coupled window"
+  },
+  "species_per_member": 3,
+  "plasma_cells_note": "particles per cell over the 5 mm x 5 mm x 25 mm gap volume (cells transverse x 4 axial)",
+  "coordinator_current": {
+   "non_hall_fixed_ms_200um": 22.3,
+   "mesh_dependent_ms_200um": 2.8,
+   "non_hall_per_carrier_us": 15.0,
+   "source": "Power-Flow/artifacts/coordinator-v6.1-20261031/source/README.txt; coordinator-v7-20261031/source/README.txt line 179"
+  },
+  "projected": {
+   "per_carrier_us": 1.0,
+   "field_floor": "measured resident vacuum step minus the host independent residual (assumed moved to a device-side compensated residual) and minus the host total-field digests (assumed device-side block digests)",
+   "non_hall_fixed_ms": 15.0
+  },
+  "station": {
+   "gpu": "RTX PRO 4000 Blackwell (sm_120), 24 GB, 672 GB/s (public specification, not measured here)",
+   "device_time_factor": 1.3571428571428572,
+   "host_time_factor": 1.0,
+   "concurrent_members_max": 6,
+   "note": "device-bound parts scaled by the memory-bandwidth ratio to the RTX 3080 Ti (912 GB/s); host single-thread speed assumed equal to the Ryzen 7 9850X3D (range 1.0-1.3x slower); members run concurrently up to the 24 GB device memory and a device-busy sum <= 1"
+  },
+  "zenobia": {
+   "gpu": "RTX 3080 Ti, 12 GB (shared with other work; about 1.6 GB in use by others at measurement time)",
+   "concurrent_members_max": 2,
+   "note": "Power-Flow cores 6-7, one member per core"
+  },
+  "hall_v31_record": {
+   "coupled2_over_vacuum": 3.642857142857143,
+   "per_carrier_us": 5.3,
+   "source": "Hall v3.1 RESULTS sections 5 and 9: coupled 2 carriers 10.2 ms vs vacuum 2.80 ms per step at 200 um; 1e4 -> 1e5 carriers slope 5.3 us per carrier (GPU push)"
+  },
+  "box_extra_ms_per_edge_face": 1.5e-05,
+  "box_extra_host_fraction": 0.4,
+  "device_bytes_per_carrier": 1400,
+  "host_bytes_per_carrier": 5120,
+  "cuda_context_bytes": 419430400
+ },
+ "inputs": {
+  "mesh_report": "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/mesh-report-095958/mesh-report.json",
+  "gpu_vacuum": [
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-vacuum-180x4-100057/gpu-vacuum.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-vacuum-45x4-100035/gpu-vacuum.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-vacuum-90x4-100043/gpu-vacuum.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b11/gpu-vacuum-175x4-w35-112247/gpu-vacuum.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b11/gpu-vacuum-225x4-w45-112233/gpu-vacuum.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-vacuum-180x16-105850/gpu-vacuum.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-vacuum-90x8-111251/gpu-vacuum.json"
+  ],
+  "gpu_dtscan": [
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-dtscan-180x4-100529/gpu-dtscan.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-dtscan-45x4-100511/gpu-dtscan.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-dtscan-90x4-100518/gpu-dtscan.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-dtscan-180x16-111510/gpu-dtscan.json"
+  ],
+  "gpu_coupled": [
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-coupled-180x16-c10000-111914/gpu-coupled.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-coupled-180x16-c2-111842/gpu-coupled.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-coupled-180x4-c10000-111753/gpu-coupled.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-coupled-180x4-c100000-111825/gpu-coupled.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-coupled-180x4-c2-111713/gpu-coupled.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-coupled-45x4-c10000-111524/gpu-coupled.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-coupled-45x4-c100000-111532/gpu-coupled.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-coupled-45x4-c2-111518/gpu-coupled.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-coupled-90x4-c10000-111556/gpu-coupled.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-coupled-90x4-c100000-111609/gpu-coupled.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gpu-coupled-90x4-c2-111541/gpu-coupled.json"
+  ],
+  "gmg": [
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b5/gmg-90x4-random-102645/gmg.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-180x4-physical-102927/gmg.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-180x4-random-nu1-102754/gmg.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-180x4-random-nu2-102804/gmg.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-360x4-random-nu1-102818/gmg.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b9/gmg-360x4-smooth-105839/gmg.json"
+  ],
+  "dt_limits": "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/dt-limits/dt-limits.json",
+  "graded_sizes": "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b11/graded-sizes-111532/graded-sizes.json"
+ },
+ "rows": [
+  {
+   "mesh": [
+    45,
+    4,
+    1
+   ],
+   "h_um": 199.99999999999997,
+   "edges": 41676,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 3.9999999999999987,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 498999228.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 454426624.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 13.622296623518395,
+   "ms_per_step_current": 652.2793704,
+   "hours_coupled_current": 36.23774279999999,
+   "ms_per_step_projected": 53.33110129444814,
+   "hours_coupled_projected": 2.9628389608026744,
+   "station_hours_coupled_projected": 3.491917346660295,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 2.7774840000000003,
+     "hours": 0.7136754353466628
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 5.239403,
+     "hours": 0.013462663392414179,
+     "jacobi_iterations": 39.0
+    }
+   },
+   "field_only_ms_per_step_10fs": 2.7774840000000003,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 10.259977,
+   "hall_per_carrier_us": 5.5639797799999995,
+   "coupled_cost_source": "measured (gpu-coupled on (45, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    45,
+    4,
+    1
+   ],
+   "h_um": 199.99999999999997,
+   "edges": 41676,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 3.9999999999999987,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 498999228.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 454426624.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 6.422296623518396,
+   "ms_per_step_current": 652.2793704,
+   "hours_coupled_current": 72.47548559999998,
+   "ms_per_step_projected": 53.33110129444814,
+   "hours_coupled_projected": 5.925677921605349,
+   "station_hours_coupled_projected": 6.98383469332059,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 2.7774840000000003,
+     "hours": 0.7136754353466628
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 5.239403,
+     "hours": 0.013462663392414179,
+     "jacobi_iterations": 39.0
+    }
+   },
+   "field_only_ms_per_step_10fs": 2.7774840000000003,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 10.259977,
+   "hall_per_carrier_us": 5.5639797799999995,
+   "coupled_cost_source": "measured (gpu-coupled on (45, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    45,
+    4,
+    1
+   ],
+   "h_um": 199.99999999999997,
+   "edges": 41676,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 39.999999999999986,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 876999228.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 1836826624.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 1.3622296623518395,
+   "ms_per_step_current": 6204.553911,
+   "hours_coupled_current": 344.69743950000003,
+   "ms_per_step_projected": 323.33110129444816,
+   "hours_coupled_projected": 17.962838960802674,
+   "station_hours_coupled_projected": 21.170488775231725,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 2.7774840000000003,
+     "hours": 0.7136754353466628
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 5.239403,
+     "hours": 0.013462663392414179,
+     "jacobi_iterations": 39.0
+    }
+   },
+   "field_only_ms_per_step_10fs": 2.7774840000000003,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 10.259977,
+   "hall_per_carrier_us": 5.5639797799999995,
+   "coupled_cost_source": "measured (gpu-coupled on (45, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    45,
+    4,
+    1
+   ],
+   "h_um": 199.99999999999997,
+   "edges": 41676,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 39.999999999999986,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 876999228.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 1836826624.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 0.6422296623518395,
+   "ms_per_step_current": 6204.553911,
+   "hours_coupled_current": 689.3948790000001,
+   "ms_per_step_projected": 323.33110129444816,
+   "hours_coupled_projected": 35.92567792160535,
+   "station_hours_coupled_projected": 42.34097755046345,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 2.7774840000000003,
+     "hours": 0.7136754353466628
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 5.239403,
+     "hours": 0.013462663392414179,
+     "jacobi_iterations": 39.0
+    }
+   },
+   "field_only_ms_per_step_10fs": 2.7774840000000003,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 10.259977,
+   "hall_per_carrier_us": 5.5639797799999995,
+   "coupled_cost_source": "measured (gpu-coupled on (45, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    45,
+    4,
+    1
+   ],
+   "h_um": 199.99999999999997,
+   "edges": 41676,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 399.99999999999983,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 4656999228.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 15660826624.0,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.13622296623518396,
+   "ms_per_step_current": 61727.299317,
+   "hours_coupled_current": 3429.2944064999997,
+   "ms_per_step_projected": 3023.331101294448,
+   "hours_coupled_projected": 167.96283896080269,
+   "station_hours_coupled_projected": 197.95620306094602,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 2.7774840000000003,
+     "hours": 0.7136754353466628
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 5.239403,
+     "hours": 0.013462663392414179,
+     "jacobi_iterations": 39.0
+    }
+   },
+   "field_only_ms_per_step_10fs": 2.7774840000000003,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 10.259977,
+   "hall_per_carrier_us": 5.5639797799999995,
+   "coupled_cost_source": "measured (gpu-coupled on (45, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    45,
+    4,
+    1
+   ],
+   "h_um": 199.99999999999997,
+   "edges": 41676,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 399.99999999999983,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 4656999228.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 15660826624.0,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.06422296623518395,
+   "ms_per_step_current": 61727.299317,
+   "hours_coupled_current": 6858.588812999999,
+   "ms_per_step_projected": 3023.331101294448,
+   "hours_coupled_projected": 335.92567792160537,
+   "station_hours_coupled_projected": 395.91240612189205,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 2.7774840000000003,
+     "hours": 0.7136754353466628
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 5.239403,
+     "hours": 0.013462663392414179,
+     "jacobi_iterations": 39.0
+    }
+   },
+   "field_only_ms_per_step_10fs": 2.7774840000000003,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 10.259977,
+   "hall_per_carrier_us": 5.5639797799999995,
+   "coupled_cost_source": "measured (gpu-coupled on (45, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    90,
+    4,
+    1
+   ],
+   "h_um": 99.99999999999999,
+   "edges": 164346,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 0.9999999999999997,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 607731444.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 558796800.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 13.051631211544908,
+   "ms_per_step_current": 686.2393035498643,
+   "hours_coupled_current": 38.12440575277024,
+   "ms_per_step_projected": 70.4510636536528,
+   "hours_coupled_projected": 3.913947980758489,
+   "station_hours_coupled_projected": 4.612867263036791,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 8.154453,
+     "hours": 2.0952894039313636
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 16.758284,
+     "hours": 0.043060466340627025,
+     "jacobi_iterations": 86.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 30.60505,
+     "hours": 0.07863977752007348,
+     "gmg_iterations": 19,
+     "jacobi_iterations": 89,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 8.154453,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 35.20742,
+   "hall_per_carrier_us": 5.588372769999999,
+   "coupled_cost_source": "measured (gpu-coupled on (90, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    90,
+    4,
+    1
+   ],
+   "h_um": 99.99999999999999,
+   "edges": 164346,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 0.9999999999999997,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 607731444.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 558796800.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 5.851631211544907,
+   "ms_per_step_current": 686.2393035498643,
+   "hours_coupled_current": 76.24881150554047,
+   "ms_per_step_projected": 70.4510636536528,
+   "hours_coupled_projected": 7.827895961516978,
+   "station_hours_coupled_projected": 9.225734526073582,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 8.154453,
+     "hours": 2.0952894039313636
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 16.758284,
+     "hours": 0.043060466340627025,
+     "jacobi_iterations": 86.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 30.60505,
+     "hours": 0.07863977752007348,
+     "gmg_iterations": 19,
+     "jacobi_iterations": 89,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 8.154453,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 35.20742,
+   "hall_per_carrier_us": 5.588372769999999,
+   "coupled_cost_source": "measured (gpu-coupled on (90, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    90,
+    4,
+    1
+   ],
+   "h_um": 99.99999999999999,
+   "edges": 164346,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 9.999999999999996,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 985731444.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 1941196800.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 1.3051631211544907,
+   "ms_per_step_current": 6245.0999514498635,
+   "hours_coupled_current": 346.9499973027702,
+   "ms_per_step_projected": 340.4510636536528,
+   "hours_coupled_projected": 18.91394798075849,
+   "station_hours_coupled_projected": 22.29143869160822,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 8.154453,
+     "hours": 2.0952894039313636
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 16.758284,
+     "hours": 0.043060466340627025,
+     "jacobi_iterations": 86.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 30.60505,
+     "hours": 0.07863977752007348,
+     "gmg_iterations": 19,
+     "jacobi_iterations": 89,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 8.154453,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 35.20742,
+   "hall_per_carrier_us": 5.588372769999999,
+   "coupled_cost_source": "measured (gpu-coupled on (90, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    90,
+    4,
+    1
+   ],
+   "h_um": 99.99999999999999,
+   "edges": 164346,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 9.999999999999996,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 985731444.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 1941196800.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 0.5851631211544908,
+   "ms_per_step_current": 6245.0999514498635,
+   "hours_coupled_current": 693.8999946055404,
+   "ms_per_step_projected": 340.4510636536528,
+   "hours_coupled_projected": 37.82789596151698,
+   "station_hours_coupled_projected": 44.58287738321644,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 8.154453,
+     "hours": 2.0952894039313636
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 16.758284,
+     "hours": 0.043060466340627025,
+     "jacobi_iterations": 86.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 30.60505,
+     "hours": 0.07863977752007348,
+     "gmg_iterations": 19,
+     "jacobi_iterations": 89,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 8.154453,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 35.20742,
+   "hall_per_carrier_us": 5.588372769999999,
+   "coupled_cost_source": "measured (gpu-coupled on (90, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    90,
+    4,
+    1
+   ],
+   "h_um": 99.99999999999999,
+   "edges": 164346,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 99.99999999999996,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 4765731444.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 15765196800.0,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.1305163121154491,
+   "ms_per_step_current": 61833.70643044986,
+   "hours_coupled_current": 3435.2059128027704,
+   "ms_per_step_projected": 3040.451063653653,
+   "hours_coupled_projected": 168.91394798075848,
+   "station_hours_coupled_projected": 199.0771529773225,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 8.154453,
+     "hours": 2.0952894039313636
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 16.758284,
+     "hours": 0.043060466340627025,
+     "jacobi_iterations": 86.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 30.60505,
+     "hours": 0.07863977752007348,
+     "gmg_iterations": 19,
+     "jacobi_iterations": 89,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 8.154453,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 35.20742,
+   "hall_per_carrier_us": 5.588372769999999,
+   "coupled_cost_source": "measured (gpu-coupled on (90, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    90,
+    4,
+    1
+   ],
+   "h_um": 99.99999999999999,
+   "edges": 164346,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 99.99999999999996,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 4765731444.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 15765196800.0,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.05851631211544907,
+   "ms_per_step_current": 61833.70643044986,
+   "hours_coupled_current": 6870.411825605541,
+   "ms_per_step_projected": 3040.451063653653,
+   "hours_coupled_projected": 337.82789596151696,
+   "station_hours_coupled_projected": 398.154305954645,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 8.154453,
+     "hours": 2.0952894039313636
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 16.758284,
+     "hours": 0.043060466340627025,
+     "jacobi_iterations": 86.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 30.60505,
+     "hours": 0.07863977752007348,
+     "gmg_iterations": 19,
+     "jacobi_iterations": 89,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 8.154453,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 35.20742,
+   "hall_per_carrier_us": 5.588372769999999,
+   "coupled_cost_source": "measured (gpu-coupled on (90, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    180,
+    4,
+    1
+   ],
+   "h_um": 49.99999999999999,
+   "edges": 652686,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 0.24999999999999992,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 1040799384.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 1008062464.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 10.7189287711164,
+   "ms_per_step_current": 836.4559537041603,
+   "hours_coupled_current": 46.46977520578668,
+   "ms_per_step_projected": 140.43213686650802,
+   "hours_coupled_projected": 7.801785381472667,
+   "station_hours_coupled_projected": 9.194961342449929,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 32.103622,
+     "hours": 8.249036324621382
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 82.875645,
+     "hours": 0.21294924480216798,
+     "jacobi_iterations": 173.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 107.09735,
+     "hours": 0.2751869961653205,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 178,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 32.103622,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 141.898694,
+   "hall_per_carrier_us": 5.939081080000001,
+   "coupled_cost_source": "measured (gpu-coupled on (180, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    180,
+    4,
+    1
+   ],
+   "h_um": 49.99999999999999,
+   "edges": 652686,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 0.24999999999999992,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 1040799384.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 1008062464.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 3.5189287711163995,
+   "ms_per_step_current": 836.4559537041603,
+   "hours_coupled_current": 92.93955041157336,
+   "ms_per_step_projected": 140.43213686650802,
+   "hours_coupled_projected": 15.603570762945335,
+   "station_hours_coupled_projected": 18.389922684899858,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 32.103622,
+     "hours": 8.249036324621382
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 82.875645,
+     "hours": 0.21294924480216798,
+     "jacobi_iterations": 173.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 107.09735,
+     "hours": 0.2751869961653205,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 178,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 32.103622,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 141.898694,
+   "hall_per_carrier_us": 5.939081080000001,
+   "coupled_cost_source": "measured (gpu-coupled on (180, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    180,
+    4,
+    1
+   ],
+   "h_um": 49.99999999999999,
+   "edges": 652686,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 2.499999999999999,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 1418799384.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 2390462464.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 1.0718928771116398,
+   "ms_per_step_current": 6490.007845304161,
+   "hours_coupled_current": 360.5559914057867,
+   "ms_per_step_projected": 410.432136866508,
+   "hours_coupled_projected": 22.80178538147267,
+   "station_hours_coupled_projected": 26.87353277102136,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 32.103622,
+     "hours": 8.249036324621382
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 82.875645,
+     "hours": 0.21294924480216798,
+     "jacobi_iterations": 173.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 107.09735,
+     "hours": 0.2751869961653205,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 178,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 32.103622,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 141.898694,
+   "hall_per_carrier_us": 5.939081080000001,
+   "coupled_cost_source": "measured (gpu-coupled on (180, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    180,
+    4,
+    1
+   ],
+   "h_um": 49.99999999999999,
+   "edges": 652686,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 2.499999999999999,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 1418799384.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 2390462464.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 0.35189287711163997,
+   "ms_per_step_current": 6490.007845304161,
+   "hours_coupled_current": 721.1119828115734,
+   "ms_per_step_projected": 410.432136866508,
+   "hours_coupled_projected": 45.60357076294534,
+   "station_hours_coupled_projected": 53.74706554204272,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 32.103622,
+     "hours": 8.249036324621382
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 82.875645,
+     "hours": 0.21294924480216798,
+     "jacobi_iterations": 173.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 107.09735,
+     "hours": 0.2751869961653205,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 178,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 32.103622,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 141.898694,
+   "hall_per_carrier_us": 5.939081080000001,
+   "coupled_cost_source": "measured (gpu-coupled on (180, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    180,
+    4,
+    1
+   ],
+   "h_um": 49.99999999999999,
+   "edges": 652686,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 24.99999999999999,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 5198799384.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 16214462464.0,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.107189287711164,
+   "ms_per_step_current": 63025.526761304165,
+   "hours_coupled_current": 3501.418153405787,
+   "ms_per_step_projected": 3110.432136866508,
+   "hours_coupled_projected": 172.80178538147263,
+   "station_hours_coupled_projected": 203.6592470567356,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 32.103622,
+     "hours": 8.249036324621382
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 82.875645,
+     "hours": 0.21294924480216798,
+     "jacobi_iterations": 173.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 107.09735,
+     "hours": 0.2751869961653205,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 178,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 32.103622,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 141.898694,
+   "hall_per_carrier_us": 5.939081080000001,
+   "coupled_cost_source": "measured (gpu-coupled on (180, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    180,
+    4,
+    1
+   ],
+   "h_um": 49.99999999999999,
+   "edges": 652686,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 24.99999999999999,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 5198799384.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 16214462464.0,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.035189287711163995,
+   "ms_per_step_current": 63025.526761304165,
+   "hours_coupled_current": 7002.836306811574,
+   "ms_per_step_projected": 3110.432136866508,
+   "hours_coupled_projected": 345.60357076294525,
+   "station_hours_coupled_projected": 407.3184941134712,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 32.103622,
+     "hours": 8.249036324621382
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 82.875645,
+     "hours": 0.21294924480216798,
+     "jacobi_iterations": 173.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 107.09735,
+     "hours": 0.2751869961653205,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 178,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 32.103622,
+   "hall_fixed_point_iterations": 2.0,
+   "hall_coupled_fixed_ms": 141.898694,
+   "hall_per_carrier_us": 5.939081080000001,
+   "coupled_cost_source": "measured (gpu-coupled on (180, 4, 1))",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    360,
+    4,
+    1
+   ],
+   "h_um": 24.999999999999996,
+   "edges": 2601366,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 0.06249999999999998,
+   "dt_name": "dt",
+   "dt_s": 8.339102379953801e-15,
+   "dt_limiter": "displacement (c)",
+   "coupled_steps": 239833.96640000003,
+   "device_bytes": 2769351600.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 2803518200.9208903,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 0.0,
+   "ms_per_step_current": 1501.129434838658,
+   "hours_coupled_current": 100.00606289920714,
+   "ms_per_step_projected": 519.5124787761536,
+   "hours_coupled_projected": 34.610205105327985,
+   "station_hours_coupled_projected": 40.790598874136556,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 118.76763733752745,
+     "hours": 30.51738382001641
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 5e-13,
+     "ms_per_step": 355.4469870692999,
+     "hours": 1.8266444252376768,
+     "jacobi_iterations": 83.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 412.42463733752743,
+     "hours": 1.0597264740302712,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 355,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 118.76763733752745,
+   "hall_fixed_point_iterations": 3.0,
+   "hall_coupled_fixed_ms": 672.9077060076361,
+   "hall_per_carrier_us": 6.001924799999995,
+   "coupled_cost_source": "measured (gpu-coupled on (180, 16, 4))",
+   "proxy_mesh": [
+    180,
+    16,
+    4
+   ]
+  },
+  {
+   "mesh": [
+    360,
+    4,
+    1
+   ],
+   "h_um": 24.999999999999996,
+   "edges": 2601366,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 0.06249999999999998,
+   "dt_name": "dt/2",
+   "dt_s": 4.1695511899769004e-15,
+   "dt_limiter": "displacement (c)",
+   "coupled_steps": 479667.93280000007,
+   "device_bytes": 2769351600.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 2803518200.9208903,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 0.0,
+   "ms_per_step_current": 1501.129434838658,
+   "hours_coupled_current": 200.01212579841427,
+   "ms_per_step_projected": 519.5124787761536,
+   "hours_coupled_projected": 69.22041021065597,
+   "station_hours_coupled_projected": 81.58119774827311,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 118.76763733752745,
+     "hours": 30.51738382001641
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 5e-13,
+     "ms_per_step": 355.4469870692999,
+     "hours": 1.8266444252376768,
+     "jacobi_iterations": 83.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 412.42463733752743,
+     "hours": 1.0597264740302712,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 355,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 118.76763733752745,
+   "hall_fixed_point_iterations": 3.0,
+   "hall_coupled_fixed_ms": 672.9077060076361,
+   "hall_per_carrier_us": 6.001924799999995,
+   "coupled_cost_source": "measured (gpu-coupled on (180, 16, 4))",
+   "proxy_mesh": [
+    180,
+    16,
+    4
+   ]
+  },
+  {
+   "mesh": [
+    360,
+    4,
+    1
+   ],
+   "h_um": 24.999999999999996,
+   "edges": 2601366,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 0.6249999999999998,
+   "dt_name": "dt",
+   "dt_s": 8.339102379953801e-15,
+   "dt_limiter": "displacement (c)",
+   "coupled_steps": 239833.96640000003,
+   "device_bytes": 3147351600.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 4185918200.9208903,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 0.0,
+   "ms_per_step_current": 7171.649130838657,
+   "hours_coupled_current": 477.7791824105966,
+   "ms_per_step_projected": 789.5124787761536,
+   "hours_coupled_projected": 52.59775258532799,
+   "station_hours_coupled_projected": 61.99020840413656,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 118.76763733752745,
+     "hours": 30.51738382001641
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 5e-13,
+     "ms_per_step": 355.4469870692999,
+     "hours": 1.8266444252376768,
+     "jacobi_iterations": 83.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 412.42463733752743,
+     "hours": 1.0597264740302712,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 355,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 118.76763733752745,
+   "hall_fixed_point_iterations": 3.0,
+   "hall_coupled_fixed_ms": 672.9077060076361,
+   "hall_per_carrier_us": 6.001924799999995,
+   "coupled_cost_source": "measured (gpu-coupled on (180, 16, 4))",
+   "proxy_mesh": [
+    180,
+    16,
+    4
+   ]
+  },
+  {
+   "mesh": [
+    360,
+    4,
+    1
+   ],
+   "h_um": 24.999999999999996,
+   "edges": 2601366,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 0.6249999999999998,
+   "dt_name": "dt/2",
+   "dt_s": 4.1695511899769004e-15,
+   "dt_limiter": "displacement (c)",
+   "coupled_steps": 479667.93280000007,
+   "device_bytes": 3147351600.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 4185918200.9208903,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 0.0,
+   "ms_per_step_current": 7171.649130838657,
+   "hours_coupled_current": 955.5583648211932,
+   "ms_per_step_projected": 789.5124787761536,
+   "hours_coupled_projected": 105.19550517065598,
+   "station_hours_coupled_projected": 123.98041680827312,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 118.76763733752745,
+     "hours": 30.51738382001641
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 5e-13,
+     "ms_per_step": 355.4469870692999,
+     "hours": 1.8266444252376768,
+     "jacobi_iterations": 83.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 412.42463733752743,
+     "hours": 1.0597264740302712,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 355,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 118.76763733752745,
+   "hall_fixed_point_iterations": 3.0,
+   "hall_coupled_fixed_ms": 672.9077060076361,
+   "hall_per_carrier_us": 6.001924799999995,
+   "coupled_cost_source": "measured (gpu-coupled on (180, 16, 4))",
+   "proxy_mesh": [
+    180,
+    16,
+    4
+   ]
+  },
+  {
+   "mesh": [
+    360,
+    4,
+    1
+   ],
+   "h_um": 24.999999999999996,
+   "edges": 2601366,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 6.249999999999997,
+   "dt_name": "dt",
+   "dt_s": 8.339102379953801e-15,
+   "dt_limiter": "displacement (c)",
+   "coupled_steps": 239833.96640000003,
+   "device_bytes": 6927351600.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 18009918200.92089,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.0,
+   "ms_per_step_current": 63876.84609083864,
+   "hours_coupled_current": 4255.510377524491,
+   "ms_per_step_projected": 3489.512478776154,
+   "hours_coupled_projected": 232.47322738532802,
+   "station_hours_coupled_projected": 273.9863037041366,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 118.76763733752745,
+     "hours": 30.51738382001641
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 5e-13,
+     "ms_per_step": 355.4469870692999,
+     "hours": 1.8266444252376768,
+     "jacobi_iterations": 83.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 412.42463733752743,
+     "hours": 1.0597264740302712,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 355,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 118.76763733752745,
+   "hall_fixed_point_iterations": 3.0,
+   "hall_coupled_fixed_ms": 672.9077060076361,
+   "hall_per_carrier_us": 6.001924799999995,
+   "coupled_cost_source": "measured (gpu-coupled on (180, 16, 4))",
+   "proxy_mesh": [
+    180,
+    16,
+    4
+   ]
+  },
+  {
+   "mesh": [
+    360,
+    4,
+    1
+   ],
+   "h_um": 24.999999999999996,
+   "edges": 2601366,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 6.249999999999997,
+   "dt_name": "dt/2",
+   "dt_s": 4.1695511899769004e-15,
+   "dt_limiter": "displacement (c)",
+   "coupled_steps": 479667.93280000007,
+   "device_bytes": 6927351600.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 18009918200.92089,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.0,
+   "ms_per_step_current": 63876.84609083864,
+   "hours_coupled_current": 8511.020755048981,
+   "ms_per_step_projected": 3489.512478776154,
+   "hours_coupled_projected": 464.94645477065603,
+   "station_hours_coupled_projected": 547.9726074082732,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 118.76763733752745,
+     "hours": 30.51738382001641
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 5e-13,
+     "ms_per_step": 355.4469870692999,
+     "hours": 1.8266444252376768,
+     "jacobi_iterations": 83.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 412.42463733752743,
+     "hours": 1.0597264740302712,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 355,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 118.76763733752745,
+   "hall_fixed_point_iterations": 3.0,
+   "hall_coupled_fixed_ms": 672.9077060076361,
+   "hall_per_carrier_us": 6.001924799999995,
+   "coupled_cost_source": "measured (gpu-coupled on (180, 16, 4))",
+   "proxy_mesh": [
+    180,
+    16,
+    4
+   ]
+  }
+ ],
+ "series_total": {
+  "members": [
+   {
+    "h_um": 199.99999999999997,
+    "N": 100000.0,
+    "dt": "dt"
+   },
+   {
+    "h_um": 99.99999999999999,
+    "N": 100000.0,
+    "dt": "dt"
+   },
+   {
+    "h_um": 49.99999999999999,
+    "N": 100000.0,
+    "dt": "dt"
+   },
+   {
+    "h_um": 24.999999999999996,
+    "N": 100000.0,
+    "dt": "dt"
+   },
+   {
+    "h_um": 49.99999999999999,
+    "N": 10000.0,
+    "dt": "dt"
+   },
+   {
+    "h_um": 49.99999999999999,
+    "N": 1000000.0,
+    "dt": "dt"
+   },
+   {
+    "h_um": 49.99999999999999,
+    "N": 100000.0,
+    "dt": "dt/2"
+   }
+  ],
+  "pre_runs_hours_best_total": 1.3291988485654804,
+  "pre_runs": {
+   "(45, 4, 1)": {
+    "hours_10fs": 0.7136754353466628,
+    "hours_best": 0.013462663392414179
+   },
+   "(90, 4, 1)": {
+    "hours_10fs": 2.0952894039313636,
+    "hours_best": 0.043060466340627025
+   },
+   "(180, 4, 1)": {
+    "hours_10fs": 8.249036324621382,
+    "hours_best": 0.21294924480216798
+   },
+   "(360, 4, 1)": {
+    "hours_10fs": 30.51738382001641,
+    "hours_best": 1.0597264740302712
+   }
+  },
+  "coupled_hours_current_zenobia": 3501.418153405787,
+  "coupled_hours_projected_zenobia": 172.80178538147263,
+  "coupled_hours_projected_station": 203.6592470567356,
+  "note": "longest-first packing on 2 lanes (zenobia, cores 6-7) or 6 lanes (station); pre-runs are per mesh and can share the lanes; the 50 um / 1e5 member is shared by the three series"
+ },
+ "box_variants": [
+  {
+   "mesh_h_um": 199.99999999999997,
+   "box_mm": 35.0,
+   "n_transverse": 85,
+   "edges": 146716,
+   "faces": 138295,
+   "nodes": 51772,
+   "largest_cell_mm": 1.7450001013487975,
+   "carriers_per_species": 10000.0,
+   "resident_field_bytes": 130665164,
+   "device_bytes": 592095564.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 5.842284,
+   "ms_per_step_current": 670.6906481124388,
+   "hours_coupled_current": 37.26059156180215,
+   "ms_per_step_projected": 60.1238916420289,
+   "hours_coupled_projected": 3.340216202334939,
+   "pre_run_hours_10fs": 1.5011768122224438,
+   "hall_v31_uniform_box_admissible": true
+  },
+  {
+   "mesh_h_um": 199.99999999999997,
+   "box_mm": 35.0,
+   "n_transverse": 85,
+   "edges": 146716,
+   "faces": 138295,
+   "nodes": 51772,
+   "largest_cell_mm": 1.7450001013487975,
+   "carriers_per_species": 100000.0,
+   "resident_field_bytes": 130665164,
+   "device_bytes": 970095564.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 5.842284,
+   "ms_per_step_current": 6222.965188712438,
+   "hours_coupled_current": 345.7202882618021,
+   "ms_per_step_projected": 330.1238916420289,
+   "hours_coupled_projected": 18.34021620233494,
+   "pre_run_hours_10fs": 1.5011768122224438,
+   "hall_v31_uniform_box_admissible": true
+  },
+  {
+   "mesh_h_um": 199.99999999999997,
+   "box_mm": 45.0,
+   "n_transverse": 91,
+   "edges": 167992,
+   "faces": 158431,
+   "nodes": 59248,
+   "largest_cell_mm": 2.291395134895239,
+   "carriers_per_species": 10000.0,
+   "resident_field_bytes": 149526608,
+   "device_bytes": 610957008.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 6.463464,
+   "ms_per_step_current": 674.422283941665,
+   "hours_coupled_current": 37.467904663425834,
+   "ms_per_step_projected": 61.50066843272004,
+   "hours_coupled_projected": 3.41670380181778,
+   "pre_run_hours_10fs": 1.6607892193249294,
+   "hall_v31_uniform_box_admissible": true
+  },
+  {
+   "mesh_h_um": 199.99999999999997,
+   "box_mm": 45.0,
+   "n_transverse": 91,
+   "edges": 167992,
+   "faces": 158431,
+   "nodes": 59248,
+   "largest_cell_mm": 2.291395134895239,
+   "carriers_per_species": 100000.0,
+   "resident_field_bytes": 149526608,
+   "device_bytes": 988957008.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 6.463464,
+   "ms_per_step_current": 6226.696824541665,
+   "hours_coupled_current": 345.92760136342577,
+   "ms_per_step_projected": 331.5006684327201,
+   "hours_coupled_projected": 18.416703801817782,
+   "pre_run_hours_10fs": 1.6607892193249294,
+   "hall_v31_uniform_box_admissible": true
+  },
+  {
+   "mesh_h_um": 99.99999999999999,
+   "box_mm": 35.0,
+   "n_transverse": 144,
+   "edges": 418470,
+   "faces": 395712,
+   "nodes": 147175,
+   "largest_cell_mm": 1.1918176537727234,
+   "carriers_per_species": 10000.0,
+   "resident_field_bytes": 371630048,
+   "device_bytes": 833060448.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 15.577293000000001,
+   "ms_per_step_current": 735.4595733163701,
+   "hours_coupled_current": 40.85886518424278,
+   "ms_per_step_projected": 89.6802415376482,
+   "hours_coupled_projected": 4.982235640980456,
+   "pre_run_hours_10fs": 4.002590604769469,
+   "hall_v31_uniform_box_admissible": true
+  },
+  {
+   "mesh_h_um": 99.99999999999999,
+   "box_mm": 35.0,
+   "n_transverse": 144,
+   "edges": 418470,
+   "faces": 395712,
+   "nodes": 147175,
+   "largest_cell_mm": 1.1918176537727234,
+   "carriers_per_species": 100000.0,
+   "resident_field_bytes": 371630048,
+   "device_bytes": 1211060448.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 15.577293000000001,
+   "ms_per_step_current": 6294.320221216371,
+   "hours_coupled_current": 349.6844567342428,
+   "ms_per_step_projected": 359.6802415376482,
+   "hours_coupled_projected": 19.982235640980456,
+   "pre_run_hours_10fs": 4.002590604769469,
+   "hall_v31_uniform_box_admissible": true
+  },
+  {
+   "mesh_h_um": 99.99999999999999,
+   "box_mm": 45.0,
+   "n_transverse": 150,
+   "edges": 453906,
+   "faces": 429300,
+   "nodes": 159607,
+   "largest_cell_mm": 1.6505977311135658,
+   "carriers_per_species": 10000.0,
+   "resident_field_bytes": 403055132,
+   "device_bytes": 864485532.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 16.612653,
+   "ms_per_step_current": 742.3249642591156,
+   "hours_coupled_current": 41.24027579217309,
+   "ms_per_step_projected": 92.36238497789122,
+   "hours_coupled_projected": 5.131243609882846,
+   "pre_run_hours_10fs": 4.2686267002935185,
+   "hall_v31_uniform_box_admissible": true
+  },
+  {
+   "mesh_h_um": 99.99999999999999,
+   "box_mm": 45.0,
+   "n_transverse": 150,
+   "edges": 453906,
+   "faces": 429300,
+   "nodes": 159607,
+   "largest_cell_mm": 1.6505977311135658,
+   "carriers_per_species": 100000.0,
+   "resident_field_bytes": 403055132,
+   "device_bytes": 1242485532.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 16.612653,
+   "ms_per_step_current": 6301.185612159115,
+   "hours_coupled_current": 350.0658673421731,
+   "ms_per_step_projected": 362.3623849778912,
+   "hours_coupled_projected": 20.131243609882844,
+   "pre_run_hours_10fs": 4.2686267002935185,
+   "hall_v31_uniform_box_admissible": true
+  },
+  {
+   "mesh_h_um": 49.99999999999999,
+   "box_mm": 35.0,
+   "n_transverse": 248,
+   "edges": 1236534,
+   "faces": 1171552,
+   "nodes": 434007,
+   "largest_cell_mm": 1.1612577209943937,
+   "carriers_per_species": 10000.0,
+   "resident_field_bytes": 1097196240,
+   "device_bytes": 1558626640.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 49.168222,
+   "ms_per_step_current": 951.3582720881332,
+   "hours_coupled_current": 52.85323733822962,
+   "ms_per_step_projected": 185.6876744559875,
+   "hours_coupled_projected": 10.315981914221526,
+   "pre_run_hours_10fs": 12.633790956517249,
+   "hall_v31_uniform_box_admissible": false
+  },
+  {
+   "mesh_h_um": 49.99999999999999,
+   "box_mm": 35.0,
+   "n_transverse": 248,
+   "edges": 1236534,
+   "faces": 1171552,
+   "nodes": 434007,
+   "largest_cell_mm": 1.1612577209943937,
+   "carriers_per_species": 100000.0,
+   "resident_field_bytes": 1097196240,
+   "device_bytes": 1936626640.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 49.168222,
+   "ms_per_step_current": 6604.910163688133,
+   "hours_coupled_current": 366.9394535382296,
+   "ms_per_step_projected": 455.68767445598746,
+   "hours_coupled_projected": 25.315981914221524,
+   "pre_run_hours_10fs": 12.633790956517249,
+   "hall_v31_uniform_box_admissible": false
+  },
+  {
+   "mesh_h_um": 49.99999999999999,
+   "box_mm": 45.0,
+   "n_transverse": 254,
+   "edges": 1296930,
+   "faces": 1228852,
+   "nodes": 455175,
+   "largest_cell_mm": 1.5480257069210925,
+   "carriers_per_species": 10000.0,
+   "resident_field_bytes": 1150765452,
+   "device_bytes": 1612195852.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 50.933662,
+   "ms_per_step_current": 963.2456382712139,
+   "hours_coupled_current": 53.513646570622996,
+   "ms_per_step_projected": 190.36964392975017,
+   "hours_coupled_projected": 10.576091329430565,
+   "pre_run_hours_10fs": 13.08742135027592,
+   "hall_v31_uniform_box_admissible": false
+  },
+  {
+   "mesh_h_um": 49.99999999999999,
+   "box_mm": 45.0,
+   "n_transverse": 254,
+   "edges": 1296930,
+   "faces": 1228852,
+   "nodes": 455175,
+   "largest_cell_mm": 1.5480257069210925,
+   "carriers_per_species": 100000.0,
+   "resident_field_bytes": 1150765452,
+   "device_bytes": 1990195852.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 50.933662,
+   "ms_per_step_current": 6616.797529871214,
+   "hours_coupled_current": 367.59986277062296,
+   "ms_per_step_projected": 460.36964392975017,
+   "hours_coupled_projected": 25.576091329430565,
+   "pre_run_hours_10fs": 13.08742135027592,
+   "hall_v31_uniform_box_admissible": false
+  },
+  {
+   "mesh_h_um": 24.999999999999996,
+   "box_mm": 35.0,
+   "n_transverse": 442,
+   "edges": 3918778,
+   "faces": 3717220,
+   "nodes": 1373743,
+   "largest_cell_mm": 1.1314813892044027,
+   "carriers_per_species": 10000.0,
+   "resident_field_bytes": 3476532404,
+   "device_bytes": 3937962804.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 157.28631733752746,
+   "ms_per_step_current": 1808.4738906961036,
+   "hours_coupled_current": 120.48151842680184,
+   "ms_per_step_projected": 650.4547986452329,
+   "hours_coupled_projected": 43.33365397861099,
+   "pre_run_hours_10fs": 40.41477142620201,
+   "hall_v31_uniform_box_admissible": false
+  },
+  {
+   "mesh_h_um": 24.999999999999996,
+   "box_mm": 35.0,
+   "n_transverse": 442,
+   "edges": 3918778,
+   "faces": 3717220,
+   "nodes": 1373743,
+   "largest_cell_mm": 1.1314813892044027,
+   "carriers_per_species": 100000.0,
+   "resident_field_bytes": 3476532404,
+   "device_bytes": 4315962804.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 157.28631733752746,
+   "ms_per_step_current": 7478.993586696102,
+   "hours_coupled_current": 498.2546379381913,
+   "ms_per_step_projected": 920.4547986452329,
+   "hours_coupled_projected": 61.321201458611,
+   "pre_run_hours_10fs": 40.41477142620201,
+   "hall_v31_uniform_box_admissible": false
+  },
+  {
+   "mesh_h_um": 24.999999999999996,
+   "box_mm": 45.0,
+   "n_transverse": 448,
+   "edges": 4025734,
+   "faces": 3818752,
+   "nodes": 1411207,
+   "largest_cell_mm": 1.708980980658352,
+   "carriers_per_species": 10000.0,
+   "resident_field_bytes": 3571409216,
+   "device_bytes": 4032839616.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 160.41363733752746,
+   "ms_per_step_current": 1833.4270942766027,
+   "hours_coupled_current": 122.14391447932901,
+   "ms_per_step_projected": 661.0859660625215,
+   "hours_coupled_projected": 44.041908158930646,
+   "pre_run_hours_10fs": 41.21833733782142,
+   "hall_v31_uniform_box_admissible": false
+  },
+  {
+   "mesh_h_um": 24.999999999999996,
+   "box_mm": 45.0,
+   "n_transverse": 448,
+   "edges": 4025734,
+   "faces": 3818752,
+   "nodes": 1411207,
+   "largest_cell_mm": 1.708980980658352,
+   "carriers_per_species": 100000.0,
+   "resident_field_bytes": 3571409216,
+   "device_bytes": 4410839616.0,
+   "fits_12GB": true,
+   "field_only_ms_per_step_10fs": 160.41363733752746,
+   "ms_per_step_current": 7503.946790276602,
+   "hours_coupled_current": 499.91703399071855,
+   "ms_per_step_projected": 931.0859660625215,
+   "hours_coupled_projected": 62.029455638930656,
+   "pre_run_hours_10fs": 41.21833733782142,
+   "hall_v31_uniform_box_admissible": false
+  }
+ ]
+}

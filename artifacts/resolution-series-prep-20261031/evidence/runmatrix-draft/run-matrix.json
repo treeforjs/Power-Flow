@@ -1,0 +1,1402 @@
+{
+ "schema": "resolution-series-run-matrix-v1",
+ "assumptions": {
+  "window": {
+   "t0_s": 7.49788055492e-10,
+   "T_on_s": 1e-08,
+   "coupled_length_s": 2e-09,
+   "note": "Hall-only particle-free pre-run 0.75 ns -> T_on, then a fresh native genesis and the coupled window"
+  },
+  "species_per_member": 3,
+  "plasma_cells_note": "particles per cell over the 5 mm x 5 mm x 25 mm gap volume (cells transverse x 4 axial)",
+  "coordinator_current": {
+   "non_hall_fixed_ms_200um": 22.3,
+   "mesh_dependent_ms_200um": 2.8,
+   "non_hall_per_carrier_us": 15.0,
+   "source": "Power-Flow/artifacts/coordinator-v6.1-20261031/source/README.txt; coordinator-v7-20261031/source/README.txt line 179"
+  },
+  "projected": {
+   "per_carrier_us": 1.0,
+   "field_floor": "measured resident vacuum step minus the host independent residual (assumed moved to a device-side compensated residual) and minus the host total-field digests (assumed device-side block digests)",
+   "non_hall_fixed_ms": 15.0
+  },
+  "station": {
+   "gpu": "RTX PRO 4000 Blackwell (sm_120), 24 GB, 672 GB/s (public specification, not measured here)",
+   "device_time_factor": 1.3571428571428572,
+   "host_time_factor": 1.0,
+   "concurrent_members_max": 6,
+   "note": "device-bound parts scaled by the memory-bandwidth ratio to the RTX 3080 Ti (912 GB/s); host single-thread speed assumed equal to the Ryzen 7 9850X3D (range 1.0-1.3x slower); members run concurrently up to the 24 GB device memory and a device-busy sum <= 1"
+  },
+  "zenobia": {
+   "gpu": "RTX 3080 Ti, 12 GB (shared with other work; about 1.6 GB in use by others at measurement time)",
+   "concurrent_members_max": 2,
+   "note": "Power-Flow cores 6-7, one member per core"
+  },
+  "hall_v31_record": {
+   "coupled2_over_vacuum": 3.642857142857143,
+   "per_carrier_us": 5.3,
+   "source": "Hall v3.1 RESULTS sections 5 and 9: coupled 2 carriers 10.2 ms vs vacuum 2.80 ms per step at 200 um; 1e4 -> 1e5 carriers slope 5.3 us per carrier (GPU push)"
+  },
+  "device_bytes_per_carrier": 1400,
+  "host_bytes_per_carrier": 5120,
+  "cuda_context_bytes": 419430400
+ },
+ "inputs": {
+  "mesh_report": "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/mesh-report-095958/mesh-report.json",
+  "gpu_vacuum": [
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-vacuum-180x4-100057/gpu-vacuum.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-vacuum-45x4-100035/gpu-vacuum.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-vacuum-90x4-100043/gpu-vacuum.json"
+  ],
+  "gpu_dtscan": [
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-dtscan-180x4-100529/gpu-dtscan.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-dtscan-45x4-100511/gpu-dtscan.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-dtscan-90x4-100518/gpu-dtscan.json"
+  ],
+  "gpu_coupled": [],
+  "gmg": [
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b5/gmg-90x4-random-102645/gmg.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-180x4-physical-102927/gmg.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-180x4-random-nu1-102754/gmg.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-180x4-random-nu2-102804/gmg.json",
+   "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-360x4-random-nu1-102818/gmg.json"
+  ],
+  "dt_limits": "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/dt-limits/dt-limits.json"
+ },
+ "rows": [
+  {
+   "mesh": [
+    45,
+    4,
+    1
+   ],
+   "h_um": 199.99999999999997,
+   "edges": 41676,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 3.9999999999999987,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 498999228.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 454426624.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 13.62614007857143,
+   "ms_per_step_current": 644.2179774285714,
+   "hours_coupled_current": 35.78988763492063,
+   "ms_per_step_projected": 53.21579764285714,
+   "hours_coupled_projected": 2.9564332023809525,
+   "station_hours_coupled_projected": 3.484367702806123,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 2.7774840000000003,
+     "hours": 0.7136754353466628
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 5.239403,
+     "hours": 0.013462663392414179,
+     "jacobi_iterations": 39.0
+    }
+   },
+   "field_only_ms_per_step_10fs": 2.7774840000000003,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 10.117977428571429,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    45,
+    4,
+    1
+   ],
+   "h_um": 199.99999999999997,
+   "edges": 41676,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 3.9999999999999987,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 498999228.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 454426624.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 6.426140078571429,
+   "ms_per_step_current": 644.2179774285714,
+   "hours_coupled_current": 71.57977526984126,
+   "ms_per_step_projected": 53.21579764285714,
+   "hours_coupled_projected": 5.912866404761905,
+   "station_hours_coupled_projected": 6.968735405612246,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 2.7774840000000003,
+     "hours": 0.7136754353466628
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 5.239403,
+     "hours": 0.013462663392414179,
+     "jacobi_iterations": 39.0
+    }
+   },
+   "field_only_ms_per_step_10fs": 2.7774840000000003,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 10.117977428571429,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    45,
+    4,
+    1
+   ],
+   "h_um": 199.99999999999997,
+   "edges": 41676,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 39.999999999999986,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 876999228.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 1836826624.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 1.362614007857143,
+   "ms_per_step_current": 6125.217977428571,
+   "hours_coupled_current": 340.2898876349206,
+   "ms_per_step_projected": 323.2157976428571,
+   "hours_coupled_projected": 17.956433202380953,
+   "station_hours_coupled_projected": 21.162939131377552,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 2.7774840000000003,
+     "hours": 0.7136754353466628
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 5.239403,
+     "hours": 0.013462663392414179,
+     "jacobi_iterations": 39.0
+    }
+   },
+   "field_only_ms_per_step_10fs": 2.7774840000000003,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 10.117977428571429,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    45,
+    4,
+    1
+   ],
+   "h_um": 199.99999999999997,
+   "edges": 41676,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 39.999999999999986,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 876999228.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 1836826624.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 0.6426140078571428,
+   "ms_per_step_current": 6125.217977428571,
+   "hours_coupled_current": 680.5797752698412,
+   "ms_per_step_projected": 323.2157976428571,
+   "hours_coupled_projected": 35.91286640476191,
+   "station_hours_coupled_projected": 42.325878262755104,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 2.7774840000000003,
+     "hours": 0.7136754353466628
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 5.239403,
+     "hours": 0.013462663392414179,
+     "jacobi_iterations": 39.0
+    }
+   },
+   "field_only_ms_per_step_10fs": 2.7774840000000003,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 10.117977428571429,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    45,
+    4,
+    1
+   ],
+   "h_um": 199.99999999999997,
+   "edges": 41676,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 399.99999999999983,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 4656999228.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 15660826624.0,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.13626140078571428,
+   "ms_per_step_current": 60935.217977428576,
+   "hours_coupled_current": 3385.289887634921,
+   "ms_per_step_projected": 3023.215797642857,
+   "hours_coupled_projected": 167.95643320238094,
+   "station_hours_coupled_projected": 197.94865341709183,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 2.7774840000000003,
+     "hours": 0.7136754353466628
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 5.239403,
+     "hours": 0.013462663392414179,
+     "jacobi_iterations": 39.0
+    }
+   },
+   "field_only_ms_per_step_10fs": 2.7774840000000003,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 10.117977428571429,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    45,
+    4,
+    1
+   ],
+   "h_um": 199.99999999999997,
+   "edges": 41676,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 399.99999999999983,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 4656999228.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 15660826624.0,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.06426140078571428,
+   "ms_per_step_current": 60935.217977428576,
+   "hours_coupled_current": 6770.579775269842,
+   "ms_per_step_projected": 3023.215797642857,
+   "hours_coupled_projected": 335.91286640476187,
+   "station_hours_coupled_projected": 395.89730683418367,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 2.7774840000000003,
+     "hours": 0.7136754353466628
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 5.239403,
+     "hours": 0.013462663392414179,
+     "jacobi_iterations": 39.0
+    }
+   },
+   "field_only_ms_per_step_10fs": 2.7774840000000003,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 10.117977428571429,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    90,
+    4,
+    1
+   ],
+   "h_um": 99.99999999999999,
+   "edges": 164346,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 0.9999999999999997,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 607731444.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 558796800.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 13.184206985714287,
+   "ms_per_step_current": 672.0862078070072,
+   "hours_coupled_current": 37.33812265594485,
+   "ms_per_step_projected": 66.47379042857143,
+   "hours_coupled_projected": 3.6929883571428572,
+   "station_hours_coupled_projected": 4.35245056377551,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 8.154453,
+     "hours": 2.0952894039313636
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 16.758284,
+     "hours": 0.043060466340627025,
+     "jacobi_iterations": 86.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 30.60505,
+     "hours": 0.07863977752007348,
+     "gmg_iterations": 19,
+     "jacobi_iterations": 89,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 8.154453,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 29.705507357142857,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    90,
+    4,
+    1
+   ],
+   "h_um": 99.99999999999999,
+   "edges": 164346,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 0.9999999999999997,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 607731444.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 558796800.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 5.984206985714286,
+   "ms_per_step_current": 672.0862078070072,
+   "hours_coupled_current": 74.6762453118897,
+   "ms_per_step_projected": 66.47379042857143,
+   "hours_coupled_projected": 7.3859767142857145,
+   "station_hours_coupled_projected": 8.70490112755102,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 8.154453,
+     "hours": 2.0952894039313636
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 16.758284,
+     "hours": 0.043060466340627025,
+     "jacobi_iterations": 86.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 30.60505,
+     "hours": 0.07863977752007348,
+     "gmg_iterations": 19,
+     "jacobi_iterations": 89,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 8.154453,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 29.705507357142857,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    90,
+    4,
+    1
+   ],
+   "h_um": 99.99999999999999,
+   "edges": 164346,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 9.999999999999996,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 985731444.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 1941196800.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 1.3184206985714286,
+   "ms_per_step_current": 6153.086207807007,
+   "hours_coupled_current": 341.8381226559448,
+   "ms_per_step_projected": 336.4737904285714,
+   "hours_coupled_projected": 18.692988357142855,
+   "station_hours_coupled_projected": 22.031021992346936,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 8.154453,
+     "hours": 2.0952894039313636
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 16.758284,
+     "hours": 0.043060466340627025,
+     "jacobi_iterations": 86.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 30.60505,
+     "hours": 0.07863977752007348,
+     "gmg_iterations": 19,
+     "jacobi_iterations": 89,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 8.154453,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 29.705507357142857,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    90,
+    4,
+    1
+   ],
+   "h_um": 99.99999999999999,
+   "edges": 164346,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 9.999999999999996,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 985731444.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 1941196800.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 0.5984206985714285,
+   "ms_per_step_current": 6153.086207807007,
+   "hours_coupled_current": 683.6762453118896,
+   "ms_per_step_projected": 336.4737904285714,
+   "hours_coupled_projected": 37.38597671428571,
+   "station_hours_coupled_projected": 44.06204398469387,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 8.154453,
+     "hours": 2.0952894039313636
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 16.758284,
+     "hours": 0.043060466340627025,
+     "jacobi_iterations": 86.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 30.60505,
+     "hours": 0.07863977752007348,
+     "gmg_iterations": 19,
+     "jacobi_iterations": 89,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 8.154453,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 29.705507357142857,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    90,
+    4,
+    1
+   ],
+   "h_um": 99.99999999999999,
+   "edges": 164346,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 99.99999999999996,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 4765731444.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 15765196800.0,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.13184206985714286,
+   "ms_per_step_current": 60963.086207807006,
+   "hours_coupled_current": 3386.838122655945,
+   "ms_per_step_projected": 3036.4737904285716,
+   "hours_coupled_projected": 168.69298835714287,
+   "station_hours_coupled_projected": 198.81673627806123,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 8.154453,
+     "hours": 2.0952894039313636
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 16.758284,
+     "hours": 0.043060466340627025,
+     "jacobi_iterations": 86.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 30.60505,
+     "hours": 0.07863977752007348,
+     "gmg_iterations": 19,
+     "jacobi_iterations": 89,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 8.154453,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 29.705507357142857,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    90,
+    4,
+    1
+   ],
+   "h_um": 99.99999999999999,
+   "edges": 164346,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 99.99999999999996,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 4765731444.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 15765196800.0,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.059842069857142854,
+   "ms_per_step_current": 60963.086207807006,
+   "hours_coupled_current": 6773.67624531189,
+   "ms_per_step_projected": 3036.4737904285716,
+   "hours_coupled_projected": 337.38597671428573,
+   "station_hours_coupled_projected": 397.63347255612246,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 8.154453,
+     "hours": 2.0952894039313636
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 16.758284,
+     "hours": 0.043060466340627025,
+     "jacobi_iterations": 86.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 30.60505,
+     "hours": 0.07863977752007348,
+     "gmg_iterations": 19,
+     "jacobi_iterations": 89,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 8.154453,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 29.705507357142857,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    180,
+    4,
+    1
+   ],
+   "h_um": 49.99999999999999,
+   "edges": 652686,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 0.24999999999999992,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 1040799384.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 1008062464.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 11.278250649999999,
+   "ms_per_step_current": 792.333736018446,
+   "hours_coupled_current": 44.018540889913666,
+   "ms_per_step_projected": 123.6524805,
+   "hours_coupled_projected": 6.86958225,
+   "station_hours_coupled_projected": 8.096293366071428,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 32.103622,
+     "hours": 8.249036324621382
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 82.875645,
+     "hours": 0.21294924480216798,
+     "jacobi_iterations": 173.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 107.09735,
+     "hours": 0.2751869961653205,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 178,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 32.103622,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 116.94890871428572,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    180,
+    4,
+    1
+   ],
+   "h_um": 49.99999999999999,
+   "edges": 652686,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 0.24999999999999992,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 1040799384.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 1008062464.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 4.07825065,
+   "ms_per_step_current": 792.333736018446,
+   "hours_coupled_current": 88.03708177982733,
+   "ms_per_step_projected": 123.6524805,
+   "hours_coupled_projected": 13.7391645,
+   "station_hours_coupled_projected": 16.192586732142857,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 32.103622,
+     "hours": 8.249036324621382
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 82.875645,
+     "hours": 0.21294924480216798,
+     "jacobi_iterations": 173.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 107.09735,
+     "hours": 0.2751869961653205,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 178,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 32.103622,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 116.94890871428572,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    180,
+    4,
+    1
+   ],
+   "h_um": 49.99999999999999,
+   "edges": 652686,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 2.499999999999999,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 1418799384.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 2390462464.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 1.127825065,
+   "ms_per_step_current": 6273.333736018446,
+   "hours_coupled_current": 348.51854088991365,
+   "ms_per_step_projected": 393.6524805,
+   "hours_coupled_projected": 21.869582250000004,
+   "station_hours_coupled_projected": 25.774864794642863,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 32.103622,
+     "hours": 8.249036324621382
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 82.875645,
+     "hours": 0.21294924480216798,
+     "jacobi_iterations": 173.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 107.09735,
+     "hours": 0.2751869961653205,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 178,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 32.103622,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 116.94890871428572,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    180,
+    4,
+    1
+   ],
+   "h_um": 49.99999999999999,
+   "edges": 652686,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 2.499999999999999,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 1418799384.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 2390462464.0,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 0.40782506500000004,
+   "ms_per_step_current": 6273.333736018446,
+   "hours_coupled_current": 697.0370817798273,
+   "ms_per_step_projected": 393.6524805,
+   "hours_coupled_projected": 43.73916450000001,
+   "station_hours_coupled_projected": 51.549729589285725,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 32.103622,
+     "hours": 8.249036324621382
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 82.875645,
+     "hours": 0.21294924480216798,
+     "jacobi_iterations": 173.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 107.09735,
+     "hours": 0.2751869961653205,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 178,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 32.103622,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 116.94890871428572,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    180,
+    4,
+    1
+   ],
+   "h_um": 49.99999999999999,
+   "edges": 652686,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 24.99999999999999,
+   "dt_name": "dt",
+   "dt_s": 1e-14,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 200000.0,
+   "device_bytes": 5198799384.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 16214462464.0,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.11278250649999999,
+   "ms_per_step_current": 61083.333736018445,
+   "hours_coupled_current": 3393.5185408899138,
+   "ms_per_step_projected": 3093.6524805,
+   "hours_coupled_projected": 171.86958225,
+   "station_hours_coupled_projected": 202.56057908035714,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 32.103622,
+     "hours": 8.249036324621382
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 82.875645,
+     "hours": 0.21294924480216798,
+     "jacobi_iterations": 173.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 107.09735,
+     "hours": 0.2751869961653205,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 178,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 32.103622,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 116.94890871428572,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    180,
+    4,
+    1
+   ],
+   "h_um": 49.99999999999999,
+   "edges": 652686,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 24.99999999999999,
+   "dt_name": "dt/2",
+   "dt_s": 5e-15,
+   "dt_limiter": "particle cap",
+   "coupled_steps": 400000.0,
+   "device_bytes": 5198799384.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 16214462464.0,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.040782506499999996,
+   "ms_per_step_current": 61083.333736018445,
+   "hours_coupled_current": 6787.0370817798275,
+   "ms_per_step_projected": 3093.6524805,
+   "hours_coupled_projected": 343.7391645,
+   "station_hours_coupled_projected": 405.1211581607143,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 32.103622,
+     "hours": 8.249036324621382
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 1e-12,
+     "ms_per_step": 82.875645,
+     "hours": 0.21294924480216798,
+     "jacobi_iterations": 173.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 107.09735,
+     "hours": 0.2751869961653205,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 178,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 32.103622,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 116.94890871428572,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": null
+  },
+  {
+   "mesh": [
+    360,
+    4,
+    1
+   ],
+   "h_um": 24.999999999999996,
+   "edges": 2601366,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 0.06249999999999998,
+   "dt_name": "dt",
+   "dt_s": 8.339102379953801e-15,
+   "dt_limiter": "displacement (c)",
+   "coupled_steps": 239833.96640000003,
+   "device_bytes": 2769351600.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 3562237007.258793,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 1.0495778343415716,
+   "ms_per_step_current": 1273.6986718386943,
+   "hours_coupled_current": 84.85450124041279,
+   "ms_per_step_projected": 358.761887783757,
+   "hours_coupled_projected": 23.900912927869488,
+   "station_hours_coupled_projected": 28.16893309356047,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 128.06834545308655,
+     "hours": 32.90720385620883
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 5e-13,
+     "ms_per_step": 308.6070303093071,
+     "hours": 1.5859335766257192,
+     "jacobi_iterations": 81.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 421.72534545308656,
+     "hours": 1.0836246743921953,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 355,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 128.06834545308655,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 466.5346870076724,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": [
+    180,
+    4,
+    1
+   ]
+  },
+  {
+   "mesh": [
+    360,
+    4,
+    1
+   ],
+   "h_um": 24.999999999999996,
+   "edges": 2601366,
+   "carriers_per_species": 10000.0,
+   "carriers_total": 30000.0,
+   "ppc_gap": 0.06249999999999998,
+   "dt_name": "dt/2",
+   "dt_s": 4.1695511899769004e-15,
+   "dt_limiter": "displacement (c)",
+   "coupled_steps": 479667.93280000007,
+   "device_bytes": 2769351600.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 3562237007.258793,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 0.0,
+   "ms_per_step_current": 1273.6986718386943,
+   "hours_coupled_current": 169.70900248082557,
+   "ms_per_step_projected": 358.761887783757,
+   "hours_coupled_projected": 47.801825855738976,
+   "station_hours_coupled_projected": 56.33786618712094,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 128.06834545308655,
+     "hours": 32.90720385620883
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 5e-13,
+     "ms_per_step": 308.6070303093071,
+     "hours": 1.5859335766257192,
+     "jacobi_iterations": 81.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 421.72534545308656,
+     "hours": 1.0836246743921953,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 355,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 128.06834545308655,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 466.5346870076724,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": [
+    180,
+    4,
+    1
+   ]
+  },
+  {
+   "mesh": [
+    360,
+    4,
+    1
+   ],
+   "h_um": 24.999999999999996,
+   "edges": 2601366,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 0.6249999999999998,
+   "dt_name": "dt",
+   "dt_s": 8.339102379953801e-15,
+   "dt_limiter": "displacement (c)",
+   "coupled_steps": 239833.96640000003,
+   "device_bytes": 3147351600.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 4944637007.258793,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 0.10495778343415718,
+   "ms_per_step_current": 6754.698671838694,
+   "hours_coupled_current": 450.0017150844128,
+   "ms_per_step_projected": 628.761887783757,
+   "hours_coupled_projected": 41.88846040786949,
+   "station_hours_coupled_projected": 49.36854262356047,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 128.06834545308655,
+     "hours": 32.90720385620883
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 5e-13,
+     "ms_per_step": 308.6070303093071,
+     "hours": 1.5859335766257192,
+     "jacobi_iterations": 81.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 421.72534545308656,
+     "hours": 1.0836246743921953,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 355,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 128.06834545308655,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 466.5346870076724,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": [
+    180,
+    4,
+    1
+   ]
+  },
+  {
+   "mesh": [
+    360,
+    4,
+    1
+   ],
+   "h_um": 24.999999999999996,
+   "edges": 2601366,
+   "carriers_per_species": 100000.0,
+   "carriers_total": 300000.0,
+   "ppc_gap": 0.6249999999999998,
+   "dt_name": "dt/2",
+   "dt_s": 4.1695511899769004e-15,
+   "dt_limiter": "displacement (c)",
+   "coupled_steps": 479667.93280000007,
+   "device_bytes": 3147351600.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 4944637007.258793,
+   "fits_host_zenobia_14GB": true,
+   "per_carrier_us_needed_for_24h": 0.0,
+   "ms_per_step_current": 6754.698671838694,
+   "hours_coupled_current": 900.0034301688256,
+   "ms_per_step_projected": 628.761887783757,
+   "hours_coupled_projected": 83.77692081573898,
+   "station_hours_coupled_projected": 98.73708524712094,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 128.06834545308655,
+     "hours": 32.90720385620883
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 5e-13,
+     "ms_per_step": 308.6070303093071,
+     "hours": 1.5859335766257192,
+     "jacobi_iterations": 81.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 421.72534545308656,
+     "hours": 1.0836246743921953,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 355,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 128.06834545308655,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 466.5346870076724,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": [
+    180,
+    4,
+    1
+   ]
+  },
+  {
+   "mesh": [
+    360,
+    4,
+    1
+   ],
+   "h_um": 24.999999999999996,
+   "edges": 2601366,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 6.249999999999997,
+   "dt_name": "dt",
+   "dt_s": 8.339102379953801e-15,
+   "dt_limiter": "displacement (c)",
+   "coupled_steps": 239833.96640000003,
+   "device_bytes": 6927351600.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 18768637007.258793,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.010495778343415717,
+   "ms_per_step_current": 61564.69867183869,
+   "hours_coupled_current": 4101.473853524413,
+   "ms_per_step_projected": 3328.761887783757,
+   "hours_coupled_projected": 221.76393520786954,
+   "station_hours_coupled_projected": 261.3646379235605,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 128.06834545308655,
+     "hours": 32.90720385620883
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 5e-13,
+     "ms_per_step": 308.6070303093071,
+     "hours": 1.5859335766257192,
+     "jacobi_iterations": 81.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 421.72534545308656,
+     "hours": 1.0836246743921953,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 355,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 128.06834545308655,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 466.5346870076724,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": [
+    180,
+    4,
+    1
+   ]
+  },
+  {
+   "mesh": [
+    360,
+    4,
+    1
+   ],
+   "h_um": 24.999999999999996,
+   "edges": 2601366,
+   "carriers_per_species": 1000000.0,
+   "carriers_total": 3000000.0,
+   "ppc_gap": 6.249999999999997,
+   "dt_name": "dt/2",
+   "dt_s": 4.1695511899769004e-15,
+   "dt_limiter": "displacement (c)",
+   "coupled_steps": 479667.93280000007,
+   "device_bytes": 6927351600.0,
+   "fits_12GB": true,
+   "fits_24GB": true,
+   "host_bytes": 18768637007.258793,
+   "fits_host_zenobia_14GB": false,
+   "per_carrier_us_needed_for_24h": 0.0,
+   "ms_per_step_current": 61564.69867183869,
+   "hours_coupled_current": 8202.947707048826,
+   "ms_per_step_projected": 3328.761887783757,
+   "hours_coupled_projected": 443.5278704157391,
+   "station_hours_coupled_projected": 522.729275847121,
+   "pre_run": {
+    "dt_10fs": {
+     "dt_s": 1e-14,
+     "ms_per_step": 128.06834545308655,
+     "hours": 32.90720385620883
+    },
+    "jacobi_best_admitted": {
+     "dt_s": 5e-13,
+     "ms_per_step": 308.6070303093071,
+     "hours": 1.5859335766257192,
+     "jacobi_iterations": 81.0
+    },
+    "gmg_1ps": {
+     "dt_s": 1e-12,
+     "ms_per_step": 421.72534545308656,
+     "hours": 1.0836246743921953,
+     "gmg_iterations": 20,
+     "jacobi_iterations": 355,
+     "note": "resident step at 10 fs plus the whole GMG solve at 1 ps (random rhs, prototype kernels)"
+    }
+   },
+   "field_only_ms_per_step_10fs": 128.06834545308655,
+   "hall_fixed_point_iterations": null,
+   "hall_coupled_fixed_ms": 466.5346870076724,
+   "hall_per_carrier_us": 5.3,
+   "coupled_cost_source": "estimated: vacuum step x 3.64 (Hall v3.1 RESULTS, 200 um); per-carrier slope 5.3 us (Hall v3.1 RESULTS section 5)",
+   "proxy_mesh": [
+    180,
+    4,
+    1
+   ]
+  }
+ ],
+ "series_total": {
+  "members": [
+   {
+    "h_um": 199.99999999999997,
+    "N": 100000.0,
+    "dt": "dt"
+   },
+   {
+    "h_um": 99.99999999999999,
+    "N": 100000.0,
+    "dt": "dt"
+   },
+   {
+    "h_um": 49.99999999999999,
+    "N": 100000.0,
+    "dt": "dt"
+   },
+   {
+    "h_um": 24.999999999999996,
+    "N": 100000.0,
+    "dt": "dt"
+   },
+   {
+    "h_um": 49.99999999999999,
+    "N": 10000.0,
+    "dt": "dt"
+   },
+   {
+    "h_um": 49.99999999999999,
+    "N": 1000000.0,
+    "dt": "dt"
+   },
+   {
+    "h_um": 49.99999999999999,
+    "N": 100000.0,
+    "dt": "dt/2"
+   }
+  ],
+  "pre_runs_hours_best_total": 1.3530970489274046,
+  "pre_runs": {
+   "(45, 4, 1)": {
+    "hours_10fs": 0.7136754353466628,
+    "hours_best": 0.013462663392414179
+   },
+   "(90, 4, 1)": {
+    "hours_10fs": 2.0952894039313636,
+    "hours_best": 0.043060466340627025
+   },
+   "(180, 4, 1)": {
+    "hours_10fs": 8.249036324621382,
+    "hours_best": 0.21294924480216798
+   },
+   "(360, 4, 1)": {
+    "hours_10fs": 32.90720385620883,
+    "hours_best": 1.0836246743921953
+   }
+  },
+  "coupled_hours_current_zenobia": 3393.5185408899138,
+  "coupled_hours_projected_zenobia": 171.86958225,
+  "coupled_hours_projected_station": 202.56057908035714,
+  "note": "longest-first packing on 2 lanes (zenobia, cores 6-7) or 6 lanes (station); pre-runs are per mesh and can share the lanes; the 50 um / 1e5 member is shared by the three series"
+ }
+}

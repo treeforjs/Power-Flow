@@ -1,0 +1,93 @@
+{
+ "checks": [
+  {
+   "check": "M1 mesh construction and quality",
+   "passed": true,
+   "evidence": [
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/mesh-report-095958/mesh-report.json"
+   ],
+   "detail": "45x4+1:ok 90x4+1:ok 180x4+1:ok 360x4+1:ok 90x8+2:ok 180x16+4:ok"
+  },
+  {
+   "check": "M2 geometry identity across resolutions",
+   "passed": true,
+   "evidence": [
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/mesh-report-095958/mesh-report.json"
+   ],
+   "detail": "kinetic_geometry=True, x_foil_left=True, x_foil_right=True, y_lower_inner=True, y_lower_outer=True, y_upper_inner=True, y_upper_outer=True, z_feed_port=True, z_short_plane=True"
+  },
+  {
+   "check": "M3 Hall v3.1 admission per mesh",
+   "passed": true,
+   "evidence": [
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/admit-45x4-100013/admission.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/admit-90x4-100014/admission.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/admit-180x4-100013/admission.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b3/admit-90x8-100830/admission.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b3/admit-180x16-101953/admission.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/admit-360x4-100013/admission.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b3/admit-360x8-100757/admission.json"
+   ],
+   "detail": "(45, 4, 1):admitted (90, 4, 1):admitted (180, 4, 1):admitted (90, 8, 2):admitted (180, 16, 4):admitted (360, 4, 1):refused (360, 8, 2):refused"
+  },
+  {
+   "check": "M4 device memory model equals measured peak",
+   "passed": true,
+   "evidence": [
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-vacuum-90x4-100043/gpu-vacuum.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-vacuum-45x4-100035/gpu-vacuum.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-vacuum-180x4-100057/gpu-vacuum.json"
+   ],
+   "detail": "[90, 4, 1]:146301044/146301044 [45, 4, 1]:37568828/37568828 [180, 4, 1]:579368984/579368984"
+  },
+  {
+   "check": "F1 field-only runs admitted with guards",
+   "passed": true,
+   "evidence": [
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-vacuum-90x4-100043/gpu-vacuum.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-vacuum-45x4-100035/gpu-vacuum.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b1/gpu-vacuum-180x4-100057/gpu-vacuum.json"
+   ],
+   "detail": "[90, 4, 1]:600 steps [45, 4, 1]:1000 steps [180, 4, 1]:400 steps"
+  },
+  {
+   "check": "S1 solver criterion met (Jacobi and GMG)",
+   "passed": true,
+   "evidence": [
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b4/gmg-90x4-random-102348/gmg.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b5/gmg-90x4-random-102645/gmg.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-180x4-random-nu2-102804/gmg.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-180x4-random-nu1-102754/gmg.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-360x4-random-nu1-102818/gmg.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-180x4-physical-102927/gmg.json"
+   ],
+   "detail": "[90, 4, 1] random:3 dts [90, 4, 1] random:4 dts [180, 4, 1] random:5 dts [180, 4, 1] random:5 dts [360, 4, 1] random:5 dts [180, 4, 1] physical:5 dts"
+  },
+  {
+   "check": "S2 GMG repeat and CPU/GPU bit identity",
+   "passed": true,
+   "evidence": [
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b4/gmg-90x4-random-102348/gmg.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b5/gmg-90x4-random-102645/gmg.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-180x4-random-nu2-102804/gmg.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-180x4-random-nu1-102754/gmg.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-360x4-random-nu1-102818/gmg.json",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/b6/gmg-180x4-physical-102927/gmg.json"
+   ],
+   "detail": ""
+  },
+  {
+   "check": "Z1 sanitizer runs clean",
+   "passed": true,
+   "evidence": [
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/s1/san-mesh-report-103626/san-mesh-report.log",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/s1/san-gmg-90-physical-103634/san-gmg-90-physical.log",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/s1/san-gmg-45-random-103633/san-gmg-45-random.log",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/s1/san-dc-floor-45-103631/san-dc-floor-45.log",
+    "/home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/s1/san-admit-45-103627/san-admit-45.log"
+   ],
+   "detail": "san-mesh-report-103626:rc=0 san-gmg-90-physical-103634:rc=0 san-gmg-45-random-103633:rc=0 san-dc-floor-45-103631:rc=0 san-admit-45-103627:rc=0"
+  }
+ ],
+ "all_passed": true
+}

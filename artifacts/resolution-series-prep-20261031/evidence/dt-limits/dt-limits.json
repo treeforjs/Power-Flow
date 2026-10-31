@@ -1,0 +1,955 @@
+{
+ "schema": "resolution-series-dt-limits-v1",
+ "constants": {
+  "c_disp": 0.1,
+  "c_gyro": 0.025,
+  "c_plasma": 0.03,
+  "guards": {
+   "disp": 0.2,
+   "gyro": 0.05,
+   "plasma": 0.1
+  },
+  "particle_cap_s": 1e-14
+ },
+ "currents_A": {
+  "0.75ns_6.0kA": 6012.0,
+  "11.3ns_50kA": 50000.0,
+  "18.5ns_100kA": 100000.0,
+  "24.6ns_150kA": 150000.0,
+  "peak_119ns_820kA": 820500.0
+ },
+ "meshes": [
+  {
+   "spec": [
+    45,
+    4,
+    1
+   ],
+   "h_m": 0.00019999999999999998,
+   "dz_m": 0.00625,
+   "node_volume_m3": 2.4999999999999996e-10,
+   "courant_at_10fs": 0.014989622900000001,
+   "displacement": {
+    "c_light": 6.671281903963041e-14,
+    "100_eV": 3.3726248332948583e-12,
+    "1000_eV": 1.0679255866013898e-12,
+    "10000_eV": 3.421422712179927e-13,
+    "50000_eV": 1.6165508552318008e-13,
+    "guard_c_light": 1.3342563807926081e-13
+   },
+   "B_per_A": {
+    "neighbourhood_bound_T_per_A": 0.00017473152755876048,
+    "cell_centre_T_per_A": 0.00013352971579243717,
+    "at_current_A": 6028.061139345258,
+    "source": "measured"
+   },
+   "gyro": {
+    "0.75ns_6.0kA": {
+     "B_bound_T": 1.050485943683268,
+     "dt_c_gyro_s": 1.3530952360082214e-13,
+     "dt_guard_s": 2.7061904720164427e-13
+    },
+    "11.3ns_50kA": {
+     "B_bound_T": 8.736576377938023,
+     "dt_c_gyro_s": 1.6269617117762856e-14,
+     "dt_guard_s": 3.253923423552571e-14
+    },
+    "18.5ns_100kA": {
+     "B_bound_T": 17.473152755876047,
+     "dt_c_gyro_s": 8.134808558881428e-15,
+     "dt_guard_s": 1.6269617117762856e-14
+    },
+    "24.6ns_150kA": {
+     "B_bound_T": 26.209729133814072,
+     "dt_c_gyro_s": 5.4232057059209525e-15,
+     "dt_guard_s": 1.0846411411841905e-14
+    },
+    "peak_119ns_820kA": {
+     "B_bound_T": 143.36721836196298,
+     "dt_c_gyro_s": 9.914452844462435e-16,
+     "dt_guard_s": 1.982890568892487e-15
+    }
+   },
+   "plasma": {
+    "1e+16_m-3": 5.317772131794625e-12,
+    "1e+18_m-3": 5.317772131794625e-13,
+    "1e+20_m-3": 5.3177721317946255e-14,
+    "1e+22_m-3": 5.317772131794625e-15,
+    "1e+24_m-3": 5.317772131794625e-16
+   },
+   "single_carrier_node_density_m-3": {
+    "w=10000": 40000000000000.01,
+    "w=100000": 400000000000000.06,
+    "w=1e+06": 4000000000000000.5
+   },
+   "debye": {
+    "Te_1_eV": {
+     "n_max_resolved_m-3": 1381587339514277.8,
+     "dt_c_plasma_at_n_max_s": 1.4306735606991763e-11,
+     "lambda_D_at_1e16_m": 7.433941994700463e-05,
+     "lambda_D_at_1e18_m": 7.433941994700463e-06
+    },
+    "Te_3_eV": {
+     "n_max_resolved_m-3": 4144762018542833.5,
+     "dt_c_plasma_at_n_max_s": 8.259997653921498e-12,
+     "lambda_D_at_1e16_m": 0.00012875965235341127,
+     "lambda_D_at_1e18_m": 1.2875965235341128e-05
+    },
+    "Te_10_eV": {
+     "n_max_resolved_m-3": 1.3815873395142778e+16,
+     "dt_c_plasma_at_n_max_s": 4.524187039992555e-12,
+     "lambda_D_at_1e16_m": 0.00023508188696828833,
+     "lambda_D_at_1e18_m": 2.3508188696828835e-05
+    }
+   },
+   "implied_particle_dt": {
+    "0.75ns_6.0kA": {
+     "dt_s": 1e-14,
+     "limited_by": "particle_cap",
+     "dt_with_50keV_bound_s": 1e-14
+    },
+    "11.3ns_50kA": {
+     "dt_s": 1e-14,
+     "limited_by": "particle_cap",
+     "dt_with_50keV_bound_s": 1e-14
+    },
+    "18.5ns_100kA": {
+     "dt_s": 8.134808558881428e-15,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 8.134808558881428e-15
+    },
+    "24.6ns_150kA": {
+     "dt_s": 5.4232057059209525e-15,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 5.4232057059209525e-15
+    },
+    "peak_119ns_820kA": {
+     "dt_s": 9.914452844462435e-16,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 9.914452844462435e-16
+    }
+   },
+   "field_only_dtscan": [
+    {
+     "dt_s": 1e-14,
+     "courant": 0.014989622900000001,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 4.0,
+     "iterations_max": 4.0,
+     "step_ms_median": 3.035209,
+     "ms_per_simulated_ps": 303.5209
+    },
+    {
+     "dt_s": 2e-14,
+     "courant": 0.029979245800000002,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 4.0,
+     "iterations_max": 4.0,
+     "step_ms_median": 2.988479,
+     "ms_per_simulated_ps": 149.42395
+    },
+    {
+     "dt_s": 5e-14,
+     "courant": 0.07494811450000001,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 5.0,
+     "iterations_max": 5.0,
+     "step_ms_median": 3.189189,
+     "ms_per_simulated_ps": 63.78377999999999
+    },
+    {
+     "dt_s": 1e-13,
+     "courant": 0.14989622900000002,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 7.0,
+     "iterations_max": 7.0,
+     "step_ms_median": 3.262797,
+     "ms_per_simulated_ps": 32.62797
+    },
+    {
+     "dt_s": 2e-13,
+     "courant": 0.29979245800000004,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 9.0,
+     "iterations_max": 10.0,
+     "step_ms_median": 3.415777,
+     "ms_per_simulated_ps": 17.078885
+    },
+    {
+     "dt_s": 5e-13,
+     "courant": 0.7494811450000001,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 19.0,
+     "iterations_max": 20.0,
+     "step_ms_median": 4.022522,
+     "ms_per_simulated_ps": 8.045044
+    },
+    {
+     "dt_s": 1e-12,
+     "courant": 1.4989622900000001,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 39.0,
+     "iterations_max": 40.0,
+     "step_ms_median": 5.239403,
+     "ms_per_simulated_ps": 5.239403
+    }
+   ],
+   "field_only_max_admitted_dt_s": 1e-12,
+   "field_only_cheapest_dt_s": 1e-12
+  },
+  {
+   "spec": [
+    90,
+    4,
+    1
+   ],
+   "h_m": 9.999999999999999e-05,
+   "dz_m": 0.00625,
+   "node_volume_m3": 6.249999999999999e-11,
+   "courant_at_10fs": 0.029979245800000002,
+   "displacement": {
+    "c_light": 3.3356409519815204e-14,
+    "100_eV": 1.6863124166474292e-12,
+    "1000_eV": 5.339627933006949e-13,
+    "10000_eV": 1.7107113560899635e-13,
+    "50000_eV": 8.082754276159004e-14,
+    "guard_c_light": 6.671281903963041e-14
+   },
+   "B_per_A": {
+    "neighbourhood_bound_T_per_A": 0.000190837414070252,
+    "cell_centre_T_per_A": 0.00014688732521546023,
+    "at_current_A": 6021.665227795155,
+    "source": "measured"
+   },
+   "gyro": {
+    "0.75ns_6.0kA": {
+     "B_bound_T": 1.1473145333903552,
+     "dt_c_gyro_s": 1.238899608192987e-13,
+     "dt_guard_s": 2.477799216385974e-13
+    },
+    "11.3ns_50kA": {
+     "B_bound_T": 9.5418707035126,
+     "dt_c_gyro_s": 1.4896528888912476e-14,
+     "dt_guard_s": 2.979305777782495e-14
+    },
+    "18.5ns_100kA": {
+     "B_bound_T": 19.0837414070252,
+     "dt_c_gyro_s": 7.448264444456238e-15,
+     "dt_guard_s": 1.4896528888912476e-14
+    },
+    "24.6ns_150kA": {
+     "B_bound_T": 28.6256121105378,
+     "dt_c_gyro_s": 4.965509629637493e-15,
+     "dt_guard_s": 9.931019259274986e-15
+    },
+    "peak_119ns_820kA": {
+     "B_bound_T": 156.58209824464177,
+     "dt_c_gyro_s": 9.077714130964338e-16,
+     "dt_guard_s": 1.8155428261928675e-15
+    }
+   },
+   "plasma": {
+    "1e+16_m-3": 5.317772131794625e-12,
+    "1e+18_m-3": 5.317772131794625e-13,
+    "1e+20_m-3": 5.3177721317946255e-14,
+    "1e+22_m-3": 5.317772131794625e-15,
+    "1e+24_m-3": 5.317772131794625e-16
+   },
+   "single_carrier_node_density_m-3": {
+    "w=10000": 160000000000000.03,
+    "w=100000": 1600000000000000.2,
+    "w=1e+06": 1.6000000000000002e+16
+   },
+   "debye": {
+    "Te_1_eV": {
+     "n_max_resolved_m-3": 5526349358057111.0,
+     "dt_c_plasma_at_n_max_s": 7.1533678034958815e-12,
+     "lambda_D_at_1e16_m": 7.433941994700463e-05,
+     "lambda_D_at_1e18_m": 7.433941994700463e-06
+    },
+    "Te_3_eV": {
+     "n_max_resolved_m-3": 1.6579048074171334e+16,
+     "dt_c_plasma_at_n_max_s": 4.129998826960749e-12,
+     "lambda_D_at_1e16_m": 0.00012875965235341127,
+     "lambda_D_at_1e18_m": 1.2875965235341128e-05
+    },
+    "Te_10_eV": {
+     "n_max_resolved_m-3": 5.526349358057111e+16,
+     "dt_c_plasma_at_n_max_s": 2.2620935199962776e-12,
+     "lambda_D_at_1e16_m": 0.00023508188696828833,
+     "lambda_D_at_1e18_m": 2.3508188696828835e-05
+    }
+   },
+   "implied_particle_dt": {
+    "0.75ns_6.0kA": {
+     "dt_s": 1e-14,
+     "limited_by": "particle_cap",
+     "dt_with_50keV_bound_s": 1e-14
+    },
+    "11.3ns_50kA": {
+     "dt_s": 1e-14,
+     "limited_by": "particle_cap",
+     "dt_with_50keV_bound_s": 1e-14
+    },
+    "18.5ns_100kA": {
+     "dt_s": 7.448264444456238e-15,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 7.448264444456238e-15
+    },
+    "24.6ns_150kA": {
+     "dt_s": 4.965509629637493e-15,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 4.965509629637493e-15
+    },
+    "peak_119ns_820kA": {
+     "dt_s": 9.077714130964338e-16,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 9.077714130964338e-16
+    }
+   },
+   "field_only_dtscan": [
+    {
+     "dt_s": 1e-14,
+     "courant": 0.029979245800000002,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 4.0,
+     "iterations_max": 4.0,
+     "step_ms_median": 7.478817,
+     "ms_per_simulated_ps": 747.8817
+    },
+    {
+     "dt_s": 2e-14,
+     "courant": 0.059958491600000004,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 5.0,
+     "iterations_max": 5.0,
+     "step_ms_median": 7.776556,
+     "ms_per_simulated_ps": 388.8278
+    },
+    {
+     "dt_s": 5e-14,
+     "courant": 0.14989622900000002,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 6.0,
+     "iterations_max": 7.0,
+     "step_ms_median": 7.574127,
+     "ms_per_simulated_ps": 151.48254
+    },
+    {
+     "dt_s": 1e-13,
+     "courant": 0.29979245800000004,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 9.0,
+     "iterations_max": 10.0,
+     "step_ms_median": 7.830286,
+     "ms_per_simulated_ps": 78.30286
+    },
+    {
+     "dt_s": 2e-13,
+     "courant": 0.5995849160000001,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 15.0,
+     "iterations_max": 16.0,
+     "step_ms_median": 8.55186,
+     "ms_per_simulated_ps": 42.759299999999996
+    },
+    {
+     "dt_s": 5e-13,
+     "courant": 1.4989622900000001,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 39.0,
+     "iterations_max": 40.0,
+     "step_ms_median": 11.328052,
+     "ms_per_simulated_ps": 22.656104
+    },
+    {
+     "dt_s": 1e-12,
+     "courant": 2.9979245800000003,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 86.0,
+     "iterations_max": 86.0,
+     "step_ms_median": 16.758284,
+     "ms_per_simulated_ps": 16.758284
+    }
+   ],
+   "field_only_max_admitted_dt_s": 1e-12,
+   "field_only_cheapest_dt_s": 1e-12
+  },
+  {
+   "spec": [
+    180,
+    4,
+    1
+   ],
+   "h_m": 4.9999999999999996e-05,
+   "dz_m": 0.00625,
+   "node_volume_m3": 1.5624999999999998e-11,
+   "courant_at_10fs": 0.059958491600000004,
+   "displacement": {
+    "c_light": 1.6678204759907602e-14,
+    "100_eV": 8.431562083237146e-13,
+    "1000_eV": 2.6698139665034745e-13,
+    "10000_eV": 8.553556780449818e-14,
+    "50000_eV": 4.041377138079502e-14,
+    "guard_c_light": 3.3356409519815204e-14
+   },
+   "B_per_A": {
+    "neighbourhood_bound_T_per_A": 0.00019560992251028265,
+    "cell_centre_T_per_A": 0.0001593584873904855,
+    "at_current_A": 6018.467272020103,
+    "source": "measured"
+   },
+   "gyro": {
+    "0.75ns_6.0kA": {
+     "B_bound_T": 1.1760068541318192,
+     "dt_c_gyro_s": 1.208672824395039e-13,
+     "dt_guard_s": 2.417345648790078e-13
+    },
+    "11.3ns_50kA": {
+     "B_bound_T": 9.780496125514132,
+     "dt_c_gyro_s": 1.453308204052595e-14,
+     "dt_guard_s": 2.90661640810519e-14
+    },
+    "18.5ns_100kA": {
+     "B_bound_T": 19.560992251028264,
+     "dt_c_gyro_s": 7.266541020262974e-15,
+     "dt_guard_s": 1.453308204052595e-14
+    },
+    "24.6ns_150kA": {
+     "B_bound_T": 29.341488376542397,
+     "dt_c_gyro_s": 4.8443606801753176e-15,
+     "dt_guard_s": 9.688721360350635e-15
+    },
+    "peak_119ns_820kA": {
+     "B_bound_T": 160.49794141968692,
+     "dt_c_gyro_s": 8.856235247121237e-16,
+     "dt_guard_s": 1.7712470494242474e-15
+    }
+   },
+   "plasma": {
+    "1e+16_m-3": 5.317772131794625e-12,
+    "1e+18_m-3": 5.317772131794625e-13,
+    "1e+20_m-3": 5.3177721317946255e-14,
+    "1e+22_m-3": 5.317772131794625e-15,
+    "1e+24_m-3": 5.317772131794625e-16
+   },
+   "single_carrier_node_density_m-3": {
+    "w=10000": 640000000000000.1,
+    "w=100000": 6400000000000001.0,
+    "w=1e+06": 6.400000000000001e+16
+   },
+   "debye": {
+    "Te_1_eV": {
+     "n_max_resolved_m-3": 2.2105397432228444e+16,
+     "dt_c_plasma_at_n_max_s": 3.5766839017479408e-12,
+     "lambda_D_at_1e16_m": 7.433941994700463e-05,
+     "lambda_D_at_1e18_m": 7.433941994700463e-06
+    },
+    "Te_3_eV": {
+     "n_max_resolved_m-3": 6.6316192296685336e+16,
+     "dt_c_plasma_at_n_max_s": 2.0649994134803745e-12,
+     "lambda_D_at_1e16_m": 0.00012875965235341127,
+     "lambda_D_at_1e18_m": 1.2875965235341128e-05
+    },
+    "Te_10_eV": {
+     "n_max_resolved_m-3": 2.2105397432228445e+17,
+     "dt_c_plasma_at_n_max_s": 1.1310467599981388e-12,
+     "lambda_D_at_1e16_m": 0.00023508188696828833,
+     "lambda_D_at_1e18_m": 2.3508188696828835e-05
+    }
+   },
+   "implied_particle_dt": {
+    "0.75ns_6.0kA": {
+     "dt_s": 1e-14,
+     "limited_by": "particle_cap",
+     "dt_with_50keV_bound_s": 1e-14
+    },
+    "11.3ns_50kA": {
+     "dt_s": 1e-14,
+     "limited_by": "particle_cap",
+     "dt_with_50keV_bound_s": 1e-14
+    },
+    "18.5ns_100kA": {
+     "dt_s": 7.266541020262974e-15,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 7.266541020262974e-15
+    },
+    "24.6ns_150kA": {
+     "dt_s": 4.8443606801753176e-15,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 4.8443606801753176e-15
+    },
+    "peak_119ns_820kA": {
+     "dt_s": 8.856235247121237e-16,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 8.856235247121237e-16
+    }
+   },
+   "field_only_dtscan": [
+    {
+     "dt_s": 1e-14,
+     "courant": 0.059958491600000004,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 5.0,
+     "iterations_max": 5.0,
+     "step_ms_median": 28.804027,
+     "ms_per_simulated_ps": 2880.4027
+    },
+    {
+     "dt_s": 2e-14,
+     "courant": 0.11991698320000001,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 6.0,
+     "iterations_max": 6.0,
+     "step_ms_median": 29.150215,
+     "ms_per_simulated_ps": 1457.51075
+    },
+    {
+     "dt_s": 5e-14,
+     "courant": 0.29979245800000004,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 9.0,
+     "iterations_max": 9.0,
+     "step_ms_median": 29.970858,
+     "ms_per_simulated_ps": 599.41716
+    },
+    {
+     "dt_s": 1e-13,
+     "courant": 0.5995849160000001,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 15.0,
+     "iterations_max": 15.0,
+     "step_ms_median": 31.950485,
+     "ms_per_simulated_ps": 319.50485
+    },
+    {
+     "dt_s": 2e-13,
+     "courant": 1.1991698320000002,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 29.0,
+     "iterations_max": 31.0,
+     "step_ms_median": 36.440742,
+     "ms_per_simulated_ps": 182.20371
+    },
+    {
+     "dt_s": 5e-13,
+     "courant": 2.9979245800000003,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 81.0,
+     "iterations_max": 83.0,
+     "step_ms_median": 53.082155,
+     "ms_per_simulated_ps": 106.16431
+    },
+    {
+     "dt_s": 1e-12,
+     "courant": 5.995849160000001,
+     "steps_done": 20,
+     "refused": false,
+     "iterations_median": 173.0,
+     "iterations_max": 176.0,
+     "step_ms_median": 82.875645,
+     "ms_per_simulated_ps": 82.875645
+    }
+   ],
+   "field_only_max_admitted_dt_s": 1e-12,
+   "field_only_cheapest_dt_s": 1e-12
+  },
+  {
+   "spec": [
+    360,
+    4,
+    1
+   ],
+   "h_m": 2.4999999999999998e-05,
+   "dz_m": 0.00625,
+   "node_volume_m3": 3.9062499999999994e-12,
+   "courant_at_10fs": 0.11991698320000001,
+   "displacement": {
+    "c_light": 8.339102379953801e-15,
+    "100_eV": 4.215781041618573e-13,
+    "1000_eV": 1.3349069832517372e-13,
+    "10000_eV": 4.276778390224909e-14,
+    "50000_eV": 2.020688569039751e-14,
+    "guard_c_light": 1.6678204759907602e-14
+   },
+   "B_per_A": {
+    "neighbourhood_bound_T_per_A": 0.00019560992251028265,
+    "cell_centre_T_per_A": 0.0001593584873904855,
+    "at_current_A": null,
+    "source": "finest measured mesh (180, 4, 1)"
+   },
+   "gyro": {
+    "0.75ns_6.0kA": {
+     "B_bound_T": 1.1760068541318192,
+     "dt_c_gyro_s": 1.208672824395039e-13,
+     "dt_guard_s": 2.417345648790078e-13
+    },
+    "11.3ns_50kA": {
+     "B_bound_T": 9.780496125514132,
+     "dt_c_gyro_s": 1.453308204052595e-14,
+     "dt_guard_s": 2.90661640810519e-14
+    },
+    "18.5ns_100kA": {
+     "B_bound_T": 19.560992251028264,
+     "dt_c_gyro_s": 7.266541020262974e-15,
+     "dt_guard_s": 1.453308204052595e-14
+    },
+    "24.6ns_150kA": {
+     "B_bound_T": 29.341488376542397,
+     "dt_c_gyro_s": 4.8443606801753176e-15,
+     "dt_guard_s": 9.688721360350635e-15
+    },
+    "peak_119ns_820kA": {
+     "B_bound_T": 160.49794141968692,
+     "dt_c_gyro_s": 8.856235247121237e-16,
+     "dt_guard_s": 1.7712470494242474e-15
+    }
+   },
+   "plasma": {
+    "1e+16_m-3": 5.317772131794625e-12,
+    "1e+18_m-3": 5.317772131794625e-13,
+    "1e+20_m-3": 5.3177721317946255e-14,
+    "1e+22_m-3": 5.317772131794625e-15,
+    "1e+24_m-3": 5.317772131794625e-16
+   },
+   "single_carrier_node_density_m-3": {
+    "w=10000": 2560000000000000.5,
+    "w=100000": 2.5600000000000004e+16,
+    "w=1e+06": 2.5600000000000003e+17
+   },
+   "debye": {
+    "Te_1_eV": {
+     "n_max_resolved_m-3": 8.842158972891378e+16,
+     "dt_c_plasma_at_n_max_s": 1.7883419508739704e-12,
+     "lambda_D_at_1e16_m": 7.433941994700463e-05,
+     "lambda_D_at_1e18_m": 7.433941994700463e-06
+    },
+    "Te_3_eV": {
+     "n_max_resolved_m-3": 2.6526476918674134e+17,
+     "dt_c_plasma_at_n_max_s": 1.0324997067401872e-12,
+     "lambda_D_at_1e16_m": 0.00012875965235341127,
+     "lambda_D_at_1e18_m": 1.2875965235341128e-05
+    },
+    "Te_10_eV": {
+     "n_max_resolved_m-3": 8.842158972891378e+17,
+     "dt_c_plasma_at_n_max_s": 5.655233799990694e-13,
+     "lambda_D_at_1e16_m": 0.00023508188696828833,
+     "lambda_D_at_1e18_m": 2.3508188696828835e-05
+    }
+   },
+   "implied_particle_dt": {
+    "0.75ns_6.0kA": {
+     "dt_s": 8.339102379953801e-15,
+     "limited_by": "displacement_c",
+     "dt_with_50keV_bound_s": 1e-14
+    },
+    "11.3ns_50kA": {
+     "dt_s": 8.339102379953801e-15,
+     "limited_by": "displacement_c",
+     "dt_with_50keV_bound_s": 1e-14
+    },
+    "18.5ns_100kA": {
+     "dt_s": 7.266541020262974e-15,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 7.266541020262974e-15
+    },
+    "24.6ns_150kA": {
+     "dt_s": 4.8443606801753176e-15,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 4.8443606801753176e-15
+    },
+    "peak_119ns_820kA": {
+     "dt_s": 8.856235247121237e-16,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 8.856235247121237e-16
+    }
+   }
+  },
+  {
+   "spec": [
+    90,
+    8,
+    2
+   ],
+   "h_m": 9.999999999999999e-05,
+   "dz_m": 0.003125,
+   "node_volume_m3": 3.1249999999999995e-11,
+   "courant_at_10fs": 0.029979245800000002,
+   "displacement": {
+    "c_light": 3.3356409519815204e-14,
+    "100_eV": 1.6863124166474292e-12,
+    "1000_eV": 5.339627933006949e-13,
+    "10000_eV": 1.7107113560899635e-13,
+    "50000_eV": 8.082754276159004e-14,
+    "guard_c_light": 6.671281903963041e-14
+   },
+   "B_per_A": {
+    "neighbourhood_bound_T_per_A": 0.0002027699789984413,
+    "cell_centre_T_per_A": 0.00015065215849296483,
+    "at_current_A": 6021.665227795155,
+    "source": "measured"
+   },
+   "gyro": {
+    "0.75ns_6.0kA": {
+     "B_bound_T": 1.2190531137386291,
+     "dt_c_gyro_s": 1.1659931055277936e-13,
+     "dt_guard_s": 2.331986211055587e-13
+    },
+    "11.3ns_50kA": {
+     "B_bound_T": 10.138498949922065,
+     "dt_c_gyro_s": 1.4019901100866192e-14,
+     "dt_guard_s": 2.8039802201732383e-14
+    },
+    "18.5ns_100kA": {
+     "B_bound_T": 20.27699789984413,
+     "dt_c_gyro_s": 7.009950550433096e-15,
+     "dt_guard_s": 1.4019901100866192e-14
+    },
+    "24.6ns_150kA": {
+     "B_bound_T": 30.415496849766196,
+     "dt_c_gyro_s": 4.673300366955397e-15,
+     "dt_guard_s": 9.346600733910794e-15
+    },
+    "peak_119ns_820kA": {
+     "B_bound_T": 166.3727677682211,
+     "dt_c_gyro_s": 8.543510725695423e-16,
+     "dt_guard_s": 1.7087021451390846e-15
+    }
+   },
+   "plasma": {
+    "1e+16_m-3": 5.317772131794625e-12,
+    "1e+18_m-3": 5.317772131794625e-13,
+    "1e+20_m-3": 5.3177721317946255e-14,
+    "1e+22_m-3": 5.317772131794625e-15,
+    "1e+24_m-3": 5.317772131794625e-16
+   },
+   "single_carrier_node_density_m-3": {
+    "w=10000": 320000000000000.06,
+    "w=100000": 3200000000000000.5,
+    "w=1e+06": 3.2000000000000004e+16
+   },
+   "debye": {
+    "Te_1_eV": {
+     "n_max_resolved_m-3": 5526349358057111.0,
+     "dt_c_plasma_at_n_max_s": 7.1533678034958815e-12,
+     "lambda_D_at_1e16_m": 7.433941994700463e-05,
+     "lambda_D_at_1e18_m": 7.433941994700463e-06
+    },
+    "Te_3_eV": {
+     "n_max_resolved_m-3": 1.6579048074171334e+16,
+     "dt_c_plasma_at_n_max_s": 4.129998826960749e-12,
+     "lambda_D_at_1e16_m": 0.00012875965235341127,
+     "lambda_D_at_1e18_m": 1.2875965235341128e-05
+    },
+    "Te_10_eV": {
+     "n_max_resolved_m-3": 5.526349358057111e+16,
+     "dt_c_plasma_at_n_max_s": 2.2620935199962776e-12,
+     "lambda_D_at_1e16_m": 0.00023508188696828833,
+     "lambda_D_at_1e18_m": 2.3508188696828835e-05
+    }
+   },
+   "implied_particle_dt": {
+    "0.75ns_6.0kA": {
+     "dt_s": 1e-14,
+     "limited_by": "particle_cap",
+     "dt_with_50keV_bound_s": 1e-14
+    },
+    "11.3ns_50kA": {
+     "dt_s": 1e-14,
+     "limited_by": "particle_cap",
+     "dt_with_50keV_bound_s": 1e-14
+    },
+    "18.5ns_100kA": {
+     "dt_s": 7.009950550433096e-15,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 7.009950550433096e-15
+    },
+    "24.6ns_150kA": {
+     "dt_s": 4.673300366955397e-15,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 4.673300366955397e-15
+    },
+    "peak_119ns_820kA": {
+     "dt_s": 8.543510725695423e-16,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 8.543510725695423e-16
+    }
+   }
+  },
+  {
+   "spec": [
+    180,
+    16,
+    4
+   ],
+   "h_m": 4.9999999999999996e-05,
+   "dz_m": 0.0015625,
+   "node_volume_m3": 3.9062499999999994e-12,
+   "courant_at_10fs": 0.059958491600000004,
+   "displacement": {
+    "c_light": 1.6678204759907602e-14,
+    "100_eV": 8.431562083237146e-13,
+    "1000_eV": 2.6698139665034745e-13,
+    "10000_eV": 8.553556780449818e-14,
+    "50000_eV": 4.041377138079502e-14,
+    "guard_c_light": 3.3356409519815204e-14
+   },
+   "B_per_A": {
+    "neighbourhood_bound_T_per_A": 0.0002161395317285763,
+    "cell_centre_T_per_A": 0.00016247978631993369,
+    "at_current_A": 6016.868294132578,
+    "source": "measured"
+   },
+   "gyro": {
+    "0.75ns_6.0kA": {
+     "B_bound_T": 1.2994308647522008,
+     "dt_c_gyro_s": 1.0938692965112005e-13,
+     "dt_guard_s": 2.187738593022401e-13
+    },
+    "11.3ns_50kA": {
+     "B_bound_T": 10.806976586428815,
+     "dt_c_gyro_s": 1.3152684421250675e-14,
+     "dt_guard_s": 2.630536884250135e-14
+    },
+    "18.5ns_100kA": {
+     "B_bound_T": 21.61395317285763,
+     "dt_c_gyro_s": 6.5763422106253374e-15,
+     "dt_guard_s": 1.3152684421250675e-14
+    },
+    "24.6ns_150kA": {
+     "B_bound_T": 32.420929759286444,
+     "dt_c_gyro_s": 4.384228140416892e-15,
+     "dt_guard_s": 8.768456280833784e-15
+    },
+    "peak_119ns_820kA": {
+     "B_bound_T": 177.34248578329687,
+     "dt_c_gyro_s": 8.015042304235632e-16,
+     "dt_guard_s": 1.6030084608471264e-15
+    }
+   },
+   "plasma": {
+    "1e+16_m-3": 5.317772131794625e-12,
+    "1e+18_m-3": 5.317772131794625e-13,
+    "1e+20_m-3": 5.3177721317946255e-14,
+    "1e+22_m-3": 5.317772131794625e-15,
+    "1e+24_m-3": 5.317772131794625e-16
+   },
+   "single_carrier_node_density_m-3": {
+    "w=10000": 2560000000000000.5,
+    "w=100000": 2.5600000000000004e+16,
+    "w=1e+06": 2.5600000000000003e+17
+   },
+   "debye": {
+    "Te_1_eV": {
+     "n_max_resolved_m-3": 2.2105397432228444e+16,
+     "dt_c_plasma_at_n_max_s": 3.5766839017479408e-12,
+     "lambda_D_at_1e16_m": 7.433941994700463e-05,
+     "lambda_D_at_1e18_m": 7.433941994700463e-06
+    },
+    "Te_3_eV": {
+     "n_max_resolved_m-3": 6.6316192296685336e+16,
+     "dt_c_plasma_at_n_max_s": 2.0649994134803745e-12,
+     "lambda_D_at_1e16_m": 0.00012875965235341127,
+     "lambda_D_at_1e18_m": 1.2875965235341128e-05
+    },
+    "Te_10_eV": {
+     "n_max_resolved_m-3": 2.2105397432228445e+17,
+     "dt_c_plasma_at_n_max_s": 1.1310467599981388e-12,
+     "lambda_D_at_1e16_m": 0.00023508188696828833,
+     "lambda_D_at_1e18_m": 2.3508188696828835e-05
+    }
+   },
+   "implied_particle_dt": {
+    "0.75ns_6.0kA": {
+     "dt_s": 1e-14,
+     "limited_by": "particle_cap",
+     "dt_with_50keV_bound_s": 1e-14
+    },
+    "11.3ns_50kA": {
+     "dt_s": 1e-14,
+     "limited_by": "particle_cap",
+     "dt_with_50keV_bound_s": 1e-14
+    },
+    "18.5ns_100kA": {
+     "dt_s": 6.5763422106253374e-15,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 6.5763422106253374e-15
+    },
+    "24.6ns_150kA": {
+     "dt_s": 4.384228140416892e-15,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 4.384228140416892e-15
+    },
+    "peak_119ns_820kA": {
+     "dt_s": 8.015042304235632e-16,
+     "limited_by": "gyro",
+     "dt_with_50keV_bound_s": 8.015042304235632e-16
+    }
+   },
+   "field_only_dtscan": [
+    {
+     "dt_s": 1e-14,
+     "courant": 0.059958491600000004,
+     "steps_done": 10,
+     "refused": false,
+     "iterations_median": 5.0,
+     "iterations_max": 5.0,
+     "step_ms_median": 140.346198,
+     "ms_per_simulated_ps": 14034.619799999999
+    },
+    {
+     "dt_s": 1e-13,
+     "courant": 0.5995849160000001,
+     "steps_done": 10,
+     "refused": false,
+     "iterations_median": 15.0,
+     "iterations_max": 16.0,
+     "step_ms_median": 151.105719,
+     "ms_per_simulated_ps": 1511.0571899999998
+    },
+    {
+     "dt_s": 5e-13,
+     "courant": 2.9979245800000003,
+     "steps_done": 10,
+     "refused": false,
+     "iterations_median": 83.0,
+     "iterations_max": 85.0,
+     "step_ms_median": 238.11348,
+     "ms_per_simulated_ps": 476.22696
+    },
+    {
+     "dt_s": 1e-12,
+     "courant": 5.995849160000001,
+     "steps_done": 10,
+     "refused": false,
+     "iterations_median": 172.0,
+     "iterations_max": 178.0,
+     "step_ms_median": 350.154788,
+     "ms_per_simulated_ps": 350.154788
+    }
+   ],
+   "field_only_max_admitted_dt_s": 1e-12,
+   "field_only_cheapest_dt_s": 1e-12
+  }
+ ]
+}

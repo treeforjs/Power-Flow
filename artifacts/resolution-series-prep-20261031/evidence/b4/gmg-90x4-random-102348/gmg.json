@@ -1,0 +1,236 @@
+{
+ "compile": {
+  "arch_option": "--gpu-architecture=sm_86",
+  "device": "NVIDIA GeForce RTX 3080 Ti",
+  "image_kind": "cubin",
+  "nvrtc": "12.8",
+  "options": [
+   "--gpu-architecture=sm_86",
+   "--fmad=false",
+   "--prec-div=true",
+   "--prec-sqrt=true",
+   "--ftz=false",
+   "--std=c++17"
+  ]
+ },
+ "cpu_reference": true,
+ "gpu_hold_ms": 25554.63036,
+ "hierarchy_build_ms": 90.934172,
+ "host_rss_after_build_kB": 252924,
+ "levels": [
+  {
+   "G_nnz": 317684,
+   "K_nnz": 1924410,
+   "N_nnz": 995779,
+   "P_nnz": 274132,
+   "edges": 164346,
+   "fixed_edges": 5504,
+   "level": 0,
+   "n": 90,
+   "nodes": 57967,
+   "nz": 6,
+   "ratio_to_next": 2
+  },
+  {
+   "G_nnz": 80756,
+   "K_nnz": 988380,
+   "N_nnz": 351424,
+   "P_nnz": 80356,
+   "edges": 41676,
+   "fixed_edges": 1298,
+   "level": 1,
+   "n": 45,
+   "nodes": 14812,
+   "nz": 6,
+   "ratio_to_next": 3
+  },
+  {
+   "G_nnz": 9572,
+   "K_nnz": 112656,
+   "N_nnz": 40204,
+   "P_nnz": 9328,
+   "edges": 4896,
+   "fixed_edges": 110,
+   "level": 2,
+   "n": 15,
+   "nodes": 1792,
+   "nz": 6,
+   "ratio_to_next": 3
+  },
+  {
+   "G_nnz": 1268,
+   "K_nnz": 13452,
+   "N_nnz": 4864,
+   "P_nnz": 0,
+   "edges": 636,
+   "fixed_edges": 2,
+   "level": 3,
+   "n": 5,
+   "nodes": 252,
+   "nz": 6,
+   "ratio_to_next": 0
+  }
+ ],
+ "max_rss_kB": 587304,
+ "rhs": "random",
+ "rows": [
+  {
+   "courant_transverse": 0.029979245800000002,
+   "dt_s": 1e-14,
+   "gmg": {
+    "apply_ms": 0.08088379999999999,
+    "backend_residual": 5.076179156376654e-14,
+    "check": {
+     "independent_residual": 4.783430996788512e-14,
+     "passed": true,
+     "ratio": 0.001039370001045168,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 1,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 3,
+    "cpu_reference_ms": 25.309769,
+    "cycle_iterations": [
+     3
+    ],
+    "iterations": 3,
+    "repeat_bitwise_identical": true,
+    "solve_ms": 3.926455,
+    "target": 4.602240772755032e-11,
+    "vcycle_ms": 0.9500363999999999
+   },
+   "gpu_setup_ms": 142.895714,
+   "jacobi": {
+    "backend_residual": 5.409150589580434e-14,
+    "check": {
+     "independent_residual": 5.1976088536619495e-14,
+     "passed": true,
+     "ratio": 0.0011293648268972493,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 1,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 5,
+    "cycle_iterations": [
+     5
+    ],
+    "iterations": 5,
+    "solve_ms": 1.353813,
+    "target": 4.602240772755032e-11
+   },
+   "memory": {
+    "own_bytes_in_use": 98248438,
+    "own_peak_device_bytes": 98248438
+   },
+   "set_dt_ms": 7.03312
+  },
+  {
+   "courant_transverse": 0.29979245800000004,
+   "dt_s": 1e-13,
+   "gmg": {
+    "apply_ms": 0.0823798,
+    "backend_residual": 3.902963718019373e-13,
+    "check": {
+     "independent_residual": 3.9048288452127795e-13,
+     "passed": true,
+     "ratio": 0.008484625290204533,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 1,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 6,
+    "cpu_reference_ms": 45.641432,
+    "cycle_iterations": [
+     6
+    ],
+    "iterations": 6,
+    "repeat_bitwise_identical": true,
+    "solve_ms": 7.171416,
+    "target": 4.602240772755032e-11,
+    "vcycle_ms": 0.9547022000000001
+   },
+   "gpu_setup_ms": 147.678215,
+   "jacobi": {
+    "backend_residual": 1.4418400476679974e-12,
+    "check": {
+     "independent_residual": 1.4418200336827717e-12,
+     "passed": true,
+     "ratio": 0.031328652820996526,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 1,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 11,
+    "cycle_iterations": [
+     11
+    ],
+    "iterations": 11,
+    "solve_ms": 2.390295,
+    "target": 4.602240772755032e-11
+   },
+   "memory": {
+    "own_bytes_in_use": 98248438,
+    "own_peak_device_bytes": 98248438
+   },
+   "set_dt_ms": 6.030797
+  },
+  {
+   "courant_transverse": 2.9979245800000003,
+   "dt_s": 1e-12,
+   "gmg": {
+    "apply_ms": 0.0854618,
+    "backend_residual": 9.264549186896861e-12,
+    "check": {
+     "independent_residual": 9.264276930463116e-12,
+     "passed": true,
+     "ratio": 0.20129926676820206,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 2,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 2541,
+    "cpu_reference_ms": 19280.514274,
+    "cycle_iterations": [
+     2000,
+     541
+    ],
+    "iterations": 2541,
+    "repeat_bitwise_identical": true,
+    "solve_ms": 2677.89075,
+    "target": 4.602240772755032e-11,
+    "vcycle_ms": 6.4383286
+   },
+   "gpu_setup_ms": 145.584665,
+   "jacobi": {
+    "backend_residual": 7.2195671580827114e-12,
+    "check": {
+     "independent_residual": 7.21938870625728e-12,
+     "passed": true,
+     "ratio": 0.15686681907203975,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 1,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 89,
+    "cycle_iterations": [
+     89
+    ],
+    "iterations": 89,
+    "solve_ms": 15.387666,
+    "target": 4.602240772755032e-11
+   },
+   "memory": {
+    "own_bytes_in_use": 98248438,
+    "own_peak_device_bytes": 98248438
+   },
+   "set_dt_ms": 5.841483
+  }
+ ],
+ "schema": "resolution-series-gmg-v1",
+ "spec": [
+  90,
+  4,
+  1,
+  0.009
+ ]
+}

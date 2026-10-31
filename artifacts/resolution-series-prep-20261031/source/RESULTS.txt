@@ -1,0 +1,344 @@
+Resolution-series preparation -- results of record, 2026-10-31
+
+Machine: zenobia (Ryzen 7 9850X3D, RTX 3080 Ti 12 GB, sm_86; NVRTC 12.8 cubin, --fmad=false --prec-div=true --prec-sqrt=true
+--ftz=false), one core per run (6/7 via any-core.sh or SimQueue; CPU-only work on lent cores 0/1/3), inside run-frozen.
+Outputs (receipts next to every run): /home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/ (abbreviated OUT).
+Hall = sealed Hall corrective v3.1 (runtimes/hall-corrective-v3.1-20261031), read in place and unchanged.
+
+0. Findings in short
+  F1 Hall v3.1 admits the 200, 100 and 50 um meshes but refuses the 25 um mesh (360x4+1) at construction: the DC seed's
+     Coulomb-gauge vector-potential solve fails its independent residual check ("DC Coulomb vector: field solve independent
+     residual failed"). This is not an iteration limit: the evaluation error of the double-precision residual itself is 2.3e-13
+     of ||b|| at 25 um, above the 2e-13 target; six further correction cycles stall at 3.07e-13. No preconditioner can pass this
+     check; the seed needs a Hall-side change (section 3.2). 360x8+2 is refused the same way.
+  F2 The resident field step costs 2.8 / 8.6 / 32 ms per 10 fs step at 200 / 100 / 50 um (about 4x per halving, linear in edges),
+     ~119 ms at 25 um (112 ms measured on the 2.4M-edge proxy 180x16+4 with the same metal cells). The host independent residual (sealed x87 sequential norm) is 0.5 / 2.3 / 10.5 ms of it and
+     grows with the edges; it and the host total-field digests are the parts that do not move to the device in v3.1.
+  F3 Jacobi PCG iterations grow with the Courant number c dt/h (about 29 C for C >= 1): at dt = 10 fs only 4-5 iterations on every
+     mesh, but the resident maxit of 200 caps particle-free steps at about 1 ps on 50 um and about 0.55 ps on 25 um. The GMG
+     prototype keeps 20 iterations at 1 ps and 29-31 at 2 ps independently of h (100/50/25 um), meets the independent residual
+     criterion, is bitwise reproducible and CPU/GPU bit-identical (section 4).
+  F4 Device memory of the resident field is 887-901 bytes per edge (allocation model = measured peak, exactly): 2.31 GB at 25 um,
+     not the ~200 B/edge assumed in PLAN.md section 2 (which gave ~60M edges on 12 GB; the real figure is ~11M edges on 12 GB and
+     ~25M on 24 GB). Isotropic refinement in z is out of reach (50 um: 47.5 GB; 25 um: 379 GB).
+  F5 The absolute Gauss allowance drift (Hall v3.1 RESULTS section 6) grows faster on finer meshes: worst per-node ratio rate
+     1.5e9, 3.8e9, 6.1e9 per second at 200/100/50 um in the first 4-10 ps (linear projection to refusal 1.40, 1.01, 0.91 ns;
+     the 200 um run of record refused at 1.236 ns). No pre-run or coupled window past ~1 ns is possible on any series mesh before
+     Hall v3.2's accumulated allowance.
+  F6 Time step: at the 10-25 ns window currents (50-150 kA) the gyro criterion (c_gyro 0.025, |B| bound 1.75-1.96e-4 T per A)
+     limits particle steps to 14.5 / 7.3 / 4.8 fs at 50 / 100 / 150 kA on every mesh, and the displacement criterion for
+     relativistic electrons to 8.3 fs at 25 um. Debye resolution at 3 eV holds up to 4.1e15 / 1.7e16 / 6.6e16 / 2.7e17 m^-3
+     on 200 / 100 / 50 / 25 um.
+  F7 Macroparticle control: the merge/split component conserves count and charge exactly and books momentum/energy residuals
+     exactly; byte-identical over 1/2/5/8 partitions; CPU/GPU bit-identical on 2e6 carriers (merge-split/RESULTS.txt).
+  F8 Per-carrier host work dominates every series member with >= 1e5 carriers per species with today's code: the closed Hall
+     step alone costs 5.6-6.0 us per carrier on every mesh, the coordinator ~15 us more (section 7). The mesh-dependent coupled
+     floor is 10 / 35 / 142 ms on 200 / 100 / 50 um and 636 ms on the 2.4M-edge proxy of 25 um (3 fixed-point iterates, each
+     with a host independent residual and host total-field digests).
+  F9 Box size (circuit finding: the 9 mm box underestimates the port inductance): graded meshes with the stated cell size over
+     the 9 mm core (foils, gap, kinetic box) and cells growing by 1.1 per cell to 35 or 45 mm reproduce the uniform-box DC
+     port inductance to 0.03 % (200 um: 16.044 nH at 35 mm, 16.148 nH at 45 mm; uniform 16.047 / 16.151) at 6-15x fewer edges;
+     45 mm is within 0.7 % of a 90 mm box (16.264 nH) and the mesh dependence at 45 mm is +1.0 % (100 um, 16.311 nH) and +0.26 %
+     more (50 um, 16.353 nH). Graded 25 um to 45 mm: 4.03M edges, 3.57 GB resident (fits 12 GB). Hall v3.1 runs only uniform
+     meshes: it admits the large uniform boxes at 200 um (n = 175/225) and 100 um (n <= 500) but not 50/25 um (n > 500, and
+     ~15 GB / ~60 GB); graded boxes need a Hall version with per-index transverse coordinates and a kinetic box decoupled from the
+     field box (section 1b).
+
+1. Meshes (meshes/*.json, meshes/SIZES.json; OUT/b1/mesh-report-095958/mesh-report.json)
+  Hall's mesh input is MeshSpec{transverse, axial, air, width} (field_contract.hpp); the sealed constructor builds the Yee complex.
+  Series (width 9 mm, 4 axial foil cells of 6.25 mm, 1 air cell per end, short plane z = -12.5 mm, feed port z = +12.5 mm):
+   name          MeshSpec        h      nodes      edges      faces      cells    metal cells  dz/dx  device (resident)  pinned host
+   mesh-200um    {45,4,1}     200 um     14,812     41,676     39,015     12,150       200      31.3     37.6 MB            5.6 MB
+   mesh-100um    {90,4,1}     100 um     57,967    164,346    154,980     48,600       800      62.5    146.3 MB           20.6 MB
+   mesh-50um     {180,4,1}     50 um    229,327    652,686    617,760    194,400     3,200     125     579.4 MB           80.1 MB
+   mesh-25um     {360,4,1}     25 um    912,247  2,601,366  2,466,720    777,600    12,800     250    2,307.9 MB          317 MB
+  Axial variants (outer box unchanged: air = axial/4): {90,8,2} 312,312 edges (279 MB, admitted); {180,16,4} 2,415,264 edges
+  (2.16 GB, admitted; the size proxy of mesh-25um); {360,8,2} 4.94M edges (4.41 GB; refused, F1); {360,16,4} 9.63M (8.6 GB);
+  {360,32,8} 19.0M (17.0 GB, only on 24 GB); isotropic z at 50 um 52.9M edges (47.5 GB), at 25 um 422M edges (379 GB).
+  Resolution of the features: foil thickness 1/2/4/8 cells, gap and foil width 25/50/100/200 cells, foil height 4 cells.
+  Quality (every constructed mesh): foil faces aligned to node planes to <= 1.4e-14 cells (Hall admits < 1e-8); sum of cell volumes,
+  node dual volumes and edge/face dual volumes (3 x box) equal to the box to <= 6.3e-15 relative; metal volume = 2 x 5 mm x
+  0.2 mm x 25 mm to 2.0e-16; feed contact quadrature normalized (feed shape sums to -0.0052 m on every mesh, to 2e-18); M, H and
+  node volumes positive; every face has 4 edges and every cell 12 distinct edges; discrete curl(grad) and div(curl) vanish to
+  <= 6.7e-16 and <= 4.4e-16 relative; feed edges 702 / 2,754 / 10,908 / 43,416.
+  Geometry identity across resolutions (bitwise): the node coordinates of the foil faces (x = +-2.5 mm: 0x3f647ae147ae147a,
+  y = +-2.5 mm, y = -2.7 mm: 0xbf661e4f765fd8ad, +2.7 mm: 0x3f661e4f765fd8ae), of the short plane (0xbf8999999999999b) and of
+  the feed port (0x3f89999999999998) are identical on all six meshes; the short plane and port node coordinates are -12.5 mm and
+  +12.5 mm minus one ulp (the literal is 0xbf8999999999999a), identically on every mesh. The kinetic geometry (GapPicOptions foils,
+  short/feed z, box) is bitwise identical (sha256 4208556c...).
+  Device memory: the allocation model of gpu::ResidentField (meshes/size_table.py, field_scaling.cpp resident_bytes) equals the
+  measured own peak device bytes of every resident run exactly (37,568,828 / 146,301,044 / 579,368,984 B). The Hall v3.1 tests
+  compute the resident descriptor on the same device session with a full ResidentField; buffers are released only at session
+  close, so that pattern doubles the footprint (the 75 MB of Hall RESULTS = 2 x 37.6 MB); the drivers here use a separate probe
+  session on the 45-cell mesh.
+  Carriers that fit next to the resident field (GPU push ~1.4 kB per carrier, 400 MB context): 3080 Ti with 1.7 GB used by others
+  6.6M (50 um) / 5.4M (25 um); RTX PRO 4000 Blackwell 24 GB 15.6M / 14.3M (the push engine allows at most 25e6).
+
+1b. Graded-box meshes (graded/graded_mesh.hpp, meshes/graded-*.json, GRADED-INDEX.json; OUT/b11/graded-*)
+  Construction: the Hall axial Yee complex with per-index transverse coordinates; uniform core of cell h over |x|, |y| <= 4.5 mm
+  (the kinetic box: foils, gap, every point a carrier can reach; core node coordinates i dx - 4.5 mm exactly as Hall), outer
+  cells growing by q per cell (cap ~2 mm, the last cell ends on the box); axial as Hall (4 x 6.25 mm + 1 air cell per end).
+  With the box equal to the core the operators, the feed shape and the DC seed field B are bitwise equal to the sealed Hall mesh
+  and dc_initial (OUT/b10/graded-dc-200-validate); with q = 1 and a 35/45 mm box it gives the same port inductance as the sealed
+  Hall Model on the uniform box (16.0471 / 16.1514 nH, OUT/b11/admit-175x4-w35, admit-225x4-w45).
+   core h  box     q    n (transverse)  nodes       edges       resident device   largest cell
+   200 um  35 mm   1.1   85             51,772      146,716      0.13 GB          1.75 mm
+   200 um  45 mm   1.1   91             59,248      167,992      0.15 GB          2.29 mm
+   100 um  35 mm   1.1  144            147,175      418,470      0.37 GB          1.19 mm
+   100 um  45 mm   1.1  150            159,607      453,906      0.40 GB          1.65 mm
+    50 um  35 mm   1.1  248            434,007    1,236,534      1.10 GB          1.16 mm
+    50 um  45 mm   1.1  254            455,175    1,296,930      1.15 GB          1.55 mm
+    25 um  35 mm   1.1  442          1,373,743    3,918,778      3.48 GB          1.13 mm
+    25 um  45 mm   1.1  448          1,411,207    4,025,734      3.57 GB          1.71 mm
+   (q = 1.2: 25 um / 45 mm 3.44M edges, 3.05 GB.) Uniform boxes for comparison: 200 um 45 mm 1.07M edges (0.90 GB, measured
+   33.1 ms per vacuum step), 25 um 45 mm 68M edges (~61 GB).
+  DC port inductance L = 2 W_B / I^2 of the DC seed (C19 first knot, 6012 A), 200 um core, q = 1.1 unless noted:
+   box    9 mm     12.6     18       27       34.6     35       45       45.4     60       90 mm
+   L nH   11.045   13.797   15.190   15.853   16.037   16.044   16.148   16.151   16.216   16.264
+   uniform (sealed Hall / circuit study): 9 mm 11.045, 12.6 mm 13.799, 27 mm 15.856, 34.6 mm 16.041, 35 mm 16.047, 45 mm 16.151,
+   45.4 mm 16.154. Grading: 45 mm with q = 1.05 16.150, q = 1.2 16.143, cap 1 mm 16.148 (spread 0.05 %).
+   Mesh dependence at 45 mm: 200 um 16.148, 100 um 16.311, 50 um 16.353 nH (the 50 um Coulomb-gauge solve stops at its
+   true-residual floor, 3 cycles not converged to 2e-13, the inductance is unaffected at this level); at 9 mm 11.045 -> 11.208
+   (100 um). Converged in box and mesh: ~16.4-16.5 nH (45 mm is 0.7 % below 90 mm; mesh 200 -> 50 um +1.3 %).
+  Cost: the outer region adds no metal and no carriers; a vacuum step costs the 9 mm step plus ~15 ms per million extra edges and
+  faces (measured on the uniform 200 um boxes: 2.85 / 21.8 / 33.1 ms at 9 / 35 / 45 mm), i.e. graded 45 mm: 6.5 / 16.6 / 51 /
+  160 ms per field-only step at 200 / 100 / 50 / 25 um (run matrix "Box variants").
+  What a Hall version needs to run them: MeshSpec with transverse coordinates (or core h, box, q, cap) in the mesh record and the
+  configuration identity; Mesh with per-index lengths (the operators above); the resident kernels use per-element lengths already
+  except the divB guard and the cell-centre |B| (ctx dx, dy, dz); the DC seed (and its accuracy floor, section 3.2, which the
+  large cells worsen: the 50 um / 45 mm vector solve did not reach 2e-13); the kinetic geometry: GapPicOptions (width_m = gap_m =
+  mesh side, nx = ny = n) ties the kinetic box and the native grid to the field mesh, so the kinetic box (9 mm) and the field box
+  (35-45 mm) must be separate, with escape at the kinetic box; the source/thermal slices are unaffected (foil region unchanged).
+
+2. Hall v3.1 admission per mesh (OUT/b1/admit-*, OUT/b3/admit-*; Model(MeshSpec, trace), cpu-pcg identity)
+   mesh          admitted  Model construct  DC vacuum scalar (its/cycle)  DC Coulomb vector (its/cycle)    max RSS
+   {45,4,1}      yes        0.2 s            313                           270                             32 MB
+   {90,4,1}      yes        2.9 s            622                           537 + 2                         88 MB
+   {180,4,1}     yes       17.8 s           1226                          1072 + 6                        304 MB
+   {360,4,1}     REFUSED  164 s             2405                          2146 + 21 + 5 (not converged)  1.18 GB
+   {90,8,2}      yes        6.5 s            700                           664 + 3                        157 MB
+   {180,16,4}    yes       69.4 s           1331                          1259 + 6                        1.11 GB
+   {360,8,2}     REFUSED  322 s             2700                          2648 + 21 + 6 (not converged)  2.22 GB
+  The instrumented copy of the DC seed (admit mode) gives E and B bitwise equal to the Model's initial fields on every admitted mesh.
+  Iterations double per halving of h (Jacobi PCG on Poisson-type operators); the seed runs once per process (each run start or
+  restart): 18 s at 50 um.
+
+3. Field-only scaling of the sealed resident path
+ 3.1 Vacuum step, dt = 10 fs from the DC seed at 0.749788 ns (OUT/b1/gpu-vacuum-*/gpu-vacuum.json; median ms per step)
+   mesh        steps  ms/step  prepare  preflight  CG its  host residual  device front*  max res/target  RSS     device peak
+   {45,4,1}    1000    2.85     2.10     0.68      3-4      0.52           0.61           0.199           294 MB   37.6 MB
+   {90,4,1}     600    8.60     6.55     1.59      4        2.26           1.56           0.012           396 MB  146.3 MB
+   {180,4,1}    400   32.3     26.4      5.76      4-5     10.5            4.91           0.198           834 MB  579.4 MB
+   {360,4,1}    not admitted (F1); size proxies below
+   {90,8,2}     600   13.6     10.6      2.66      4        -              -              0.012           535 MB  279.0 MB
+   {180,16,4}   300  112.4     91.5     20.7       5        -              -              0.199          2.45 GB  2161 MB
+   {175,4,1} 35 mm box (200 um)  300  21.8   17.0   4.97   3-4                          -              801 MB   547.7 MB
+   {225,4,1} 45 mm box (200 um)  300  33.1   25.0   7.80   3-4                          -              1.16 GB  903.6 MB
+   ({180,16,4} has the 25 um T-series' metal cells (12,800) and 93 % of its edges + faces: the 25 um field-only step is
+   estimated at ~119 ms. The DC seed of {180,16,4} takes 63-69 s per process.)
+   * "solve" host timer of the resident prepare: operator, continuity and admission of the old state, rhs, device CG, rhs/x download.
+   Guards on every step: divB/bound <= 0.0035, energy/bound <= 2.2e-6, |field-heat balance| <= 3.5e-15 J. The 200 um run reproduces
+   the Hall v3.1 record (2.80 ms/step, max residual/target 0.1985, divB/bound 0.003457).
+   |B| at the end (~6.02 kA): v7-style neighbourhood bound 1.053 / 1.149 / 1.177 T (cell-centre max 0.805 / 0.885 / 0.959 T): per
+   ampere 1.747e-4, 1.908e-4, 1.956e-4 T/A, converging (+9 %, +2.5 %); the foil edges are resolved by 50 um.
+   Absolute Gauss: worst per-node defect/bound 0.010 -> 0.025 (200 um, 10 ps), 0.0063 -> 0.029 (100 um, 6 ps), 0.0051 -> 0.029
+   (50 um, 4 ps): F5.
+ 3.2 Why 25 um is refused and what would admit it (OUT/b3/dc-floor-*/dc-floor.json)
+   Coulomb-gauge vector solve, relative to ||b||:     200 um     100 um     50 um      25 um
+     true residual after the sealed 3 cycles           7.5e-14    4.7e-14    1.5e-13    4.2e-13 (target 2e-13)
+     after further cycles (3; 6 at 25 um)               3.0e-14    3.8e-14    8.5e-14    3.07e-13 (stalled)
+     evaluation error of the double apply at x          4.7e-15    1.6e-14    6.1e-14    2.3e-13
+     eps/2 x || |A| |x| ||                              2.1e-14    6.8e-14    2.5e-13    9.7e-13
+     residual with a long-double apply                  3.0e-14    3.6e-14    8.0e-14    2.9e-13
+   The rounding noise of evaluating b - A x in binary64 grows ~3.7x per halving of h (|| |A||x| ||/||b|| = 190, 615, 2270, 8750,
+   the anisotropic dz/dx = 31-250 Coulomb-gauge operator) and reaches the 2e-13 target at 25 um. The scalar (vacuum potential)
+   solve keeps an error of 1.4e-16 and passes everywhere. Options for a Hall version (none is a change of the field-step contract):
+   (a) evaluate the seed's residual and CG updates in double-word arithmetic (Words already exist in Hall), (b) state the seed
+   criterion as a normwise backward error ||b - A x|| <= 2e-13 (||A|| ||x|| + ||b||), (c) compute the seed's B by a better
+   conditioned route (e.g. the DC magnetostatic field from the conductor current without the gauge penalty). A preconditioner
+   shortens the 2,000-iteration solves (3 min at 25 um) but does not remove the floor.
+ 3.3 CG iterations and time versus dt (field-only, sealed resident path, 20 steps per dt; OUT/b1/gpu-dtscan-*)
+   dt        200 um: C   its  ms/step    100 um: C   its  ms/step    50 um: C   its  ms/step
+   10 fs          0.015    4    3.04          0.03    4    7.48         0.06    5   28.8
+   100 fs         0.15     7    3.26          0.30    9    7.83         0.60   15   32.0
+   500 fs         0.75    19    4.02          1.5    39   11.3          3.0    81   53.1
+   1 ps           1.5     39    5.24          3.0    86   16.8          6.0   173   82.9
+   Iterations ~29 C for C >= 1; the resident maxit is 200, so 25 um (C = 12 at 1 ps) is limited to about 0.55 ps per particle-free
+   step (Jacobi on the 25 um operator measured with the prototype's PCG: 179 its at 0.5 ps, 355 at 1 ps, 703 at 2 ps).
+
+ 3.4 Closed coupled Hall step with the GPU push (no native/chemistry), dt = 10 fs, co-located e-/H2O+ pairs (1-300 eV
+   electrons, weight 1e3); OUT/b9/gpu-coupled-*; median ms per step
+   mesh          2 carriers   1e4      1e5     per carrier   fixed-point its   field prepare (all its)   preflight   device peak
+                                                               (2 carriers / largest run in each pair of columns)
+   {45,4,1}        10.3        67.9    567       5.6 us          2 / 3            3.1 / 5.3                 2.2 / 71     40 / 208 MB
+   {90,4,1}        35.2        99.7    594       5.6 us          2 / 3            9.7 / 15.9                7.5 / 78    156 / 324 MB
+   {180,4,1}      141.9       236.2    736       5.9 us          2 / 3           41.4 / 66.5               29.3 / 101   617 / 784 MB
+   {180,16,4}     635.9       695.9      -       6.0 us          3 / 3          207 / 214                 104 / 112   2297 / 2314 MB
+   The 200 um values reproduce Hall v3.1 RESULTS (10.2 / 66.9 / 541 ms). At 1e5 carriers the per-carrier host work is the
+   v2 JSON seal + v3 record (230-252 ms), the deposit support (140-143 ms), motion (73-86 ms) and census admission (23-27 ms):
+   the same on every mesh. The mesh-dependent floor grows faster than the vacuum step (coupled / vacuum 3.6, 4.1, 4.4, 5.7)
+   because every fixed-point iterate repeats the field prepare, the host independent residual and the host total-field digest.
+
+4. Deterministic GMG preconditioner (precond/; OUT/b5, OUT/b6 gmg-*; GPU: my PCG kernels with host scalar read-back per iteration)
+  Design: CG on Hall's scaled operator A = M^-1/2 K M^-1/2, K = M + dt/2 (S+Y) + dt^2/4 C^T H C, with the Hall gpu1 stopping rule;
+  preconditioner = one symmetric V-cycle on K: x-y semi-coarsening (factor 2, or 3 for odd counts: 360-180-90-45-15-5), axial cells
+  kept; lowest-order edge-element prolongation commuting with the gradient; Galerkin coarse operators stored as three parts (mass,
+  conduction+admittance, curl-curl) so a dt change is a linear combination; Hiptmair hybrid smoother (l1-Jacobi on K, then l1-Jacobi
+  on G^T K G mapped back with G; G with phi = 0 on the PEC short nodes), pre (edge, node), post (node, edge); coarsest level 4+4
+  sweeps. Every product is a CSR row loop in ascending column order compiled identically for the host and NVRTC (gmg_core.h);
+  dot products use the fixed TPB 256 x NBLK 512 tree that the CPU reference reproduces; no atomics. Acceptance: the Hall v3.1
+  HostApply (bitwise the sealed apply) and foil::norm against max(1e-30, 2e-13 ||b||).
+  Results (random right-hand side unless noted; ms = whole solve on the GPU):
+   mesh         dt      C      Jacobi its   ms       GMG its   ms      V-cycle   independent residual / target (J / G)
+   100 um       1 ps    3.0       89        15.2       19       22.5     0.98 ms   0.16 / 0.10
+                2 ps    6.0      178        30.1       31       34.6
+   50 um        1 ps    6.0      178        86.6       20       75.0     3.2 ms    0.21 / 0.07
+                2 ps   12.0      353       168         30      114
+   50 um phys.  1 ps    6.0      171        87.3       20       74.8               0.17 / 0.06   (Hall vacuum-step rhs)
+   25 um        10 fs   0.12       7        20.5        4       64.4    12.7 ms   0.02 / 0.001
+                100 fs  1.2       34        64.8       14      208
+                500 fs  6.0      179       312         20      294
+                1 ps   12.0      355       614         20      294               0.35 / 0.13
+                2 ps   24.0      703      1209         29      424               0.24 / 0.39
+   25 um smooth 1 ps   12.0      281       485         15      222               0.20 / 0.16   (smooth field rhs, OUT/b9)
+                2 ps   24.0      554       949         24      351               0.19 / 0.10
+  GMG iterations are independent of h (20 at 1 ps on 100/50/25 um); with 2 sweeps per level 14 at 1 ps (no faster in time).
+  At the coupled dt (<= 10 fs) Jacobi is cheaper; GMG pays off for particle-free steps above ~0.5 ps (2.1x at 1 ps, 2.9x at 2 ps on
+  25 um) and removes the maxit limit. Determinism: repeat solves bitwise identical on every mesh and dt; CPU reference = GPU bit for
+  bit on 100 um and 50 um (all dt, both preconditioners). Setup on the host: 1.8 s, 4.7 GB RSS at 25 um (device 1.6 GB; set_dt
+  0.17 s). The V-cycle kernels are unfused prototypes (launch-bound on the coarse levels); per Jacobi iteration this PCG costs
+  0.48 ms at 50 um against 0.32 ms in Hall's batched device CG (host scalar read-back every iteration here), so the ratios above
+  are the meaningful numbers.
+  Integration (Hall-side, for a later version): as a resident solve mode selected when C exceeds ~3 (particle-free steps), descriptor
+  (algorithm text, kernel sha256, levels, sweeps) bound into the configuration identity like the gpu1 backend; the hierarchy rebuilt
+  when sigma(T) drifts (it is a preconditioner, any fixed SPD choice is valid; the independent check is unchanged).
+
+5. Time step per mesh (timestep/dt_limits.py; OUT/dt-limits/dt-limits.txt; coordinator v7 factors c_disp 0.1, c_gyro 0.025,
+  c_plasma 0.03; Hall guards 0.2 cell, 0.05, 0.1; particle cap 10 fs while carriers exist (neutral stream and electrode-heat source
+  owner literals))
+   mesh     Courant(10 fs)  displacement c_disp h/v: v=c, 50 keV, 1 keV     gyro dt at 6 / 50 / 100 / 150 kA         implied particle dt
+   200 um   0.015           66.7 fs, 162 fs, 1.07 ps                    135 / 16.3 / 8.1 / 5.4 fs                10 / 10 / 8.1 / 5.4 fs
+   100 um   0.030           33.4 fs,  81 fs, 534 fs                     124 / 14.9 / 7.5 / 5.0 fs                10 / 10 / 7.5 / 5.0 fs
+   50 um    0.060           16.7 fs,  40 fs, 267 fs                     121 / 14.5 / 7.3 / 4.8 fs                10 / 10 / 7.3 / 4.8 fs
+   25 um    0.120            8.3 fs,  20 fs, 133 fs                     121 / 14.5 / 7.3 / 4.8 fs (50 um |B|)    8.3 / 8.3 / 7.3 / 4.8 fs
+  Axial refinement raises the |B| bound near the foil edges: 180x16+4 gives 2.16e-4 T/A (gyro dt 4.4 fs at 150 kA, 6.6 fs at
+  100 kA), 90x8+2 2.03e-4 T/A, against 1.96e-4 / 1.91e-4 on the 4-axial-cell meshes.
+  Plasma (c_plasma / omega_p): 5.3 ps at 1e16, 532 fs at 1e18, 53 fs at 1e20, 5.3 fs at 1e22, 0.53 fs at 1e24 m^-3 (mesh-independent
+  for a given density; one carrier of weight w in one interior node is a density w/V_node: w = 1e6 gives 4e15 / 1.6e16 / 6.4e16 /
+  2.6e17 m^-3 on 200/100/50/25 um, i.e. at 25 um a single w0 = 1e6 carrier is a Debye-scale spike at 3 eV; weights must fall with
+  the node volume to keep the particles per cell).
+  Debye length at 3 eV: 129 um at 1e16, 12.9 um at 1e18 m^-3; resolved (lambda_D >= h) up to 4.1e15 / 1.7e16 / 6.6e16 / 2.7e17 m^-3
+  at 3 eV (x1/3 at 1 eV, x3.3 at 10 eV) on 200/100/50/25 um.
+  Field-only (particle-free) steps: 1 ps admitted up to 50 um with Jacobi (173 its at 50 um), ~0.55 ps at 25 um; field accuracy
+  from Hall v3.1 RESULTS section 7 (0.05 % voltage error at 100 fs, 0.5 % at 1 ps) and the v7 LTE bound (14-26 fs at lte_tol 1e-8).
+  PLAN.md section 8 omega_p numbers are the corrected ones (5.6e-4 at 1e12 cm^-3 for 10 fs).
+
+6. Macroparticle control: merge-split/RESULTS.txt and merge-split/INTEGRATION.txt (summary in section 0, F7).
+
+7. Run matrix (runmatrix/run_matrix.py, inputs runmatrix/inputs.json; generated table runmatrix/RUN-MATRIX.txt and
+   OUT/runmatrix/run-matrix.json with every assumption)
+  Members: mesh {200, 100, 50, 25 um} x carriers per species {1e4, 1e5, 1e6} (3 species: e-, H2O+, neutral H2O; weight set by
+  merge/split control) x dt {controller dt, dt/2}. Window: Hall-only particle-free pre-run 0.75 ns -> T_on = 10 ns (about 42 kA),
+  then a 2 ns coupled window (the gyro limit at 50 kA allows 14.5 fs, so dt = 10 fs particle cap on 200-50 um and 8.3 fs on
+  25 um (displacement of relativistic electrons); breakdown densities above 1e22 m^-3 force c_plasma steps below 5.3 fs and
+  multiply the step counts accordingly).
+  Per-step cost model (current code): measured closed Hall step (2 carriers) and its per-carrier slope per mesh (gpu-coupled runs,
+  25 um from the 180x16+4 size proxy), plus the coordinator's non-Hall part from coordinator v6.1 (22.3 ms at 200 um, of which
+  2.8 ms scales with edges + faces) and ~15 us per carrier of non-Hall host work (coordinator v7 controller cost note). Projected
+  code: the device-side part of the measured step (host independent residual and host digests moved to the device), 15 ms
+  coordinator floor, 1 us per carrier in total (native v8 binary exact sums, device deposits/digests). Station: device-bound half
+  of the step x 1.36 (memory-bandwidth ratio 912/672 GB/s), host single-thread equal. Memory: resident field (exact model) +
+  1.4 kB per carrier on the device (push engine) + 0.4 GB context; host: run RSS + 5 kB per carrier (Hall CarrierLimits 4 kB +
+  native/coordinator rows).
+  Members (per member, 2 ns coupled window; cur = current code, proj = projected code; stat = projected on the station):
+   h     N/species  dt      dt fs  ppc    steps    device GB  host GB  ms/step cur  h cur     ms/step proj  h proj  h stat
+   200   1e+04      dt      10.00    4.0    2e+05      0.50     0.45         652      36.2          53      3.0     3.5
+   200   1e+04      dt/2     5.00    4.0    4e+05      0.50     0.45         652      72.5          53      5.9     7.0
+   200   1e+05      dt      10.00   40.0    2e+05      0.88     1.84        6205       345         323     18.0    21.2
+   200   1e+05      dt/2     5.00   40.0    4e+05      0.88     1.84        6205       689         323     35.9    42.3
+   200   1e+06      dt      10.00  400.0    2e+05      4.66    15.66       61727  3.43e+03        3023    168.0   198.0
+   200   1e+06      dt/2     5.00  400.0    4e+05      4.66    15.66       61727  6.86e+03        3023    335.9   395.9
+   100   1e+04      dt      10.00    1.0    2e+05      0.61     0.56         686      38.1          70      3.9     4.6
+   100   1e+04      dt/2     5.00    1.0    4e+05      0.61     0.56         686      76.2          70      7.8     9.2
+   100   1e+05      dt      10.00   10.0    2e+05      0.99     1.94        6245       347         340     18.9    22.3
+   100   1e+05      dt/2     5.00   10.0    4e+05      0.99     1.94        6245       694         340     37.8    44.6
+   100   1e+06      dt      10.00  100.0    2e+05      4.77    15.77       61834  3.44e+03        3040    168.9   199.1
+   100   1e+06      dt/2     5.00  100.0    4e+05      4.77    15.77       61834  6.87e+03        3040    337.8   398.2
+   50    1e+04      dt      10.00    0.2    2e+05      1.04     1.01         836      46.5         140      7.8     9.2
+   50    1e+04      dt/2     5.00    0.2    4e+05      1.04     1.01         836      92.9         140     15.6    18.4
+   50    1e+05      dt      10.00    2.5    2e+05      1.42     2.39        6490       361         410     22.8    26.9
+   50    1e+05      dt/2     5.00    2.5    4e+05      1.42     2.39        6490       721         410     45.6    53.7
+   50    1e+06      dt      10.00   25.0    2e+05      5.20    16.21       63026   3.5e+03        3110    172.8   203.7
+   50    1e+06      dt/2     5.00   25.0    4e+05      5.20    16.21       63026     7e+03        3110    345.6   407.3
+   25    1e+04      dt       8.34    0.1  2.4e+05      2.77     2.80        1501       100         520     34.6    40.8
+   25    1e+04      dt/2     4.17    0.1  4.8e+05      2.77     2.80        1501       200         520     69.2    81.6
+   25    1e+05      dt       8.34    0.6  2.4e+05      3.15     4.19        7172       478         790     52.6    62.0
+   25    1e+05      dt/2     4.17    0.6  4.8e+05      3.15     4.19        7172       956         790    105.2   124.0
+   25    1e+06      dt       8.34    6.2  2.4e+05      6.93    18.01       63877  4.26e+03        3490    232.5   274.0
+   25    1e+06      dt/2     4.17    6.2  4.8e+05      6.93    18.01       63877  8.51e+03        3490    464.9   548.0
+  Pre-runs 0.75 -> 10 ns (field-only): 10 fs: 0.7 / 2.1 / 8.2 / 30.5 h; best admitted dt: 0.01 / 0.04 / 0.21 / 1.06 h (25 um: Jacobi 0.5 ps 1.8 h, GMG 1 ps 1.1 h).
+  Minimal series (mesh series at 1e5/species; 50 um at 1e4 and 1e6; 50 um 1e5 at dt/2; 7 members): coupled windows
+  3501 h with the current code on zenobia (2 lanes), 173 h projected on zenobia, 204 h projected on the station (6 lanes,
+  bounded by the single longest member, 50 um / 1e6); pre-runs 1.3 h in total at the best admitted dt.
+  Box variants (graded 35 / 45 mm, q = 1.1), 1e5 carriers per species: ms per step current / projected and hours per 2 ns window:
+   200 um 35 mm: 6223 /   330 ms,  346 /  18.3 h; field-only step   5.8 ms; device 0.97 GB
+   200 um 45 mm: 6227 /   332 ms,  346 /  18.4 h; field-only step   6.5 ms; device 0.99 GB
+   100 um 35 mm: 6294 /   360 ms,  350 /  20.0 h; field-only step  15.6 ms; device 1.21 GB
+   100 um 45 mm: 6301 /   362 ms,  350 /  20.1 h; field-only step  16.6 ms; device 1.24 GB
+    50 um 35 mm: 6605 /   456 ms,  367 /  25.3 h; field-only step  49.2 ms; device 1.94 GB
+    50 um 45 mm: 6617 /   460 ms,  368 /  25.6 h; field-only step  50.9 ms; device 1.99 GB
+    25 um 35 mm: 7479 /   920 ms,  498 /  61.3 h; field-only step 157.3 ms; device 4.32 GB
+    25 um 45 mm: 7504 /   931 ms,  500 /  62.0 h; field-only step 160.4 ms; device 4.41 GB
+  Conclusions that do not depend on the estimate details:
+   - With today's per-carrier host work, only the 1e4-per-species members are runnable (36-100 h per 2 ns window); 1e5 per
+     species takes 2-3 weeks and 1e6 about 5 months per member. A 2 ns window in 24 h needs <= ~1.4 us per carrier in total at
+     1e5/species and <= 0.06-0.14 us at 1e6 on 200-50 um; on 25 um even the projected mesh floor (~0.5 s per step: three
+     fixed-point iterates on 2.6M edges) exceeds 24 h, so the per-iterate host work (independent residual, total-field digests)
+     must also move to the device. The per-carrier work must be device-resident (push, deposits, census and record digests on
+     the device, host verifying samples and roots, as already done for the field state).
+   - The field-only pre-runs are cheap once longer particle-free steps are admitted (1.3 h for all four meshes at the best admitted
+     dt; 30 h at 25 um if the pre-run stays at 10 fs), but every pre-run past ~1 ns is blocked by F5 until Hall v3.2.
+   - The 45 mm graded box (F9) adds 3.7 / 8.4 / 19 / 41 ms to the field-only step on 200 / 100 / 50 / 25 um (estimate from the
+     measured uniform boxes) and little relative to the coupled step at >= 1e4 carriers.
+   - Device memory is not the limit on either GPU for the T-series (6.9 GB at 25 um with 3e6 carriers); host memory is
+     (15-19 GB at 1e6/species, beyond what zenobia has free next to the other work).
+   - The station's 24 GB and many cores allow 4-6 members side by side; it does not shorten a member (the step is host-serial),
+     and its lower memory bandwidth makes device-bound parts ~1.36x slower.
+
+8. Convergence metrics to record in every series member (per output time unless noted)
+  Mesh series: h / lambda_D (min, distribution over cells with n_e above 1e14 m^-3), peak and gap-averaged n_e and n_i, EEDF
+  moments and the fraction above 12.6 eV (ionization onset), ionization events per step, collected charge per foil and short,
+  region plasma current through the mid-gap cut (Hall region_plasma_A), terminal voltage, field energy, Joule heat, sheath
+  thickness at each foil face (distance to 1/e of the gap density) and the potential drop across it, breakdown time (first time the
+  plasma current exceeds 1 % and 10 % of the drive current), every ledger (charge, Gauss/divB maxima and the per-node allowance
+  ratio, energy closure, H2O/H/O inventory, merge/split residuals and relocation work). Report observed order and Richardson
+  estimates of breakdown time, peak density and sheath drop from 200/100/50(/25) um.
+  Macroparticle series: the same plus particles per cell (min/median over occupied cells), cell-density variance against
+  1/ppc, EEDF tail statistical error (bootstrap over carriers), event-count fluctuation per step, merge/split counts, booked
+  residuals relative to plasma work, relocation work relative to the field energy change.
+  dt series: the same quantities at dt and dt/2 (all controller factors halved), the controller's limiting criterion histogram, the
+  Hall fixed-point iteration counts and midpoint refusals.
+
+9. Tests (tests/check_results.py; tests/TESTS-RESULT.json = OUT/tests-final.json: all 11 checks pass)
+  M1 mesh construction and quality, M2 geometry identity across resolutions, M3 admission per mesh, M4 memory model = measured
+  (7 meshes), F1 field-only runs admitted with guards (7 meshes), C1 closed coupled Hall steps (11 runs), G1 graded mesh bitwise
+  equal to Hall on the 9 mm box and its port inductance within 2.2e-4 of the sealed uniform 35/45 mm boxes, S1 independent
+  residual criterion for every Jacobi/GMG solve, S2 GMG repeat and CPU/GPU bit identity, Z1 ASan+UBSan runs (build s1: mesh report, admission with the DC profile, DC accuracy diagnostic, GMG CPU
+  reference with the Hall check; all exit 0, no report). Merge/split: its own suite (ledger closure on 2e6-carrier sets, 1/2/5/8
+  partitions, CPU/GPU parity, ASan+UBSan at full size).
+
+10. Open issues and what will not scale (details in the sections above)
+  - Box: the 9 mm box underestimates the port inductance by ~32 % (F9); graded 35-45 mm boxes are ready as definitions but need
+    a Hall version with per-index coordinates and a kinetic box separate from the field box.
+  - 25 um not admitted by Hall v3.1 (F1): needs one of 3.2 (a)-(c) in a Hall version.
+  - Absolute Gauss allowance drift reaches refusal near 1 ns on every series mesh, sooner when finer (F5): Hall v3.2 fix required
+    before any pre-run to T_on or coupled window past ~1 ns.
+  - Host O(edges) work per step and per fixed-point iterate: independent residual (x87 sequential norm), total-field digests of the
+    midpoint (four per coupled step in coordinator v6.1), source-field copies; at 25 um these are tens of ms each. A device-side
+    compensated residual and block digests (as for the state) are needed for 25 um.
+  - Per-carrier host work (Hall v3.1 ~5 us/carrier, coordinator total ~20 us/carrier): 1e6 carriers per species is out of reach
+    until native v8 (exact sums, Merkle motion records) and device-side deposits/digests land (section 7).
+  - Jacobi maxit 200 caps particle-free steps at ~0.55 ps on 25 um; the GMG prototype removes this (not integrated).
+  - Memory per edge is 4.5x the plan figure (F4); axial refinement at 25 um beyond 16 axial cells does not fit 12 GB.
+  - The pre-run from 0.75 ns to T_on is per mesh (no transfer of a Hall state between meshes); the DC seed solve is per process.
+  - Cross-architecture (sm_120) bit identity of the resident step, the GMG kernels and the merge/split kernels is not shown.

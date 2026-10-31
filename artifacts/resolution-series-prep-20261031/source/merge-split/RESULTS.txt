@@ -1,0 +1,162 @@
+merge-split -- results of record (build b2, 2026-10-31)
+
+Build: ms_build.py build b2 (status passed; /usr/bin/c++ GCC 16.2.1 inside arch-base-20261028/run-frozen,
+-std=c++20 -O2 -ffp-contract=off -fno-fast-math). Binaries (sha256): test_cpu 1deea79d0b2a..., test_cpu_asan
+e5b739bc76c8..., test_gpu 16c04b7c40d4.... Read-only inputs hashed before/after every stage (unchanged):
+philox_core.h eec776fc..., exact_particle_count.h 46e01fe2..., hall-gpu-resident-v1 common (5 files),
+libnvrtc.so.12 43731e24....
+Receipts and JSON: /home/treefor/projects/.workspace/outputs/resolution-series-prep-20261031/merge-split/b2/
+  cpu-full-103739        test_cpu --n 1000000                      core 3 (lent), nice 15, 39.7 s, PASSED
+  cpu-asan-full-103731   test_cpu_asan --n 1000000 (ASan+UBSan)    core 1 (lent), nice 15, 206.5 s, PASSED
+  gpu-full-103942        test_gpu --n 1000000 --repeat 3           core 6 lease + GPU locks, 12.4 s, PASSED
+  gpu-1e6total-103955    test_gpu --n 500000 --meshes 45,360       core 6 lease + GPU locks, 4.4 s, PASSED
+  gpu-small-checked-...  test_gpu --n 5000 --check-each-launch 1   core 6 lease + GPU locks, 0.8 s, PASSED
+Fixture: n = 1e6 carriers per species (electrons, H2O+) = 2e6 carriers, IDs 1..2e6; tests/fixtures.hpp
+(Maxwellian 3 eV + keV tail / 0.1 eV + tail; half uniform in the 9 x 9 x 25 mm box, half a central blob;
+weights 1e6 (88 %), 5e5, 2.5e5, 1e6(1 + k 2^-30), full-mantissa 1e6 U(0.5,1); 3 % ineligible). Policy:
+energy edges 0.1 eV (e-) / 0.01 eV (H2O+) x 2^k, k = 0..19; 6 direction faces; merge cells with > 48
+carriers of a species down to 32 (groups of 3..16); split cells with < 4 toward 8 (2 clones, w >= 2).
+Hall mesh Mesh(n, 4, 9 mm, 1 air cell): 45/90/180/360 transverse cells, 4 axial cells of 6.25 mm.
+
+1. Ledger closure, 2e6 carriers per mesh (CPU reference; every line also bit-identical on the GPU, section 6)
+ mesh  groups   merge acc  split acc  inputs    outputs   census after  relocations
+ 45    222215   222215     0          1417077   444430    1027353       1417077
+ 90    114765   114737     28         757411    229530    1472119       757383
+ 180   292921   87551      205370     589965    585842    1995877       384595
+ 360   905900   149        905751     906296    1811800   2905504       545
+ Skips (no real solution / operand range / RNG): 0 / 0 / 0 on these sets; formation refusals 0; centroid
+ fallbacks 0; isotropic groups 0.
+ Checks passed on all four meshes:
+  - exact count per species over the whole census, before vs after: superaccumulator equality AND native
+    ExactParticleCount (OpenSSL BIGNUM, native header) equality; ledger W_in == W_out per species
+    (e.g. mesh 45 electrons W_in = W_out = 669711633170.3456..., exactly 0x26fb7b22c4961ef1584 x 16^260
+    units of 2^-1074);
+  - exact charge: sum of exact products w q, before == after, per species;
+  - per accepted group ExactParticleCount(sum inputs) == ExactParticleCount(sum outputs) == W
+    (222215 / 114765 / 292921 / 905900 groups);
+  - booked residuals close exactly: P_in + merge_momentum_residual == P_out and E_in + merge_energy_residual
+    == E_out as exact integers; the booked canonical binary64 expansions recompose exactly; E_in and E_out
+    equal an independent BIGNUM recomputation of sum w K;
+  - output IDs = M_s + rank in canonical order; every output lies in its group's Hall cell.
+ Booked residuals (round-to-nearest of the exact value; relative to the transformed inputs):
+ mesh species  E_in (J)      merge_energy_residual (J)  rel        max |merge_momentum_residual| / sum|w m u|
+ 45   e-       9.2105e-06    -1.491e-23                 1.6e-18    1.4e-19
+ 45   H2O+     1.5383e-07     3.244e-24                 2.1e-17    2.7e-19
+ 90   e-       3.5477e-06    -2.558e-23                 7.2e-18    1.5e-19
+ 90   H2O+     4.0602e-08     6.662e-25                 1.6e-17    1.1e-19
+ 180  e-       3.6847e-06    -5.790e-24                 1.6e-18    2.1e-19
+ 180  H2O+     6.5929e-08     1.440e-25                 2.2e-18    7.3e-20
+ 360  e-       1.2875e-05     3.030e-27                 2.4e-22    1.4e-21
+ 360  H2O+     2.5636e-07     3.184e-28                 1.2e-21    1.2e-21
+ (E_in includes split parents, whose residual is exactly zero; per merge group the residual is ~1e-16,
+ section 2, and partially cancels in the sum.) Momentum residuals: |P_res| 1e-34 .. 1.4e-29 kg m/s.
+ Example exact booked value (mesh 45, electrons): merge_energy_residual = -0x4818170009552422d32 x 16^231
+ units of 2^-1074 (full hexadecimal in results-cpu.json), RN -1.4908710647213837e-23 J, canonical expansion
+ of 2 binary64 words.
+
+2. Kinematics on single groups (400 transactions each, one group per transaction, CPU)
+ case                         accepted  skipped  max rel energy residual  max rel momentum residual
+ Maxwellian/tail mixture      400       0        8.5e-16                  1.7e-16
+ identical velocities         283       117      4.3e-16                  1.4e-16   (skips: q^2 < 0 at rounding level)
+ symmetric +/- pairs (P = 0)  400       0        6.9e-16                  0 (exact; isotropic axis used, 400/400)
+ relativistic 50 keV - 2 MeV  400       0        5.2e-16                  1.0e-16
+ Relative to the group's own input energy / sum |w m u_d|. Split-only transaction (2e5 carriers, 194128
+ splits into 4 clones): every residual exactly zero.
+ Unit checks: Philox4x32-10 known answers (3 Random123 vectors); 20000 exact three-factor products and 200
+ superaccumulator sums (up to 5000 terms spanning 2^-1014..2^900) equal to BIGNUM; round-to-nearest within
+ half an ulp and exact canonical expansions (200 cases).
+
+3. Relocation current and the Hall continuity guard (CPU, port of the Hall arithmetic, dt = 1e-14 s)
+ Relocation alone: after (post-transaction census) - before (census) - incidence(J_reloc) dt per node, with
+ the Hall Words CIC free charge in ascending native ID and the Hall scale.
+ mesh  max |defect| (C)  max |defect| / (1e-12 scale)  max charge moved per node (C)  nodes changed
+ 45    9.6e-26           8.5e-4                        3.9e-12                        10580
+ 90    1.5e-25           9.6e-4                        2.4e-12                        4924
+ 180   9.6e-26           1.5e-3                        1.7e-12                        140435
+ 360   3.1e-26           1.6e-3                        1.2e-13                        541206
+ (360: mostly split clones; their Words CIC deposits differ from the parent's at the 1e-44 C level.)
+ The defect is <= 1.6e-3 of the relative term alone (the Hall tolerance also has the deposit-support term)
+ and far below the ~1e-23 C absolute Gauss level. Deposit time: 0.1 s for 1.4e6 records (CPU).
+
+4. Relocation work (dt sum_e E_e J_reloc,e, the Hall plasma-work expression)
+ mesh  uniform E (1e5,-2e5,1e6) V/m  sum |Q E.D| (no cancellation)  gradient field (J)   E_in transformed (J)
+ 45    6.3e-23 J                     2.8e-04 J                      -3.2e-10            9.4e-06
+ 90    5.7e-23                       1.5e-04                         3.4e-10            3.6e-06
+ 180   -1.6e-23                      7.2e-05                         1.2e-10            3.8e-06
+ 360   1.8e-24                       9.7e-08                         4.5e-13            1.3e-05
+ Uniform field: the centroid cancels the first-order work to 1e-19..1e-17 of the uncancelled sum.
+ Gradient field: symmetric G = [[1e8,5e7,2e7],[5e7,-2e8,3e7],[2e7,3e7,1e8]] V/m^2 (|E| up to ~1e6 V/m in the
+ box). The second-order work is ~3e-5 of the transformed kinetic energy at the 45 mesh; it is booked
+ (relocation_work_J), and it comes mostly from the 6.25 mm axial cells (max |D_z| 5.2 mm vs |D_x,y| 0.17 mm).
+ Spatial sub-bins (mesh 45, same set; policy field sub[3]):
+ sub       merges   census after  rms |D| (m)  max |D_z| (m)  work gradient field (J)  work / E_in transformed
+ 1,1,1     222215   1027353       1.6e-3       5.2e-3         -3.2e-10                 -3.4e-5
+ 1,1,4     149112   1418433       4.2e-4       1.3e-3          4.7e-11                  1.3e-5
+ 1,1,8     131199   1583911       2.2e-4       6.5e-4          5.6e-11                  2.9e-5
+ 2,2,8     75921    1873250       2.0e-4       6.4e-4         -1.3e-11                 -4.0e-5
+ 4,4,32    1231     1998716       4.9e-5       1.3e-4          5.8e-14                  4.6e-5
+ Sub-bins cut the relocation length and the absolute work by orders of magnitude, but at this carrier
+ density they also cut the number of merges; the ratio to the transformed kinetic energy stays 1e-5..5e-5
+ because the remaining merges are in the densest (largely colder H2O+) bins and the per-group terms have
+ random signs. (Ratio is mixed-species; per-species work was not separated.)
+
+5. Determinism across partitions (CPU, 2e6 carriers, meshes 45 and 360)
+ 1, 2, 5, 8 partitions with contiguous ID blocks, and with hashed owners + shuffled local order (8 runs per
+ mesh): canonical encoding byte-identical and the same digest in all 16 runs
+ (mesh 45: 63c06854e40f6955..., 221675 groups, 443350 outputs; mesh 360: 2caf75d54b0f7795..., 905201 groups,
+ 1810402 outputs). The ASan/UBSan build (-O1) reproduces the -O2 digests of section 1 exactly.
+
+6. CPU/GPU bit identity and GPU timing (RTX 3080 Ti, sm_86 cubin from NVRTC 12.8, options --gpu-architecture=sm_86
+ --fmad=false --prec-div=true --prec-sqrt=true --ftz=false --std=c++17; compile 433 ms)
+ Compared on every case and every run: groups, first IDs, merge results, every output word (ID, species,
+ flags, x, u, w), removed IDs, every relocation record word, every exact ledger term, booked RN values and
+ expansions, counters, next ID, canonical encoding, digest. All identical; the 3 repeated device runs per
+ case give the same digest.
+ case (carriers)              groups   device compute  per 1e6   + transfers per 1e6  host wall per 1e6  CPU s per 1e6
+ corner groups (18142)        2119     3.5 ms          (fixed overhead)
+ mesh 45 (2e6)                222215   27.2 ms         13.6 ms   25.1 ms              163 ms             0.43
+ mesh 45 sub 2,2,8 (2e6)      75921    21.0 ms         10.5 ms   17.5 ms              66 ms              0.26
+ mesh 90 (2e6)                114765   18.5 ms         9.3 ms    17.9 ms              96 ms              0.31
+ mesh 180 (2e6)               292921   15.9 ms         8.0 ms    17.6 ms              114 ms             0.33
+ mesh 360 (2e6)               905900   15.6 ms         7.8 ms    23.1 ms              220 ms             0.46
+ mesh 45 (1e6 total)          61928    14.4 ms         14.4 ms   23.6 ms              116 ms             0.32
+ mesh 360 (1e6 total)         554284   8.9 ms          8.9 ms    26.5 ms              267 ms             0.52
+ Phases at mesh 45, 2e6: classify + 2 stable radix sorts + gather + segment bounds + group counts 10.1 ms;
+ group descriptors + kinematics + scans 8.8 ms; emission + removed IDs + exact ledger 8.3 ms; upload 10.8 ms;
+ download 12.2 ms. Device compute = the three compute phases (the GPU-resident path keeps the census on the
+ device). Host wall = the whole run() call incl. pinned staging, unpacking into the Result, the canonical
+ encoding and its SHA-256. Run-to-run spread of device compute < 1 %. Peak device memory 764 MB (2e6
+ carriers, mesh 360). The corner set (one group per cell: mixtures, identical velocities, P = 0 pairs,
+ relativistic, full-mantissa weights) gives 2013 accepted merges and 106 skips, identical on both.
+ CPU reference (single thread, core 3): 0.26-0.50 s per 1e6 carriers.
+
+7. Sanitizers
+ AddressSanitizer + UndefinedBehaviorSanitizer (-fsanitize=address,undefined -fno-sanitize-recover=all,
+ -O1 -g): the complete CPU test program at 1e6 carriers per species (unit, kinematics, split-only, ledger on
+ 4 meshes, relocation continuity/work, sub-bins, 16 partition runs): no report, PASSED, 206.5 s.
+ compute-sanitizer: not available. The CUDA 12.8.1 redistributable at runtimes/cuda-12.8.1-redist-20261031
+ contains cccl, cudart, nvcc, nvrtc, nvtx, profiler_api, cublas, curand, cusolver, cusparse and nvjitlink
+ archives only (no cuda_sanitizer_api; toolkit/bin has no compute-sanitizer), and none is installed on the
+ system. Substitute evidence: a small GPU case with the session's check_each_launch mode (synchronize and
+ check after every launch) passed bit-identical (gpu-small-checked), and every device array is sized from
+ exact scan totals that are cross-checked against the CPU result. This is not a memory checker.
+
+8. Open issues and limits
+ - Relocation work: booked but not small in long cells with field gradients (~3e-5 of the transformed kinetic
+   energy in the test field at the 45 mesh). Sub-bins bound it at the price of fewer merges; the policy
+   choice (sub[3], cadence, targets) for the pilot is open.
+ - Merging degrades the in-bin distribution (two outputs per group): the bin resolution and k_max are
+   policy; no measurement of EEDF-tail distortion or of the noise reduction was made here.
+ - Not integrated: native v8 and Hall v4 do not exist yet (INTEGRATION.txt lists their work). The relocation
+   deposit is a port of the Hall arithmetic, validated here against the Hall continuity formula only; no
+   coupled step with a field solve has been run. The DepositSupport extension (R <= 3 for relocation rows)
+   is specified, not implemented.
+ - GPU relocation-current deposit not implemented (CPU reference only); the Hall GPU push deposit is meant
+   to take the relocation records (INTEGRATION.txt 3.8).
+ - Host wall time on the GPU path is dominated by host-side result unpacking, encoding and hashing
+   (66-267 ms per 1e6) rather than device work (8-14 ms per 1e6); a resident integration would keep outputs on
+   the device and hash on the device (as Hall v3.1 does for its state).
+ - The per-group kinematics thread holds sequential double-word sums and one Philox stream; segments are
+   processed one thread each, so a cell holding a very large fraction of all carriers serializes formation
+   (not seen in these sets: device formation 2-9 ms).
+ - Cross-architecture bit identity (sm_89, sm_120) not shown; only sm_86 was available.

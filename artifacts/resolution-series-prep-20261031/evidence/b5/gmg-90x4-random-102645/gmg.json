@@ -1,0 +1,285 @@
+{
+ "compile": {
+  "arch_option": "--gpu-architecture=sm_86",
+  "device": "NVIDIA GeForce RTX 3080 Ti",
+  "image_kind": "cubin",
+  "nvrtc": "12.8",
+  "options": [
+   "--gpu-architecture=sm_86",
+   "--fmad=false",
+   "--prec-div=true",
+   "--prec-sqrt=true",
+   "--ftz=false",
+   "--std=c++17"
+  ]
+ },
+ "cpu_reference": true,
+ "gpu_hold_ms": 2489.585375,
+ "hierarchy_build_ms": 92.481902,
+ "host_rss_after_build_kB": 248728,
+ "levels": [
+  {
+   "G_nnz": 311862,
+   "K_nnz": 1924410,
+   "N_nnz": 924602,
+   "P_nnz": 274132,
+   "edges": 164346,
+   "fixed_edges": 5504,
+   "level": 0,
+   "n": 90,
+   "nodes": 57967,
+   "nz": 6,
+   "ratio_to_next": 2
+  },
+  {
+   "G_nnz": 80756,
+   "K_nnz": 988380,
+   "N_nnz": 351424,
+   "P_nnz": 80356,
+   "edges": 41676,
+   "fixed_edges": 1298,
+   "level": 1,
+   "n": 45,
+   "nodes": 14812,
+   "nz": 6,
+   "ratio_to_next": 3
+  },
+  {
+   "G_nnz": 9572,
+   "K_nnz": 112656,
+   "N_nnz": 40204,
+   "P_nnz": 9328,
+   "edges": 4896,
+   "fixed_edges": 110,
+   "level": 2,
+   "n": 15,
+   "nodes": 1792,
+   "nz": 6,
+   "ratio_to_next": 3
+  },
+  {
+   "G_nnz": 1268,
+   "K_nnz": 13452,
+   "N_nnz": 4864,
+   "P_nnz": 0,
+   "edges": 636,
+   "fixed_edges": 2,
+   "level": 3,
+   "n": 5,
+   "nodes": 252,
+   "nz": 6,
+   "ratio_to_next": 0
+  }
+ ],
+ "max_rss_kB": 587884,
+ "rhs": "random",
+ "rows": [
+  {
+   "courant_transverse": 0.029979245800000002,
+   "dt_s": 1e-14,
+   "gmg": {
+    "apply_ms": 0.0829162,
+    "backend_residual": 5.062245839515327e-14,
+    "check": {
+     "independent_residual": 4.765549680469149e-14,
+     "passed": true,
+     "ratio": 0.001035484651016282,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 1,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 3,
+    "cpu_reference_ms": 24.319232,
+    "cycle_iterations": [
+     3
+    ],
+    "iterations": 3,
+    "repeat_bitwise_identical": true,
+    "solve_ms": 3.869,
+    "target": 4.602240772755032e-11,
+    "vcycle_ms": 0.9504178
+   },
+   "gpu_setup_ms": 141.676405,
+   "jacobi": {
+    "backend_residual": 5.409150589580434e-14,
+    "check": {
+     "independent_residual": 5.1976088536619495e-14,
+     "passed": true,
+     "ratio": 0.0011293648268972493,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 1,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 5,
+    "cycle_iterations": [
+     5
+    ],
+    "iterations": 5,
+    "solve_ms": 1.349178,
+    "target": 4.602240772755032e-11
+   },
+   "memory": {
+    "own_bytes_in_use": 97254586,
+    "own_peak_device_bytes": 97254586
+   },
+   "set_dt_ms": 7.902065
+  },
+  {
+   "courant_transverse": 0.29979245800000004,
+   "dt_s": 1e-13,
+   "gmg": {
+    "apply_ms": 0.080928,
+    "backend_residual": 3.915793330762047e-13,
+    "check": {
+     "independent_residual": 3.917698415074239e-13,
+     "passed": true,
+     "ratio": 0.00851258899418466,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 1,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 6,
+    "cpu_reference_ms": 42.652245,
+    "cycle_iterations": [
+     6
+    ],
+    "iterations": 6,
+    "repeat_bitwise_identical": true,
+    "solve_ms": 7.155753,
+    "target": 4.602240772755032e-11,
+    "vcycle_ms": 0.9458840000000001
+   },
+   "gpu_setup_ms": 146.846543,
+   "jacobi": {
+    "backend_residual": 1.4418400476679974e-12,
+    "check": {
+     "independent_residual": 1.4418200336827717e-12,
+     "passed": true,
+     "ratio": 0.031328652820996526,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 1,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 11,
+    "cycle_iterations": [
+     11
+    ],
+    "iterations": 11,
+    "solve_ms": 2.341675,
+    "target": 4.602240772755032e-11
+   },
+   "memory": {
+    "own_bytes_in_use": 97254586,
+    "own_peak_device_bytes": 97254586
+   },
+   "set_dt_ms": 5.921912
+  },
+  {
+   "courant_transverse": 2.9979245800000003,
+   "dt_s": 1e-12,
+   "gmg": {
+    "apply_ms": 0.082438,
+    "backend_residual": 4.705645655215934e-12,
+    "check": {
+     "independent_residual": 4.7049490452642e-12,
+     "passed": true,
+     "ratio": 0.10223170141634472,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 1,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 19,
+    "cpu_reference_ms": 732.750606,
+    "cycle_iterations": [
+     19
+    ],
+    "iterations": 19,
+    "repeat_bitwise_identical": true,
+    "solve_ms": 22.450597,
+    "target": 4.602240772755032e-11,
+    "vcycle_ms": 0.9761772000000001
+   },
+   "gpu_setup_ms": 145.495157,
+   "jacobi": {
+    "backend_residual": 7.2195671580827114e-12,
+    "check": {
+     "independent_residual": 7.21938870625728e-12,
+     "passed": true,
+     "ratio": 0.15686681907203975,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 1,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 89,
+    "cycle_iterations": [
+     89
+    ],
+    "iterations": 89,
+    "solve_ms": 15.245405,
+    "target": 4.602240772755032e-11
+   },
+   "memory": {
+    "own_bytes_in_use": 97254586,
+    "own_peak_device_bytes": 97254586
+   },
+   "set_dt_ms": 5.951891
+  },
+  {
+   "courant_transverse": 5.995849160000001,
+   "dt_s": 2e-12,
+   "gmg": {
+    "apply_ms": 0.082688,
+    "backend_residual": 6.827217849028608e-12,
+    "check": {
+     "independent_residual": 6.826752101584203e-12,
+     "passed": true,
+     "ratio": 0.14833539657460199,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 1,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 31,
+    "cpu_reference_ms": 219.077666,
+    "cycle_iterations": [
+     31
+    ],
+    "iterations": 31,
+    "repeat_bitwise_identical": true,
+    "solve_ms": 34.556225,
+    "target": 4.602240772755032e-11,
+    "vcycle_ms": 0.9561156000000001
+   },
+   "gpu_setup_ms": 210.454457,
+   "jacobi": {
+    "backend_residual": 8.50434751552577e-12,
+    "check": {
+     "independent_residual": 8.502511874110839e-12,
+     "passed": true,
+     "ratio": 0.18474721975532352,
+     "target": 4.602240772755032e-11
+    },
+    "corrections": 1,
+    "cpu_gpu_bitwise_identical": true,
+    "cpu_iterations": 178,
+    "cycle_iterations": [
+     178
+    ],
+    "iterations": 178,
+    "solve_ms": 30.140258,
+    "target": 4.602240772755032e-11
+   },
+   "memory": {
+    "own_bytes_in_use": 97254586,
+    "own_peak_device_bytes": 97254586
+   },
+   "set_dt_ms": 8.590949
+  }
+ ],
+ "schema": "resolution-series-gmg-v1",
+ "spec": [
+  90,
+  4,
+  1,
+  0.009
+ ]
+}

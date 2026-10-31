@@ -1,0 +1,238 @@
+Merge/split transaction -- integration into native v8 (on native v7) and Hall v4
+Component: runtimes/resolution-series-prep-20261031/merge-split (schema merge-split-transaction-v1,
+policy encoding merge-split-policy-v1, Philox stream layout merge-split-stream-v1).
+Pilot plan item: H7 (macroparticle weighting policy conserving charge, momentum and energy), 5c (GPU-resident).
+
+0. Summary
+ One in-step transaction per transaction step, placed after the first exposure and before births:
+   accepted census (post first-exposure, ascending native ID)
+     -> merge groups: k >= 3 carriers of one (cell, species, velocity bin) relocated (zero time) to their
+        weighted centroid c inside the cell and replaced by 2 carriers of weight W/2 at c conserving W, P, E
+     -> split groups: 1 carrier replaced by 2^m clones of weight w 2^-m at the same position and velocity
+     -> post-transaction census = survivors + outputs (IDs M_s + rank)
+   transport (Hall motion) starts from the post-transaction census; the relocation of the merge inputs is a
+   straight-path current deposit J_reloc that enters the same field step as the motion current.
+ Exact: count (ExactParticleCount equality per group and per species), charge (same species), split
+ momentum and energy. Merge momentum and kinetic energy are conserved in real arithmetic; the rounding
+ residual (relative ~1e-16 per group) is computed exactly and booked: merge_momentum_residual (per species,
+ 3 components, kg m/s), merge_energy_residual (per species, J). The field work on the relocation current is
+ booked as relocation_work_J (Hall).
+
+1. Placement in the outer step (and why)
+ order: first exposure (first-slot reactions) -> merge/split transaction (transaction steps only) ->
+ birth scope (B_s = M_s + n_out) -> source preparation -> transport fixed point (Hall motion of the
+ post-transaction census, field step with J_motion + J_reloc) -> sinks -> second exposure -> seal -> publish.
+ - Before transport, at the step begin: the transaction depends only on the accepted census, so it is
+   computed once per outer step, is identical for every nonlinear re-evaluation of the fixed point, and
+   J_reloc is a constant source term of every field iterate. (A merge of endpoints would change with each
+   iterate; the grouping is discontinuous in the endpoints.)
+ - Before births: a newborn flies only over [tau, end]; it cannot share a group with full-step carriers.
+   Newborns become eligible at the next transaction step.
+ - Not between steps: Hall admits the census against the stored free charge and checks absolute Gauss per
+   node, so charge may only move inside a field step, with a current that closes continuity.
+ - Cadence: policy field (e.g. every K steps); the per-step cost of the CPU verification below is then
+   amortized. Non-transaction steps are v7 steps unchanged.
+
+2. Native v8
+ 2.1 Scope and base ID
+  PrivateFullTimeStep::merge_scope() -> MergeScope       once per outer, after the first exposure and
+                                                          before birth_scope (typed merge_scope refusal
+                                                          otherwise)
+  MergeScope::base_native_id()                            M_s = native next ID at the transaction point
+                                                          (after first-exposure products); fixed for every
+                                                          re-evaluation
+  MergeScope::census()                                    carriers in ascending native ID with eligibility
+                                                          flags (2.2) and the census digest
+  MergeScope::prepare(const MergeSplitRecord&) -> PreparedMergeSplit   pure, repeatable, verifies (2.4)
+  birth_scope() after a prepared transaction: B_s = M_s + n_out (no transaction: B_s = M_s, v7 behaviour)
+  fork_transport_trial(const PreparedMergeSplit&, const PreparedBirths&): trial from the post-transaction,
+  post-birth frame; the transaction enters the outer only with the accepted motion (like births).
+
+ 2.2 Inputs and eligibility (component flags, ms_core.h)
+  MS_FLAG_MERGE and MS_FLAG_SPLIT set for a census carrier iff
+   - its logical packet has exactly one carrier (multi-carrier packets are co-located Count
+     decompositions; merging or splitting part of one would break the packet: such carriers keep flags 0
+     and still count toward their cell occupancy);
+   - its state has an entry in the transaction policy (mass and charge bitwise equal to the native
+     GapParticle values; mc2 = fl(fl(m c) c));
+   - it is not a carrier created in this outer step before the transaction.
+  Charge-0 states may be eligible (their relocation records carry charge 0 and deposit nothing).
+  Positions: every census carrier is a strictly interior vacuum point (v5 rule). The component places
+  merge outputs strictly inside the open box of the group's Hall cell (else at the first input position,
+  an accepted position), so they are strictly interior; foil faces, the short bridge plane and the
+  kinetic box faces are cell planes of the Hall mesh (Mesh refuses unaligned foils), hence never inside an
+  open vacuum cell. Native re-checks the v5 strict-interior rule on every output (merge_kinematics).
+
+ 2.3 Policy identity and binding
+  policy_sha256 (merge_split::policy_sha256: species masses/charges/mc2, energy bin edges, nsub, spatial
+  sub-bins sub[3], merge_above,
+  merge_target, k_min, k_max, split_below, split_target, split_levels, split_min_weight, mesh counts,
+  origin, spacing, native->field shift, stream layout name) is part of the native configuration identity.
+  params_sha256 binds the transaction: run seed, accepted step, M_s and the policy. The Philox key is the
+  arrival-owner run seed XOR ("merg", "splt") (key-domain separation from arrival v1 streams); counter
+  layout in ms_core.h (block, species, purpose, step bits 32..39 | group index within the (cell, species)
+  segment | cell id | step bits 0..31).
+
+ 2.4 Verification (FullTimeFlowRefusal kinds; nothing changes on refusal)
+  merge_scope       stale scope, wrong phase, second reservation, foreign prepared transaction at fork
+  merge_binding     record step != accepted step; base != M_s; policy digest != configured; params digest
+                    != recomputed; census digest != the scope's census digest
+  merge_record      the record differs from native's recomputation. The component is deterministic and
+                    rank independent: native recomputes merge_split::transact (CPU reference, single
+                    thread) on the scope census and compares the canonical encoding (digest_sha256 and
+                    bytes). Measured cost: RESULTS.txt (~0.3-0.5 s per 1e6 carriers). The device result
+                    (gpu/) is bit-identical, so a device-produced record passes unchanged.
+                    A cheaper verification without recomputing the grouping (if the cadence is high):
+                    per group recompute ms_merge_group / ms_split_group (pure, O(k)) and check the
+                    structural predicates below; the canonical-order and policy predicates still need the
+                    sort, O(n log n).
+  merge_order       groups not in canonical order (cell, species, bin, first input ID); members of a merge
+                    group not the consecutive merge-eligible carriers of one bin in ascending ID; groups
+                    overlap; a split input not split-eligible
+  merge_identity    output native IDs != M_s + rank (rank = position in the canonical output order: group
+                    order, then output index); packet ID != "mergesplit-v1/s<step>/k<rank>"; a removed ID
+                    not a census carrier
+  merge_exhaustion  M_s = 0 or M_s + n_out > 2^64 - 1
+  merge_count       per accepted group: ExactParticleCount(sum of the input weights) !=
+                    ExactParticleCount(sum of the output weights); a weight not positive finite; a merge
+                    group's W not exactly representable (the component never forms one) or W/2 not normal
+  merge_kinematics  an output not strictly interior (v5 rule) or not in the group's cell; a status code
+                    (MS_OK, MS_SKIP_NO_REAL_SOLUTION, MS_SKIP_OPERAND_RANGE, MS_SKIP_RNG_EXHAUSTED)
+                    different from the recomputed one; output velocity/energy nonfinite
+  merge_relocation  relocation records != (input ID, group rank, start = x + shift, D = (c + shift) -
+                    (x + shift), charge = w q) bitwise, in transaction order (group, then member order)
+  merge_ledger      exact ledger (2.8) != recomputed exact sums
+  FullTimeResourceRefusal carrier_cap (post-transaction census above the outer carrier budget: splits grow
+                    the census), step_records/window_rows (one more row per transaction step).
+  Deterministic skips are not refusals: a group with no real two-particle solution (E/W below the
+  kinetic energy of |P/W|, which happens at rounding level when all inputs share one velocity), an
+  operand outside the exact-product range (|exponent| bounds, never met by physical values) or an
+  exhausted rejection sampler (probability < 1e-170) keeps its inputs unchanged and is counted in the row.
+  A group is never formed when its running weight sum stops being exactly representable (the group ends
+  before that carrier) or when W/2 would be subnormal (counted as formation_refused).
+
+ 2.5 Effect (in the prepared frame only)
+  Removed carriers: their packets leave the packet map, their native rows leave the native rows; packet IDs
+  stay retired in the ever-ID set. Outputs: one logical packet per output {packet_id
+  "mergesplit-v1/s<step>/k<rank>", state = the inputs' state, origin "merge-v1/g<group rank>" or
+  "split-v1/g<group rank>", last_event "", Count(w_out) (one positive carrier), native_ids {M_s + rank}};
+  native rows appended in ascending native ID (the largest IDs); next ID = M_s + n_out. Split clones are
+  separate logical packets (not one multi-carrier packet), so later stochastic events (reactions) act on
+  them independently; under deterministic motion identical clones stay identical until such an event.
+  Reserved namespace "mergesplit-v1/": create_full_time and the reaction builder refuse it for authored
+  or product IDs (as "arrival-v1/").
+
+ 2.6 ExactParticleCount equalities
+  Per accepted group: sum_in w == sum_out w (merge: W = sum of k binary64 weights, exactly representable
+  by construction, outputs W/2 + W/2; split: w = 2^m (w 2^-m), w 2^-m normal). Per species and per step:
+  W_in == W_out (row 8). Charge: same species, so the exact charge sum_in w q == sum_out w q
+  (verified exactly in the tests with exact products).
+
+ 2.7 Journal row kind 8 merge_split
+  accepted_step, base M_s, n_out, next_id_after, params_sha256, policy_sha256, census_sha256
+  (pre-transaction), transaction_sha256 (component digest_sha256), counts (segments, groups, merge groups,
+  split groups, accepted merge, accepted split, status counts x4, formation_refused, centroid_fallback,
+  isotropic, inputs_consumed, outputs, relocations), records_root (block Merkle over the group records
+  [f64 W, u32 start, end, k, kind, cell, species, bin, index, status, n_out, out_offset, reloc_offset,
+  gflags, u64 first input ID, 9 f64 c/ua/ub]; leaf tag native-v8/merge-block, root tag native-v8/merge-root),
+  relocation_root (same scheme over the relocation records), ledger (2.8).
+  Window grammar: outer begin, first-slot reactions + exposure, at most one merge_split row (only on
+  transaction steps), at most one birth row, one motion row (flows-merge schema after a merge_split row),
+  at most one sink row, second slot, boundary.
+
+ 2.8 Ledger terms and where they enter the kinetic budget
+  Per species, exact values in units of 2^-1074 (the ExactParticleCount unit; signed for momentum and
+  residuals): W_in, W_out; P_in[3], P_out[3] = sum w m u_d; E_in, E_out = sum w K with
+  K = pic_kinetic_energy_J (the native formula, operation for operation: ms_kinetic_energy);
+  merge_momentum_residual[3] = P_out - P_in, merge_energy_residual = E_out - E_in.
+  Every term is an exact product: w u_d m as four binary64 words and w K as two (Dekker TwoProduct with a
+  range guard), so every sum is an exact integer of 2^-1074 and the totals do not depend on summation order
+  or partitioning. Booked values: the exact integer (signed hexadecimal in the row) and its round-to-
+  nearest binary64 (the double used in double ledgers); in + booked == out exactly.
+  Native kinetic budget: unchanged. The motion record's census is the post-transaction census, and K = sum
+  over that census in ascending ID of w (KE(end) - KE(start)) in x87 long double is still compared bitwise
+  with the record's kinetic_change; for an output, KE(start) = pic_kinetic_energy_J(output), the same binary64
+  that entered E_out. The merge residual therefore does not enter the x87 sum; it is a separate exact term
+  of the step: kinetic-store change = double(K) + RN(merge_energy_residual) + birth kinetic - sink
+  kinetic (native flows and Hall StepEnergy, 3.6). A step-level x87 statement, if wanted, is
+  (long double)K + (long double)RN(merge_energy_residual), with the exact residual kept in row 8.
+  Momentum: native has no motion momentum ledger (fields exert forces); the transaction's momentum
+  residual is recorded per species in row 8 and accumulated in the flows (rounding level).
+
+ 2.9 Motion record v4 (schema canonical-full-time-total-field-motion-v4-flows-merge-binary)
+  v3 flows record plus, after the births section: text "relocations", u64 count, per record u64 input ID,
+  u64 group rank, 3 f64 field start, 3 f64 D, f64 charge (transaction order); text
+  "relocation_current_A_m_sha256" + motion-array-binary64-v1 digest of J_reloc; f64 relocation_work_J.
+  Native admission: census digest == post-transaction census digest; relocation records == the prepared
+  transaction's records bitwise; the v3 endpoint/path/sink bijection is over the post-transaction census
+  (outputs have paths from c with flight dt); relocation paths are not motion paths (no flight, no
+  endpoint, not in K).
+
+ 2.10 Accepted state, anchors, checkpoint
+  Flows (native-full-time-flows-v8): cumulative transactions, groups, inputs, outputs, relocations, status
+  counts, formation refusals, centroid fallbacks; cumulative exact residuals per species (momentum[3],
+  energy; signed hexadecimal units 2^-1074); cumulative relocation work (double-word sum of the per-step
+  Hall values); last nonempty transaction block (step, M_s, n_out, transaction digest, policy digest).
+  Anchors: window_merge_rows, window_merge_inputs, window_merge_outputs (after the v6 window counters).
+  Checkpoint: flows object gains "merge_split" with the above and its digest; next_id as v5 (B_s and M_s of
+  the next step are read from native). Restart alignment: the transaction cadence is a function of the
+  accepted step; the policy digest must equal the configured one.
+
+ 2.11 What native passes and receives on the GPU-resident path
+  Device: census (structure of arrays, ascending ID) -> gpu/ms_kernels.cu -> outputs, relocation records,
+  group records, removed IDs, exact ledger digits stay on the device for the push; the host receives the
+  group records (64 + 8 + 72 bytes per group), outputs (64 bytes each), relocation records (64 bytes each),
+  removed IDs and the ledger digits (S x 10 x 68 int64) for verification and sealing.
+
+3. Hall v4 (on Hall v3.1)
+ 3.1 Step inputs: StepInputs gains MergeSplitView {inputs: pre-transaction native rows of the removed
+  carriers (ascending ID); output ID range [M_s, M_s + n_out); relocation records (2.9 order); the
+  transaction digest}.
+ 3.2 Census admission: residents = census - newborns - transaction outputs + transaction inputs (their
+  pre-transaction rows); admit_census(residents) unchanged (charge of the actual pre-transaction carriers
+  vs the stored free charge). The motion census is the post-transaction census.
+ 3.3 Relocation current: J_reloc = sum over the relocation records in transaction order of the sealed path
+  deposit axial::Path(g, start, D).deposit(J_reloc, charge, D, dt), dt the field step (a current impulse
+  spread over the step), in a separate edge vector; plasma[e] = J_motion[e] + J_reloc[e] (one rounding per
+  edge). J_reloc is computed once per outer step (it depends only on the accepted census) and is the same
+  for every fixed-point iterate. Reference arithmetic: src/relocation.cpp (port of Path/deposit).
+  Every relocation path stays inside one cell (input and c in the same cell): one segment, two Gauss
+  points, 12 edges per point; R = sum_d |D_d|/h_d <= 3.
+ 3.4 Deposit support (DepositSupportBuilder): add one entry per relocation record with Q = |w q| and its
+  start/end (start, start + D); the per-carrier formula is unchanged, the guard need(R <= 1) becomes
+  R <= 3 + 6 delta for relocation entries only (motion entries keep R <= 1).
+ 3.5 Endpoint continuity guard: unchanged text and formula with plasma = J_motion + J_reloc, before = the
+  stored free charge (pre-transaction census), after = endpoints of the post-transaction census. In exact
+  arithmetic: after - before = div(J_motion) dt [outputs from c to endpoints] + div(J_reloc) dt [inputs
+  from x_i to c], since sum_in w q CIC(c) = sum_out w q CIC(c) (W_in == W_out exactly). Measured relocation-
+  only defect: RESULTS.txt (<= 2e-3 of the 1e-12 relative term on 2e6 carriers).
+ 3.6 Work guard and energy ledger: relocation_work_J = sum over edges ascending of dt*mid_E[e]*J_reloc[e]
+  (the plasma_work expression). JointProposal guard: |K - (plasma_work_J - relocation_work_J)| <=
+  1e-20 + 1e-10 (|K| + |plasma_work_J - relocation_work_J|). StepEnergy gains relocation_work_J and
+  merge_energy_residual_J (RN of row 8's exact value); the transaction's numerical energy source is
+  merge_supplied_J = merge_energy_residual_J - relocation_work_J and residual_J subtracts it like
+  birth_supplied_J:
+   kinetic store change = K - sinks + births + merge_energy_residual_J;
+   field: field_delta + plasma_work + joule + outer_loss - outer_supply - circuit = 0 with
+          plasma_work = motion work + relocation_work_J;
+   so total energy changes by merge_energy_residual_J - relocation_work_J (both booked).
+  With c the weighted centroid the dipole moment of a group is unchanged, so the first-order (uniform-
+  field) relocation work vanishes up to rounding; only field gradients inside a cell give second-order
+  work, ~ sum Q (x - c)_a (x - c)_b dE_a/dx_b (off-diagonal terms: the edge interpolant of E_a is constant
+  along a inside a cell). It grows with the relocation length; the policy's spatial sub-bins (sub[3])
+  bound that length inside the long axial cells (measured in RESULTS.txt section 4).
+ 3.7 Motion record v4 relocation section (2.9) and the census digest of the post-transaction census.
+ 3.8 GPU-resident Hall: the transaction kernels run on the device census before the push; J_reloc is
+  deposited by the push's deterministic deposit (sort by (edge, record index), sequential segment sums from
+  0 in record order = the CPU order) into a separate device vector, then plasma = J_motion + J_reloc.
+
+4. Physics notes
+ - Two-output merge (Vranic et al. 2015): p_a,b = P/W +/- q n, n perpendicular to P, |p_a| = |p_b|
+   fixed by E/W; real solution iff |p_out| >= |P/W|, guaranteed by convexity in exact arithmetic (Jensen),
+   so a skip occurs only at rounding level (identical input velocities). P = 0: isotropic n.
+ - Splits with perturbed velocities cannot conserve momentum and energy together: K(u) is strictly convex,
+   so for clones with sum w_i u_i = w u, sum w_i K(u_i) >= w K(u), with equality iff every u_i = u. Exact
+   clones conserve everything; they only add resolution once a stochastic event separates them.
+ - Merging changes higher moments (pressure tensor, heat flux, tails) inside a bin; the binning (energy
+   edges, direction faces) controls that error; current density changes at the relativistic level only
+   (sum w u is conserved, sum w u/gamma is not).
