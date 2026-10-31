@@ -1,0 +1,62 @@
+Hall -> native v7.1 device lane: what Hall must expose (Hall v3.x with the v7 forms; API-071.txt section 2)
+The forms, record digest, census v2, exact sums and motion-work-gross-v1 are those of API-007.txt (unchanged).
+Native v7.1 admits a motion step without any host copy of carrier or field data when Hall provides the items
+below. Steps with births or first-hit sinks, and every refusal, run native's host path (section 6).
+
+1. One session, one stream
+ Native runs on Hall's hall-gpu-resident-v1 Session (the same device, context and single stream) and Hall's
+ pf_v7::gpu::Forms instance: the coordinator constructs
+   auto lane = std::make_shared<FullTimeDevice>(hall_session, hall_forms);
+   arena.attach_full_time_device(lane, FullTimeExecution::device);
+ Hall exposes the Session& and Forms& it already uses for the v7 forms (no second session, no second stream).
+ Native's kernels on that stream per motion step: census once per trial (0.4 ms at 1e4, 2.0 ms at 1e6) and the
+ admission (3.8 ms at 1e4, 8.4 ms at 1e6, wall; mostly the two native v5 ID-block roots, one sequential SHA-256
+ stream per 1024-ID leaf).
+ All Hall writes of the arrays below are enqueued before prepare_total_field_motion is called; native enqueues its
+ kernels after them on the same stream and synchronises once per admission (one result download of 6,976 B;
+ the trial census is one more synchronisation, 32 B, once per trial).
+
+2. Census from native, on the device
+ trial.census_v7_device() returns device addresses of the trial census: rows (GapParticle AoS, 80 B, ascending
+ native ID), packet_keys (u64 per row), state_indices (u64 per row), the carrier count and census_sha256. Hall's
+ push reads the rows in place (positions, proper velocities, charge, mass, weight) and copies census_sha256 into
+ the record; no host census (native_census / census_v7 host spans) is needed. The addresses are valid while the
+ trial lives; Hall must not write them.
+
+3. Record arrays in device memory (FullTimeMotionRecordV7::device)
+ endpoints (survivors, 80 B GapParticle AoS), paths (64 B FullTimeMotionPath, every census carrier), sinks
+ (136 B canonical sink records), births (24 B) -- the canonical layouts of API-007.txt 1.2, ascending native ID --
+ with their counts n_endpoints, n_paths, n_sinks, n_births. The device lane admits steps with n_sinks = n_births = 0
+ (then endpoints are aligned with the census). The arrays must stay unchanged until prepare_total_field_motion
+ returns (native copies the endpoints into its own device buffer).
+
+4. Field and current arrays in device memory (A1 inputs; FullTimeMotionRecordV7::device E, B, J, n_E, n_B)
+ E: the trial (midpoint) total-field edge values, B: the face values, J: current_A_m, binary64, Hall axial mesh
+ order (Mesh::ex/ey/ez, bx/by/bz); n_E = edges, n_B = faces (the mesh (n, nz) is derived from them). Native
+ recomputes on the device: W (exact, bitwise vs budget[1]), G_W, E^ and the digests below; no host upload of E, B, J
+ (v7 needed host spans: O(mesh) host hashing and sums per admission).
+
+5. Field/current digests in the block form (recommended; required for O(1) latency)
+ trial_field_sha256 := total-midpoint-E-B-blocks-v1 = SHA256(text tag, text E root, text B root), roots of the
+ block lists of sections field_E (5) and field_B (6) (8-byte records); current_A_m_sha256 := motion-array-blocks-v1
+ = SHA256(text tag, text J root), section current_J (7). Compute them on the device with
+ Forms::block_lists({{section_field_E, n_E, E, rootE}, {section_field_B, n_B, B, rootB},
+ {section_current_J, n_E, J, rootJ}}) and pf_v7::trial_field_blocks_sha256(hexE, hexB) /
+ pf_v7::current_blocks_sha256(hexJ). Hall's own binding of the trial field (MotionBinding.trial_field_sha256 and
+ its field owner's midpoint digest) must use the same form. The v7 streaming forms remain admissible: native then
+ reads E, B, J back and hashes them on the host (O(mesh) host work and a device-to-host copy per admission:
+ 0.92 ms at 200 um, 6.8 ms at 50 um per step, RESULTS-071.txt), which is what the block form removes. Hall's
+ field owner can produce the block form from the same device arrays (the three sections cost 0.3 ms at 200 um and
+ 0.7 ms at 50 um on the device, including the A1 scales).
+
+6. What stays on Hall's host side / native's host path
+ - Steps with births or first-hit sinks, and refusals: native's host path (it reads the device arrays back when
+   no host spans are given; O(carriers) for that step). Hall need not provide host spans.
+ - The record header (O(1)) and pf_v7::motion_record_v7_sha256 with the device section roots (Forms::block_lists,
+   fused: endpoints, paths, sinks, births in one launch per level).
+ - Packet ID/state texts for sink and newborn bookkeeping: trial.carrier_packet(native_id) (O(sinks + newborns)).
+
+7. Tests Hall should run against native v7.1
+ Device-mode admission (FullTimeExecution::device_verified during qualification) of Hall receipts built from the
+ device arrays above: identical decisions, accepted states and motion rows to the host path; one-ulp/leaf/census
+ tampering refused with the host refusal texts.

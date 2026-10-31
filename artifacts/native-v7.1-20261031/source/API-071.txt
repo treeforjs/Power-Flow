@@ -1,0 +1,109 @@
+Native full-time v7.1 (candidate007.1) -- device lane: native per-step host work O(1) for motion steps
+Base: native v7 (candidate007, source identity 3f88fab5e285a13448ab709394dabc3cb65aab4820c76dec27c8121c0b042dc5, committed;
+not modified). Contract of the forms: API-007.txt of v7 (frozen, amendment A1), unchanged; v7.1 adds the items of
+section 1 (additive) and the device lane of section 2. No accepted-state identity changes (section 4).
+
+1. Additive forms (forms/ library; API-007.txt conventions)
+ 1.1 Block-form digests of the trial field and the current (device-computable; accepted in addition to the v7
+     streaming forms for trial_field_sha256 and current_A_m_sha256):
+       sections field_E 5, field_B 6, current_J 7: binary64 arrays, 8-byte records, block lists of API-007.txt 1.2
+       (tags native-v7.1/field-E, native-v7.1/field-B, native-v7.1/current-J)
+       trial_field (block form) = SHA256(text "total-midpoint-E-B-blocks-v1", text E root, text B root)
+       current (block form)     = SHA256(text "motion-array-blocks-v1", text J root)
+     Native (host and device paths) admits a record whose trial_field_sha256 is either the v7 streaming form
+     (total-midpoint-E-B-binary64-v1) or the block form, and whose current_A_m_sha256 is either
+     motion-array-binary64-v1 or the block form. The record digest definition is unchanged.
+     pf_v7::trial_field_blocks_sha256(E, B) / (E_root, B_root); pf_v7::current_blocks_sha256(J) / (J_root).
+ 1.2 Device kernels (pf_v7::gpu::Forms, additive; v7 entry points unchanged):
+       block_lists(jobs, scratch)  up to 8 sections fused: one launch per level (chunks, leaves, trees), the same
+                                   roots as block_list() (pf7_chunks_multi, pf7_blocks_multi, pf7_tree_multi)
+       id_root(kind, n, records, words, scratch, root)  native v5 ID-block Merkle roots on the device (kind 0
+                                   native-v5/carrier-*, kind 1 native-v5/path-*): the after-state carrier root and
+                                   the motion row paths_root (pf7_id_flags, pf7_id_starts, pf7_id_leaves, pf7_id_tree)
+       id_root_pair(n, A, wordsA, B, wordsB, scratch, rootA, rootB)  both kinds in one leaf launch for two record
+                                   arrays with the same ID sequence (pf7_id_leaves_pair; same roots as id_root)
+       sum_abs_products            exact sum of |a_i| |b_i| (A1 G_W)
+       field_bound                 A1 E^ on the Hall axial mesh (pf7_node_marks, pf7_marked_max, pf7_marked_max_finish)
+       stream_digest               the v7 streaming field/current digests on one device thread (reference; the
+                                   native lane hashes streaming forms on the host, section 2)
+ 1.3 Core (forms_core.h): sections 5-7, flat_leaf, tagged_root, hall_edge_nodes; sha_u64_array (whole 64-byte
+     blocks built and compressed in registers; the same bytes and digests as repeated sha_u64), used by chunk
+     digests, v5 leaves and the streaming digest kernel.
+
+2. Device lane (source/include/raikou/mfem_pic_full_time_device.h)
+ FullTimeDevice(hall_gpu::Session&, pf_v7::gpu::Forms&)  shares the producer's session (one stream) and forms
+   module; compiles source/src/native_kernels.cu (NVRTC, --fmad=false --prec-div=true --prec-sqrt=true --ftz=false).
+ PicArena::attach_full_time_device(device, FullTimeExecution)  between steps; the accepted carrier rows move into
+   the lane (shared copy-on-write rows, device-resident after the first device motion step).
+   FullTimeExecution: host (v7 path), device, device_verified (device lane and host path both run; any
+   difference in decision, accepted state, row digests or work scales is an internal error).
+ PicArena::set_process_full_time_device(device, mode)  qualification hook: every full-time arena created or
+   restored afterwards attaches it (used to run the unchanged v7 suites in device modes).
+ FullTimeMotionRecordV7::device  device addresses of the record arrays (endpoints 80 B, paths 64 B, sinks 136 B,
+   births 24 B, E, B, J binary64) and their counts on the shared session; read in place by the device lane. The host
+   spans are needed only by the host path (refusal text, verified mode, ineligible steps); when absent native reads
+   the device arrays back for it.
+ PrivateTransportTrial::census_v7_device() -> FullTimeCensusDevice {rows, packet_keys, state_indices (device
+   addresses), carriers, states_sha256, carriers_root, sha256}: census v2 on the device, once per trial; with a
+   device lane in a device mode census_sha256() returns the same digest without host row access.
+ FullTimeDevice::counters(), FullTimeDevice::row_materialisations(): host/device work accounting.
+ Field/current digests in the device lane: the block forms are compared with the device roots (O(1) host work);
+   a record carrying the v7 streaming forms is hashed on the host (from its host spans, or from the device arrays
+   read back: O(mesh) bytes, counted in array_downloads) -- one SHA-256 stream runs much faster on the host than on
+   one device thread and does not occupy the shared stream.
+ Device admission (eligible: no births in the trial, no sinks in the record; otherwise the host path runs): every
+   check of the v7 host path (identities, record digest from the device section roots, census v2, the field/current
+   digests, per-carrier checks: path identity/start/displacement/flight, endpoint identity, closed_position with
+   native_particle_guard, unchanged charge/mass/weight, segment guard, resident-neutral bound, co-located carriers of
+   multi-carrier packets; K and W exact and bitwise; motion-work-gross-v1; budget guards) evaluated on the device
+   (per-carrier) and on the host (O(1)); the after rows are the endpoints copied on the device; the after-state v5
+   carrier root and the v5 paths root are computed on the device (one paired launch); the census root computed once
+   per trial (census_sha256 / census_v7_device) is reused by the admission. A device refusal re-runs the host path, whose
+   refusal text is reported (the host path materialises the rows for that); a device refusal that the host path
+   admits is an internal error.
+ Host work per motion step in device mode (no births/sinks/reactions): O(1) -- begin (validation memo hit),
+   first/second exposure without events, fork, census digest, admission (O(1) checks, one device download of
+   6,976 B), accept, seal and publish (shared rows, identity matches, cached digests); no host row copy.
+
+3. Host-side changes in every mode (decisions and digests unchanged; host mode outputs = v7)
+ - Every full-time arena holds its accepted rows in the lane (shared copy-on-write NativeRows): frames, tokens,
+   trials and seals share rows (copies O(1) instead of O(carriers)); the outer liveness check and can_publish
+   compare row identity (content only when the identities differ), replacing the O(carriers) comparison inside
+   nearly every accessor.
+ - Full-time census validation memo: validation of the same immutable inputs (packet table, ever-ID set, shared
+   rows, cap) is not repeated; a motion admission from a validated base marks its after state valid (the admission
+   checks keep the census invariants: same native IDs, weights, charge and mass; removed packets removed whole).
+   States produced by reactions or births are validated as in v7.
+ - String-free population view: PicArena::full_time_population_view() -> FullTimePopulationView {rows (ascending
+   native ID), packet_keys, state_indices, states, per-state totals (carriers, exact sum of weights, exact sum of
+   weight x charge)}; the key/state columns and totals are recomputed only when the packet table changes.
+   PicArena::full_time_population_device() returns the device addresses of the same rows and columns (device lane).
+
+4. Identities
+ Unchanged vs v7: accepted-state identities, record digests, census digests, motion rows, journal rows, sink/birth
+ ledgers, checkpoint schema; anchors differ only through the source identity. Device mode = host mode bit for bit
+ (decisions, digests, refusal texts): RESULTS-071.txt.
+
+5. Remaining host work (device mode) and why; native v8 list
+ - Steps that change the logical packet table (reactions, births, sinks): the v5 accepted-state identity hashes
+   the whole packet table and the ever-ID set as one stream (packets_digest, id_set_digest), and the host path
+   rebuilds the census owner index and validates the exact counts over all packets; these steps run the host path
+   (rows materialised from the device, O(carriers)), and the next device step re-uploads the rows. Removing it
+   needs a Merkle (or incremental) packet-table identity -- an identity change -- and device row edits.
+ - Refusals (rare): the host path re-runs for the exact refusal text.
+ - Records with the v7 streaming field/current digests: O(mesh) host hashing (section 2); the block form removes it.
+ - O(N/1024) leaves stay on the device; the host keeps only roots.
+ Native v8 (from the coordinator profile HOST-WORK-REMAINING.txt, items 1, 5, 7, 11, per-event list):
+ - typed, incremental collision population API: per-event updates of the key/state columns and the exact per-state
+   totals (O(changed packets)); integer packet keys (the census v2 key = smallest native ID, stable under motion)
+   instead of "native-carrier/<id>" strings in rate_population;
+ - packet-table identity as a Merkle/incremental digest (identity change, schema version) so that event, birth and
+   sink steps stay on the device; device row edits (scatter of the changed rows) instead of host materialisation;
+ - incremental census validation per changed packet (full_time_census per event/birth today);
+ - accept producer digests with device verification for the A1 inputs (done in v7.1 for block-form records).
+ Chemistry v3 (device pair kernel + incremental population): nothing in v7.1 blocks it. The lane exposes the rows
+ (ascending native ID, AoS 80 B) and the key/state columns on the shared session (full_time_population_device());
+ a pair kernel needs its own cell sort. What v7.1 does not yet provide: device-side row/column edits after an event
+ (an event step today materialises rows on the host and drops the device copy) and incremental totals.
+
+6. Results: RESULTS-071.txt. Hall requirements: HALL-LINK-7.1.txt.
