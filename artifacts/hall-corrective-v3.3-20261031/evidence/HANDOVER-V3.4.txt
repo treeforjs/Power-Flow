@@ -1,0 +1,88 @@
+Hall v3.4 handover -- 2026-10-31 (host-work items deferred from v3.3)
+
+Base: Hall v3.3 = runtimes/hall-corrective-v3.3-20261031 (sealed; copy Power-Flow/artifacts/hall-corrective-v3.3-20261031,
+SOURCE-SHA256.json; build s1). Build v3.4 in a new directory; v3.3 stays sealed. Inputs: coordinator v7.1
+HOST-WORK-REMAINING.txt (runtimes/pic-water-common-commit-v7.1-20261031/; ranked items quoted below by number), native v7.1
+HALL-LINK-7.1.txt (runtimes/pic-reaction-transactions-20261029/native-full-time-candidate007.1/, when it appears), native v7
+API-007.txt + HALL-LINK.txt + amendment A1 and Hall MOTION-WORK-GROSS-V1.txt (motion work tolerance; native implements it).
+v3.3 results: .workspace/outputs/hall-corrective-v3.3-20261031/RESULTS.txt.
+
+1. DepositSupportBuilder on the device (HOST-WORK item 2: 1.6 ms per 1e3 carriers per iterate, k >= 2 iterates)
+ Code: source/census_charge.hpp class DepositSupportBuilder (two build() overloads: census + endpoints; census + receipt with
+ sinks/newborns), called per fixed-point iterate in prepare_closed_proposal (root_api.hpp for Owner, resident_owner.hpp for
+ ResidentOwner) and through the endpoint continuity guard of Model::prepare / k_continuity (support_C per node).
+ What it computes per node n: absolute_C(n) = finish(s1, s2, m) with, over the carriers p whose start/end box (cell indices,
+ widened by delta_d = eps (3 C_d + 8) cells) contains n: s1_n += t1_p = Q_p (2C + 14 + (16C + 67) R_p), s2_n += t2_p = Q_p R_p,
+ m_n += 1; Q_p = magnitude(Words(w) * q) (long double), R_p = sum_d |b_d - a_d| + 2 delta_d (long double), C = nx + ny + nz.
+ The rule text endpoint_tolerance_rule (field_model.hpp) is in the configuration identity.
+ The design question: t1, t2 are long double and s1, s2 are x87 sums in ascending carrier-ID order (8..27 nodes per carrier).
+ A device kernel cannot reproduce x87 roundings. Two consistent choices:
+  (a) same results: keep the x87 host form (no gain), or prove that a device form rounds to the same binary64 absolute_C for
+      every input (not provable in general: the sums are long chains);
+  (b) documented identity change (recommended): define t1, t2 as exactly specified binary64/double-word values (e.g. the
+      products formed with fma two-products, the result rounded UP) and s1, s2 as EXACT sums (native v7 forms
+      pf_v7::ExactSum / device Forms::sum_products-style superaccumulator; emit (node, term) records per carrier from the push's
+      device arrays, sort by node, segmented exact sums; order- and partition-independent, CPU = GPU bit for bit), then
+      finish() in a stated binary64 order rounded upward. The bound is a tolerance, not state: the change of its values is
+      bounded by a few ulps; state it, bind the new rule text into the configuration identity, and show the continuity guard
+      decisions are unchanged on the v3.3 fixtures (parity-coupled, dense blobs, sinks, newborns).
+ Inputs on the device already: carriers (SoA) and endpoints / sink hit points in the GPU push engine
+ (gpu/hall_gpu_push_v3.cpp MotionEngineV3: carriers buffer, outs = endpoint/start/disp arrays, sink outputs); the resident field
+ engine (gpu/resident_field.cpp) shares the hall_gpu::Session, so the support array can stay on the device and be read by
+ k_continuity (ctx.support) without a host round trip. Newborns start at the birth point; sinks end at the hit point.
+2. The 4-6x slowdown (v3.1 RESULTS section 5)
+ DepositSupportBuilder took 2.84 ms at 1e4 carriers in the resident test process against 0.64 ms in the baseline profiler
+ process with the same code and data; repeated calls are equal (not a warm-up). Not explained. Known differences: the
+ resident process holds a CUDA context, the device field and the GPU push engine, and every run is pinned to ONE leased core
+ (taskset), so the CUDA driver's helper threads share that core with the host loop; the baseline process had no device
+ context. Code, data, allocation pattern (three nn-sized vectors per call) and x87 arithmetic are identical. Candidates to
+ test first: driver threads / spin-wait synchronisation on the single pinned core (cudaDeviceScheduleBlockingSync; perf sched),
+ frequency of the leased core under the GPU process, cache pollution by the pinned staging buffers. Moving the builder to the
+ device removes the symptom but the cause also affects every other host loop of the resident process.
+3. Where the code lives
+ Independent FP64 residual (HOST-WORK 9: 23 ms on 50 um): gpu/resident_field.cpp ResidentField::prepare (after the CG:
+ rhs and x downloaded, HostApply::apply = sealed apply arithmetic, foil::norm = sealed x87 norm, target max(1e-30, 2e-13 ||b||));
+ HostApply in the same file; device CG in gpu/cg_kernels.hpp (its own true residual k_residual/k_fin_true). The Owner path:
+ Model::prepare (field_model.hpp) after the backend solve. A device form must use a kernel path independent of the CG kernels
+ (gather-based apply, exact or double-word norm) and change the rule text in resident_rules and the Model configuration.
+ Digests: device Merkle leaves k_leaves (gpu/resident_kernels.cu), roots and host leaf samples in resident_field.cpp
+ (Impl::state_root, midpoint_root, verify_samples, verify_all_leaves); host streaming digests: Model::state_sha256
+ (field_contract.hpp encode_state/encode_ledger; Owner path), hall_driver::total_field_sha256 (motion_provider.cpp; once per
+ iterate in prepare_closed_proposal, native-facing form), heat_sha256_of (owner.hpp), census v2 and record v7 on the host
+ (motion_provider.cpp census_v2, MotionAssembly::record_v7) -- the forms library device entry points (Forms::census_pack,
+ census_check, block_list, kinetic_aligned, sum_products) are not used yet (HOST-WORK item 4).
+ Preflight: Owner::preflight / preflight_final (root_api.hpp; HOST-WORK item 3: census, record, charge_of_endpoints recomputed on
+ the host, O(mesh) admit and state digest); ResidentOwner::preflight (resident_owner.hpp) + ResidentField::preflight_recheck
+ (device: leaves of both slots, both admissions, midpoint) -- its census/record/charge items are still host work.
+4. Coupled path through Model::prepare vs the resident owner (HOST-WORK item 8: ~25 full-mesh passes per iterate, 687 ms per
+ iterate on 50 um)
+ Coordinator v7.1 drives hall_corrective_v3::Owner (host arithmetic: Model::prepare, field_model.hpp ~147-250: admit(old) every
+ iterate, conduction and Jacobi diagonal, curl/Ampere words, rhs, update, currents, energy, bank, Gauss ledger, region loops,
+ admit(candidate)). The ResidentOwner (resident_owner.hpp) runs the same protocol with the step on the device (2.8 ms per
+ vacuum step on 200 um, bitwise equal to Model::prepare for the same increment; parity tests test_resident parity-vacuum /
+ parity-coupled), with prepare_closed_proposal / preflight_final / publish_prevalidated, ResidentJointProposal
+ (motion(), trial_E/B(), current_A_m(), field_heat()), checkpoint save/restore (bit-identical continuation), native v7 forms.
+ To run the coupled path through it: (i) the coordinator templates its step and adapters on the owner type (the protocol
+ functions have the same names; ResidentOwner needs a Model built with ResidentBackend(descriptor) and a shared gpu::Device,
+ and its field_sha256 is the block-Merkle digest, so every identity differs from the Owner path); (ii) replace the Owner-only
+ accessors the coordinator uses (field(), charge(), candidate_field/charge(), Owner::save/restore) with accepted_state() /
+ candidate_state() downloads (diagnostic only) and ResidentOwner::save/restore; (iii) use the GPU motion provider
+ (gpu_backends.hpp GpuMotionProvider) on the same Device; (iv) remaining host work per iterate in the resident closed proposal:
+ DepositSupportBuilder (item 1), bank_transfer (O((S+B) nn), census_charge.hpp ~167-192: restrict to the 8 CIC nodes),
+ total_field_sha256 of the midpoint, the host independent residual, census v2 / record v7 on the host.
+5. Build and run v3.3 (every compile and run inside arch-base-20261028/run-frozen through the launchers; cwd under /home/treefor/projects)
+ Cores: 0 and 1 are lent for CPU-only work (flock testing-core<K>.lock, taskset, nice 15; stop when pic-profile/RETURN-CORES-0-3
+ exists); never 2-5; 3 is back with Spheral. GPU: take both GPU lock files first, then a core lease, or use SimQueue.
+  build:  cd runtimes/hall-corrective-v3.3-20261031 && L=.workspace/outputs/pic-profile &&
+          flock $L/testing-core0.lock flock $L/testing-core1.lock taskset -c 0,1 nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+            MKL_NUM_THREADS=1 /usr/bin/python -I run_hall_v33.py build LABEL test_hall_v3 test_resident test_v32
+  GPU run: flock $L/testing-gpu.lock flock $L/testing-gpu-GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9.lock \
+            runtimes/core-lease-20261030/any-core.sh --wait /usr/bin/python -I run_hall_v33.py gpu LABEL NAME BINARY ARGS
+           (ARGS placeholders {TRACE} {OUT} {NVRTC} {UUID}; e.g. test_resident parity-vacuum {TRACE} {OUT} 200 {NVRTC} {UUID};
+            test_v32 a09|ledger-run|dense|prerun|compare|seed-check, usage in tests/test_v32.cpp)
+  CPU run: flock $L/testing-core1.lock taskset -c 1 nice -n 15 env ... /usr/bin/python -I run_hall_v33.py run LABEL NAME BINARY ARGS
+  long runs: simq submit -p powerflow -c 1 --gpus 1 --mem 6G -t 2:00:00 --exclusive-timing -n NAME -e OMP_NUM_THREADS=1
+            -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 -C runtimes/hall-corrective-v3.3-20261031 -- ./run_prerun.sh LABEL prerun
+  coordinator v5 T1-T7: run_coordinator_parity.py build LABEL / run LABEL (CPU; native candidate003; v3 motion forms).
+  acceptance: run_acceptance.sh LABEL (v3.2 list; core 3 must be removed from its loan1 helper before use).
+ Outputs: .workspace/outputs/hall-corrective-v3.3-20261031/LABEL/ (run-receipt.json in every run directory).

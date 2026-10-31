@@ -1,0 +1,48 @@
+Hall corrective v3.3 -- results, 2026-10-31
+
+Sources: runtimes/hall-corrective-v3.3-20261031 (README.txt), sealed copy Power-Flow/artifacts/hall-corrective-v3.3-20261031/source
+(SOURCE-SHA256.json, 49 files), build s1. v3.3 = v3.2 + double-word magnetic face increments + double-word DC seed (curl of A,
+Coulomb residual); decision (b1) of hall-corrective-v3.2-20261031/DIVB-ANALYSIS.txt. Device RTX 3080 Ti, frozen launcher,
+receipts in every run directory.
+
+1. Qualification (s1; GPU stages): units 5/5, negative 4/4, parity-vacuum 200 steps x 2 backends 16/16 (host Words update =
+ device k_update_B bit for bit, with the admitted Gauss ledger), parity-coupled 2 carriers x 50 steps 8/8 and 1e4 x 3 steps 8/8,
+ A09 8/8, ledger-run 13/13 (55,000 steps at 10 fs past 1.24 ns; Gauss guard <= 0.010032; drift/L = 1 +- 7e-16 at 1,510 nodes;
+ +-e injected at all 14,812 nodes refused; largest admissible injection 4.8e-23 C), vacuum 10k: max/max divB 2.5e-5 (v3.2
+ 0.0035), 2.93 ms/step. A09: Gauss 2.39e12 (bootstrap) / 2.17e12 (1.30 ns); divB 50 T/m: 3.54e11 (bootstrap) / 2.78e11
+ (1.30 ns) -- unchanged from v3.2.
+ CPU (s1): Hall v3 component tests 30/30 with the same outcomes; coordinator v5 T1-T7 101/28/35/10/37/6/9 passed
+ (coordinator-parity/run-s1-124252). Physical-state parity with Hall v3 / v3.2 is no longer bitwise (by design: section 3).
+2. 25 um seed (360x4+1, 2,601,366 edges): admitted (5 refinement cycles, double-word residual 4.98e-13 <= target); 200 um:
+ 1 cycle. Seed divB: largest per-cell ratio 2.5e-3 (box-edge cell (0,22,5), 6.5e-15 T/m against 2.6e-12) on both meshes:
+ the division-form check's exact coefficient mismatch on the seed vector potential (README).
+3. Parity baseline v3.2 -> v3.3 (B bits): 0.75 -> 2.75 ns at 100 fs (c1/gpu-xc-100fs against v3.2 s1/gpu-xc-100fs):
+ E: |dE| <= 1.09e-7 V/m = 14.6 ulp of max|E| (4.13e7 V/m), 8 % of the edges bitwise equal, median 18 own-ulp where different;
+ B: |dB| <= 8.5e-16 T = 3.8 ulp of max|B| (1.91 T), 45 % bitwise equal, median 2 own-ulp; energy-norm differences E 9.7e-16,
+ B 1.3e-16; field energies equal to 4.9e-17 (W_E) and 2.5e-18 (W_B); the endpoint terminal voltage is the same double
+ (69,435.92586486999 V). divB: the worst per-cell ratio over the window 0.0025 (v3.2: 0.22); the v3.2 refusing foil cell
+ (22,35,3) -1.9e-28 T/m (v3.2 -2.8e-14); feed-end cells ~1e-28 (v3.2 -8.9e-12).
+4. Qualification pre-run 0.749788 -> 20 ns, 200 um (9 mm box), 100 fs, native v7 motion forms (SimQueue job 147, s1):
+ qualification of the admitted Gauss ledger, the double-word magnetic update and the resident path; not a production start
+ state (the 9 mm box underestimates the port inductance by ~32 %, c19-circuit-drive-v1).
+ Reached 20.000 ns exactly: 194,026 steps, 658 s wall (3.39 ms/step including 1,927 series rows and 20 checkpoints), no refusal.
+ Guards: Gauss |D-L|/bound <= 0.010032 (the bootstrap value) at every sample, 0.0038 at 20 ns; uncorrected v3.1 form |D|/bound
+ 572.6 at 20 ns (max |L| = max |D| = 1.03e-20 C; implied |D|/(bound+|L|) 0.998): the ledger carries the whole drift.
+ divB per cell: worst ratio 0.00252 for the whole run (seed residue 6.57e-15 T/m in the box-edge cells (0,22,5)/(44,22,5),
+ bound 2.6e-12, constant); bound floor: none in principle (128 eps sum|B|/h); smallest bound seen 9.6e-16 T/m at 4.15 ns in
+ the lower-foil interior cell (22,9,2) at the field reversal that refused v3.2 (divB 1.7e-28 there, ratio 1.7e-13);
+ max/max divB 2.5e-5. Energy balance <= 3.0e-6 of its bound; independent residual <= 0.200 of target.
+ time     port V     drive I    W_E        W_B       max E_n inner/outer   foil T max / mean
+ 1 ns     50.9 kV    6.4 kA     4.52e-4 J  0.224 J   24.3 / 24.9 MV/m      300.002 / 300.002 K
+ 4.15 ns  86.1 kV    16.8 kA    1.30e-3 J  2.01 J    41.3 / 43.3           300.498 / 300.117
+ 10 ns    107.3 kV   43.4 kA    2.01e-3 J  16.4 J    51.5 / 53.9           310.48 / 302.04
+ 15 ns    144.5 kV   73.5 kA    3.65e-3 J  49.8 J    69.4 / 72.5           341.38 / 308.14
+ 20 ns    173.2 kV   111.4 kA   5.24e-3 J  117.9 J   83.2 / 87.1           412.55 / 322.82
+ Peak port voltage 174.7 kV at 19.55 ns; largest surface normal field 84.0 MV/m (inner faces) and 88.0 MV/m (outer faces);
+ both foils identical by symmetry.
+ Series and plots: /home/treefor/projects/.workspace/outputs/hall-corrective-v3.3-20261031/s1/gpu-prerun-20ns-130711/series.jsonl, plots/ (terminal-voltage, drive-current, field-energy, surface-field, foil-temperature,
+ gauss-divb-ratios, gauss-ledger). Checkpoints (resident: state, admitted Gauss ledger, heat slices, kinetic ledgers):
+ /home/treefor/projects/.workspace/outputs/hall-corrective-v3.3-20261031/s1/gpu-prerun-20ns-130711/checkpoint-<k>.000000ns for k = 1 .. 20 (checkpoints.json).
+5. Open: device host-work items (HANDOVER-V3.4.txt in the runtime directory); divB check scale (formal zero floor; proposal sent,
+ not applied); the remaining acceptance stages not rerun on s1: restore-continue in a fresh process, dense blobs and v7 sinks
+ (identical code paths to v3.2 except the B update; v3.2 results in hall-corrective-v3.2-20261031/RESULTS.txt).
