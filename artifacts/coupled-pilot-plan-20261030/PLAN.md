@@ -144,7 +144,7 @@ Must be built first:
 | H4 | DONE: coverage v1 + v2 (artifacts/parent-coverage-v1-20261030, -v2-20261030; >10 keV provisional RBEB) | Parent-channel coverage | Qualified kernels for the onset gap and > 8 keV, or a versioned refusal scope recording unresolved counts (no silent skipping). |
 | H5 | invalidating | One thermal owner | Hall thermal supplies sigma(T) and Joule; source v4 consumes Hall T and returns surface loads (new Hall version + source binding; no private Joule). |
 | H6 | DONE: arrival owner v1 (artifacts/arrival-owner-v1-20261030) | Arrival/count/RNG/ID owner | Counter-based RNG keyed by (run seed, step, patch, candidate index) and a global ID allocator. |
-| H7 | blocking | 100,000-carrier native cap (`arena.cpp:33`) | Versioned packet merge/weighting policy conserving charge, momentum and energy, or the pilot stops at the cap. |
+| H7 | cap: configurable in native v5; growth: neutral births use the electron route (quantized release n = SR(D/w0), approved 2026-10-30; source v6 + arrival v1.1 in Hall v3 work); merge policy only if still needed | 100,000-carrier native cap (`arena.cpp:33`) | Versioned packet merge/weighting policy conserving charge, momentum and energy, or the pilot stops at the cap. |
 | H | practical | Per-step JSON hashing (~0.4-0.7 s/step) | Binary canonical encodings hashed once per immutable object (Hall `state_sha256` dumps the field ~10x per step, `field_model.hpp:65-66`; native `frame_prefix`, inc:232-240). |
 | - | binding | Source v4 field view | Build `FinalFieldView{v3::TrialFrame, axial::Mesh, E, B}` (`source_owner.hpp:41,47`) from Hall's actual midpoint arrays. |
 
