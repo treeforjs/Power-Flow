@@ -1,0 +1,114 @@
+{
+ "mode": "checks",
+ "v61": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v6.1-20261031/a2-checks-cpu",
+ "v7": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v7-20261031/b5-checks-cpu",
+ "cases_v61": 31,
+ "cases_v7": 45,
+ "passed_v61": 31,
+ "passed_v7": 45,
+ "v61_cases_first_in_v7_same_names_and_outcomes": true,
+ "evidence_differences": [
+  {
+   "test": "T6",
+   "name": "genesis time other than the first C19 knot refuses",
+   "differences": {
+    "refusal": [
+     "coordinator v6.1: genesis time differs from the first supported C19 knot",
+     "coordinator v7: genesis time differs from the first supported C19 knot"
+    ]
+   }
+  },
+  {
+   "test": "T6",
+   "name": "a missing foil-slice source owner refuses",
+   "differences": {
+    "refusal": [
+     "coordinator v6.1: one source owner per Hall foil slice",
+     "coordinator v7: one source owner per Hall foil slice"
+    ]
+   }
+  },
+  {
+   "test": "spot",
+   "name": "the coupled step refuses dt above the unchanged 10 fs guard",
+   "differences": {
+    "refusal": [
+     "coordinator v6.1: the unchanged native full-time dt guard",
+     "coordinator v7: dt within the configured step cap"
+    ]
+   }
+  }
+ ],
+ "new_v7_cases": [
+  [
+   "V7",
+   "predicate v7 admits the 10 fs step and agrees with the V3/native-v6 predicate",
+   true
+  ],
+  [
+   "V7",
+   "foreign source seal: both predicates refuse, owners unchanged",
+   true
+  ],
+  [
+   "V7",
+   "a step whose dt differs from the controller decision by one ulp is refused by predicate v7, owners unchanged",
+   true
+  ],
+  [
+   "V7",
+   "a step clock with a cap above the field owner maximum is refused by predicate v7, owners unchanged",
+   true
+  ],
+  [
+   "V7",
+   "a step clock without a decision digest is refused by predicate v7, owners unchanged",
+   true
+  ],
+  [
+   "V7",
+   "prepare refuses dt above a configured cap of 5 fs and a configured cap above the field owner maximum, owners unchanged",
+   true
+  ],
+  [
+   "V7",
+   "steps of 9.17 fs (rung 3) and 5 fs (rung 8) publish under predicate v7 (V3 predicate agrees)",
+   true
+  ],
+  [
+   "V7",
+   "dt ladder: rung 0 is the particle cap bit for bit, rung 8 half of it, rung -8 twice it, strictly decreasing; with a 100 fs cap the top rung is the largest rung below the cap",
+   true
+  ],
+  [
+   "V7",
+   "a step-size refusal after the Hall proposal is classified as a step-size guard and leaves every owner unchanged",
+   true
+  ],
+  [
+   "V7",
+   "the retried step (5 fs) equals a direct 5 fs step from the same state bit for bit",
+   true
+  ],
+  [
+   "V7",
+   "a non-step-size fault is not retried",
+   true
+  ],
+  [
+   "V7",
+   "controller inputs and decision are bit-identical for the census in 1, 2, 3 and 8 parts in reversed order",
+   true
+  ],
+  [
+   "V7",
+   "the controller's omega_p dt equals the Hall motion plasma guard value of the step (summation order only)",
+   true
+  ],
+  [
+   "V7",
+   "Hall refuses 10 fs on a dense blob (plasma guard, step-size class), owners unchanged; the controller's dt publishes",
+   true
+  ]
+ ]
+}

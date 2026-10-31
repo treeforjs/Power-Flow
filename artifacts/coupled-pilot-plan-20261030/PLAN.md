@@ -367,8 +367,9 @@ rank-to-GPU maps, GPU name/UUID/capability/driver, launcher argv, environment di
 ## 8. Adaptive time step (approved 2026-10-30)
 
 The fixed dt <= 1e-14 literal (field_model.hpp:73, root_api.hpp:45, common_commit_contract.hpp:82) has no derivation in the code.
-The physical limits are the per-step guards: plasma oscillation (omega_p*dt; ~0.56 at 1e12 cm^-3 and ~1.8 at 1e13 cm^-3 for
-10 fs, so 10 fs becomes too large once breakdown builds density), electron gyration (omega_c*dt ~0.05-0.1 at 30-56 T), the
+The physical limits are the per-step guards: plasma oscillation (omega_p*dt at 10 fs: 5.6e-4 at 1e12 cm^-3, ~0.56 at 1e18 cm^-3,
+~1.8 at 1e19 cm^-3; corrected 2026-10-31, the first version of this plan was off by a factor of 1000; with coordinator v7's
+c_plasma = 0.03 the controller starts shortening 10 fs steps above ~3e15 cm^-3), electron gyration (omega_c*dt ~0.05-0.1 at 30-56 T), the
 0.2-cell displacement guard, and field accuracy (implicit solve, Courant ~0.015 at 10 fs on 200 um cells; foil magnetic
 diffusion ~70 ns; drive varies over ns), so particle-free steps can be much longer. Plan: Hall v3.1 makes the cap a configured
 parameter (default unchanged) and reports the guard quantities per step; the next coordinator adds a controller that picks each
