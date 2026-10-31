@@ -1,0 +1,105 @@
+Hall v3.2 -> native v7: what the Hall motion provider must change to emit the v7 forms
+Contract: API-007.txt sections 1-3 (frozen; amendment A1 of 2026-10-31: motion-work-gross-v1, items 2c and 3e). Producer library: forms/ under this directory (read in place;
+do not copy-edit: compile the files, the kernel source digest is reported by Forms::kernel_source_sha256()).
+Physics, motion arithmetic, guards and refusal texts of the Hall motion stay as in v3.1; only the identities
+below change, plus the configurable resident-neutral interval bound.
+
+0. Build
+ Host: -I <v7>/forms/include, compile <v7>/forms/src/forms_cpu.cpp (C++20, -ffp-contract=off -fno-fast-math),
+   link -lcrypto. Device: additionally -I <v7>/forms/gpu, compile <v7>/forms/gpu/forms_gpu.cpp with
+   -Wno-c++26-extensions (#embed of forms_kernels.cu and forms_core.h) against the hall-gpu-resident-v1
+   common/ sources already used by Hall. pf_v7::gpu::Forms forms(session) compiles its own NVRTC module on
+   the Hall session (same stream; no extra synchronisation). Alternatively add forms_core.h and
+   forms_kernels.cu to Hall's own NVRTC program and launch the pf7_* entry points (API-007.txt section 3).
+ Native: link the native v7 core (build/libpic_native_v7.a) instead of v6/candidate003; include
+   raikou/mfem_pic_full_time.h of this directory.
+
+1. Census (replaces canonical-motion-census-v1 in MotionAssembly::admit and in the Owner preflight)
+ a. Input per step from the coordinator: trial.census_v7() (FullTimeCensusV7: carriers in ascending native ID,
+    packet_keys, state_indices, states, sha256). Upload carriers (GapParticle AoS, 80 B, or Hall's own SoA),
+    packet keys and state indices once per trial (pf_v7 census record = 12 u64 words: pack on the device with
+    Forms::census_pack(n, rows, row_words, keys, states, out)).
+ b. Ordering: the native census is already ascending; Forms::census_order(...) only when a census arrives in
+    another order (stable u64 radix order on the device).
+ c. Identity and duplicate/divergent-packet check on the device: Forms::census_check(n, records, S, ...) ->
+    first failing record and code; refuse on any code != 0 (map to the v3.1 texts: codes 1/2 ->
+    "motion missing/duplicate native/packet identity"; 6 -> "motion divergent Count2 packet carriers";
+    3/4/5/7 -> "motion missing/duplicate native/packet identity"). The host per-carrier loops of ordered()
+    and the packets std::map in MotionAssembly::cpu/assemble are dropped on the device path.
+ d. Census digest: record census_sha256 = trial.census_v7().sha256 (computed once per trial by native). For
+    Hall's own preflight recompute it from the device carriers root: Forms::block_list(pf7::section_census,
+    n, records, scratch, root) and pf_v7::census_v2_sha256(n, census_states_sha256(states), hex(root)); no
+    per-iterate host hashing. canonical_census_sha256 is no longer called.
+ e. Packet ID / state texts are needed only for SinkRecord/NewbornRecord bookkeeping (sink ledger tallies):
+    take them per sink/newborn from trial.carrier_packet(native_id) (O(sinks + newborns) host work) or from
+    the state index (states[state_index]).
+
+2. Kinetic change and field work (replaces the two x87 long-double sums in MotionAssembly::cpu/assemble)
+ a. kinetic_change_J: Forms::kinetic_aligned(n, w, ws, m, ms, u_start, u0s, u_end, u1s, blocks, scratch, out)
+    over the census in Hall's device arrays (u_end = endpoint proper velocity of a survivor, incident proper
+    velocity of a sink: the per-carrier push output before compaction), or Forms::kinetic_split over the
+    compacted endpoint/sink records; value = SumOut.value. CPU path: pf_v7::kinetic_change_J(census,
+    endpoints, sinks) or pf_v7::ExactSum with add_product(w_i, RN(KE(end) - KE(start))).
+ b. field_work_J: Forms::sum_products(ne, E_mid, 1, J, 1, dt, blocks, scratch, out); value = SumOut.scaled
+    (= RN(dt x RN(sum E J))). CPU path: pf_v7::field_work_J(dt, E, J).value.
+ c. work_defect_J = K - W in binary64 (unchanged). Guard (amendment A1): motion-work-gross-v1
+    (hall-corrective-v3.2-20261031/MOTION-WORK-GROSS-V1.txt) replaces 1e-20 + 1e-10 (|K| + |W|), because the
+    net form refuses dense plasma where the net exchange passes through zero (rounding and fixed-point terms do
+    not scale with it). Hall's motion_work_gross_v1.hpp and pf_v7::work_field_scales/work_finish/work_admits
+    give the same tolerance bits (native tests: 4 dense-blob fixtures, 20 tampered inputs).
+ d. Refuse when SumOut.status != 0 (nonfinite factor, overflow, missing census carrier).
+ e. The 7 budget values keep their positions; continuity, plasma_dt, gyro and displacement are unchanged.
+
+3. Motion record v7 (replaces MotionAssembly::seal_v2, seal_v3/record_v3 and the JSON record)
+ a. Device arrays in canonical layout, ascending native ID (API-007.txt 1.2): endpoints (survivors, 80 B
+    GapParticle), paths (64 B, every census carrier), sinks (136 B: u64 id, kind, surface, axis, f64 plane,
+    fraction, segment[3], hit point[3], incident u[3], flight, discarded flight), births (24 B: u64 id, f64
+    birth time, f64 flight).
+ b. Section roots: Forms::block_list(section, n, records, scratch, root_out) for sections 0..3 (one call
+    each; ~0.2-1 ms device time per section at 1e4-1e6 carriers on the 3080 Ti, independent of the host).
+ c. Header on the host (O(1)): pf_v7::MotionHeaderV7 {binding fields, budget, census_sha256, coverage
+    "all_native_carriers_births_and_first_hit_sinks", array digests (motion-array-binary64-v1 as in v3.1),
+    kinetic policy, native_to_field_m, neutral_motion_owner, flags, neutral_stream_dt_max_s};
+    pf_v7::MotionSectionsV7 {counts, hex roots}; record digest = pf_v7::motion_record_v7_sha256(header,
+    sections). One schema for every step (empty sink/birth sections allowed; no plain/flows split).
+ d. Receipt: carry the record digest (e.g. record_v7_sha256()) and the arrays; the v2 JSON seal, the v3 record
+    and extend_json_record/sink_birth_digest are not needed by native v7 (keep them only if a v6 coordinator
+    must still be served).
+ e. Native admission (coordinator): FullTimeMotionRecordV7 x with the header fields and spans of the receipt
+    arrays (endpoints span<GapParticle>, paths span<FullTimeMotionPath> (CarrierPath has the same 64-byte
+    layout; copy or reinterpret after a static_assert), sinks as FullTimeSinkRecord (one O(sinks) conversion),
+    births span<FullTimeBirthFlight>), x.record_sha256 = digest; A1: x.trial_E, x.trial_B = the trial midpoint
+    E (edges) and B (faces) whose total-midpoint-E-B-binary64-v1 digest is trial_field_sha256, x.current_A_m =
+    the receipt's current (spans; host copies of the device arrays, O(mesh) per step, not per carrier);
+    binding.transport_trial_sha256 = digest; trial.prepare_total_field_motion(binding,
+    bind_total_field_motion_v7(x, storage)). Native recomputes K, the four section roots, the header digest
+    and the census digest, and refuses any difference (typed FullTimeFlowRefusal::motion_record).
+
+4. Resident-neutral stream bound
+ Replace hall_driver::prepare_neutral_stream (8dddec0 kinetic_boundary.cpp:57, literal dt <= 1e-14) by
+ pf_v7::neutral_stream(policy, carrier, begin, end, dt, dt_max) on the host or pf7::neutral_stream(...) in
+ device code, with dt_max = the native v7 configuration value (PicArena::full_time_motion_policy().
+ neutral_stream_dt_max_s, default 1e-14), and record it in MotionHeaderV7::neutral_stream_dt_max_s. At the
+ default the port is bit-identical to the sealed function (values, refusal texts and order). The device
+ neutral drift of the GPU push must apply the same parameter where it repeats the 1e-14 interval check.
+ The 0.2-cell neutral displacement guard is unchanged.
+
+5. Hall preflight (Owner/ResidentOwner)
+ Replace "census digest recompute + record_v3 recompute + seal check" by: device recomputation of the census
+ carriers root and the four section roots of the accepted iterate (or comparison of the device leaves with a
+ sample recomputed on the host with pf_v7::block_list), the record digest from the header (O(1)), and the
+ exact sums recomputed on the device. No per-carrier host work remains in these items.
+
+6. Expected per-carrier host work after the change (v3.1 breakdown, us/carrier at 1e5, RESULTS-007.txt):
+ v2 JSON seal + binary v3 record 2.27 -> 0 (device section lists; host header O(1));
+ census ordering + digest in admission and census admission (part of 0.80, 0.22) -> 0 (device check/order;
+ native digest reused); preflight census digest + v3 record recompute (part of 0.71) -> 0 (device);
+ x87 kinetic/work sums (~0.001-0.002) -> 0 (device). Deposit support (1.17) and the charge of endpoints/
+ census charge in preflight are not part of the v7 forms.
+
+7. Tests Hall should run
+ CPU vs GPU bit identity of K, W, the four section roots, the census digest and check codes on the Hall
+ fixtures (pf_v7 CPU functions are the reference); native v7 admission of the Hall v3.2 receipts (accept)
+ and of one-ulp/leaf/census tampering (refuse); the A1 tolerance bits against native on shared fixtures;
+ coordinator parity of the physical state (native carrier
+ rows) against v3.1 + native v6 (identical except the identities of API-007.txt section 5).

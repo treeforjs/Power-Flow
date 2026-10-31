@@ -1,0 +1,82 @@
+Native v7 identities and the coordinator link (coordinator v7; device-computable motion forms)
+
+v7 source identity: SOURCE-SHA256.json (formula as v5/v6: sha256 of the compact sorted JSON {path: sha256}, scope
+                    source/, inputs/, forms/include, forms/src, forms/gpu):
+                    3f88fab5e285a13448ab709394dabc3cb65aab4820c76dec27c8121c0b042dc5
+v7 core archive:    build/libpic_native_v7.a (sealed exact-count native.o + v7 arena.o + canonical.o + forms_cpu.o);
+                    sha256 af2bd9e7dc4932421d7928af7716cc076af726c61834d1d2dc2d690582348dec (all build artifacts:
+                    /home/treefor/projects/.workspace/outputs/native-v7-20261031/final/build-artifact-hashes.json)
+Hall adapter archives: none. The v6 archives libpic_hall_motion_adapter_v6.a (v2 JSON) and
+                    libpic_hall_motion_v3_adapter_v6.a (binary v3) have no v7 counterpart: native v7 admits only the
+                    motion record v7. Transitional host adapter (header only): source/adapters/hall_receipt_v7.hpp.
+Producer library:   forms/ (pf_v7 CPU reference, pf_v7::gpu NVRTC producer); contract API-007.txt sections 1-3
+                    (frozen, amendment A1 motion-work-gross-v1).
+Coordinator-side headers (not in the core): source/adapters/arrival_v1_births.hpp, source/adapters/common_commit_v6.hpp
+                    (unchanged from v6), source/adapters/hall_receipt_v7.hpp (new).
+
+A. Old -> new identity mapping (native v6 -> native v7)
+ Identity                              native v6 (aa4d8f03...)                  native v7
+ ------------------------------------  ---------------------------------------  ------------------------------------------
+ source identity                       aa4d8f03...52c9                          3f88fab5...0b042dc5
+ configuration identity (genesis)      v5 configuration digest                  unchanged at the default neutral bound
+                                                                                1e-14 (genesis accepted_arena_sha256 equal,
+                                                                                parity trace); a non-default bound adds
+                                                                                text "native-v7/neutral_stream_dt_max_s", f64
+ motion row record_schema              ...-v3-binary / ...-v3-flows-binary /    canonical-full-time-total-field-motion-v7-merkle
+                                       ...-v2 (JSON)
+ motion row transport_trial_sha256     v3 record digest / v2 JSON seal          motion record v7 digest (API-007.txt 1.2)
+ motion row census_sha256, trial       canonical-motion-census-v1               census v2 (canonical-motion-census-v2-merkle,
+ census_sha256()                                                                API-007.txt 1.3)
+ budget[0] kinetic_change_J            x87 sequential long-double sum           RN(exact sum) (API-007.txt 1.1)
+ budget[1] field_work_J                (not checked by native)                  dt x RN(exact sum), checked bitwise (A1)
+ work guard                            1e-20 + 1e-10 (|K| + |W|)                motion-work-gross-v1 (A1)
+ hence                                 accepted prefixes after the first motion step, journal row/chain digests,
+                                       outer_step/completion digests binding them, anchor values (tags/layout as v6),
+                                       cumulative_bytes (the schema text length)
+ UNCHANGED bit for bit                 native carrier rows (physical state) after every step, endpoints_root (native
+                                       carrier root), paths_root (v5 path-root form), sink ledgers and exact tallies,
+                                       birth receipts, flows totals, ledgers, exact counts, revision counts, RNG seals,
+                                       time, field/heat/source seals, genesis identity at the default configuration.
+                                       Evidence: physical-state parity trace (tests/parity_trace.cpp compiled against
+                                       sealed v6 with its JSON route and against v7 with the adapter; 60 steps, forced
+                                       events, K = 4): physical_state_sha256 identical at every step; differing fields
+                                       only accepted_arena_sha256, anchor_head_sha256, cumulative_bytes.
+
+B. Linking v7 (coordinator v7)
+ 1. N = R / 'pic-reaction-transactions-20261029/native-full-time-candidate007'; include -I N/source/include
+    -I N/forms/include (-I N/source/adapters for the adapters); link N/build/libpic_native_v7.a and -lcrypto. No
+    Hall object is needed by the core; the transitional adapter compiles against the Hall motion_receipt.hpp in use.
+ 2. Configuration: FullTimeConfiguration::motion.neutral_stream_dt_max_s (default 1e-14; finite, > 0). Pass the
+    same value to the Hall motion provider (HALL-LINK.txt item 4); native refuses a record whose
+    neutral_stream_dt_max_s differs from it, and a step with dt above it when the census holds a resident neutral.
+    It is in the configuration identity only when it differs from 1e-14 and is saved in the checkpoint
+    configuration (key neutral_stream_dt_max_s, present only when non-default). The native core has no other
+    1e-14 literal; the V3 common-commit contract (common_commit_contract.hpp:82) still has one (coordinator side).
+ 3. Census per trial: trial.census_v7() (carriers span, packet_keys, state_indices, states, states_sha256,
+    carriers_root, sha256), computed once per trial; trial.census_sha256() = census_v7().sha256. Hand the arrays to
+    the Hall v3.2 device census (HALL-LINK.txt item 1); trial.carrier_packet(native_id) gives (packet ID, state) for
+    sink/newborn bookkeeping. trial.native_census(cap) (texts) is unchanged.
+ 4. Motion admission (per accepted iterate):
+      FullTimeMotionRecordV7 x;   // header fields, budget[7], census_sha256 = trial.census_sha256(),
+                                  // spans endpoints/paths/sinks/births, neutral_stream_dt_max_s,
+                                  // A1 inputs: trial_E (edges), trial_B (faces), current_A_m (J)
+      x.record_sha256 = <Hall v3.2 record digest>  (or full_time_motion_record_v7_sha256(x));
+      binding.transport_trial_sha256 = x.record_sha256;
+      trial.prepare_total_field_motion(binding, bind_total_field_motion_v7(x, storage));
+    trial_E/trial_B must be the arrays of the record's trial_field_sha256 (total-midpoint-E-B-binary64-v1) and
+    current_A_m those of current_A_m_sha256 (motion-array-binary64-v1); the spans and storage must outlive the call.
+    For a Hall that does not emit the v7 forms (v2/v3.x receipts):
+      auto m = v7_adapter::from_hall_receipt(receipt, trial, E_mid, B_mid, neutral_bound);
+      binding.transport_trial_sha256 = m->record.record_sha256;
+      trial.prepare_total_field_motion(binding, v7_adapter::admit(m));
+    (O(carriers) host work in the adapter: K, W, scales, section roots.)
+    The "exposures transport trial == motion record" check of the coordinator compares the v7 record digest.
+ 5. Births, sinks, restart and the common predicate: unchanged from COORDINATOR-V6-LINK.txt sections B.4-B.6 and
+    C (common_commit_v6.hpp, accepts_closed_or_birth_step); the motion record of a births trial must state the
+    newborn flights (births section) as in v6.
+
+C. Native host cost per step (RESULTS-007.txt; median, this host)
+ native v7 admission with cached census ~ native v6 binary v3 admission (about 0.18-0.19 us/carrier at 1e4-1e6);
+ census v2 once per trial ~0.12 us/carrier (v6 census v1: 0.10-0.14); A1 adds O(mesh) work per admission
+ (E/B/J digests and the field scales over 41,676 edges). The JSON route (1.7-1.9 us/carrier at 1e5) no longer
+ exists. Hall-side host cost of the v7 forms on the device path: ~0.033 ms per step, independent of N.

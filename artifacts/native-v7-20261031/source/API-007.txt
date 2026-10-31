@@ -1,0 +1,251 @@
+Native full-time v7 (candidate007) -- device-computable motion forms
+Base: native v6 (candidate006, source identity aa4d8f03100e64bed759c739013d91cac1bd66c8a9b2ab6bc3105af7973452c9,
+sealed; not modified). v7 changes exactly three motion identities and the resident-neutral interval bound;
+physics, guards, tolerances, births/sinks, anchors and exact counts are those of v6 (section 5 lists every
+identity change). Producer side: the library forms/ (CPU reference + NVRTC kernels) computes every v7 form
+with the same bits on the host and on the device.
+
+FROZEN PRODUCER CONTRACT: sections 1-3 (definitions, C++ API, NVRTC entry points). Changes after the freeze
+are announced to the coordinator first.
+Amendments after the freeze: A1 (2026-10-31, coordinator decision) motion-work-gross-v1 work tolerance and the
+admission inputs it needs (section 1.1 A1). The record digest definition (1.2), the census (1.3), the exact
+sum definitions and every kernel entry point are unchanged by A1.
+
+0. Encoding conventions (native v5 canonical primitives)
+ u64 = 8 bytes little-endian; f64 = IEEE-754 binary64 bit pattern as u64 (-0.0 != +0.0); text = u64 byte
+ length then the bytes; SHA-256 per FIPS 180-4; hex digests lower case. RN = round to nearest, ties to even.
+
+1. Definitions
+1.1 Exact sums (a)
+ KE(m, u) := pic_kinetic_energy_J = RN(RN(m * n) / RN(g + 1)), n = RN(RN(RN(u0 u0) + RN(u1 u1)) + RN(u2 u2)),
+   g = RN(sqrt(RN(1 + RN(n / C2)))), C2 = RN(299792458^2) = 89875517873681760 (no contraction; bitwise equal to
+   the sealed native.o function, verified in tests).
+ d_i := RN(KE(m_i, u_i_end) - KE(m_i, u_i_start)) for every census carrier i (m_i, w_i, u_i_start: the census
+   carrier; u_i_end: endpoint proper velocity of a survivor, incident proper velocity of a sink record).
+ kinetic_change_J := RN( SUM_i w_i x d_i ), products and sum exact (real arithmetic); an exactly zero sum is
+   +0.0. Independent of order and of any partition of the terms.
+ field_work_J := RN( dt x RN( SUM_e E_e x J_e ) ), E = midpoint total field edge values, J = current_A_m;
+   products and sum exact.
+ work_defect_J := RN(kinetic_change_J - field_work_J) (unchanged from v6). Guard: amendment A1 below
+   (the v6 net form |defect| <= 1e-20 + 1e-10 (|K| + |W|) is replaced).
+ A nonfinite factor, a rounded sum outside the binary64 range, or a census carrier without an end state is a
+   producer refusal (status bits, section 2) and a native refusal.
+ Old (v6): K = double(long double sequential sum over the census of (long double)w_i x d_i) and
+   W = dt x double(long double sequential sum of (long double)E_e x J_e) (x87, 64-bit significand, rounding at
+   every step). Native v7 recomputes K in the new form and requires bitwise equality.
+ Amendment A1 (2026-10-31): work tolerance motion-work-gross-v1
+   Specification: hall-corrective-v3.2-20261031/MOTION-WORK-GROSS-V1.txt (Hall reference
+   source/motion_work_gross_v1.hpp; native implementation pf_v7::work_* in forms/, bitwise equal, tests).
+   tol = RN(RN(RN(1e-20 + RN(1e-10 x RN(G_K + G_W))) + RN(2^-47 x C_K)) + RN(RN(8e-18 x E^) x Q)), admitted iff
+   every sum status is 0, defect and tol are finite and |defect| <= tol. Over the charged census carriers
+   (q_i != 0): G_K = RN(SUM w_i |d_i|), C_K = RN(SUM w_i K0_i + w_i RN(K0_i + d_i)), Q = RN(SUM |q_i| w_i),
+   K0_i = KE(m_i, u_start_i); field: G_W = RN(dt x RN(SUM_e |E_e| |J_e|)), E^ = max |E_e| over the edges with an
+   endpoint node on an edge carrying J != 0 (0 when none), Hall axial mesh edge numbering. Exact sums, exact
+   maximum, fixed evaluation order.
+   Reason: the net form 1e-20 + 1e-10 (|K| + |W|) scales with the NET exchange, which passes through zero in
+   dense plasma, while the defect comes from per-carrier rounding of the kinetic values and from the work-path
+   fixed point (|D_(k+1) - D_k| <= 1e-18 m), neither of which the exact sums remove: Hall v3.2 dense blobs were
+   refused at omega_p t ~ 2.7-3.2 under the net form and run 400 steps under the gross form (max |defect|/tol
+   9.5e-4). The gross form refuses every inconsistency the net form refused that is not a rounding artefact.
+   Admission inputs (native holds no field): the record carries spans trial_E (edge values), trial_B (face
+   values) and current_A_m (J); native requires trial_field_sha256 = SHA256(text "total-midpoint-E-B-binary64-v1",
+   u64 |E|, E, u64 |B|, B) (Hall total_field_sha256) and current_A_m_sha256 = motion-array-binary64-v1(J); the
+   mesh (n = nx = ny, nz) is the unique solution of |E| = 2n(n+1)(nz+1) + (n+1)^2 nz, |B| = 2n(n+1)nz + n^2(nz+1)
+   (so it is bound by trial_field_sha256). These spans are not hashed into the record digest (1.2 unchanged).
+   With E and J in hand native also recomputes field_work_J and requires bitwise equality (as for K).
+ Implementation (any exact method gives the same bits): superaccumulator of 134 radix-2^32 digits held in
+   int64, value = SUM_k digit_k 2^(32k - 2148); a product of two binary64 values (53-bit significands, LSB
+   exponents >= -1074) is added exactly as five 32-bit chunks; carries are propagated once; the conversion
+   rounds once (guard + sticky, ties to even, gradual underflow, overflow -> refusal). Interchange form of a
+   partial sum (ranks/blocks): the normalised digits (0..132 in [0, 2^32), digit 133 signed); merging is
+   digit-wise addition followed by normalisation. Capacity: < 2^31 terms per device launch, unbounded on the
+   host (normalisation every 2^30 terms).
+
+1.2 Block lists and the motion record digest (b)
+ Section block list over n canonical records of fixed size R, in canonical order (ascending native ID):
+   chunk j (records [32j, min(32j+32, n)), m_j records):
+     c_j = SHA256(text "<tag>/chunk", u64 j, u64 m_j, m_j x R record bytes)
+   leaf k (records [1024k, min(1024k+1024, n)), n_k records, q_k = ceil(n_k/32) chunks):
+     l_k = SHA256(text "<tag>/block", u64 k, u64 n_k, u64 q_k, c_(32k) .. c_(32k+q_k-1) as 32 raw bytes each)
+   tree: native v5 rule over l_0 .. l_(L-1): node(a, b) = SHA256(text "native-v5/merkle-node", a, b), pairs left
+     to right, an odd last node carried up; no leaves: SHA256(text "native-v5/merkle-empty")
+   root = SHA256(text "<tag>/root", u64 1024, u64 n, u64 L, tree raw)    (native v5 merkle_root layout)
+ Leaves hold 1024 consecutive records (positional, not native-ID ranges: the leaf count is ceil(n/1024)
+ whatever the ID spacing); the 32-record chunks keep the device latency of one leaf at ~60 compressions.
+ Sections, tags and records (bytes, packed little-endian):
+   native-v7/motion-endpoints  80  u64 id, 3 f64 position, 3 f64 proper velocity, f64 charge, mass, weight
+                                   (= GapParticle; survivors in ascending ID)
+   native-v7/motion-paths      64  u64 id, 3 f64 field start, 3 f64 field displacement, f64 flight
+                                   (= FullTimeMotionPath; every census carrier)
+   native-v7/motion-sinks     136  u64 id, u64 kind, u64 surface, u64 axis, f64 plane, f64 fraction, 3 f64 segment,
+                                   3 f64 hit point, 3 f64 incident proper velocity, f64 flight, f64 discarded flight
+   native-v7/motion-births     24  u64 id, f64 birth time, f64 flight (newborns of the trial)
+   native-v7/census-carriers   96  u64 id, 3 f64 position, 3 f64 proper velocity, f64 charge, mass, weight,
+                                   u64 packet key, u64 state index (section 1.3)
+ Motion record v7 digest (record_sha256 = transport_trial_sha256), SHA-256 of:
+   text "canonical-full-time-total-field-motion-v7-merkle"
+   text "binding", text "full_time_position_and_proper_velocity", u64 accepted_step, u64 staged_arena_revision,
+     u64 trial_stage, f64 begin_s, f64 end_s, f64 dt_s, text staged_arena_sha256, text trial_field_sha256,
+     text mesh_sha256, text material_sha256, text species_sha256, text common_clock_sha256,
+     text kinetic_policy_sha256
+   text "budget", 7 f64 (kinetic_change_J, field_work_J, work_defect_J, continuity_C, plasma_dt, maximum_gyro,
+     maximum_displacement_cells)
+   text "census_sha256", text census v2 digest (1.3)
+   text "coverage", text "all_native_carriers_births_and_first_hit_sinks"
+   text "current_A_m_sha256", text; text "endpoint_charge_C_sha256", text; text "initial_charge_C_sha256", text
+     (motion-array-binary64-v1 digests, unchanged)
+   text "kinetic_policy", text "native-finite-target-kinetic-policy-v1", 12 f64 (width, gap, short_z, feed_z,
+     lower l/r/b/t, upper l/r/b/t), text "lower foil x span and inner y gap only", text "absorbing escape",
+     text "axial escape", text "x y lower upper axial; later exact tie wins"
+   text "native_DKD_called", u64 0; text "native_Poisson_called", u64 0
+   text "native_to_field_m", 3 f64
+   text "neutral_motion_owner", text "same_full_time_q0_drift"
+   text "neutral_stream_dt_max_s", f64 (1.4)
+   text "motion_owner", text "ordinary_total_field"
+   text "endpoints", u64 n, text endpoints root; text "paths", u64 n, text paths root;
+   text "sinks", u64 n, text sinks root; text "births", u64 n, text births root
+ The header is O(1) host work; the per-carrier hashing is the four section block lists (device).
+ One schema for every step (empty sink/birth sections are allowed). Old (v6): the binary v3 record
+ (streaming SHA-256 over all fields and arrays, two schemas) or the v2 JSON seal; neither is accepted by v7.
+
+1.3 Census v2 (c)
+ Canonical order: ascending native ID (stable sort by the u64 ID when a producer holds another order).
+ Per carrier: packet key := smallest native ID among the carriers of its logical packet; state index := rank
+   of the packet's species state in the state table (native's registered states, ascending byte order).
+ Canonical check of record i (first failing record wins; codes pf7::CensusCode):
+   1 id_zero; 2 not_ascending (id_i <= id_(i-1): unsorted or duplicated); 3 key_invalid (key 0 or key > id);
+   7 state_range (state >= S); for key != id: 4 key_absent (no census record with id == key),
+   5 key_not_first (that record's key != its id), 6 divergent (position, proper velocity, charge, mass or
+   state differs bitwise from the key record: the duplicate/divergent-packet check of Hall's census admission).
+ states_sha256 = SHA256(text "canonical-motion-census-v2/states", u64 S, S x text name)
+ census_sha256 = SHA256(text "canonical-motion-census-v2-merkle", u64 N, text states_sha256,
+   text root of the native-v7/census-carriers block list)
+ Packet ID texts are not part of the census (they are bound by native's accepted-state digest); a producer
+ needs them only for its own sink/newborn bookkeeping (PrivateTransportTrial::carrier_packet).
+ Old (v6): canonical-motion-census-v1 = streaming SHA-256 over (text packet ID, text state, carrier) per
+ carrier in ascending ID.
+
+1.4 Resident-neutral stream bound (configuration)
+ pf_v7::neutral_stream / pf7::neutral_stream: port of the sealed prepare_neutral_stream (Hall 8dddec0
+ kinetic_boundary.cpp:57) with the literal dt <= 1e-14 replaced by dt <= neutral_stream_dt_max_s. Arithmetic,
+ check order and refusal texts are the sealed ones (bitwise equal at the default, tests). The real limit for
+ neutrals stays the 0.2-cell displacement guard (budget[6]).
+ Native configuration FullTimeConfiguration::motion.neutral_stream_dt_max_s (default 1e-14; finite, > 0):
+ bound into the native configuration identity only when it differs from 1e-14 (default identities = v6),
+ carried in every v7 record header (must equal the configured value) and in the motion audit; native refuses
+ a step with dt above it when the census holds a resident (non-newborn) neutral carrier.
+
+2. Producer library C++ API (forms/include/pf_v7/forms.hpp; namespace pf_v7; link forms/src/forms_cpu.cpp, -lcrypto)
+ Records: Carrier (80), Path (64), Sink (136), Birth (24), CensusRecord (96): packed canonical layouts.
+ (a) class ExactSum { add_product(a, b); add(x); merge(other); value(&status) -> double; digits() -> normalised
+       digits; from_digits(digits, status, terms); status(); terms(); }
+     SumValue {value, sum, status}: kinetic_change_J(census, endpoints, sinks); kinetic_change_J_aligned(census,
+       u_end[3n]); exact_dot(a, b); field_work_J(dt, E, J) (value = RN(dt x sum)); kinetic_energy_J(m, u).
+     Status bits (pf7::): sum_nonfinite_input 1, sum_overflow 2, sum_too_many_terms 4, sum_census_missing 8.
+ (b) block_list(section, records, n) -> BlockList {root, root_digest, leaves, records}; block_root(section, n,
+       leaves); motion_sections_v7(endpoints, paths, sinks, births) -> MotionSectionsV7;
+     MotionHeaderV7 (every non-array record field); motion_record_v7_sha256(header, sections);
+     array_sha256(values) (motion-array-binary64-v1); sections pf7::section_endpoints 0, paths 1, sinks 2,
+       births 3, census 4.
+ (c) census_states_sha256(states); check_census(records, S) -> CensusCheck {code, index};
+     census_v2_sha256(N, states_sha256, carriers_root); census_v2_sha256(records, states) (checks, throws);
+     census_order(records) -> permutation; census_records(HostCensusEntry{packet_id, state, carrier}, states);
+     census_block_list(rows, keys, states).
+ neutral_stream(KineticPolicy, Carrier, begin, end, dt, dt_max = 1e-14) -> NeutralStreamResult (throws the
+     sealed texts); require_kinetic_policy(KineticPolicy).
+ A1 work tolerance: HallAxialMesh {n, nz; ne(), nb(), nn(), edge_nodes(e, a, b)}; hall_axial_mesh_of(|E|, |B|,
+     mesh) (unique solution); total_field_sha256(E, B); WorkCarrierSums {add(w, q, K0, d), merge}; WorkScales
+     {kinetic_gross_J, kinetic_content_J, field_work_gross_J, charge_abs_C, field_bound_V_m, tolerance_J,
+     status}; work_field_scales(scales, dt, E, J, mesh); work_finish(scales, sums); work_tolerance(scales);
+     work_admits(scales, defect).
+ Portable core (forms/include/pf_v7/forms_core.h, namespace pf7, host and NVRTC): product_term, add_term,
+   normalise, round_sum, kinetic_energy, kinetic_change, SHA-256 (sha_init/sha_byte/sha_word/sha_u64/
+   sha_text/sha_finish), chunk_digest, block_digest, merkle_node, merkle_empty, section_root, census_check,
+   first_hit, kinetic_interior, neutral_stream.
+
+3. Device producer (forms/gpu/forms_gpu.hpp, namespace pf_v7::gpu; NVRTC program forms/gpu/forms_kernels.cu)
+ Build: forms_gpu.cpp + forms_cpu.cpp + hall-gpu-resident-v1 common/hall_gpu_common.cpp, hall_gpu_primitives.cpp
+   (read in place), C++20, -ffp-contract=off -fno-fast-math, -Wno-c++26-extensions (#embed), -ldl -lcrypto,
+   -isystem cuda_runtime include (cuda.h) and cuda_nvrtc include. NVRTC 12.8 through Session::compile_and_load
+   (architecture from the device; --fmad=false --prec-div=true --prec-sqrt=true --ftz=false). blockDim 256.
+   No atomics: integer digit sums in fixed order, fixed-tree minima, pure hashes.
+ Forms(Session&): compiles forms_kernels.cu + forms_core.h + deterministic_primitives.cuh (one module).
+   Device addresses (u64) on the session stream; results readable after Session::synchronize().
+   sum_products(n, a, a_stride, b, b_stride, scale, blocks, scratch, out)      strides in doubles
+   kinetic_aligned(n, w, ws, m, ms, u0, u0s, u1, u1s, blocks, scratch, out)     u arrays: 3 consecutive values
+   kinetic_split(ne, endpoints, ns, sinks, nc, census, census_words, blocks, scratch, out)
+       endpoints: 10-word records, sinks: 17-word records, census: census_words-word records (10 or 12),
+       matched by native ID (binary search; census ascending)
+     scratch = sum_scratch_bytes(blocks); out = SumOut {f64 value, f64 scaled (RN(scale x value)), u32 status,
+       u32 parts, u64 terms, i64 digit[134]} (1104 bytes). Any blocks >= 1 gives the same bits.
+   block_list(section, n, records, scratch, root_out)  scratch = block_list_scratch_bytes(n); root_out = 8 u32
+       SHA-256 state words (pf_v7::digest_of_words -> bytes); leaf digests at scratch + leaf_offset(n)
+   census_pack(n, rows, row_words, keys, states, out)  -> 12-word census records
+   census_check(n, records, S, scratch, out)  out = {u64 first failing index (~0 none), u64 code};
+       scratch = census_check_scratch_bytes(n)
+   census_order(n, records, rec_words, scratch, out)  stable ascending-ID order (two 32-bit radix passes);
+       scratch = census_order_scratch_bytes(n)
+ HostRunner (blocking, host arrays): sum_products, kinetic_aligned, kinetic_split, block_list, census_check,
+   census_order (verification and tests).
+ Kernel entry points (extern "C", for producers that launch them from their own module):
+   pf7_sum_products(u64 n, const f64* a, u64 a_stride, const f64* b, u64 b_stride, i64* partial, u32* status)
+   pf7_kinetic_aligned(u64 n, w, u64 ws, m, u64 ms, u0, u64 u0s, u1, u64 u1s, i64* partial, u32* status)
+   pf7_kinetic_split(u64 ne, const u64* endpoints, u64 ns, const u64* sinks, u64 nc, const u64* census,
+                     u64 census_words, i64* partial, u32* status)
+   pf7_sum_finish(u32 parts, const i64* partial, const u32* status, u64 terms, f64 scale, SumOut* out)  <<<1,256>>>
+   pf7_chunks(u32 section, u64 n, const u64* records, u32* chunk_out)          one thread per chunk
+   pf7_blocks(u32 section, u64 n, const u32* chunks, u32* leaf_out)            one thread per leaf
+   pf7_tree(u32 section, u64 n, u64 leaves, const u32* leaf, u32* a, u32* b, u32* root_out)  <<<1,256>>>
+   pf7_census_pack(u64 n, const u64* rows, u64 row_words, const u64* keys, const u64* states, u64* out)
+   pf7_census_check(u64 n, const u64* rec, u64 states, u64* block_index, u32* block_code)
+   pf7_census_finish(u64 blocks, const u64* block_index, const u32* block_code, u64* out)
+   pf7_census_split_ids, pf7_gather_hi, pf7_census_gather (ordering with Primitives::radix_sort)
+ Measured (RTX 3080 Ti, sm_86; RESULTS-007.txt): CPU = GPU bit for bit at 1e4/1e5/1e6 carriers for every
+ sum (grids 1/2/5/8/64/240), every section root and leaf, census check/tamper/order/digest.
+
+4. Native v7 API (core; namespace raikou::mfem_backend)
+ Motion record and admission (replace the v2 JSON and binary v3 routes; both are removed in v7):
+   inline constexpr char motion_v7_schema[] = "canonical-full-time-total-field-motion-v7-merkle";
+   struct FullTimeMotionRecordV7 { schema; accepted_step, staged_arena_revision, trial_stage; begin_s, end_s,
+     dt_s; staged_arena/trial_field/mesh/material/species/common_clock/kinetic_policy sha256; budget[7];
+     census_sha256, coverage; current_A_m/endpoint_charge_C/initial_charge_C sha256; endpoints (span
+     GapParticle); kinetic_policy[12]; native_to_field_m; neutral_motion_owner; native_DKD_called,
+     native_Poisson_called; neutral_stream_dt_max_s; paths (span FullTimeMotionPath); sinks (span
+     FullTimeSinkRecord); births (span FullTimeBirthFlight); record_sha256;
+     A1 admission inputs (not in the record digest): trial_E, trial_B, current_A_m (span<const double>) }
+   std::string full_time_motion_record_v7_sha256(const FullTimeMotionRecordV7&)
+   FullTimeMotionAdmission bind_total_field_motion_v7(const FullTimeMotionRecordV7&, std::shared_ptr<const void>
+     storage = {})   (spans must outlive the admission; storage keeps them alive)
+   trial.prepare_total_field_motion(binding, admission) with binding.transport_trial_sha256 = record_sha256.
+ Census:
+   struct FullTimeCensusV7 { span<const GapParticle> carriers; span<const u64> packet_keys, state_indices;
+     span<const std::string> states; std::string states_sha256, carriers_root, sha256; }
+   const FullTimeCensusV7& PrivateTransportTrial::census_v7() const   (once per trial)
+   const std::string& PrivateTransportTrial::census_sha256() const     (= census_v7().sha256; v2 form)
+   std::pair<std::string, std::string> PrivateTransportTrial::carrier_packet(u64 native_id) const  (packet ID,
+     state; for sink/newborn bookkeeping)
+   native_census(cap) (ArenaRateEntry rows with texts) is unchanged.
+ Configuration: struct FullTimeMotionPolicy { double neutral_stream_dt_max_s = 1e-14; };
+   FullTimeConfiguration::motion; PicArena::full_time_motion_policy().
+ Transitional adapter (coordinator/test side, header only): source/adapters/hall_receipt_v7.hpp converts a
+   Hall v2/v3.x MotionReceipt (8dddec0 or corrective v2/v3.1) to a v7 record on the host with the CPU reference
+   (recomputes K and W in the v7 form, defect, guard, section roots; census digest from the trial). It costs
+   O(carriers) host work and exists for parity and for running native v7 with a Hall that does not yet emit
+   the v7 forms.
+
+5. Identity changes vs v6 (everything else unchanged)
+ motion row record_schema: canonical-full-time-total-field-motion-v7-merkle
+ motion row transport_trial_sha256 and binding.transport_trial_sha256: motion record v7 digest (1.2)
+ motion row census_sha256 and trial census digest: census v2 (1.3)
+ budget[0] (kinetic_change_J) and budget[1] (field_work_J): exact forms (1.1); budget[2] follows
+ hence: motion row digest, accepted prefixes/state identities after the first motion step, journal chains,
+ anchors (values; layout and tags as v6), outer/completion digests that bind them
+ source identity (new sources); configuration identity only for a non-default neutral bound
+ Unchanged bit for bit: native carrier rows after every step (endpoints and sink removal), the native carrier
+ root (endpoints_root), paths_root (v5 path-root form), sink ledgers and exact tallies, birth receipts, flows
+ totals, ledgers, exact counts, refusal set (plus the v7 typed refusals: record/census/budget form and the
+ neutral bound). Evidence: RESULTS-007.txt.
+ Changed admission rule (A1, no identity change): the work guard is motion-work-gross-v1 instead of the net
+ form; field_work_J is recomputed bitwise; the trial field and current arrays must match their digests.
+
+6. Results: RESULTS-007.txt.
