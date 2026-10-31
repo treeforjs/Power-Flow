@@ -1,0 +1,164 @@
+Hall corrective v3.1 (device-resident field step) -- results, 2026-10-31
+
+Sources: runtimes/hall-corrective-v3.1-20261031 (README.txt); final build a5 (all acceptance re-run on a5: section 9). Device RTX 3080 Ti (sm_86 cubin, NVRTC 12.8, --fmad=false
+--prec-div=true --prec-sqrt=true --ftz=false), one core (6 or 7), inside arch-base-20261028/run-frozen. Receipts: every
+directory below has run-receipt.json (admission, sealed-input hashes, binary hash) and the build receipts are in
+LABEL/build/. Labels: a2 (acceptance batch), a4 (Gauss trace, parity re-run with the corrected controller check),
+c3 (CPU component tests on the loaned core 3), coordinator-parity/run-a1-001414.
+
+1. Profile before (Hall v3, sealed sources) and after (v3.1 resident), median ms per step, default mesh
+   (41,676 edges, 39,015 faces, 14,812 nodes, 12,150 cells), dt = 10 fs
+   Field-only (vacuum) step: v3 cpu-pcg 25.4, v3 gpu1 23.9  ->  v3.1 resident 2.80 (10,000 steps: 2.744 median, 2.80 mean)
+     v3 gpu1 split (a2/gpu-base-vacuum-gpu1): prepare 18.0 [rhs words 2.37, admit candidate 1.86, admit old 1.62, Gauss
+     increment 1.48, conduction+diagonal 1.33, ledger incidence words 1.25, currents+energy 1.20, update E/B/midpoint 1.10,
+     continuity/free guard 0.77, solve 0.53, residual check 0.33, midpoint seal 0.33, region inflows 0.33], heat_for 3.1
+     [admit 1.62, state digest 0.96, thermal 0.52], preflight 5.9 [2 admits 3.2, 2 state digests 1.9, midpoint 0.55]
+     v3.1 split (a2/gpu-vacuum10k-a): prepare 2.06 [CG on the device incl. control readbacks 0.61, device wait 0.40,
+     independent residual on the host 0.36 (overlapping the device update), inputs 0.02, decode 0.02, thermal owner +
+     digests ~0.6], preflight 0.67 (device recheck of both slots: all leaves, admissions, midpoint), publish 0.002.
+     Remaining host floor: thermal owner (MFEM, 8 slices) ~0.5, independent residual 0.36.
+   Coupled Hall step, 2 carriers (Hall closed loop, no native/chemistry): v3 cpu-pcg + CPU push 51.2, v3 gpu1 + GPU push
+     47.3 -> v3.1 11.5 (GPU push) / 11.0 (CPU push) over 1,000 steps. Remaining: device field prepare 3.0 (2 iterates),
+     motion 2.4 (incl. total-field digest re-check 0.57/iterate), preflight 2.2, v2 JSON seal + v3 record 1.0, heat 0.6.
+   1e4 carriers (GPU push): v3 gpu1 106.6 -> v3.1 66.9; 1e5: 524 -> 541 (see section 5).
+
+2. Parity
+   Hall v3 component tests on the v3.1 sources (c3, v3-evidence-comparison.json): 30/30 components, the 14 physical-state
+     parity steps, 24 motion-record entries and 21 sink fixtures identical to the Hall v3 evidence b7/cpu-211226.
+   Coordinator v5 T1-T7 on v3.1 (coordinator-parity/run-a1-001414): T1 101, T2 28, T3 35, T4 10, T5 37, T6 6, T7 9 checks
+     passed; declaration and 9 compile rejections pass; T1 byte-identical in two fresh processes; against the Hall v3 run
+     (run-p3-221714): Hall field words, charge ledger and 8 heat slices identical for P1, P2 and both z = 1 mm populations,
+     0 changed digests, 0 non-digest differences.
+   Resident vs host arithmetic, every step (test_resident):
+     parity-vacuum (a4, 200 steps x 2 passes, 16/16): resident + sealed CPU PCG on the device rhs = v3 cpu-pcg, and
+       resident + device CG = v3 gpu1: E, B, E_low, B_low, clock, complete ledger, midpoint, cell Joule power, heat digest,
+       rhs norm, independent residual, iteration count, KCL and Ampere residual maxima bitwise; controller receipt equal to
+       its host form; guard sums within 0.0013 of the host rounding bound. (a2 ran the same with a host-side dt rounding
+       in the controller check and recorded that single failure; corrected in a4.)
+     parity-coupled (a2): 2 carriers x 50 steps and 1e4 carriers x 3 steps, CPU push and GPU push, 8/8 each: field words,
+       ledger, heat, midpoint, iteration counts and motion records (v3 digest, v2 seal, census, trial field) identical.
+     units (5/5): host conduction from metal cells and the host residual apply bitwise equal to the sealed forms; device
+       SHA-256 leaves equal to the host for every leaf; exact upload/download; bootstrap refusal text.
+     negative (4/4): one-ulp change of one candidate E word, one accepted ledger word, a stale proposal, dt above 1e-14:
+       all refused.
+   Run-to-run: vacuum 10,000 steps in two fresh processes (a2/gpu-vacuum10k-a, -b): identical per-step digest chain
+     e3eec9b2..., final field 0e5b90cd..., physical state 32f31874...; coupled 2 carriers 1,000 steps GPU push twice and
+     CPU push once: identical chain 5a553e5a....
+   Every-leaf host verification (a2/gpu-vacuum1k-verify-all): 1,371,038 leaves re-hashed on the host, 4.37 ms/step.
+   Cross-check: the max absolute Gauss defect of the resident vacuum run at step 8000 (2.802e-24 C) equals the coupled
+     pilot pf-pilot-1 ledger at step 8000 (2.802e-24 C).
+
+3. Timings of record
+   Vacuum 10,000 steps (100 ps from 0.749788 ns): 28.0 s, 2.80 ms/step; guards: max |Gauss|/bound (max/max) 0.079,
+     divB/bound 0.0035, energy/bound 2.2e-6, independent residual/target 0.199, |field-heat balance| 3.5e-15 J; max T 300.0007 K.
+   Coupled 2 carriers 1,000 steps: 11.5 ms/step (GPU push), 11.0 ms/step (CPU push).
+   Device memory 75 MB, pinned host 11 MB.
+
+4. Projected wall time from 0.749788 ns at dt = 10 fs (925,021 / 1,925,021 / 2,425,021 steps)
+   v3.1 resident 2.80 ms/step:  10 ns 0.72 h, 20 ns 1.50 h, 25 ns 1.89 h
+   v3 gpu1 23.9 ms/step:        6.1 h, 12.8 h, 16.1 h        (v3 cpu-pcg 25.4 ms: 6.5 h, 13.6 h, 17.1 h)
+   The run cannot pass 1.24 ns today: section 6.
+
+5. Per-carrier host work (scope addition), Hall closed step with GPU push, ms/step and slope per carrier
+   1e4: v3 106.6 -> v3.1 66.9;  1e5: 524 -> 541;  slope 4.6 -> 5.3 us/carrier (the fixed field part fell by ~40 ms).
+   v3.1 at 1e5 (us/carrier): v2 JSON seal + binary v3 record (accepted iterate) 2.27, deposit support (3 iterates) 1.17,
+     motion (census ordering and digest in admission, flights, device run, assembly) 0.80, preflight 0.71 (census digest,
+     v3 record recompute, charge of endpoints, census charge), census admission 0.22.
+   Done in Hall: binary v3 record only for the accepted iterate (was every iterate); sorted-census fast path (no sort
+     when ascending, same result); field arithmetic of every iterate on the device.
+   Not done, blocked by sealed native contracts: (a) exact (superaccumulator) kinetic and field-work sums: native
+     candidate003/v5/v6 recompute kinetic_change as a sequential x87 long-double sum and require K == double(sum)
+     (candidate003 mfem_pic_full_time.inc:1045-1053, native v6 :1497-1560 and :1983-2033), so a different rounding refuses
+     every step; (b) block-Merkle motion record digest: native v6 recomputes the binary v3 record digest and native v5/v6
+     verify the v2 JSON seal; (c) device census ordering/digest: canonical-motion-census-v1 is a streaming SHA-256 over
+     packet/state strings that only the host holds and native compares it for equality. Each needs a native version that
+     accepts the new form (old -> new: kinetic_change_J := correctly rounded exact sum of w_i dKE_i, field_work_J :=
+     dt x correctly rounded exact sum of E_e J_e; record digest := block hash list with 1024-carrier leaves as native v5's
+     carrier root). The device side is straightforward; the x87 host sums cost ~1-2 ns per carrier.
+   Open: DepositSupportBuilder takes 2.84 ms at 1e4 carriers in the resident test process (repeat calls equal) vs 0.64 ms
+     in the baseline profiler process with the same code and data; not explained (a4/gpu-coupled-1e4-probe).
+
+6. Absolute Gauss allowance (report only; no guard changed)
+   Observation (a4/gpu-gauss-trace-10fs, -100fs; diagnostic runs): the vacuum step is refused by the absolute Gauss
+     constraint at step 48,650, t = 1.2363 ns, node 3747 (short plane at the upper foil inner face): defect 1.733447e-23 C
+     against bound 1.733430e-23 C. With dt = 100 fs (diagnostic configuration, dt upper bound raised for that run only)
+     the refusal comes at step 4,833, t = 1.2330 ns: the drift is per unit simulated time, independent of dt. The pilot
+     (identical field evolution) would have been refused at the same time. The pilot's max/max ratio (0.074 at 81 ps)
+     understates the per-node ratio, which is the guard criterion: 0.12 at step 8,000, 0.49 at 0.99 ns, 0.997 at 1.235 ns.
+   (1) Tracking: the defect does not track ||b||: the rhs norm rose to 1.75e-6 at 0.87 ns and fell to 3e-7 at 1.03 ns while
+     the worst-node defect grew linearly throughout (3.56e-28 C per 10 fs step, 3.6e-14 C/s), and the terminal voltage rose
+     to 50 kV and fell to 23 kV. The bound of the solves' residual charge, sum_k sum_{e at n} sqrt(M_e)|rho_e|/len_e, accounts
+     for at most 4.0e-24 C (23 %) of the maximum drift and for nothing at the refusing nodes. The drift equals the
+     accumulated per-node Gauss increments: drift_n / sum_k |Q1-Q0-(div plasma+div metal+div outer)dt|_n = 0.997-1.000 at
+     the worst nodes (values above 1 only in the first step, at defects below 6e-27 C). Mechanism: in exact arithmetic
+     Q1 - Q0 - expected = -div(ampere(mid B)) dt + div(r) dt with div(curl^T x) = 0; in floating point the rounding of the
+     quasi-static ampere and metal/short currents (~6 kA through the short plane) is nearly the same every step, so it
+     accumulates linearly, scaling with the currents and with dt per step. Each step's mismatch is admitted by the existing
+     increment guard (<= 1e-22 + 2e-10 activity), but nothing carries it into the absolute allowance, which only covers
+     the seed solve (eps0 x 2e-13 ||rhs_DC|| = 1.73e-23 C) plus 256 eps x local magnitudes (1e-27 C at node 3747).
+   (2) Extrapolation (worst node, drift rate scaled with the C19 current): 1.2e-21 C at 10 ns, 5.6e-21 C at 20 ns,
+     9.6e-21 C at 25 ns (constant rate: 3.3e-22 / 6.9e-22 / 8.6e-22 C); longer adaptive steps do not change it.
+   (3) Principled allowance (a correction, not a loosening): per node n keep in the charge ledger (like residue_C, part of
+     the ledger record and the checkpoint) A_n += |delta_n(k)| + |c_n(k)| for every accepted step k, where delta_n is the
+     step's Gauss increment mismatch that its own increment guard measured and admitted and c_n the endpoint continuity
+     defect admitted by the continuity guard (coupled steps), plus the eps^2-level rounding of the two ledger word
+     additions; the absolute check becomes |defect_n| <= seed bound_n + A_n. By the triangle inequality on
+     defect_n(k) = defect_n(0) + sum of the admitted per-step changes, the absolute check then refuses exactly the charge
+     inconsistencies that did not arise inside admitted steps (bootstrap, restore, injected charge), which is its
+     purpose; it admits nothing a step guard refused. Measured with this allowance the per-node ratio stays <= 0.47 to
+     1.24 ns (it tends to 1 from below while the drift dominates; a factor 2 on A_n keeps it near 0.5). An a priori
+     alternative (no measured quantity), analogous to the endpoint tolerance: A_n += gamma eps dt sum_{e at n}
+     (sum_b |C_eb H_b midB_b| + |metal_e| + |exterior_e| + |displacement_e| + |plasma_e|)/len_e with gamma from the
+     operation counts. A09: 4.81e-11 C inconsistent charge vs A_n <= ~1e-20 C at 25 ns: refused with a margin of ~5e9;
+     divB is not affected (1.108e-12 T/m, ratio 0.0035, constant to 1.24 ns; 50 T/m vs bound ~3e-10 T/m: margin ~1.6e11).
+
+7. Step-size assessment for the particle-free pre-run (report only; default bound stays 1e-14 s)
+   Drive: C19 is piecewise linear with knots 0.5-2.5 ns apart; |dI/dt| 1.6e12-9e12 A/s; relative current change per
+     10 fs step 0.6-3.7e-6. The implicit midpoint step integrates a linear drive exactly between knots; only the kinks
+     matter, so dt up to ~1/100 of the knot spacing (5-25 ps) resolves the waveform.
+   Conductor: model sigma(300 K) = 1.391e6 S/m; skin depth sqrt(t/(mu0 sigma)) = 24 um at 1 ns, 107 um at 20 ns; the
+     foil (200 um) is one 200 um cell thick, so the slowest resolved magnetic diffusion time mu0 sigma h^2 = 70 ns and
+     its fastest mode ~7 ns: both far above 1 ps.
+   Vacuum EM: transverse light crossing 30 ps, axial 125 ps; Courant number c dt/dx 0.015 at 10 fs, 1.5 at 1 ps; the
+     implicit scheme is unconditionally stable; phase error per period (omega dt)^2/12 = 3e-4 for a 100 ps period at 1 ps.
+   Thermal: Joule power 1.3 MW at 6 kA (two foils, 0.036 ohm); estimated foil heating 15-25 K by 20-25 ns; sigma(T) lags
+     one step (relative change per step ~1e-9 at 10 fs).
+   Measured (a2/gpu-dt-study-100ps, diagnostic, 100 ps from 0.75 ns = the steepest transient, reference 2.5 fs):
+     dt       E energy-norm error  B error   max |dV| (of 23 kV)  Joule rel.  CG its  ms/step
+     5 fs     2.8e-9               3.7e-11   0.32 V               3.0e-12     3.0     2.80
+     10 fs    1.4e-8               1.9e-10   0.95 V               3.7e-12     3.0     2.81
+     20 fs    5.8e-8               7.8e-10   2.2 V                6.9e-11     4.0     2.82
+     50 fs    3.7e-7               4.7e-9    6.0 V                6.8e-10     5.0     2.98
+     100 fs   1.2e-6               1.8e-8    12 V                 3.1e-9      7.0     3.06
+     200 fs   2.2e-6               2.5e-8    25 V                 1.3e-8      9.8     3.23
+     500 fs   1.2e-5               1.3e-7    63 V                 8.5e-8      19.8    3.78
+     1 ps     4.8e-5               5.1e-7    126 V (0.5 %)        3.4e-7      40.4    4.97
+     Second order confirmed (errors at 5/10 fs against 2.5 fs in ratio 1:5, as dt^2 predicts). The third-difference
+     indicator of the controller receipt is ~1.4e-12 per step at 10 fs after the first 100 ps (1e-9 at the start).
+   Assessment: for the particle-free pre-run the model's own accuracy supports 100 fs (0.05 % voltage error in the worst
+     transient) and up to ~1 ps (0.5 %), i.e. 0.75 -> 20 ns in ~10 min at 100 fs or ~2 min at 1 ps (diagnostic timings);
+     a controller with targets on the third-difference indicator and the drive change is suggested. The absolute Gauss
+     issue of section 6 is independent of dt and must be resolved first.
+
+8. Open
+   Absolute Gauss allowance (section 6); native forms for exact sums and Merkle motion digests (section 5); deposit support
+   slowdown in the resident process; resident checkpoint restore; sm_89/sm_120 bit identity; the resident owner is not yet
+   wired into a coordinator (coordinator v5 uses hall_corrective_v3::Owner; a coordinator version would template on the
+   owner type, the protocol functions are the same).
+
+9. Final build a5 (adds the Owner preflight caching and the once-per-object midpoint digest) -- re-run on a5
+   Coordinator v5 T1-T7 on v3.1 (coordinator-parity/run-a5-091755): T1 101, T2 28, T3 35, T4 10, T5 37, T6 6, T7 9 passed,
+     T1 byte-identical in two fresh processes, 0 changed digests and 0 non-digest differences against Hall v3.
+   Hall v3 component tests (a5/v3-evidence-comparison.json): 30/30, parity steps, motion and sink records identical.
+   Resident parity (a5): vacuum 30 steps 16/16, coupled 2 carriers x 20 steps 8/8, 1e4 carriers x 3 steps 8/8.
+   Vacuum 10,000 steps 2.72 ms/step, final physical state 32f31874... (= a2); the per-step digest chain differs from a2
+     because the kernel source (one diagnostic kernel added) is bound into the configuration identity.
+   Coupled 2 carriers 1,000 steps (GPU push): 10.2 ms/step (preflight 2.14, proposal 7.85, motion 1.25).
+   Owner (CPU path) preflight before -> after, median ms (a5/*-before-*, *-after-*, same machine and core):
+     coupled 2 carriers, cpu-pcg: preflight_final 8.53 -> 6.00, heat_for 2.12 -> 0.54, motion 2.54 -> 1.39, step 49.2 -> 43.7
+     coupled 2 carriers, gpu1:    preflight_final 8.56 -> 6.04, heat_for 2.14 -> 0.55, motion 3.56 -> 2.39, step 45.8 -> 40.5
+     vacuum, cpu-pcg:             preflight_vacuum_final 5.83 -> 3.29, step 24.9 -> 21.1
+   Remaining Owner preflight (~6 ms): independent candidate admission and digest, midpoint recomputation and role seal,
+     census admission with the census charge, census digest, binary v3 record recomputation, total-field digest of the
+     proposal's midpoint object, charge of the endpoints.
+

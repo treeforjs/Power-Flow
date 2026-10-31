@@ -1,0 +1,286 @@
+{
+ "backend": "gpu1-factored-cg",
+ "end_time_s": 7.517880554919964e-10,
+ "mesh": {
+  "cells": 12150,
+  "nb": 39015,
+  "ne": 41676,
+  "nn": 14812
+ },
+ "meta": {
+  "device": {
+   "compute_capability": "8.6",
+   "driver_api_version": 13040,
+   "driver_library": "/usr/lib/libcuda.so.615.78.08",
+   "driver_library_sha256": "f73320931be3c4eabc120a1a7fea25f34f324c0f93e35891f98e81a722b5dfc3",
+   "kernel_module_version": "NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  615.78.08  Release Build  (root@)  ",
+   "multiprocessors": 80,
+   "name": "NVIDIA GeForce RTX 3080 Ti",
+   "ordinal": 0,
+   "pci_bus_id": "0000:01:00.0",
+   "primary_context_flags": 4,
+   "primary_context_was_active": false,
+   "total_memory_bytes": 12541296640,
+   "uuid": "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
+  }
+ },
+ "phases": {
+  "coupled.model.at(accepted)->Midpoint": {
+   "max_ms": 0.486409,
+   "mean_ms": 0.3830321428571429,
+   "median_ms": 0.378452,
+   "min_ms": 0.373981,
+   "n": 21
+  },
+  "coupled.total_field_sha256(midpoint)": {
+   "max_ms": 0.835441,
+   "mean_ms": 0.5990470476190476,
+   "median_ms": 0.5783470000000001,
+   "min_ms": 0.556428,
+   "n": 21
+  },
+  "heat.thermal_preflight": {
+   "max_ms": 3e-05,
+   "mean_ms": 1.7619047619047623e-05,
+   "median_ms": 2e-05,
+   "min_ms": 1e-05,
+   "n": 21
+  },
+  "heat.thermal_prepare(8 slices)": {
+   "max_ms": 0.580277,
+   "mean_ms": 0.5226026190476191,
+   "median_ms": 0.514848,
+   "min_ms": 0.503668,
+   "n": 21
+  },
+  "heat_for.admit_candidate": {
+   "max_ms": 2.312768,
+   "mean_ms": 1.6699486666666667,
+   "median_ms": 1.621704,
+   "min_ms": 1.610164,
+   "n": 21
+  },
+  "heat_for.seal(state_sha256)": {
+   "max_ms": 1.146494,
+   "mean_ms": 0.9791721904761904,
+   "median_ms": 0.963299,
+   "min_ms": 0.951439,
+   "n": 21
+  },
+  "owner.admit(one state)": {
+   "max_ms": 2.301148,
+   "mean_ms": 1.657095476190476,
+   "median_ms": 1.621573,
+   "min_ms": 1.601254,
+   "n": 21
+  },
+  "owner.conductivity()": {
+   "max_ms": 0.059449,
+   "mean_ms": 0.040154333333333334,
+   "median_ms": 0.0348,
+   "min_ms": 0.028899,
+   "n": 21
+  },
+  "owner.conductivity_sha256": {
+   "max_ms": 0.042099,
+   "mean_ms": 0.03873295238095239,
+   "median_ms": 0.038149,
+   "min_ms": 0.0378,
+   "n": 21
+  },
+  "owner.heat_sha256(accepted)": {
+   "max_ms": 0.00743,
+   "mean_ms": 0.005271428571428572,
+   "median_ms": 0.00511,
+   "min_ms": 0.00441,
+   "n": 21
+  },
+  "owner.heat_sha256(trial)": {
+   "max_ms": 0.005379,
+   "mean_ms": 0.0037856190476190476,
+   "median_ms": 0.00381,
+   "min_ms": 0.003,
+   "n": 21
+  },
+  "owner.ledgers_sha256": {
+   "max_ms": 0.00404,
+   "mean_ms": 0.0023199047619047617,
+   "median_ms": 0.00202,
+   "min_ms": 0.00154,
+   "n": 21
+  },
+  "owner.state_sha256(one state)": {
+   "max_ms": 1.153764,
+   "mean_ms": 0.9726466190476188,
+   "median_ms": 0.962468,
+   "min_ms": 0.955068,
+   "n": 21
+  },
+  "preflight.midpoint_recompute": {
+   "max_ms": 0.374512,
+   "mean_ms": 0.2957818095238095,
+   "median_ms": 0.291563,
+   "min_ms": 0.288404,
+   "n": 21
+  },
+  "preflight.midpoint_seal(hash)": {
+   "max_ms": 0.260194,
+   "mean_ms": 0.24942728571428568,
+   "median_ms": 0.249105,
+   "min_ms": 0.246355,
+   "n": 21
+  },
+  "preflight_field_heat(total)": {
+   "max_ms": 7.325195,
+   "mean_ms": 5.980796285714286,
+   "median_ms": 5.907297,
+   "min_ms": 5.848158,
+   "n": 21
+  },
+  "prepare.admit_candidate(Gauss+divB)": {
+   "max_ms": 2.588141,
+   "mean_ms": 1.8998042857142854,
+   "median_ms": 1.829769,
+   "min_ms": 1.805309,
+   "n": 21
+  },
+  "prepare.admit_old(Gauss+divB)": {
+   "max_ms": 1.719611,
+   "mean_ms": 1.630434142857143,
+   "median_ms": 1.618184,
+   "min_ms": 1.610633,
+   "n": 21
+  },
+  "prepare.ampere+currents+energy_sums": {
+   "max_ms": 1.75662,
+   "mean_ms": 1.2034770952380953,
+   "median_ms": 1.170933,
+   "min_ms": 1.152984,
+   "n": 21
+  },
+  "prepare.cell_joule+terminal": {
+   "max_ms": 0.165737,
+   "mean_ms": 0.12101057142857143,
+   "median_ms": 0.115648,
+   "min_ms": 0.107458,
+   "n": 21
+  },
+  "prepare.conduction+diagonal": {
+   "max_ms": 1.487127,
+   "mean_ms": 1.3367189047619046,
+   "median_ms": 1.33107,
+   "min_ms": 1.30998,
+   "n": 21
+  },
+  "prepare.copy_state": {
+   "max_ms": 0.077978,
+   "mean_ms": 0.04928804761904763,
+   "median_ms": 0.046399,
+   "min_ms": 0.040219,
+   "n": 21
+  },
+  "prepare.free_charge_guard+continuity": {
+   "max_ms": 0.89728,
+   "mean_ms": 0.774022619047619,
+   "median_ms": 0.765513,
+   "min_ms": 0.760752,
+   "n": 21
+  },
+  "prepare.gauss_increment": {
+   "max_ms": 1.824498,
+   "mean_ms": 1.5261913333333337,
+   "median_ms": 1.4957260000000001,
+   "min_ms": 1.474546,
+   "n": 21
+  },
+  "prepare.independent_residual": {
+   "max_ms": 0.410331,
+   "mean_ms": 0.3367255714285714,
+   "median_ms": 0.327593,
+   "min_ms": 0.307223,
+   "n": 21
+  },
+  "prepare.kcl": {
+   "max_ms": 0.050149,
+   "mean_ms": 0.04041814285714286,
+   "median_ms": 0.038629,
+   "min_ms": 0.037929,
+   "n": 21
+  },
+  "prepare.ledger(incidence words)": {
+   "max_ms": 1.402008,
+   "mean_ms": 1.2399297142857144,
+   "median_ms": 1.231182,
+   "min_ms": 1.218702,
+   "n": 21
+  },
+  "prepare.midpoint_role_seal(hash)": {
+   "max_ms": 0.367652,
+   "mean_ms": 0.3214566666666666,
+   "median_ms": 0.316913,
+   "min_ms": 0.271034,
+   "n": 21
+  },
+  "prepare.region_inflows": {
+   "max_ms": 0.333403,
+   "mean_ms": 0.3242059523809524,
+   "median_ms": 0.323023,
+   "min_ms": 0.320482,
+   "n": 21
+  },
+  "prepare.rhs(curl_words+ampere_words)": {
+   "max_ms": 2.444385,
+   "mean_ms": 2.3873762380952384,
+   "median_ms": 2.383666,
+   "min_ms": 2.354377,
+   "n": 21
+  },
+  "prepare.solve": {
+   "max_ms": 3.061591,
+   "mean_ms": 0.7737064285714287,
+   "median_ms": 0.495729,
+   "min_ms": 0.455459,
+   "n": 21
+  },
+  "prepare.update(E,B,midpoint)": {
+   "max_ms": 1.376879,
+   "mean_ms": 1.055043380952381,
+   "median_ms": 1.041757,
+   "min_ms": 0.798902,
+   "n": 21
+  },
+  "step.preflight_vacuum_final": {
+   "max_ms": 7.944111,
+   "mean_ms": 6.037161775,
+   "median_ms": 5.901467,
+   "min_ms": 5.840749,
+   "n": 200
+  },
+  "step.prepare_vacuum": {
+   "max_ms": 28.493068,
+   "mean_ms": 18.638809960000003,
+   "median_ms": 17.968006,
+   "min_ms": 17.572124,
+   "n": 200
+  },
+  "step.publish": {
+   "max_ms": 0.00627,
+   "mean_ms": 0.002787844999999999,
+   "median_ms": 0.00273,
+   "min_ms": 0.00148,
+   "n": 200
+  },
+  "step.total(prepare+preflight+publish)": {
+   "max_ms": 34.506953,
+   "mean_ms": 24.678759580000015,
+   "median_ms": 23.905281,
+   "min_ms": 23.455472,
+   "n": 200
+  }
+ },
+ "probe_candidate_equal_to_record": 21,
+ "probes": 21,
+ "schema": "hall-v3-vacuum-profile-v1",
+ "steps": 200,
+ "wall_ms": 5553.789971
+}
