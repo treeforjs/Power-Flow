@@ -1,0 +1,97 @@
+c19-circuit-drive-v1 test results (2026-10-31). Binaries: /home/treefor/projects/.workspace/outputs/c19-circuit-drive-v1-20261031/build (sha256 in binaries.sha256); logs: /home/treefor/projects/.workspace/outputs/c19-circuit-drive-v1-20261031/tests
+
+de0bd4a805ac5db375cf9f764694d8bdb83d57cf5b9d74e713c72c807872e4d2  /home/treefor/projects/.workspace/outputs/c19-circuit-drive-v1-20261031/build/c19_sim
+c8f47b21f4819426aa1ed4e88e0c357f163f9ed1f8ca96ea23f8e51bccd74093  /home/treefor/projects/.workspace/outputs/c19-circuit-drive-v1-20261031/build/test_circuit
+052f57fd2a95e3b844388e8f80bef579f20abcc2db0ada5d402a6ab0dd10d9e9  /home/treefor/projects/.workspace/outputs/c19-circuit-drive-v1-20261031/build/ss304_law_table
+015b606751edcdfaf084d0ce69c2fb8b9e5f859708f4973929a6be3877b1dca0  /home/treefor/projects/.workspace/outputs/c19-circuit-drive-v1-20261031/build/hall_port_load
+b52b17291102cd3de3a76273f5b2cf01c7ad68c22fc46b817d646b0c0637b028  /home/treefor/projects/.workspace/outputs/c19-circuit-drive-v1-20261031/build/test_hall_port
+
+== parameter set calibration/c19_circuit_v1_parameters_A_supplied.txt
+PASS T1_ledger_full_pulse dt=1e-10 closure/E0=-2.329e-15 max_step_residual/bound=0.104 load_closure_rel=5.955e-14 (cumulative bound 9.24e-12)
+PASS T1_ledger_full_pulse dt=1e-11 closure/E0=3.645e-14 max_step_residual/bound=0.104 load_closure_rel=-1.701e-12 (cumulative bound 9.24e-11)
+PASS T1_ledger_hall_step_dt dt=1e-14 steps=2e6 closure/E0=-1.590e-14 max_step_residual/bound=0.083 max_evaluations=3
+PASS T2_midpoint_order_RLC max|I-I_exact| = 1.873e-01, 4.682e-02, 1.170e-02 A (dt 100/50/25 ps); observed order 2.000 / 2.000
+PASS T3_port_coupling_reduced_load max evaluations per step=3 max|F|/|I|=3.496e-14
+PASS T4_open_switch max|I| before trigger=0.000e+00 A stored change=0.000e+00 J
+PASS T5_determinism 13000 state words compared
+ALL PASSED 0 failure(s)
+PASS R1_prescribed_drive_bitwise 2000133 queries, 0 differ
+PASS R2_prescribed_mode_hall_steps_bitwise 2000 Hall steps (dt 10 fs) from the first C19 knot: receipt mismatches 0, final E/B/E_low/B_low identical 1, source ledger 0.00018273652883079227 J = sum circuit_work 0.00018273652883079227 J
+INFO handover t=4.000000e-08 s I=3.341914e+05 A v_C=7.518915e+05 V foil T=616.0 K sigma=1.061099e+06 S/m
+INFO H1_vacuum steps=2000 t_end=4.002000000e-08 I_end=3.343581770e+05 mean_evaluations=1.993 max_evaluations=2 max|F|/|I|=4.111e-14 max_conduction_change=0.000e+00 Z_est=8.855147e-02 unconverged=0
+INFO H1_vacuum circuit: dE=-7.885769655209e-01 D=6.377309175327e-01 P=1.508460483939e-01 closure=4.057e-10 (sum of step residuals 4.057e-10)
+INFO H1_vacuum join: P_circuit - W_hall = -1.379e-14 J (port iteration defect -1.379e-14, Hall dot rounding -1.287e-18)
+INFO H1_vacuum hall: field_delta=4.052452888261e-02 joule=1.052539464476e-01 plasma_work=0.000000000000e+00 outer_loss=4.126055728260e-05 outer_supply=-5.026312506372e-03 circuit_work=1.508460483939e-01 closure=-1.110e-16 max step balance/activity=5.392e-15
+INFO H1_vacuum total system: dE_circuit + D_circuit + field_delta + joule + plasma_work + outer_loss - outer_supply = 4.057e-10 J (activity 9.344e-01 J, relative 4.342e-10)
+INFO H1_vacuum stored-energy change: increment form -7.885769655209e-01 J, difference of absolute stored energies -7.885769655186e-01 J (rounding of a 4.495e+04 J store ~1.0e-11 J)
+INFO H1_vacuum bounds: circuit sum of step bounds 3.194e-07 J, Hall admitted 3.017e-11 J
+PASS H1_coupled_iteration_hall_vacuum mean evaluations 1.993, max 2, max|F|/|I| 4.111e-14, total-system closure/activity 4.342e-10, join -1.379e-14 J
+INFO H2_gap_conduction steps=1000 t_end=4.003000000e-08 I_end=3.344436813e+05 mean_evaluations=5.737 max_evaluations=8 max|F|/|I|=4.108e-14 max_conduction_change=4.800e-14 Z_est=8.855147e-02 unconverged=0
+INFO H2_gap_conduction circuit: dE=-3.410905128694e-01 D=3.191050920384e-01 P=2.198542041433e-02 closure=-4.166e-10 (sum of step residuals -4.166e-10)
+INFO H2_gap_conduction join: P_circuit - W_hall = -1.027e-15 J (port iteration defect -1.024e-15, Hall dot rounding 4.574e-20)
+INFO H2_gap_conduction hall: field_delta=-2.987693339896e-02 joule=5.267869501040e-02 plasma_work=1.451324445066e-05 outer_loss=1.746913854167e-05 outer_supply=8.483235801010e-04 circuit_work=2.198542041433e-02 closure=-1.874e-16 max step balance/activity=1.082e-14
+INFO H2_gap_conduction total system: dE_circuit + D_circuit + field_delta + joule + plasma_work + outer_loss - outer_supply = -4.166e-10 J (activity 4.237e-01 J, relative -9.834e-10)
+INFO H2_gap_conduction stored-energy change: increment form -3.410905128694e-01 J, difference of absolute stored energies -3.410905128767e-01 J (rounding of a 4.495e+04 J store ~1.0e-11 J)
+INFO H2_gap_conduction bounds: circuit sum of step bounds 1.597e-07 J, Hall admitted 1.057e-11 J
+PASS H2_coupled_iteration_gap_conduction mean evaluations 5.737, max 8, max|F|/|I| 4.108e-14, total-system closure/activity -9.834e-10, join -1.027e-15 J
+ALL PASSED 0 failure(s)
+
+== parameter set calibration/c19_circuit_v1_parameters_C_traces.txt
+PASS R1_prescribed_drive_bitwise 2000133 queries, 0 differ
+PASS R2_prescribed_mode_hall_steps_bitwise 2000 Hall steps (dt 10 fs) from the first C19 knot: receipt mismatches 0, final E/B/E_low/B_low identical 1, source ledger 0.00018273652883079227 J = sum circuit_work 0.00018273652883079227 J
+INFO handover t=4.000000e-08 s I=3.055818e+05 A v_C=7.688120e+05 V foil T=462.6 K sigma=1.187914e+06 S/m
+INFO H1_vacuum steps=2000 t_end=4.002000000e-08 I_end=3.058893098e+05 mean_evaluations=1.998 max_evaluations=2 max|F|/|I|=3.848e-14 max_conduction_change=0.000e+00 Z_est=8.855083e-02 unconverged=0
+INFO H1_vacuum circuit: dE=-1.307196422520e+00 D=1.151170539014e+00 P=1.560258836003e-01 closure=9.373e-11 (sum of step residuals 9.373e-11)
+INFO H1_vacuum join: P_circuit - W_hall = 1.715e-14 J (port iteration defect 1.716e-14, Hall dot rounding 1.782e-18)
+INFO H1_vacuum hall: field_delta=6.878992206445e-02 joule=7.861005751167e-02 plasma_work=0.000000000000e+00 outer_loss=3.220955705603e-05 outer_supply=-8.593694467136e-03 circuit_work=1.560258836003e-01 closure=-1.388e-16 max step balance/activity=7.877e-15
+INFO H1_vacuum total system: dE_circuit + D_circuit + field_delta + joule + plasma_work + outer_loss - outer_supply = 9.372e-11 J (activity 1.455e+00 J, relative 6.443e-11)
+INFO H1_vacuum stored-energy change: increment form -1.307196422520e+00 J, difference of absolute stored energies -1.307196422516e+00 J (rounding of a 4.424e+04 J store ~9.8e-12 J)
+INFO H1_vacuum bounds: circuit sum of step bounds 3.144e-07 J, Hall admitted 3.121e-11 J
+PASS H1_coupled_iteration_hall_vacuum mean evaluations 1.998, max 2, max|F|/|I| 3.848e-14, total-system closure/activity 6.443e-11, join 1.715e-14 J
+INFO H2_gap_conduction steps=1000 t_end=4.003000000e-08 I_end=3.060484781e+05 mean_evaluations=5.748 max_evaluations=8 max|F|/|I|=3.844e-14 max_conduction_change=4.777e-14 Z_est=8.855083e-02 unconverged=0
+INFO H2_gap_conduction circuit: dE=-5.940715717210e-01 D=5.760714923947e-01 P=1.800007916947e-02 closure=-1.568e-10 (sum of step residuals -1.568e-10)
+INFO H2_gap_conduction join: P_circuit - W_hall = -1.263e-15 J (port iteration defect -1.262e-15, Hall dot rounding 8.894e-20)
+INFO H2_gap_conduction hall: field_delta=-2.082812131630e-02 joule=3.938322324494e-02 plasma_work=1.080752508434e-05 outer_loss=1.169709171624e-05 outer_supply=5.775273759753e-04 circuit_work=1.800007916947e-02 closure=-1.110e-16 max step balance/activity=9.567e-15
+INFO H2_gap_conduction total system: dE_circuit + D_circuit + field_delta + joule + plasma_work + outer_loss - outer_supply = -1.568e-10 J (activity 6.543e-01 J, relative -2.396e-10)
+INFO H2_gap_conduction stored-energy change: increment form -5.940715717210e-01 J, difference of absolute stored energies -5.940715717152e-01 J (rounding of a 4.424e+04 J store ~9.8e-12 J)
+INFO H2_gap_conduction bounds: circuit sum of step bounds 1.572e-07 J, Hall admitted 7.925e-12 J
+PASS H2_coupled_iteration_gap_conduction mean evaluations 5.748, max 8, max|F|/|I| 3.844e-14, total-system closure/activity -2.396e-10, join -1.263e-15 J
+ALL PASSED 0 failure(s)
+PASS T1_ledger_full_pulse dt=1e-10 closure/E0=7.934e-15 max_step_residual/bound=0.122 load_closure_rel=6.790e-14 (cumulative bound 9.24e-12)
+PASS T1_ledger_full_pulse dt=1e-11 closure/E0=-1.486e-14 max_step_residual/bound=0.123 load_closure_rel=-1.982e-12 (cumulative bound 9.24e-11)
+PASS T1_ledger_hall_step_dt dt=1e-14 steps=2e6 closure/E0=4.247e-13 max_step_residual/bound=0.082 max_evaluations=3
+PASS T2_midpoint_order_RLC max|I-I_exact| = 1.873e-01, 4.682e-02, 1.170e-02 A (dt 100/50/25 ps); observed order 2.000 / 2.000
+PASS T3_port_coupling_reduced_load max evaluations per step=3 max|F|/|I|=6.621e-15
+PASS T4_open_switch max|I| before trigger=0.000e+00 A stored change=0.000e+00 J
+PASS T5_determinism 13000 state words compared
+ALL PASSED 0 failure(s)
+
+== parameter set calibration/c19_circuit_v1_parameters_C3_traces_45mm.txt
+PASS R1_prescribed_drive_bitwise 2000133 queries, 0 differ
+PASS R2_prescribed_mode_hall_steps_bitwise 2000 Hall steps (dt 10 fs) from the first C19 knot: receipt mismatches 0, final E/B/E_low/B_low identical 1, source ledger 0.00018273652883079227 J = sum circuit_work 0.00018273652883079227 J
+INFO handover t=4.000000e-08 s I=3.457163e+05 A v_C=7.625862e+05 V foil T=534.2 K sigma=1.123286e+06 S/m
+INFO H1_vacuum steps=2000 t_end=4.002000000e-08 I_end=3.460358798e+05 mean_evaluations=1.998 max_evaluations=2 max|F|/|I|=3.485e-14 max_conduction_change=0.000e+00 Z_est=8.855114e-02 unconverged=0
+INFO H1_vacuum circuit: dE=-1.284715340928e+00 D=1.087282498823e+00 P=1.974328422872e-01 closure=1.824e-10 (sum of step residuals 1.824e-10)
+INFO H1_vacuum join: P_circuit - W_hall = 6.634e-15 J (port iteration defect 6.622e-15, Hall dot rounding -4.086e-18)
+INFO H1_vacuum hall: field_delta=8.088586952921e-02 joule=1.064037201986e-01 plasma_work=0.000000000000e+00 outer_loss=4.439368230456e-05 outer_supply=-1.009885887707e-02 circuit_work=1.974328422872e-01 closure=-1.943e-16 max step balance/activity=6.777e-15
+INFO H1_vacuum total system: dE_circuit + D_circuit + field_delta + joule + plasma_work + outer_loss - outer_supply = 1.823e-10 J (activity 1.472e+00 J, relative 1.239e-10)
+INFO H1_vacuum stored-energy change: increment form -1.284715340928e+00 J, difference of absolute stored energies -1.284715340931e+00 J (rounding of a 4.403e+04 J store ~9.8e-12 J)
+INFO H1_vacuum bounds: circuit sum of step bounds 3.128e-07 J, Hall admitted 3.949e-11 J
+PASS H1_coupled_iteration_hall_vacuum mean evaluations 1.998, max 2, max|F|/|I| 3.485e-14, total-system closure/activity 1.239e-10, join 6.634e-15 J
+INFO H2_gap_conduction steps=1000 t_end=4.003000000e-08 I_end=3.462016323e+05 mean_evaluations=5.748 max_evaluations=8 max|F|/|I|=3.482e-14 max_conduction_change=4.757e-14 Z_est=8.855114e-02 unconverged=0
+INFO H2_gap_conduction circuit: dE=-5.681848600684e-01 D=5.443154742012e-01 P=2.386938603985e-02 closure=1.726e-10 (sum of step residuals 1.726e-10)
+INFO H2_gap_conduction join: P_circuit - W_hall = 2.626e-15 J (port iteration defect 2.626e-15, Hall dot rounding 7.403e-19)
+INFO H2_gap_conduction hall: field_delta=-2.866144954274e-02 joule=5.329904330718e-02 plasma_work=1.505675248322e-05 outer_loss=1.673047288068e-05 outer_supply=7.999949499608e-04 circuit_work=2.386938603985e-02 closure=-1.631e-16 max step balance/activity=9.707e-15
+INFO H2_gap_conduction total system: dE_circuit + D_circuit + field_delta + joule + plasma_work + outer_loss - outer_supply = 1.726e-10 J (activity 6.502e-01 J, relative 2.655e-10)
+INFO H2_gap_conduction stored-energy change: increment form -5.681848600684e-01 J, difference of absolute stored energies -5.681848600725e-01 J (rounding of a 4.403e+04 J store ~9.8e-12 J)
+INFO H2_gap_conduction bounds: circuit sum of step bounds 1.564e-07 J, Hall admitted 1.072e-11 J
+PASS H2_coupled_iteration_gap_conduction mean evaluations 5.748, max 8, max|F|/|I| 3.482e-14, total-system closure/activity 2.655e-10, join 2.626e-15 J
+ALL PASSED 0 failure(s)
+PASS T1_ledger_full_pulse dt=1e-10 closure/E0=-7.105e-16 max_step_residual/bound=0.118 load_closure_rel=2.448e-13 (cumulative bound 9.24e-12)
+PASS T1_ledger_full_pulse dt=1e-11 closure/E0=-1.018e-14 max_step_residual/bound=0.123 load_closure_rel=-2.586e-12 (cumulative bound 9.24e-11)
+PASS T1_ledger_hall_step_dt dt=1e-14 steps=2e6 closure/E0=1.531e-13 max_step_residual/bound=0.082 max_evaluations=3
+PASS T2_midpoint_order_RLC max|I-I_exact| = 1.873e-01, 4.682e-02, 1.170e-02 A (dt 100/50/25 ps); observed order 2.000 / 2.000
+PASS T3_port_coupling_reduced_load max evaluations per step=3 max|F|/|I|=2.615e-15
+PASS T4_open_switch max|I| before trigger=0.000e+00 A stored change=0.000e+00 J
+PASS T5_determinism 13000 state words compared
+ALL PASSED 0 failure(s)

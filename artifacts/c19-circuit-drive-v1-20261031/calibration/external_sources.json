@@ -1,0 +1,37 @@
+{
+ "schema": "c19-circuit-drive-v1-external-sources-v1",
+ "note": "Public documents outside the repository, read to check the circuit inputs. Used for comparison only; no value from them is an input of the circuit or the fits.",
+ "sources": [
+  {
+   "id": "smith_dissertation_2025",
+   "title": "Characterizing Desorbed Surface Contaminants Leading to Plasma Formation in Power Feeds of Pulsed Power Accelerators (T. J. Smith, U. Michigan, 2025)",
+   "local_copy": "/home/treefor/projects/.workspace/work/smith-dissertation-2025.pdf",
+   "sha256": "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7",
+   "relation_to_repository": "the source of every data/dissertation recovery (same hash)",
+   "statements": [
+    {"page": "printed 52", "text": "Mykonos ... is a 1-MA class LTD driver with a rise time of 100 ns for a matched load ... five 3-m cavities, each comprised of 36 bricks ... stacked together in series to cumulatively add voltage (up to 500 kV) to drive a coaxial water transmission line ... each subsequent cavity triggered 6.6 ns after its predecessor"},
+    {"page": "printed 53 (Fig. 4.1 caption)", "text": "200-kV multi-stage spark gap switches ... 40-nF capacitors ... ferromagnetic cores ... coaxial water transmission line"},
+    {"page": "printed 28-30 (MAIZE, same brick type)", "text": "each brick ... two capacitors charged to equal and opposite voltages connected electrically in series via a spark-gap switch ... Each capacitor has a capacitance of 40 nF"},
+    {"page": "printed 59-60 (Eq. 4.1-4.2)", "text": "Vres = Vbank - L dI/dt; Vbank is known (it is the charge voltage) ... the voltage pulse supplied by the five cavities is measured at the output of the water transmission line, which is denoted by Vbank. L is the total inductance from the output of the water transmission line through the target. dI/dt is measured directly through calibrated B-dot probes in the chamber. The timing is adjusted for propagation time.",
+     "conflict": "Vbank is called both 'the charge voltage' and 'measured at the output of the water transmission line'; no numerical L or charge voltage is given"}
+   ]
+  },
+  {
+   "id": "lamppa_2021_SAND2021_12691",
+   "title": "Assessment of Electrode Contamination Mitigation at 0.5 MA Scale (D. C. Lamppa et al., Sandia report SAND2021-12691, 2021)",
+   "url": "https://www.osti.gov/servlets/purl/1825219",
+   "lead_recorded_in": "/home/treefor/projects/Power-Flow/HANDOFF.md (item 5, unassessed lead)",
+   "local_copy": "/home/treefor/projects/.workspace/outputs/c19-circuit-drive-v1-20261031/external-lamppa-2021/SAND2021-12691.pdf",
+   "sha256": "baabb5ff2a3a55b7f4dcf60b316ac7756ecdf1e2ea7e2071c2f30ca38417b7ae",
+   "retrieved": "2026-10-31",
+   "statements": [
+    {"page": 15, "text": "The Mykonos LTD accelerator consists of five LTD cavities ... each contains 36 bricks with two 40-nF capacitors ... These cavities can be operated at 100kV peak output and can deliver up to 1MA to a 0.5 ohm matched load. A matched impedance to a nominal 15-20nH inductive load in the vacuum load region ... The load platform developed for the in situ heating study is approximately 20-25nH, to which Mykonos will deliver about 850kA. The in situ discharge cleaning experimental hardware is approximately 35-40nH, reducing the delivered current to 650-750kA"},
+    {"page": 22, "text": "forward traveling ~350kV pulse from Mykonos"},
+    {"page": 30, "text": "Mykonos trigger jitter of approximately 10 ns contributes to shot-to-shot variation"},
+    {"page": 6, "text": "680-kA, 125-ns Mykonos (figure caption, cleaning hardware)"}
+   ],
+   "not_found": "no 36 nH feed-post measurement; no per-brick, cavity or line values; no charge voltage",
+   "bearing": "a load of ~20-25 nH beyond the LTD gives ~850 kA, the peak of shots 17133/15210 (0.82/0.85 MA); 35-40 nH gives 650-750 kA. This agrees with the fits (load beyond the 36 nH LTD of ~11-16 nH) and not with a 40 nH feed in addition to the target."
+  }
+ ]
+}

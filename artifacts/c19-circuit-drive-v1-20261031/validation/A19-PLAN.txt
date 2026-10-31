@@ -1,0 +1,87 @@
+A19 -- convergence and validation plan for the coupled PIC water-breakdown run (draft, 2026-10-31)
+Status of A19: NOT STARTED (no joint, pilot-to-breakdown or convergence run exists). This plan assumes the integration of
+INTEGRATION.txt (Hall v3.3 port-current drive, coordinator v8 circuit) and the open Hall prerequisites below.
+Tags: every threshold here is "recommended" (proposed, not measured); data items refer to INVENTORY.txt ids.
+
+0. Prerequisites (blocking)
+ P1 Hall vacuum refusal at 1.236 ns (absolute Gauss allowance fixed at construction; Hall v3.1 README 7) resolved.
+ P2 Port-current drive in Hall v3.3 and the circuit in coordinator v8; prescribed-C19 regression (tests R1/R2) kept.
+ P3 Transverse box: the 9 mm box gives 11.05 nH at the port vs 16.15 nH at 45.4 mm (box study, 200 um cells); a
+    voltage or breakdown comparison needs the converged exterior (>= 35 mm, or a graded exterior if Hall gains one).
+ P4 Clock registration: the circuit fits place the plotted origin at -0.2 to -15.5 ns (17133)
+    (15210: +0.1 to +15.3 ns) after switch closure depending on the inductance variant; timing comparisons inherit this spread until a trigger
+    reference is supplied (A17).
+ P5 Inductance question resolved (README 6): with 144 nF / 800 kV the measured rise needs ~47-52 nH in total, which the
+    supplied 36 nH LTD + 40 nH feed + target cannot give. The coupled run uses the set chosen after that answer
+    (C3 meets the current and 220 kV targets with the 45 mm box but sets the feed to ~0).
+
+1. Runs
+ R-vac  Vacuum pre-run with the circuit from switch closure (I = 0, E = B = 0) to T_on (20-40 ns circuit time), then
+        native genesis bound to that Hall state (pilot limitation L8). Cost now: 24 ms/step at 10 fs (GPU) ->
+        2e6-4e6 steps, 13-27 h; with dt_max raised for vacuum steps (implicit field; v3.1 dt_max configurable to 1 ns,
+        but the dt guard and the step-controller receipts must admit it) 100 fs-1 ps gives 0.4-4 h.
+ R-mesh Transverse cell 200 / 100 / 50 / 25 um (9 mm box: 45/90/180/360 cells; 45.4 mm box: 227/454/908/1816) with
+        axial foil cells 4 / 8 / 16 / 32 (now 6.25 mm; the axial voltage drop and the feed-to-short heating gradient
+        are unresolved at 4). Same circuit set, same w0, same dt, same seeds. If the 45 mm box is too large at 25 um,
+        run the series in the 9 mm box and add the box correction measured at 200 and 100 um (the exterior acts as a
+        separable series inductance at the port; verify at two cell sizes).
+        Debye length 7434 sqrt(T_e[eV]/n[m^-3]) m: at 3 eV 129 um (1e16), 41 um (1e17), 13 um (1e18). 25 um cells resolve
+        it to ~2.6e17 m^-3 at 3 eV (cell <= lambda_D) or ~1e18 (cell <= 2 lambda_D); statements about screening above
+        that density are not supported by this series.
+ R-part Peak macroparticle count 1e4 / 1e5 / 1e6 per species, realized by the stream weight w0 (now 1e6 for every
+        stream; no merge/split exists, pilot L6): w0 = N_phys,peak / N_target from the previous level's peak count.
+        Seeds: 5 at 1e4, 5 at 1e5, 2 at 1e6 (the avalanche onset is stochastic: separate seed variance from bias).
+ R-dt   dt 20 / 10 / 5 / 2.5 fs over a 1 ns window around the first avalanche and over the breakdown time, finest mesh
+        that is affordable, identical seeds. Controller receipts already published by Hall v3.1: omega_p dt (1e18 m^-3
+        -> 5.6e-4 at 10 fs; 1e22 -> 0.056), omega_c dt (100 T -> 0.18 at 10 fs; Boris phase error (omega_c dt)^2/12
+        ~ 0.3 %), max displacement in cells, drive change per step. Choose the largest dt whose metric changes are
+        below one third of the finest-mesh discretization error, with omega_c dt <= 0.2 and displacement <= 0.5 cell.
+        The circuit itself is second order and dt-insensitive at these steps (test T2).
+
+2. Convergence metrics and acceptance (recommended)
+ Observables Q: port current at t_bd + 20 ns; target-entrance voltage peak; breakdown time t_bd (simulated
+ resistive-voltage collapse to < 20 % of its pre-collapse maximum); ionization events up to t_bd + 5 ns; peak and
+ gap-averaged n_e at t_bd + 5 ns; foil edge surface temperature at 40 ns; desorbed H2O count at 40 ns; Hall midgap B_x
+ at 40/60 ns (code-to-code).
+ Mesh: observed order p from the three finest levels (Richardson); fine-grid GCI (safety 1.25) <= 5 % for current and
+   voltage, <= 10 % for t_bd and plasma quantities; monotone convergence required, otherwise the level is reported as
+   not converged.
+ Particles: |Q(1e6) - Q(1e5)| <= 2 sigma_seed(1e5); seed spread at 1e6 <= 3 % (t_bd within 1 ns).
+ dt: |Q(dt) - Q(dt/2)| <= GCI_mesh / 3.
+ Ledgers at every step of every run: charge (exact), Gauss and divB within their bounds, Hall field energy within its
+ admitted 1e-10 activity bound, circuit ledger within its summed rounding bound, join (port iteration defect + Hall dot
+ rounding) <= 1e-12 of the delivered energy (tests H1/H2: <= 1.7e-14 J over 1,000-2,000 steps, <= 1e-13 relative).
+
+3. Validation comparisons (each needs the converged level from section 2)
+ M-E1 port current vs E1/E2: time-weighted RMS <= 5 % of peak before t_bd + 50 ns; peak within 10 %; 10-90 % rise
+      within 10 % (scope accuracy target). Circuit-only today: set C3 4.2/7.3 % peak, 2.4/2.0 % rise; set A 7.9/10.9 %
+      peak, 36/37 % rise.
+ M-E2 target-entrance voltage peak vs E8 (~220 kV): within 15 % (supplied tolerance 15-20 %). Today: prescribed C19 +
+      9 mm box 150 kV (-32 %); circuit C3 + 45 mm box 204 kV (-7 %).
+ M-E3 resistive-voltage features vs E3/E4 (shape timing with L0 as nuisance parameter): collapse onset within 5 ns.
+ M-E4 circuit rating vs E9: FWHM into 0.5 ohm within 10 % of 160 ns (circuit only; sets A, B, D within 4.3 %, C3 +8 %).
+ M-T1 breakdown time vs E4 (15210 collapse ~52-60 ns plotted) and T1: within 5 ns after clock registration (P4);
+      until P4 is closed report t_bd on the circuit clock and the plotted-time interval implied by the offset spread.
+ M-T2 light onset vs E5 (APD 2, 17133: rise between 60 and 64 ns plotted) and E6 (SVS, 15210: from ~66-68 ns):
+      within 5 ns, with the same registration caveat.
+ M-S1 VUV vs S2/S3 (15750 at 30 ns before breakdown, 15765 at 29 ns): synthetic transition-density gap profile through
+      the full synthetic chain (INVENTORY LOS_VUV steps); normalized shape RMS <= 0.3 dex, profile maximum position
+      within 0.5 mm, absolute level within 0.5 dex (approximate calibration), Lyman-alpha / H2 161 nm band ratio within
+      a factor 2. Shot 15210 (S4, Fig. 4.23, after breakdown at 55 ns) is the only VUV shot with a recovered current;
+      digitize Fig. 4.23 first.
+ M-S2 Table 4.1 (S1): n(H), n(H2) within a factor 3 and T within 30 % (by-eye Yacora estimates, no covariance).
+ M-S3 SVS temperatures (S6): within the published uncertainty (~25 %); different foil thicknesses than the 200 um model,
+      so only for a thickness-matched run.
+ M-F1 code-to-code (M1/M2): Hall midgap B_x vs Allegra at 40/60 ns within 15 % after P3 (12-14 % low with the 9 mm box);
+      informational (legacy units unverified).
+ M-N1 code-to-code (M3): desorbed inventory per face within 20 % of the provisional MFEM map with identical kinetics.
+ M-N2 background gas (N1): initial composition consistent with the uncalibrated channel ratios (informational).
+ M-P1 electron density (N2): chord-integrated n_e vs interferometry, only once the data are supplied.
+
+4. Order of work
+ 1 P1-P3 in Hall v3.3; P2 in coordinator v8; regression R1/R2 and coupled H1/H2 tests in their acceptance batches.
+ 2 Circuit + Hall vacuum at 200 um, 9 mm and 45 mm boxes, through the current rise: M-E1, M-E2 without plasma.
+ 3 R-vac to T_on, native genesis, short coupled window at 200 um (machinery, ledgers).
+ 4 R-mesh at fixed w0/dt to t_bd + 20 ns (or the furthest admitted time), then R-part and R-dt at the finest
+   affordable level.
+ 5 Comparisons M-*, each reported with the level, seeds, ledgers and the stated limitations (L1-L10 of pf-pilot-1).

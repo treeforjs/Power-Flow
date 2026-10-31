@@ -1,0 +1,105 @@
+c19-circuit-drive-v1 -- integration into Hall (next version after v3.2, called v3.3 here) and coordinator v8
+Nothing below has been integrated; Hall v3.1/v3.2 and the coordinators were only read.
+
+0. What the circuit needs from the field step, and what it gives back
+ Per field step n -> n+1 (dt, old time t_n):
+   circuit -> Hall   the impressed midpoint current I (A), a plain double, used exactly where Hall now uses
+                     drive_.current(old.time_s + .5*dt) (field_model.hpp v3.1 line ~146, v3.2 line 170):
+                     rhs term -Words(current)*feed[e], metal current current*feed[e], circuit_work_J.
+   Hall -> circuit   receipt.terminal_V (= -feed . mid_E) and receipt.circuit_work_J of the candidate prepared at I.
+ Coupled relation of the step (src/c19_circuit.hpp):
+   circuit midpoint (implicit midpoint, linear):  I = a - Y V            (a, Y from LumpedLtdCircuit::port_relation)
+   Hall step (fixed plasma current and sigma):    V = V_T(I), affine in I (the rhs is affine in I)
+   residual F(I) = I - (a - Y V_T(I)); Newton with a port-impedance estimate Z (secant, carried across steps).
+ Measured on the sealed Hall operator (tests/test_hall_port.cpp, axial::Fields, 45x45x(4+2) mesh, dt = 10 fs):
+   vacuum: 2.0 field evaluations per step, max |F|/|I| <= 4.1e-14; Z (per step) = 0.089 ohm (capacitive at 10 fs: c dt is
+   3 um, far below a cell), Y Z ~ 1e-8 to 2e-5, so the iteration is a contraction from the first predictor.
+   iterate-dependent gap conduction (joint fixed point with the conduction current, standing in for motion): 5.75
+   evaluations per step, max 8 (the conduction fixed point sets the count, not the circuit).
+ Accept rule (voltage pinned): the circuit integrates with V_T of the accepted candidate; its own midpoint current
+ i_c = a - Y V_T differs from the I Hall used by F. Pinning the current instead would leave a voltage error
+ F * 2 L/dt (8e6 ohm at L = 40 nH, dt = 10 fs); pinning the voltage leaves dt F V_T (< 1e-15 J per step).
+
+1. Hall v3.3 changes
+ 1.1 Drive selection, declared at construction and bound into the configuration identity:
+       DriveMode::prescribed_c19  (default) exactly today's CurrentDrive (same bytes check c19_sha256, same parse,
+                                  same expression drive_.current(old.time_s + .5*dt)); the configuration digest MUST
+                                  stay byte-identical to v3.2 in this mode (no new digest text when prescribed).
+       DriveMode::port_current    prepare takes the impressed midpoint current as an argument from the coordinator;
+                                  digest text "hall-v3.3-port-current-drive-v1" + the circuit parameter digest
+                                  (c19_circuit_v1 Parameters, binary, in field order) + the genesis rule.
+     Regression evidence that the prescribed path is reproducible bit for bit from the circuit module:
+       tests R1 (2,000,133 drive queries incl. 1e6 Hall-recurrence step midpoints: 0 differ) and R2 (2,000 Hall
+       field steps: every receipt scalar and final E, B, E_low, B_low identical; source ledger = sum circuit_work).
+ 1.2 prepare(..., double impressed_current_A) in port_current mode; the value is finite-checked; everything else in
+     prepare is unchanged (the current enters only through the three existing places).
+ 1.3 Interval guard: "authoritative field interval" requires old.time_s + dt <= drive_.end() (the C19 support,
+     196.75 ns). Keep it for prescribed_c19; in port_current mode replace it by the configured run end (the circuit
+     clock has no support limit).
+ 1.4 Genesis in port_current mode: at switch closure on the circuit clock (I = 0) E = B = 0 exactly and no DC seed is
+     needed; but the lumped onset law divides the erected voltage inductively at t = 0+ (README 5: up to a 217 kV,
+     ~0.5 ns spike on the port with set C3), so either start there with an onset law fixed from switch data, or hand
+     over at t_h >= 5 ns with the DC seed at the circuit's current; the seed has dI/dt = 0 while the circuit does not,
+     which excites the line ringing described in 1.6 (seen in H1/H2). Mapping to published time: t_plot = t_circuit + offset_<shot>
+     (calibration/c19_circuit_v1_parameters_*.txt; variant dependent, about -2 to -16 ns for 17133).
+ 1.5 Controller receipt: drive_rel_change and drive_knot_interval_s refer to C19 knots. In port_current mode report
+     |I_n+1/2 - I_n-1/2| / max(|I|, 1 A) and set the knot interval to 0 (no knots).
+ 1.6 Port dynamics found while testing (for the step controller and the validation plan):
+     - the Hall port is a shorted 25 mm two-strip line: a step in dI/dt of 1e13 A/s gives a linear rise of V_T at
+       Z ~ 148 ohm for one round trip (0.167 ns) and a slowly damped ringing about L dI/dt (only the absorbing box
+       damps it; 0.4 ns after a ramp start V_T is still 211 kV vs 110 kV quasi-static; outputs/.../hall-port-load/).
+       The prescribed C19 drive is piecewise linear, so every knot is a step in dI/dt that excites this ringing; the
+       circuit current is C1-smooth (no knots).
+     - port inductance depends on the transverse box (DC magnetostatic 2 W_B / I^2 from the sealed dc_initial, 200 um
+       cells): 9 mm 11.05 nH, 12.6 mm 13.80 nH, 27 mm 15.86 nH, 34.6 mm 16.04 nH, 45.4 mm 16.15 nH. The 9 mm box of
+       record gives ~32 % less inductance and target-entrance voltage than the converged box. With the prescribed C19
+       dI/dt (max 1.28e13 A/s) the 9 mm box gives 150 kV peak; 16.5 nH is needed for the ~220 kV supplied value, and
+       the 45 mm box gives 16.15 nH (~215 kV). Recommendation: a >= 35 mm transverse box (or a graded exterior) before
+       any voltage comparison; this also feeds A17 (earlier midgap B 12-14 % low).
+ 1.7 Optional (cost reduction, not needed for correctness): a port-response vector x_1 = A^-1 (feed term per unit
+     current) per (sigma, dt) gives V_T(I) = V_T(I_0) + Z (I - I_0) exactly and lets one prepare + one extra linear
+     solve replace the second prepare. Only worth it if the second prepare matters (vacuum steps: +1 prepare/step).
+ 1.8 Prerequisite outside the circuit: the vacuum refusal at 1.236 ns (absolute Gauss allowance fixed at
+     construction, v3.1 README 7) must be resolved before any coupled run reaches the current rise (I > 50 kA after
+     ~15 ns plotted).
+
+2. Coordinator v8 changes
+ 2.1 Ownership: the coordinator owns one LumpedLtdCircuit (host, a few doubles; constructed from a parameter file of
+     calibration/ and the genesis state) and one PortCoupler (carries Z across steps). Not touched per carrier.
+ 2.2 Step loop: compute (a, Y) = circuit.port_relation(dt) once per step; predictor I_0 = a - Y V_T(previous step).
+     Inside the existing fixed point (trial field -> motion -> charge/current -> field), every field prepare uses the
+     current iterate I_k; after it, F_k = I_k - (a - Y V_T,k), and I_k+1 = I_k - F_k / (1 + Y Z). The step converges
+     when |F| <= 4e-14 |I| + 1e-9 A AND the existing motion/charge criteria hold (PortCoupler::step with the
+     others_converged callback is the reference logic). Vacuum steps (no carriers) cost 2 prepares instead of 1.
+     The secant updates Z only from current changes > 1e-11 |I| and only between evaluations at converged other
+     unknowns (otherwise the voltage change mixes in plasma/motion changes).
+ 2.3 Transaction: circuit.accept(dt, I_used, V_T, circuit_work_J) only after the Hall candidate is published and in
+     the same commit; on any refusal or rollback the circuit keeps its old state (it is a value type; copy before).
+ 2.4 Joined ledger, per step and cumulative (all present in LumpedLtdCircuit::Ledger / StepLedger):
+       circuit:  dE_stored (increment form) + dissipated (R_s i_s^2 + G_c v_A^2 + R_f i_f^2) + delivered (dt i_c V_T) = 0
+                 within the step rounding bound (16 eps sum|terms| + 4 eps sum Q |x| |x_mid|; the store is 4.6e4 J in
+                 doubles, so the representation term dominates at dt = 10 fs)
+       join:     delivered - circuit_work_J = port_iteration_defect (dt (i_c - I) V_T) + hall_dot_rounding
+                 (dt I V_T - circuit_work_J)
+       Hall:     the existing field ledger (field_delta + plasma_work + joule + outer_loss - outer_supply - circuit_work)
+       total:    dE_circuit + D_circuit + field_delta + plasma_work + joule + outer_loss - outer_supply
+                 = -(join) - (circuit residual) - (Hall balance)
+     Record the circuit columns beside E_circuit_work_J in the ledger.bin schema: circuit_stored_J, circuit_dE_J,
+     circuit_dissipated_J, circuit_delivered_J, circuit_residual_J, circuit_bound_J, port_iteration_defect_J,
+     hall_dot_rounding_J, port_I_A, port_V_T_V, port_F_A, port_evaluations, circuit v_C/i_s/i_m/i_f.
+ 2.5 Checkpoint/restart and identity: the circuit State (time, v_C, i_s, i_m, i_f, revision), the PortCoupler Z and
+     last V_T, and the ledger sums enter the checkpoint record and the step digest (binary, field order).
+ 2.6 Determinism and ranks: the circuit runs single-threaded on the host; its 5x5 midpoint solve is in 80-bit long
+     double with fixed pivot order (x86-64 x87, deterministic). In an MPI run evaluate it on one rank and broadcast
+     the exact bits of I (or evaluate identically on every rank from identical inputs); never reduce it.
+ 2.7 Regression mode: the default --drive prescribed-c19 reproduces the v7 run bit for bit (Hall prescribed path
+     unchanged); keep the R1/R2 tests in the acceptance batch.
+ 2.8 Breakdown needs no special handling: the plasma current changes V_T, the circuit responds through F.
+
+3. Which parameter set
+ calibration/c19_circuit_v1_parameters_A_supplied.txt  supplied inductances (36 nH LTD + 40 nH feed) + Hall 9 mm box
+   target: peak current within 8-11 %, but the 10-90 % rise is 36-37 % too slow (README section 4).
+ calibration/c19_circuit_v1_parameters_C_traces.txt    feed inductance fitted to the traces (model_derived, at its lower
+   bound): peak within 3-6 %, rise within 4 %.
+ Neither reproduces both the supplied inductances and the measured rise; resolve the inductance question (README 6)
+ before a production coupled run. For machinery tests either set works (tests pass with both).

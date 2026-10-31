@@ -1,0 +1,886 @@
+{
+ "schema": "c19-circuit-drive-v1-calibration-v1",
+ "dt_s": 1e-10,
+ "t_end_s": 2.8e-07,
+ "machine_data_supplied": {
+  "C_F": 1.44e-07,
+  "V0_V": 800000.0,
+  "L_ltd_H": 3.6e-08,
+  "L_feed_H": 4e-08,
+  "L_feed_alternative_H": 3.6e-08,
+  "target_L_estimate_H": [
+   2e-08,
+   3e-08
+  ]
+ },
+ "hall_vacuum_load": {
+  "L_H": 1.1045115428330025e-08,
+  "R_H_300K_ohm": 0.03594536304816677,
+  "source": "tools/hall_port_load.cpp dc mode (sealed Hall dc_initial, 45x45x(4+2) mesh)"
+ },
+ "inputs_sha256": {
+  "/home/treefor/projects/Power-Flow/data/dissertation/shot_17133_current.csv": "2c54d2dbaec6b6c8fcf2e45b5abd837aa72999f5fd14217f530277ffd5949076",
+  "/home/treefor/projects/Power-Flow/data/dissertation/shot_15210_current.csv": "7e330390e4c678008e1fae0eed983a0283a04c87cd01d3b6118bda99ee1e8cd8"
+ },
+ "variants": {
+  "A_supplied_inductances_hall_target": {
+   "variant": "A_supplied_inductances_hall_target",
+   "fixed": {
+    "L_feed_H": 4e-08,
+    "L_H": 1.1045115428330025e-08
+   },
+   "free_inductance": null,
+   "parameters": {
+    "R_inf_ohm": 0.28536402426860746,
+    "R_sw_ohm": 0.005896968528690996,
+    "tau_sw_s": 3.002091172031253e-10,
+    "G_core_S": 5.680041485866368e-16,
+    "offset_17133_s": -4.384505614588798e-09,
+    "offset_15210_s": 1.0399894605828647e-08
+   },
+   "formal_1sigma": {
+    "R_inf_ohm": 9.512156411307075e-20,
+    "R_sw_ohm": 6.875003642987427e-22,
+    "tau_sw_s": 1.5243291835673992e-32,
+    "G_core_S": 1.6050275442723167e-10,
+    "offset_17133_s": 4.075778165480975e-29,
+    "offset_15210_s": 3.2186870562297427e-29
+   },
+   "at_bounds": [],
+   "cost": 174.2993159339718,
+   "nfev": 21,
+   "sim_stdout": "steps 2800 max_evaluations 3\nledger initial_stored_J 46080 final_stored_J 11440.328144760437 dissipated_J 27723.653527210641 delivered_J 6916.0183280287965\nledger closure_J -1.236913e-10 closure_over_E0 -2.684e-15 increment_sum_minus_difference_J 0.000000e+00 max_step_residual_over_bound 0.104\njoin port_iteration_defect_J -4.276164e-10 hall_dot_rounding_J 0.000000e+00\nload joule_J 6079.8952097782631 foil_joule_J 6079.8952097782631 magnetic_J 836.12311825052655 received_J 6916.018328029224 load_closure_J 4.344e-10 T_final_K 1615.952\nload t_law_exceeded_s 6.245000e-08 (sigma held at 1500 K beyond)\n",
+   "shots": {
+    "17133": {
+     "offset_s": -4.384505614588798e-09,
+     "n_vertices": 132,
+     "rms_residual_A_time_weighted": 99033.88157249986,
+     "rms_residual_over_peak": 0.1206924987183507,
+     "max_abs_residual_A": 228056.2655271854,
+     "max_abs_residual_time_s": 1.9674963671e-07,
+     "measured": {
+      "peak_A": 820547.114561,
+      "peak_time_s": 1.192499073e-07,
+      "t10_s": 1.6248885836468913e-08,
+      "t90_s": 8.758925039745737e-08,
+      "rise_10_90_s": 7.134036456098846e-08,
+      "t10_to_peak_s": 1.0300102146353108e-07
+     },
+     "model": {
+      "peak_A": 755785.9066786747,
+      "peak_time_plotted_s": 1.4976549438541077e-07,
+      "rise_10_90_s": 9.69907943942074e-08,
+      "t10_to_peak_s": 1.457912503261598e-07
+     },
+     "peak_error_rel": -0.07892442339154782,
+     "rise_10_90_error_rel": 0.359550024604802,
+     "t10_to_peak_error_rel": 0.4154349952517624,
+     "peak_time_error_s": 3.051558708541077e-08
+    },
+    "15210": {
+     "offset_s": 1.0399894605828647e-08,
+     "n_vertices": 118,
+     "rms_residual_A_time_weighted": 89319.36162633359,
+     "rms_residual_over_peak": 0.10533214427038207,
+     "max_abs_residual_A": 149127.38736970967,
+     "max_abs_residual_time_s": 1.98249626628e-07,
+     "measured": {
+      "peak_A": 847978.195498,
+      "peak_time_s": 1.36749994024e-07,
+      "t10_s": 3.115987740363547e-08,
+      "t90_s": 1.0217700998279896e-07,
+      "rise_10_90_s": 7.101713257916348e-08,
+      "t10_to_peak_s": 1.0559011662036453e-07
+     },
+     "model": {
+      "peak_A": 755785.9066786747,
+      "peak_time_plotted_s": 1.645498946058282e-07,
+      "rise_10_90_s": 9.69907943942074e-08,
+      "t10_to_peak_s": 1.457912503261598e-07
+     },
+     "peak_error_rel": -0.10872011722563535,
+     "rise_10_90_error_rel": 0.3657379687372033,
+     "t10_to_peak_error_rel": 0.38072818737697967,
+     "peak_time_error_s": 2.7799900581828207e-08
+    }
+   },
+   "voltages": {
+    "V_target_entrance_peak_V": 101188.45902444981,
+    "V_target_entrance_peak_time_circuit_s": 5.050000000000002e-09,
+    "V_target_entrance_peak_over_220kV": -0.5400524589797736,
+    "V_target_entrance_closure_transient_max_V": 101509.11264635033,
+    "V_monitor_peak_V": 461654.48537026485,
+    "V_monitor_peak_time_circuit_s": 5.050000000000002e-09,
+    "V_monitor_peak_over_supplied_two_thirds_of_700kV": -0.010740388492289643,
+    "ltd_terminal_voltage_peak_V": 785929.3684590473,
+    "ltd_terminal_voltage_at_peak_current_V": 47651.32058299336,
+    "monitor_over_ltd_terminal_at_Vmon_peak": 0.5873994583958857
+   },
+   "foil_T_final_K": 1615.9518241955652,
+   "rating_check": {
+    "load": "0.5 ohm resistor at the LTD output (L_feed -> 1 pH)",
+    "peak_A": 686005.3852882499,
+    "peak_time_s": 7.764999999999932e-08,
+    "fwhm_s": 1.6603887005864562e-07,
+    "supplied_rating_fwhm_s": 1.6e-07,
+    "fwhm_error_rel": 0.03774293786653504,
+    "peak_load_voltage_V": 343002.69264412497
+   }
+  },
+  "A2_supplied_inductances_hall_target_magnetizing": {
+   "variant": "A2_supplied_inductances_hall_target_magnetizing",
+   "fixed": {
+    "L_feed_H": 4e-08,
+    "L_H": 1.1045115428330025e-08
+   },
+   "free_inductance": null,
+   "parameters": {
+    "R_inf_ohm": 6.28209343235463e-14,
+    "R_sw_ohm": 0.21630006217799871,
+    "tau_sw_s": 3.0027664257170907e-10,
+    "G_core_S": 0.39605073524585604,
+    "inv_L_core_per_H": 5383887.216454217,
+    "offset_17133_s": -1.552896173867342e-08,
+    "offset_15210_s": 1.0150620205171742e-10
+   },
+   "formal_1sigma": {
+    "R_inf_ohm": 0.0,
+    "R_sw_ohm": 52592.09323190894,
+    "tau_sw_s": 4.498220016109231e-05,
+    "G_core_S": 1.3910137609780593,
+    "inv_L_core_per_H": 7762461.682062875,
+    "offset_17133_s": 1.1158921690083734e-07,
+    "offset_15210_s": 1.1148256501581497e-07
+   },
+   "at_bounds": [],
+   "cost": 167.88559144112466,
+   "nfev": 23,
+   "sim_stdout": "steps 2800 max_evaluations 3\nledger initial_stored_J 46080 final_stored_J 32967.011349808541 dissipated_J 6888.0950806892833 delivered_J 6224.8935695025166\nledger closure_J 3.410605e-10 closure_over_E0 7.401e-15 increment_sum_minus_difference_J 1.818989e-12 max_step_residual_over_bound 0.117\njoin port_iteration_defect_J -1.176524e-09 hall_dot_rounding_J 0.000000e+00\nload joule_J 5653.2396807419918 foil_joule_J 5653.2396807419909 magnetic_J 571.65388876126963 received_J 6224.8935695036935 load_closure_J 4.320e-10 T_final_K 1607.419\nload t_law_exceeded_s 7.245000e-08 (sigma held at 1500 K beyond)\n",
+   "shots": {
+    "17133": {
+     "offset_s": -1.552896173867342e-08,
+     "n_vertices": 132,
+     "rms_residual_A_time_weighted": 95741.33086503734,
+     "rms_residual_over_peak": 0.11667987025493326,
+     "max_abs_residual_A": 200320.42720090412,
+     "max_abs_residual_time_s": 1.9674963671e-07,
+     "measured": {
+      "peak_A": 820547.114561,
+      "peak_time_s": 1.192499073e-07,
+      "t10_s": 1.6248885836468913e-08,
+      "t90_s": 8.758925039745737e-08,
+      "rise_10_90_s": 7.134036456098846e-08,
+      "t10_to_peak_s": 1.0300102146353108e-07
+     },
+     "model": {
+      "peak_A": 757081.9914697187,
+      "peak_time_plotted_s": 1.4562103826132667e-07,
+      "rise_10_90_s": 9.95958805967222e-08,
+      "t10_to_peak_s": 1.453054647351487e-07
+     },
+     "peak_error_rel": -0.07734488607060142,
+     "rise_10_90_error_rel": 0.3960663252789838,
+     "t10_to_peak_error_rel": 0.41071867706279086,
+     "peak_time_error_s": 2.6371130961326663e-08
+    },
+    "15210": {
+     "offset_s": 1.0150620205171742e-10,
+     "n_vertices": 118,
+     "rms_residual_A_time_weighted": 89245.6914186903,
+     "rms_residual_over_peak": 0.1052452667916516,
+     "max_abs_residual_A": 140057.3108828523,
+     "max_abs_residual_time_s": 1.11749819775e-07,
+     "measured": {
+      "peak_A": 847978.195498,
+      "peak_time_s": 1.36749994024e-07,
+      "t10_s": 3.115987740363547e-08,
+      "t90_s": 1.0217700998279896e-07,
+      "rise_10_90_s": 7.101713257916348e-08,
+      "t10_to_peak_s": 1.0559011662036453e-07
+     },
+     "model": {
+      "peak_A": 757081.9914697187,
+      "peak_time_plotted_s": 1.612515062020518e-07,
+      "rise_10_90_s": 9.95958805967222e-08,
+      "t10_to_peak_s": 1.453054647351487e-07
+     },
+     "peak_error_rel": -0.10719167604881608,
+     "rise_10_90_error_rel": 0.40242047206991516,
+     "t10_to_peak_error_rel": 0.3761275144488714,
+     "peak_time_error_s": 2.4501512178051798e-08
+    }
+   },
+   "voltages": {
+    "V_target_entrance_peak_V": 96295.1178792715,
+    "V_target_entrance_peak_time_circuit_s": 7.244999999999962e-08,
+    "V_target_entrance_peak_over_220kV": -0.5622949187305841,
+    "V_target_entrance_closure_transient_max_V": 44279.823382237926,
+    "V_monitor_peak_V": 399576.0302356072,
+    "V_monitor_peak_time_circuit_s": 2.995000000000008e-08,
+    "V_monitor_peak_over_supplied_two_thirds_of_700kV": -0.1437656494951275,
+    "ltd_terminal_voltage_peak_V": 798197.7505703736,
+    "ltd_terminal_voltage_at_peak_current_V": 4103.410343293451,
+    "monitor_over_ltd_terminal_at_Vmon_peak": 0.5300067399905658
+   },
+   "foil_T_final_K": 1607.4187136148398,
+   "rating_check": {
+    "load": "0.5 ohm resistor at the LTD output (L_feed -> 1 pH)",
+    "peak_A": 720269.2650482404,
+    "peak_time_s": 8.434999999999894e-08,
+    "fwhm_s": 1.4361759354417824e-07,
+    "supplied_rating_fwhm_s": 1.6e-07,
+    "fwhm_error_rel": -0.10239004034888599,
+    "peak_load_voltage_V": 360134.6325241202
+   }
+  },
+  "B_supplied_inductances_25nH_target": {
+   "variant": "B_supplied_inductances_25nH_target",
+   "fixed": {
+    "L_feed_H": 4e-08,
+    "L_H": 2.5e-08
+   },
+   "free_inductance": null,
+   "parameters": {
+    "R_inf_ohm": 7.0994127897546485e-16,
+    "R_sw_ohm": 2.9155704409405577e-06,
+    "tau_sw_s": 3.0000005133230984e-10,
+    "G_core_S": 0.6851985846687934,
+    "offset_17133_s": -2.6284118407066743e-08,
+    "offset_15210_s": -1.0902259474184577e-08
+   },
+   "formal_1sigma": {
+    "R_inf_ohm": 0.0,
+    "R_sw_ohm": 0.7089654340317046,
+    "tau_sw_s": 6.795887739791904e-05,
+    "G_core_S": 0.063294660617543,
+    "offset_17133_s": 2.8586060011370523e-09,
+    "offset_15210_s": 2.760540452613067e-09
+   },
+   "at_bounds": [
+    "tau_sw_s"
+   ],
+   "cost": 229.50360628791975,
+   "nfev": 15,
+   "sim_stdout": "steps 2800 max_evaluations 3\nledger initial_stored_J 46080 final_stored_J 22349.661306732756 dissipated_J 14258.18904474278 delivered_J 9472.1496485242606\nledger closure_J -2.037268e-10 closure_over_E0 -4.421e-15 increment_sum_minus_difference_J 0.000000e+00 max_step_residual_over_bound 0.101\njoin port_iteration_defect_J 9.229657e-10 hall_dot_rounding_J 0.000000e+00\nload joule_J 5941.2271155346189 foil_joule_J 5941.2271155346189 magnetic_J 3530.9225329907099 received_J 9472.1496485233383 load_closure_J -1.990e-09 T_final_K 1613.178\nload t_law_exceeded_s 8.255000e-08 (sigma held at 1500 K beyond)\n",
+   "shots": {
+    "17133": {
+     "offset_s": -2.6284118407066743e-08,
+     "n_vertices": 132,
+     "rms_residual_A_time_weighted": 112458.63350936589,
+     "rms_residual_over_peak": 0.13705323133033287,
+     "max_abs_residual_A": 249383.1343580539,
+     "max_abs_residual_time_s": 1.9674963671e-07,
+     "measured": {
+      "peak_A": 820547.114561,
+      "peak_time_s": 1.192499073e-07,
+      "t10_s": 1.6248885836468913e-08,
+      "t90_s": 8.758925039745737e-08,
+      "rise_10_90_s": 7.134036456098846e-08,
+      "t10_to_peak_s": 1.0300102146353108e-07
+     },
+     "model": {
+      "peak_A": 756937.6585099611,
+      "peak_time_plotted_s": 1.5736588159293503e-07,
+      "rise_10_90_s": 1.108119396302695e-07,
+      "t10_to_peak_s": 1.622279153910275e-07
+     },
+     "peak_error_rel": -0.07752078451347744,
+     "rise_10_90_error_rel": 0.553285300855689,
+     "t10_to_peak_error_rel": 0.5750126851748407,
+     "peak_time_error_s": 3.811597429293502e-08
+    },
+    "15210": {
+     "offset_s": -1.0902259474184577e-08,
+     "n_vertices": 118,
+     "rms_residual_A_time_weighted": 103787.32561055703,
+     "rms_residual_over_peak": 0.12239386125913873,
+     "max_abs_residual_A": 165054.15652597195,
+     "max_abs_residual_time_s": 1.98249626628e-07,
+     "measured": {
+      "peak_A": 847978.195498,
+      "peak_time_s": 1.36749994024e-07,
+      "t10_s": 3.115987740363547e-08,
+      "t90_s": 1.0217700998279896e-07,
+      "rise_10_90_s": 7.101713257916348e-08,
+      "t10_to_peak_s": 1.0559011662036453e-07
+     },
+     "model": {
+      "peak_A": 756937.6585099611,
+      "peak_time_plotted_s": 1.727477405258172e-07,
+      "rise_10_90_s": 1.108119396302695e-07,
+      "t10_to_peak_s": 1.622279153910275e-07
+     },
+     "peak_error_rel": -0.10736188438733696,
+     "rise_10_90_error_rel": 0.560355024285814,
+     "t10_to_peak_error_rel": 0.5363929938092291,
+     "peak_time_error_s": 3.599774650181721e-08
+    }
+   },
+   "voltages": {
+    "V_target_entrance_peak_V": 179840.95169901848,
+    "V_target_entrance_peak_time_circuit_s": 5.1850000000000276e-08,
+    "V_target_entrance_peak_over_220kV": -0.18254112864082506,
+    "V_target_entrance_closure_transient_max_V": 53127.11108433502,
+    "V_monitor_peak_V": 450410.3888365859,
+    "V_monitor_peak_time_circuit_s": 4.645000000000023e-08,
+    "V_monitor_peak_over_supplied_two_thirds_of_700kV": -0.034834881064458756,
+    "ltd_terminal_voltage_peak_V": 798121.7338666248,
+    "ltd_terminal_voltage_at_peak_current_V": -41851.645267010645,
+    "monitor_over_ltd_terminal_at_Vmon_peak": 0.6488471017782443
+   },
+   "foil_T_final_K": 1613.1784623106926,
+   "rating_check": {
+    "load": "0.5 ohm resistor at the LTD output (L_feed -> 1 pH)",
+    "peak_A": 739483.8236060789,
+    "peak_time_s": 9.224999999999849e-08,
+    "fwhm_s": 1.5407889396689615e-07,
+    "supplied_rating_fwhm_s": 1.6e-07,
+    "fwhm_error_rel": -0.03700691270689904,
+    "peak_load_voltage_V": 369741.91180303943
+   }
+  },
+  "C_feed_inductance_free_hall_target": {
+   "variant": "C_feed_inductance_free_hall_target",
+   "fixed": {
+    "L_H": 1.1045115428330025e-08
+   },
+   "free_inductance": "L_feed_H",
+   "parameters": {
+    "R_inf_ohm": 0.444736606655615,
+    "R_sw_ohm": 106.34213009994954,
+    "tau_sw_s": 6.219878128882396e-09,
+    "G_core_S": 2.6290498684715826e-09,
+    "L_feed_H": 1.0000000010896187e-10,
+    "offset_17133_s": -2.232799469372003e-09,
+    "offset_15210_s": 1.3204750534843954e-08
+   },
+   "formal_1sigma": {
+    "R_inf_ohm": 0.005057074853939556,
+    "R_sw_ohm": 133.85057732434615,
+    "tau_sw_s": 7.115330459301583e-10,
+    "G_core_S": 0.00022324529277242277,
+    "L_feed_H": 1.0388385463997672e-09,
+    "offset_17133_s": 7.3796015160541936e-09,
+    "offset_15210_s": 7.344251965692312e-09
+   },
+   "at_bounds": [
+    "L_feed_H"
+   ],
+   "cost": 21.90009939409208,
+   "nfev": 27,
+   "sim_stdout": "steps 2800 max_evaluations 3\nledger initial_stored_J 46080 final_stored_J 1987.3443766606524 dissipated_J 38726.046006389741 delivered_J 5366.6096169499806\nledger closure_J 3.719833e-10 closure_over_E0 8.073e-15 increment_sum_minus_difference_J 7.275958e-12 max_step_residual_over_bound 0.122\njoin port_iteration_defect_J -1.955593e-09 hall_dot_rounding_J 0.000000e+00\nload joule_J 5290.731781368615 foil_joule_J 5290.731781368615 magnetic_J 75.877835582945792 received_J 5366.609616951936 load_closure_J 3.752e-10 T_final_K 1600.169\nload t_law_exceeded_s 6.335000e-08 (sigma held at 1500 K beyond)\n",
+   "shots": {
+    "17133": {
+     "offset_s": -2.232799469372003e-09,
+     "n_vertices": 132,
+     "rms_residual_A_time_weighted": 35825.72652506462,
+     "rms_residual_over_peak": 0.04366077936211098,
+     "max_abs_residual_A": 80372.68566499208,
+     "max_abs_residual_time_s": 1.9674963671e-07,
+     "measured": {
+      "peak_A": 820547.114561,
+      "peak_time_s": 1.192499073e-07,
+      "t10_s": 1.6248885836468913e-08,
+      "t90_s": 8.758925039745737e-08,
+      "rise_10_90_s": 7.134036456098846e-08,
+      "t10_to_peak_s": 1.0300102146353108e-07
+     },
+     "model": {
+      "peak_A": 796466.9446436095,
+      "peak_time_plotted_s": 1.1991720053062515e-07,
+      "rise_10_90_s": 6.826404827918844e-08,
+      "t10_to_peak_s": 1.0309244338307248e-07
+     },
+     "peak_error_rel": -0.029346480525099028,
+     "rise_10_90_error_rel": -0.04312167874009254,
+     "t10_to_peak_error_rel": 0.0008875826495930994,
+     "peak_time_error_s": 6.672932306251473e-10
+    },
+    "15210": {
+     "offset_s": 1.3204750534843954e-08,
+     "n_vertices": 118,
+     "rms_residual_A_time_weighted": 30841.904054942454,
+     "rms_residual_over_peak": 0.0363711050811037,
+     "max_abs_residual_A": 52298.449281423236,
+     "max_abs_residual_time_s": 1.42749923042e-07,
+     "measured": {
+      "peak_A": 847978.195498,
+      "peak_time_s": 1.36749994024e-07,
+      "t10_s": 3.115987740363547e-08,
+      "t90_s": 1.0217700998279896e-07,
+      "rise_10_90_s": 7.101713257916348e-08,
+      "t10_to_peak_s": 1.0559011662036453e-07
+     },
+     "model": {
+      "peak_A": 796466.9446436095,
+      "peak_time_plotted_s": 1.3535475053484112e-07,
+      "rise_10_90_s": 6.826404827918844e-08,
+      "t10_to_peak_s": 1.0309244338307248e-07
+     },
+     "peak_error_rel": -0.06074596154461154,
+     "rise_10_90_error_rel": -0.03876648070669653,
+     "t10_to_peak_error_rel": -0.023654422565628108,
+     "peak_time_error_s": -1.3952434891588817e-09
+    }
+   },
+   "voltages": {
+    "V_target_entrance_peak_V": 146127.99671642482,
+    "V_target_entrance_peak_time_circuit_s": 4.195000000000019e-08,
+    "V_target_entrance_peak_over_220kV": -0.3357818331071599,
+    "V_target_entrance_closure_transient_max_V": 168514.53859317763,
+    "V_monitor_peak_V": 147321.6123259049,
+    "V_monitor_peak_time_circuit_s": 4.195000000000019e-08,
+    "V_monitor_peak_over_supplied_two_thirds_of_700kV": -0.6843108307302038,
+    "ltd_terminal_voltage_peak_V": 580871.7505139927,
+    "ltd_terminal_voltage_at_peak_current_V": 49974.61331652745,
+    "monitor_over_ltd_terminal_at_Vmon_peak": 0.255514499002439
+   },
+   "foil_T_final_K": 1600.1685556273724,
+   "rating_check": {
+    "load": "0.5 ohm resistor at the LTD output (L_feed -> 1 pH)",
+    "peak_A": 600740.5486378808,
+    "peak_time_s": 9.584999999999828e-08,
+    "fwhm_s": 1.7449610632510217e-07,
+    "supplied_rating_fwhm_s": 1.6e-07,
+    "fwhm_error_rel": 0.09060066453188842,
+    "peak_load_voltage_V": 300370.2743189404
+   }
+  },
+  "C2_feed_inductance_free_hall_target_magnetizing": {
+   "variant": "C2_feed_inductance_free_hall_target_magnetizing",
+   "fixed": {
+    "L_H": 1.1045115428330025e-08
+   },
+   "free_inductance": "L_feed_H",
+   "parameters": {
+    "R_inf_ohm": 0.06525753187826355,
+    "R_sw_ohm": 96.41380273569081,
+    "tau_sw_s": 4.7193579942038e-09,
+    "G_core_S": 1.5741879788124127e-07,
+    "inv_L_core_per_H": 35025536.62476675,
+    "L_feed_H": 1.0000000000000002e-10,
+    "offset_17133_s": -9.397023411042622e-10,
+    "offset_15210_s": 1.4206675189764163e-08
+   },
+   "formal_1sigma": {
+    "R_inf_ohm": 0.03684130628603994,
+    "R_sw_ohm": 129.14881486399645,
+    "tau_sw_s": 7.376753232311337e-10,
+    "G_core_S": 0.01559281638916124,
+    "inv_L_core_per_H": 5132783.910939963,
+    "L_feed_H": 4.943902361713134e-10,
+    "offset_17133_s": 5.843044045594806e-09,
+    "offset_15210_s": 5.823779752352452e-09
+   },
+   "at_bounds": [
+    "L_feed_H"
+   ],
+   "cost": 10.981691273030858,
+   "nfev": 39,
+   "sim_stdout": "steps 2800 max_evaluations 3\nledger initial_stored_J 46080 final_stored_J 26760.96162939179 dissipated_J 13823.630165456261 delivered_J 5495.4082051520163\nledger closure_J 6.730261e-11 closure_over_E0 1.461e-15 increment_sum_minus_difference_J 0.000000e+00 max_step_residual_over_bound 0.106\njoin port_iteration_defect_J 3.101088e-09 hall_dot_rounding_J 0.000000e+00\nload joule_J 4930.6629934853318 foil_joule_J 4930.6629934853318 magnetic_J 564.74521166322518 received_J 5495.4082051489158 load_closure_J 3.589e-10 T_final_K 1592.967\nload t_law_exceeded_s 6.245000e-08 (sigma held at 1500 K beyond)\n",
+   "shots": {
+    "17133": {
+     "offset_s": -9.397023411042622e-10,
+     "n_vertices": 132,
+     "rms_residual_A_time_weighted": 23927.64380004596,
+     "rms_residual_over_peak": 0.02916059708874543,
+     "max_abs_residual_A": 51142.375059513375,
+     "max_abs_residual_time_s": 1.60749955318e-07,
+     "measured": {
+      "peak_A": 820547.114561,
+      "peak_time_s": 1.192499073e-07,
+      "t10_s": 1.6248885836468913e-08,
+      "t90_s": 8.758925039745737e-08,
+      "rise_10_90_s": 7.134036456098846e-08,
+      "t10_to_peak_s": 1.0300102146353108e-07
+     },
+     "model": {
+      "peak_A": 813651.7871758438,
+      "peak_time_plotted_s": 1.22410297658893e-07,
+      "rise_10_90_s": 7.241700910592704e-08,
+      "t10_to_peak_s": 1.0577131876653168e-07
+     },
+     "peak_error_rel": -0.008403329026201334,
+     "rise_10_90_error_rel": 0.015091660262237072,
+     "t10_to_peak_error_rel": 0.02689582359123932,
+     "peak_time_error_s": 3.16039035889299e-09
+    },
+    "15210": {
+     "offset_s": 1.4206675189764163e-08,
+     "n_vertices": 118,
+     "rms_residual_A_time_weighted": 23410.456187137715,
+     "rms_residual_over_peak": 0.027607379896589488,
+     "max_abs_residual_A": 43848.43417975248,
+     "max_abs_residual_time_s": 1.0874983994e-07,
+     "measured": {
+      "peak_A": 847978.195498,
+      "peak_time_s": 1.36749994024e-07,
+      "t10_s": 3.115987740363547e-08,
+      "t90_s": 1.0217700998279896e-07,
+      "rise_10_90_s": 7.101713257916348e-08,
+      "t10_to_peak_s": 1.0559011662036453e-07
+     },
+     "model": {
+      "peak_A": 813651.7871758438,
+      "peak_time_plotted_s": 1.375566751897614e-07,
+      "rise_10_90_s": 7.241700910592704e-08,
+      "t10_to_peak_s": 1.0577131876653168e-07
+     },
+     "peak_error_rel": -0.04048029596090852,
+     "rise_10_90_error_rel": 0.019711814261200944,
+     "t10_to_peak_error_rel": 0.0017160900278065938,
+     "peak_time_error_s": 8.066811657614058e-10
+    }
+   },
+   "voltages": {
+    "V_target_entrance_peak_V": 136880.43474248052,
+    "V_target_entrance_peak_time_circuit_s": 3.915000000000016e-08,
+    "V_target_entrance_peak_over_220kV": -0.3778162057159976,
+    "V_target_entrance_closure_transient_max_V": 130269.35614296031,
+    "V_monitor_peak_V": 137999.00542599568,
+    "V_monitor_peak_time_circuit_s": 3.915000000000016e-08,
+    "V_monitor_peak_over_supplied_two_thirds_of_700kV": -0.7042878455157235,
+    "ltd_terminal_voltage_peak_V": 719477.0934789034,
+    "ltd_terminal_voltage_at_peak_current_V": 116062.29957142755,
+    "monitor_over_ltd_terminal_at_Vmon_peak": 0.19315438888362152
+   },
+   "foil_T_final_K": 1592.9671798697063,
+   "rating_check": {
+    "load": "0.5 ohm resistor at the LTD output (L_feed -> 1 pH)",
+    "peak_A": 480145.5267081425,
+    "peak_time_s": 7.27499999999996e-08,
+    "fwhm_s": 1.1020134210501453e-07,
+    "supplied_rating_fwhm_s": 1.6e-07,
+    "fwhm_error_rel": -0.31124161184365917,
+    "peak_load_voltage_V": 240072.76335407124
+   }
+  },
+  "D_feed_36nH_hall_target": {
+   "variant": "D_feed_36nH_hall_target",
+   "fixed": {
+    "L_feed_H": 3.6e-08,
+    "L_H": 1.1045115428330025e-08
+   },
+   "free_inductance": null,
+   "parameters": {
+    "R_inf_ohm": 0.3056928247440174,
+    "R_sw_ohm": 5.722645747292316e-06,
+    "tau_sw_s": 3.000000060768289e-10,
+    "G_core_S": 1.3147247861068503e-18,
+    "offset_17133_s": -2.5278502977240798e-09,
+    "offset_15210_s": 1.2305957374065667e-08
+   },
+   "formal_1sigma": {
+    "R_inf_ohm": 0.014076702908419848,
+    "R_sw_ohm": 1.426892712102749,
+    "tau_sw_s": 8.078915814302716e-05,
+    "G_core_S": 0.0,
+    "offset_17133_s": 1.6273836589289287e-09,
+    "offset_15210_s": 1.604673985313949e-09
+   },
+   "at_bounds": [
+    "tau_sw_s"
+   ],
+   "cost": 156.5118815971091,
+   "nfev": 16,
+   "sim_stdout": "steps 2800 max_evaluations 3\nledger initial_stored_J 46080 final_stored_J 9993.8070074676762 dissipated_J 29375.95760657985 delivered_J 6710.2353859521036\nledger closure_J -3.665264e-10 closure_over_E0 -7.954e-15 increment_sum_minus_difference_J 0.000000e+00 max_step_residual_over_bound 0.112\njoin port_iteration_defect_J -2.171862e-09 hall_dot_rounding_J 0.000000e+00\nload joule_J 6013.1785840654902 foil_joule_J 6013.1785840654902 magnetic_J 697.05680188835242 received_J 6710.2353859542754 load_closure_J 4.328e-10 T_final_K 1614.617\nload t_law_exceeded_s 6.075000e-08 (sigma held at 1500 K beyond)\n",
+   "shots": {
+    "17133": {
+     "offset_s": -2.5278502977240798e-09,
+     "n_vertices": 132,
+     "rms_residual_A_time_weighted": 93965.26976272241,
+     "rms_residual_over_peak": 0.11451538625298154,
+     "max_abs_residual_A": 217661.95867812366,
+     "max_abs_residual_time_s": 1.9674963671e-07,
+     "measured": {
+      "peak_A": 820547.114561,
+      "peak_time_s": 1.192499073e-07,
+      "t10_s": 1.6248885836468913e-08,
+      "t90_s": 8.758925039745737e-08,
+      "rise_10_90_s": 7.134036456098846e-08,
+      "t10_to_peak_s": 1.0300102146353108e-07
+     },
+     "model": {
+      "peak_A": 756517.5421293715,
+      "peak_time_plotted_s": 1.466221497022751e-07,
+      "rise_10_90_s": 9.356417198087416e-08,
+      "t10_to_peak_s": 1.411599516277034e-07
+     },
+     "peak_error_rel": -0.07803277995302549,
+     "rise_10_90_error_rel": 0.3115179962514305,
+     "t10_to_peak_error_rel": 0.3704713761278864,
+     "peak_time_error_s": 2.7372242402275104e-08
+    },
+    "15210": {
+     "offset_s": 1.2305957374065667e-08,
+     "n_vertices": 118,
+     "rms_residual_A_time_weighted": 84505.26867490061,
+     "rms_residual_over_peak": 0.09965500188984508,
+     "max_abs_residual_A": 142037.46000704495,
+     "max_abs_residual_time_s": 1.98249626628e-07,
+     "measured": {
+      "peak_A": 847978.195498,
+      "peak_time_s": 1.36749994024e-07,
+      "t10_s": 3.115987740363547e-08,
+      "t90_s": 1.0217700998279896e-07,
+      "rise_10_90_s": 7.101713257916348e-08,
+      "t10_to_peak_s": 1.0559011662036453e-07
+     },
+     "model": {
+      "peak_A": 756517.5421293715,
+      "peak_time_plotted_s": 1.6145595737406485e-07,
+      "rise_10_90_s": 9.356417198087416e-08,
+      "t10_to_peak_s": 1.411599516277034e-07
+     },
+     "peak_error_rel": -0.10785731738646365,
+     "rise_10_90_error_rel": 0.31748732429568705,
+     "t10_to_peak_error_rel": 0.33686708705158064,
+     "peak_time_error_s": 2.4705963350064855e-08
+    }
+   },
+   "voltages": {
+    "V_target_entrance_peak_V": 105832.962130256,
+    "V_target_entrance_peak_time_circuit_s": 5.050000000000002e-09,
+    "V_target_entrance_peak_over_220kV": -0.518941081226109,
+    "V_target_entrance_closure_transient_max_V": 106396.51644567371,
+    "V_monitor_peak_V": 445136.5608278111,
+    "V_monitor_peak_time_circuit_s": 5.050000000000002e-09,
+    "V_monitor_peak_over_supplied_two_thirds_of_700kV": -0.04613594108326202,
+    "ltd_terminal_voltage_peak_V": 784279.3882289941,
+    "ltd_terminal_voltage_at_peak_current_V": 47374.68527005674,
+    "monitor_over_ltd_terminal_at_Vmon_peak": 0.5675739634481379
+   },
+   "foil_T_final_K": 1614.61749168131,
+   "rating_check": {
+    "load": "0.5 ohm resistor at the LTD output (L_feed -> 1 pH)",
+    "peak_A": 675498.5800297527,
+    "peak_time_s": 7.704999999999936e-08,
+    "fwhm_s": 1.6687791702037883e-07,
+    "supplied_rating_fwhm_s": 1.6e-07,
+    "fwhm_error_rel": 0.04298698137736756,
+    "peak_load_voltage_V": 337749.29001487634
+   }
+  },
+  "A3_supplied_inductances_hall_target_45mm_box": {
+   "variant": "A3_supplied_inductances_hall_target_45mm_box",
+   "fixed": {
+    "L_feed_H": 4e-08,
+    "L_H": 1.6154162174912792e-08
+   },
+   "free_inductance": null,
+   "parameters": {
+    "R_inf_ohm": 0.2587470700582071,
+    "R_sw_ohm": 5.943484592837002e-08,
+    "tau_sw_s": 6.767754961359949e-10,
+    "G_core_S": 2.169613522119253e-15,
+    "offset_17133_s": -6.751066927635597e-09,
+    "offset_15210_s": 8.016146812073936e-09
+   },
+   "formal_1sigma": {
+    "R_inf_ohm": 8.25571544859189e-06,
+    "R_sw_ohm": 0.015275568926895603,
+    "tau_sw_s": 4.687475860781719e-19,
+    "G_core_S": 4.5045317330405683e-10,
+    "offset_17133_s": 2.3316950589240364e-15,
+    "offset_15210_s": 4.736391184048345e-15
+   },
+   "at_bounds": [],
+   "cost": 196.65810111946064,
+   "nfev": 20,
+   "sim_stdout": "steps 2800 max_evaluations 3\nledger initial_stored_J 46080 final_stored_J 12972.269123410555 dissipated_J 25453.785595504774 delivered_J 7653.9452810845823\nledger closure_J -8.458301e-11 closure_over_E0 -1.836e-15 increment_sum_minus_difference_J 0.000000e+00 max_step_residual_over_bound 0.099\njoin port_iteration_defect_J -1.533683e-09 hall_dot_rounding_J 0.000000e+00\nload joule_J 6157.0903952369445 foil_joule_J 6157.0903952369445 magnetic_J 1496.8548858475792 received_J 7653.9452810861158 load_closure_J 1.592e-09 T_final_K 1617.496\nload t_law_exceeded_s 6.445000e-08 (sigma held at 1500 K beyond)\n",
+   "shots": {
+    "17133": {
+     "offset_s": -6.751066927635597e-09,
+     "n_vertices": 132,
+     "rms_residual_A_time_weighted": 105005.14718531226,
+     "rms_residual_over_peak": 0.12796967452806285,
+     "max_abs_residual_A": 240124.23758497555,
+     "max_abs_residual_time_s": 1.9674963671e-07,
+     "measured": {
+      "peak_A": 820547.114561,
+      "peak_time_s": 1.192499073e-07,
+      "t10_s": 1.6248885836468913e-08,
+      "t90_s": 8.758925039745737e-08,
+      "rise_10_90_s": 7.134036456098846e-08,
+      "t10_to_peak_s": 1.0300102146353108e-07
+     },
+     "model": {
+      "peak_A": 755570.2269428064,
+      "peak_time_plotted_s": 1.5379893307236444e-07,
+      "rise_10_90_s": 1.0134967233769744e-07,
+      "t10_to_peak_s": 1.5171414859857575e-07
+     },
+     "peak_error_rel": -0.07918727208364729,
+     "rise_10_90_error_rel": 0.4206497676508816,
+     "t10_to_peak_error_rel": 0.4729382917070606,
+     "peak_time_error_s": 3.454902577236444e-08
+    },
+    "15210": {
+     "offset_s": 8.016146812073936e-09,
+     "n_vertices": 118,
+     "rms_residual_A_time_weighted": 95084.63366165054,
+     "rms_residual_over_peak": 0.11213098894106506,
+     "max_abs_residual_A": 157331.96242541086,
+     "max_abs_residual_time_s": 1.98249626628e-07,
+     "measured": {
+      "peak_A": 847978.195498,
+      "peak_time_s": 1.36749994024e-07,
+      "t10_s": 3.115987740363547e-08,
+      "t90_s": 1.0217700998279896e-07,
+      "rise_10_90_s": 7.101713257916348e-08,
+      "t10_to_peak_s": 1.0559011662036453e-07
+     },
+     "model": {
+      "peak_A": 755570.2269428064,
+      "peak_time_plotted_s": 1.6856614681207397e-07,
+      "rise_10_90_s": 1.0134967233769744e-07,
+      "t10_to_peak_s": 1.5171414859857575e-07
+     },
+     "peak_error_rel": -0.10897446307675906,
+     "rise_10_90_error_rel": 0.42711580511536407,
+     "t10_to_peak_error_rel": 0.4368214891176241,
+     "peak_time_error_s": 3.181615278807397e-08
+    }
+   },
+   "voltages": {
+    "V_target_entrance_peak_V": 139419.89383297227,
+    "V_target_entrance_peak_time_circuit_s": 5.050000000000002e-09,
+    "V_target_entrance_peak_over_220kV": -0.366273209850126,
+    "V_target_entrance_closure_transient_max_V": 140229.14151479036,
+    "V_monitor_peak_V": 480770.9031721421,
+    "V_monitor_peak_time_circuit_s": 5.050000000000002e-09,
+    "V_monitor_peak_over_supplied_two_thirds_of_700kV": 0.03022336394030445,
+    "ltd_terminal_voltage_peak_V": 787861.3121257231,
+    "ltd_terminal_voltage_at_peak_current_V": 47735.8771938601,
+    "monitor_over_ltd_terminal_at_Vmon_peak": 0.6102227584636406
+   },
+   "foil_T_final_K": 1617.495727904739,
+   "rating_check": {
+    "load": "0.5 ohm resistor at the LTD output (L_feed -> 1 pH)",
+    "peak_A": 700237.1703786062,
+    "peak_time_s": 7.844999999999928e-08,
+    "fwhm_s": 1.6497736400864906e-07,
+    "supplied_rating_fwhm_s": 1.6e-07,
+    "fwhm_error_rel": 0.03110852505405659,
+    "peak_load_voltage_V": 350118.5851893031
+   }
+  },
+  "C3_feed_inductance_free_hall_target_45mm_box": {
+   "variant": "C3_feed_inductance_free_hall_target_45mm_box",
+   "fixed": {
+    "L_H": 1.6154162174912792e-08
+   },
+   "free_inductance": "L_feed_H",
+   "parameters": {
+    "R_inf_ohm": 0.43362606714769775,
+    "R_sw_ohm": 146.4294914844715,
+    "tau_sw_s": 4.516234942239258e-09,
+    "G_core_S": 2.4648666097408086e-10,
+    "L_feed_H": 1.0000000000000065e-10,
+    "offset_17133_s": -1.5243862632847124e-10,
+    "offset_15210_s": 1.5305440676940266e-08
+   },
+   "formal_1sigma": {
+    "R_inf_ohm": 0.0069564221072492705,
+    "R_sw_ohm": 918.7357304803373,
+    "tau_sw_s": 9.892236269255805e-10,
+    "G_core_S": 2.0325204623814572e-05,
+    "L_feed_H": 1.2958269387651429e-09,
+    "offset_17133_s": 2.7888071012181708e-08,
+    "offset_15210_s": 2.7877169677564087e-08
+   },
+   "at_bounds": [
+    "L_feed_H"
+   ],
+   "cost": 34.35679594552177,
+   "nfev": 30,
+   "sim_stdout": "steps 2800 max_evaluations 3\nledger initial_stored_J 46080 final_stored_J 2594.9352736035894 dissipated_J 37937.96656390006 delivered_J 5547.0981624963115\nledger closure_J -4.183676e-11 closure_over_E0 -9.079e-16 increment_sum_minus_difference_J 7.275958e-12 max_step_residual_over_bound 0.118\njoin port_iteration_defect_J -7.184517e-10 hall_dot_rounding_J 0.000000e+00\nload joule_J 5390.7047973080898 foil_joule_J 5390.7047973080898 magnetic_J 156.39336518750952 received_J 5547.09816249703 load_closure_J 1.431e-09 T_final_K 1602.168\nload t_law_exceeded_s 6.045000e-08 (sigma held at 1500 K beyond)\n",
+   "shots": {
+    "17133": {
+     "offset_s": -1.5243862632847124e-10,
+     "n_vertices": 132,
+     "rms_residual_A_time_weighted": 44684.687817842285,
+     "rms_residual_over_peak": 0.05445718719241245,
+     "max_abs_residual_A": 104208.45284968964,
+     "max_abs_residual_time_s": 1.9674963671e-07,
+     "measured": {
+      "peak_A": 820547.114561,
+      "peak_time_s": 1.192499073e-07,
+      "t10_s": 1.6248885836468913e-08,
+      "t90_s": 8.758925039745737e-08,
+      "rise_10_90_s": 7.134036456098846e-08,
+      "t10_to_peak_s": 1.0300102146353108e-07
+     },
+     "model": {
+      "peak_A": 786273.4524701312,
+      "peak_time_plotted_s": 1.2279756137366875e-07,
+      "rise_10_90_s": 6.961715852026035e-08,
+      "t10_to_peak_s": 1.0638130564682366e-07
+     },
+     "peak_error_rel": -0.04176927988980317,
+     "rise_10_90_error_rel": -0.02415471313235229,
+     "t10_to_peak_error_rel": 0.032817967581898255,
+     "peak_time_error_s": 3.547654073668747e-09
+    },
+    "15210": {
+     "offset_s": 1.5305440676940266e-08,
+     "n_vertices": 118,
+     "rms_residual_A_time_weighted": 38846.83844071385,
+     "rms_residual_over_peak": 0.04581112892637518,
+     "max_abs_residual_A": 63656.7413813849,
+     "max_abs_residual_time_s": 1.18749977075e-07,
+     "measured": {
+      "peak_A": 847978.195498,
+      "peak_time_s": 1.36749994024e-07,
+      "t10_s": 3.115987740363547e-08,
+      "t90_s": 1.0217700998279896e-07,
+      "rise_10_90_s": 7.101713257916348e-08,
+      "t10_to_peak_s": 1.0559011662036453e-07
+     },
+     "model": {
+      "peak_A": 786273.4524701312,
+      "peak_time_plotted_s": 1.3825544067693748e-07,
+      "rise_10_90_s": 6.961715852026035e-08,
+      "t10_to_peak_s": 1.0638130564682366e-07
+     },
+     "peak_error_rel": -0.07276689820029025,
+     "rise_10_90_error_rel": -0.019713187621910322,
+     "t10_to_peak_error_rel": 0.00749302161776888,
+     "peak_time_error_s": 1.5054466529374807e-09
+    }
+   },
+   "voltages": {
+    "V_target_entrance_peak_V": 204450.66880984604,
+    "V_target_entrance_peak_time_circuit_s": 3.1650000000000095e-08,
+    "V_target_entrance_peak_over_220kV": -0.07067877813706347,
+    "V_target_entrance_closure_transient_max_V": 217155.3728977299,
+    "V_monitor_peak_V": 205656.05452992034,
+    "V_monitor_peak_time_circuit_s": 3.1650000000000095e-08,
+    "V_monitor_peak_over_supplied_two_thirds_of_700kV": -0.5593084545787421,
+    "ltd_terminal_voltage_peak_V": 639948.710564838,
+    "ltd_terminal_voltage_at_peak_current_V": 49689.944681713125,
+    "monitor_over_ltd_terminal_at_Vmon_peak": 0.3217559836849193
+   },
+   "foil_T_final_K": 1602.1680159461619,
+   "rating_check": {
+    "load": "0.5 ohm resistor at the LTD output (L_feed -> 1 pH)",
+    "peak_A": 610195.0429766538,
+    "peak_time_s": 8.984999999999862e-08,
+    "fwhm_s": 1.7307864203220735e-07,
+    "supplied_rating_fwhm_s": 1.6e-07,
+    "fwhm_error_rel": 0.08174151270129593,
+    "peak_load_voltage_V": 305097.5214883269
+   }
+  }
+ },
+ "prescribed_C19_target_voltage_estimate": {
+  "method": "L_H * (2-ns secant dI/dt of the published polyline) + R_H(300 K) * I; Hall L_H = 11.045 nH",
+  "peak_V": 150152.5679144886,
+  "peak_time_plotted_s": 3.274978805549201e-08,
+  "max_didt_A_per_s": 12830469715047.264,
+  "peak_over_220kV": -0.31748832766141544,
+  "L_target_needed_for_220kV_at_max_didt_H": 1.648898721453564e-08
+ },
+ "evaluations": 12450,
+ "wall_s": 166.277357339859
+}
