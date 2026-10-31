@@ -1,0 +1,9 @@
+Notes on pf-pilot-1 (2026-10-31)
+
+- The full per-step ledger (run/ledger.bin, ~9 MB, schema in run/ledger-schema.json) and the frame data stay in
+  /home/treefor/sim-workspace/powerflow/outputs/pf-pilot-1-20261031/run/; ledger-sample.csv here holds every 1000th row.
+- Long-run concern: max |absolute Gauss defect| / bound rises monotonically from 0.010 to 0.074 over the 8099 steps
+  (figures/ledger-charge.png) while the terminal voltage rises from 216 V to 18.4 kV. The absolute Gauss allowance is derived
+  from the initial (DC seed) solve, while the defect scales with the evolving field. Extrapolated, a 0.75 -> 20 ns run
+  (~1.9e6 steps at 10 fs, voltages toward ~200 kV) could reach the bound. A per-step allowance derived from each step's own
+  solve tolerance needs review before long runs; no guard has been changed.

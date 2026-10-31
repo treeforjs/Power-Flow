@@ -1,0 +1,31 @@
+7. Recorded limitations of this pilot (each applies to every number above)
+  L1  Chemistry is parent ionization only (e + H2O -> 2e + H2O+). Above 10 keV the parent rate is the provisional,
+      model-derived RBEB x Tan band (tagged model_derived in the coverage ledger and in every such event); the
+      1 keV Song -> outer3 BEB seam (+26.8 %) and the 10 keV seam (+2.6 %) are kept, not smoothed; the 12.621-13.5 eV
+      onset gap is unresolved (counted, bounded, refusal limit applies). No dissociation, excitation, attachment.
+  L2  Ions do not react: no ion chemistry, no charge exchange, no ion-neutral or neutral-neutral collisions, no
+      recombination. H2O+ only moves in the Hall field.
+  L3  Emission assumptions: clean SS304 surface with work function 4.3 eV (benchmark value, not a measured oxide
+      surface); thermal-field spectrum of the planar-barrier kernel at the accepted Hall surface temperature and
+      the one-sided start-of-step field (explicit source coupling, not the step midpoint); electrons are born on
+      the foil face with the kernel phase space at the surface step or the Schottky-Nordheim matching plane; the
+      sub-cell matching displacement, image force and return/recollection dynamics of the source-layer model are
+      not represented (the matching field work is recorded as unrepresented energy); no emission phase map, no
+      field enhancement, unit (full) accommodation of returning carriers, no secondary or photo-emission. A patch
+      whose one-sided field lies in (0, 1) V/m (outside the kernel's numerical domain) has no electron decision in
+      that step; it is counted as an unresolved exposure bounded by the kernel values at 0 and 1 V/m.
+  L4  Thermal scope: SS304 solid only, 298-1500 K (evaluated solid law); the thermal owner refuses beyond 1500 K;
+      no melt, no vaporization, no expansion; desorption law domain 298.2-3000 K.
+  L5  Drive: C19 current only (shot 17133 trace), no circuit model and no voltage drive.
+  L6  Resolution: one 200 um Hall mesh. It does not resolve the Debye length above about 1e16 m^-3 at a few eV; any
+      screening or breakdown statement needs the refinement series (200, 100, 50, 25 um) and a macroparticle
+      series (A14) on the GPU-resident path. One weight per stream (w0 = 1e6), no merge/split.
+  L7  No restart: one process; diagnostic checkpoints are not restartable (A05/A11 disk restart deferred).
+  L8  Window: 0.75-2.75 ns covers only the low-current part of C19 (about 6 kA); it tests the coupled machinery,
+      not breakdown. A physically interesting start needs a Hall-only vacuum pre-run to T_on and a fresh native
+      genesis bound to that Hall state (not built).
+  L9  Boundaries: no wall secondary emission or reflection; neutral and charged first hits are absorbed (full
+      accommodation, kinetic energy to the foil as wall heat; short-bridge and escaped energies recorded only).
+  L10 Coordinator scope: the Hall v3 bank-residue admission can refuse after repeated rounding residue at one
+      vacuum node (avoided at the foil faces by a 1-2 ulp choice of two native foil planes; charged hits on the
+      z = -12.5 mm short/axial plane remain exposed); no carriers reached that plane in this run.

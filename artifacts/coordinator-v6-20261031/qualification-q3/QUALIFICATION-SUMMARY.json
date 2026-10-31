@@ -1,0 +1,554 @@
+{
+ "schema": "coordinator-v6-qualification-summary-v1",
+ "build": {
+  "label": "q3",
+  "binary_sha256": "eb1936f1a92557dd1f37ee53b02c6d1b1ec269e340d4e588cfdb03891d1f4b05",
+  "change_from_q1": "emission exposures at a one-sided field in (0, 1) V/m (outside the kernel domain) are recorded as unresolved, bounded exposures instead of refusing the step (found by pilot attempt 1 at step 3849); ledger columns arr_unresolved_emission_*"
+ },
+ "1_window_cpu_vs_gpu": {
+  "qual_fixture_20_steps": {
+   "discrete_columns_identical": true,
+   "gpu_push_parity": {
+    "iterates_compared": 40,
+    "iterates_identical": 40
+   },
+   "push_bit_identical_every_iterate": true,
+   "gpu_field_accepted_through_guards": true,
+   "guard_receipt": {
+    "cpu": {
+     "max_residual_over_target": 0.0008617739873288163,
+     "max_gauss_over_bound": 0.009936429835018202,
+     "max_divB_over_bound": 0.0034567814035686866,
+     "max_abs_step_energy_residual_J": 2.9726792924744115e-15,
+     "roundoff_bound_J": 6.5683707980868826e-12
+    },
+    "gpu": {
+     "max_residual_over_target": 0.0008617781561921055,
+     "max_gauss_over_bound": 0.009936429835018202,
+     "max_divB_over_bound": 0.0034567814035686866,
+     "max_abs_step_energy_residual_J": 2.9726792924744115e-15,
+     "roundoff_bound_J": 6.5683707980868826e-12
+    }
+   }
+  },
+  "pilot_fixture_20_steps": {
+   "discrete_columns_identical": true,
+   "gpu_push_parity": {
+    "iterates_compared": 40,
+    "iterates_identical": 40
+   },
+   "push_bit_identical_every_iterate": true,
+   "gpu_field_accepted_through_guards": true,
+   "guard_receipt": {
+    "cpu": {
+     "max_residual_over_target": 0.0008777253894140755,
+     "max_gauss_over_bound": 0.009936429835018202,
+     "max_divB_over_bound": 0.0034567814035686866,
+     "max_abs_step_energy_residual_J": 2.962157771580614e-15,
+     "roundoff_bound_J": 6.568370798086821e-12
+    },
+    "gpu": {
+     "max_residual_over_target": 0.0008675570959393422,
+     "max_gauss_over_bound": 0.009936429835018202,
+     "max_divB_over_bound": 0.0034567814035686866,
+     "max_abs_step_energy_residual_J": 2.962157771580614e-15,
+     "roundoff_bound_J": 6.568370798086821e-12
+    }
+   }
+  },
+  "columns_differing_qual": {
+   "solve_iterations": 1.25,
+   "q_total_change_since_genesis_C": 0.28245878143674225,
+   "solve_residual_over_target": 0.053234543115539754,
+   "gauss_increment_C": 6.298963996142711e-15,
+   "gauss_max_abs_C": 7.914285953875084e-16,
+   "q_total_C": 2.0702892996578057e-16
+  },
+  "columns_differing_pilot": {
+   "solve_iterations": 1.25,
+   "q_total_change_since_genesis_C": 0.12730255772805935,
+   "solve_residual_over_target": 0.041795639412498614,
+   "E_step_residual_J": 5.464729055315468e-13,
+   "gauss_increment_C": 1.6243297004917445e-14,
+   "gauss_max_abs_C": 6.595238294894876e-16,
+   "q_conductor_bank_C": 3.73148236740771e-16,
+   "q_total_C": 2.0702892996578057e-16,
+   "q_exterior_bank_C": 1.8181098094748253e-16,
+   "E_field_delta_J": 1.1747915401289573e-16
+  }
+ },
+ "2_mutation_single_use_admission": {
+  "per_test": {
+   "T1": {
+    "passed": 5,
+    "failed": 0
+   },
+   "T2": {
+    "passed": 7,
+    "failed": 0
+   },
+   "T3": {
+    "passed": 3,
+    "failed": 0
+   },
+   "T4": {
+    "passed": 4,
+    "failed": 0
+   },
+   "T6": {
+    "passed": 6,
+    "failed": 0
+   },
+   "spot": {
+    "passed": 6,
+    "failed": 0
+   }
+  },
+  "failed": 0,
+  "cases": [
+   {
+    "test": "T1",
+    "name": "positive coupled step published (births, motion, sinks, exposures)",
+    "passed": true,
+    "evidence": {
+     "census": 429,
+     "electron_births": 43,
+     "h2o_births": 42,
+     "parent_events": 0,
+     "sinks": 10
+    }
+   },
+   {
+    "test": "T1",
+    "name": "zero allocations between the first and last swap",
+    "passed": true,
+    "evidence": {
+     "allocations": 0
+    }
+   },
+   {
+    "test": "T1",
+    "name": "accepted owners changed by the step",
+    "passed": true,
+    "evidence": {}
+   },
+   {
+    "test": "T1",
+    "name": "a second step prepares and preflights",
+    "passed": true,
+    "evidence": {}
+   },
+   {
+    "test": "T1",
+    "name": "no legacy native solve/advance call",
+    "passed": true,
+    "evidence": {}
+   },
+   {
+    "test": "T2",
+    "name": "foreign source transition seal: refused, every owner unchanged",
+    "passed": true,
+    "evidence": {
+     "refusal_point": 7
+    }
+   },
+   {
+    "test": "T2",
+    "name": "Hall proposal of a twin owner set (dt/2): refused, every owner unchanged",
+    "passed": true,
+    "evidence": {
+     "refusal_point": 4
+    }
+   },
+   {
+    "test": "T2",
+    "name": "source trial of a twin source owner: refused, every owner unchanged",
+    "passed": true,
+    "evidence": {
+     "refusal_point": 8
+    }
+   },
+   {
+    "test": "T2",
+    "name": "arrival staging of a twin arrival owner with another run seed: refused, every owner unchanged",
+    "passed": true,
+    "evidence": {
+     "refusal_point": 7
+    }
+   },
+   {
+    "test": "T2",
+    "name": "native token of a twin arena: refused, every owner unchanged",
+    "passed": true,
+    "evidence": {
+     "refusal_point": 2
+    }
+   },
+   {
+    "test": "T2",
+    "name": "live source owner state differs from the accepted record: refused, owners unchanged",
+    "passed": true,
+    "evidence": {
+     "refusal_point": 104
+    }
+   },
+   {
+    "test": "T2",
+    "name": "after every refusal the unmutated step publishes the T1 reference state bit for bit",
+    "passed": true,
+    "evidence": {}
+   },
+   {
+    "test": "T3",
+    "name": "every preparation fault point refuses with every owner unchanged",
+    "passed": true,
+    "evidence": {
+     "passed_points": 12
+    }
+   },
+   {
+    "test": "T3",
+    "name": "every can_publish fault point refuses with every owner unchanged",
+    "passed": true,
+    "evidence": {
+     "passed_points": 10
+    }
+   },
+   {
+    "test": "T3",
+    "name": "after the fault sweep a fresh step reproduces the T1 reference",
+    "passed": true,
+    "evidence": {}
+   },
+   {
+    "test": "T4",
+    "name": "a second concurrent step preparation (sibling outer reservation) refuses, owners unchanged",
+    "passed": true,
+    "evidence": {
+     "refusal": "full-time outer requires accepted full-time boundary"
+    }
+   },
+   {
+    "test": "T4",
+    "name": "a moved-from trial refuses",
+    "passed": true,
+    "evidence": {}
+   },
+   {
+    "test": "T4",
+    "name": "the trial publishes once; a second publication refuses with owners unchanged",
+    "passed": true,
+    "evidence": {}
+   },
+   {
+    "test": "T4",
+    "name": "the published state is the T1 reference",
+    "passed": true,
+    "evidence": {}
+   },
+   {
+    "test": "T6",
+    "name": "a lone electron (no compensating charge) refuses (absolute Gauss)",
+    "passed": true,
+    "evidence": {
+     "refusal": "absolute Gauss constraint disagrees with actual declared charge: node=7382 defect_C=2.7236980285326902e-20 bound_C=1.7359249942890829e-23 field_activity_C=4.7036488322694674e-13",
+     "stage": 4
+    }
+   },
+   {
+    "test": "T6",
+    "name": "genesis time other than the first C19 knot refuses",
+    "passed": true,
+    "evidence": {
+     "refusal": "coordinator v6: genesis time differs from the first supported C19 knot",
+     "stage": 1
+    }
+   },
+   {
+    "test": "T6",
+    "name": "a declared gross charge that differs from the census refuses",
+    "passed": true,
+    "evidence": {
+     "refusal": "initial/restored net charge differs from actual canonical carriers",
+     "stage": 4
+    }
+   },
+   {
+    "test": "T6",
+    "name": "a missing foil-slice source owner refuses",
+    "passed": true,
+    "evidence": {
+     "refusal": "coordinator v6: one source owner per Hall foil slice",
+     "stage": 1
+    }
+   },
+   {
+    "test": "T6",
+    "name": "a source patch not declared on the Hall thermal owner refuses",
+    "passed": true,
+    "evidence": {
+     "refusal": "electrode heat: v6 thermal view is not the declared heat-only slice of this source configuration",
+     "stage": 4
+    }
+   },
+   {
+    "test": "T6",
+    "name": "an authored packet in the reserved arrival namespace refuses",
+    "passed": true,
+    "evidence": {
+     "refusal": "genesis packet ID in the reserved arrival-v1/ namespace",
+     "stage": 7
+    }
+   },
+   {
+    "test": "spot",
+    "name": "source v6 refuses a neutral leaf whose weight is not w0",
+    "passed": true,
+    "evidence": {
+     "refusal": "electrode heat: v6 quantized release: every neutral leaf has weight exactly w0"
+    }
+   },
+   {
+    "test": "spot",
+    "name": "arrival v1.1 refuses a plan for another than the next accepted step",
+    "passed": true,
+    "evidence": {
+     "refusal": "arrival owner v1.1 refusal: kind=step-index; quantity=accepted step index; identity=step=1; the next accepted step is 0; whole step proposal refused"
+    }
+   },
+   {
+    "test": "spot",
+    "name": "Hall refuses a field-only (vacuum) step while carriers are present",
+    "passed": true,
+    "evidence": {
+     "refusal": "field-only publication requires an empty actual census"
+    }
+   },
+   {
+    "test": "spot",
+    "name": "the coupled step refuses dt above the unchanged 10 fs guard",
+    "passed": true,
+    "evidence": {
+     "refusal": "coordinator v6: the unchanged native full-time dt guard"
+    }
+   },
+   {
+    "test": "spot",
+    "name": "every spot-check refusal left every owner unchanged",
+    "passed": true,
+    "evidence": {}
+   },
+   {
+    "test": "spot",
+    "name": "after the spot checks a fresh step reproduces the T1 reference",
+    "passed": true,
+    "evidence": {}
+   }
+  ]
+ },
+ "3_two_fresh_processes": {
+  "cpu_qual_20_steps_byte_identical": true,
+  "gpu_qual_20_steps_byte_identical": true,
+  "files": {
+   "qual-cpu": {
+    "deterministic.bin": {
+     "a_sha256": "fb309e4489fd628d57b9cd6841bc7e39299458ade6e88e12416426a7d9507968",
+     "b_sha256": "fb309e4489fd628d57b9cd6841bc7e39299458ade6e88e12416426a7d9507968",
+     "identical": true
+    },
+    "step-digests.txt": {
+     "a_sha256": "0613e1e86e7b93a37926aff6f27d26f0c2e2af1411c60193558c830103effb85",
+     "b_sha256": "0613e1e86e7b93a37926aff6f27d26f0c2e2af1411c60193558c830103effb85",
+     "identical": true
+    },
+    "genesis.json": {
+     "a_sha256": "6769a9e782d3bd8fe97efa3d6d915d61c19942340c0b84a5c174ea5d76306988",
+     "b_sha256": "6769a9e782d3bd8fe97efa3d6d915d61c19942340c0b84a5c174ea5d76306988",
+     "identical": true
+    },
+    "ledger-schema.json": {
+     "a_sha256": "64bcb41c7bb96d4eb31f9db27abd64aef21152a495b0600ba2384d0ef6b00941",
+     "b_sha256": "64bcb41c7bb96d4eb31f9db27abd64aef21152a495b0600ba2384d0ef6b00941",
+     "identical": true
+    }
+   },
+   "qual-gpu": {
+    "deterministic.bin": {
+     "a_sha256": "6185be05452bc85a81d4e3f37e0a4495d3d9298d852566eee6203ec331f78c68",
+     "b_sha256": "6185be05452bc85a81d4e3f37e0a4495d3d9298d852566eee6203ec331f78c68",
+     "identical": true
+    },
+    "step-digests.txt": {
+     "a_sha256": "cc4fb9fa406effa77032abdf0f49da831300927d5b04086b33cba1ae04a18cee",
+     "b_sha256": "cc4fb9fa406effa77032abdf0f49da831300927d5b04086b33cba1ae04a18cee",
+     "identical": true
+    },
+    "genesis.json": {
+     "a_sha256": "48d43371570eb0daf06a58f5c3f093bb774ac805db56c57c52f0b3d6b9abe642",
+     "b_sha256": "48d43371570eb0daf06a58f5c3f093bb774ac805db56c57c52f0b3d6b9abe642",
+     "identical": true
+    },
+    "ledger-schema.json": {
+     "a_sha256": "64bcb41c7bb96d4eb31f9db27abd64aef21152a495b0600ba2384d0ef6b00941",
+     "b_sha256": "64bcb41c7bb96d4eb31f9db27abd64aef21152a495b0600ba2384d0ef6b00941",
+     "identical": true
+    }
+   }
+  }
+ },
+ "runs": {
+  "q3-qual-cpu-a": {
+   "steps": 20,
+   "stop": "steps",
+   "closure": {
+    "H_O_nuclei_exact_every_step": true,
+    "cumulative_reaction_defect_J": 2.6498870104823978e-30,
+    "water_inventory_exact_every_step": true,
+    "worst_abs_reaction_defect_J": 2.6439166276547974e-30,
+    "worst_abs_step_energy_residual_J": 2.9726792924744115e-15,
+    "worst_abs_total_charge_change_C": 1.3849850509697368e-41,
+    "worst_divB_over_bound": 0.0034567814035686866,
+    "worst_gauss_over_bound": 0.009936429835018202
+   },
+   "totals": {
+    "electron_births": 948,
+    "h2o_births": 874,
+    "parent_events": 4,
+    "sinks": 10
+   },
+   "step_ms_median": 320.89092400000004,
+   "push_parity": null,
+   "max_allocations_in_swap_window": 0,
+   "forbidden_native_calls": 0
+  },
+  "q3-qual-cpu-b": {
+   "steps": 20,
+   "stop": "steps",
+   "closure": {
+    "H_O_nuclei_exact_every_step": true,
+    "cumulative_reaction_defect_J": 2.6498870104823978e-30,
+    "water_inventory_exact_every_step": true,
+    "worst_abs_reaction_defect_J": 2.6439166276547974e-30,
+    "worst_abs_step_energy_residual_J": 2.9726792924744115e-15,
+    "worst_abs_total_charge_change_C": 1.3849850509697368e-41,
+    "worst_divB_over_bound": 0.0034567814035686866,
+    "worst_gauss_over_bound": 0.009936429835018202
+   },
+   "totals": {
+    "electron_births": 948,
+    "h2o_births": 874,
+    "parent_events": 4,
+    "sinks": 10
+   },
+   "step_ms_median": 320.85418599999997,
+   "push_parity": null,
+   "max_allocations_in_swap_window": 0,
+   "forbidden_native_calls": 0
+  },
+  "q3-qual-gpu-a": {
+   "steps": 20,
+   "stop": "steps",
+   "closure": {
+    "H_O_nuclei_exact_every_step": true,
+    "cumulative_reaction_defect_J": 2.6498870104823978e-30,
+    "water_inventory_exact_every_step": true,
+    "worst_abs_reaction_defect_J": 2.6439166276547974e-30,
+    "worst_abs_step_energy_residual_J": 2.9726792924744115e-15,
+    "worst_abs_total_charge_change_C": 1.4326861391457173e-41,
+    "worst_divB_over_bound": 0.0034567814035686866,
+    "worst_gauss_over_bound": 0.009936429835018202
+   },
+   "totals": {
+    "electron_births": 948,
+    "h2o_births": 874,
+    "parent_events": 4,
+    "sinks": 10
+   },
+   "step_ms_median": 323.418739,
+   "push_parity": {
+    "iterates_compared": 40,
+    "iterates_identical": 40
+   },
+   "max_allocations_in_swap_window": 0,
+   "forbidden_native_calls": 0
+  },
+  "q3-qual-gpu-b": {
+   "steps": 20,
+   "stop": "steps",
+   "closure": {
+    "H_O_nuclei_exact_every_step": true,
+    "cumulative_reaction_defect_J": 2.6498870104823978e-30,
+    "water_inventory_exact_every_step": true,
+    "worst_abs_reaction_defect_J": 2.6439166276547974e-30,
+    "worst_abs_step_energy_residual_J": 2.9726792924744115e-15,
+    "worst_abs_total_charge_change_C": 1.4326861391457173e-41,
+    "worst_divB_over_bound": 0.0034567814035686866,
+    "worst_gauss_over_bound": 0.009936429835018202
+   },
+   "totals": {
+    "electron_births": 948,
+    "h2o_births": 874,
+    "parent_events": 4,
+    "sinks": 10
+   },
+   "step_ms_median": 328.96191000000005,
+   "push_parity": {
+    "iterates_compared": 40,
+    "iterates_identical": 40
+   },
+   "max_allocations_in_swap_window": 0,
+   "forbidden_native_calls": 0
+  },
+  "q3-pilot-cpu-20": {
+   "steps": 20,
+   "stop": "steps",
+   "closure": {
+    "H_O_nuclei_exact_every_step": true,
+    "cumulative_reaction_defect_J": 0.0,
+    "water_inventory_exact_every_step": true,
+    "worst_abs_reaction_defect_J": 0.0,
+    "worst_abs_step_energy_residual_J": 2.962157771580614e-15,
+    "worst_abs_total_charge_change_C": 1.3526694721636685e-41,
+    "worst_divB_over_bound": 0.0034567814035686866,
+    "worst_gauss_over_bound": 0.009936429835018202
+   },
+   "totals": {
+    "electron_births": 0,
+    "h2o_births": 0,
+    "parent_events": 0,
+    "sinks": 0
+   },
+   "step_ms_median": 114.309083,
+   "push_parity": null,
+   "max_allocations_in_swap_window": 0,
+   "forbidden_native_calls": 0
+  },
+  "q3-pilot-gpu-20": {
+   "steps": 20,
+   "stop": "steps",
+   "closure": {
+    "H_O_nuclei_exact_every_step": true,
+    "cumulative_reaction_defect_J": 0.0,
+    "water_inventory_exact_every_step": true,
+    "worst_abs_reaction_defect_J": 0.0,
+    "worst_abs_step_energy_residual_J": 2.962157771580614e-15,
+    "worst_abs_total_charge_change_C": 1.3388283750318104e-41,
+    "worst_divB_over_bound": 0.0034567814035686866,
+    "worst_gauss_over_bound": 0.009936429835018202
+   },
+   "totals": {
+    "electron_births": 0,
+    "h2o_births": 0,
+    "parent_events": 0,
+    "sinks": 0
+   },
+   "step_ms_median": 114.90203,
+   "push_parity": {
+    "iterates_compared": 40,
+    "iterates_identical": 40
+   },
+   "max_allocations_in_swap_window": 0,
+   "forbidden_native_calls": 0
+  }
+ }
+}

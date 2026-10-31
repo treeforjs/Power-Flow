@@ -1,0 +1,100 @@
+First coupled pilot of the water-breakdown model (coordinator v6) -- pf-pilot-1-20261031
+
+Code: runtimes/pic-water-common-commit-v6-20261031 (README.txt), build q3, driver binary sha256 eb1936f1a92557dd1f37ee53b02c6d1b1ec269e340d4e588cfdb03891d1f4b05.
+Run: SimQueue job, partition powerflow, cores 6-7, GPU RTX 3080 Ti (GPU field backend gpu1 + GPU push), one process.
+
+1. Setup
+  Geometry: two SS304 foils 5 mm wide, 0.2 mm thick, 5 mm gap, 25 mm long (z), Hall mesh 45 x 45 transverse cells of
+  200 um, 4 axial foil cells of 6.25 mm + 1 air cell each end; C19 current drive (shot 17133 trace) from its first knot.
+  Genesis at 7.49788055e-10 s (first C19 knot), empty plasma (no authored carriers), foils at 300 K.
+  Sources: 8 foil-slice source owners, 32 oxide-water patches (all four faces of every slice; Temkin/Eyring, 0.87 eV,
+  initial coverage 0.33, 2.231e+15 molecules in total); thermal-field emission with work function 4.3 eV.
+  Arrival: 32 electron + 32 neutral streams, w0 = 1e6 for both (surface temperature stayed near 300 K, no larger w0 needed).
+  Chemistry: parent coverage v2 (Song 2021 <= 1 keV, outer3 BEB 1-10 keV, provisional RBEB > 10 keV), default refusal limit.
+  dt = 10 fs (unchanged guard). Ions are moving carriers of the Hall push; screening could only arise from the Hall EM solve.
+
+2. Range reached
+  steps 8099, t = 7.49788055e-10 s -> 8.30778055e-10 s (simulated 0.0810 ns), stop: stop_file, wall 0.25 h.
+  Stopped by decision after 8099 steps (STOP file, 06:10 UTC) to free cores 6-7 and the GPU for the step-cost and
+  adaptive-step work, which is expected to make this window take minutes.
+  The run was configured for +2 ns. Pilot attempt 1 (build q2) refused at step 3849 (emission kernel field domain, README
+  decision 5) and is kept as attempt-1-refused-step-3849/.
+
+3. Ledger closure (worst values over all steps; ledger.bin + ledger-schema.json, ledger-sample.csv)
+  max_abs_total_charge_change_since_genesis_C      3.316284504502862e-40
+  max_abs_gauss_defect_C                           2.8341328734548627e-24
+  max_gauss_over_bound                             0.07384729486051952
+  max_divB_T_m                                     1.1083198456641191e-12
+  max_divB_over_bound                              0.003456783085704195
+  max_gauss_increment_C                            1.0170253476698291e-26
+  max_abs_step_energy_residual_J                   3.4747539200340654e-15
+  max_roundoff_bound_J                             6.5683855055200435e-12
+  max_abs_reaction_defect_J                        3.193191847794037e-31
+  max_solve_residual_over_target                   0.19852420679237295
+  max_allocations_in_swap_window                   0.0
+  h2o_inventory_exact_all_steps                    True
+  H_O_nuclei_exact_all_steps                       True
+  cumulative Joule heat 0.000105649 J, thermal change 0.000105649 J, circuit work 0.00425642 J, field energy change 0.00256362 J
+
+4. Physics observed
+  births: electrons 0, H2O packets 1; sinks 0; parent ionization events 0.
+  expected emitted electrons (sum over the run) 2.91e-56; largest per-patch-step expectation 10^-59.8.
+  expected desorbed H2O molecules 706365, released (n w0) 1e+06; source stock 2.2308e+15.
+  patch surface temperature 300.0000-300.0006 K; extraction field at the patch centres up to 6.858e+06 V/m.
+  drive current 6012.1 -> 6141.6 A; terminal voltage 216.1 -> 1.844e+04 V.
+  Debye length per output time: 10 frames; no electrons at any output time (lambda_D undefined)
+
+5. Timing
+  step total: median 109.9 ms, mean 110.2 ms, p99 117.9 ms (GPU field + GPU push).
+    emission exposures                39.13 ms
+    Hall field prepare                28.33 ms
+    preflight (can_publish)           10.91 ms
+    source field                      10.89 ms
+    Hall motion (push)                 3.18 ms
+    second exposure                    2.81 ms
+    first exposure                     2.47 ms
+    Hall heat                          2.27 ms
+    Hall census admission              1.73 ms
+    observe owners                     1.43 ms
+    seal                               1.24 ms
+    field solve                        1.02 ms
+  CPU vs GPU backends, pilot fixture, 20 steps: 114.3 ms vs 114.9 ms per step (GPU run includes a CPU push parity check every step).
+
+6. Hall-only vacuum pre-run (no particles), Owner::prepare_vacuum / preflight_vacuum_final / publish
+  CPU cpu-pcg: median 24.85 ms/step; GPU gpu1: median 24.16 ms/step (2000 steps each).
+  dt = 20 fs refused by the field model guard: "authoritative field interval" (Model::prepare requires dt <= 1e-14; not loosened).
+  to T_on = 10 ns: 9.25e+05 steps of 10 fs -> 6.2 h at 24.16 ms/step
+  to T_on = 20 ns: 1.925e+06 steps of 10 fs -> 12.9 h at 24.16 ms/step
+  to T_on = 25 ns: 2.425e+06 steps of 10 fs -> 16.3 h at 24.16 ms/step
+
+7. Recorded limitations of this pilot (each applies to every number above)
+  L1  Chemistry is parent ionization only (e + H2O -> 2e + H2O+). Above 10 keV the parent rate is the provisional,
+      model-derived RBEB x Tan band (tagged model_derived in the coverage ledger and in every such event); the
+      1 keV Song -> outer3 BEB seam (+26.8 %) and the 10 keV seam (+2.6 %) are kept, not smoothed; the 12.621-13.5 eV
+      onset gap is unresolved (counted, bounded, refusal limit applies). No dissociation, excitation, attachment.
+  L2  Ions do not react: no ion chemistry, no charge exchange, no ion-neutral or neutral-neutral collisions, no
+      recombination. H2O+ only moves in the Hall field.
+  L3  Emission assumptions: clean SS304 surface with work function 4.3 eV (benchmark value, not a measured oxide
+      surface); thermal-field spectrum of the planar-barrier kernel at the accepted Hall surface temperature and
+      the one-sided start-of-step field (explicit source coupling, not the step midpoint); electrons are born on
+      the foil face with the kernel phase space at the surface step or the Schottky-Nordheim matching plane; the
+      sub-cell matching displacement, image force and return/recollection dynamics of the source-layer model are
+      not represented (the matching field work is recorded as unrepresented energy); no emission phase map, no
+      field enhancement, unit (full) accommodation of returning carriers, no secondary or photo-emission. A patch
+      whose one-sided field lies in (0, 1) V/m (outside the kernel's numerical domain) has no electron decision in
+      that step; it is counted as an unresolved exposure bounded by the kernel values at 0 and 1 V/m.
+  L4  Thermal scope: SS304 solid only, 298-1500 K (evaluated solid law); the thermal owner refuses beyond 1500 K;
+      no melt, no vaporization, no expansion; desorption law domain 298.2-3000 K.
+  L5  Drive: C19 current only (shot 17133 trace), no circuit model and no voltage drive.
+  L6  Resolution: one 200 um Hall mesh. It does not resolve the Debye length above about 1e16 m^-3 at a few eV; any
+      screening or breakdown statement needs the refinement series (200, 100, 50, 25 um) and a macroparticle
+      series (A14) on the GPU-resident path. One weight per stream (w0 = 1e6), no merge/split.
+  L7  No restart: one process; diagnostic checkpoints are not restartable (A05/A11 disk restart deferred).
+  L8  Window: 0.75-2.75 ns covers only the low-current part of C19 (about 6 kA); it tests the coupled machinery,
+      not breakdown. A physically interesting start needs a Hall-only vacuum pre-run to T_on and a fresh native
+      genesis bound to that Hall state (not built).
+  L9  Boundaries: no wall secondary emission or reflection; neutral and charged first hits are absorbed (full
+      accommodation, kinetic energy to the foil as wall heat; short-bridge and escaped energies recorded only).
+  L10 Coordinator scope: the Hall v3 bank-residue admission can refuse after repeated rounding residue at one
+      vacuum node (avoided at the foil faces by a 1-2 ulp choice of two native foil planes; charged hits on the
+      z = -12.5 mm short/axial plane remain exposed); no carriers reached that plane in this run.

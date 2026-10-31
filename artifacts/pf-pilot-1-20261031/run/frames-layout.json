@@ -1,0 +1,26 @@
+{
+ "byte_order": "little",
+ "cell_order": "index i + nx*j, i along native x (cell centre (i+1/2)dx), j along native y",
+ "density": "cloud-in-cell in x,y over the slab |z| <= dz/2 around the z=0 node plane; carrier weights / (dx dy dz), cm^-3",
+ "dx_m": 0.00019999999999999998,
+ "dy_m": 0.00019999999999999998,
+ "field": "accepted Hall E on the z=0 node plane, edge values averaged to cell centres",
+ "midplane_z_m": 0.0,
+ "nx": 45,
+ "ny": 45,
+ "potential": "phi(i,0)=0 on the y=0 boundary; phi(i,j+1)=phi(i,j)-Ey(i,j+1/2) dy along node lines (quasi-static gap potential)",
+ "record": [
+  "step",
+  "time_s",
+  "n_e_cm3[nx*ny]",
+  "n_ion_cm3[nx*ny]",
+  "n_h2o_cm3[nx*ny]",
+  "mean_electron_energy_eV[nx*ny]",
+  "Ex_V_m[nx*ny]",
+  "Ey_V_m[nx*ny]",
+  "phi_V[(nx+1)*(ny+1)]"
+ ],
+ "schema": "coordinator-v6-midplane-frames-v1",
+ "slab_m": 0.00625,
+ "value": "float64"
+}
