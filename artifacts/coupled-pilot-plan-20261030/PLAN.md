@@ -141,7 +141,7 @@ Must be built first:
 | H1 | DONE in native v5 (artifacts/native-v5-20261030) | A11 bounded history | Native v5 in-memory anchors every K steps; motion rows store endpoint hashes instead of full JSON. Disk restart can wait. |
 | H2 | blocking | Native birth API | Native v5 source scope crediting source-v4 Trial leaves (exact debit `source_owner.hpp:183`) to native H2O and electron packets via one exact ExactParticleCount equality, with physical birth time and remaining flight; an open common predicate (V3 `accepts_closed_step` requires an unchanged source digest, contract:95). |
 | H3 | blocking | Collection/escape | Native v5 sink records; Hall motion v3 with first-hit truncation (`kinetic_boundary.cpp:63`); collected charge free -> conductor bank in a new Hall field version, plus wall heat. |
-| H4 | blocking | Parent-channel coverage | Qualified kernels for the onset gap and > 8 keV, or a versioned refusal scope recording unresolved counts (no silent skipping). |
+| H4 | DONE: coverage v1 + v2 (artifacts/parent-coverage-v1-20261030, -v2-20261030; >10 keV provisional RBEB) | Parent-channel coverage | Qualified kernels for the onset gap and > 8 keV, or a versioned refusal scope recording unresolved counts (no silent skipping). |
 | H5 | invalidating | One thermal owner | Hall thermal supplies sigma(T) and Joule; source v4 consumes Hall T and returns surface loads (new Hall version + source binding; no private Joule). |
 | H6 | blocking | Arrival/count/RNG/ID owner | Counter-based RNG keyed by (run seed, step, patch, candidate index) and a global ID allocator. |
 | H7 | blocking | 100,000-carrier native cap (`arena.cpp:33`) | Versioned packet merge/weighting policy conserving charge, momentum and energy, or the pilot stops at the cap. |

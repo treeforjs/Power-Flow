@@ -1,0 +1,68 @@
+Water parent-channel coverage scope v2, 2026-10-30
+
+Runtime: /home/treefor/projects/runtimes/pic-water-parent-coverage-v2-20261030
+Full description: COVERAGE-SCOPE-V2.md in that directory. Sealed v3 and v1
+sources, the native candidate003 library and the water datasets are used
+unchanged. Qualified receipt: attempt-002/receipt.json (passed).
+
+Coverage map (target-rest energy)
+  0-12.621 eV         known zero
+  12.621-13.5 eV      unresolved onset gap (unchanged from v1)
+  13.5-1000 eV        dataset: Song 2021 Table 12 + parent_ground_equal_pair_CM_v1 (unchanged)
+  1000-10000 eV       dataset: outer3_BEB_Tan_parent_v1 rate (NIST BEB orbitals x
+                      Tan/Murakami weights 1b1 1, 3a1 1, 1b2 0.08, 2a1 0), dataset
+                      arithmetic, bit-for-bit equal to the dataset implementation
+  10 keV-10 MeV       PROVISIONAL model-derived: RBEB (Kim, Santos & Parente 2000)
+                      x the same per-orbital parent weights
+  above 10 MeV        unresolved, no bound (refused unless admit_unbounded)
+  Above 1 keV the product kernel is parent_ground_BEB_SDCS_binary_encounter_v2:
+  orbital by w_i sigma_i, ejected energy from the BEB (1-10 keV) or RBEB SDCS,
+  binary-encounter ejection angle, exact two-body sharing of the remaining
+  four-momentum by the scattered electron and the ground ion.
+
+Inputs
+  BEB orbitals (dataset H2O:nist_BEB_valence = outer3 channel; NIST
+  table.pl?ionization=H2O): B/U = 36.88/70.71 (2a1), 19.83/48.36 (1b2),
+  15.57/59.52 (3a1), 12.61/61.91 (1b1) eV, N = 2, Q = 1; a0 = 5.2918e-11 m,
+  R = 13.6057 eV. mc^2 = 510998.95069 eV; alpha^4 = (2R/mc^2)^2.
+  Parent weights: Murakami et al. PRA 85, 052704 (2012) Eq. 27 from Tan et al.
+  Chem. Phys. 29, 299 (1978); energy-independent per orbital; effective parent
+  fraction 0.694 (1 keV), 0.683 (10 keV), 0.680 (100 keV), 0.678 (1 MeV).
+
+Seams (recorded in the scope identity, not smoothed)
+  1 keV  Song 4.3200e-21 -> outer3 5.476053e-21 m^2   +26.760 %
+  10 keV outer3 8.158186e-22 -> RBEB 8.368496e-22 m^2 +2.578 % (relativistic correction)
+  RBEB/BEB - 1: +0.22 % 1 keV, +2.58 % 10 keV, +27.7 % 100 keV, +335 % 1 MeV.
+  Valence totals vs Munoz 2007 measured gross ionization: BEB +10.2..+13.9 %,
+  RBEB +11.2..+14.4 % at 1-5 keV; RBEB +12.2 % vs Song total at 1 keV.
+
+Ledger
+  Categories per exposure, step and cumulative: dataset_song2021_parent_table,
+  dataset_outer3_BEB_Tan_parent, provisional_RBEB_Tan_parent_model
+  (model_derived), each with exact applied candidate counts, expected physical
+  reactions/events, sigma-free exposures, executed event counts and weights,
+  per energy bin; unresolved measures as v1. Event ids: conditional/native-parent/,
+  conditional/native-parent-outer3-beb/, model-derived/native-parent-rbeb/.
+  Composite channel binding (one stochastic owner, as the sealed arena requires):
+  dataset b7561244..., kernel manifest 28fe8904..., binding file 556567ee...
+
+Qualification, attempt-002 (cores 6-7, both-cores.sh, nice 15, one thread per
+process, frozen launcher, no GPU, 108 s)
+  test_parent_coverage_v2             118/118 normal, 118/118 UBSan, identical results
+  v3 regression port, no bands        442 checks equal, event physics equal, 73/128
+  v3 regression port, all v2 bands    440 checks equal (8 keV entries removed), event physics equal, 73/128
+  v1 component test port, no bands    171 checks equal, ledger receipts equal (categories aside)
+  outer3 rate vs dataset code         213 energies bit for bit
+  BEB/RBEB vs 50-digit Decimal        <= 2.0e-16 (extended precision), <= 4.8e-15 (dataset double)
+  benchmark v2/v1                     1.006 sub-keV (identical events); 2.87 with 1 keV-1 MeV
+                                      electrons (54 vs 23 events); per pair visit 3.31e-5 vs 3.23e-5 s
+  attempt-001 failed only on the oracle input spelling (decimal B vs binary64 B); retained.
+
+Open items
+  Validation targets to obtain: Schutten et al. JCP 44, 3924 (1966) 0.1-20 keV;
+  Rieke & Prepejchal PRA 6, 1507 (1972) 0.1-2.7 MeV; measured H2O+ partial
+  cross sections above 1 keV; measured ejected-electron spectra for the SDCS
+  kernel. The onset gap remains unresolved and receives 1.72-1.74 % of the
+  secondaries of every event above 1 keV.
+
+No physical trajectory time advanced; no Hall coupling; no joint step.
