@@ -1,0 +1,83 @@
+Heat/source owner v6 and its Hall binding (H5: one thermal owner) -- 2026-10-30
+
+Layout
+  native/mfem_electrode_heat_source_v6/  owner v6 (namespace electrode_heat_v6): admission.hpp,
+                                         source_owner.hpp, component_checkpoint.hpp
+  binding/hall_source_binding.hpp        binding to the Hall corrective v3 thermal owner
+  tests/test_source_v6.cpp               qualification (and the growth measurement mode)
+  run_source_v6.py                       build | run | growth, receipted (frozen launcher, leases)
+Source owner v5 (pic-electrode-heat-source-v5-20261030) is sealed and read in place; v6 is a
+versioned copy with the changes of section 1 and nothing else (the sealed v3 source kernel,
+heat-v2 engine and ExactParticleCount header are the v5 inputs, unchanged).
+
+1. Changes relative to v5 (API-v5.txt)
+1.1 No private heat engine, no Joule input. v5 owned a heat-v2 Coupler and its prepare() took
+  a Joule coefficient, so a coupled run had two thermal stores and Hall's Joule heat could be
+  counted twice. v6 holds a const view of the thermal owner's slice Coupler:
+    Owner(geometry, material, patches, identities, settings, T0, source_hash, start, const
+          eh::Coupler& thermal_view)
+  The view must have the configuration signature of a Coupler built from exactly this
+  geometry, material, initial temperature, source hash and heat-only patch list (refused
+  otherwise: "v6 thermal view is not the declared heat-only slice of this source
+  configuration"). Temperatures (patch means and surface values), clock, revision, patch areas
+  and admitted origins are read from the view; emission exposures and desorption quotes use
+  the accepted Hall temperature bit for bit.
+1.2 prepare(epoch, field, actual, sources, handoffs, leaves, other) runs no thermal solve.
+  The Trial returns loads(): the heat-v2 Transfers of the step (certified source exchanges of
+  emission/collection layers, desorption energy debits of the released neutrals, caller
+  transfers), and thermal_revision(). heat_budget() is the sum of the loads with joule_J = 0
+  and thermal_delta_J = 0.
+1.3 State digest binds the thermal clock (time, revision) instead of private temperatures;
+  preflight requires the Trial's thermal revision, time and configuration signature to equal
+  the view's (a Hall publication between prepare and publish makes the Trial stale);
+  publish_prevalidated swaps only the source state (inventory, Active layers, neutral
+  cumulative); the thermal owner commits its own trial.
+1.4 Component checkpoint without a heat section; it binds the thermal clock and refuses a
+  restore against another thermal clock ("v6 checkpoint thermal clock differs from the bound
+  thermal owner").
+1.5 Quantized neutral release mode: SourceSettings::quantized_neutral_weight = w0 > 0 (0 keeps
+  the v5 exact-quote debit; bound into the configuration signature with the text
+  "quantized-neutral-release-v1"). With arrival policy v1.1 (pic-arrival-owner-v1.1-20261030)
+  every neutral leaf has weight exactly w0 (others refused); the exact stock is debited by the
+  leaves' exact sum n w0, which must not exceed it (typed stock_drain refusal); the quote D is
+  the expectation (E[n w0] = D) and the remainder stays in the stock; the Temkin desorption
+  reference energy of the packets uses the coverage before and after the actual debit.
+
+2. Binding (binding/hall_source_binding.hpp, namespace hall_source_binding)
+  SliceSource {body, slice, patches, identities, settings, source_hash}: one source owner per
+  Hall foil slice (body 0/1, axial cell k).
+  declaration(sources) -> hall_corrective_v3::ThermalDeclaration: the patches of every slice,
+    heat-only (desorption off, zero stock), for the Hall Model; bound into the Hall material
+    and configuration identities; with no loads the declared slices evolve bit-identically to
+    the undeclared ones.
+  bind(hall_owner, slice_source) -> unique_ptr<electrode_heat_v6::Owner> with the view
+    hall.thermal().slice(body, k) (geometry slice_geometry(g, body, k), material
+    slice_material(), T0 300 K, start = drive start).
+  loads(trial, slice_source) -> Hall SurfaceLoads {body, slice, channel, transfer}; channels
+    "source-layer-certified-exchange", "desorption-neutral-release", "particle-impact",
+    "source-transfer".
+  audit_single_thermal_owner(hall_thermal_trial, other_owner_reports): typed refusal
+    "load-accounting" when Hall's thermal change differs from Joule + wall heat + external loads
+    beyond its roundoff bound, "double-joule" when any other owner reports Joule heating or a
+    thermal change of its own.
+
+3. Step protocol (one Hall step with source loads)
+  e = src.make_epoch(dt, ...); quotes = src.release_quotes(e); arrival plan/stage (v1.1);
+  leaves = neutral_leaves(staged); trial = src.prepare(e, field, actual, candidates, handoffs,
+  leaves); staged.bind_source_times(stream, neutral_times(trial, staged, stream, patch_id));
+  L = hall_source_binding::loads(trial, slice); Hall proposal with StepInputs{newborns, L,
+  birth_scope} (or Owner::prepare_vacuum(dt, L)); Hall preflight and src.preflight(trial,
+  actual); publish Hall, then src.publish_prevalidated(trial); arrival commit with the native
+  birth receipt. Hall applies every load exactly once (heat-v2 producer/energy-owner
+  watermarks); a replayed load is refused.
+
+4. Typed refusals of the heat-engine extremes
+  Hall ThermalV3 admits the loads before any engine call (hall_corrective_v3::ThermalRefusal
+  {kind, quantity, identity, observed, bound}): nonfinite-load, load-exceeds-material-range
+  (one load above the slice's admitted enthalpy range, e.g. the 1e200-molecule stock or a
+  ~5e21-molecule release), net-heating-exceeds-capacity, net-cooling-exceeds-capacity;
+  engine exceptions on a step with loads are rethrown typed (thermal-engine). The Hall owner
+  is unchanged after a refusal. Sealed v5 on the same inputs: process abort in the MFEM
+  CGSolver (1e200 stock) or an untyped engine error (~5e21).
+
+5. Results: see README.txt.

@@ -1,0 +1,110 @@
+Arrival / count / RNG / ID owner v1.1 (quantized neutral release) -- 2026-10-30
+
+Versioned from runtimes/pic-arrival-owner-v1-20261030 (unchanged; its include/pf_arrival/
+canonical.hpp and philox_core.h are read in place). The contract is API-v1.txt of v1 with the
+changes below; everything not listed (electron streams, RNG stream layout v1, exact
+Bernoulli, stochastic rounding, marks, plans and partitioned evaluation, IDs, staging,
+commit, ledger records, refusal kinds) is unchanged.
+
+Headers (include/pf_arrival_v11/):
+  arrival_owner.hpp     namespace pf_arrival_v11; the v1 owner with the v1.1 neutral rule
+  source_v6_adapter.hpp inputs from / outputs to heat/source owner v6
+                        (pic-electrode-heat-source-v6-20261030; same entry points as v5)
+  native_v6_births.hpp  the native candidate006 adapter source/adapters/arrival_v1_births.hpp
+                        with pf_arrival -> pf_arrival_v11 (credit, receipt, restart
+                        alignment), namespace raikou::mfem_backend::arrival_v11
+Build as v1 (C++20, binary64, -ffp-contract=off, PF_ARRIVAL_EXACT_COUNT_HEADER = the sealed
+ExactParticleCount header, SHA256 46e01fe2...), with -I pic-arrival-owner-v1-20261030/include
+in addition to -I pic-arrival-owner-v1.1-20261030/include.
+
+1. Identity (versioned)
+  policy version            "pf-arrival-policy-v1.1"
+  configuration record      tag "pf-arrival-configuration-v1.1"; same fields as v1 plus the
+                            rule text "quantized-release-v1.1: n=SR(D/w0), leaves of exactly
+                            w0, debit n*w0, remainder kept, n<=floor(stock/w0)"
+  sampling policy identity  "pf-arrival-owner-v1.1/<configuration sha256>" (bind it as the
+                            source v6 SourceSettings::sampling_policy_identity)
+  owner state / checkpoint  tags "pf-arrival-owner-state-v1.1", "pf-arrival-owner-checkpoint-v1.1"
+  refusal text prefix       "arrival owner v1.1 refusal"
+  A v1 checkpoint does not restore into v1.1 and vice versa. Logical packet IDs keep the
+  native-reserved namespace "arrival-v1/s<step>/p<stream>/k<index>" (native v6 reserves the
+  prefix "arrival-v1/" for the birth credit).
+
+2. Neutral stream rule (replaces API-v1.txt 3.3)
+  Input: the source quote D (ReleaseQuote released: the expected release of the step, one
+  binary64 value), its log, the exact accepted stock Owner::inventory(patch), the clock.
+   refuse D with more than one positive carrier (typed debit-representation);
+   D = 0: no leaves, no draw;
+   x = fl(d / w0) for d the binary64 value of D; refuse x above the per-stream cap
+   (typed macroparticle-cap, log scope log D - log w0);
+   n = SR(x): floor(x) + Bernoulli(x - floor(x)), the exact Bernoulli of philox_core.h on
+   the count stream key (run seed, step, stream id, candidate 0, purpose 1);
+   stock cap: n is reduced to the largest m <= n with m w0 <= stock (exact count
+   comparison); the decision flag "merged" records this cap (v1.1 meaning: capped at the
+   exact stock); no leaf has another weight;
+   leaves: n leaves of weight exactly w0; leaf k carries the six neutral marks of
+   (run seed, step, stream id, k, purpose 3) for the source v6 release law (velocity,
+   position, release time);
+   debit = n w0 exactly (ExactParticleCount credited n times with w0).
+  The source v6 quantized mode (SourceSettings::quantized_neutral_weight = w0) debits its
+  exact stock by exactly the leaves' sum n w0 and keeps the remainder; it refuses a leaf of
+  any other weight and a debit above the exact stock (typed stock_drain).
+  Unbiasedness: E[n] = x exactly for the binary64 x (stochastic rounding), so E[n w0] = D up
+  to the one division rounding of x (<= 2^-53 relative). Stock, released molecules and
+  carriers satisfy  stock_after + sum(n) w0 = stock_before  exactly, and carriers created =
+  released molecules / w0 exactly.
+  Purpose tags: the count draw uses purpose 1 on candidate 0 (as for electron streams; the
+  stream id separates them); the per-leaf marks use purpose 3 with candidate = leaf index,
+  as in v1. A count draw keyed with purpose 3 would reuse the mark words of leaf 0, so the
+  count keeps purpose 1.
+  Compared with v1 (floor rule, >= 1 leaf per active patch and step, leaves partitioning D
+  exactly): v1 creates one resident neutral carrier per active patch per step whatever the
+  release; v1.1 creates on average D/w0 carriers per step and releases n w0 molecules.
+
+3. Default w0_neutral = 1e6 molecules per neutral packet (per-stream configuration; choose it per
+  run from the expected surface temperatures). Basis (growth measurement below; oxide-water
+  Temkin/Eyring patch, coverage 0.33, one Hall-slice patch of 5 mm x 6.25 mm, 1.34e14 molecules,
+  dt = 10 fs): mean release 5.2 molecules/step at 300 K, 7.9e3 at 400 K, 1.3e7 at 600 K. With
+  w0 = 1e6 a patch creates ~0.5 carriers/ns at 300 K and ~8e2/ns at 400 K, so a 1-2 ns pilot stays below the
+  1e5 resident-carrier cap (30 patches at 400 K: ~5e4 carriers over 2 ns; at 300 K: ~30) while
+  every released molecule is accounted exactly (the v1 floor rule creates 1e5 carriers/ns per active patch at
+  any temperature). One packet is 1e6 molecules, 1.25e17 m^-3 in one (200 um)^3 volume (about 0.5 mPa at
+  300 K), the same macro-weight as the electrons of the Hall v3 multistep run. Above ~450 K the
+  release rises steeply (600 K: 1.3e6 carriers/ns per patch at w0 = 1e6); hot-surface runs need
+  w0 ~ 1e8 or larger, chosen as (expected release over the window x patches) / carrier budget.
+
+4. Tests (tests/test_seed_sweep.cpp here; pic-electrode-heat-source-v6-20261030/tests/
+   test_source_v6.cpp; hall-corrective-v3-20261030/native-v6-link/test_native_v6_admission.cpp)
+  seed sweep         the count decision at a fixed x over 1e5 steps for 40 run seeds (z per
+                     seed, mean and variance of z); built with c++ -std=c++20 -O2
+                     -ffp-contract=off against include/ of v1.1 and v1 and the exact-count header
+  quantized-release  source v6 + arrival v1.1 over 6 Hall steps: every leaf exactly w0,
+                     exact source debit = arrival credit = packet sum, stock + released =
+                     initial stock exactly, a non-w0 leaf is refused
+  unbiasedness       2e5 keyed decisions at x = 1e-3, 0.3, 1.7, 12.5: mean n = x within
+                     5 standard deviations
+  growth             1e5 steps (10 fs) at a realistic oxide-water desorption rate: carriers
+                     = released / w0 exactly, carrier count vs sum of D/w0, v1 floor rule on
+                     the same quotes
+  native v6          quantized neutral leaves born on the upper-foil face through the native
+                     v6 birth scope (native_v6_births.hpp), native stream debit = n w0 exactly,
+                     Hall v3 flows motion admitted every step
+
+5. RESULTS (/home/treefor/projects/.workspace/outputs/hall-corrective-v3-20261030/)
+  source-v6/s4/run-212341          quantized-release and unbiasedness pass (normal and UBSan); see
+                                   pic-electrode-heat-source-v6-20261030/README.txt
+  source-v6/s3/growth-205937       w0 = 1e6, source v6 quantized mode + v1.1 + a heat-v2 slice view:
+     T       steps  mean D/step  carriers  E[carriers]  z      v1 floor rule  ms/step
+     300 K   1e5    5.24         0         0.52         -0.72  100000         29.4
+     400 K   1e5    7.86e3       830       785.8        +1.58  100000         30.6
+     600 K   1e4    1.32e7       132305    132301.5     +0.08  132305         29.9
+     every run: released molecules = carriers x w0 exactly; stock + released = initial stock exactly
+  source-v6/s4/growth-212659       w0 = 1e5, 400 K, 1e5 steps: 8086 carriers (E 7858.2, z = +2.68),
+                                   808.6 = 8086/10 vs 830 at w0 = 1e6: carriers scale as released/w0
+  arrival-v1.1/seed-sweep-*.json   tests/test_seed_sweep.cpp, the same decision at x = D/w0 over 1e5
+                                   steps for 40 run seeds: x = 0.0786 mean z = 0.07, var z = 0.71
+                                   (seed 4242 reproduces the growth count, z = 2.68); x = 0.00786 mean
+                                   z = -0.19, var z = 1.20 (seed 4242: 830, as in the growth run)
+  hall-corrective-v3-20261030/native-v6-link n2: 40 steps of v1.1 quantized neutral leaves (w0 = 2,
+                                   D = 5) through the native v6 birth scope: 99 leaves (E 100), all of
+                                   weight w0, native stream debit = n w0 exactly, Hall flows admitted

@@ -1,0 +1,317 @@
+{
+ "check_count": 15,
+ "checks": [
+  {
+   "name": "plain: a Hall v3 receipt without newborns and hits is the plain binary v3 record, admitted and published by native v6",
+   "passed": true
+  },
+  {
+   "name": "sinks: Hall v3 truncates carriers at all five kinetic surfaces (flows record)",
+   "passed": true
+  },
+  {
+   "name": "sinks: native admits the Hall flows record; native sink records equal the Hall records and native per-surface totals equal the Hall SinkLedger exactly (carriers, weight, kinetic energy, +/- elementary charge)",
+   "passed": true
+  },
+  {
+   "name": "sinks: native full_time_first_kinetic_hit of every Hall sink segment equals the Hall surface, fraction, axis and plane",
+   "passed": true
+  },
+  {
+   "name": "births: upper-foil face births moving into the gap: native admits the Hall flows record (births with flight end - tau)",
+   "passed": true
+  },
+  {
+   "name": "births: sink-prone births (sinks within end - tau): native admits the Hall flows record (births with flight end - tau)",
+   "passed": true
+  },
+  {
+   "name": "births: interior births: native admits the Hall flows record (births with flight end - tau)",
+   "passed": true
+  },
+  {
+   "name": "same step: resident and newborn sinks with births, native admits; ledgers equal",
+   "passed": true
+  },
+  {
+   "name": "tamper: one-ulp change of a Hall sink fraction alone (resealed) is refused (sink_outside_step: flight != F * fraction)",
+   "passed": true
+  },
+  {
+   "name": "tamper: one-ulp change of a Hall sink fraction with consistent flight (resealed) is refused (sink_not_crossing)",
+   "passed": true
+  },
+  {
+   "name": "tamper: one-ulp change of a Hall hit point (resealed) is refused (sink_record)",
+   "passed": true
+  },
+  {
+   "name": "tamper: a Hall record changed without resealing is refused (motion_record digest)",
+   "passed": true
+  },
+  {
+   "name": "tamper: flows record with the plain coverage is refused (motion_record)",
+   "passed": true
+  },
+  {
+   "name": "multistep: every step admitted by native v6; electrons born on the lower-foil face cross the gap and are all collected at the upper foil; per-step native ledgers equal the Hall ledgers; native cumulative births = sunk carriers",
+   "passed": true
+  },
+  {
+   "name": "arrival v1.1: quantized neutral leaves of exactly w0 on the upper-foil face through the native v6 birth scope; native stream debit = n w0 exactly; Hall flows records admitted every step; leaf count consistent with D/w0",
+   "passed": true
+  }
+ ],
+ "measurements": {
+  "arrival-v1.1": {
+   "all_leaves_w0": true,
+   "expected_leaves": 100.0,
+   "hall_births_equal_native": 40,
+   "native_births_total": 162,
+   "neutral_leaves": 99,
+   "steps": 40,
+   "stream_debit_equals_n_w0": true
+  },
+  "births-place-0": {
+   "births": 5,
+   "face_births": 5,
+   "hall_sinks": 0,
+   "native_ledger": "none",
+   "newborn_sinks_within_flight": true
+  },
+  "births-place-1": {
+   "births": 5,
+   "face_births": 0,
+   "newborn_sinks_within_flight": true,
+   "records_equal": true,
+   "surface_totals_equal": true,
+   "surfaces": {
+    "collected/lower-foil": {
+     "carriers": 2,
+     "equal_to_hall": true,
+     "kinetic_J": 3.1597718749962874e-20,
+     "weight": 5.0
+    },
+    "collected/short-bridge": {
+     "carriers": 0,
+     "equal_to_hall": true,
+     "kinetic_J": 0.0,
+     "weight": 0.0
+    },
+    "collected/upper-foil": {
+     "carriers": 0,
+     "equal_to_hall": true,
+     "kinetic_J": 0.0,
+     "weight": 0.0
+    },
+    "escaped/axial": {
+     "carriers": 0,
+     "equal_to_hall": true,
+     "kinetic_J": 0.0,
+     "weight": 0.0
+    },
+    "escaped/outer-xy": {
+     "carriers": 3,
+     "equal_to_hall": true,
+     "kinetic_J": 5.3215089989764864e-14,
+     "weight": 12.0
+    }
+   }
+  },
+  "births-place-2": {
+   "births": 5,
+   "face_births": 0,
+   "hall_sinks": 0,
+   "native_ledger": "none",
+   "newborn_sinks_within_flight": true
+  },
+  "multistep": {
+   "births": 103,
+   "collected_upper_foil": 103,
+   "cumulative_hall_sink_ledger": {
+    "collected/lower-foil": {
+     "charge_C_words": [
+      0.0,
+      0.0
+     ],
+     "count": 0,
+     "kinetic_J_exact_carriers": [],
+     "kinetic_J_words": [
+      0.0,
+      0.0
+     ],
+     "negative_elementary_charges_exact_carriers": [],
+     "non_elementary_carriers": 0,
+     "positive_elementary_charges_exact_carriers": [],
+     "weight": 0.0,
+     "weight_exact_carriers": []
+    },
+    "collected/short-bridge": {
+     "charge_C_words": [
+      0.0,
+      0.0
+     ],
+     "count": 0,
+     "kinetic_J_exact_carriers": [],
+     "kinetic_J_words": [
+      0.0,
+      0.0
+     ],
+     "negative_elementary_charges_exact_carriers": [],
+     "non_elementary_carriers": 0,
+     "positive_elementary_charges_exact_carriers": [],
+     "weight": 0.0,
+     "weight_exact_carriers": []
+    },
+    "collected/upper-foil": {
+     "charge_C_words": [
+      -6.60096773208e-17,
+      2.6000054249227684e-33
+     ],
+     "count": 103,
+     "kinetic_J_exact_carriers": [
+      6.81739920262503e-12,
+      7.825500179792437e-28
+     ],
+     "kinetic_J_words": [
+      6.817399202625031e-12,
+      -2.524354896707238e-29
+     ],
+     "negative_elementary_charges_exact_carriers": [
+      412.0
+     ],
+     "non_elementary_carriers": 0,
+     "positive_elementary_charges_exact_carriers": [],
+     "weight": 412.0,
+     "weight_exact_carriers": [
+      412.0
+     ]
+    },
+    "escaped/axial": {
+     "charge_C_words": [
+      0.0,
+      0.0
+     ],
+     "count": 0,
+     "kinetic_J_exact_carriers": [],
+     "kinetic_J_words": [
+      0.0,
+      0.0
+     ],
+     "negative_elementary_charges_exact_carriers": [],
+     "non_elementary_carriers": 0,
+     "positive_elementary_charges_exact_carriers": [],
+     "weight": 0.0,
+     "weight_exact_carriers": []
+    },
+    "escaped/outer-xy": {
+     "charge_C_words": [
+      0.0,
+      0.0
+     ],
+     "count": 0,
+     "kinetic_J_exact_carriers": [],
+     "kinetic_J_words": [
+      0.0,
+      0.0
+     ],
+     "negative_elementary_charges_exact_carriers": [],
+     "non_elementary_carriers": 0,
+     "positive_elementary_charges_exact_carriers": [],
+     "weight": 0.0,
+     "weight_exact_carriers": []
+    }
+   },
+   "ms_per_step": 2.641265474388632,
+   "native_births": 103,
+   "native_sunk_carriers": 103,
+   "other_sinks": 0,
+   "steps": 6052,
+   "steps_with_equal_ledgers": 6052,
+   "wall_s": 15.984938651
+  },
+  "same-step": {
+   "newborn_sinks": 5,
+   "records_equal": true,
+   "surface_totals_equal": true,
+   "surfaces": {
+    "collected/lower-foil": {
+     "carriers": 3,
+     "equal_to_hall": true,
+     "kinetic_J": 1.3303804095159967e-14,
+     "weight": 8.0
+    },
+    "collected/short-bridge": {
+     "carriers": 1,
+     "equal_to_hall": true,
+     "kinetic_J": 8.86918166496081e-15,
+     "weight": 2.0
+    },
+    "collected/upper-foil": {
+     "carriers": 1,
+     "equal_to_hall": true,
+     "kinetic_J": 2.6922680152769757e-18,
+     "weight": 5.0
+    },
+    "escaped/axial": {
+     "carriers": 2,
+     "equal_to_hall": true,
+     "kinetic_J": 6.651909580284138e-14,
+     "weight": 15.0
+    },
+    "escaped/outer-xy": {
+     "carriers": 7,
+     "equal_to_hall": true,
+     "kinetic_J": 8.869182612892373e-14,
+     "weight": 21.5
+    }
+   }
+  },
+  "sinks": {
+   "hall_record_sha256": "0af23c2855d617311d08530a0d7015718bddcddb0ef2016e286fe25cf8e3b91c",
+   "records_equal": true,
+   "surface_totals_equal": true,
+   "surfaces": {
+    "collected/lower-foil": {
+     "carriers": 1,
+     "equal_to_hall": true,
+     "kinetic_J": 1.3303772497441216e-14,
+     "weight": 3.0
+    },
+    "collected/short-bridge": {
+     "carriers": 1,
+     "equal_to_hall": true,
+     "kinetic_J": 8.86918166496081e-15,
+     "weight": 2.0
+    },
+    "collected/upper-foil": {
+     "carriers": 1,
+     "equal_to_hall": true,
+     "kinetic_J": 2.6922680152769757e-18,
+     "weight": 5.0
+    },
+    "escaped/axial": {
+     "carriers": 2,
+     "equal_to_hall": true,
+     "kinetic_J": 6.651909580284138e-14,
+     "weight": 15.0
+    },
+    "escaped/outer-xy": {
+     "carriers": 4,
+     "equal_to_hall": true,
+     "kinetic_J": 3.547673613915886e-14,
+     "weight": 9.5
+    }
+   },
+   "surfaces_hit": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ]
+  }
+ },
+ "seconds": 16.14436015,
+ "status": "passed"
+}
