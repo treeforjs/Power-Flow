@@ -1,0 +1,37 @@
+===== simq job 659: independent-field-thermal-stocks =====
+submitted: 2026-11-01T08:52:38Z
+started:   2026-11-01T08:54:57Z
+cwd:       /home/treefor/projects/runtimes/common-conservation-v1-20261101
+partition: powerflow
+P-cores:   7
+GPUs:      none
+memory:    4G (swap 1G)
+time:      00:15:00
+unit:      simq-job-659-4033026bb598.service
+command:   /usr/bin/nice -n 15 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 -I /home/treefor/projects/runtimes/common-conservation-v1-20261101/tools/qualify.py c1
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core7.lock (exclusive)
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/common-conservation-v1-20261101/tools/qualify.py", line 27, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/treefor/projects/runtimes/common-conservation-v1-20261101/tools/qualify.py", line 23, in main
+    run([base[0],'-Wl,--gc-sections',*(['-fsanitize=undefined'] if variant=='ubsan' else []),out/(variant+'.o'),N/'build/kinetic-boundary.o',N/'build/libpic_native_v8.a',*libs,'-lcrypto','-ldl','-o',out/variant],variant+'-link')
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/common-conservation-v1-20261101/tools/qualify.py", line 18, in run
+    proc=subprocess.run([str(x) for x in args],cwd=P,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=480);(out/(name+'.stdout')).write_bytes(proc.stdout);(out/(name+'.stderr')).write_bytes(proc.stderr);commands.append({'argv':[str(x) for x in args],'returncode':proc.returncode});need(proc.returncode==0,name+': '+proc.stderr.decode()[-5000:]);return proc.stdout
+                                                                                                                                                                                                                                                                                              ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/common-conservation-v1-20261101/tools/qualify.py", line 6, in need
+    if not x:raise RuntimeError(s)
+             ^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: normal-link: /usr/bin/ld: /home/treefor/projects/runtimes/common-conservation-v1-20261101/evidence/c1/normal.o: in function `hall_corrective_v3::charge_of_census(axial::Mesh const&, raikou::mfem_backend::GapPicOptions const&, std::span<raikou::mfem_backend::ArenaRateEntry const, 18446744073709551615ul>, unsigned long)':
+test_stocks.cpp:(.text._ZN18hall_corrective_v316charge_of_censusERKN5axial4MeshERKN6raikou12mfem_backend13GapPicOptionsESt4spanIKNS5_14ArenaRateEntryELm18446744073709551615EEm[_ZN18hall_corrective_v316charge_of_censusERKN5axial4MeshERKN6raikou12mfem_backend13GapPicOptionsESt4spanIKNS5_14ArenaRateEntryELm18446744073709551615EEm]+0x42): undefined reference to `hall_corrective_v3::require_census_identity(std::span<raikou::mfem_backend::ArenaRateEntry const, 18446744073709551615ul>, unsigned long)'
+/usr/bin/ld: /home/treefor/projects/runtimes/common-conservation-v1-20261101/evidence/c1/normal.o: in function `hall_corrective_v3::Owner::Owner(std::shared_ptr<hall_corrective_v3::Model const>, axial::State, hall_corrective_v3::ChargeLedger, raikou::mfem_backend::GapPicOptions const&, std::span<raikou::mfem_backend::ArenaRateEntry const, 18446744073709551615ul>, hall_corrective_v3::Owner::RestoreTag)':
+test_stocks.cpp:(.text._ZN18hall_corrective_v35OwnerC2ESt10shared_ptrIKNS_5ModelEEN5axial5StateENS_12ChargeLedgerERKN6raikou12mfem_backend13GapPicOptionsESt4spanIKNS9_14ArenaRateEntryELm18446744073709551615EENS0_10RestoreTagE[_ZN18hall_corrective_v35OwnerC5ESt10shared_ptrIKNS_5ModelEEN5axial5StateENS_12ChargeLedgerERKN6raikou12mfem_backend13GapPicOptionsESt4spanIKNS9_14ArenaRateEntryELm18446744073709551615EENS0_10RestoreTagE]+0x130): undefined reference to `hall_corrective_v3::make_motion_context(axial::Mesh const&, raikou::mfem_backend::GapPicOptions const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long)'
+collect2: error: ld returned 1 exit status
+
+========================================
+finished:  2026-11-01T08:55:04Z
+exit code: 1
+state:     failed
+===== simq job 659 finished =====
