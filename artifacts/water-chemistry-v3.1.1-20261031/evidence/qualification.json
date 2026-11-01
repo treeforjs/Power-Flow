@@ -1,0 +1,62 @@
+{
+  "schema": "pfc-chemistry-audit-qualification-v1",
+  "created_utc": "2026-11-01T05:08:45.005353+00:00",
+  "status": "qualified-component-not-full-coupled-run",
+  "code_identity": "00a5f9b6e210f203503e27e1b07bfb5b40240fcc0dd7c6ab6d1b72eded9d0aef",
+  "runtime": "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031",
+  "source_baseline": "sealed v3.1, Power-Flow commit 848e3e9",
+  "baseline_regression_failures": 4,
+  "corrected_regression_passes": 11,
+  "core_normal_failures": 0,
+  "core_sanitized_failures": 0,
+  "sampled_events_normal": 111058,
+  "per_process_controls": "74 sampled processes x 2,000 conserving events; 6 no-data placeholders remain",
+  "immutable_input_bindings": 623,
+  "gpu": {
+    "fresh_processes": 2,
+    "carriers_per_case": 2000,
+    "step_cases": 6,
+    "launch_patterns": 3,
+    "math_values_per_process": 4194304,
+    "record_and_ledger_digests_identical": true,
+    "timings_are_not_qualified_benchmarks": true
+  },
+  "strict_policy": {
+    "bounded_regions": 48,
+    "refusing_unbounded_regions": 87,
+    "admitted_unbounded_regions": 0,
+    "reachability_schema": "pfc-region-reachable-support-v1"
+  },
+  "jobs": {
+    "229": "baseline-red",
+    "249": "superseded-before-reachable-support",
+    "250": "superseded-before-reachable-support",
+    "254": "superseded-before-reachable-support",
+    "261": "final-cpu-policy-inputs",
+    "262": "final-gpu-build",
+    "263": "final-sanitizer",
+    "266": "v3.2-adoption-dry-run-and-syntax",
+    "268": "final-gpu-parity-two-processes"
+  },
+  "v3.2_adoption": {
+    "base_hashes": 9,
+    "patched_paths": [
+      "include/pf_chem_v3/chem_event.h",
+      "include/pf_chem_v3/chem_host.hpp",
+      "tests/test_common.hpp",
+      "tools/build_tables.py",
+      "tools/make_coverage_policy.py"
+    ],
+    "apply_check": true,
+    "syntax_check": true,
+    "active_runtime_edited": false,
+    "qualification": "owner integration and full v3.2 requalification required"
+  },
+  "limitations": [
+    "No full coupled production run or shielding/fragmentation convergence demonstrated.",
+    "Thermal bounds cover the declared truncated target support and tabulated bound models, not unknown experimental physics.",
+    "Bounded-region event threshold remains per region/per step; not a total/cumulative network-error bound.",
+    "Strict production refuses reachable unbounded channels, including cold zero-X support.",
+    "Neutral partial-weight parcels change release discretization and require incompatible checkpoint/digest migration."
+  ]
+}

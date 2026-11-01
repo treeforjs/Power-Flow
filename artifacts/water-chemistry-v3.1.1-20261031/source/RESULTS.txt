@@ -1,0 +1,34 @@
+Water chemistry v3.1.1 audit corrections -- qualified standalone component
+======================================================================
+Code identity: 00a5f9b6e210f203503e27e1b07bfb5b40240fcc0dd7c6ab6d1b72eded9d0aef
+Blob: 70fcc2adc2fdaa62abed7ed02d68ffc09b1b18554eda8fa99c5451120ae454b8
+Strict policy: 15d44a91b8af93e0b14beb89434c55dc402e7196f10ca4bdaa2357564474b2d3
+Frozen userspace and 623 source-data/dependency bindings unchanged.
+
+Final evidence (SimQueue; one allocated Powerflow core, 3 GB memory):
+ - Baseline: 4 audited regressions fail against original v3.1 headers (expected).
+ - CPU 261: 11 new regressions pass; 111,058 sampled events; 74 processes each have 2,000
+   conserving targeted events; 4 million majorant probes; 2,498 source breakpoints;
+   partition records/ledgers equal for 1/2/5/8 partitions. No failures.
+ - Sanitizer 263: 11 regressions and inherited core suite pass ASan+UBSan.
+ - GPU 268: 2 fresh processes; 6 step cases x 3 launch patterns each, 2,000 carriers/case;
+  4,194,304 math values/process. All populated records and ledgers CPU/GPU bit
+   identical, including hot-co-moving, thermal threshold and cold zero-X support.
+   Shared 3 GB GPU claim; timing output is diagnostic, not a benchmark.
+ - Adoption 266: proposed v3.2 patch applies to 9 exact captured base-file hashes;
+   patched headers compile with the audit interface. Active v3.2 is untouched.
+
+Corrections:
+ - Thermal-support upper bounds replace drift-only missing-reaction exposure.
+ - region_support separately preserves reachable unknown channels at X=B=0;
+   strict policy uses support, not a fabricated nonzero exposure.
+ - Actual neutral parcels preserve position/velocity and exact count/P/K. Partial
+   weights <=w0 release directly; caps refuse atomically; legacy signed stocks
+   refuse. Native checkpoint/ledger scheme must migrate explicitly.
+ - GAS-return collisions do not debit tracked target inventory.
+ - Strict default: 48 bounded regions, 87 refusing unbounded, 0 admitted unbounded.
+   Mixed/partial placeholder channels cannot be certified by finite bound rows.
+
+This does not qualify the full 60 ns coupled run, complete chemistry network, or
+sheath/grid/macroparticle/material convergence. See INTEGRATION.txt and the
+qualification receipt. No production simulation was launched.

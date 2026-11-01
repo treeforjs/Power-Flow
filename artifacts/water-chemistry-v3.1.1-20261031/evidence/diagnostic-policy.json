@@ -1,0 +1,1561 @@
+{
+ "schema": "pfc-chem-v3.1-coverage-policy-1",
+ "model_mode": "diagnostic-admit-unknown",
+ "qualification": "No-data and above-grid channels refuse by default; diagnostic opt-in is not full-chemistry qualification.",
+ "reachability_schema": "pfc-region-reachable-support-v1",
+ "blob_sha256": "70fcc2adc2fdaa62abed7ed02d68ffc09b1b18554eda8fa99c5451120ae454b8",
+ "manifest_sha256": "a92d766dadd1b6d08832bca03a7a776b0df855d11d689337f3bb7819fff62855",
+ "region_count": 135,
+ "policy": {
+  "bounded_regions": "refuse the step iff B_r > max(event_limit, fraction * A)",
+  "event_limit_physical_events": 1.0,
+  "fraction": 0.01,
+  "A": "applied physical events of the step: sum of event weights W over all real events of both collision stages",
+  "B_r": "bound of region r in the step: sum over carriers and stages of W n v sigma_bound dt (physical events)",
+  "unbounded_regions": "refuse the step iff region_support[r] > 0, unless the region index is in admitted_unbounded_regions",
+  "region_support": "number of positive-weight positive-density positive-time carrier-stage records with reachable support in region r; includes zero relative speed and zero X_r",
+  "region_identity": "regions are identified by index and name (blob strings section); a mismatch of blob_sha256 refuses the policy"
+ },
+ "admitted_unbounded_regions": [
+  {
+   "index": 28,
+   "name": "e+H2O|e + H2O -> e + H2O (elastic),e + H2O -> E + H2O(J=1) (rotational, 0.004604 eV),e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> E + H2O(010) (vibrational, 0.198 eV),e + H2O -> E + H2O[(100)+(001)] (vibrational, 0.466 eV),e + H2O -> e + OH + H via E + H2O(D~1A1) (10.12 eV),e + H2O -> e + OH + H via E + H2O[C~1B1(100) + 3B1] (10.35 eV),e + H2O -> e + OH + H via E + H2O[1B1 + D~1A1(100)] (10.55 eV),e + H2O -> e + OH + H via E + H2O(3A2) (10.7 eV),e + H2O -> e + OH + H via E + H2O[D~1A1(110) + C~1B1(200)] (10.77 eV),e + H2O -> e + OH + H via E + H2O(1A2) (10.84 eV),e + H2O -> e + OH + H via E + H2O[e~3B1 + E~1B1 + D~1A1(200)] (10.97 eV),e + H2O -> e + OH + H via E + H2O(3B2 + 1B2 + 3B2) (11.1 eV),e + H2O -> e + OH + H via E + H2O(3A1 + 1A2 + 1A1 + 3A2 + 1B1 + 3B1) (11.23 eV),e + H2O -> e + OH + H via E + H2O(1B1 + 3B1 + 3A1 + 1A1) (11.35 eV),e + H2O -> e + OH + H via E + H2O(1B2 + 3B2 + 3B1 + 1B1) (11.5 eV),e + H2O -> e + OH + H via E + H2O(3A2 + 1A2) (11.61 eV),e + H2O -> e + OH + H via E + H2O(3B1) (11.68 eV),e + H2O -> e + OH + H via E + H2O(1B1) (11.75 eV),e + H2O -> e + OH + H via E + H2O(3A1 + 1A1) (11.8 eV),e + H2O -> e + OH + H via E + H2O(1A1 + 3B1 + 1B1) (11.9 eV),e + H2O -> e + OH + H via E + H2O(1A1) (12.06 eV),e + H2O -> e + OH + H via E + H2O* (12.5 eV),e + H2O -> e + OH + H via E + H2O(a~ 3B1) (7.14 eV),e + H2O -> e + OH + H via E + H2O(A~ 1B1) (7.49 eV),e + H2O -> e + OH + H via E + H2O(3A2) (8.9 eV),e + H2O -> e + OH + H via E + H2O(1A2) (9.2 eV),e + H2O -> e + OH + H via E + H2O(b~3A1) (9.46 eV),e + H2O -> e + OH + H via E + H2O(B~1A1) (9.73 eV),e + H2O -> e + OH + H via E + H2O(d~3A1) (9.82 eV),e + H2O -> e + OH + H via E + H2O(c~3B1 + C1B1) (9.98 eV),e + H2O -> 2e + H2O+,e + H2O -> 2e + OH+ + H,e + H2O -> 2e + H+ + OH,e + H2O -> 2e + O+ + H2,e + H2O -> 2e + H2+ + O,e + H2O -> 3e + O++ + H2,e + H2O -> e + H+ + OH- (ion pair),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> H- + OH,e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e7 eV",
+   "group": "e+H2O",
+   "decade_eV": 7,
+   "processes": [
+    "e + H2O -> e + H2O (elastic)",
+    "e + H2O -> E + H2O(J=1) (rotational, 0.004604 eV)",
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> E + H2O(010) (vibrational, 0.198 eV)",
+    "e + H2O -> E + H2O[(100)+(001)] (vibrational, 0.466 eV)",
+    "e + H2O -> e + OH + H via E + H2O(D~1A1) (10.12 eV)",
+    "e + H2O -> e + OH + H via E + H2O[C~1B1(100) + 3B1] (10.35 eV)",
+    "e + H2O -> e + OH + H via E + H2O[1B1 + D~1A1(100)] (10.55 eV)",
+    "e + H2O -> e + OH + H via E + H2O(3A2) (10.7 eV)",
+    "e + H2O -> e + OH + H via E + H2O[D~1A1(110) + C~1B1(200)] (10.77 eV)",
+    "e + H2O -> e + OH + H via E + H2O(1A2) (10.84 eV)",
+    "e + H2O -> e + OH + H via E + H2O[e~3B1 + E~1B1 + D~1A1(200)] (10.97 eV)",
+    "e + H2O -> e + OH + H via E + H2O(3B2 + 1B2 + 3B2) (11.1 eV)",
+    "e + H2O -> e + OH + H via E + H2O(3A1 + 1A2 + 1A1 + 3A2 + 1B1 + 3B1) (11.23 eV)",
+    "e + H2O -> e + OH + H via E + H2O(1B1 + 3B1 + 3A1 + 1A1) (11.35 eV)",
+    "e + H2O -> e + OH + H via E + H2O(1B2 + 3B2 + 3B1 + 1B1) (11.5 eV)",
+    "e + H2O -> e + OH + H via E + H2O(3A2 + 1A2) (11.61 eV)",
+    "e + H2O -> e + OH + H via E + H2O(3B1) (11.68 eV)",
+    "e + H2O -> e + OH + H via E + H2O(1B1) (11.75 eV)",
+    "e + H2O -> e + OH + H via E + H2O(3A1 + 1A1) (11.8 eV)",
+    "e + H2O -> e + OH + H via E + H2O(1A1 + 3B1 + 1B1) (11.9 eV)",
+    "e + H2O -> e + OH + H via E + H2O(1A1) (12.06 eV)",
+    "e + H2O -> e + OH + H via E + H2O* (12.5 eV)",
+    "e + H2O -> e + OH + H via E + H2O(a~ 3B1) (7.14 eV)",
+    "e + H2O -> e + OH + H via E + H2O(A~ 1B1) (7.49 eV)",
+    "e + H2O -> e + OH + H via E + H2O(3A2) (8.9 eV)",
+    "e + H2O -> e + OH + H via E + H2O(1A2) (9.2 eV)",
+    "e + H2O -> e + OH + H via E + H2O(b~3A1) (9.46 eV)",
+    "e + H2O -> e + OH + H via E + H2O(B~1A1) (9.73 eV)",
+    "e + H2O -> e + OH + H via E + H2O(d~3A1) (9.82 eV)",
+    "e + H2O -> e + OH + H via E + H2O(c~3B1 + C1B1) (9.98 eV)",
+    "e + H2O -> 2e + H2O+",
+    "e + H2O -> 2e + OH+ + H",
+    "e + H2O -> 2e + H+ + OH",
+    "e + H2O -> 2e + O+ + H2",
+    "e + H2O -> 2e + H2+ + O",
+    "e + H2O -> 3e + O++ + H2",
+    "e + H2O -> e + H+ + OH- (ion pair)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> H- + OH",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 31,
+   "name": "e+H|e + H -> 2e + H+|decade 1e7 eV",
+   "group": "e+H",
+   "decade_eV": 7,
+   "processes": [
+    "e + H -> 2e + H+"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 33,
+   "name": "e+Fe|e + Fe -> 2e + Fe+|decade 1e7 eV",
+   "group": "e+Fe",
+   "decade_eV": 7,
+   "processes": [
+    "e + Fe -> 2e + Fe+"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 36,
+   "name": "e+Cr|e + Cr -> 2e + Cr+|decade 1e7 eV",
+   "group": "e+Cr",
+   "decade_eV": 7,
+   "processes": [
+    "e + Cr -> 2e + Cr+"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 38,
+   "name": "e+Ni|e + Ni -> 2e + Ni+|decade 1e7 eV",
+   "group": "e+Ni",
+   "decade_eV": 7,
+   "processes": [
+    "e + Ni -> 2e + Ni+"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 42,
+   "name": "H2O++H2O|H2O+ + H2O -> H3O+ + OH (proton transfer),H2O+ + H2O -> H2O(fast) + H2O+ (symmetric charge exchange),H2O+ + H2O momentum transfer (Langevin polarization model)|decade 1e7 eV",
+   "group": "H2O++H2O",
+   "decade_eV": 7,
+   "processes": [
+    "H2O+ + H2O -> H3O+ + OH (proton transfer)",
+    "H2O+ + H2O -> H2O(fast) + H2O+ (symmetric charge exchange)",
+    "H2O+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 44,
+   "name": "H3O++H2O|H3O+ + H2O momentum transfer (Langevin polarization model)|decade 1e7 eV",
+   "group": "H3O++H2O",
+   "decade_eV": 7,
+   "processes": [
+    "H3O+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 49,
+   "name": "OH++H2O|OH+ + H2O -> H2O+ + OH (thermal),OH+ + H2O -> H3O+ + O (thermal),OH+ + H2O momentum transfer (Langevin polarization model)|decade 1e7 eV",
+   "group": "OH++H2O",
+   "decade_eV": 7,
+   "processes": [
+    "OH+ + H2O -> H2O+ + OH (thermal)",
+    "OH+ + H2O -> H3O+ + O (thermal)",
+    "OH+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 54,
+   "name": "H2++H2O|H2+ + H2O -> H2O+ + H2 (thermal),H2+ + H2O -> H3O+ + H (thermal),H2+ + H2O momentum transfer (Langevin polarization model)|decade 1e7 eV",
+   "group": "H2++H2O",
+   "decade_eV": 7,
+   "processes": [
+    "H2+ + H2O -> H2O+ + H2 (thermal)",
+    "H2+ + H2O -> H3O+ + H (thermal)",
+    "H2+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 61,
+   "name": "H++H2O|H+ + H2O -> H + H2O+ (charge transfer),H+ + H2O momentum transfer (Langevin polarization model)|decade 1e7 eV",
+   "group": "H++H2O",
+   "decade_eV": 7,
+   "processes": [
+    "H+ + H2O -> H + H2O+ (charge transfer)",
+    "H+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 65,
+   "name": "O++H2O|O+ + H2O -> H2O+ + O (charge transfer),O+ + H2O momentum transfer (Langevin polarization model)|decade 1e7 eV",
+   "group": "O++H2O",
+   "decade_eV": 7,
+   "processes": [
+    "O+ + H2O -> H2O+ + O (charge transfer)",
+    "O+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 67,
+   "name": "O+++H2O|O++ + H2O momentum transfer (Langevin polarization model)|decade 1e7 eV",
+   "group": "O+++H2O",
+   "decade_eV": 7,
+   "processes": [
+    "O++ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 68,
+   "name": "H-+H2O|H- + H2O -> OH- + H2 (no data)|decade 1e-6 eV",
+   "group": "H-+H2O",
+   "decade_eV": -6,
+   "processes": [
+    "H- + H2O -> OH- + H2 (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 69,
+   "name": "H-+H2O|H- + H2O -> OH- + H2 (no data)|decade 1e-5 eV",
+   "group": "H-+H2O",
+   "decade_eV": -5,
+   "processes": [
+    "H- + H2O -> OH- + H2 (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 70,
+   "name": "H-+H2O|H- + H2O -> OH- + H2 (no data)|decade 1e-4 eV",
+   "group": "H-+H2O",
+   "decade_eV": -4,
+   "processes": [
+    "H- + H2O -> OH- + H2 (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 71,
+   "name": "H-+H2O|H- + H2O -> OH- + H2 (no data)|decade 1e-3 eV",
+   "group": "H-+H2O",
+   "decade_eV": -3,
+   "processes": [
+    "H- + H2O -> OH- + H2 (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 72,
+   "name": "H-+H2O|H- + H2O -> OH- + H2 (no data)|decade 1e-2 eV",
+   "group": "H-+H2O",
+   "decade_eV": -2,
+   "processes": [
+    "H- + H2O -> OH- + H2 (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 73,
+   "name": "H-+H2O|H- + H2O -> OH- + H2 (no data)|decade 1e-1 eV",
+   "group": "H-+H2O",
+   "decade_eV": -1,
+   "processes": [
+    "H- + H2O -> OH- + H2 (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 77,
+   "name": "H-+H2O|H- + H2O -> OH- + H2 (no data)|decade 1e1 eV",
+   "group": "H-+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "H- + H2O -> OH- + H2 (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 78,
+   "name": "H-+H2O|H- + H2O -> OH- + H2 (no data)|decade 1e2 eV",
+   "group": "H-+H2O",
+   "decade_eV": 2,
+   "processes": [
+    "H- + H2O -> OH- + H2 (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 84,
+   "name": "H-+H2O|H- + H2O -> H + e + H2O (collisional detachment),H- + H2O -> OH- + H2 (no data),H- + H2O momentum transfer (Langevin polarization model)|decade 1e7 eV",
+   "group": "H-+H2O",
+   "decade_eV": 7,
+   "processes": [
+    "H- + H2O -> H + e + H2O (collisional detachment)",
+    "H- + H2O -> OH- + H2 (no data)",
+    "H- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 85,
+   "name": "O-+H2O|O- + H2O -> OH- + OH (no data),O- + H2O -> O + e + H2O (detachment) (no data)|decade 1e-6 eV",
+   "group": "O-+H2O",
+   "decade_eV": -6,
+   "processes": [
+    "O- + H2O -> OH- + OH (no data)",
+    "O- + H2O -> O + e + H2O (detachment) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 86,
+   "name": "O-+H2O|O- + H2O -> OH- + OH (no data)|decade 1e-1 eV",
+   "group": "O-+H2O",
+   "decade_eV": -1,
+   "processes": [
+    "O- + H2O -> OH- + OH (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 87,
+   "name": "O-+H2O|O- + H2O -> OH- + OH (no data)|decade 1e0 eV",
+   "group": "O-+H2O",
+   "decade_eV": 0,
+   "processes": [
+    "O- + H2O -> OH- + OH (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 88,
+   "name": "O-+H2O|O- + H2O -> OH- + OH (no data),O- + H2O -> O + e + H2O (detachment) (no data)|decade 1e0 eV",
+   "group": "O-+H2O",
+   "decade_eV": 0,
+   "processes": [
+    "O- + H2O -> OH- + OH (no data)",
+    "O- + H2O -> O + e + H2O (detachment) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 89,
+   "name": "O-+H2O|O- + H2O -> OH- + OH (no data),O- + H2O -> O + e + H2O (detachment) (no data)|decade 1e1 eV",
+   "group": "O-+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "O- + H2O -> OH- + OH (no data)",
+    "O- + H2O -> O + e + H2O (detachment) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 90,
+   "name": "O-+H2O|O- + H2O -> OH- + OH (no data),O- + H2O -> O + e + H2O (detachment) (no data)|decade 1e2 eV",
+   "group": "O-+H2O",
+   "decade_eV": 2,
+   "processes": [
+    "O- + H2O -> OH- + OH (no data)",
+    "O- + H2O -> O + e + H2O (detachment) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 95,
+   "name": "O-+H2O|O- + H2O -> OH- + OH (no data),O- + H2O -> O + e + H2O (detachment) (no data),O- + H2O momentum transfer (Langevin polarization model)|decade 1e7 eV",
+   "group": "O-+H2O",
+   "decade_eV": 7,
+   "processes": [
+    "O- + H2O -> OH- + OH (no data)",
+    "O- + H2O -> O + e + H2O (detachment) (no data)",
+    "O- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 96,
+   "name": "OH-+H2O|OH- + H2O -> OH + e + H2O (detachment) (no data)|decade 1e-6 eV",
+   "group": "OH-+H2O",
+   "decade_eV": -6,
+   "processes": [
+    "OH- + H2O -> OH + e + H2O (detachment) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 97,
+   "name": "OH-+H2O|OH- + H2O -> OH + e + H2O (detachment) (no data)|decade 1e0 eV",
+   "group": "OH-+H2O",
+   "decade_eV": 0,
+   "processes": [
+    "OH- + H2O -> OH + e + H2O (detachment) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 98,
+   "name": "OH-+H2O|OH- + H2O -> OH + e + H2O (detachment) (no data)|decade 1e1 eV",
+   "group": "OH-+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "OH- + H2O -> OH + e + H2O (detachment) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 99,
+   "name": "OH-+H2O|OH- + H2O -> OH + e + H2O (detachment) (no data)|decade 1e2 eV",
+   "group": "OH-+H2O",
+   "decade_eV": 2,
+   "processes": [
+    "OH- + H2O -> OH + e + H2O (detachment) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 104,
+   "name": "OH-+H2O|OH- + H2O -> OH + e + H2O (detachment) (no data),OH- + H2O momentum transfer (Langevin polarization model)|decade 1e7 eV",
+   "group": "OH-+H2O",
+   "decade_eV": 7,
+   "processes": [
+    "OH- + H2O -> OH + e + H2O (detachment) (no data)",
+    "OH- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 106,
+   "name": "H-+H|H- + H -> H2 + e (associative detachment)|decade 1e7 eV",
+   "group": "H-+H",
+   "decade_eV": 7,
+   "processes": [
+    "H- + H -> H2 + e (associative detachment)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 108,
+   "name": "e+H2O+|e + H2O+ -> OH + H (DR),e + H2O+ -> O + H2 (DR),e + H2O+ -> O + H + H (DR)|decade 1e7 eV",
+   "group": "e+H2O+",
+   "decade_eV": 7,
+   "processes": [
+    "e + H2O+ -> OH + H (DR)",
+    "e + H2O+ -> O + H2 (DR)",
+    "e + H2O+ -> O + H + H (DR)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 110,
+   "name": "e+H3O+|e + H3O+ -> H2O + H (DR),e + H3O+ -> OH + H2 (DR),e + H3O+ -> OH + H + H (DR),e + H3O+ -> O + H2 + H (DR)|decade 1e7 eV",
+   "group": "e+H3O+",
+   "decade_eV": 7,
+   "processes": [
+    "e + H3O+ -> H2O + H (DR)",
+    "e + H3O+ -> OH + H2 (DR)",
+    "e + H3O+ -> OH + H + H (DR)",
+    "e + H3O+ -> O + H2 + H (DR)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 111,
+   "name": "e+OH+|e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)|decade 1e-6 eV",
+   "group": "e+OH+",
+   "decade_eV": -6,
+   "processes": [
+    "e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 112,
+   "name": "e+OH+|e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)|decade 1e-5 eV",
+   "group": "e+OH+",
+   "decade_eV": -5,
+   "processes": [
+    "e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 113,
+   "name": "e+OH+|e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)|decade 1e-4 eV",
+   "group": "e+OH+",
+   "decade_eV": -4,
+   "processes": [
+    "e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 114,
+   "name": "e+OH+|e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)|decade 1e-3 eV",
+   "group": "e+OH+",
+   "decade_eV": -3,
+   "processes": [
+    "e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 115,
+   "name": "e+OH+|e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)|decade 1e-2 eV",
+   "group": "e+OH+",
+   "decade_eV": -2,
+   "processes": [
+    "e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 116,
+   "name": "e+OH+|e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)|decade 1e0 eV",
+   "group": "e+OH+",
+   "decade_eV": 0,
+   "processes": [
+    "e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 117,
+   "name": "e+OH+|e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)|decade 1e1 eV",
+   "group": "e+OH+",
+   "decade_eV": 1,
+   "processes": [
+    "e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 118,
+   "name": "e+OH+|e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)|decade 1e2 eV",
+   "group": "e+OH+",
+   "decade_eV": 2,
+   "processes": [
+    "e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 119,
+   "name": "e+OH+|e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)|decade 1e4 eV",
+   "group": "e+OH+",
+   "decade_eV": 4,
+   "processes": [
+    "e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 120,
+   "name": "e+OH+|e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)|decade 1e5 eV",
+   "group": "e+OH+",
+   "decade_eV": 5,
+   "processes": [
+    "e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 121,
+   "name": "e+OH+|e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)|decade 1e6 eV",
+   "group": "e+OH+",
+   "decade_eV": 6,
+   "processes": [
+    "e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 122,
+   "name": "e+OH+|e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)|decade 1e7 eV",
+   "group": "e+OH+",
+   "decade_eV": 7,
+   "processes": [
+    "e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  },
+  {
+   "index": 123,
+   "name": "H3O++OH-|H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)|decade 1e-6 eV",
+   "group": "H3O++OH-",
+   "decade_eV": -6,
+   "processes": [
+    "H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 124,
+   "name": "H3O++OH-|H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)|decade 1e-5 eV",
+   "group": "H3O++OH-",
+   "decade_eV": -5,
+   "processes": [
+    "H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 125,
+   "name": "H3O++OH-|H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)|decade 1e-4 eV",
+   "group": "H3O++OH-",
+   "decade_eV": -4,
+   "processes": [
+    "H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 126,
+   "name": "H3O++OH-|H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)|decade 1e-3 eV",
+   "group": "H3O++OH-",
+   "decade_eV": -3,
+   "processes": [
+    "H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 127,
+   "name": "H3O++OH-|H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)|decade 1e-2 eV",
+   "group": "H3O++OH-",
+   "decade_eV": -2,
+   "processes": [
+    "H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 128,
+   "name": "H3O++OH-|H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)|decade 1e0 eV",
+   "group": "H3O++OH-",
+   "decade_eV": 0,
+   "processes": [
+    "H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 129,
+   "name": "H3O++OH-|H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)|decade 1e1 eV",
+   "group": "H3O++OH-",
+   "decade_eV": 1,
+   "processes": [
+    "H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 130,
+   "name": "H3O++OH-|H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)|decade 1e2 eV",
+   "group": "H3O++OH-",
+   "decade_eV": 2,
+   "processes": [
+    "H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 131,
+   "name": "H3O++OH-|H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)|decade 1e4 eV",
+   "group": "H3O++OH-",
+   "decade_eV": 4,
+   "processes": [
+    "H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 132,
+   "name": "H3O++OH-|H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)|decade 1e5 eV",
+   "group": "H3O++OH-",
+   "decade_eV": 5,
+   "processes": [
+    "H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 133,
+   "name": "H3O++OH-|H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)|decade 1e6 eV",
+   "group": "H3O++OH-",
+   "decade_eV": 6,
+   "processes": [
+    "H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)"
+   ],
+   "reason": "no-data placeholder process(es): never sampled, exposure recorded"
+  },
+  {
+   "index": 134,
+   "name": "H3O++OH-|H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)|decade 1e7 eV",
+   "group": "H3O++OH-",
+   "decade_eV": 7,
+   "processes": [
+    "H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)"
+   ],
+   "reason": "above the top of the tables (10 MeV)"
+  }
+ ],
+ "refusing_unbounded_regions": [
+  {
+   "index": 0,
+   "name": "e+H2O|e + H2O -> e + H2O (elastic)|decade 1e-6 eV",
+   "group": "e+H2O",
+   "decade_eV": -6,
+   "processes": [
+    "e + H2O -> e + H2O (elastic)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 41,
+   "name": "H2O++H2O|H2O+ + H2O -> H3O+ + OH (proton transfer),H2O+ + H2O -> H2O(fast) + H2O+ (symmetric charge exchange),H2O+ + H2O momentum transfer (Langevin polarization model)|decade 1e3 eV",
+   "group": "H2O++H2O",
+   "decade_eV": 3,
+   "processes": [
+    "H2O+ + H2O -> H3O+ + OH (proton transfer)",
+    "H2O+ + H2O -> H2O(fast) + H2O+ (symmetric charge exchange)",
+    "H2O+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 43,
+   "name": "H3O++H2O|H3O+ + H2O momentum transfer (Langevin polarization model)|decade 1e3 eV",
+   "group": "H3O++H2O",
+   "decade_eV": 3,
+   "processes": [
+    "H3O+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 48,
+   "name": "OH++H2O|OH+ + H2O -> H2O+ + OH (thermal),OH+ + H2O -> H3O+ + O (thermal),OH+ + H2O momentum transfer (Langevin polarization model)|decade 1e3 eV",
+   "group": "OH++H2O",
+   "decade_eV": 3,
+   "processes": [
+    "OH+ + H2O -> H2O+ + OH (thermal)",
+    "OH+ + H2O -> H3O+ + O (thermal)",
+    "OH+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 53,
+   "name": "H2++H2O|H2+ + H2O -> H2O+ + H2 (thermal),H2+ + H2O -> H3O+ + H (thermal),H2+ + H2O momentum transfer (Langevin polarization model)|decade 1e3 eV",
+   "group": "H2++H2O",
+   "decade_eV": 3,
+   "processes": [
+    "H2+ + H2O -> H2O+ + H2 (thermal)",
+    "H2+ + H2O -> H3O+ + H (thermal)",
+    "H2+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 57,
+   "name": "H++H2O|H+ + H2O momentum transfer (Langevin polarization model)|decade 1e3 eV",
+   "group": "H++H2O",
+   "decade_eV": 3,
+   "processes": [
+    "H+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 58,
+   "name": "H++H2O|H+ + H2O momentum transfer (Langevin polarization model)|decade 1e4 eV",
+   "group": "H++H2O",
+   "decade_eV": 4,
+   "processes": [
+    "H+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 59,
+   "name": "H++H2O|H+ + H2O momentum transfer (Langevin polarization model)|decade 1e5 eV",
+   "group": "H++H2O",
+   "decade_eV": 5,
+   "processes": [
+    "H+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 60,
+   "name": "H++H2O|H+ + H2O -> H + H2O+ (charge transfer),H+ + H2O momentum transfer (Langevin polarization model)|decade 1e5 eV",
+   "group": "H++H2O",
+   "decade_eV": 5,
+   "processes": [
+    "H+ + H2O -> H + H2O+ (charge transfer)",
+    "H+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 64,
+   "name": "O++H2O|O+ + H2O -> H2O+ + O (charge transfer),O+ + H2O momentum transfer (Langevin polarization model)|decade 1e3 eV",
+   "group": "O++H2O",
+   "decade_eV": 3,
+   "processes": [
+    "O+ + H2O -> H2O+ + O (charge transfer)",
+    "O+ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 66,
+   "name": "O+++H2O|O++ + H2O momentum transfer (Langevin polarization model)|decade 1e3 eV",
+   "group": "O+++H2O",
+   "decade_eV": 3,
+   "processes": [
+    "O++ + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 74,
+   "name": "H-+H2O|H- + H2O -> H + e + H2O (collisional detachment),H- + H2O -> OH- + H2 (no data)|decade 1e-1 eV",
+   "group": "H-+H2O",
+   "decade_eV": -1,
+   "processes": [
+    "H- + H2O -> H + e + H2O (collisional detachment)",
+    "H- + H2O -> OH- + H2 (no data)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 75,
+   "name": "H-+H2O|H- + H2O -> H + e + H2O (collisional detachment),H- + H2O -> OH- + H2 (no data)|decade 1e0 eV",
+   "group": "H-+H2O",
+   "decade_eV": 0,
+   "processes": [
+    "H- + H2O -> H + e + H2O (collisional detachment)",
+    "H- + H2O -> OH- + H2 (no data)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 76,
+   "name": "H-+H2O|H- + H2O -> H + e + H2O (collisional detachment),H- + H2O -> OH- + H2 (no data)|decade 1e1 eV",
+   "group": "H-+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "H- + H2O -> H + e + H2O (collisional detachment)",
+    "H- + H2O -> OH- + H2 (no data)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 79,
+   "name": "H-+H2O|H- + H2O -> OH- + H2 (no data),H- + H2O momentum transfer (Langevin polarization model)|decade 1e3 eV",
+   "group": "H-+H2O",
+   "decade_eV": 3,
+   "processes": [
+    "H- + H2O -> OH- + H2 (no data)",
+    "H- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 80,
+   "name": "H-+H2O|H- + H2O -> OH- + H2 (no data),H- + H2O momentum transfer (Langevin polarization model)|decade 1e4 eV",
+   "group": "H-+H2O",
+   "decade_eV": 4,
+   "processes": [
+    "H- + H2O -> OH- + H2 (no data)",
+    "H- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 81,
+   "name": "H-+H2O|H- + H2O -> OH- + H2 (no data),H- + H2O momentum transfer (Langevin polarization model)|decade 1e5 eV",
+   "group": "H-+H2O",
+   "decade_eV": 5,
+   "processes": [
+    "H- + H2O -> OH- + H2 (no data)",
+    "H- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 82,
+   "name": "H-+H2O|H- + H2O -> H + e + H2O (collisional detachment),H- + H2O -> OH- + H2 (no data),H- + H2O momentum transfer (Langevin polarization model)|decade 1e5 eV",
+   "group": "H-+H2O",
+   "decade_eV": 5,
+   "processes": [
+    "H- + H2O -> H + e + H2O (collisional detachment)",
+    "H- + H2O -> OH- + H2 (no data)",
+    "H- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 83,
+   "name": "H-+H2O|H- + H2O -> H + e + H2O (collisional detachment),H- + H2O -> OH- + H2 (no data),H- + H2O momentum transfer (Langevin polarization model)|decade 1e6 eV",
+   "group": "H-+H2O",
+   "decade_eV": 6,
+   "processes": [
+    "H- + H2O -> H + e + H2O (collisional detachment)",
+    "H- + H2O -> OH- + H2 (no data)",
+    "H- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 91,
+   "name": "O-+H2O|O- + H2O -> OH- + OH (no data),O- + H2O -> O + e + H2O (detachment) (no data),O- + H2O momentum transfer (Langevin polarization model)|decade 1e3 eV",
+   "group": "O-+H2O",
+   "decade_eV": 3,
+   "processes": [
+    "O- + H2O -> OH- + OH (no data)",
+    "O- + H2O -> O + e + H2O (detachment) (no data)",
+    "O- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 92,
+   "name": "O-+H2O|O- + H2O -> OH- + OH (no data),O- + H2O -> O + e + H2O (detachment) (no data),O- + H2O momentum transfer (Langevin polarization model)|decade 1e4 eV",
+   "group": "O-+H2O",
+   "decade_eV": 4,
+   "processes": [
+    "O- + H2O -> OH- + OH (no data)",
+    "O- + H2O -> O + e + H2O (detachment) (no data)",
+    "O- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 93,
+   "name": "O-+H2O|O- + H2O -> OH- + OH (no data),O- + H2O -> O + e + H2O (detachment) (no data),O- + H2O momentum transfer (Langevin polarization model)|decade 1e5 eV",
+   "group": "O-+H2O",
+   "decade_eV": 5,
+   "processes": [
+    "O- + H2O -> OH- + OH (no data)",
+    "O- + H2O -> O + e + H2O (detachment) (no data)",
+    "O- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 94,
+   "name": "O-+H2O|O- + H2O -> OH- + OH (no data),O- + H2O -> O + e + H2O (detachment) (no data),O- + H2O momentum transfer (Langevin polarization model)|decade 1e6 eV",
+   "group": "O-+H2O",
+   "decade_eV": 6,
+   "processes": [
+    "O- + H2O -> OH- + OH (no data)",
+    "O- + H2O -> O + e + H2O (detachment) (no data)",
+    "O- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 100,
+   "name": "OH-+H2O|OH- + H2O -> OH + e + H2O (detachment) (no data),OH- + H2O momentum transfer (Langevin polarization model)|decade 1e3 eV",
+   "group": "OH-+H2O",
+   "decade_eV": 3,
+   "processes": [
+    "OH- + H2O -> OH + e + H2O (detachment) (no data)",
+    "OH- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 101,
+   "name": "OH-+H2O|OH- + H2O -> OH + e + H2O (detachment) (no data),OH- + H2O momentum transfer (Langevin polarization model)|decade 1e4 eV",
+   "group": "OH-+H2O",
+   "decade_eV": 4,
+   "processes": [
+    "OH- + H2O -> OH + e + H2O (detachment) (no data)",
+    "OH- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 102,
+   "name": "OH-+H2O|OH- + H2O -> OH + e + H2O (detachment) (no data),OH- + H2O momentum transfer (Langevin polarization model)|decade 1e5 eV",
+   "group": "OH-+H2O",
+   "decade_eV": 5,
+   "processes": [
+    "OH- + H2O -> OH + e + H2O (detachment) (no data)",
+    "OH- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  },
+  {
+   "index": 103,
+   "name": "OH-+H2O|OH- + H2O -> OH + e + H2O (detachment) (no data),OH- + H2O momentum transfer (Langevin polarization model)|decade 1e6 eV",
+   "group": "OH-+H2O",
+   "decade_eV": 6,
+   "processes": [
+    "OH- + H2O -> OH + e + H2O (detachment) (no data)",
+    "OH- + H2O momentum transfer (Langevin polarization model)"
+   ],
+   "reason": "unbounded, not admitted (refuses when exposed)"
+  }
+ ],
+ "bounded_regions": [
+  {
+   "index": 1,
+   "name": "e+H2O|e + H2O -> OH- + H|decade 1e0 eV",
+   "group": "e+H2O",
+   "decade_eV": 0,
+   "processes": [
+    "e + H2O -> OH- + H"
+   ]
+  },
+  {
+   "index": 2,
+   "name": "e+H2O|e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e0 eV",
+   "group": "e+H2O",
+   "decade_eV": 0,
+   "processes": [
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 3,
+   "name": "e+H2O|e + H2O -> O- + H2|decade 1e0 eV",
+   "group": "e+H2O",
+   "decade_eV": 0,
+   "processes": [
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 4,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)|decade 1e0 eV",
+   "group": "e+H2O",
+   "decade_eV": 0,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)"
+   ]
+  },
+  {
+   "index": 5,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> e + OH + H via E + H2O(3A2) (8.9 eV)|decade 1e0 eV",
+   "group": "e+H2O",
+   "decade_eV": 0,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> e + OH + H via E + H2O(3A2) (8.9 eV)"
+   ]
+  },
+  {
+   "index": 6,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> e + OH + H via E + H2O(3A2) (8.9 eV),e + H2O -> e + OH + H via E + H2O(1A2) (9.2 eV)|decade 1e0 eV",
+   "group": "e+H2O",
+   "decade_eV": 0,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> e + OH + H via E + H2O(3A2) (8.9 eV)",
+    "e + H2O -> e + OH + H via E + H2O(1A2) (9.2 eV)"
+   ]
+  },
+  {
+   "index": 7,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> e + OH + H via E + H2O(3A2) (8.9 eV),e + H2O -> e + OH + H via E + H2O(1A2) (9.2 eV)|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> e + OH + H via E + H2O(3A2) (8.9 eV)",
+    "e + H2O -> e + OH + H via E + H2O(1A2) (9.2 eV)"
+   ]
+  },
+  {
+   "index": 8,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> e + OH + H via E + H2O(1A2) (9.2 eV)|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> e + OH + H via E + H2O(1A2) (9.2 eV)"
+   ]
+  },
+  {
+   "index": 9,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)"
+   ]
+  },
+  {
+   "index": 10,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> 2e + H2O+|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> 2e + H2O+"
+   ]
+  },
+  {
+   "index": 11,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> OH- + H|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> OH- + H"
+   ]
+  },
+  {
+   "index": 12,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> e + H+ + OH- (ion pair),e + H2O -> OH- + H|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> e + H+ + OH- (ion pair)",
+    "e + H2O -> OH- + H"
+   ]
+  },
+  {
+   "index": 13,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> OH- + H|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> OH- + H"
+   ]
+  },
+  {
+   "index": 14,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 15,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 16,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> 2e + O+ + H2,e + H2O -> e + OH+ + H- (ion pair),e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> 2e + O+ + H2",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 17,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> 2e + O+ + H2,e + H2O -> e + H+ + OH- (ion pair),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> 2e + O+ + H2",
+    "e + H2O -> e + H+ + OH- (ion pair)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 18,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> 2e + O+ + H2,e + H2O -> e + H+ + OH- (ion pair),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> H- + OH,e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> 2e + O+ + H2",
+    "e + H2O -> e + H+ + OH- (ion pair)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> H- + OH",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 19,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> e + H+ + OH- (ion pair),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> H- + OH,e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> e + H+ + OH- (ion pair)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> H- + OH",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 20,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> 2e + H2+ + O,e + H2O -> e + H+ + OH- (ion pair),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> H- + OH,e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> 2e + H2+ + O",
+    "e + H2O -> e + H+ + OH- (ion pair)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> H- + OH",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 21,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> 3e + O++ + H2,e + H2O -> e + H+ + OH- (ion pair),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> H- + OH,e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e1 eV",
+   "group": "e+H2O",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> 3e + O++ + H2",
+    "e + H2O -> e + H+ + OH- (ion pair)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> H- + OH",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 22,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> e + H+ + OH- (ion pair),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> H- + OH,e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e2 eV",
+   "group": "e+H2O",
+   "decade_eV": 2,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> e + H+ + OH- (ion pair)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> H- + OH",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 23,
+   "name": "e+H2O|e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> e + H+ + OH- (ion pair),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> H- + OH,e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e3 eV",
+   "group": "e+H2O",
+   "decade_eV": 3,
+   "processes": [
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> e + H+ + OH- (ion pair)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> H- + OH",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 24,
+   "name": "e+H2O|e + H2O -> E + H2O(J=1) (rotational, 0.004604 eV),e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> E + H2O(010) (vibrational, 0.198 eV),e + H2O -> E + H2O[(100)+(001)] (vibrational, 0.466 eV),e + H2O -> e + H+ + OH- (ion pair),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> H- + OH,e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e3 eV",
+   "group": "e+H2O",
+   "decade_eV": 3,
+   "processes": [
+    "e + H2O -> E + H2O(J=1) (rotational, 0.004604 eV)",
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> E + H2O(010) (vibrational, 0.198 eV)",
+    "e + H2O -> E + H2O[(100)+(001)] (vibrational, 0.466 eV)",
+    "e + H2O -> e + H+ + OH- (ion pair)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> H- + OH",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 25,
+   "name": "e+H2O|e + H2O -> e + H2O (elastic),e + H2O -> E + H2O(J=1) (rotational, 0.004604 eV),e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> E + H2O(010) (vibrational, 0.198 eV),e + H2O -> E + H2O[(100)+(001)] (vibrational, 0.466 eV),e + H2O -> e + H+ + OH- (ion pair),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> H- + OH,e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e4 eV",
+   "group": "e+H2O",
+   "decade_eV": 4,
+   "processes": [
+    "e + H2O -> e + H2O (elastic)",
+    "e + H2O -> E + H2O(J=1) (rotational, 0.004604 eV)",
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> E + H2O(010) (vibrational, 0.198 eV)",
+    "e + H2O -> E + H2O[(100)+(001)] (vibrational, 0.466 eV)",
+    "e + H2O -> e + H+ + OH- (ion pair)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> H- + OH",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 26,
+   "name": "e+H2O|e + H2O -> e + H2O (elastic),e + H2O -> E + H2O(J=1) (rotational, 0.004604 eV),e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> E + H2O(010) (vibrational, 0.198 eV),e + H2O -> E + H2O[(100)+(001)] (vibrational, 0.466 eV),e + H2O -> e + H+ + OH- (ion pair),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> H- + OH,e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e5 eV",
+   "group": "e+H2O",
+   "decade_eV": 5,
+   "processes": [
+    "e + H2O -> e + H2O (elastic)",
+    "e + H2O -> E + H2O(J=1) (rotational, 0.004604 eV)",
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> E + H2O(010) (vibrational, 0.198 eV)",
+    "e + H2O -> E + H2O[(100)+(001)] (vibrational, 0.466 eV)",
+    "e + H2O -> e + H+ + OH- (ion pair)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> H- + OH",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 27,
+   "name": "e+H2O|e + H2O -> e + H2O (elastic),e + H2O -> E + H2O(J=1) (rotational, 0.004604 eV),e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV),e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV),e + H2O -> E + H2O(010) (vibrational, 0.198 eV),e + H2O -> E + H2O[(100)+(001)] (vibrational, 0.466 eV),e + H2O -> e + H+ + OH- (ion pair),e + H2O -> e + OH+ + H- (ion pair),e + H2O -> H- + OH,e + H2O -> OH- + H,e + H2O -> O- + H2|decade 1e6 eV",
+   "group": "e+H2O",
+   "decade_eV": 6,
+   "processes": [
+    "e + H2O -> e + H2O (elastic)",
+    "e + H2O -> E + H2O(J=1) (rotational, 0.004604 eV)",
+    "e + H2O -> E + H2O(J=2) (rotational, 0.00869 eV)",
+    "e + H2O -> E + H2O(J=3) (rotational, 0.01764 eV)",
+    "e + H2O -> E + H2O(010) (vibrational, 0.198 eV)",
+    "e + H2O -> E + H2O[(100)+(001)] (vibrational, 0.466 eV)",
+    "e + H2O -> e + H+ + OH- (ion pair)",
+    "e + H2O -> e + OH+ + H- (ion pair)",
+    "e + H2O -> H- + OH",
+    "e + H2O -> OH- + H",
+    "e + H2O -> O- + H2"
+   ]
+  },
+  {
+   "index": 29,
+   "name": "e+H|e + H -> 2e + H+|decade 1e1 eV",
+   "group": "e+H",
+   "decade_eV": 1,
+   "processes": [
+    "e + H -> 2e + H+"
+   ]
+  },
+  {
+   "index": 30,
+   "name": "e+H|e + H -> 2e + H+|decade 1e4 eV",
+   "group": "e+H",
+   "decade_eV": 4,
+   "processes": [
+    "e + H -> 2e + H+"
+   ]
+  },
+  {
+   "index": 32,
+   "name": "e+Fe|e + Fe -> 2e + Fe+|decade 1e4 eV",
+   "group": "e+Fe",
+   "decade_eV": 4,
+   "processes": [
+    "e + Fe -> 2e + Fe+"
+   ]
+  },
+  {
+   "index": 34,
+   "name": "e+Cr|e + Cr -> 2e + Cr+|decade 1e0 eV",
+   "group": "e+Cr",
+   "decade_eV": 0,
+   "processes": [
+    "e + Cr -> 2e + Cr+"
+   ]
+  },
+  {
+   "index": 35,
+   "name": "e+Cr|e + Cr -> 2e + Cr+|decade 1e4 eV",
+   "group": "e+Cr",
+   "decade_eV": 4,
+   "processes": [
+    "e + Cr -> 2e + Cr+"
+   ]
+  },
+  {
+   "index": 37,
+   "name": "e+Ni|e + Ni -> 2e + Ni+|decade 1e4 eV",
+   "group": "e+Ni",
+   "decade_eV": 4,
+   "processes": [
+    "e + Ni -> 2e + Ni+"
+   ]
+  },
+  {
+   "index": 39,
+   "name": "H2O++H2O|H2O+ + H2O -> H3O+ + OH (proton transfer),H2O+ + H2O -> H2O(fast) + H2O+ (symmetric charge exchange)|decade 1e1 eV",
+   "group": "H2O++H2O",
+   "decade_eV": 1,
+   "processes": [
+    "H2O+ + H2O -> H3O+ + OH (proton transfer)",
+    "H2O+ + H2O -> H2O(fast) + H2O+ (symmetric charge exchange)"
+   ]
+  },
+  {
+   "index": 40,
+   "name": "H2O++H2O|H2O+ + H2O -> H3O+ + OH (proton transfer),H2O+ + H2O -> H2O(fast) + H2O+ (symmetric charge exchange)|decade 1e2 eV",
+   "group": "H2O++H2O",
+   "decade_eV": 2,
+   "processes": [
+    "H2O+ + H2O -> H3O+ + OH (proton transfer)",
+    "H2O+ + H2O -> H2O(fast) + H2O+ (symmetric charge exchange)"
+   ]
+  },
+  {
+   "index": 45,
+   "name": "OH++H2O|OH+ + H2O -> H2O+ + OH (thermal),OH+ + H2O -> H3O+ + O (thermal)|decade 1e0 eV",
+   "group": "OH++H2O",
+   "decade_eV": 0,
+   "processes": [
+    "OH+ + H2O -> H2O+ + OH (thermal)",
+    "OH+ + H2O -> H3O+ + O (thermal)"
+   ]
+  },
+  {
+   "index": 46,
+   "name": "OH++H2O|OH+ + H2O -> H2O+ + OH (thermal),OH+ + H2O -> H3O+ + O (thermal)|decade 1e1 eV",
+   "group": "OH++H2O",
+   "decade_eV": 1,
+   "processes": [
+    "OH+ + H2O -> H2O+ + OH (thermal)",
+    "OH+ + H2O -> H3O+ + O (thermal)"
+   ]
+  },
+  {
+   "index": 47,
+   "name": "OH++H2O|OH+ + H2O -> H2O+ + OH (thermal),OH+ + H2O -> H3O+ + O (thermal)|decade 1e2 eV",
+   "group": "OH++H2O",
+   "decade_eV": 2,
+   "processes": [
+    "OH+ + H2O -> H2O+ + OH (thermal)",
+    "OH+ + H2O -> H3O+ + O (thermal)"
+   ]
+  },
+  {
+   "index": 50,
+   "name": "H2++H2O|H2+ + H2O -> H2O+ + H2 (thermal),H2+ + H2O -> H3O+ + H (thermal)|decade 1e0 eV",
+   "group": "H2++H2O",
+   "decade_eV": 0,
+   "processes": [
+    "H2+ + H2O -> H2O+ + H2 (thermal)",
+    "H2+ + H2O -> H3O+ + H (thermal)"
+   ]
+  },
+  {
+   "index": 51,
+   "name": "H2++H2O|H2+ + H2O -> H2O+ + H2 (thermal),H2+ + H2O -> H3O+ + H (thermal)|decade 1e1 eV",
+   "group": "H2++H2O",
+   "decade_eV": 1,
+   "processes": [
+    "H2+ + H2O -> H2O+ + H2 (thermal)",
+    "H2+ + H2O -> H3O+ + H (thermal)"
+   ]
+  },
+  {
+   "index": 52,
+   "name": "H2++H2O|H2+ + H2O -> H2O+ + H2 (thermal),H2+ + H2O -> H3O+ + H (thermal)|decade 1e2 eV",
+   "group": "H2++H2O",
+   "decade_eV": 2,
+   "processes": [
+    "H2+ + H2O -> H2O+ + H2 (thermal)",
+    "H2+ + H2O -> H3O+ + H (thermal)"
+   ]
+  },
+  {
+   "index": 55,
+   "name": "H++H2O|H+ + H2O -> H + H2O+ (charge transfer)|decade 1e0 eV",
+   "group": "H++H2O",
+   "decade_eV": 0,
+   "processes": [
+    "H+ + H2O -> H + H2O+ (charge transfer)"
+   ]
+  },
+  {
+   "index": 56,
+   "name": "H++H2O|H+ + H2O -> H + H2O+ (charge transfer)|decade 1e1 eV",
+   "group": "H++H2O",
+   "decade_eV": 1,
+   "processes": [
+    "H+ + H2O -> H + H2O+ (charge transfer)"
+   ]
+  },
+  {
+   "index": 62,
+   "name": "O++H2O|O+ + H2O -> H2O+ + O (charge transfer)|decade 1e1 eV",
+   "group": "O++H2O",
+   "decade_eV": 1,
+   "processes": [
+    "O+ + H2O -> H2O+ + O (charge transfer)"
+   ]
+  },
+  {
+   "index": 63,
+   "name": "O++H2O|O+ + H2O -> H2O+ + O (charge transfer)|decade 1e2 eV",
+   "group": "O++H2O",
+   "decade_eV": 2,
+   "processes": [
+    "O+ + H2O -> H2O+ + O (charge transfer)"
+   ]
+  },
+  {
+   "index": 105,
+   "name": "H-+H|H- + H -> H2 + e (associative detachment)|decade 1e-1 eV",
+   "group": "H-+H",
+   "decade_eV": -1,
+   "processes": [
+    "H- + H -> H2 + e (associative detachment)"
+   ]
+  },
+  {
+   "index": 107,
+   "name": "e+H2O+|e + H2O+ -> OH + H (DR),e + H2O+ -> O + H2 (DR),e + H2O+ -> O + H + H (DR)|decade 1e1 eV",
+   "group": "e+H2O+",
+   "decade_eV": 1,
+   "processes": [
+    "e + H2O+ -> OH + H (DR)",
+    "e + H2O+ -> O + H2 (DR)",
+    "e + H2O+ -> O + H + H (DR)"
+   ]
+  },
+  {
+   "index": 109,
+   "name": "e+H3O+|e + H3O+ -> H2O + H (DR),e + H3O+ -> OH + H2 (DR),e + H3O+ -> OH + H + H (DR),e + H3O+ -> O + H2 + H (DR)|decade 1e1 eV",
+   "group": "e+H3O+",
+   "decade_eV": 1,
+   "processes": [
+    "e + H3O+ -> H2O + H (DR)",
+    "e + H3O+ -> OH + H2 (DR)",
+    "e + H3O+ -> OH + H + H (DR)",
+    "e + H3O+ -> O + H2 + H (DR)"
+   ]
+  }
+ ],
+ "placeholder_processes": [
+  "H- + H2O -> OH- + H2 (no data)",
+  "H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data)",
+  "O- + H2O -> O + e + H2O (detachment) (no data)",
+  "O- + H2O -> OH- + OH (no data)",
+  "OH- + H2O -> OH + e + H2O (detachment) (no data)",
+  "e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data)"
+ ]
+}

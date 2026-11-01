@@ -1,0 +1,65 @@
+===== simq job 254: chemistry-audit-sanitized =====
+submitted: 2026-11-01T04:54:41Z
+started:   2026-11-01T04:54:42Z
+cwd:       /home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031
+partition: powerflow
+P-cores:   6
+GPUs:      none
+memory:    3G (swap 1G)
+time:      00:20:00
+unit:      simq-job-254-19fdcffbdb90.service
+command:   bash tools/audit_sanitized.sh
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock (exclusive)
+PASS thermal co-moving unresolved exposure is positive
+PASS thermal threshold crossing records unresolved exposure
+PASS equal-weight parcels release exact velocity/position/count/energy/momentum
+PASS GAS return leaves inventory for subsequent consuming event
+PASS placeholder-containing coverage bins have no finite bound row
+PASS sub-quantum product is released without delaying its physical source
+PASS release cap refuses atomically without dropping persistent parcels
+PASS unequal parcels across steps conserve exact phase-space moments and replay deterministically
+PASS moments-only or legacy signed reservoir checkpoint is refused
+failures 0
+blob 70fcc2adc2fdaa62abed7ed02d68ffc09b1b18554eda8fa99c5451120ae454b8 species 22 groups 20 processes 80 regions 135
+PASS math/log ulp  max ulp 1
+PASS math/log1p ulp  max ulp 2
+PASS math/sincos_2pi abs  max abs error 2.85633e-16
+PASS math/log special values
+PASS rng/philox known answer
+PASS rng/domain refusals
+PASS rng/no word collisions in 2e5 random keys
+PASS rng/arrival and chemistry streams differ
+PASS rng/u01 open range and mean  mean 0.500221
+PASS data/checks bind the blob  70fcc2adc2fdaa62
+PASS data/source breakpoints reproduced bit for bit  2498 points, 0 differ
+PASS data/majorant bounds sigma_tot v  4000000 probes, 0 violations
+PASS events/sampled count  10771 events from 20000 carriers in 0.397716 s
+PASS events/charge and nuclei conserved per event  0 violations
+PASS events/energy closure per event within 2^-40 of scale  0 violations, max relative defect 6.0801e-14
+PASS events/exact ledger identity (in = out + q + internal + defect)  defect total 0.059971 eV of input 1.04498e+15 eV
+PASS events/exact charge and nuclei totals balance
+INFO events/processes not sampled by the random population (covered by process/targeted): e + H2O -> e + OH + H via E + H2O[1B1 + D~1A1(100)] (10.55 eV); e + H2O -> e + OH + H via E + H2O(3A2) (10.7 eV); e + H2O -> e + OH + H via E + H2O(1A2) (10.84 eV); e + H2O -> e + OH + H via E + H2O(3B2 + 1B2 + 3B2) (11.1 eV); e + H2O -> e + OH + H via E + H2O(1B1 + 3B1 + 3A1 + 1A1) (11.35 eV); e + H2O -> e + OH + H via E + H2O(1B2 + 3B2 + 3B1 + 1B1) (11.5 eV); e + H2O -> e + OH + H via E + H2O(3A2 + 1A2) (11.61 eV); e + H2O -> e + OH + H via E + H2O(3B1) (11.68 eV); e + H2O -> e + OH + H via E + H2O(3A1 + 1A1) (11.8 eV); e + H2O -> e + OH + H via E + H2O(1A1) (12.06 eV); e + H2O -> e + OH + H via E + H2O(3A2) (8.9 eV); e + H2O -> e + OH + H via E + H2O(1A2) (9.2 eV); e + H2O -> 2e + H2+ + O; e + H2O -> 3e + O++ + H2; e + H2O -> e + H+ + OH- (ion pair); e + H2O -> e + OH+ + H- (ion pair); e + H2O -> OH- + H; e + H2O -> O- + H2; H- + H2O -> OH- + H2 (no data); O- + H2O -> OH- + OH (no data); O- + H2O -> O + e + H2O (detachment) (no data); OH- + H2O -> OH + e + H2O (detachment) (no data); e + H2O+ -> OH + H (DR); e + H2O+ -> O + H2 (DR); e + H2O+ -> O + H + H (DR); e + H3O+ -> H2O + H (DR); e + H3O+ -> OH + H2 (DR); e + H3O+ -> OH + H + H (DR); e + H3O+ -> O + H2 + H (DR); e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data); H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data); 
+PASS events/no majorant, input or domain refusals  0:19695 1:277 3:28 
+PASS process/every process with data: 2000 conserving events at its peak sigma*v energy  74 processes, 0 failing, 0 with kinematically closed draws, 6 no-data placeholders
+PASS lowrate/constant-rate continuation below the grid  13 groups: H2O++H2O ok; H3O++H2O ok; OH++H2O ok; H2++H2O ok; H++H2O ok; O++H2O ok; O+++H2O ok; H-+H2O ok; O-+H2O ok; OH-+H2O ok; H-+H ok; e+H2O+ ok; e+H3O+ ok; 0 bad events, 0 non-placeholder coverage entries
+PASS partition/records and exact ledger identical for 1,2,5,8 partitions  1:same 2:same 5:same 8:same digest 26ca603bc46bc2ab
+PASS debit/tracked inventory never overdrawn; refusals recorded  5 refused
+PASS debit/admitted events form a per-carrier prefix
+PASS release/stock never negative 0:H
+PASS release/stock never negative 0:OH
+PASS release/stock never negative 0:O
+PASS release/stock never negative 0:H2
+PASS release/stock never negative 1:H2O
+PASS release/stock never negative 1:H
+PASS release/stock never negative 1:OH
+PASS release/stock never negative 1:H2
+PASS release/stock never negative 2:H
+PASS release/stock never negative 2:OH
+PASS release/stock + released = deposited exactly  1570 packets
+ALL PASS 0
+========================================
+finished:  2026-11-01T04:55:01Z
+exit code: 0
+state:     succeeded
+===== simq job 254 finished =====

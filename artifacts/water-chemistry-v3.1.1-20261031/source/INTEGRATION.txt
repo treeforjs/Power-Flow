@@ -1,0 +1,74 @@
+Water chemistry v3.1.1 -- audit correction integration contract
+================================================================
+Status: qualification pending; see HANDOFF.txt and evidence/. No production run.
+Base: sealed v3.1 / Power-Flow commit848e3e9. Collision cross sections, species,
+kinematics, frozen compiler and userspace remain those of v3.1. The new blob
+changes coverage metadata/bounds; the digest MUST replace the old binding.
+
+1. Thermal coverage (chem_event.h)
+   cover_support() records an upper bound over the truncated thermal support,
+   not the target drift alone. Each region uses the largest sigma_bound*v across
+   all intersected energy bins; bins with the same region use maximum, not sum.
+   Region exposure is likewise an upper bound. Existing CarrierOut.n_cover and
+   cover_region entries retain reachable support even when X=B=0. Host Ledger
+   now has vector<uint64_t> region_support: count carrier-stage records naming
+   each reachable region. Native CPU/device extraction, merges, checkpoint and
+   digest must preserve this count. Strict unbounded refusal uses support>0,
+   not X>0, so exactly co-moving cold capture/recombination remains fail-closed.
+   Zero-density/zero-time stages do not contribute support. X/B remain physical
+   upper bounds and are not replaced with minimum floating-point markers.
+   This can refuse cases that the
+   old guard incorrectly admitted. PFC_MAX_COVER_SLOTS=16 remains unchanged;
+   exceeding it still refuses. Native must preserve status/coverage refusals.
+   Bounds only bound the declared cross-section models, not unknown physics.
+
+2. Strict production policy (tools/make_coverage_policy.py)
+   No unbounded channels are admitted by default. reachability_schema is
+   pfc-region-reachable-support-v1 and must be bound by the native adapter. Regions containing no-data
+   placeholders are unbounded, including mixed regions. Below/above-grid rows
+   are unbounded. The policy adds model_mode="strict-production". Diagnostic
+   opt-in --diagnostic-admit-unknown is explicitly labeled and must not be used
+   by a production wrapper without declaring the omissions. The bounded-region
+   threshold remains max(1 physical event, 0.01*applied physical events), per
+   region per step; this is not a global network-error or cumulative-error bound.
+
+3. Neutral release: pfc-neutral-parcels-v1 (incompatible with legacy moments-only)
+   pfc::Reservoir stores ExactSum count, array<ExactSum,3> momentum, ExactSum
+   kinetic, vector<ReservoirEntry> parcels. ReservoirEntry is weight,u[3],x[3].
+   Each positive finite product parcel is appended in canonical event/product
+   order. validate_reservoir(blob,key,R) checks exact agreement of parcel moments
+   with stocks. deposit_reservoir verifies e.ke_out equals ke_from_u(m,out_u).
+
+   release_reservoirs(blob,map<InventoryKey,Reservoir>&,w0,seed,step,
+                      max_packets=1000000)
+   returns ReleasedPacket records, with the same output structure as v3.1.
+   It drains real parcels FIFO into weights <=w0 including partial packets.
+   ExactSum remainders are split into positive binary64 pieces without overdraft;
+   phase-space positions/velocities are retained exactly. Equal-weight products
+   map directly one-to-one. Seed and step remain API operands but no release
+   random numbers are drawn. No signed energy/momentum remainder is permitted.
+   A cap or invalid stock refuses atomically without modifying the reservoir map.
+
+   Native must delegate to this implementation, checkpoint/hash parcels in order,
+   version the chemistry/checkpoint/release scheme, and refuse old signed or
+   moments-only reservoir histories. Serialize every binary64 by its exact bits.
+   Resume/replay must preserve both count and phase-space distributions.
+   Old fixed-quantum/minimum-source behavior is intentionally replaced by a
+   maximum-packet-weight policy; this is an explicit source-discretization change.
+
+4. GAS-return target debit
+   resolve_debits only consumes a target when no product returns that same target
+   species as GAS. Native already had consumes_target(); keep that behavior.
+
+5. Qualification scope
+   Baseline regressions against original sealed headers must fail; corrected
+   regressions must pass. Test hot co-moving targets, threshold straddling,
+   unequal parcels across stages/steps, exact P/K/count, cap rollback, legacy
+   reservoir refusal and elastic/GAS followed by consuming reactions. CPU/GPU
+   coverage parity must include the two new thermal cases. Sanitizers and the
+   inherited core suite check all event channels. Full swarm reruns are not
+   needed to claim an unchanged sampled collision law, but this correction does
+   not qualify the missing channels or full plasma-breakdown integration.
+
+Historical contract is retained as INTEGRATION-v3.1-REFERENCE.txt only; its
+quantized release and automatic unknown-channel admission are superseded.
