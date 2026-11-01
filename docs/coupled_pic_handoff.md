@@ -1,6 +1,6 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-11-01 08:12 UTC. Keep this file current at every milestone so
+Last updated 2026-11-01 08:20 UTC. Keep this file current at every milestone so
 the work can be picked up from it alone. Snapshots of the in-progress workers'
 own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
 each update); the live versions are the `HANDOFF.txt` files named below.
@@ -412,6 +412,26 @@ All builds and runs use the frozen runtime and the core leases; outputs go to
   flags set needs its own label and a bit-identity check against the generic build).
 - Repository tests: `/home/treefor/projects/runtimes/arch-base-20261028/run-frozen env PYTHONPATH=$PWD
   /home/treefor/projects/Power-Flow/.venv/bin/python -m pytest -q tests` from the repo root, under a core lease.
+
+## Current common startup and gas motion work
+
+The checked native-to-gas motion mapper now uses conservative census transport
+(`4ba19bb`). CPU job 565 and ASan/UBSan job 569 each pass 71 controls;
+the empty-origin exact correction residue is zero. All 18 sealed artifact
+entries were checked against committed Git bytes and the outside-project backup.
+The mapper retains exact conductor versus exterior exit destinations. It remains
+a records converter: an authentic native motion witness and common publication
+must still authorize its use. Conductor correction is a pending boundary
+transfer, not automatically electrode heat.
+
+Common genesis development is in
+`runtimes/pic-water-common-genesis-v9-20261101`. Syntax/API job 581 passed.
+Functional job 594 tests actual native/Hall/source/gas startup with every foil
+slice, real chemistry-table process operands, exact native masses and collision
+grid, common RNG seed, and refusal/retry controls. Its finite water stock is a
+manufactured startup fixture, not a physical breakdown result. It retains the
+exact Hall thermal owner in every source port. The frozen SourceStage snapshot
+is still development and does not qualify connected evolution or common restart.
 
 ## Machine and sharing rules (zenobia)
 
