@@ -1,0 +1,38 @@
+===== simq job 629: native-motion-common-c3 =====
+submitted: 2026-11-01T08:36:27Z
+started:   2026-11-01T08:36:28Z
+cwd:       /home/treefor/projects/runtimes/native-gas-common-stage-v1.3-motion-20261101
+partition: powerflow
+P-cores:   6
+GPUs:      none
+memory:    3G (swap 1G)
+time:      00:15:00
+unit:      simq-job-629-6a8d74c13cac.service
+command:   nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= PF_V8_CHEM=v3.1 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 -I tools/check.py normal cpu-c3
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock (exclusive)
+native-build 0
+compile-common 1
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/native-gas-common-stage-v1.3-motion-20261101/tools/check.py", line 43, in <module>
+    run(cc+['-I'+str(R/'include'),'-I'+str(R/'tests'),'-I'+str(G/'include'),'-I'+str(P),'-I'+str(N/'forms/include/pf_v7'),'-MMD','-MF',D/'common.d','-c',R/'tests/test_common_stage.cpp','-o',D/'common.o'],'compile-common')
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/native-gas-common-stage-v1.3-motion-20261101/tools/check.py", line 34, in run
+    if p.returncode:raise RuntimeError((D/(name+'.log')).read_text()[-8000:])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: In file included from /home/treefor/projects/runtimes/native-gas-common-stage-v1.3-motion-20261101/tests/coupled_step_fixture.hpp:4,
+                 from /home/treefor/projects/runtimes/native-gas-common-stage-v1.3-motion-20261101/tests/test_common_stage.cpp:1:
+/home/treefor/projects/runtimes/native-gas-common-stage-v1.3-motion-20261101/include/coupled_trial.hpp: In member function ‘std::shared_ptr<const raikou::mfem_backend::FullTimePreparedMotionSnapshot> native_gas_common::CoupledTrial::motion_snapshot(raikou::mfem_backend::PreparedPrivateMotion&, std::size_t, std::size_t)’:
+/home/treefor/projects/runtimes/native-gas-common-stage-v1.3-motion-20261101/include/coupled_trial.hpp:116:3: error: this ‘if’ clause does not guard... [-Werror=misleading-indentation]
+  116 |   if(!carrier_cap)carrier_cap=s_->cap;need(carrier_cap<=s_->cap,"motion view exceeds common carrier capacity");
+      |   ^~
+/home/treefor/projects/runtimes/native-gas-common-stage-v1.3-motion-20261101/include/coupled_trial.hpp:116:39: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  116 |   if(!carrier_cap)carrier_cap=s_->cap;need(carrier_cap<=s_->cap,"motion view exceeds common carrier capacity");
+      |                                       ^~~~
+cc1plus: all warnings being treated as errors
+
+========================================
+finished:  2026-11-01T08:37:50Z
+exit code: 1
+state:     failed
+===== simq job 629 finished =====
