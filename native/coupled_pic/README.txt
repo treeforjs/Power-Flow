@@ -66,3 +66,9 @@ actual blob process operands, grid/mass identity, seeded RNG consistency and
 populated census parity. See artifacts/joint-native-genesis-v9-20261101 for the
 pinned development SourceStage snapshot and launcher. This startup qualification
 does not open connected-evolution or checkpoint/continuation gates.
+
+final_charge_guard.hpp checks actual post-stage2 native charge against Hall
+motion endpoints with the unchanged per-node Hall bound. ASan/UBSan job616
+rejects an actual8-event recombination counterexample that conserved total
+charge but changed8 CIC nodes. Candidate authentication and this check must
+both precede common publication; this helper alone grants no authority.
