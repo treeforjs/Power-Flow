@@ -1,6 +1,6 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-11-01 08:20 UTC. Keep this file current at every milestone so
+Last updated 2026-11-01 08:31 UTC. Keep this file current at every milestone so
 the work can be picked up from it alone. Snapshots of the in-progress workers'
 own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
 each update); the live versions are the `HANDOFF.txt` files named below.
@@ -415,23 +415,63 @@ All builds and runs use the frozen runtime and the core leases; outputs go to
 
 ## Current common startup and gas motion work
 
-The checked native-to-gas motion mapper now uses conservative census transport
-(`4ba19bb`). CPU job 565 and ASan/UBSan job 569 each pass 71 controls;
-the empty-origin exact correction residue is zero. All 18 sealed artifact
-entries were checked against committed Git bytes and the outside-project backup.
-The mapper retains exact conductor versus exterior exit destinations. It remains
-a records converter: an authentic native motion witness and common publication
-must still authorize its use. Conductor correction is a pending boundary
-transfer, not automatically electrode heat.
+Gas motion mapping `4ba19bb` passes71 CPU and71 ASan/UBSan controls with
+conservative census transport and no emptied-cell correction residue. Its18
+sealed files match committed Git bytes and the outside-project backup. Actual
+native motion authority and exactly-once conductor correction heat remain separate.
 
-Common genesis development is in
-`runtimes/pic-water-common-genesis-v9-20261101`. Syntax/API job 581 passed.
-Functional job 594 tests actual native/Hall/source/gas startup with every foil
-slice, real chemistry-table process operands, exact native masses and collision
-grid, common RNG seed, and refusal/retry controls. Its finite water stock is a
-manufactured startup fixture, not a physical breakdown result. It retains the
-exact Hall thermal owner in every source port. The frozen SourceStage snapshot
-is still development and does not qualify connected evolution or common restart.
+Common startup `12427d4` (`artifacts/joint-native-genesis-v9-20261101`) passes20
+normal and20 UBSan controls in job606. Both electrodes and all8 source ports
+retain their exact Hall thermal owner, with real native species/process/grid
+operands and a shared source/collision RNG seed. A populated neutral census and
+refusal/retry controls pass at supported start7.49788055492e-10s. All32 sealed
+files match committed Git and backup. This qualifies manufactured startup only.
+The private SourceStage snapshot used there must be replaced by the qualified
+stage below when assembling the common evolution successor.
+
+SourceStage `5d8e002` passes21 source-stage and82 inherited reference controls
+in each of normal and UBSan (job610). Actual source/arrival/Hall/native publication,
+future hashes, source-stock restore, owner-lifetime checks, common RNG seed and
+genuine prior-proposal midpoint retry pass. Source identity is
+`f32d4bc59a059c9cc1f82456a63587bbae3a2ad3d98cd563e9b9c19491b9a43a`.
+The fixture is cold finite water stock without electron encounters. Actual
+positive-field source-to-final-midpoint work still needs common iteration.
+
+Native v8.8/common v1.2 `9fbc4d4` passes CPU586, ASan/UBSan587 and all1,243
+persistent final-seal allocation failures/retries in589. Every retry matches the
+uninterrupted common receipt. This qualifies global stock accounting and the
+bounded two-owner transaction/continuation, not spatial reaction continuity,
+changing carrier/cell membership, or common checkpoint restore. Native v8.9 and
+common v1.3 are separate unqualified successors adding authentic motion snapshots,
+root mapperv2, census transport, source/sink flows and the actual final census.
+
+Native dynamicCDF/RNG2 `de31ed6` is separately qualified: CPU611 and sanitizer612
+pass16,976 controls each; GPU601 passes17,040. LegacyGPU607 and both exact-base
+gas mapping patches617/618 also pass. Source/reference CDF admission successors
+are separate development; do not substitute their unqualified headers. The
+finite chemistry requirements map `cae2bb6` conditions missing channel/energy
+requirements on actual encountered species; it does not claim full coverage.
+
+An actual native recombination counterexample is preserved in `b85f1a3`, job609:
+8 charged-target debits conserve total charge exactly but change8 CIC nodes.
+Large manufactured macro-weights make this visible; these amplitudes are not a
+physical result. Native products are placed at projectile positions while target
+debits occur at target positions. First-stage Hall admission rejects the mismatch.
+**Hall preflight_final does not inspect the actual post-stage2 native census.**
+The new coordinator must check that census against Hall motion endpoint charge
+before any publication. Maintained `final_charge_guard.hpp` (`71197ae`, job616)
+passes ASan/UBSan with the actual counterexample and unchanged-charge controls,
+using Hall's existing nodal bound. It is a numerical predicate without publication
+authority; native v8.9 must supply its authenticated final census. Reaction current
+and field-work ownership remain unimplemented, so such steps must refuse.
+
+Next root integration: adopt qualified SourceStage610, actual native/gas motion,
+final-charge guard, conservative conductor correction ownership, source/Hall
+fixed-point retries, and coherent common checkpoint restore. Respect native's
+four-fork cap by recreating the whole private attempt at unchanged accepted state
+when needed. Measure actual per-phase CPU/wall times in the populated successor;
+no speedup claim follows from concurrent qualification timings. The old production
+run remains paused. No expensive heating rerun or new automation was launched.
 
 ## Machine and sharing rules (zenobia)
 
