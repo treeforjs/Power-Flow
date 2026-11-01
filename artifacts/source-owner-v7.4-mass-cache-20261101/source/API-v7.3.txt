@@ -1,0 +1,45 @@
+Source v7.3 — instantaneous conditional surface-birth capability
+
+New runtime only; source v7.2 remains sealed. Namespace electrode_heat_v7.
+
+SurfaceBirth Owner::prepare_surface_birth(const PreparedPatch&, double weight,
+ double normal_uniform, double transverse_uniform, double azimuth_uniform,
+ uint64_t native_id, double time_s, const eh::SourceEventIdentity&,
+ const BirthPolicy&) const;
+bool Owner::preflight(const SurfaceBirth&, const shared_ptr<const Field>&,
+ const FinalFieldView&) const noexcept;
+Trial Owner::prepare_with_surface_births(const eh::Epoch&,
+ const shared_ptr<const Field>&, const FinalFieldView&,
+ span<const SurfaceBirth>, const vector<vector<NeutralLeaf>>&,
+ const vector<eh::Transfer>& other={}, const IntervalEvidence* interval=nullptr);
+
+The full prepare overload gains an optional final span<const SurfaceBirth>.
+No-surface-birth legacy calls and state encodings remain unchanged.
+Trial::surface_births() returns immutable borrowed span; expires on move,
+publish, destruction. Moved-from Trial returns empty.
+
+SurfaceBirth immutable accessors: phase(), policy(), heat(), origin_m(),
+marks(), patch_index(), canonical_id(), birth_time_s(), exposure(),
+content_sha256(). A copied token remains a capability of its original source
+owner/generation/accepted thermal state and exact immutable field/exposure.
+It is rejected by foreign equal-state owners and after source publication.
+The birth origin is exactly the exposure origin, never an implicit random face
+relocation. time_s is in [exposure.begin, exposure.end). The native particle
+is born at origin_m + phase().displacement_m at birth_time_s, with the actual
+packet proper velocity and declared mass. Native B3 bridge starts at origin_m.
+
+BirthPolicy.return_extent_m must explicitly equal zero: retarding particles
+hand to ordinary native first-hit motion. No subcell instantaneous recollection
+approximation is admitted by this capability. The old pure sample_birth API
+is unchanged. Its extracting linear extent, source variation and gyro guards
+remain enforced; conditional matching is still a qualified subgrid model,
+not a resolved sheath or instantaneous physical acceleration claim.
+
+Trial inserts heat() exactly once as certified_source_exchange, retaining
+wall heat, particle K, electron/work-function reference, image reference and
+matching field work as separate operands. No source preview current is
+computed/imported. The parent must deposit the genuine native B3 bridge
+current once, verify its E dot J work against source matching work, and close
+common electrode charge/reference/field ledgers. Parent must retain actual
+source and native capabilities and preflight them jointly before publication.
+This API does not qualify native/Hall coupling by itself.
