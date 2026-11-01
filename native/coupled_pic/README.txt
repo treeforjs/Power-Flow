@@ -42,3 +42,16 @@ explicit memory, single-thread library settings and a GPU claim for device.
 The runtime snapshots this maintained header/test and records source hashes.
 Refer to its receipts for passed modes; no speedup or full physical simulation
 is claimed by these lifecycle controls.
+
+native_gas_motion.hpp is a pure checked records converter for the source and
+motion phases. It checks before/post-birth/after carrier partitions, native
+mass/charge/weight, stored internal energy and actual sink incident velocity.
+It produces gas flow/mover inputs without granting publication authority.
+The exact native prepared-motion snapshot and its live preflight are still
+required at integration. CPU548 and ASan/UBSan552 each pass64 controls; see
+artifacts/native-gas-motion-records-v1-20261101 for source and receipts.
+
+Those tests also reproduce a gas-v1.6 carrier-share limitation: nonzero exact
+correction can remain in an emptied cell. Its wall/* aggregate also combines
+conductor and exterior correction losses. The motion integration gate remains
+closed pending the versioned census-conservative transport implementation.
