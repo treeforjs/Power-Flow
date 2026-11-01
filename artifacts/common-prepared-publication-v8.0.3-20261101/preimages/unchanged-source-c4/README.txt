@@ -1,0 +1,1 @@
+Actual c4 source before retained-source identity fix. Job496 reproduces equal-content foreign thermal-source replacement and mixed accepted source hash. Build/source hashes are retained; no physical run.

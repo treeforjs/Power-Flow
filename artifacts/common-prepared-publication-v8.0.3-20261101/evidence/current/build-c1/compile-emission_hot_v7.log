@@ -1,0 +1,15 @@
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101/native/mfem_electrode_heat_source_v7/emission_hot_v7.cpp: In function 'void electrode_heat_v7::emission_hot::{anonymous}::config(const surface_emission::Config&)':
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101/native/mfem_electrode_heat_source_v7/emission_hot_v7.cpp:27:5: error: 'validate_electron_mass' was not declared in this scope
+   27 |     validate_electron_mass(c);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101/native/mfem_electrode_heat_source_v7/emission_hot_v7.cpp: In constructor 'electrode_heat_v7::emission_hot::{anonymous}::Barrier::Barrier(double, const surface_emission::Config&)':
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101/native/mfem_electrode_heat_source_v7/emission_hot_v7.cpp:53:138: error: 'const struct surface_emission::Config' has no member named 'electron_mass_kg'
+   53 |     Barrier(double field,const Config& c):F(field),phi(c.work_function_eV),lowering(2*std::sqrt(image_c*field)),top(phi-lowering),mass(c.electron_mass_kg) {
+      |                                                                                                                                          ^~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101/native/mfem_electrode_heat_source_v7/emission_hot_v7.cpp: In function 'surface_emission::Distribution electrode_heat_v7::emission_hot::evaluate(double, double, const surface_emission::Config&, double)':
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101/native/mfem_electrode_heat_source_v7/emission_hot_v7.cpp:98:28: error: 'fn_decay_width_eV' was not declared in this scope
+   98 |     const double decay=F>0?fn_decay_width_eV(F,c):0;
+      |                            ^~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101/native/mfem_electrode_heat_source_v7/emission_hot_v7.cpp:125:60: error: 'const struct surface_emission::Config' has no member named 'electron_mass_kg'
+  125 |     d.log_current_A_m2=std::log(ideal_richardson_A_m2_K2(c.electron_mass_kg)/(kb_eV*kb_eV))+logIntegral;d.has_log_current=true;
+      |                                                            ^~~~~~~~~~~~~~~~

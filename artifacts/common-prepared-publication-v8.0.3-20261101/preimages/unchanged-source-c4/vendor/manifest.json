@@ -1,0 +1,37 @@
+{
+  "schema": "coordinator-cpu-vendor-v1",
+  "baseline_runtime": "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.1-20261031",
+  "study": "/home/treefor/projects/runtimes/cpu-isa-study-20261031/patches/coord/opt13/inc",
+  "files": {
+    "collision_scheduler.hpp": {
+      "study_source": "/home/treefor/projects/runtimes/cpu-isa-study-20261031/patches/coord/opt13/inc/collision_scheduler.hpp",
+      "study_sha256": "1028d35530904943de82c0e5547035ece20ed573516aaf66b74ddac37b60e886",
+      "baseline_source": "/home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/inputs/collision_scheduler.hpp",
+      "baseline_sha256": "564c8bdb71c5d4b2d07decd56d99eb43bceafbd2a62c5e98cd0f490f2c0f3985",
+      "sha256": "1028d35530904943de82c0e5547035ece20ed573516aaf66b74ddac37b60e886"
+    },
+    "water_parent_bridge.hpp": {
+      "study_source": "/home/treefor/projects/runtimes/cpu-isa-study-20261031/patches/coord/opt13/inc/water_parent_bridge.hpp",
+      "study_sha256": "a65f55d5f5d81e610e8168dfc0d4ac319d00391033afb77ef77fd66ff9a4dcd3",
+      "baseline_source": "/home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/inputs/water_parent_bridge.hpp",
+      "baseline_sha256": "5a3ef505ab8bce21b5f6c0a05e1b9718b2e180535c0b646b2a5ba1a1fe577473",
+      "sha256": "a65f55d5f5d81e610e8168dfc0d4ac319d00391033afb77ef77fd66ff9a4dcd3"
+    },
+    "exact_product_error.hpp": {
+      "study_source": "/home/treefor/projects/runtimes/cpu-isa-study-20261031/patches/coord/opt13/inc/exact_product_error.hpp",
+      "study_sha256": "e30ef4e3ba64addb65241c7ddd520666c690a7b1ec020671178f85b3386d1051",
+      "sha256": "6e4fc7e3bcffec9537b5774f4b56e039469178d71be72aa6d404d4cd29c4cfc9"
+    },
+    "raikou/collision_data.h": {
+      "baseline_source": "/home/treefor/projects/runtimes/pic-water-full-time-subflow-20261029/inputs/include/raikou/collision_data.h",
+      "baseline_sha256": "007a38fece8a4b70858fc7050dc57c02c7e2e2851a276f501d9c0f61f4397813",
+      "sha256": "007a38fece8a4b70858fc7050dc57c02c7e2e2851a276f501d9c0f61f4397813"
+    }
+  },
+  "scope": [
+    "P1 guarded exact product error; original fma fallback",
+    "P3 immutable parent table/kernel cache; original query fallback",
+    "No P2, ISA flags, precision or physical/config identity changes"
+  ],
+  "p1_fenv_contract": "Finite numerical values, signed zeros and fallback refusals are compared. NaN classification is compared; payload preservation and FE_INEXACT flag identity are not claimed. Fast path requires x87 extended nearest mode with masked exceptions."
+}

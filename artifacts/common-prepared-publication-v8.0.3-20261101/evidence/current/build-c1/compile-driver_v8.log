@@ -1,0 +1,55 @@
+In file included from /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/source_interval_v8.hpp:15,
+                 from /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/genesis_v8.hpp:2,
+                 from /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/tests/driver_v8.cpp:13:
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/joint_step_v8.hpp: In function 'raikou::native_water::v8::TrialV8<H> raikou::native_water::v8::prepare_v8(OwnersV8<H>&, double, int, const std::string*)':
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/joint_step_v8.hpp:779:15: error: 'CandidateThermalClock' in namespace 'raikou::native_water::v8::s7' does not name a type [-Wtemplate-body]
+  779 |     const s7::CandidateThermalClock next{o.sources[i]->bound_thermal_configuration_signature(),
+      |               ^~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/joint_step_v8.hpp:782:78: error: 'next' was not declared in this scope [-Wtemplate-body]
+  782 |         ? o.sources[i]->candidate_state_sha256(*out.source_trials_[i], view, next)
+      |                                                                              ^~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/joint_step_v8.hpp:782:78: note: suggested alternatives:
+In file included from /usr/include/c++/16/bits/stl_algobase.h:65,
+                 from /usr/include/c++/16/algorithm:62,
+                 from /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix/source/include/raikou/exact_particle_count.h:2,
+                 from /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix/source/include/raikou/mfem_pic_arena.h:2,
+                 from /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix/source/include/raikou/mfem_pic_full_time.h:2,
+                 from /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/bindings_v8.hpp:17,
+                 from /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/identity_v8.hpp:8,
+                 from /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/hall_owner_v8.hpp:14,
+                 from /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/joint_step_v8.hpp:2:
+/usr/include/c++/16/bits/stl_iterator_base_funcs.h:295:5: note:   'std::next'
+  295 |     next(_InputIterator __x, typename
+      |     ^~~~
+In file included from /usr/include/c++/16/bits/ranges_algobase.h:38,
+                 from /usr/include/c++/16/bits/ranges_algo.h:39,
+                 from /usr/include/c++/16/algorithm:65:
+/usr/include/c++/16/bits/ranges_base.h:1058:30: note:   'std::ranges::next'
+ 1058 |   inline constexpr __next_fn next{};
+      |                              ^~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/joint_step_v8.hpp: In instantiation of 'raikou::native_water::v8::TrialV8<H> raikou::native_water::v8::prepare_v8(OwnersV8<H>&, double, int, const std::string*) [with H = hall_corrective_v3::Owner; std::string = std::__cxx11::basic_string<char>]':
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/tests/driver_v8_checks.inc:124:33:   required from here
+  124 |       try { (void)v8::prepare_v8(o, attempt_dt); }
+      |                   ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/joint_step_v8.hpp:782:25: error: 'class electrode_heat_v7::Owner' has no member named 'candidate_state_sha256'
+  782 |         ? o.sources[i]->candidate_state_sha256(*out.source_trials_[i], view, next)
+      |           ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/joint_step_v8.hpp:783:25: error: 'class electrode_heat_v7::Owner' has no member named 'unchanged_state_sha256_after_thermal_step'
+  783 |         : o.sources[i]->unchanged_state_sha256_after_thermal_step(epochs[i], next));
+      |           ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/joint_step_v8.hpp: In instantiation of 'raikou::native_water::v8::TrialV8<H> raikou::native_water::v8::prepare_v8(OwnersV8<H>&, double, int, const std::string*) [with H = hall_corrective_v3::ResidentOwner; std::string = std::__cxx11::basic_string<char>]':
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/tests/driver_v8_run.inc:294:37:   required from 'std::string {anonymous}::Run<H>::advance() [with H = hall_corrective_v3::ResidentOwner; std::string = std::__cxx11::basic_string<char>]'
+  294 |         trial.emplace(v8::prepare_v8(o, attempt_dec.dt_s, 0, &decision_sha));
+      |                       ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/tests/driver_v8_run.inc:683:39:   required from 'int {anonymous}::run_mode(const std::filesystem::__cxx11::path&) [with H = hall_corrective_v3::ResidentOwner]'
+  683 |         const auto stop = run->advance();
+      |                           ~~~~~~~~~~~~^~
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/tests/driver_v8.cpp:1067:87:   required from here
+ 1067 |     if (mode == "run") rc = opt.hall_owner == "resident" ? run_mode<hc::ResidentOwner>(out) : run_mode<hc::Owner>(out);
+      |                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/joint_step_v8.hpp:782:25: error: 'class electrode_heat_v7::Owner' has no member named 'candidate_state_sha256'
+  782 |         ? o.sources[i]->candidate_state_sha256(*out.source_trials_[i], view, next)
+      |           ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/source/joint_step_v8.hpp:783:25: error: 'class electrode_heat_v7::Owner' has no member named 'unchanged_state_sha256_after_thermal_step'
+  783 |         : o.sources[i]->unchanged_state_sha256_after_thermal_step(epochs[i], next));
+      |           ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

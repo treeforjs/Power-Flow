@@ -1,0 +1,62 @@
+{
+  "schema": "coordinator-v8.0.1-audit-regressions-v1",
+  "cases": [
+    {
+      "name": "initial time-limited run accepts four steps",
+      "passed": true
+    },
+    {
+      "name": "direct genesis restore honors relative window",
+      "passed": true
+    },
+    {
+      "name": "direct genesis restore honors absolute end",
+      "passed": true
+    },
+    {
+      "name": "direct genesis restore retains saved endpoint without override",
+      "passed": true
+    },
+    {
+      "name": "off-grid target stops at first accepted step crossing the threshold",
+      "passed": true
+    },
+    {
+      "name": "completed window extends after verified restore",
+      "passed": true,
+      "restored_mode": "replay"
+    },
+    {
+      "name": "second restart honors absolute end after prior extension",
+      "passed": true,
+      "restored_mode": "replay"
+    },
+    {
+      "name": "omitted target retains saved endpoint",
+      "passed": true
+    },
+    {
+      "name": "explicit steps replaces saved time limit",
+      "passed": true
+    },
+    {
+      "name": "omitted target retains saved step limit",
+      "passed": true
+    },
+    {
+      "name": "non-advancing explicit end is refused",
+      "passed": true
+    },
+    {
+      "name": "ambiguous targets are refused",
+      "passed": true
+    }
+  ],
+  "passed": 12,
+  "total": 12,
+  "executed_processes_per_run": 1,
+  "expected_nonempty_restore_mode": "replay",
+  "restored_inputs_unchanged": true,
+  "refusal_published_no_accepted_data": true,
+  "time_target_semantics": "first accepted step at or beyond threshold; exact landing not guaranteed"
+}

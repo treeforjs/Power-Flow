@@ -1,0 +1,74 @@
+===== simq job 502: common-publication-final-c6 =====
+submitted: 2026-11-01T07:47:02Z
+started:   2026-11-01T07:47:02Z
+cwd:       /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101
+partition: powerflow
+P-cores:   5
+GPUs:      none
+memory:    6G (swap 1G)
+time:      00:15:00
+borrowed:  CPU 5 from raikou-mfem (free); on preempt: freeze
+unit:      simq-job-502-fec96b76cc01.service
+command:   /usr/bin/nice -n 15 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen python3 -I tools/qualify_candidate.py c6
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core5.lock (shared)
+compile-hotpaths 0 3.6
+hotpaths 0 1.1
+{
+  "comparison": "exact finite/zero bits; exception dynamic type+text; NaN classification",
+  "passed": true,
+  "product_fallback": 584876,
+  "product_fast": 1420934,
+  "product_queries": 2005810,
+  "sigma_fixture_count": 10,
+  "sigma_queries": 100957,
+  "sigma_refusals": 46807,
+  "sigma_zero": 10069
+}
+
+compile-driver_v8 0 40.1
+compile-fast_emission 0 1.2
+compile-emission_hot_v7 0 0.5
+compile-resident_field_v3 0 4.7
+compile-alloc_hook 0 0.0
+compile-motion_provider_v3 0 5.7
+compile-kinetic_boundary 0 1.4
+compile-gpu_backends_v3 0 3.8
+compile-hall_gpu_push_v3 0 1.1
+compile-hall_gpu_common 0 1.5
+compile-hall_gpu_primitives 0 0.3
+compile-surface_emission 0 0.7
+compile-micro_layer 0 0.4
+link 0 0.3
+{"build": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v8.0.3-publication-20261101/build-c6", "status": "passed", "error": ""}
+checks 0 6.0
+{"run": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v8.0.3-publication-20261101/c6-checks", "returncode": 0, "status": "passed", "inputs_unchanged": true}
+publication-guard 0 0.4
+{"run": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v8.0.3-publication-20261101/c6-publication-guard", "returncode": 0, "status": "passed", "inputs_unchanged": true}
+unchanged-source-replacement 0 0.5
+{"run": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v8.0.3-publication-20261101/c6-replacement", "returncode": 0, "status": "passed", "inputs_unchanged": true}
+retained-source-lifetime 0 0.4
+{"run": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v8.0.3-publication-20261101/c6-lifetime", "returncode": 0, "status": "passed", "inputs_unchanged": true}
+PASS initial time-limited run accepts four steps
+PASS direct genesis restore honors relative window
+PASS direct genesis restore honors absolute end
+PASS direct genesis restore retains saved endpoint without override
+PASS off-grid target stops at first accepted step crossing the threshold
+PASS completed window extends after verified restore
+PASS second restart honors absolute end after prior extension
+PASS omitted target retains saved endpoint
+PASS explicit steps replaces saved time limit
+PASS omitted target retains saved step limit
+PASS non-advancing explicit end is refused
+PASS ambiguous targets are refused
+{"run": "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/run-integrity-t3mchlib/none/outputs/result", "returncode": 0, "status": "passed", "inputs_unchanged": true}
+{"run": "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/run-integrity-t3mchlib/dependency/outputs/result", "returncode": 0, "status": "failed", "inputs_unchanged": false}
+{"run": "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/run-integrity-t3mchlib/source/outputs/result", "returncode": 0, "status": "failed", "inputs_unchanged": false}
+{"run": "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/run-integrity-t3mchlib/binary/outputs/result", "returncode": 0, "status": "failed", "inputs_unchanged": false}
+{"run": "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/run-integrity-t3mchlib/missing-dependency/outputs/result", "returncode": 0, "status": "failed", "inputs_unchanged": false}
+{"run": "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.3-publication-20261101/run-integrity-t3mchlib/include-fragment/outputs/result", "returncode": 0, "status": "failed", "inputs_unchanged": false}
+========================================
+finished:  2026-11-01T07:48:31Z
+exit code: 0
+state:     succeeded
+===== simq job 502 finished =====
