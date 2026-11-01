@@ -1,0 +1,1 @@
+Historical strict whole-workbook refusal. Job 441 correctly detected actual missing cell B546. Final v1.2 independently reports incomplete columns and refuses load_channel for them; no data imputation. This historical source is not final qualified source.
