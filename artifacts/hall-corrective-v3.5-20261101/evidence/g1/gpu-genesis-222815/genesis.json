@@ -1,0 +1,402 @@
+{
+ "cases": [
+  {
+   "evidence": {
+    "refusal": ""
+   },
+   "group": "genesis-v3.3",
+   "name": "the v3.3 20 ns checkpoint is admitted as a genesis in the pre-run Model",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "B": true,
+    "B_low": true,
+    "E": true,
+    "E_low": true,
+    "admitted_gauss_ledger": true,
+    "conductor": true,
+    "declarations": true,
+    "divb_gross_ledger_zero": true,
+    "exterior": true,
+    "free_gross": true,
+    "free_net": true,
+    "residue": true,
+    "time": true
+   },
+   "group": "genesis-v3.3",
+   "name": "every field and charge word, the admitted Gauss ledger and the clock equal the checkpoint",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "cumulative": true,
+    "inventory": true,
+    "revisions": true,
+    "temperatures": true,
+    "time": true,
+    "watermarks": true
+   },
+   "group": "genesis-v3.3",
+   "name": "slice temperatures, cumulative energies, watermarks and time equal the checkpoint; slice revisions 0",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "checks": {
+     "configuration": true,
+     "field": true,
+     "heat": true,
+     "identity_differs": true,
+     "ledgers": true,
+     "motion_mesh": true,
+     "revision": true,
+     "revision_0": true,
+     "schema": true,
+     "time": true,
+     "time_kept": true
+    },
+    "provenance_sha256": "aad94eba5a01ad8681ff1afbadd592cd37cd792f611427baa78af745b8b5c837",
+    "transfer_text": "hall-v3.5-genesis-transfer-v1; rule_form=v3.3; dt_max_s=1e-13->1e-13; solver=gpu1-resident-v1/17bb45a705362ab1104cc06f2124ad71be3b158ffef56b48eedc5d833a75a2d0->gpu1-resident-v1/a41d68ca0e8e78eb12beeab3a875e438c510de8fafc3f9fbc06f410a362fb228; motion_forms=native-v7/1e-14->native-v7/1e-14; thermal_declaration=none->none; carrier_limits=100000/1073741824->100000/1073741824; motion_mesh=0c8e6c3b3fc594f4cf25329c4bf7d222ae79bfb73eb6c3a15707f4c6be5b3481->0c8e6c3b3fc594f4cf25329c4bf7d222ae79bfb73eb6c3a15707f4c6be5b3481; divb_gross_ledger=zero (v3.3 checkpoint); prior_provenance=none"
+   },
+   "group": "genesis-v3.3",
+   "name": "revision 0, clock kept, provenance equal to the checkpoint's seals",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "checks": {
+     "digests": true,
+     "provenance": true,
+     "restored": true,
+     "words": true
+    },
+    "refusal": ""
+   },
+   "group": "genesis-v3.3",
+   "name": "save and plain restore of the rebased owner keep its digests and provenance",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "motion_mesh_differs": true,
+    "refusal": ""
+   },
+   "group": "genesis-transfer",
+   "name": "admitted with heat-only patches added, other carrier limits, field-step bound and foil planes",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "B": true,
+    "B_low": true,
+    "E": true,
+    "E_low": true,
+    "admitted_gauss_ledger": true,
+    "conductor": true,
+    "declarations": true,
+    "exterior": true,
+    "free_gross": true,
+    "free_net": true,
+    "residue": true,
+    "time": true
+   },
+   "group": "genesis-transfer",
+   "name": "every field and charge word and the admitted Gauss ledger equal the checkpoint",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "cumulative": true,
+    "inventory": true,
+    "revisions": true,
+    "temperatures": true,
+    "time": true,
+    "watermarks": true
+   },
+   "group": "genesis-transfer",
+   "name": "slice states equal the checkpoint; the added heat-only patches start with zero inventory",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "checks": {
+     "declaration": true,
+     "dt": false,
+     "limits": true,
+     "mesh": true,
+     "rule_form": true
+    },
+    "transfer_text": "hall-v3.5-genesis-transfer-v1; rule_form=v3.3; dt_max_s=1e-13->5.0000000000000002e-14; solver=gpu1-resident-v1/17bb45a705362ab1104cc06f2124ad71be3b158ffef56b48eedc5d833a75a2d0->gpu1-resident-v1/a41d68ca0e8e78eb12beeab3a875e438c510de8fafc3f9fbc06f410a362fb228; motion_forms=native-v7/1e-14->native-v7/1e-14; thermal_declaration=none->3de68bbbae9d4bb92a338681c4d41efd87a0c61afa7c1668d6c634fbd2355579; carrier_limits=100000/1073741824->2000000/8728870912; motion_mesh=0c8e6c3b3fc594f4cf25329c4bf7d222ae79bfb73eb6c3a15707f4c6be5b3481->1127fecf354941dc42ffebf01c2a08aabf731370749928312056ae97ae0f735a; divb_gross_ledger=zero (v3.3 checkpoint); prior_provenance=none"
+   },
+   "group": "genesis-transfer",
+   "name": "the transfer text records every operand that differs",
+   "passed": false
+  },
+  {
+   "evidence": {
+    "refusal": "",
+    "revision": 20
+   },
+   "group": "genesis-transfer",
+   "name": "20 vacuum steps after the genesis (revision 20, clock advanced)",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": "genesis thermal declaration may only add heat-only source patches"
+   },
+   "group": "genesis-refusal",
+   "name": "added patches refused when the declaration transfer is not admitted",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": "genesis carrier limits differ"
+   },
+   "group": "genesis-refusal",
+   "name": "other carrier limits refused when the limits transfer is not admitted",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": "genesis native geometry differs"
+   },
+   "group": "genesis-refusal",
+   "name": "other foil planes refused when the geometry transfer is not admitted",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": ""
+   },
+   "group": "genesis-v3.4",
+   "name": "the v3.4 20 ns checkpoint is admitted as a genesis",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "B": true,
+    "B_low": true,
+    "E": true,
+    "E_low": true,
+    "admitted_gauss_ledger": true,
+    "conductor": true,
+    "declarations": true,
+    "divb_gross_ledger": true,
+    "exterior": true,
+    "free_gross": true,
+    "free_net": true,
+    "residue": true,
+    "time": true
+   },
+   "group": "genesis-v3.4",
+   "name": "every word, the admitted Gauss ledger and the divB gross ledger equal the checkpoint",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "transfer_text": "hall-v3.5-genesis-transfer-v1; rule_form=v3.4; dt_max_s=1e-13->1e-13; solver=gpu1-resident-v1/a41d68ca0e8e78eb12beeab3a875e438c510de8fafc3f9fbc06f410a362fb228->gpu1-resident-v1/a41d68ca0e8e78eb12beeab3a875e438c510de8fafc3f9fbc06f410a362fb228; motion_forms=native-v7/1e-14->native-v7/1e-14; thermal_declaration=none->none; carrier_limits=100000/1073741824->100000/1073741824; motion_mesh=0c8e6c3b3fc594f4cf25329c4bf7d222ae79bfb73eb6c3a15707f4c6be5b3481->0c8e6c3b3fc594f4cf25329c4bf7d222ae79bfb73eb6c3a15707f4c6be5b3481; divb_gross_ledger=kept; prior_provenance=none"
+   },
+   "group": "genesis-v3.4",
+   "name": "provenance: v3.4 schema, the checkpoint's seals, revision and clock",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": ""
+   },
+   "group": "continuation",
+   "name": "plain restore of the v3.4 checkpoint (revision kept)",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": ""
+   },
+   "group": "continuation",
+   "name": "genesis of the v3.3 checkpoint for the lockstep",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "first_difference": "",
+    "refusal": "",
+    "steps": 200
+   },
+   "group": "continuation",
+   "name": "200 vacuum steps: the rebased v3.4 owner equals the plain restore word for word (field, charge, Gauss and divB ledgers)",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": ""
+   },
+   "group": "continuation",
+   "name": "200 vacuum steps: the rebased v3.3 owner equals it in every field and charge word (divB ledger from zero)",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": ""
+   },
+   "group": "continuation",
+   "name": "200 vacuum steps: slice thermal states equal (revisions 1..200 against N+1..N+200)",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": ""
+   },
+   "group": "fresh",
+   "name": "a revision-0 checkpoint of a fresh genesis is admitted as a genesis",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "first_difference": "",
+    "refusal": ""
+   },
+   "group": "fresh",
+   "name": "100 vacuum steps: the rebased owner equals the fresh genesis in every word and slice state (same revisions)",
+   "passed": true
+  },
+  {
+   "evidence": null,
+   "group": "fresh",
+   "name": "the rebased owner's digests differ from the fresh genesis (provenance bound)",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": ""
+   },
+   "group": "fresh",
+   "name": "a genesis from a vacuum checkpoint with a census of co-located neutral pairs is admitted",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "accepted": 6,
+    "refusal": "",
+    "why": ""
+   },
+   "group": "fresh",
+   "name": "coupled steps: same decisions, iterations, census v2, record v7, trial field and balance as the fresh genesis",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "first_difference": ""
+   },
+   "group": "fresh",
+   "name": "coupled steps: every accepted field, charge and ledger word and every slice state equal the fresh genesis",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": "checkpoint field/charge seal mismatch"
+   },
+   "group": "genesis-refusal",
+   "name": "a flipped field word is refused by the seal",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": "checkpoint thermal seal mismatch"
+   },
+   "group": "genesis-refusal",
+   "name": "a flipped slice temperature is refused by the thermal seal",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": "genesis checkpoint is not a vacuum state (free charge, bank residue or kinetic ledgers)"
+   },
+   "group": "genesis-refusal",
+   "name": "a non-vacuum checkpoint is refused",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": "genesis thermal declaration may only add heat-only source patches"
+   },
+   "group": "genesis-refusal",
+   "name": "a declaration that alters a recorded patch is refused",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": "genesis thermal declaration may only add heat-only source patches"
+   },
+   "group": "genesis-refusal",
+   "name": "a declaration that removes a recorded patch is refused",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": "genesis checkpoint configuration is not a transfer of the restoring Model (mesh, drive, material law, seed, rules, guards or operands differ)"
+   },
+   "group": "genesis-refusal",
+   "name": "without the recorded declaration the altered Model is not a transfer of the checkpoint",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": ""
+   },
+   "group": "genesis-refusal",
+   "name": "control: the same declaration (v3.5 checkpoint) is admitted",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": "C19 bytes differ from selected current-only drive"
+   },
+   "group": "genesis-refusal",
+   "name": "another drive trace is refused",
+   "passed": false
+  },
+  {
+   "evidence": {
+    "refusal": "unaligned physical foil"
+   },
+   "group": "genesis-refusal",
+   "name": "another mesh is refused",
+   "passed": false
+  }
+ ],
+ "device": {
+  "compute_capability": "8.6",
+  "driver_api_version": 13040,
+  "driver_library": "/usr/lib/libcuda.so.615.78.08",
+  "driver_library_sha256": "f73320931be3c4eabc120a1a7fea25f34f324c0f93e35891f98e81a722b5dfc3",
+  "kernel_module_version": "NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  615.78.08  Release Build  (root@)  ",
+  "multiprocessors": 80,
+  "name": "NVIDIA GeForce RTX 3080 Ti",
+  "ordinal": 0,
+  "pci_bus_id": "0000:01:00.0",
+  "primary_context_flags": 4,
+  "primary_context_was_active": false,
+  "total_memory_bytes": 12541296640,
+  "uuid": "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
+ },
+ "failed": 3,
+ "info": {
+  "continuation_end": {
+   "plain_field_sha256": "fd00a0ae985ee8daf5b69a26f1e345f6c578d8078363bac96e34e92332e4f6f4",
+   "plain_revision": 194226,
+   "rebased_revision": 200,
+   "rebased_v34_field_sha256": "eb18d01ea3bea1ed61826aa688a06958d2b99f6b40dd36982eb065543e95d849"
+  },
+  "v33_genesis": {
+   "field_sha256": "2722288296d10dd418b8979346d6dd8408570f93109165ec79f0cc83916fb18b",
+   "heat_sha256": "71f62f1399663f3f8936f131d7b9c7cace22315a16199694e76e7db617ce3fc3",
+   "provenance_sha256": "aad94eba5a01ad8681ff1afbadd592cd37cd792f611427baa78af745b8b5c837",
+   "transfer_text": "hall-v3.5-genesis-transfer-v1; rule_form=v3.3; dt_max_s=1e-13->1e-13; solver=gpu1-resident-v1/17bb45a705362ab1104cc06f2124ad71be3b158ffef56b48eedc5d833a75a2d0->gpu1-resident-v1/a41d68ca0e8e78eb12beeab3a875e438c510de8fafc3f9fbc06f410a362fb228; motion_forms=native-v7/1e-14->native-v7/1e-14; thermal_declaration=none->none; carrier_limits=100000/1073741824->100000/1073741824; motion_mesh=0c8e6c3b3fc594f4cf25329c4bf7d222ae79bfb73eb6c3a15707f4c6be5b3481->0c8e6c3b3fc594f4cf25329c4bf7d222ae79bfb73eb6c3a15707f4c6be5b3481; divb_gross_ledger=zero (v3.3 checkpoint); prior_provenance=none"
+  }
+ },
+ "schema": "hall-v3.5-genesis-v1",
+ "v33_checkpoint": "/home/treefor/projects/.workspace/outputs/hall-corrective-v3.3-20261031/s1/gpu-prerun-20ns-130711/checkpoint-20.000000ns",
+ "v34_checkpoint": "/home/treefor/projects/.workspace/outputs/hall-corrective-v3.4-20261031/b13/gpu-prerun-20ns-200um-212515/checkpoint-20.000000ns"
+}

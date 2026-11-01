@@ -1,0 +1,119 @@
+Hall corrective v3.5 -- results of record (2026-11-01)
+Sources: /home/treefor/projects/runtimes/hall-corrective-v3.5-20261101 (README.txt section 7: restore_as_genesis).
+Outputs: /home/treefor/projects/.workspace/outputs/hall-corrective-v3.5-20261101 (one receipted directory per run).
+v3.5 = sealed v3.4 (build b14) + ResidentOwner::restore_as_genesis and Owner::restore_as_genesis (coordinator v8
+HALL-V35-REQUEST.txt, sha256 4ce25aab677f3fdd11ab9a64ee2f9ccf8738836f80788035492583d60cbfa556; identical in coordinator
+v8 and v8.0.1). Version split: GPU speed -> v3.6, the integration items -> v3.7.
+
+0. Builds
+ Seal (2026-10-31 23:40 MDT): runtimes/hall-corrective-v3.5-20261101/SOURCE-SHA256.json (schema hall-v3.5-sealed-source-v1,
+       build_label g3, 74 files, sha256 1f0a4d030ec15b508770646d251c9a1b6d219401ea477d44cbb23fb7d814316c); sealed files and
+       their directories read-only (build/, scratch/, HANDOFF.txt excluded).
+ g3    sealed build (SOURCE-SHA256.json, build_label g3): test_v35 13d46d5d28b2528a, test_v34 1e2e54a70b9104ad,
+       test_v32 9502427dcbc260db, test_resident f218ac8138ed25cf, test_hall_v3 1e8211ea9ccee598, test_x87 3d4fd44a226c579d
+       (full digests in g3/build/build-receipt.json; PF_BUILD_ISA_FLAGS empty).
+ g2    = g3 except tests/test_v35.cpp (the genesis-run/continue modes were added for g3): the other five binaries are
+       byte-identical in g2 and g3, so the g2 regression runs hold for g3; test_x87 is byte-identical to v3.4's b14.
+ c1    coordinator v5 T1-T7 parity build/run on v3.5 sources (run_coordinator_parity.py; host Owner path).
+
+1. restore_as_genesis (test_v35 genesis; 44/44 pass on g2: g2/gpu-genesis-223726/genesis.json)
+ 1.1 The sealed v3.3 20 ns checkpoint (s1/gpu-prerun-20ns-130711/checkpoint-20.000000ns, hall-v3.2-resident-checkpoint-v1,
+     revision 194026) into the pre-run Model: admitted; E, B, E_low, B_low, the clock, free/conductor/exterior charge, the
+     declarations, the admitted Gauss ledger of all 14,812 nodes and the bank residue (absent) equal the checkpoint word
+     for word; the 8 slice thermal states (temperatures, cumulative energies, watermarks, time) equal the checkpoint,
+     slice revisions 0; revision 0, time 2e-8 s; the provenance carries the checkpoint's schema, recorded configuration
+     289715c1..., field seal befd3e87..., heat seal 1d94f4f7..., kinetic-ledger seal 1883d23c..., motion mesh 0c8e6c3b...,
+     revision 194026 and time; the divB gross ledger starts at zero (v3.3 records none). Rebased identities:
+     field_sha256 2722288296d10dd418b8979346d6dd8408570f93109165ec79f0cc83916fb18b, heat_sha256 71f62f13...,
+     provenance_sha256 aad94eba5a01ad8681ff1afbadd592cd37cd792f611427baa78af745b8b5c837.
+     Save and plain restore of the rebased owner keep its digests, words and provenance.
+ 1.2 The same checkpoint into a coordinator-like Model (heat-only patches on two foil slices, carrier limits 2e6,
+     dt_max 5e-14, foil planes one ulp apart): admitted; every word and slice state equal; the added patches start with
+     zero inventory; the transfer text records each changed operand (rule form v3.3, dt_max 1e-13 -> 5e-14, solver
+     descriptor v3.3 -> v3.4/v3.5, declaration none -> 3de68bbb..., carrier limits 100000/1073741824 -> 2000000/8728870912,
+     motion mesh 0c8e6c3b... -> 1127fecf..., divB ledger zero); 20 vacuum steps follow. Refused when the corresponding
+     GenesisTransfer flag is off (declaration, carrier limits, geometry).
+ 1.3 The v3.4 20 ns checkpoint (b13/gpu-prerun-20ns-200um-212515/checkpoint-20.000000ns): every word incl. the divB gross
+     ledger equal; provenance with the v3.4 schema and seals.
+ 1.4 Physical continuation: the rebased v3.4 owner, the plain restore of the same checkpoint (revision kept) and the
+     rebased v3.3 owner, 200 vacuum steps in lockstep: field, charge, Gauss and divB ledger words identical every step
+     (rebased v3.3: identical except the divB ledger, which starts at zero), slice states identical (revisions 1..200
+     against 194027..194226); only the identities differ (provenance).
+ 1.5 Fresh genesis: a revision-0 checkpoint of a DC-seed bootstrap restored as a genesis equals the fresh owner in every
+     word and slice state over 100 vacuum steps (same revisions), with different digests (provenance bound). Coupled:
+     a fresh genesis with 200 co-located neutral pairs against the genesis from the vacuum revision-0 checkpoint with the
+     same census: 6 coupled steps with identical decisions, iterations, census v2, record v7, trial-field digest and
+     combined balance, and identical accepted field, charge and ledger words and slice states after every step.
+ 1.6 Refusals: one bit of a field word ("checkpoint field/charge seal mismatch"); one bit of a slice temperature
+     ("checkpoint thermal seal mismatch"); a non-vacuum checkpoint ("genesis checkpoint is not a vacuum state"); a
+     declaration that alters or removes a recorded patch ("genesis thermal declaration may only add heat-only source
+     patches"; without the recorded declaration: "... is not a transfer of the restoring Model"); another drive trace
+     (refused at Model construction: "C19 bytes differ from selected current-only drive"; the configuration binds the
+     C19 digest too); another mesh (100 um: refused at the checkpoint's word dimensions; one more air layer likewise).
+     Control: a v3.5 checkpoint written under a declaration restores as a genesis under the same declaration.
+ 1.7 Host Owner (CPU PCG Model): a vacuum host checkpoint at revision 5 restores as a genesis (words, slice states,
+     revision 0, provenance); save/plain restore keep digests and provenance; 20 vacuum steps equal the plain restore of
+     the same checkpoint; transfer into a Model with heat-only patches, other limits and foil planes; refusals of a
+     flipped word and of a non-vacuum checkpoint.
+ 1.8 On g3 (g3/gpu-genesis-231501: 44/44 again): fresh-process continuation of a rebased owner (test_v35 genesis-run /
+     genesis-continue, g3/gpu-genesis-run-232226, gpu-genesis-continue-232530): genesis from the v3.4 20 ns checkpoint, 50
+     vacuum steps, save, 50 more steps as the reference; a new process restores the saved owner (same field, heat and
+     kinetic-ledger digests, provenance and physical words) and its 50 further steps equal the reference (revision 100,
+     field_sha256 7dfeaf54...).
+
+2. Regression (v3.5 changes nothing for bootstraps, steps, checkpoints and restores of non-genesis states)
+ Suites rerun on v3.5 (g2; g3 for the stages after the batch interruption) and compared value by value with the v3.4
+ runs of the same stages (tools/compare_runs_v34.py; timings, memory, device descriptions and paths excluded):
+ regression-g2-vs-v34.json, regression-g3-vs-v34.json -- all identical, digests included:
+   test_x87 support; test_v34 parity 200 um (33 cases, 3568 step values), tamper, divB (2000 steps), block digests;
+   device mode: units, negative, parity-vacuum, parity-coupled-2, vacuum10k, A09 (margins 3.54e11 / 2.78e11), ledger-run,
+   fresh-process restore-continue (v3.5 checkpoint schema written and read), dense light, v7 sinks (GPU motion);
+   CPU: Hall v3 components (4890 values), parity, motion and sink dumps.
+ Coordinator v5 T1-T7 (coordinator-parity/run-c1-223926): passed (101/28/35/10/37/6/9); physical state identical to the
+ v3.3 run and the identity mapping consistent (109 digests), as for v3.4's c3; against v3.4's c3 every T1 output equal
+ except the host checkpoint files (the new "genesis_provenance": null key) and the file digests derived from them.
+
+3. Identities and formats
+ - Unchanged for bootstraps and non-genesis restores: configuration_sha256, resident descriptor
+   (a41d68ca0e8e78eb12beeab3a875e438c510de8fafc3f9fbc06f410a362fb228), state merkle and host state digests, heat and
+   kinetic-ledger digests, every motion/native-facing digest.
+ - Rebased owners: the resident state merkle record appends "hall-v3.5-genesis-provenance" + GenesisProvenance::sha256()
+   (gpu::SlotMeta::provenance; candidates inherit it); the host state digest appends it after the divB gross ledger
+   (ChargeLedger::genesis_provenance); heat digests use genesis_heat_identity(material binding, provenance)
+   ("hall-v3.5-genesis-heat-identity-v1").
+ - Resident checkpoint schema hall-v3.5-resident-checkpoint-v1 (v3.4 + genesis_provenance, thermal_declaration, carrier_limits);
+   host checkpoints add "genesis_provenance" (null for non-genesis owners). Plain restore reads v3.4 and v3.5 files.
+   Consequence for the coordinator's file-byte digests: a host checkpoint file of v3.5 differs from v3.4's by that key
+   (coordinator v5 T1 hall_save_sha256 values; the states and every state digest are unchanged, section 2).
+
+4. Decisions taken (engineering)
+ - Version split: v3.5 = restore_as_genesis (the coupled-run unblocker), sealed first; GPU speed -> v3.6; integration
+   items -> v3.7.
+ - v3.3 checkpoints accepted for the genesis only (verification forms reproduced: v3.3 configuration composition and
+   v3.3 merkle form over the same device leaves; the v3.3 host ledger record); plain restore keeps v3.4/v3.5 only.
+ - divB gross ledger: kept from v3.4/v3.5 checkpoints, zero from a v3.3 checkpoint (no value recorded; zero is the
+   smaller floor, i.e. the stricter check).
+ - The recorded configuration is identified among candidate operand sets (declaration: the restoring one, none, or
+   GenesisTransfer::recorded_declaration; limits: the restoring ones, CarrierLimits{}, the checkpoint's record (v3.5) or
+   GenesisTransfer::recorded_limits); GenesisTransfer gains the two optional recorded operands for checkpoints that do not
+   record them.
+ - Heat transfer through the sealed Coupler's own checkpoint reader (an in-memory file with this Model's slice
+   signatures, revision 0, appended zero inventories); the checkpoint's slices are first loaded under the recorded
+   declaration, so the sealed signature check covers the recorded slice definitions.
+ - Checks run inside the restoring constructor (hook after the upload, before the census check and admission) so that the
+   order a-f of the request holds (a flipped word is reported by the seal, not by the admission).
+ - Host Owner genesis: the recorded configuration uses the restoring Model's dt_max, solve backend and motion forms (the
+   host checkpoint does not record them; host plain restore requires them equal as before).
+ - Vacuum state: free charge net and gross zero at every node, no bank residue, empty kinetic ledgers; a census of
+   co-located neutral pairs is admitted at the genesis (restored-form census check), and the rebased free-charge
+   ledger is zero until the first coupled step replaces it from the carriers (1.5 shows the states then coincide).
+ - Host checkpoint key "genesis_provenance" always written (null for non-genesis owners).
+
+5. What is left (later versions)
+ - v3.6: GPU speed (RESULTS 12 of v3.4). Finding for the plan: the node walks fold non-associative sums in the sealed
+   carrier order (compensated double-word sums in k34_charge_nodes / hgp_reduce_end_nodes_v3, emulated x87 sums in
+   k34_support_nodes); a segmented reduction cannot reproduce those bits, so a bit-identical speedup is limited to the
+   per-record latency (loads off the chain), and splitting the chains needs exact sums (an identity change; already
+   approved for the deposit support in v3.4, not for the charge and fold sums).
+ - v3.7: graded transverse mesh, circuit port-current mode, SS304 phase owner (v1.3 if final with receipts, else v1.2),
+   source v7 wall-response heat, merge/split relocation deposit on the GPU, GMG option, v3.4 open issues 10.1-10.6.
