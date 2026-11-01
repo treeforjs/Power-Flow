@@ -1,0 +1,23 @@
+# Diagnostic OH a4Sigma dissociation component
+
+This isolated component samples **e + OH(X²Π) → e + H(²S) + O(³P)** through a diagnostic vertical excitation to the repulsive a⁴Sigma− state. It calls the existing frozen chemistry v3.1.1 event solver. It is not a complete OH encounter group, a collision-frequency/MCC implementation, or a native production binding.
+
+The calculated integral cross section comes from column C of the [2019 Chakrabarti et al. primary supplement](https://stacks.iop.org/PSST/28/085013/mmedia), linked to [DOI 10.1088/1361-6595/ab364c](https://doi.org/10.1088/1361-6595/ab364c). Source Table 1 supplies a rounded **7.36 eV vertical excitation** at Re = 1.8342 a0; Section 4.2.1 identifies the repulsive state with ground H+O fragments. That supports this stated model, not an experimentally measured differential event distribution.
+
+The explicit model is:
+
+- Target-rest incident energy **7.3605–10 eV** only. The closed interval contains 389 original positive source knots. Piecewise-linear interpolation of the original calculated cross section uses the existing registry bohr radius. Outside the interval is refused, including the source's lower positive knot; no axis shift, extrapolation or invented zero.
+- Fixed 7.36 eV vertical loss, represented as binary64 in the solver. The actual finite-target threshold is about 7.3602374663 eV; the retained lower source knot is above it.
+- Isotropic scattered-electron direction in the pair center-of-momentum frame, explicitly an unvalidated angular model because this integral source does not supply a differential law.
+- Isotropic two-body breakup in the excited-target rest frame. All loss minus chemical reference cost goes to relative fragment kinetic energy: 2.9489668343 eV. With exact two-body recoil, H receives 2.7741689688 eV and O receives 0.1747978655 eV in that frame. These are model predictions, not measured KER distributions.
+- Ground atomic products carry **no unspecified internal energy**. Existing charge, nuclei and stable reference-energy conventions remain fixed. No change to thermal/ionization/recombination channels or source policy.
+
+`src/component.hpp` provides `cross_section()` in **m²**, and a stateless `sample()` that returns incoming/outgoing momenta and kinetic energies. Default mode refuses. Explicit diagnostic mode, target-rest energy, unit incident direction, finite target proper velocity and diagnostic RNG domain are required. The existing 2^-40 event chemical-energy tolerance is retained. The component does not mutate target inventories or publish native states; integration still needs the existing conservative target owner, all-species scope check, complete group coverage, cross-section majorant and transaction gates.
+
+The bounded loader pins the workbook and source reader, checks state/units/1451 full-column entries, first positive abscissa, positive supported window and extrema. Figure 3 was visually checked: the C-column maximum ~0.477 bohr² agrees with its plotted scale. The missing B546 value and D1350=1974 anomaly in other columns are excluded by selecting only C; neither is repaired. Structural/source checks do not qualify physical accuracy.
+
+SimQueue **462** passed in frozen userspace on one allocated core with 1 GiB reservation. Qualification covers 2,048 actual solver events including moving targets, 777 knot/midpoint source comparisons, 16 default/operand/tail/RNG refusals, solver thresholds on both sides, independent 70-digit energy/momentum and recoil-partition calculations, repeated byte-identical events, and UBSan. Maximum independent chemical-energy residual was 2.21e-16 relative; momentum residual was 8.56e-17. Fragment-rest energy errors were below 3.02e-15 eV. These are numerical component checks, not full-model validation or a performance claim.
+
+Runtime: `/home/treefor/projects/runtimes/oh-a4sigma-diagnostic-v1.1-20261101`. Source identity: `61eb38b3fc0773b2121726a0f09ba6e26e1906d723b913617cf971051d93a69a`. The prior v1 runtime/job 459 remains intact; v1.1 only renames the cross-section API to avoid confusing sigma with a rate coefficient. `INPUTS.json` pins source, dependencies, raw workbook and frozen environment. `tools/check.py` runs only under a one-core SimQueue allocation, regenerates the local header deterministically, builds with contraction/fast-math disabled, and records binary hashes. Generated raw numerical arrays and primary PDFs remain outside git.
+
+`production_qualified`, `physical_model_validated`, `network_complete` and `native_adopted` are **false**. No active chemistry runtime, full PIC run, native binding or unknown-region policy is changed.
