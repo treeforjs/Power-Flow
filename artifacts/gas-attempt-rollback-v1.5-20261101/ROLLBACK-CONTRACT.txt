@@ -1,0 +1,36 @@
+Gas v1.5: exact-attempt rollback for common coordinator trials
+============================================================
+
+begin_attempt(step) opens a step and returns an opaque, move-only rollback
+capability bound to owner lifetime, begin generation and step. Unlike the
+read/content CandidateBinding, it deliberately survives candidate mutations,
+failure and publication preparation. It carries no content-read or publication
+authority. matches_attempt and abandon_attempt are noexcept and allocate
+nothing. A foreign/default/moved/destroyed/published/retried token cannot
+abandon a live candidate. A refused abandon leaves its token untouched.
+
+If begin_step fails after its own generation advanced, begin_attempt cleans up
+that new candidate before rethrowing. Failure to begin on an already open
+owner does not discard the existing candidate. The legacy explicit begin_step
+API is unchanged. Owner::abandon and DeviceLane::abandon now declare their
+existing nonthrowing cleanup contract. Device abandon launches no work.
+
+The maintained integration helper lives in Power-Flow/native/coupled_pic.
+GasStepScope retains shared owner lifetime and performs exact-attempt cleanup
+on unwind/reset. Move assignment first abandons the previous scope. Successful
+publication invalidates the attempt, so old scope destruction cannot affect a
+new trial. Serial owner use is required. It does not replace other owners'
+rollback guards or the required joint preflight/no-fail publication window.
+
+No numerical, configuration, checkpoint or physics policy changes. Actual
+state/motion/publication/binding histories are compared with sealed v1.4
+evidence; scope-controlled populated history is also compared to the explicit
+path and checkpoint continuation. Scope tests include key-capacity poisoning,
+allocation failure, same-digest retry and failure before/after actual device
+begin copy. Injected device exceptions do not qualify arbitrary driver recovery.
+
+The source, frozen execution, exact job outputs, CPU/sanitizer/device results
+and unchanged-state comparison are recorded by preserve-rollback.py. Failed
+initial build424 was an intentional self-move test triggering -Werror; its
+aliasing test form was corrected without changing the helper or compiler gate.
+No speedup, common-owner closure or physical breakdown qualification is claimed.

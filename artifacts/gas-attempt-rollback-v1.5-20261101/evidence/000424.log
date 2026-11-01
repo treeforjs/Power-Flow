@@ -1,0 +1,34 @@
+===== simq job 424: gas-v15-rollback-cpu-c1 =====
+submitted: 2026-11-01T07:09:35Z
+started:   2026-11-01T07:09:36Z
+cwd:       /home/treefor/projects/runtimes/gas-target-owner-v1.5-rollback-20261101
+partition: powerflow
+P-cores:   5
+GPUs:      none
+memory:    3G (swap 1G)
+time:      00:08:00
+borrowed:  CPU 5 from raikou-mfem (free); on preempt: freeze
+unit:      simq-job-424-86f270d2398c.service
+command:   /usr/bin/nice -n 15 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen python3 -I tools/qualify.py normal c1
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core5.lock (shared)
+build 1
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/gas-target-owner-v1.5-rollback-20261101/tools/qualify.py", line 51, in <module>
+    run(cmd,'build');receipt['binary_sha256']=hashlib.sha256((D/'test_guards').read_bytes()).hexdigest()
+    ~~~^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/gas-target-owner-v1.5-rollback-20261101/tools/qualify.py", line 42, in run
+    if r.returncode:raise RuntimeError(name+' failed: '+(D/(name+'.log')).read_text()[-4000:])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: build failed: In file included from /home/treefor/projects/runtimes/gas-target-owner-v1.5-rollback-20261101/tests/test_guards.cpp:145:
+/home/treefor/projects/runtimes/gas-target-owner-v1.5-rollback-20261101/integration/tests/gas_step_scope.inc: In function ‘void scope_tests(pf_gas_v1::Execution)’:
+/home/treefor/projects/runtimes/gas-target-owner-v1.5-rollback-20261101/integration/tests/gas_step_scope.inc:73:8: error: moving ‘moved’ of type ‘pf_coupled::GasStepScope’ to itself [-Werror=self-move]
+   73 |   moved=std::move(moved);
+      |   ~~~~~^~~~~~~~~~~~~~~~~
+cc1plus: all warnings being treated as errors
+
+========================================
+finished:  2026-11-01T07:09:40Z
+exit code: 1
+state:     failed
+===== simq job 424 finished =====
