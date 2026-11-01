@@ -1,0 +1,246 @@
+--- a/source/include/raikou/mfem_pic_coupled_targets.h
++++ b/source/include/raikou/mfem_pic_coupled_targets.h
+@@ -2,6 +2,21 @@
+ #include "raikou/mfem_pic_full_time.h"
+ namespace native_gas_common { class CoupledTrial; }
+ namespace raikou::mfem_backend {
++// Actual host populations of one genuine, still-private native motion.
++// These records are evidence, not publication authority. The concrete common
++// owner must retain and preflight the exact prepared motion and outer scope.
++struct FullTimePreparedMotionSnapshot {
++  std::string schema="native-v8.9/prepared-motion-inventory-v1";
++  FullTimeMotionBinding binding;
++  std::string source_sha256,configuration_sha256,registry_sha256,outer_step_sha256,
++      motion_record_sha256,before_prefix,start_prefix,after_prefix,sha256;
++  std::vector<ArenaRateEntry> before,start,after;
++  std::vector<FullTimeStoredPacketEnergy> before_internal,start_internal,after_internal;
++  std::shared_ptr<const FullTimeBirthReceipt> births;
++  std::shared_ptr<const FullTimeSinkLedger> sinks;
++  bool has_merge=false;
++  std::uint64_t payload_bound_bytes=0;
++};
+ // Private native entry points for the pinned concrete CPU gas bridge. A hash,
+ // diagnostic token, or caller-supplied public callback cannot authorize this path.
+ class FullTimeCoupledAccess final {
+@@ -12,6 +27,13 @@
+                      const std::string &initial_gas, std::uint64_t gas_step,
+                      const std::shared_ptr<const Continuation> &previous);
+   static PreparedArena prepare(PrivateFullTimeStep &,CollisionScope &,std::shared_ptr<FullTimeHostTargetProvider>);
++  static std::shared_ptr<const FullTimePreparedMotionSnapshot> prepare_motion_snapshot(
++      PrivateFullTimeStep &,PreparedPrivateMotion &,std::size_t carrier_cap,std::size_t byte_cap);
++  static bool motion_live(const PrivateFullTimeStep &,const PreparedPrivateMotion &) noexcept;
++  static bool can_inspect_motion(const PrivateFullTimeStep &,const PreparedPrivateMotion &,
++      const FullTimePreparedMotionSnapshot &) noexcept;
++  static std::shared_ptr<const FullTimeCandidatePopulation> final_population(
++      const PrivateFullTimeStep &,const PreparedArena &);
+   static void authorize_stage(CollisionScope &,PreparedArena &,
+       std::shared_ptr<const void>,Check,const std::string &proof);
+   static std::shared_ptr<const Continuation> prepare_continuation(
+--- a/source/src/mfem_pic_arena.cpp
++++ b/source/src/mfem_pic_arena.cpp
+@@ -767,6 +767,7 @@
+ }
+ struct CoupledTargetWitness {
+   std::shared_ptr<const void> retained;
++  std::shared_ptr<const FullTimeCandidatePopulation> population;
+   bool (*check)(const void *) noexcept = nullptr;
+   std::string proof, native_candidate;
+   bool valid() const noexcept { return retained && check && check(retained.get()); }
+--- a/source/src/mfem_pic_coupled_targets.inc
++++ b/source/src/mfem_pic_coupled_targets.inc
+@@ -39,8 +39,9 @@
+   require(scope.impl_ && scope.impl_->scope,"empty coupled scope");
+   auto &s=*scope.impl_->scope;
+   require(FullTimeAccess::inspectable(s,token) && token.impl_->coupled_target_required &&
+-          !token.impl_->coupled_witness && token.impl_->chemistry && digest(proof),"wrong provisional token/proof");
++          !token.impl_->coupled_witness && token.impl_->chemistry && token.impl_->population_view && digest(proof),"wrong provisional token/proof");
+   auto w=std::make_shared<CoupledTargetWitness>();w->retained=std::move(retained);w->check=check;w->proof=proof;
++  w->population=token.impl_->population_view;
+   w->native_candidate=token.impl_->candidate_prefix;
+   require(w->valid(),"stale gas stage witness");
+   token.impl_->coupled_witness=std::move(w);
+@@ -75,3 +76,145 @@
+   p->owner=o.owner;p->lifetime=o.lifetime;p->accepted=token.impl_->after;p->boundary=token.impl_->boundary_after;
+   p->contract=o.coupled_contract;p->proof=token.impl_->coupled_witness->proof;return p;
+ }
++
++bool FullTimeCoupledAccess::motion_live(const PrivateFullTimeStep&step,const PreparedPrivateMotion&token) noexcept {
++  try {
++    if(!step.impl_ || !step.impl_->outer || !token.impl_ || !token.impl_->trial) return false;
++    const auto&o=*step.impl_->outer;const auto&t=*token.impl_;
++    FullTimeAccess::live(o);
++    return !o.coupled_contract.empty() && o.phase==1 && !o.builder_active &&
++      t.trial->outer==step.impl_->outer && !t.consumed && !t.trial->consumed &&
++      o.frame.snapshot==t.trial->fork_frame && t.after.snapshot && t.trial->base.snapshot;
++  }catch(...){return false;}
++}
++bool FullTimeCoupledAccess::can_inspect_motion(const PrivateFullTimeStep&step,const PreparedPrivateMotion&token,
++    const FullTimePreparedMotionSnapshot&view) noexcept {
++  return motion_live(step,token) && token.impl_->motion_view.get()==&view &&
++    step.impl_->outer->owner->full_time_execution()==FullTimeExecution::host &&
++    step.impl_->outer->frame.native.particles.host_present() &&
++    token.impl_->trial->base.native.particles.host_present() && token.impl_->after.native.particles.host_present();
++}
++namespace full_time_detail {
++std::vector<FullTimeStoredPacketEnergy> motion_internal_stock(const ArenaSnapshot&snap) {
++  std::vector<FullTimeStoredPacketEnergy> out;
++  if(snap.full_time_v81) {
++    out.reserve(snap.full_time_v81->internal.size());
++    for(const auto&[id,p]:snap.full_time_v81->internal) {
++      require(snap.packets.count(id) && std::isfinite(p.weight) && p.weight>0 &&
++              std::isfinite(p.energy_J) && p.energy_J>=0,"motion packet energy owner");
++      out.push_back({id,p.weight,p.energy_J});
++    }
++  }
++  return out;
++}
++std::string motion_inventory_digest(const FullTimePreparedMotionSnapshot&v) {
++  Writer w;w.tag(v.schema);auto common=v.binding.common;codec_common(w,common);
++  for(const auto*s:{&v.binding.transport_trial_sha256,&v.binding.field_before_sha256,&v.binding.field_after_sha256,
++      &v.binding.heat_after_sha256,&v.binding.source_after_sha256,&v.source_sha256,&v.configuration_sha256,
++      &v.registry_sha256,&v.outer_step_sha256,&v.motion_record_sha256,&v.before_prefix,&v.start_prefix,&v.after_prefix})w.text(*s);
++  w.boolean(v.has_merge);w.u64(v.payload_bound_bytes);
++  for(const auto*rows:{&v.before,&v.start,&v.after}) {
++    w.u64(rows->size());for(const auto&r:*rows) {
++      w.text(r.packet_id);w.text(r.state);w.u64(r.native.id);w.vec(r.native.position_m);w.vec(r.native.proper_velocity_m_s);
++      w.f64(r.native.charge_C);w.f64(r.native.mass_kg);w.f64(r.native.weight);
++    }
++  }
++  for(const auto*stock:{&v.before_internal,&v.start_internal,&v.after_internal}) {
++    w.u64(stock->size());for(const auto&p:*stock){w.text(p.packet_id);w.f64(p.original_birth_weight);w.f64(p.energy_J);}
++  }
++  w.boolean(bool(v.births));
++  if(v.births) {
++    const auto&b=*v.births;w.u64(b.accepted_step);w.u64(b.base);w.u64(b.next_id_after);w.u64(b.arrival_next_id_after);
++    for(const auto*s:{&b.plan_sha256,&b.staged_token_sha256,&b.source_before_sha256,&b.source_after_sha256,
++                     &b.births_root_sha256,&b.row_sha256,&b.internal_energy_J_digits})w.text(*s);
++    w.f64(b.internal_energy_J);
++    for(const auto*entries:{&b.entries,&b.wall_entries}){w.u64(entries->size());for(const auto&e:*entries){w.text(e.packet_id);w.text(e.state);w.u64(e.native_id);w.f64(e.weight);w.boolean(e.returned);}}
++    for(const auto*streams:{&b.streams,&b.wall_credits}){w.u64(streams->size());for(const auto&s:*streams){w.u64(s.stream_id);w.text(s.state);codec_count(w,const_cast<ArenaCount&>(s.source_debit));}}
++    w.u64(b.bridges.size());for(const auto&p:b.bridges){w.u64(p.native_id);w.vec(p.field_start_m);w.vec(p.field_displacement_m);w.f64(p.charge_C);}
++  }
++  w.boolean(bool(v.sinks));if(v.sinks)w.text(published_sinks_digest(*v.sinks));
++  return cn::sha256_hex(w.bytes);
++}
++}
++std::shared_ptr<const FullTimePreparedMotionSnapshot> FullTimeCoupledAccess::prepare_motion_snapshot(
++    PrivateFullTimeStep&step,PreparedPrivateMotion&token,std::size_t cap,std::size_t bytes) {
++  require(motion_live(step,token),"motion view requires exact live coupled outer/token");
++  auto&o=*step.impl_->outer;auto&t=*token.impl_;auto&owner=*o.owner;
++  const FullFrame*frames[]={&o.frame,&t.trial->base,&t.after};
++  if(owner.full_time_execution()!=FullTimeExecution::host ||
++     std::any_of(std::begin(frames),std::end(frames),[](const FullFrame*f){return !f->native.particles.host_present();}))
++    throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::target_fields,"motion inventory has no qualified device path");
++  if(!cap || cap>owner.carrier_cap_ || !bytes || bytes>(std::size_t(1)<<30))
++    throw refusal(RK::memory_budget,"motion view explicit carrier/byte capacity");
++  for(const auto*f:frames)if(f->native.particles.size()>cap || f->snapshot->packets.size()>cap)
++    throw refusal(RK::carrier_cap,"motion view per-frame carrier capacity");
++  const auto birth=t.trial->births?t.trial->births->receipt:nullptr;
++  // The same resource checks apply to fresh and cached views, even when a
++  // smaller population accompanies many zero-count streams or sink records.
++  if(birth && (birth->entries.size()>cap || birth->streams.size()>cap || birth->bridges.size()>cap))
++    throw refusal(RK::carrier_cap,"motion birth receipt capacity");
++  if(t.sinks && (t.sinks->records.size()>cap || t.sinks->exposed.size()>cap ||
++     t.sinks->removed_packets.size()>cap || t.sinks->tallies.size()>cap || t.sinks->surfaces.size()>cap))
++    throw refusal(RK::carrier_cap,"motion sink receipt capacity");
++  if(t.motion_view) {
++    if(t.motion_view->payload_bound_bytes>bytes)throw refusal(RK::memory_budget,"cached motion view byte capacity");
++    return t.motion_view;
++  }
++  require(!t.trial->merge,"motion inventory merge needs a qualified common gas mapping");
++  if(birth) {
++    require(birth->wall_entries.empty() && birth->wall_credits.empty(),"motion inventory wall-response mapping unavailable");
++    for(const auto&e:birth->entries)require(!e.returned,"motion inventory returned-birth mapping unavailable");
++  }
++  // Logical retained payload, not an RSS claim. Bound every row string and
++  // retained receipt before allocating row vectors or copying any population.
++  std::uint64_t payload=sizeof(FullTimePreparedMotionSnapshot)+4096;
++  auto add=[&](std::uint64_t n){payload=checked_add(payload,n,"motion inventory payload overflow");
++    if(payload>bytes)throw refusal(RK::memory_budget,"motion inventory payload capacity");};
++  auto mult=[&](std::uint64_t n,std::uint64_t width){require(!width || n<=std::numeric_limits<std::uint64_t>::max()/width,"motion inventory payload product overflow");add(n*width);};
++  add(0);
++  for(const auto*f:frames) {
++    mult(f->native.particles.size(),sizeof(ArenaRateEntry));
++    for(const auto&[id,p]:f->snapshot->packets){(void)id;mult(p.native_ids.size(),p.id.size()+p.state.size());}
++    if(f->snapshot->full_time_v81)for(const auto&[id,p]:f->snapshot->full_time_v81->internal){(void)p;add(sizeof(FullTimeStoredPacketEnergy)+id.size());}
++  }
++  constexpr std::uint64_t count_bytes=(ArenaCount::maximum_bits+7)/8;
++  if(birth) {
++    if(birth->entries.size()>cap || birth->streams.size()>cap || birth->bridges.size()>cap)throw refusal(RK::carrier_cap,"motion birth receipt capacity");
++    add(sizeof(FullTimeBirthReceipt));for(const auto*s:{&birth->plan_sha256,&birth->staged_token_sha256,&birth->source_before_sha256,
++      &birth->source_after_sha256,&birth->births_root_sha256,&birth->row_sha256,&birth->internal_energy_J_digits})add(s->size());
++    for(const auto&e:birth->entries)add(sizeof e+e.packet_id.size()+e.state.size());
++    for(const auto&s:birth->streams)add(sizeof s+s.state.size()+count_bytes);
++    mult(birth->bridges.size(),sizeof(FullTimeBirthBridge));
++  }
++  if(t.sinks) {
++    const auto&s=*t.sinks;
++    if(s.records.size()>cap || s.exposed.size()>cap || s.removed_packets.size()>cap || s.tallies.size()>cap || s.surfaces.size()>cap)
++      throw refusal(RK::carrier_cap,"motion sink receipt capacity");
++    add(sizeof s);for(const auto*x:{&s.transport_trial_sha256,&s.records_root_sha256,&s.ledger_sha256,&s.row_sha256})add(x->size());
++    mult(s.records.size(),sizeof(FullTimeSinkRecord));
++    for(const auto&x:s.exposed)add(sizeof x+x.packet_id.size()+x.state.size());
++    for(const auto&x:s.removed_packets)add(sizeof x+x.size());
++    for(const auto&x:s.tallies)add(sizeof x+x.state.size()+2*count_bytes);
++    mult(s.surfaces.size(),sizeof(FullTimeSinkSurfaceTotals)+4*count_bytes);
++  }
++  const auto setup=std::static_pointer_cast<const chem8::Setup>(owner.chemistry_);require(bool(setup),"motion inventory chemistry registry");
++  auto v=std::make_shared<FullTimePreparedMotionSnapshot>();v->binding=t.binding;v->source_sha256=PicArena::source_identity();
++  v->configuration_sha256=setup->configuration_sha256;v->registry_sha256=setup->reg->sha256;
++  v->outer_step_sha256=o.outer_sha;v->motion_record_sha256=t.v7_sha256;
++  require(digest(v->motion_record_sha256),"motion inventory requires typed native motion record");
++  v->before_prefix=FullTimeAccess::prefix(o,o.frame);v->start_prefix=t.trial->prefix;v->after_prefix=FullTimeAccess::prefix(o,t.after);
++  v->before=FullTimeAccess::population(o,o.frame,cap);v->start=FullTimeAccess::population(o,t.trial->base,cap);v->after=FullTimeAccess::population(o,t.after,cap);
++  v->before_internal=motion_internal_stock(*o.frame.snapshot);v->start_internal=motion_internal_stock(*t.trial->base.snapshot);v->after_internal=motion_internal_stock(*t.after.snapshot);
++  v->births=birth;v->sinks=t.sinks;v->has_merge=false;v->payload_bound_bytes=payload;v->sha256=motion_inventory_digest(*v);
++  require(motion_live(step,token),"motion view token changed during construction");t.motion_view=v;return v;
++}
++std::shared_ptr<const FullTimeCandidatePopulation> FullTimeCoupledAccess::final_population(
++    const PrivateFullTimeStep&step,const PreparedArena&token) {
++  require(can_publish_final(step,token),"final population requires live common publication token");
++  const auto&w=step.impl_->outer->coupled_stages[1];
++  require(w && w->population && token.impl_->native_after_digest &&
++          w->population->native_rows_root==token.impl_->native_after_digest->root &&
++          w->population->carriers==token.impl_->native_after.particles.size(),
++          "final population differs from actual native publication rows");
++  return w->population;
++}
+--- a/source/src/mfem_pic_full_time.inc
++++ b/source/src/mfem_pic_full_time.inc
+@@ -1024,6 +1024,7 @@
+     drain_json(audit);
+   }
+   std::shared_ptr<FullTrial> trial;
++  std::shared_ptr<const FullTimePreparedMotionSnapshot> motion_view;
+   FullFrame after;
+   // v6 binary admission: record summary and sink ledger of this motion.
+   std::shared_ptr<const FullTimeSinkLedger> sinks;
+--- a/source/src/mfem_pic_full_time_chemistry.inc
++++ b/source/src/mfem_pic_full_time_chemistry.inc
+@@ -78,7 +78,7 @@
+   return l;
+ }
+ ArenaJson chemistry_configuration_json(const FullTimeConfiguration &c) {
+-  ArenaJson j = {{"identity", "v8.8-provisional-target-owner-v1"}};
++  ArenaJson j = {{"identity", "v8.9-motion-inventory-v1"}};
+   if (c.merge_split.enabled) {
+     const auto &P = *c.merge_split.params;
+     j["merge_split"] = {{"cadence_steps", c.merge_split.cadence_steps},
+@@ -117,7 +117,7 @@
+ }
+ void read_chemistry_configuration_json(const ArenaJson &j, FullTimeConfiguration &c) {
+   const bool ms = j.is_object() && j.contains("merge_split");
+-  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8.8-provisional-target-owner-v1", "v8 configuration schema");
++  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8.9-motion-inventory-v1", "v8 configuration schema");
+   c.identity = FullTimeIdentitySchema::v8;
+   if (ms) {
+     const auto &m = j.at("merge_split");
+@@ -177,7 +177,7 @@
+   if (c.identity != FullTimeIdentitySchema::v8)
+     return "";
+   Writer w;
+-  w.tag("native-v8.8-provisional-target-owner-v1/identity-schema-v8");
++  w.tag("native-v8.9-motion-inventory-v1/identity-schema-v8");
+   if (c.chemistry.enabled)
+     w.text(chem8::make_setup(c.chemistry, o)->configuration_sha256);
+   else

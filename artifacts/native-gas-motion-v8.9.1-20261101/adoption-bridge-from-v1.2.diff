@@ -1,0 +1,774 @@
+--- a/include/coupled_trial.hpp
++++ b/include/coupled_trial.hpp
+@@ -1,5 +1,7 @@
+ #pragma once
+ #include "actual_accounting.hpp"
++#include "native_gas_motion.hpp"
++#include <chrono>
+ #include "raikou/mfem_pic_coupled_targets.h"
+ #include "pf_coupled/gas_step_scope.hpp"
+ 
+@@ -11,11 +13,11 @@
+  auto base=configuration;base.host_target_feedback=false;base.host_target_contract_sha256.clear();
+  base.coupled_target_contract_sha256.clear();
+  const auto reg=n::full_time_chemistry_registry(base,options);
+- return native_gas_targets::sha(n::ArenaJson{{"schema","native-gas-provisional-owner-cpu-v1"},
++ return native_gas_targets::sha(n::ArenaJson{{"schema","native-gas-motion-owner-cpu-v2"},
+   {"native_source",n::PicArena::source_identity()},{"base_configuration",reg.configuration_sha256},
+   {"gas_configuration",gas.configuration_sha256()},
+   {"accounting","actual-stocks;water-nuclei;explicit-numerical-defect-and-reference-conversion"},
+-  {"motion_scope","same-carriers-species-weights-and-cells;no-source-or-sink"}}.dump());
++  {"motion_scope","authentic-native-motion;births-first-hit-sinks;conservative-census;held-correction-exits"}}.dump());
+ }
+ class CoupledTrial final {
+ public:
+@@ -48,11 +50,14 @@
+   std::string initial_gas,initial_native,contract,parent_receipt;
+   std::uint64_t step=0;std::size_t cap=0;unsigned completed=0;bool failed=false,published=false;
+   std::shared_ptr<const n::FullTimeCandidatePopulation> first_population;
+-  n::ArenaJson stages=n::ArenaJson::array(),receipt;
++  n::ArenaJson stages=n::ArenaJson::array(),receipt,motion=n::ArenaJson::object();
++  std::shared_ptr<const n::FullTimePreparedMotionSnapshot> moved;
++  std::shared_ptr<StageWitness> motion_witness;
++  std::map<std::string,double> motion_seconds;
+   std::unique_ptr<n::PreparedArena> final_native;std::shared_ptr<FinalWitness> final_gas;
+   std::shared_ptr<const Continuation> continuation;
+   g::Owner::CandidateBinding initial_binding;std::shared_ptr<StageWitness> last_witness;
+-  ~State()noexcept{drain_proof_json(stages);drain_proof_json(receipt);}
++  ~State()noexcept{drain_proof_json(stages);drain_proof_json(receipt);drain_proof_json(motion);}
+   State(n::PrivateFullTimeStep o,std::shared_ptr<g::Owner> gowner,const n::FullTimeChemistryConfiguration&c,
+     const n::GapPicOptions&opts,std::uint64_t accepted_step,std::size_t maximum_carriers)
+    :outer(std::move(o)),gas(std::move(gowner)),cfg(c),options(opts),registry(n::full_time_chemistry_registry(c,opts)),
+@@ -60,7 +65,7 @@
+     need(cap>0 && cap<=1000000,"coupled carrier capacity");
+     need(!cfg.diagnostic_field_target_approximation && cfg.host_target_feedback &&
+       !cfg.coupled_target_contract_sha256.empty() && cfg.execution==n::FullTimeChemistryExecution::host &&
+-      gas->configuration().execution==g::Execution::host && gas->configuration().transport==g::Transport::none,
++      gas->configuration().execution==g::Execution::host && gas->configuration().transport==g::Transport::census_conservative,
+       "bounded coupled CPU strict mode/transport configuration");
+     contract=coupled_contract(cfg,options,*gas);need(contract==cfg.coupled_target_contract_sha256,"coupled contract differs");
+     initial_gas=gas->accepted_sha256();rollback=pf_coupled::GasStepScope::begin(gas,step);initial_binding=gas->candidate_binding();
+@@ -74,17 +79,17 @@
+    const auto&sp=s_->registry.species[i->second];for(std::size_t k=2;k<sp.nuclei.size();++k)need(sp.nuclei[k]==0,"independent nucleus accounting currently supports H/O only");}
+  }
+  void motion_scope(std::span<const n::ArenaRateEntry>rows) const {
+-  need(s_->first_population && rows.size()==s_->first_population->carriers,"bounded motion carrier count changed");
+-  std::map<std::uint64_t,std::pair<std::string,n::GapParticle>>before;
+-  for(const auto&p:s_->first_population->packets)for(const auto&r:p.population.carriers)
+-    need(before.emplace(r.id,std::make_pair(p.population.state,r)).second,"duplicate stage1 carrier");
+-  const auto &cfg=s_->gas->configuration();
+-  auto cell=[&](const n::GapParticle&r){std::uint32_t ix[3];for(int d=0;d<3;++d){const double x=(r.position_m[d]-cfg.grid.low[d])/(cfg.grid.high[d]-cfg.grid.low[d])*cfg.grid.n[d];need(std::isfinite(x)&&x>=0 && x<cfg.grid.n[d],"motion outside gas atlas");ix[d]=std::uint32_t(x);}return std::uint64_t(ix[0])+std::uint64_t(cfg.grid.n[0])*(ix[1]+std::uint64_t(cfg.grid.n[1])*ix[2]);};
+-  for(const auto&r:rows){auto i=before.find(r.native.id);need(i!=before.end() && i->second.first==r.state &&
+-    a::same(i->second.second.weight,r.native.weight) && cell(i->second.second)==cell(r.native),
+-    "gas motion adapter required for new/sunk/changed/cell-crossing carriers");before.erase(i);}
+-  need(before.empty(),"missing moved carriers");
+- }
++  need(s_->moved && rows.size()==s_->moved->after.size(),"missing or changed authentic post-motion population");
++  for(std::size_t i=0;i<rows.size();++i)
++   need(native_gas_motion::detail::phase(rows[i],s_->moved->after[i]),"stage2 population differs from authenticated motion");
++ }
++ static std::array<g::Exact,5> exits(const g::Owner&owner,bool conductor) {
++  std::array<g::Exact,5> out;
++  for(std::uint32_t sp=0;sp<owner.configuration().species.size();++sp)
++   for(std::uint32_t q=0;q<5;++q)out[q].merge(global(owner,conductor?owner.layout().conductor(sp,q):owner.layout().exterior(sp,q)));
++  return out;
++ }
++
+ public:
+  CoupledTrial(n::PrivateFullTimeStep outer,std::shared_ptr<g::Owner>gas,const n::FullTimeChemistryConfiguration&cfg,
+               const n::GapPicOptions&options,std::uint64_t step,std::size_t maximum_carriers,
+@@ -104,6 +109,75 @@
+  CoupledTrial&operator=(CoupledTrial&&) noexcept=default;
+  CoupledTrial(const CoupledTrial&)=delete;CoupledTrial&operator=(const CoupledTrial&)=delete;
+  n::PrivateFullTimeStep&outer(){active();return s_->outer;}
++ // Read-only evidence. Copies/digests of the snapshot cannot authorize acceptance.
++ std::shared_ptr<const n::FullTimePreparedMotionSnapshot> motion_snapshot(n::PreparedPrivateMotion&token,
++              std::size_t byte_cap=1u<<28,std::size_t carrier_cap=0) {
++  active();need(s_->completed==1 && !s_->moved,"motion snapshot stage");
++  if(!carrier_cap) {carrier_cap=s_->cap;}
++  need(carrier_cap<=s_->cap,"motion view exceeds common carrier capacity");
++  return n::FullTimeCoupledAccess::prepare_motion_snapshot(s_->outer,token,carrier_cap,byte_cap);
++ }
++ bool can_inspect_motion(const n::PreparedPrivateMotion&token,const n::FullTimePreparedMotionSnapshot&view)const noexcept {
++  return s_ && !s_->failed && !s_->published && !s_->final_native && s_->rollback.active() &&
++   s_->completed==1 && !s_->moved && n::FullTimeCoupledAccess::can_inspect_motion(s_->outer,token,view);
++ }
++ void accept_transport(n::PreparedPrivateMotion&&token) {
++  try {
++   active();need(s_->completed==1 && !s_->moved && s_->last_witness && StageWitness::valid(s_->last_witness.get()),"motion requires live stage1 gas witness");
++   using Clock=std::chrono::steady_clock;auto tick=Clock::now();
++   auto elapsed=[&](const char*name){const auto now=Clock::now();s_->motion_seconds[name]=std::chrono::duration<double>(now-tick).count();tick=now;};
++   const auto view=motion_snapshot(token);elapsed("snapshot");
++   native_gas_motion::View input{s_->step,view->before,view->start,view->after,view->before_internal,view->start_internal,view->after_internal,view->births.get(),view->sinks.get(),view->has_merge};
++   const auto records=native_gas_motion::prepare(s_->gas->configuration(),input,s_->cap);elapsed("mapping");
++   const auto gas_before=s_->gas->candidate_sha256();
++   std::array<g::Exact,5> entry_before;for(std::uint32_t q=0;q<5;++q)entry_before[q]=s_->gas->entry_total(q,true);
++   const auto conductor_before=exits(*s_->gas,true),exterior_before=exits(*s_->gas,false);
++   need(can_inspect_motion(token,*view) && StageWitness::valid(s_->last_witness.get()),"motion/gas changed before records application");
++   const auto after_births=s_->gas->apply_flows(s_->step,records.births);
++   const auto transport=s_->gas->transport_census(s_->step,records.before_census,records.after_census,records.exits);
++   const auto gas_after=s_->gas->apply_flows(s_->step,records.sinks);elapsed("gas_flows_transport");
++   need(transport.accepted_step==s_->step && transport.candidate_before_sha256==after_births,"gas transport sequence binding");
++   const auto conductor_after=exits(*s_->gas,true),exterior_after=exits(*s_->gas,false);
++   std::array<g::Exact,5> conductor_delta,exterior_delta;
++   for(const auto&e:transport.exits)for(std::uint32_t q=0;q<5;++q)
++    (e.destination==g::ExitDestination::conductor?conductor_delta:exterior_delta)[q].add_digits(e.digits[q].data());
++   GuardedProofJson proof_guard;auto&proof=proof_guard.get();
++   proof["schema"]="native-gas-authentic-motion-v1";proof["accepted_step"]=s_->step;
++   proof["native_snapshot"]=view->sha256;proof["native_record"]=view->motion_record_sha256;
++   proof["gas_before"]=gas_before;proof["after_birth_flows"]=after_births;
++   proof["transport_inputs"]=transport.inputs_sha256;proof["after_transport"]=transport.candidate_after_sha256;proof["gas_after"]=gas_after;
++   proof["before_carriers"]=view->before.size();proof["start_carriers"]=view->start.size();proof["after_carriers"]=view->after.size();
++   proof["births"]=records.births.size();proof["sinks"]=records.sinks.size();proof["movers"]=transport.movers;proof["drained_cells"]=transport.drained_cells;
++   proof["correction_quantity_order"]="J,kg m/s x,kg m/s y,kg m/s z,internal J";
++   auto&conductor_json=proof["conductor_correction"];conductor_json=n::ArenaJson::array();
++   auto&exterior_json=proof["exterior_correction"];exterior_json=n::ArenaJson::array();
++   for(std::uint32_t q=0;q<5;++q) {
++    need(difference(conductor_after[q],conductor_before[q])==conductor_delta[q] &&
++         difference(exterior_after[q],exterior_before[q])==exterior_delta[q],"exact correction destination ledger mismatch");
++    auto balance=difference(s_->gas->entry_total(q,true),entry_before[q]);balance.merge(conductor_delta[q]);balance.merge(exterior_delta[q]);
++    need(balance.zero(),"transport correction stock plus held exits imbalance");
++    conductor_json.push_back(nullptr);auto&conductor_value=conductor_json.back();conductor_value=exact_json(conductor_delta[q]);
++    exterior_json.push_back(nullptr);auto&exterior_value=exterior_json.back();exterior_value=exact_json(exterior_delta[q]);
++   }
++   proof["exit_ownership"]="held correction transfer; not thermalized into Hall; do not add wall aggregate again";
++   proof["actual_sink_destinations"]=n::ArenaJson::array();
++   for(const auto&x:records.sink_destinations){GuardedProofJson row;row.get()["native_id"]=x.native_id;row.get()["kind"]=unsigned(x.kind);row.get()["surface"]=unsigned(x.surface);proof["actual_sink_destinations"].push_back(nullptr);proof["actual_sink_destinations"].back().swap(row.get());}
++   proof["correction_transport_exact_zero"]=true;proof["production_qualified"]=false;
++   proof["sha256"]=native_gas_targets::sha(proof.dump());
++   auto witness=std::make_shared<StageWitness>();witness->gas=s_->gas;witness->binding=s_->gas->candidate_binding();witness->step=s_->step;
++   elapsed("proof");
++   need(can_inspect_motion(token,*view) && StageWitness::valid(witness.get()),"motion/gas stale before private native acceptance");
++   s_->outer.accept_transport_trial(std::move(token));
++   s_->moved=view;s_->motion_witness=std::move(witness);s_->motion.swap(proof);elapsed("native_accept");
++  }catch(...){fail();throw;}
++ }
++ const std::map<std::string,double>&motion_phase_seconds()const {need(bool(s_),"moved common trial");return s_->motion_seconds;}
++ std::shared_ptr<const n::FullTimeAcceptedBoundary> candidate_boundary()const {
++  need(can_publish(),"common final token is not live");return s_->final_native->candidate_full_time_boundary();
++ }
++ std::shared_ptr<const n::FullTimeCandidatePopulation> final_candidate_population()const {
++  need(can_publish(),"common final token is not live");return n::FullTimeCoupledAccess::final_population(s_->outer,*s_->final_native);
++ }
+  const n::ArenaJson&stage_receipts()const {need(bool(s_),"moved coupled trial");return s_->stages;}
+  std::shared_ptr<const Continuation> continuation()const {need(s_ && s_->published && s_->continuation,"common pair not published");return s_->continuation;}
+  const n::ArenaJson&receipt()const {need(s_ && s_->final_native,"common publication not prepared");return s_->receipt;}
+@@ -115,7 +189,7 @@
+    if(expected==1)s_->initial_native=ex.common.accepted_arena_sha256;
+    else need(ex.common.accepted_arena_sha256==s_->initial_native,"native common accepted base changed");
+    need(s_->gas->accepted_sha256()==s_->initial_gas,"gas accepted base changed");
+-   need(expected==1?s_->gas->matches_candidate(s_->initial_binding,s_->step):(s_->last_witness && StageWitness::valid(s_->last_witness.get())),"gas candidate changed outside prior stage transcript");
++   need(expected==1?s_->gas->matches_candidate(s_->initial_binding,s_->step):(s_->motion_witness && StageWitness::valid(s_->motion_witness.get())),"gas candidate changed outside prior stage transcript");
+    const auto rows=scope.rate_population(s_->cap);water_scope(rows);if(expected==2)motion_scope(rows);
+    const auto gb=owner_stock(*s_->gas);
+    auto provider=std::make_shared<native_gas_targets::Provider>(s_->gas,s_->registry,s_->blob,s_->cfg,s_->options);
+@@ -136,7 +210,7 @@
+    proof["stage"]=expected;proof["accepted_step"]=s_->step;proof["initial_native"]=s_->initial_native;proof["initial_gas"]=s_->initial_gas;
+    proof["gas_before"]=gas_before;proof["gas_after"]=gas_after;proof["native_population"]=population->sha256;
+    proof["native_stock"]=stock->sha256;proof["admitted_export"]=stage->admitted_export->sha256;
+-   proof["native_candidate"]=token.candidate_state_prefix();proof["contract"]=s_->contract;
++   proof["native_candidate"]=token.candidate_state_prefix();proof["contract"]=s_->contract;if(expected==2)proof["motion"]=s_->motion.at("sha256");
+    proof["events"]=stage->admitted_events;proof["released_packets"]=stage->released_packets;
+    proof["quarantine_verified"]=true;proof["feedback_changed_slots"]=provider->feedback().changed;
+    const auto hash=native_gas_targets::sha(proof.dump());proof["sha256"]=hash;
+@@ -152,18 +226,18 @@
+  }
+  void seal(const n::FullTimeCommitSeals&seals) {
+   try {
+-   active();need(s_->completed==2 && s_->stages.size()==2,"missing stage transcript");
++   active();need(s_->completed==2 && s_->stages.size()==2 && s_->moved && s_->motion_witness,"missing stage/motion transcript");
+    need(s_->last_witness && StageWitness::valid(s_->last_witness.get()),"stage2 gas candidate changed before final preparation");
+    const auto candidate=s_->gas->candidate_sha256();
+    need(s_->stages.at(1).at("gas_after")==candidate && s_->gas->accepted_sha256()==s_->initial_gas,"gas state changed after closure");
+    auto gas=std::make_shared<FinalWitness>();gas->gas=s_->gas;gas->prepared=s_->gas->prepare_commit(candidate);
+    auto native=std::make_unique<n::PreparedArena>(s_->outer.seal(seals));
+    GuardedProofJson record_guard;auto&record=record_guard.get();
+-   record["schema"]="native-gas-coupled-step-v1";record["contract"]=s_->contract;record["accepted_step"]=s_->step;
++   record["schema"]="native-gas-coupled-step-v2";record["contract"]=s_->contract;record["accepted_step"]=s_->step;
+    record["parent_common_receipt"]=s_->parent_receipt;record["native_before"]=s_->initial_native;record["gas_before"]=s_->initial_gas;
+    record["native_after"]=native->candidate_state_prefix();record["gas_after"]=candidate;
+-   clone_proof_json(record["stages"],s_->stages);record["production_qualified"]=false;
+-   record["scope"]="CPU bounded same-cell inventory motion; complete two-stage accounting, not full network/transport qualification";
++   clone_proof_json(record["stages"],s_->stages);clone_proof_json(record["motion"],s_->motion);record["production_qualified"]=false;
++   record["scope"]="CPU authentic births/sinks/census transport and two-stage stock accounting; held exit corrections and local field continuity require coordinator handling";
+    const auto hash=native_gas_targets::sha(record.dump());record["sha256"]=hash;
+    n::FullTimeCoupledAccess::authorize_final(s_->outer,*native,gas,&FinalWitness::valid,hash);
+    auto continuation=std::shared_ptr<Continuation>(new Continuation);
+--- /dev/null
++++ b/include/native_gas_motion.hpp
+@@ -0,0 +1,242 @@
++#pragma once
++#include "raikou/mfem_pic_full_time.h"
++#include "pf_gas_v1/gas_owner.hpp"
++#include <algorithm>
++#include <bit>
++#include <cmath>
++#include <cstdio>
++#include <map>
++#include <set>
++
++// Pure checked records conversion. These inputs and outputs are NOT live
++// publication capabilities. The common bridge must obtain the view from its
++// exact native prepared-motion token and revalidate that token before mutation.
++namespace native_gas_motion {
++namespace n = raikou::mfem_backend;
++namespace g = pf_gas_v1;
++inline void need(bool x, const char *why) {
++  if (!x) throw std::invalid_argument(std::string("native_gas_motion: ") + why);
++}
++inline bool same(double x, double y) {
++  return std::bit_cast<std::uint64_t>(x) == std::bit_cast<std::uint64_t>(y);
++}
++struct View {
++  std::uint64_t accepted_step = 0;
++  std::span<const n::ArenaRateEntry> before, start, after;
++  std::span<const n::FullTimeStoredPacketEnergy> before_internal, start_internal, after_internal;
++  const n::FullTimeBirthReceipt *births = nullptr;
++  const n::FullTimeSinkLedger *sinks = nullptr;
++  bool has_merge = false;
++};
++struct Records {
++  std::vector<g::FlowRecord> births, sinks;
++  std::vector<g::CensusRow> before_census, after_census;
++  std::vector<g::ExitRecord> exits;
++  // Gas owner's historical wall/* aggregate combines all population exits.
++  // Preserve the native kind/surface so the common ledger can distinguish
++  // conductor heating from feed/exterior escape; never assign both as heat.
++  std::vector<n::FullTimeSinkRecord> sink_destinations;
++};
++namespace detail {
++using Rows = std::map<std::uint64_t, const n::ArenaRateEntry *>;
++using Energy = std::map<std::string, const n::FullTimeStoredPacketEnergy *>;
++using Species = std::map<std::string, std::uint32_t>;
++inline std::string native_digits(const g::Exact &x) {
++  // Native chem8::exact_digits uses every normalised forms digit, high first.
++  // Gas digits_text instead omits zero spans and inserts separators.
++  const auto d = x.normalised(); std::string out; out.reserve(d.size() * 16);
++  for (auto i = d.rbegin(); i != d.rend(); ++i) {
++    char s[17]; std::snprintf(s, sizeof s, "%016llx", static_cast<unsigned long long>(*i)); out += s;
++  }
++  return out;
++}
++inline bool same_sink(const n::FullTimeSinkRecord &a, const n::FullTimeSinkRecord &b) {
++  if (a.native_id != b.native_id || a.kind != b.kind || a.surface != b.surface || a.axis != b.axis ||
++      !same(a.plane_m,b.plane_m) || !same(a.fraction,b.fraction) || !same(a.flight_s,b.flight_s) ||
++      !same(a.discarded_flight_s,b.discarded_flight_s)) return false;
++  for (int d=0;d<3;++d)
++    if (!same(a.segment_m[d],b.segment_m[d]) || !same(a.hit_point_m[d],b.hit_point_m[d]) ||
++        !same(a.incident_proper_velocity_m_s[d],b.incident_proper_velocity_m_s[d])) return false;
++  return true;
++}
++inline Species species(const g::Configuration &cfg) {
++  Species out;
++  for (std::uint32_t k = 0; k < cfg.species.size(); ++k) {
++    const auto &s = cfg.species[k];
++    need(!s.state.empty() && std::isfinite(s.mass_kg) && s.mass_kg > 0 &&
++             out.emplace(s.state, k).second, "invalid species catalogue");
++  }
++  return out;
++}
++inline Rows rows(const g::Configuration &cfg, const Species &sp,
++                 std::span<const n::ArenaRateEntry> input, std::size_t cap) {
++  need(input.size() <= cap, "carrier capacity");
++  Rows out;
++  for (const auto &r : input) {
++    auto it = sp.find(r.state);
++    need(it != sp.end() && !r.packet_id.empty(), "unknown species or missing packet");
++    const auto &s = cfg.species[it->second];
++    const auto &p = r.native;
++    need(p.id > 0 && p.weight > 0 && std::isfinite(p.weight) &&
++             same(p.mass_kg, s.mass_kg) && same(p.charge_C, s.charge * n::pic_e),
++         "carrier mass/charge/weight");
++    for (int d = 0; d < 3; ++d)
++      need(std::isfinite(p.position_m[d]) && std::isfinite(p.proper_velocity_m_s[d]),
++           "nonfinite phase space");
++    need(cfg.grid.locate(p.position_m.data()) != pfg::kNone, "carrier outside gas grid");
++    need(out.emplace(p.id, &r).second, "duplicate native ID");
++  }
++  return out;
++}
++inline bool identity(const n::ArenaRateEntry &a, const n::ArenaRateEntry &b) {
++  return a.packet_id == b.packet_id && a.state == b.state && a.native.id == b.native.id &&
++         same(a.native.weight, b.native.weight) && same(a.native.mass_kg, b.native.mass_kg) &&
++         same(a.native.charge_C, b.native.charge_C);
++}
++inline bool phase(const n::ArenaRateEntry &a, const n::ArenaRateEntry &b) {
++  if (!identity(a, b)) return false;
++  for (int d = 0; d < 3; ++d)
++    if (!same(a.native.position_m[d], b.native.position_m[d]) ||
++        !same(a.native.proper_velocity_m_s[d], b.native.proper_velocity_m_s[d])) return false;
++  return true;
++}
++inline Energy energies(std::span<const n::FullTimeStoredPacketEnergy> input, const Rows &rows,
++                       std::size_t cap) {
++  need(input.size() <= cap, "internal-stock capacity");
++  std::map<std::string, std::size_t> counts;
++  std::map<std::string, const n::ArenaRateEntry *> packet;
++  for (const auto &[id, r] : rows) { (void)id; ++counts[r->packet_id]; packet[r->packet_id] = r; }
++  Energy out;
++  for (const auto &e : input) {
++    need(std::isfinite(e.energy_J) && e.energy_J >= 0 && std::isfinite(e.original_birth_weight) &&
++             e.original_birth_weight > 0 && counts.count(e.packet_id) && counts.at(e.packet_id) == 1,
++         "packet internal energy requires one present carrier");
++    need(same(packet.at(e.packet_id)->native.weight, e.original_birth_weight) &&
++             packet.at(e.packet_id)->native.charge_C == 0,
++         "packet internal weight/neutral mismatch");
++    need(out.emplace(e.packet_id, &e).second, "duplicate internal-energy packet");
++  }
++  return out;
++}
++inline double internal(const Energy &e, const std::string &packet) {
++  auto it = e.find(packet); return it == e.end() ? 0. : it->second->energy_J;
++}
++inline std::vector<g::CensusRow> census_rows(const Rows &rows, const Species &sp) {
++  std::vector<g::CensusRow> out; out.reserve(rows.size());
++  for (const auto &[id, r] : rows) {
++    g::CensusRow x{}; x.native_id = id; x.species = sp.at(r->state); x.weight = r->native.weight;
++    for (int d = 0; d < 3; ++d) {
++      x.position_m[d] = r->native.position_m[d];
++      x.proper_velocity_m_s[d] = r->native.proper_velocity_m_s[d];
++    }
++    out.push_back(x);
++  }
++  return out;
++}
++inline g::FlowRecord flow(const g::Configuration &cfg, const Species &sp, const n::ArenaRateEntry &r,
++                          std::uint32_t kind, double internal) {
++  g::FlowRecord f{}; f.kind = kind; f.negative = kind == pfg::kFlowSink;
++  f.grid_cell = cfg.grid.locate(r.native.position_m.data()); f.species = sp.at(r.state);
++  f.native_id = r.native.id; f.weight = r.native.weight; f.internal_J = internal;
++  for (int d = 0; d < 3; ++d) f.u[d] = r.native.proper_velocity_m_s[d];
++  return f;
++}
++} // namespace detail
++
++inline Records prepare(const g::Configuration &cfg, const View &v, std::size_t cap) {
++  need(cap > 0 && cap <= 1000000 && cfg.transport == g::Transport::census_conservative,
++       "bounded census-conservative transport required");
++  need(!v.has_merge, "merge/split gas transport not yet qualified");
++  const auto sp = detail::species(cfg);
++  const auto before = detail::rows(cfg, sp, v.before, cap);
++  const auto start = detail::rows(cfg, sp, v.start, cap);
++  const auto after = detail::rows(cfg, sp, v.after, cap);
++  const auto e0 = detail::energies(v.before_internal, before, cap);
++  const auto e1 = detail::energies(v.start_internal, start, cap);
++  const auto e2 = detail::energies(v.after_internal, after, cap);
++  Records out;
++  std::set<std::uint64_t> new_ids;
++  if (v.births) {
++    need(v.births->accepted_step == v.accepted_step && v.births->entries.size() <= cap &&
++             v.births->wall_entries.empty(), "birth step/cap or unsupported wall-response births");
++    g::Exact internal_sum;
++    for (const auto &b : v.births->entries) {
++      need(!b.returned, "returned subcell birth requires separate flow policy");
++      auto it = start.find(b.native_id);
++      need(!before.count(b.native_id) && it != start.end() && new_ids.insert(b.native_id).second,
++           "birth native ID partition");
++      const auto &r = *it->second;
++      need(b.packet_id == r.packet_id && b.state == r.state && same(b.weight, r.native.weight),
++           "native birth receipt differs from actual start carrier");
++      const double U = detail::internal(e1, r.packet_id);
++      internal_sum.add_product(U, 1);
++      out.births.push_back(detail::flow(cfg, sp, r, pfg::kFlowBirth, U));
++    }
++    need(same(internal_sum.value(), v.births->internal_energy_J), "birth internal-energy sum");
++    if (!v.births->internal_energy_J_digits.empty()) {
++      need(detail::native_digits(internal_sum) == v.births->internal_energy_J_digits, "birth exact internal-energy sum");
++    } else need(internal_sum.zero(), "missing exact birth internal-energy stock");
++  }
++  need(start.size() == before.size() + new_ids.size(), "unreported source birth/debit");
++  for (const auto &[id, r] : before) {
++    auto it = start.find(id);
++    need(it != start.end() && detail::phase(*r, *it->second), "pre-motion carrier changed outside births");
++    need(same(detail::internal(e0, r->packet_id), detail::internal(e1, r->packet_id)),
++         "pre-motion carried internal energy changed");
++  }
++  std::set<std::uint64_t> sinks;
++  if (v.sinks) {
++    need(v.sinks->accepted_step == v.accepted_step && v.sinks->records.size() <= cap &&
++             v.sinks->records.size() == v.sinks->exposed.size() &&
++             v.sinks->carriers == v.sinks->records.size(), "sink step/cardinality");
++    for (std::size_t i = 0; i < v.sinks->exposed.size(); ++i) {
++      const auto &x = v.sinks->exposed[i]; const auto &k = x.record;
++      need(detail::same_sink(k,v.sinks->records[i]) && sinks.insert(k.native_id).second &&
++               !after.count(k.native_id), "sink native ID partition");
++      auto it = start.find(k.native_id); need(it != start.end(), "sink missing from actual start");
++      const auto &r = *it->second;
++      need(r.packet_id == x.packet_id && r.state == x.state && same(r.native.weight, x.weight) &&
++               same(r.native.mass_kg, x.mass_kg) && same(r.native.charge_C, x.charge_C),
++           "sink exposure species/weight");
++      need(same(detail::internal(e1, r.packet_id), x.internal_energy_J), "sink internal-energy stock");
++      need(k.kind == n::FullTimeSinkKind::collected_at_conductor ||
++               k.kind == n::FullTimeSinkKind::escaped_exterior, "unknown sink destination");
++      const bool conductor = k.surface == n::FullTimeSinkSurface::lower_foil ||
++                             k.surface == n::FullTimeSinkSurface::upper_foil ||
++                             k.surface == n::FullTimeSinkSurface::short_bridge;
++      const bool exterior = k.surface == n::FullTimeSinkSurface::outer_xy ||
++                            k.surface == n::FullTimeSinkSurface::axial;
++      need((conductor || exterior) && conductor == (k.kind == n::FullTimeSinkKind::collected_at_conductor) &&
++               k.axis < 3 && std::isfinite(k.plane_m) && std::isfinite(k.fraction) &&
++               k.fraction >= 0 && k.fraction <= 1 && std::isfinite(k.flight_s) && k.flight_s >= 0 &&
++               std::isfinite(k.discarded_flight_s) && k.discarded_flight_s >= 0,
++           "sink geometry/destination metadata");
++      for (int d = 0; d < 3; ++d)
++        need(same(r.native.position_m[d], x.start_position_m[d]) &&
++                 std::isfinite(k.incident_proper_velocity_m_s[d]) && std::isfinite(k.segment_m[d]) &&
++                 std::isfinite(k.hit_point_m[d]), "sink start/incident phase space");
++      auto f = detail::flow(cfg, sp, r, pfg::kFlowSink, x.internal_energy_J);
++      // Sink K/P are evaluated at the actual incident velocity, not at the
++      // beginning of the field push. Grid attribution uses the origin cell.
++      for (int d = 0; d < 3; ++d) f.u[d] = k.incident_proper_velocity_m_s[d];
++      out.sinks.push_back(f); out.sink_destinations.push_back(k);
++      out.exits.push_back({k.native_id, conductor ? g::ExitDestination::conductor : g::ExitDestination::exterior});
++    }
++  }
++  need(after.size() + sinks.size() == start.size(), "unreported transport birth/sink");
++  for (const auto &[id, r] : after) {
++    auto it = start.find(id);
++    need(it != start.end() && detail::identity(*r, *it->second), "transport changed species/weight/packet");
++    need(same(detail::internal(e1, r->packet_id), detail::internal(e2, r->packet_id)),
++         "transport changed carried internal energy");
++  }
++  out.before_census = detail::census_rows(start, sp);
++  out.after_census = detail::census_rows(after, sp);
++  std::sort(out.births.begin(), out.births.end(), [](const auto &a, const auto &b) { return a.native_id < b.native_id; });
++  // Native sink arrays are canonical. Refuse reordered arrays rather than
++  // separating the one-to-one destination and flow correspondence.
++  need(std::is_sorted(out.sinks.begin(), out.sinks.end(), [](const auto &a, const auto &b) { return a.native_id < b.native_id; }),
++       "native sink order");
++  return out;
++}
++} // namespace native_gas_motion
+--- a/tests/coupled_step_fixture.hpp
++++ b/tests/coupled_step_fixture.hpp
+@@ -4,11 +4,12 @@
+ #include "coupled_trial.hpp"
+ #include "allocation_probe.hpp"
+ namespace chemfix {
++inline long measured_motion_allocations=-1;
+ inline StepReport coupled_step(Arena &A,double dt,int k,std::shared_ptr<pf_gas_v1::Owner> gas,
+  const std::function<void(native_gas_common::CoupledTrial&,m::CollisionScope&,unsigned)>&before_stage,
+  const std::function<void(native_gas_common::CoupledTrial&)>&before_seal,
+  const std::function<void(native_gas_common::CoupledTrial&)>&before_publish,
+- nlohmann::json &receipt,std::shared_ptr<const native_gas_common::CoupledTrial::Continuation>&continuation,bool publish=true) {
++ nlohmann::json &receipt,std::shared_ptr<const native_gas_common::CoupledTrial::Continuation>&continuation,bool publish=true,const std::string&motion_control={}) {
+   StepReport R;
+   Timer T;
+   auto &arena = *A.arena;
+@@ -32,7 +33,34 @@
+ 
+   T.start();
+   std::optional<m::PreparedBirths> born;
+-  auto trial=outer.fork_transport_trial();
++  if(motion_control=="motion-flows" || motion_control=="motion-empty-flows" || motion_control.starts_with("allocation-motion-")) {
++    auto bs=outer.birth_scope();m::FullTimeBirthCredit credit;
++    credit.arrival_step=b.accepted_step;credit.base_native_id=bs.base_native_id();
++    credit.plan_sha256=sha("manufactured/motion-plan");credit.staged_token_sha256=sha("manufactured/motion-token");
++    credit.source_before_sha256=bs.source_before_sha256();credit.source_after_sha256=sha("manufactured/motion-source-after");
++    credit.streams.push_back({0,"pfc-v3/H2O",m::ArenaCount(8,0)});
++    for(unsigned i=0;i<4;++i) {
++      m::FullTimeBirth v;v.step=b.accepted_step;v.index=i;v.native_id=bs.base_native_id()+i;
++      v.packet_id=m::full_time_birth_packet_id(b.accepted_step,0,i);v.state="pfc-v3/H2O";
++      v.origin="manufactured/authored-neutral-motion-fixture";v.weight=2;
++      v.birth_time_s=b.begin_s;v.remaining_flight_s=b.end_s-v.birth_time_s;
++      v.position_m={.006,.004,0};v.internal_energy_J=i==0?1e-19:0;
++      if(i==1){v.position_m={.004,.002+1e-10,0};v.proper_velocity_m_s={0,-650,0};}
++      if(i==2){v.position_m={o.width_m-1e-10,.004,0};v.proper_velocity_m_s={650,0,0};}
++      if(i==3){v.position_m={.0042-1e-10,.004,0};v.proper_velocity_m_s={650,0,0};}
++      credit.births.push_back(v);
++    }
++    born.emplace(bs.prepare(credit));
++  }
++  if(motion_control=="empty-stream-caps") {
++    auto bs=outer.birth_scope();m::FullTimeBirthCredit credit;
++    credit.arrival_step=b.accepted_step;credit.base_native_id=bs.base_native_id();
++    credit.plan_sha256=sha("manufactured/empty-stream-plan");credit.staged_token_sha256=sha("manufactured/empty-stream-token");
++    credit.source_before_sha256=bs.source_before_sha256();credit.source_after_sha256=sha("manufactured/empty-stream-source");
++    for(unsigned i=0;i<20;++i)credit.streams.push_back({i,"pfc-v3/H2O",m::ArenaCount(0,0)});
++    born.emplace(bs.prepare(credit));
++  }
++  auto trial=born?outer.fork_transport_trial(*born):outer.fork_transport_trial();
+   auto flights=trial.birth_flights();
+   R.census_sha256 = trial.census_sha256();
+   T.stop(R.phases["fork_census"]);
+@@ -41,24 +69,36 @@
+   std::vector<m::GapParticle> rows(census.carriers.begin(), census.carriers.end());
+   R.census = rows.size();
+   const m::PicVector shift{-.5 * o.width_m, -.5 * o.gap_m, 0};
+-  std::vector<m::GapParticle> ends = rows;
+-  std::vector<m::FullTimeMotionPath> paths(rows.size());
+-  for (std::size_t i = 0; i < rows.size(); ++i) {
+-    const auto &p = rows[i];
+-    double u2 = 0;
+-    for (double v : p.proper_velocity_m_s)
+-      u2 += v * v;
+-    const double gamma = std::sqrt(1 + u2 / (m::pic_c * m::pic_c));
+-    for (int d = 0; d < 3; ++d)
+-      ends[i].position_m[d] = p.position_m[d] + dt * p.proper_velocity_m_s[d] / gamma;
+-    auto &pa = paths[i];
+-    pa.native_id = p.id;
+-    pa.flight_s = dt;
+-    for(const auto&flight:flights)if(flight.native_id==p.id)pa.flight_s=flight.flight_s;
+-    for (int d = 0; d < 3; ++d) {
+-      pa.field_start_m[d] = p.position_m[d] + shift[d];
+-      pa.field_displacement_m[d] = (ends[i].position_m[d] + shift[d]) - pa.field_start_m[d];
++  std::vector<m::GapParticle> ends;
++  std::vector<m::FullTimeMotionPath> paths;
++  std::vector<m::FullTimeSinkRecord> sinks;
++  std::vector<pf_v7::Sink> form_sinks;
++  for (const auto&p:rows) {
++    double F=dt;for(const auto&flight:flights)if(flight.native_id==p.id)F=flight.flight_s;
++    double u2=0;for(double v:p.proper_velocity_m_s)u2+=v*v;
++    const double gamma=std::sqrt(1+u2/(m::pic_c*m::pic_c));
++    m::PicVector D{};for(int d=0;d<3;++d)D[d]=F*p.proper_velocity_m_s[d]/gamma;
++    const auto hit=m::full_time_first_kinetic_hit(o,p.position_m,D);
++    m::FullTimeMotionPath pa;pa.native_id=p.id;
++    for(int d=0;d<3;++d)pa.field_start_m[d]=p.position_m[d]+shift[d];
++    if(hit.surface>=0) {
++      m::FullTimeSinkRecord z;z.native_id=p.id;z.surface=static_cast<m::FullTimeSinkSurface>(hit.surface);
++      z.kind=(hit.surface==0 || hit.surface==1 || hit.surface==3)?m::FullTimeSinkKind::collected_at_conductor:m::FullTimeSinkKind::escaped_exterior;
++      z.axis=hit.axis;z.plane_m=hit.plane_m;z.fraction=hit.fraction;z.segment_m=D;
++      for(int d=0;d<3;++d)z.hit_point_m[d]=p.position_m[d]+hit.fraction*D[d];
++      z.hit_point_m[z.axis]=z.plane_m;z.incident_proper_velocity_m_s=p.proper_velocity_m_s;
++      z.flight_s=F*hit.fraction;z.discarded_flight_s=F-z.flight_s;
++      for(int d=0;d<3;++d)pa.field_displacement_m[d]=(z.hit_point_m[d]+shift[d])-pa.field_start_m[d];
++      pa.flight_s=z.flight_s;sinks.push_back(z);
++      pf_v7::Sink f{};f.id=z.native_id;f.kind=unsigned(z.kind);f.surface=unsigned(z.surface);f.axis=z.axis;
++      f.plane_m=z.plane_m;f.fraction=z.fraction;f.flight_s=z.flight_s;f.discarded_flight_s=z.discarded_flight_s;
++      for(int d=0;d<3;++d){f.segment_m[d]=z.segment_m[d];f.hit_point_m[d]=z.hit_point_m[d];f.incident_proper_velocity_m_s[d]=z.incident_proper_velocity_m_s[d];}
++      form_sinks.push_back(f);
++    }else {
++      auto e=p;for(int d=0;d<3;++d){e.position_m[d]+=D[d];pa.field_displacement_m[d]=(e.position_m[d]+shift[d])-pa.field_start_m[d];}
++      pa.flight_s=F;ends.push_back(e);
+     }
++    paths.push_back(pa);
+   }
+   const pf_v7::HallAxialMesh hm{std::uint64_t(o.nx), 6};
+   static std::map<std::uint64_t, std::vector<double>> Es, Bs, Js;
+@@ -81,14 +121,8 @@
+   x.species_sha256 = sha("species");
+   x.common_clock_sha256 = b.common_clock_sha256;
+   x.kinetic_policy_sha256 = hall_driver::kinetic_policy_sha256(hall_driver::declared_kinetic_policy(o));
+-  std::vector<m::GapParticle> start_rows(ends.size());
+-  for (std::size_t i = 0; i < ends.size(); ++i) {
+-    start_rows[i] = ends[i];
+-    for (int d = 0; d < 3; ++d)
+-      start_rows[i].position_m[d] = paths[i].field_start_m[d] - shift[d];
+-  }
+-  const auto K = pf_v7::kinetic_change_J({reinterpret_cast<const pf_v7::Carrier *>(start_rows.data()), start_rows.size()},
+-                                         {reinterpret_cast<const pf_v7::Carrier *>(ends.data()), ends.size()}, {});
++  const auto K = pf_v7::kinetic_change_J({reinterpret_cast<const pf_v7::Carrier *>(rows.data()), rows.size()},
++                                         {reinterpret_cast<const pf_v7::Carrier *>(ends.data()), ends.size()}, form_sinks);
+   const auto W = pf_v7::field_work_J(dt, E, Jc);
+   x.budget = {K.value, W.value, K.value - W.value, 0, 0, 0, 0};
+   x.census_sha256 = R.census_sha256;
+@@ -102,6 +136,7 @@
+   x.neutral_stream_dt_max_s = A.cfg.motion.neutral_stream_dt_max_s;
+   x.endpoints = ends;
+   x.paths = paths;
++  x.sinks=sinks;
+   x.births=flights;
+   if(born)x.schema=m::motion_v81_schema;
+   x.record_sha256 = born?m::full_time_motion_record_v81_sha256(x):m::full_time_motion_record_v7_sha256(x);
+@@ -112,7 +147,31 @@
+                               sha("h/" + std::to_string(k)), trial.source_after_sha256()};
+   T.start();
+   auto moved = trial.prepare_total_field_motion(mb, m::bind_total_field_motion_v7(x));
+-  outer.accept_transport_trial(std::move(moved));
++  if(motion_control=="snapshot-controls" || motion_control=="empty-stream-caps") {
++  auto check_small_cap=[&](){bool small=false;try{(void)coupled.motion_snapshot(moved,1u<<28,1);}catch(const m::FullTimeResourceRefusal&e){small=e.kind()==m::FullTimeResourceRefusal::Kind::carrier_cap;}
++    if(!small)throw std::runtime_error("motion receipt cap before/after cache must refuse");};
++  if(motion_control=="empty-stream-caps")check_small_cap();
++  const auto view=coupled.motion_snapshot(moved);
++  if(motion_control=="empty-stream-caps")check_small_cap();
++  if(!coupled.can_inspect_motion(moved,*view) || coupled.motion_snapshot(moved).get()!=view.get())throw std::runtime_error("motion snapshot cache/live preflight");
++  auto copied=*view;if(coupled.can_inspect_motion(moved,copied))throw std::runtime_error("copied snapshot gained authority");
++  bool capped=false;try{(void)coupled.motion_snapshot(moved,1);}catch(const m::FullTimeResourceRefusal&){capped=true;}
++  if(!capped || !coupled.can_inspect_motion(moved,*view))throw std::runtime_error("snapshot capacity refusal changed live capability");
++  auto other=trial.prepare_total_field_motion(mb,m::bind_total_field_motion_v7(x));
++  const auto other_view=coupled.motion_snapshot(other);
++  if(view==other_view || coupled.can_inspect_motion(other,*view) || coupled.can_inspect_motion(moved,*other_view))throw std::runtime_error("equal motion retry snapshot crossed attempts");
++  auto relocated=std::move(moved);
++  if(coupled.can_inspect_motion(moved,*view) || !coupled.can_inspect_motion(relocated,*view))throw std::runtime_error("moved motion capability");
++  if(motion_control=="same-digest-motion"){const auto prior=gas->candidate_sha256();gas->prepare_keys({},{},{});if(prior!=gas->candidate_sha256())throw std::runtime_error("motion mutation fixture changed digest");}
++  coupled.accept_transport(std::move(relocated));
++  if(coupled.can_inspect_motion(relocated,*view) || coupled.can_inspect_motion(other,*other_view))throw std::runtime_error("consumed motion retained authority");
++  } else {
++    if(motion_control=="same-digest-motion"){const auto prior=gas->candidate_sha256();gas->prepare_keys({},{},{});if(prior!=gas->candidate_sha256())throw std::runtime_error("motion mutation fixture changed digest");}
++    if(motion_control.starts_with("allocation-motion-"))allocation_probe::fail_after=motion_control=="allocation-motion-count"?std::numeric_limits<long>::max():std::stol(motion_control.substr(18));
++    coupled.accept_transport(std::move(moved));
++    if(motion_control=="allocation-motion-count"){measured_motion_allocations=std::numeric_limits<long>::max()-allocation_probe::fail_after;allocation_probe::fail_after=-1;}
++  }
++  for(const auto&[phase,seconds]:coupled.motion_phase_seconds())R.phases["motion_"+phase].wall=seconds;
+   T.stop(R.phases["admission_accept"]);
+   m::ExposureBinding e2 = e1;
+   e2.slot = m::FullTimeSlot::after_transport;
+@@ -131,6 +190,9 @@
+   T.start();
+   coupled.seal({mb.field_after_sha256, mb.heat_after_sha256, mb.source_after_sha256, R.stage2->state_after_sha256});
+   native_gas_common::clone_proof_json(receipt,coupled.receipt());
++  const auto final=coupled.final_candidate_population();
++  const auto boundary=coupled.candidate_boundary();
++  if(!final || !boundary || boundary->accepted_step!=b.accepted_step+1)throw std::runtime_error("genuine final candidate census/boundary absent");
+   if(before_publish)before_publish(coupled);
+   allocation_probe::fail_after=0;
+   const bool ok=coupled.can_publish() && coupled.try_publish();
+--- a/tests/test_common_stage.cpp
++++ b/tests/test_common_stage.cpp
+@@ -6,7 +6,7 @@
+ using J=nlohmann::json;int checks=0;
+ void check(bool b,const char*s){++checks;if(!b)throw std::runtime_error(s);}
+ g::Configuration gas_config(const n::GapPicOptions&o,const n::FullTimeChemistryRegistry&r,const pfc::Blob&b){
+- g::Configuration x;x.preset="bounded-strict-native-gas-reference";x.feedback=true;
++ g::Configuration x;x.preset="bounded-strict-native-gas-reference";x.feedback=true;x.transport=g::Transport::census_conservative;
+  auto grid=n::chem8::make_grid(o,{std::uint32_t(o.nx),std::uint32_t(o.ny),5});x.grid={grid.low,grid.high,grid.n,grid.volume};
+  x.chemistry_blob_sha256=b.sha256;x.chemistry_registry_sha256=r.registry_sha256;
+  for(const auto&s:r.species)x.species.push_back({s.state,s.mass_kg,s.charge_e,s.target});
+@@ -23,15 +23,21 @@
+ int main(int argc,char**argv){try{
+  if(argc!=3)throw std::runtime_error("output path and control required");
+  const std::string control=argv[2];std::filesystem::path out=argv[1];std::filesystem::create_directories(out);
+- check(control=="normal" || control=="empty" || control=="abandon" || control=="same-digest-stage1" || control=="same-digest-stage2" || control=="abandon-final" || control=="regular-refusal" || control=="move-final" || control=="cell-crossing" || control=="two-step" || control=="destroyed-native" || control=="allocation-count" || control.starts_with("allocation-seal-"),"unknown control");
++ check(control=="motion-empty-flows" || control.starts_with("allocation-motion-") || control=="snapshot-controls" || control=="correction-exits" || control=="correction-exterior" || control=="empty-stream-caps" || control=="motion-flows" || control=="same-digest-motion" || control=="normal" || control=="empty" || control=="abandon" || control=="same-digest-stage1" || control=="same-digest-stage2" || control=="abandon-final" || control=="regular-refusal" || control=="move-final" || control=="cell-crossing" || control=="two-step" || control=="destroyed-native" || control=="allocation-count" || control.starts_with("allocation-seal-"),"unknown control");
+  auto blob=pfc::load_blob(chemfix::blob_path(),chemfix::blob_sha());chemfix::Population p;
+  p.carriers=3000;p.seed=11;p.clustered=true;p.water_weight=2e13;p.charged_weight=1e-10;p.electron_eV_min=5;p.electron_eV_max=300;
+- auto packets=control=="empty"?std::vector<n::FullTimeAuthoredPacket>{}:chemfix::population(p);
++ const bool empty_initial=control=="empty" || control=="empty-stream-caps" || control=="motion-empty-flows" || control.starts_with("allocation-motion-");
++ auto packets=empty_initial?std::vector<n::FullTimeAuthoredPacket>{}:chemfix::population(p);
+  // Place the bounded reference fixture away from cell edges. The unchanged
+- // original placement remains a genuine crossing/refusal control.
++ // original placement remains a genuine crossing control.
+  if(control!="cell-crossing")for(auto &packet:packets)for(int axis=0;axis<2;++axis)
+    packet.position_m[axis]=.00205+.5*(packet.position_m[axis]-.0021);
+- Scenario S(blob,packets,control=="empty");const auto native0=S.A.arena->state_prefix(),rng0=S.A.arena->full_time_chemistry().state_sha256,gas0=S.gas->accepted_sha256();
++ if(control=="correction-exits" || control=="correction-exterior")for(auto&packet:packets) {
++   const bool water=packet.state=="pfc-v3/H2O";
++   if(control=="correction-exits"){packet.position_m={.00405,water?.002+1e-10:.00205,0};if(water)packet.proper_velocity_m_s={0,-650,0};}
++   else {packet.position_m={water?.009-1e-10:.00895,.00405,0};if(water)packet.proper_velocity_m_s={650,0,0};}
++ }
++ Scenario S(blob,packets,empty_initial);const auto native0=S.A.arena->state_prefix(),rng0=S.A.arena->full_time_chemistry().state_sha256,gas0=S.gas->accepted_sha256();
+  std::shared_ptr<const c::CoupledTrial::Continuation> continuation;
+  J record;bool retry_accepted=false;std::string retry_receipt_sha256;long seal_allocations=-1;bool refused=false,regular_refused=false;std::string error;chemfix::StepReport R;
+  try{
+@@ -48,9 +54,9 @@
+     if(control=="destroyed-native"){S.A.arena.reset();check(!trial.can_publish() && !trial.try_publish(),"destroyed native owner must invalidate final token");}
+     if(control=="abandon-final"){S.gas->abandon();check(!trial.can_publish() && !trial.try_publish(),"abandoned gas invalidates common publication");}
+     if(control=="move-final"){c::CoupledTrial moved(std::move(trial));check(!trial.can_publish() && moved.can_publish(),"moved common capability");trial=std::move(moved);check(!moved.can_publish() && trial.can_publish(),"moved-back common capability");}
+-   },record,continuation,control!="abandon");
++   },record,continuation,control!="abandon",control);
+  }catch(const std::exception&e){allocation_probe::fail_after=-1;refused=true;error=e.what();}
+- const bool expected_refusal=control=="same-digest-stage1" || control=="same-digest-stage2" || control=="abandon-final" || control=="cell-crossing" || control=="destroyed-native" || control.starts_with("allocation-seal-");
++ const bool expected_refusal=(control.starts_with("allocation-motion-") && control!="allocation-motion-count") || control=="same-digest-motion" || control=="same-digest-stage1" || control=="same-digest-stage2" || control=="abandon-final" || control=="destroyed-native" || control.starts_with("allocation-seal-");
+  if(refused!=expected_refusal)throw std::runtime_error("unexpected common trial refusal outcome: "+error);
+  const bool accepted=!refused && control!="abandon";
+  if(accepted){check(S.A.arena->state_prefix()!=native0 && S.A.arena->full_time_boundary()->accepted_step==1 && !S.gas->step_open(),"both accepted owners advanced");check(record.at("stages").size()==2,"complete two-stage transcript");
+@@ -59,11 +65,18 @@
+    for(const auto&v:r.at("momentum_residual_kg_m_s"))check(v.is_object() && v.at("digits")==g::digits_text(g::Exact{}.normalised().data()),"serialized exact momentum proof");
+    for(const auto&v:r.at("raw_stored_momentum_balance"))check(v.is_object() && v.contains("digits"),"serialized raw momentum balance");
+   }
+-  if(control=="empty")check(R.stage1->admitted_events==0 && R.stage2->admitted_events==0,"empty stage transcript must remain present");
++  check(record.at("motion").at("correction_transport_exact_zero"),"motion correction proof");
++  if(control=="motion-flows")check(record.at("motion").at("births")==4 && record.at("motion").at("sinks")==2 && record.at("motion").at("actual_sink_destinations").size()==2,"actual birth/conductor/exterior fixture");
++  if(control=="correction-exits" || control=="correction-exterior") {
++    const auto key=control=="correction-exits"?"conductor_correction":"exterior_correction";bool nonzero=false;
++    for(const auto&v:record.at("motion").at(key))nonzero |= v.at("digits")!=g::digits_text(g::Exact{}.normalised().data());
++    check(nonzero && record.at("motion").at("sinks").get<unsigned>()>0,"actual nonzero held correction exit required");
++  }
++  if(empty_initial)check(R.stage1->admitted_events==0 && R.stage2->admitted_events==0,"empty stage transcript must remain present");
+   else check(R.stage1->admitted_events>0 && R.stage2->released_packets>0,"actual populated stages and release required");
+  }else check((control=="destroyed-native" || (S.A.arena->state_prefix()==native0 && S.A.arena->full_time_chemistry().state_sha256==rng0)) && S.gas->accepted_sha256()==gas0 && !S.gas->step_open(),"refusal/abandon changed accepted native RNG or gas");
+- if(control.starts_with("allocation-seal-")) {
+-  J retry;(void)chemfix::coupled_step(S.A,1e-12,0,S.gas,{},{},{},retry,continuation);
++ if(control.starts_with("allocation-seal-") || (control.starts_with("allocation-motion-") && control!="allocation-motion-count")) {
++  J retry;(void)chemfix::coupled_step(S.A,1e-12,0,S.gas,{},{},{},retry,continuation,true,control.starts_with("allocation-motion-")?"motion-empty-flows":"");
+   check(S.A.arena->full_time_boundary()->accepted_step==1 && !S.gas->step_open() && continuation && continuation->next_step()==1,
+         "allocation refusal must permit exact accepted-pair retry");
+   retry_accepted=true;retry_receipt_sha256=retry.at("sha256").get<std::string>();
+@@ -84,7 +97,8 @@
+   check(refused_foreign && foreign.A.arena->full_time_boundary()->accepted_step==0 && !foreign.gas->step_open(),"foreign equal-content pair refuses");
+   record=J{{"first",record},{"second",second},{"continuation",continuation->common_receipt_sha256()}};
+  }
++ J phases=J::object();for(const auto&[name,value]:R.phases){phases[name]=J{{"wall_s",value.wall}};phases[name]["cpu_s"]=name.starts_with("motion_")?J():J(value.cpu);}
+  J result={{"passed",true},{"control",control},{"checks",checks},{"refused",refused},{"refusal",error},{"common_accepted_publication",accepted},{"native_source",n::PicArena::source_identity()},
+-  {"retry_accepted",retry_accepted},{"retry_receipt_sha256",retry_receipt_sha256},{"seal_allocations",seal_allocations},{"strict_target_owner_transaction",true},{"production_qualified",false},{"record",record}};
++  {"timings_scope","concurrent-load component diagnostic, no isolated speedup claim"},{"phase_seconds",phases},{"census_carriers",R.census},{"retry_accepted",retry_accepted},{"retry_receipt_sha256",retry_receipt_sha256},{"seal_allocations",seal_allocations},{"motion_allocations",chemfix::measured_motion_allocations},{"strict_target_owner_transaction",true},{"production_qualified",false},{"record",record}};
+  std::ofstream(out/"result.json")<<result.dump(2)<<"\n";std::cout<<result.dump()<<"\n";return 0;
+  }catch(const std::exception&e){allocation_probe::fail_after=-1;std::cerr<<e.what()<<"\n";return 1;}}
+--- a/tools/check.py
++++ b/tools/check.py
+@@ -2,11 +2,11 @@
+ import os,sys,json,hashlib,subprocess,time,importlib.util
+ if not __debug__:raise RuntimeError('optimized Python guards refused')
+ R=Path(__file__).resolve().parents[1];RT=R.parent
+-N=RT/'pic-reaction-transactions-20261029/native-full-time-v8.8-provisional-target-owner-20261101'
+-BASE=RT/'pic-reaction-transactions-20261029/native-full-time-v8.7-reservoir-stock-20261101'
+-G=RT/'gas-target-owner-v1.6-reservoir-release-20261101';F=RT/'arch-base-20261028'
++N=RT/'pic-reaction-transactions-20261029/native-full-time-v8.9-motion-inventory-20261101'
++BASE=RT/'pic-reaction-transactions-20261029/native-full-time-v8.8-provisional-target-owner-20261101'
++G=RT/'gas-target-owner-v1.7.1-census-transport-20261101';F=RT/'arch-base-20261028'
+ P=Path('/home/treefor/projects/Power-Flow/native/coupled_pic/include')
+-O=Path('/home/treefor/projects/.workspace/outputs/native-gas-common-stage-v1.2-provisional-owner-20261101')
++O=Path('/home/treefor/projects/.workspace/outputs/native-gas-common-stage-v1.3.1-motion-unwind-20261101')
+ mode,label=sys.argv[1:3];reuse=sys.argv[3:]==["--reuse-native"];assert not sys.argv[3:] or reuse;assert mode in ('normal','sanitized');D=O/label;D.mkdir(parents=True,exist_ok=False)
+ def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+ assert os.getenv('SIMQ_JOB_ID','').isdigit() and os.getenv('SIMQ_LAUNCH_TOKEN')
+@@ -22,7 +22,7 @@
+  result={}
+  for root,dirs in ((N,['source','forms','inputs','tests']),(R,['include','tests','tools']),(G,['include','src'])):
+   for d in dirs:result.update({str(p):sha(p) for p in (root/d).rglob('*') if p.is_file() and '__pycache__' not in p.parts})
+- for p in [R/'DEPENDENCIES.json',R/'NATIVE-BUILD.json',*map(Path,dep),N/'tooling.py',N/'build-components.py']:result[str(p)]=sha(p)
++ for p in [R/'DEPENDENCIES.json',R/'NATIVE-BUILD.json',R/'NATIVE-BUILD-SANITIZED.json',*map(Path,dep),N/'tooling.py',N/'build-components.py']:result[str(p)]=sha(p)
+  return result
+ before=pins();deps=native.sealed_inputs();receipt={'passed':False,'mode':mode,'job':os.environ['SIMQ_JOB_ID'],'affinity':aff,'source_inputs':before,'dependencies':deps,'frozen_root_identity':[rs.st_dev,rs.st_ino],'runs':[],'production_qualified':False}
+ env=dict(os.environ,PF_V8_CHEM='v3.1');
+@@ -34,7 +34,7 @@
+  if p.returncode:raise RuntimeError((D/(name+'.log')).read_text()[-8000:])
+ try:
+  if reuse:
+-  build=json.loads((R/'NATIVE-BUILD.json').read_text());assert build['mode']==mode and all(sha(N/name)==h for name,h in build['source']['files'].items()) and all(sha(p)==h for p,h in build['binaries'].items())
++  build=json.loads((R/('NATIVE-BUILD-SANITIZED.json' if mode=='sanitized' else 'NATIVE-BUILD.json')).read_text());assert build['mode']==mode and all(sha(N/name)==h for name,h in build['source']['files'].items()) and all(sha(p)==h for p,h in build['binaries'].items())
+   receipt['reused_native_build']=build
+  else:run(['/usr/bin/python3',N/'build-components.py',mode,'core','hall','v84-scope','audit-target-guard','v85-registration','v87-stocks'],'native-build')
+  manifest=json.loads((N/'SOURCE-SHA256.json').read_text());assert all(sha(N/n)==v for n,v in manifest['files'].items())
+@@ -46,7 +46,7 @@
+  run(['/usr/bin/c++','-std=c++20','-O1',*san,'-Wall','-Wextra','-Werror','-c',R/'tests/allocation_probe.cpp','-o',D/'allocation.o'],'compile-allocation')
+  headers={name:sha(name) for name in (D/'common.d').read_text().replace('\\\n',' ').split(':',1)[1].split()};receipt['compiler_headers']=headers
+  run(['/usr/bin/mpic++',*san,'-Wl,--gc-sections',D/'common.o',D/'gas.o',D/'allocation.o',N/'build'/(tag+'kinetic-boundary.o'),N/'build'/(tag+'libpic_native_v8.a'),*native.LIBS,'-o',D/'test_common'],'link-common')
+- controls=['normal','empty','abandon','same-digest-stage1','same-digest-stage2','abandon-final','regular-refusal','move-final','cell-crossing','two-step','destroyed-native','allocation-seal-0','allocation-seal-16','allocation-seal-64','allocation-seal-173','allocation-seal-256','allocation-seal-312','allocation-count']
++ controls=['normal','motion-empty-flows','allocation-motion-count','allocation-motion-0','allocation-motion-16','allocation-motion-64','allocation-motion-1163','snapshot-controls','empty-stream-caps','correction-exits','correction-exterior','motion-flows','same-digest-motion','empty','abandon','same-digest-stage1','same-digest-stage2','abandon-final','regular-refusal','move-final','cell-crossing','two-step','destroyed-native','allocation-seal-0','allocation-seal-16','allocation-seal-64','allocation-seal-173','allocation-seal-256','allocation-seal-312','allocation-count']
+  for control in controls:run([D/'test_common',D/control,control],control)
+  for name,args in [('test_v84_scope',[D/'inherited-scope']),('test_audit_target_guard',[D/'inherited-target-energy']),('test_v85_registration',[]),('test_v87_stocks',[D/'inherited-stocks'])]:run([N/'build'/(tag+name),*args],name)
+  assert pins()==before and native.sealed_inputs()==deps and all(sha(p)==v for p,v in headers.items())
+--- a/tools/sweep.py
++++ b/tools/sweep.py
+@@ -5,8 +5,9 @@
+ import os,sys,json,hashlib,subprocess,time
+ if not __debug__:raise RuntimeError('optimized Python guards refused')
+ R=Path(__file__).resolve().parents[1];F=R.parent/'arch-base-20261028'
+-O=Path('/home/treefor/projects/.workspace/outputs/native-gas-common-stage-v1.2-provisional-owner-20261101')
+-assert len(sys.argv)==3
++O=Path('/home/treefor/projects/.workspace/outputs/native-gas-common-stage-v1.3.1-motion-unwind-20261101')
++assert len(sys.argv) in (3,4)
++kind=sys.argv[3] if len(sys.argv)==4 else "seal";assert kind in ("seal","motion")
+ base=O/sys.argv[1];out=O/sys.argv[2];out.mkdir(exist_ok=False)
+ def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+ assert os.getenv('SIMQ_JOB_ID','').isdigit() and os.getenv('SIMQ_LAUNCH_TOKEN')
+@@ -20,15 +21,15 @@
+ binary=base/'test_common';assert sha(binary)==d['binary_sha256']
+ pins={**d['source_inputs'],**d['compiler_headers'],str(binary):d['binary_sha256'],str(Path(__file__)):sha(__file__)}
+ assert all(sha(p)==v for p,v in pins.items())
+-count=d['results']['allocation-count']['seal_allocations'];assert isinstance(count,int) and 0<count<=10000
++count=d['results']['allocation-count' if kind=='seal' else 'allocation-motion-count'][kind+'_allocations'];assert isinstance(count,int) and 0<count<=10000
+ receipt={'passed':False,'job':os.environ['SIMQ_JOB_ID'],'affinity':aff,'frozen_root_identity':[a.st_dev,a.st_ino],
+          'baseline_receipt':str(base/'receipt.json'),'baseline_receipt_sha256':sha(base/'receipt.json'),
+-         'binary_sha256':sha(binary),'source_pins':pins,'persistent_failure':True,'measured_allocations':count,
++         'binary_sha256':sha(binary),'source_pins':pins,'persistent_failure':True,'measured_allocations':count,'allocation_phase':kind,
+          'checks':[],'production_qualified':False}
+ start=time.monotonic()
+ try:
+  for k in range(count):
+-  label='allocation-seal-'+str(k);dest=out/label
++  label='allocation-'+kind+'-'+str(k);dest=out/label
+   with (out/(label+'.log')).open('w')as f:
+    p=subprocess.run([str(binary),str(dest),label],stdout=f,stderr=subprocess.STDOUT,timeout=30)
+   assert p.returncode==0,(k,p.returncode,(out/(label+'.log')).read_text()[-4000:])
