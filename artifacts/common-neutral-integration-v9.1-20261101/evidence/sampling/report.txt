@@ -1,0 +1,112 @@
+E samples=52690 lost=0 period_us=200  total samples 52690
+
+by object (exclusive):
+   69.32%    36527  test_stage
+   23.68%    12479  libcrypto.so.3
+    3.80%     2000  libc.so.6
+    2.18%     1148  libm.so.6
+    0.33%      175  [vdso]
+    0.33%      174  libstdc++.so.6.0.36
+    0.12%       65  libucm.so.0.0.0
+    0.11%       57  libpython3.14.so.1.0
+    0.10%       51  ld-linux-x86-64.so.2
+    0.02%       12  libgcc_s.so.1
+    0.00%        2  libucs.so.0.0.0
+
+functions, exclusive (leaf) share:
+   23.53%    12397  RC4_options@@OPENSSL_3.0.0 [libcrypto.so.3, dynamic symbols only]
+   12.83%     6762  hall_corrective_v3::dc_initial_v33(axial::Mesh const&, std::vector<double, std::allocator<double> > const&, double)::{lambda(std::vector<double, std::allocator<double> >)#1}::operator()(std::vector<do
+   11.81%     6221  hall_corrective_v3::dc_initial_v33(axial::Mesh const&, std::vector<double, std::allocator<double> > const&, double)
+    5.85%     3081  foil::solve(std::function<std::vector<double, std::allocator<double> > (std::vector<double, std::allocator<double> > const&)> const&, std::vector<double, std::allocator<double> > const&, std::vector<d
+    5.34%     2813  hall_corrective_v3::incidence(axial::Mesh const&, std::vector<hall_corrective_v3::Words, std::allocator<hall_corrective_v3::Words> > const&)
+    4.64%     2445  hall_corrective_v3::admit_constraints(axial::Mesh const&, axial::State const&, hall_corrective_v3::ChargeLedger const&, double, std::vector<bool, std::allocator<bool> > const*)
+    4.38%     2306  axial::Mesh::gradient_transpose(std::vector<double, std::allocator<double> > const&) const
+    3.71%     1956  std::_Function_handler<std::vector<double, std::allocator<double> > (std::vector<double, std::allocator<double> > const&), axial::scalar_dirichlet(axial::Mesh const&, std::vector<double, std::allocato
+    3.68%     1938  hall_corrective_v3::Model::prepare(axial::State const&, hall_corrective_v3::ChargeLedger const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<dou
+    2.98%     1568  _dl_mcount_wrapper@GLIBC_2.2.5 [libc.so.6, dynamic symbols only]
+    1.90%     1002  hall_corrective_v3::operator+(hall_corrective_v3::Words, hall_corrective_v3::Words)
+    1.70%      894  hall_corrective_v3::operator*(hall_corrective_v3::Words, double)
+    1.44%      760  fsubl@@GLIBC_2.28 [libm.so.6, dynamic symbols only]
+    1.44%      758  hall_corrective_v3::Model::prepare(axial::State const&, hall_corrective_v3::ChargeLedger const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<dou
+    1.21%      639  hall_corrective_v3::words(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&)
+    0.98%      517  surface_emission::evaluate(double, double, surface_emission::Config const&)
+    0.83%      435  electrode_heat_v6_1::emission::(anonymous namespace)::extracting(double, double, surface_emission::Config const&, bool, electrode_heat_v6_1::emission::Statistics&)
+    0.71%      372  hall_corrective_v3::operator/(hall_corrective_v3::Words, double)
+    0.67%      354  hall_driver::total_field_sha256[abi:cxx11](std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&)
+    0.66%      347  pf_gas_v1::Owner::digest[abi:cxx11](pf_gas_v1::Owner::State const&, bool) const
+    0.39%      207  pfc::load_blob(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    0.39%      205  electrode_heat_v6_1::emission::(anonymous namespace)::terms_avx2(double const*, double const*, unsigned long, double, double, double*)
+    0.39%      203  hall_corrective_v3::seed_detail::coulomb_apply_words(axial::Mesh const&, std::vector<double, std::allocator<double> >)
+    0.37%      196  powf64@@GLIBC_2.27 [libm.so.6, dynamic symbols only]
+    0.35%      187  axial::Mesh::upper_region_inflow(std::vector<double, std::allocator<double> > const&, int) const
+    0.33%      175  <unreadable>
+    0.31%      164  _init
+    0.30%      158  electrode_heat_v7k::AxialTrialField::AxialTrialField(std::shared_ptr<axial::Mesh const>, electrode_heat_v3::TrialFrame, std::vector<double, std::allocator<double> >, std::vector<double, std::allocator
+    0.28%      149  hall_corrective_v3::free_charge_guard(axial::Mesh const&, hall_corrective_v3::FreeCharge const&)
+    0.28%      147  hall_corrective_v3::field_charge(axial::Mesh const&, axial::State const&)
+    0.28%      146  hall_corrective_v3::Digest::raw(void const*, unsigned long)
+    0.23%      122  hall_corrective_v3::operator-(hall_corrective_v3::Words, hall_corrective_v3::Words)
+    0.21%      113  __default_morecore@GLIBC_2.2.5 [libc.so.6, dynamic symbols only]
+    0.21%      110  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::push_back(char)@@GLIBCXX_3.4.21
+    0.19%      101  electrode_heat_v6_1::emission::(anonymous namespace)::gamow4(electrode_heat_v6_1::emission::(anonymous namespace)::Barrier const&, double const*, int, double*) [clone .constprop.0]
+    0.19%       99  pf_v7::ExactSum::add_product(double, double)
+    0.17%       91  sched_yield@@GLIBC_2.2.5 [libc.so.6, dynamic symbols only]
+    0.17%       88  floorf64@@GLIBC_2.27 [libm.so.6, dynamic symbols only]
+    0.15%       78  hall_corrective_v3::encode_mesh(hall_corrective_v3::Digest&, axial::Mesh const&)
+    0.14%       74  pf7::sha_rounds(unsigned int*, unsigned int const*)
+
+functions, inclusive share (call chains through frame pointers; lower bound):
+   24.64%    12983  <unmapped 400000005>
+   23.53%    12397  RC4_options@@OPENSSL_3.0.0 [libcrypto.so.3, dynamic symbols only]
+   18.64%     9819  <unmapped -1>
+   18.43%     9711  <unmapped 1f>
+   18.29%     9635  pfc::sha256_hex[abi:cxx11](void const*, unsigned long)
+   12.84%     6765  hall_corrective_v3::dc_initial_v33(axial::Mesh const&, std::vector<double, std::allocator<double> > const&, double)::{lambda(std::vector<double, std::allocator<double> >)#1}::operator()(std::vector<do
+   12.03%     6339  hall_corrective_v3::dc_initial_v33(axial::Mesh const&, std::vector<double, std::allocator<double> > const&, double)
+    8.88%     4681  main
+    8.87%     4675  powerflow::common_step_v9::Step::prepare(std::shared_ptr<powerflow::common_step_v9::Run>, double, electrode_heat_v7::BirthPolicy const&, unsigned int, std::span<electrode_heat_v7::IntervalEvidence con
+    8.84%     4656  powerflow::source_hall_iteration_v1::prepare(raikou::mfem_backend::PrivateFullTimeStep&, powerflow::source_stage_v8::OwnerSet const&, powerflow::source_stage_v8::AcceptedSourceState const&, raikou::mf
+    8.75%     4611  hall_corrective_v3::prepare_closed_proposal(hall_corrective_v3::Owner&, raikou::mfem_backend::GapPicOptions const&, std::span<raikou::mfem_backend::ArenaRateEntry const, 18446744073709551615ul>, hall_
+    5.85%     3082  foil::solve(std::function<std::vector<double, std::allocator<double> > (std::vector<double, std::allocator<double> > const&)> const&, std::vector<double, std::allocator<double> > const&, std::vector<d
+    5.34%     2813  hall_corrective_v3::incidence(axial::Mesh const&, std::vector<hall_corrective_v3::Words, std::allocator<hall_corrective_v3::Words> > const&)
+    4.64%     2445  hall_corrective_v3::admit_constraints(axial::Mesh const&, axial::State const&, hall_corrective_v3::ChargeLedger const&, double, std::vector<bool, std::allocator<bool> > const*)
+    4.58%     2412  hall_corrective_v3::Model::prepare(axial::State const&, hall_corrective_v3::ChargeLedger const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<dou
+    4.38%     2306  axial::Mesh::gradient_transpose(std::vector<double, std::allocator<double> > const&) const
+    3.71%     1956  std::_Function_handler<std::vector<double, std::allocator<double> > (std::vector<double, std::allocator<double> > const&), axial::scalar_dirichlet(axial::Mesh const&, std::vector<double, std::allocato
+    3.69%     1945  <unmapped 559c4b26546f>
+    3.69%     1945  <unmapped 55d57be6c46f>
+    3.68%     1939  <unmapped 55eb6476a46f>
+    3.68%     1937  <unmapped 5566e7ae746f>
+    3.66%     1931  <unmapped 5635dcc7a60f>
+    2.98%     1568  _dl_mcount_wrapper@GLIBC_2.2.5 [libc.so.6, dynamic symbols only]
+    2.55%     1345  hall_corrective_v3::Digest::raw(void const*, unsigned long)
+    1.90%     1002  hall_corrective_v3::operator+(hall_corrective_v3::Words, hall_corrective_v3::Words)
+    1.70%      894  hall_corrective_v3::operator*(hall_corrective_v3::Words, double)
+    1.55%      817  <unmapped 0>
+    1.53%      806  electrode_heat_v6_1::emission::(anonymous namespace)::extracting(double, double, surface_emission::Config const&, bool, electrode_heat_v6_1::emission::Statistics&)
+    1.51%      794  SHA256@@OPENSSL_3.0.0 [libcrypto.so.3, dynamic symbols only]
+    1.51%      793  EVP_Q_digest@@OPENSSL_3.0.0 [libcrypto.so.3, dynamic symbols only]
+    1.50%      790  EVP_Digest@@OPENSSL_3.0.0 [libcrypto.so.3, dynamic symbols only]
+    1.48%      778  <unmapped 5635dcc4ed6f>
+    1.44%      760  fsubl@@GLIBC_2.28 [libm.so.6, dynamic symbols only]
+    1.44%      758  hall_corrective_v3::Model::prepare(axial::State const&, hall_corrective_v3::ChargeLedger const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<dou
+    1.27%      669  <unmapped b7c45b7fffffffff>
+    1.21%      639  hall_corrective_v3::words(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&)
+    1.20%      633  <unmapped 559c4b26ea5f>
+    1.20%      630  <unmapped 55d57be75a5f>
+    1.19%      627  <unmapped 55eb64773a5f>
+    1.16%      610  <unmapped 5566e7af0a5f>
+
+libc/libm addresses (resolve with objdump -d --start-address):
+    0.81%      425  RC4_options@@OPENSSL_3.0.0@libcrypto.so.3+0x3f66bd
+    0.80%      422  RC4_options@@OPENSSL_3.0.0@libcrypto.so.3+0x3f662f
+    0.77%      408  RC4_options@@OPENSSL_3.0.0@libcrypto.so.3+0x3f6473
+    0.76%      402  RC4_options@@OPENSSL_3.0.0@libcrypto.so.3+0x3f669a
+    0.76%      402  RC4_options@@OPENSSL_3.0.0@libcrypto.so.3+0x3f648f
+    0.75%      397  RC4_options@@OPENSSL_3.0.0@libcrypto.so.3+0x3f66ac
+    0.75%      394  RC4_options@@OPENSSL_3.0.0@libcrypto.so.3+0x3f6686
+    0.74%      391  RC4_options@@OPENSSL_3.0.0@libcrypto.so.3+0x3f65e3
+    0.74%      390  RC4_options@@OPENSSL_3.0.0@libcrypto.so.3+0x3f6583
+    0.74%      389  RC4_options@@OPENSSL_3.0.0@libcrypto.so.3+0x3f6613
+    0.74%      388  RC4_options@@OPENSSL_3.0.0@libcrypto.so.3+0x3f6461
+    0.73%      387  RC4_options@@OPENSSL_3.0.0@libcrypto.so.3+0x3f6515

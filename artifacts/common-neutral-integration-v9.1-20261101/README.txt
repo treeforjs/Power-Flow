@@ -1,0 +1,11 @@
+Bounded common neutral-desorption integration, development milestone
+
+658 passes28 normal and28 UBSan controls. Actual neutral carriers grow24 to48 across two10fs steps from7.49788055492e-10s. Fields/heating, source inventory/arrival marks, actual native population and gas state accept together. Abandonment leaves every accepted owner unchanged; retry and independent continuous evolution match exact common/census roots; common publication allocates zero times. Authored wrong electron mass/provenance refuses before binding to final coupled registry. A null authentic sink ledger means zero sinks; this subset explicitly refuses every actual conductor sink.
+
+Final actual native charge is checked against the Hall motion endpoints before any accepted swap. Both source/Hall iterations require exact authoritative midpoint arrays and the unchanged bridge-work bound. Internal Hall phase times are recorded. Adopting corrected bridgev1.3.1 and profiling leaves complete accepted common/census receipts bit-identical to job652. The bridge fault sweep is qualified separately, not by this root test.
+
+This is NOT positive-emission or full-plasma qualification. The manufactured phi2eV,300K positive source check refuses unsupported straight magnetic projection and preserves every accepted owner. The actual time-resolved layer probe elsewhere also encounters its magnetic barrier-domain guard. Held layer charge/current/IDs/energy and authentic handoff need a new cross-owner lifecycle. No sampling, magnetic or chemistry guard has been weakened.
+
+Remaining gates: independent whole-system material/energy closure, common attested checkpoint restore, layer lifecycle/field coupling, applicable reaction coverage, local reaction-current support and material/grid/sheath convergence. No production run is launched. NativeCDF/RNG2 adoption is a separate successor. The initial no-conductor-sink subset must not substitute for correct wall transfers.
+
+Profiler660 gives52,690 samples/no loss across five identical test executions. Initial fields/genesis and refusal controls are included; dynamic-library function labels from exported symbols are approximate. PROFILE-SUMMARY.json and step phase clocks identify diagnostic costs; no uncontended speedup or full-run ETA is claimed.
