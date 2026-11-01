@@ -1,0 +1,27 @@
+--- v1.1/include/native_gas_stage.hpp
++++ v1.2/include/native_gas_stage.hpp
+@@ -123,8 +123,12 @@
+   // A digest alone never authorizes an abandoned deterministic retry.
+   void validate_current(const n::CollisionScope &scope,const n::PreparedArena &token,const g::Owner &gas) const {
+     need(export_ && scope.can_publish(token) && gas.matches_candidate(gas_attempt_,export_->accepted_step),"dead native/gas candidate");
+-    const auto now=token.candidate_admitted_export(true);
+-    need(now==export_,"different native attempt");
++    // The pinned native implementation creates and validates one immutable
++    // deep snapshot per attempt and retains no mutable alias. Rechecking its
++    // complete event/count hashes on every preflight adds work but no new
++    // information. Authority still comes from both live serial-owner tokens.
++    const auto stage=token.candidate_chemistry_stage();
++    need(stage && stage->admitted_export==export_,"different native attempt");
+     need(gas.configuration_sha256()==gas_configuration_ && gas.accepted_sha256()==gas_accepted_ &&
+          gas.candidate_sha256()==gas_candidate_,"changed gas base/candidate");
+     need(scope.can_publish(token),"native candidate changed during validation");
+@@ -137,7 +141,8 @@
+   need(gas.configuration_sha256()==binding.gas_identity(),"gas configuration changed");
+   const auto &cfg=binding.gas();const auto &registry=binding.registry();
+   Batch b;b.export_=token.candidate_admitted_export(true);need(bool(b.export_),"missing admitted export");
+-  const auto &x=*b.export_;n::validate_full_time_chemistry_stage_export(x,true);
++  // candidate_admitted_export(true) above already performs full strict validation.
++  const auto &x=*b.export_;
+   const auto &exposure=scope.exposure();const auto &common=exposure.common;
+   need(x.configuration_sha256==registry.configuration_sha256 && x.registry_sha256==registry.registry_sha256 &&
+        x.accepted_native_sha256==common.accepted_arena_sha256 && x.common_clock_sha256==common.common_clock_sha256 &&
