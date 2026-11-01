@@ -1,0 +1,46 @@
+===== simq job 583: native-cdf-build-c3 =====
+submitted: 2026-11-01T08:16:44Z
+started:   2026-11-01T08:16:44Z
+cwd:       /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101
+partition: powerflow
+P-cores:   7
+GPUs:      none
+memory:    8G (swap 1G)
+time:      00:20:00
+unit:      simq-job-583-079ac3e0aef6.service
+command:   /usr/bin/nice -n 15 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 -I /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/build-components.py normal core hall native-cdf
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core7.lock (exclusive)
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/tests/test_native_cdf.cpp: In function ‘J legacy(const raikou::mfem_backend::GapPicOptions&)’:
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/tests/test_native_cdf.cpp:26:93: error: ‘ledger_digest’ is not a member of ‘pfc’; did you mean ‘ledger_finish’?
+   26 |   total.text(pfc::step_digest(ref.outs,ref.events,c.max_events,P.carriers));total.text(pfc::ledger_digest(pfc_test::ledger_of(b,ref,c.max_events)));
+      |                                                                                             ^~~~~~~~~~~~~
+      |                                                                                             ledger_finish
+
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/build-components.py", line 230, in <module>
+    build(False)
+    ~~~~~^^^^^^^
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/build-components.py", line 174, in build
+    run_all(r, jobs)
+    ~~~~~~~^^^^^^^^^
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/build-components.py", line 79, in run_all
+    f.result()
+    ~~~~~~~~^^
+  File "/usr/lib/python3.14/concurrent/futures/_base.py", line 454, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.14/concurrent/futures/_base.py", line 396, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/tooling.py", line 233, in run
+    raise RuntimeError(f'failed {log} exit {p.returncode}')
+RuntimeError: failed native-cdf-compile.log exit 1
+========================================
+finished:  2026-11-01T08:17:52Z
+exit code: 1
+state:     failed
+===== simq job 583 finished =====

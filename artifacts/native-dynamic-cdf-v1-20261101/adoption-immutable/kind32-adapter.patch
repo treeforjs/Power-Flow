@@ -1,0 +1,10 @@
+--- a/include/native_gas_stage.hpp
++++ b/include/native_gas_stage.hpp
+@@ -35,6 +35,7 @@
+     case 5:need(count>=1,"capture product count");return 0;
+     case 6:return count>2?count-1:pfg::kNone;
+     case 7:need(count>=3,"ion-impact ionization product count");return 2;
++    case 32:need(count==3,"source-conditioned H2 dissociation product count");return pfg::kNone;
+     case 8:need(count>=2,"breakup product count");return count-2;
+     default:throw std::invalid_argument("native_gas_stage: unsupported process kind");
+   }

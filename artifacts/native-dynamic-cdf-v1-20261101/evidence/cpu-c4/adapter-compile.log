@@ -1,0 +1,12 @@
+In file included from /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/adoption/test_kind32.cpp:1:
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/adoption/native_gas_stage.hpp: In member function ‘void native_gas_stage::Batch::validate_current(const raikou::mfem_backend::CollisionScope&, const raikou::mfem_backend::PreparedArena&, const pf_gas_v1::Owner&) const’:
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/adoption/native_gas_stage.hpp:126:27: error: ‘const class raikou::mfem_backend::CollisionScope’ has no member named ‘can_inspect’
+  126 |     need(export_ && scope.can_inspect(token) && gas.matches_candidate(gas_attempt_,export_->accepted_step),"dead native/gas candidate");
+      |                           ^~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/adoption/native_gas_stage.hpp:135:16: error: ‘const class raikou::mfem_backend::CollisionScope’ has no member named ‘can_inspect’
+  135 |     need(scope.can_inspect(token),"native candidate changed during validation");
+      |                ^~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/adoption/native_gas_stage.hpp: In function ‘native_gas_stage::Batch native_gas_stage::prepare(const raikou::mfem_backend::CollisionScope&, const raikou::mfem_backend::PreparedArena&, const pf_gas_v1::Owner&, const Binding&, std::size_t)’:
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/adoption/native_gas_stage.hpp:141:23: error: ‘const class raikou::mfem_backend::CollisionScope’ has no member named ‘can_inspect’
+  141 |   need(cap>0 && scope.can_inspect(token) && gas.step_open(),"live candidate and positive capacity required");
+      |                       ^~~~~~~~~~~

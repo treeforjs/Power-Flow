@@ -1,0 +1,33 @@
+===== simq job 591: native-cdf-cpu-c1 =====
+submitted: 2026-11-01T08:19:41Z
+started:   2026-11-01T08:22:29Z
+cwd:       /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101
+partition: powerflow
+P-cores:   7
+GPUs:      none
+memory:    3G (swap 1G)
+time:      00:05:00
+unit:      simq-job-591-42ec9b847574.service
+command:   /usr/bin/nice -n 15 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 -I /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/qualify-native-cdf.py cpu cpu-c1
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core7.lock (exclusive)
+In file included from /home/treefor/projects/runtimes/gas-target-owner-v1.7.1-census-transport-20261101/include/pf_gas_v1/gas_owner.hpp:16,
+                 from /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/adoption/native_gas_stage.hpp:3,
+                 from /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/adoption/test_kind32.cpp:1:
+/home/treefor/projects/runtimes/gas-target-owner-v1.7.1-census-transport-20261101/include/pf_gas_v1/gas_core.h:17:10: fatal error: forms_core.h: No such file or directory
+   17 | #include "forms_core.h"
+      |          ^~~~~~~~~~~~~~
+compilation terminated.
+
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/qualify-native-cdf.py", line 30, in <module>
+    r.run(["/usr/bin/c++","-std=c++20","-O1","-ffp-contract=off","-fno-fast-math","-Wall","-Wextra","-Wpedantic","-Werror",*inc,P/"adoption/test_kind32.cpp","-o",out/"test_kind32"],"adapter-compile.log",timeout=60)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.7-cdf-v1-20261101/tooling.py", line 233, in run
+    raise RuntimeError(f'failed {log} exit {p.returncode}')
+RuntimeError: failed adapter-compile.log exit 1
+========================================
+finished:  2026-11-01T08:22:30Z
+exit code: 1
+state:     failed
+===== simq job 591 finished =====
