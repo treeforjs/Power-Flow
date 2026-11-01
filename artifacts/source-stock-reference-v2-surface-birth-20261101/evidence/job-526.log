@@ -1,0 +1,36 @@
+===== simq job 526: source-reference-v2-c1 =====
+submitted: 2026-11-01T07:53:44Z
+started:   2026-11-01T07:53:44Z
+cwd:       /home/treefor/projects/Power-Flow
+partition: powerflow
+P-cores:   5
+GPUs:      none
+memory:    6G (swap 1G)
+time:      00:25:00
+borrowed:  CPU 5 from raikou-mfem (free); on preempt: freeze
+unit:      simq-job-526-90c9e537662d.service
+command:   python /home/treefor/projects/runtimes/pic-source-stock-reference-v2-surface-birth-20261101/run_reference.py c1
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core5.lock (shared)
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/pic-source-stock-reference-v2-surface-birth-20261101/run_reference.py", line 50, in <module>
+    raise SystemExit(qualify(sys.argv[1]))
+                     ~~~~~~~^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/pic-source-stock-reference-v2-surface-birth-20261101/run_reference.py", line 26, in qualify
+    before=own();deps=pins();receipt={'admission':adm,'own_sha256':before,'pins':deps,'variants':{},'all_passed':False}
+                      ~~~~^^
+  File "/home/treefor/projects/runtimes/pic-source-stock-reference-v2-surface-birth-20261101/run_reference.py", line 19, in pins
+    return {'source_build_c3_sha256':sha(SOURCE['OUT']/'c4/build/build-receipt.json'),'source_build_u2_sha256':sha(SOURCE['OUT']/'u2/build/build-receipt.json'),'source_qualification_sha256':sha(runs[-1]),'source_files':SOURCE['own'](),'files':{str(p):sha(p) for p in files}}
+                                     ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/pic-source-stock-reference-v2-surface-birth-20261101/run_reference.py", line 12, in sha
+    def sha(p):return SOURCE['sha'](p)
+                      ~~~~~~~~~~~~~^^^
+  File "/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/run_source_v7.py", line 57, in sha
+    with open(p, 'rb') as f:
+         ~~~~^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/treefor/projects/.workspace/outputs/source-owner-v7.3-surface-birth-20261101/c4/build/build-receipt.json'
+========================================
+finished:  2026-11-01T07:53:45Z
+exit code: 1
+state:     failed
+===== simq job 526 finished =====

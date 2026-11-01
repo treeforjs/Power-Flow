@@ -1,0 +1,44 @@
+===== simq job 528: source-reference-v2-c2 =====
+submitted: 2026-11-01T07:54:07Z
+started:   2026-11-01T07:54:09Z
+cwd:       /home/treefor/projects/Power-Flow
+partition: powerflow
+P-cores:   7
+GPUs:      none
+memory:    6G (swap 1G)
+time:      00:25:00
+borrowed:  CPU 7 from powerflow (free); on preempt: freeze
+unit:      simq-job-528-2afdbd622d4b.service
+command:   python /home/treefor/projects/runtimes/pic-source-stock-reference-v2-surface-birth-20261101/run_reference.py c2
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core7.lock (shared)
+test_reference.log 1
+==2)z.position_m[2]+=center;if(fault==3)z.bridge_start_m[1]=std::nextafter(z.bridge_start_m[1],INFINITY);if(fault==4)z.position_m[1]=std::nextafter(z.position_m[1],INFINITY);if(fault==5)z.returned=true;if(fault==6)z.origin+="other";t.check("surface B3 coordinate/token refusal "+std::to_string(fault),refuses([&]{f.adapter->prepare(*f.source,step.trial,step.field,step.view(),scope,c,step.neutral,step.electrons);})&&f.source->state_sha256()==before&&a.full_time_boundary()->accepted_arena_sha256==native_before);}
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   13 |    }
+      |    ~         
+   14 |   });
+      |   ~~         
+/home/treefor/projects/runtimes/pic-source-stock-reference-v2-surface-birth-20261101/tests/surface_mapping_checks.inc:10:224: error: invalid initialization of reference of type 'const foil::Mesh&' from expression of type 'axial::Mesh'
+   10 |     foil::Vec current(step.mesh.ne),charge(step.mesh.nn);axial::Path path(step.mesh,br.field_start_m,br.field_displacement_m);path.deposit(current,br.charge_C,br.field_displacement_m,step.epoch.dt);foil::point_deposit(step.mesh,charge,br.field_start_m,-br.charge_C);r::V final=br.field_start_m;for(int k=0;k<3;++k)final[k]+=br.field_displacement_m[k];foil::point_deposit(step.mesh,charge,final,br.charge_C);const auto div=step.mesh.gradient_transpose(current);double continuity=0;for(int k=0;k<step.mesh.nn;++k)continuity=std::max(continuity,std::abs(charge[k]-step.epoch.dt*div[k]));const double work=step.epoch.dt*hall::dot(step.E,current),bound=1e-10*(std::abs(work)+std::abs(x.matching_work_J));
+      |                                                                                                                                                                                                                           ~~~~~^~~~
+In file included from /home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/native_total_field_transport.hpp:2,
+                 from /home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/axial_particles.hpp:3,
+                 from /home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/axial_surface_path_port.hpp:2,
+                 from /home/treefor/projects/runtimes/pic-source-stock-reference-v2-surface-birth-20261101/include/source_stock_reference.hpp:5,
+                 from /home/treefor/projects/runtimes/pic-source-stock-reference-v2-surface-birth-20261101/tests/test_reference.cpp:3:
+/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/foil_particles.hpp:29:38: note: in passing argument 1 of 'void foil::point_deposit(const Mesh&, Vec&, V3, double)'
+   29 | inline void point_deposit(const Mesh&g,Vec&q,V3 x,double charge){double X=(x[0]+g.width/2)/g.dx,Y=(x[1]+g.height/2)/g.dy;hall::require(X>=-1e-10&&X<=g.nx+1e-10&&Y>=-1e-10&&Y<=g.ny+1e-10,"point outside mesh");X=std::clamp(X,0.,double(g.nx));Y=std::clamp(Y,0.,double(g.ny));int i=std::min(int(std::floor(X)),g.nx-1),j=std::min(int(std::floor(Y)),g.ny-1);for(int dj:{0,1})for(int di:{0,1})q[g.node(i+di,j+dj)]+=charge*(di?X-i:1-X+i)*(dj?Y-j:1-Y+j);}
+      |                           ~~~~~~~~~~~^
+/home/treefor/projects/runtimes/pic-source-stock-reference-v2-surface-birth-20261101/tests/surface_mapping_checks.inc:10:377: error: invalid initialization of reference of type 'const foil::Mesh&' from expression of type 'axial::Mesh'
+   10 |     foil::Vec current(step.mesh.ne),charge(step.mesh.nn);axial::Path path(step.mesh,br.field_start_m,br.field_displacement_m);path.deposit(current,br.charge_C,br.field_displacement_m,step.epoch.dt);foil::point_deposit(step.mesh,charge,br.field_start_m,-br.charge_C);r::V final=br.field_start_m;for(int k=0;k<3;++k)final[k]+=br.field_displacement_m[k];foil::point_deposit(step.mesh,charge,final,br.charge_C);const auto div=step.mesh.gradient_transpose(current);double continuity=0;for(int k=0;k<step.mesh.nn;++k)continuity=std::max(continuity,std::abs(charge[k]-step.epoch.dt*div[k]));const double work=step.epoch.dt*hall::dot(step.E,current),bound=1e-10*(std::abs(work)+std::abs(x.matching_work_J));
+      |                                                                                                                                                                                                                                                                                                                                                                                    ~~~~~^~~~
+/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-finite-foil-em-20261029/foil_particles.hpp:29:38: note: in passing argument 1 of 'void foil::point_deposit(const Mesh&, Vec&, V3, double)'
+   29 | inline void point_deposit(const Mesh&g,Vec&q,V3 x,double charge){double X=(x[0]+g.width/2)/g.dx,Y=(x[1]+g.height/2)/g.dy;hall::require(X>=-1e-10&&X<=g.nx+1e-10&&Y>=-1e-10&&Y<=g.ny+1e-10,"point outside mesh");X=std::clamp(X,0.,double(g.nx));Y=std::clamp(Y,0.,double(g.ny));int i=std::min(int(std::floor(X)),g.nx-1),j=std::min(int(std::floor(Y)),g.ny-1);for(int dj:{0,1})for(int di:{0,1})q[g.node(i+di,j+dj)]+=charge*(di?X-i:1-X+i)*(dj?Y-j:1-Y+j);}
+      |                           ~~~~~~~~~~~^
+
+========================================
+finished:  2026-11-01T07:54:13Z
+exit code: 1
+state:     failed
+===== simq job 528 finished =====
