@@ -1,0 +1,190 @@
+Heat/source trial-field binding v3 -- normative component contract
+
+Namespace electrode_heat_v3. Reuses electrode_heat_v2::Coupler, Transfer,
+BoundLayerState and typed accepted-layer serializer, all unchanged. It reuses the
+EXACT source-v1 evaluate, begin_layer and advance_layer kernels and the sealed
+Hall axial Path/gather/deposit/native push. No new emission or microscopic force
+kernel is defined. Runtime prerequisite: sealed heat/source-v2 commit 373c91a.
+
+Build and inclusion
+C++20. Target electrode-heat-source-v3. When the v2 target is absent, set
+ELECTRODE_HEAT_SOURCE_V2_DIR to its exact sealed module/snapshot, then add this
+module. Parent builds can disable ELECTRODE_HEAT_SOURCE_V3_BUILD_TESTS. The native
+support library and copied Hall headers are qualification fixtures; do not link
+that test library as a second native PIC implementation in the common driver.
+Include the Hall owner's axial_surface_path_port.hpp BEFORE axial_trial_field.hpp.
+The actual included Hall header hashes must match hall-inputs.json. The public
+bridge uses those existing Hall classes, without a copied replacement Path kernel.
+
+Typed clocks and immutable fields
+TrialFrame requires FieldRole::TotalMidpoint, accepted_revision, unique trial_stage,
+mesh/material version numbers, arena/field/mesh/material/species hashes, begin_s,
+end_s, AUTHORITATIVE dt_s and field_stage_s=begin_s+0.5*dt_s. end_s must equal
+begin_s+dt_s. dt_s is never reconstructed from rounded absolute clock subtraction.
+The source-v1 positive accepted-state ID is an explicit PatchBinding mapping;
+it identifies the accepted BASE, not an already accepted nonlinear field proposal.
+Keep mesh/material numeric IDs source-compatible topology/model versions, not
+nonlinear-iteration counters. Evolving thermal revision has its separate field.
+
+Construct AxialTrialField from the immutable nonlinear trial's TOTAL midpoint E/B.
+It takes private value copies and retains an immutable TrialFrame. Every Candidate
+retains that exact shared field token, preventing another trial from consuming it.
+At the parent field/arena barrier, require field.matches_trial(actual_frame,
+actual_total_mid_E,actual_total_mid_B). A matching label alone is insufficient.
+Alternatively use total_mid_E()/total_mid_B() as the SAME immutable view for other
+operators in that iteration. Never substitute accepted-start E/B, GapPic self-E
+plus external E, or a second field solve. values_fingerprint() identifies actual
+copied vector bits as well as the parent-provided field hash.
+
+prepare_patch reads the real accepted thermal state/time/revision. PatchBinding
+requires its thermal mesh/material identities, positive source accepted ID and
+patch ID, explicit source-regime admission, and a held-temperature policy:
+ AcceptedPatchMean or AcceptedPointTrace at the physical origin.
+The temperature is NOT relabeled as a midpoint temperature. The native flux stage
+retains thermal_time=accepted begin and field_time=actual midpoint. The legacy v1
+prepare equality guard is therefore intentionally inapplicable. V3 validates the
+distinct roles, calls the unchanged v1 evaluate supply/transmission, and forms the
+same two exposure products. Same-clock spectrum/CDF, rate, count/mean-heat products,
+phase-space and sampled heat are qualified exactly against v1. During Active
+advance, native Stage.stage_time denotes the frozen field sample stage; actual
+motion time stays in native LayerState.current_time_s. thermal_time remains real.
+
+Physical area and axial coordinates
+PatchBinding.extrusion_center_z_m and extrusion_height_m are mandatory. Height
+must equal that thermal owner's Geometry.height. A source origin is GLOBAL x/y/z;
+only its axial admission check subtracts the explicit slice center. Native layer
+relative vectors remain GLOBAL Cartesian components. Thermal area is exactly
+heat.area(patch)*Exposure.area_fraction; no second height or depth factor is added.
+Parent quadrature must partition each physical patch area and route heat to ONE
+foil/slice owner. V3 does not remap geometry or change a material model on restart.
+Source-v2 neutral packet z coordinates remain local extrusion coordinates; a parent
+using those separate neutral packets must map their slice center exactly once.
+
+Source exposure, count owner and birth time
+Exposure declares one physical begin_s, positive duration_s, area_fraction and
+quadrature_id inside the common interval. It uses the declared held accepted T
+and this exact trial's local one-sided fields. No multi-interval temperature
+average, accumulator, fixed macro weight, 32-macro threshold, ID allocation, RNG
+or cold-emission floor exists here. PreparedPatch exports the native expected
+binary64 count and mean-heat DIAGNOSTIC, plus log_expected_number, its availability
+and the native current-underflow flag. A finite log with a zero scalar is not proof
+of zero flux; the external exact/log count owner must retain it. Do not floor it.
+
+BirthSample supplies a positive representable physical weight, fixed caller-owned
+normal/transverse/azimuth draws, event/canonical IDs, count-owner revision/base hash,
+opaque staged count-owner token and the exact exposure_key. The key binds interval,
+trial data, accepted thermal/source signatures, kernel, physical quadrature and
+local source inputs. Count limbs are not implicitly converted to a scalar here.
+A count owner exporting multiple representable packet parts must validate their
+exact total externally. Candidate.birth_sample retains the complete supplied
+sampling provenance. StagedCanonicalOwner requires the parent's real counter/RNG
+preflight; token non-emptiness alone does NOT qualify that owner or its statistics.
+QualificationOnly weights are rejected by default production import/preflight/heat
+assembly. Fixed 1e9 weights in interface tests resolve heat, not a predicted rate.
+
+The microscopic time policy is explicit, default Unbound:
+ UniformHeldExposure: open time_uniform, tau=exposure.begin+u*duration;
+ ExposureBeginLumped: explicit first-order temporal lumping;
+ SpecifiedPhysicalTime: caller-qualified time inside that exact exposure.
+The bridge never silently selects a policy. A legacy delayed 32-macro/averaged-T
+accumulator is not automatically valid. Root must qualify the chosen physical
+sampling/weight/time rule. Keep the same accepted counter/RNG state, draws and IDs
+on every nonlinear re-evaluation. No count-owner sampling accuracy is claimed by
+this component qualification. Cold fractional positive packets are tested without
+rounding them to zero or waiting for a macro threshold.
+
+Birth, Active motion and work
+begin_source returns one staged Candidate: accepted-layer payload, incremental
+exchange, one certified heat transfer, precise paths and all trial/sampling binds.
+It calls the exact v1 kernel. The normal quantum projection is a zero-duration
+physical displacement/current/work, not an arbitrary launch offset. One-sided
+field sampling selects the vacuum cell within bounded coordinate ULPs; it never
+changes the physical origin or quantum distance. The quantum normal bridge must remain inside one actual Hall cell, where its
+compatible normal E is constant and the magnetic guard is bounded by endpoint
+values. A multi-cell normal barrier rejects. Native quantum magnetic guard
+is checked at both normal-bridge endpoints, without charging another birth. The
+maximum_quantum_magnetic_energy_fraction must be<=0.2; a 0.3 override rejects.
+Full-common electron gyro guard 0.05 is retained on source stages/path samples.
+
+advance_source accepts the COMPLETE unchanged accepted BoundLayerState and actual
+canonical ID, duration and new event identity. For each substep, it calls the
+unchanged native advance_layer from the SAME substep base. E/B are iterated to the
+actual sealed Hall path gather. More than one moving native path causes bounded
+subdivision so one force path uses a consistent path-averaged trial field. Quantum
+return bridges are checked separately. Every native energy/geometry/substep guard
+remains active. Unresolved spatial work, iteration budgets or native-clock
+nonprogress reject the common proposal. No path work, kinetic energy, wall heat,
+image/reference term or source sample is altered afterward to make it close.
+Top-level changed trial fields must re-evaluate from the SAME accepted source state.
+
+PrecisionPath retains physical origin, both surface-relative endpoints and their
+relative displacement BEFORE any absolute translation. Native charges and work
+are ALREADY WEIGHTED. AxialTrialField::import uses the actual Hall Path with that
+retained D, deposits q*D/path_shape over COMMON authoritative dt, and computes
+endpoint charge, work and continuity. It preserves zero-duration bridges. It does
+not multiply weight or height again and does not divide by flight time. Absolute
+endpoint conveniences are not a valid way to reconstruct a tiny D. Do NOT convert
+these records to v2 absolute endpoint paths and call an importer that subtracts
+rounded global positions. All candidate events, endpoint/path state, field tokens,
+charge/origin sequences and source/path-work receipts are checked. Work tolerance
+is 1e-10 times actual operands, continuity 1e-12 times actual gross path charge, with
+no absolute energy/charge floor. Defects are reported, not deposited as heat.
+
+One canonical electron and handoff
+Every Active canonical layer ID must be present in the ONE prospective arena,
+counted in the all-species plasma guard, and excluded from ordinary full-interval
+motion. No independent source population is committed here. At a handoff tau,
+keep that ID excluded from ordinary full-interval motion for this whole common
+step. handoff_remainder calls the ACTUAL axial::push only for t_end-tau, starting
+from current restored-image proper u and global endpoint. It deposits that returned
+ordinary Path with COMMON dt and retains full-common gyro guarding. It requires
+canonical mass=source-v1 me, charge=-qe and the same ID/weight. Native kinetic
+accessors return per-particle J, multiplied by weight ONCE in this helper.
+The ordinary kinetic increment/current/work is a separate proposal, not another
+source-wall transfer. Source image/reference/wall ports remain unchanged. Route
+actual collected/exterior/short endpoint charge/K through its owner once. Parent
+must retain full common-step plasma/displacement/gyro guards for all participants,
+including prospective births; this bridge does not qualify the global arena guard.
+After common acceptance, HandedOff leaves the Active ownership set for the next
+step; Recollected removes the same canonical particle. Source Packet.ledger is
+birth metadata, NEVER a continuation debit. Only incremental exchange is charged.
+
+Heat and common acceptance
+Certified equation: Qwall+dK_particle+dRef_e+dImage=Wfield. Only Qwall is deposited
+by prepare_heat into unchanged heat-v2; all other terms retain their distinct
+owners. Mean diagnostic heat is not an additional debit. Signed reference/image
+energy is not relabeled as collision/Joule or gas chemistry. Duplicate event and
+canonical-energy-owner guards remain in heat-v2. V3 has no independent commit.
+
+Parent sequence for every nonlinear trial:
+  freeze accepted arena, heat, source layer, exact counter and RNG bases;
+  capture actual immutable total midpoint fields and TrialFrame;
+  prepare each mapped patch/exposure and pure counter/weight/time proposals;
+  begin prospective births, advance accepted Active layers from those bases;
+  import source paths, handle actual handoff remainder and boundary proposals;
+  prepare thermal, canonical arena, reference/charge/current/field proposals;
+  reject all candidates on any failure or nonlinear nonconvergence;
+  preflight actual field-array match, source binding, count/RNG/layer-owner tokens,
+  native heat tickets, arena and every boundary/energy owner; publish once.
+preflight here validates its field/thermal identity, not external count-token truth.
+No GapPic field solve, stale accepted-start field or sequential partial publication
+is a substitute for that common barrier. Root owns the complete coordinator.
+
+Restart and qualification scope
+Checkpoint accepted native BoundLayerState, physical global origin, local mapping,
+source/model/species seals, canonical count/RNG state, arena/field/heat and watermarks
+atomically in the parent. The unchanged v2 typed layer and heat serializers are
+qualified byte-exact here; identical immutable Hall trial arrays are reconstructed
+for retry after restart, and current/charge vectors plus next heat checkpoints are
+bit-identical. Do not serialize/reuse an unaccepted nonlinear Candidate or its field
+token; rebuild it from accepted bases. Whole-driver crash consistency is not tested.
+
+14,570 assertions pass against the immutable v2 snapshot, exact source-v1 and
+sealed Hall axial-phase-002 code: same-clock parity, distinct clocks/roles,
+immutable arrays, changed-trial birth/Active retries, strict spatial rejection and
+converged actual path work, zero/tiny displacements, no double weighting/current,
+exact restart, actual handoff remainder/recollection, noncentral axial slice area,
+and nonzero cold fractional emission. All source/field fixtures are bounded
+manufactured operator cases, not a measured C19/plasma history. Physical source
+sampling/count arithmetic, full nonlinear common-driver convergence, global guards,
+whole energy/reference/circuit closure and production remain parent qualifications.
