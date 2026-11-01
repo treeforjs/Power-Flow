@@ -1,0 +1,203 @@
+SimQueue 0.6.2 (GPU line) -- handoff note
+Updated: 2026-10-31 22:16 MDT (fourth worker) -- WORKSTREAM COMPLETE
+
+GOAL
+  Build, test and install SimQueue 0.6.2 live on zenobia (0.6.1 -> 0.6.2), with
+  a backup in ~/.local/state/simqueue-backups/ and a verified one-command
+  rollback, using upgrade.py.  0.6.2 fixes GPU starvation: queued GPU jobs
+  lost every release of the GPU lease files to processes blocked in raw
+  `flock testing-gpu.lock`.  Running job units must never be touched (they are
+  their own systemd units; the worker re-adopts them).
+  After install confirm: service runs 0.6.2; `simq status` and
+  `simq partitions` work; the published state file
+  /home/treefor/projects/.workspace/outputs/pic-profile/simq-gpu-line.json
+  exists; a short trivial job runs on the powerflow partition and one through
+  the GPU line.  Then write the USAGE note (gpu-lease instead of raw flock),
+  OPERATIONS.md notes, receipts, and copy the source to
+  /home/treefor/projects/Power-Flow/tools/simqueue (do not commit).
+  If the permission system refuses the live install step: stop, report the
+  exact refused command, leave 0.6.1 running untouched.
+
+LAYOUT
+  Runtime:   /home/treefor/projects/runtimes/simqueue-0.6.2-20261031
+  Previous:  /home/treefor/projects/runtimes/simqueue-0.6.1-20261031 (live)
+  Receipts:  /home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/receipts/
+  Test tmp:  /home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/tmp/
+  Design:    source/simqueue/gpuline.py (claim units, gpu-lease helper, line
+             engine), gpuqueue.py (worker side, published state), jobwrap.py
+             (receives the held GPU locks over SCM_RIGHTS), nodeworker.py,
+             cli.py (partitions/show/doctor), locks.py (GPU-first lock order),
+             config/zenobia-node.json (new "gpu_line" section), bin/gpu-lease.
+
+DONE
+  - Code complete (see Design).  No database schema change (stays 8).
+  - Process-level tests test_gpuline.py: 19/19 OK
+      receipts/try2-test_gpuline.json
+  - systemd-level tests test_gpu_line_units.py: 8/8 OK
+      receipts/try4-test_gpu_line_units.json
+  - upgrade.py rewritten for 0.6.1 -> 0.6.2 (backup, starting-job check,
+    no migration, claim-unit stop on rollback, GPU line state check).
+  - tests/test_upgrade.py rewritten for 0.6.1 -> 0.6.2 (sandbox home + stub
+    systemctl; real job and claim units on test CPUs, private lock files).
+  - Stale 0.6.1 sealed-files.json removed from the 0.6.2 directory.
+  - test_upgrade.py: 7/7 OK   receipts/try2-test_upgrade.json
+  - OPERATIONS.md: header, table, lock order, new section "The GPU line (0.6.2)",
+    upgrade section 0.6.1 -> 0.6.2, known limitations of the GPU line.
+  - README.md (source): new "0.6.2: the GPU line" section.
+  - USAGE-GPU.md (runtime dir, sealed with it): gpu-lease instead of raw flock.
+  - Interrupted full-suite-1 run (killed at 21:15 with the second worker):
+    its last test (test_borrow_units LeasedIdleUnitTests, private state
+    tmp/simq06-jo81x8wb) had finished by itself (job 1 exit 0 at 21:16:48,
+    job 2 preempted); no unit or process left; stale tmp/simq06-* removed.
+    Rerun of test_borrow_units.py: 12/12 OK  receipts/rerun-test_borrow_units.json
+
+IN PROGRESS
+  - full-suite-2 (21:27) died with the third worker at test 59 (no receipt).
+    It had one F at test 56 = test_borrow_units
+    test_owner_process_keeps_cpu_priority_over_a_running_borrower (timing test,
+    file identical to 0.6.1; passed in rerun-test_borrow_units).  Leftover
+    private state tmp/simq06-4w5hf2cf: no unit or process left.
+  - full-suite-3 finished 21:39: 270 run, 3 F, 2 E, 8 skipped (receipt
+    receipts/full-suite-3.json).  All five are environmental:
+      * test_exclusive_mode x2: need 4 CPUs in the affinity mask (pcores and
+        ecores overlap on 2 cores) -> run as a pure suite (mocks only):
+        9/9 OK receipts/pure-test_exclusive_mode.json
+      * test_node_worker wrapper refusal ('cwd' instead of 'lock-busy') and
+        0.5 fingerprint: the test tmp dir is behind the .workspace symlink;
+        jobwrap compares the resolved cwd with the unresolved project root
+        and the fingerprint uses the resolved cwd.  0.6.1 ran its tests in
+        /tmp.  Fixed in run-tests.py: tmpdir is used by its resolved path.
+      * test_borrow_units first test: borrower on core 1 instead of 0 (core 0
+        looked busy to the idle sampler; timing flake under the harness's own
+        load; borrow.py, telemetry.py and the test are unchanged since 0.6.1;
+        rerun alone was 12/12).
+  - RETURN-CORES-0-3 set at 21:43: full-suite-4 stopped by the live guard
+    (rc 3) inside test_gpuline; nothing left behind.  Until then OK:
+    borrow_scheduler 43, borrow_store_cli 11, borrow_units 12/12,
+    ensemble 53, gpuline 14 of 19.  Cores 0-3 and siblings 8-11 are
+    Spheral's again: start nothing there.
+  - Coordinator: run the rest on cores 6-7 under their leases, shared with
+    Power-Flow (--cores 6-7 --wait-any).  run-tests.py got --shared (queue
+    jobs of the powerflow partition are no reason to refuse/stop; the lease
+    protocol arbitrates) and --min-cores N (with --wait-any: wait until N
+    cores are free at once, nothing held while waiting).
+  - LIVE INSTALL DONE 2026-11-01T03:49:17Z: 0.6.2 runs; jobs 211, 214
+    (borrow), 215 adopted; GPU line state published by 0.6.2.
+    Output tmp/install-live.out.
+    Backup:   /home/treefor/.local/state/simqueue-backups/0.6.1-to-0.6.2-20261101T034917Z
+    Receipt:  <backup>/install-receipt.json
+    Rollback: /home/treefor/projects/runtimes/simqueue-0.6.2-20261031/upgrade.py rollback --backup /home/treefor/.local/state/simqueue-backups/0.6.1-to-0.6.2-20261101T034917Z --execute
+    Rollback dry run: no problem (tmp/rollback-dryrun.out).
+    Post-install: simq status / partitions OK; simq-gpu-line.json written
+    by 0.6.2 (heartbeat fresh).  Check jobs 216 (cpu) and 217 (GPU shared
+    256M) queued on powerflow at 21:50 behind core 6 (Power-Flow any-core.sh
+    lease) and core 7 (job 215); logs ~/.local/state/simqueue/logs/00021[67].log.
+    Power-Flow/tools/simqueue updated (identical to the runtime minus
+    HANDOFF.txt; not committed).
+    Job 216 (cpu) succeeded on core 6 at 03:56:37Z.
+  - BUG FOUND LIVE (22:00): job 217 (shared --gpu-mem 256M) was waiting for
+    a CPU (core 6 taken by 216, core 7 by job 215, a shared GPU job), but
+    GpuQueue.after_plan's readiness plan removes every running job on the
+    GPU (and with it their cores), so 217 counted as "ready except for the
+    GPU" and got an exclusive claim; while a claim waits, prepare() blocks
+    the GPU for ALL queued jobs (raikou-mfem too) until the GPU drains, and
+    a shared job that could join the queue's shared holders waits for a
+    full drain.  217 canceled at 03:58:23Z; claim stopped cleanly.
+    FIXED in place (0.6.2): gpuqueue.ready_except_gpu (exclusive requests
+    from the plan without the GPU's queue jobs, as before; shared requests
+    only from the plan that keeps them, outside block removed) + 5 pure
+    ReadinessTests in test_gpuline.py (the 217 case fails under the old
+    logic).  OPERATIONS.md updated (how it works, published queue, known
+    limitations, validation).  suite-6-7-c: test_gpuline 24 +
+    test_gpu_line_units 8 = 32/32 OK on core 6.  Resealed.
+    Worker restarted once at 04:05:09Z (systemctl --user restart
+    simqueue.service): adopted 224, 226; claim units none left.
+    Meanwhile Power-Flow job 224 (shared 3G) had got a spurious claim from
+    the old worker; it got the GPU by claim hand-off when 215 ended
+    (04:04:56Z, waited 112 s; live proof of the hand-off path).
+    Check job 227 (shared 256M) started directly at 04:05:55Z on core 6 next
+    to 224, no claim, exit 0.
+  - run-tests.py --min-cores bug (mine): it held the partial lease set
+    during the 2 s sleeps, so it held core 6 from about 04:04:54Z to
+    04:05:50Z and delayed my check job 227 by about 25 s (no other job was
+    waiting for powerflow then).  Fixed: it releases before sleeping and,
+    with --min-cores > 1, reads /proc/locks first and touches the lease
+    files only when enough are free.  Resealed.
+  - suite-6-7-b3: node_worker 27 ok + 3 skipped (incl. the two that failed
+    in full-suite-3), upgrade 7/7; switchover 2 F: the sandbox unit path
+    contains "simqueue-0.6." (test tmp dir name) and switchover.py takes
+    that as "0.6 already installed".  suite-6-7-d: switchover 3/3 OK with
+    SIMQ_TEST_TMPDIR=<outputs>/simq062-test-tmp (documented in run-tests.py
+    and OPERATIONS.md).
+  - Final per file: 275 tests, 270 ok, 5 skipped, 0 failed, shield helper
+    (16) not importable.  release.json final (installed: true, install and
+    correction record), resealed 47 files, seal --check ok.
+    Power-Flow/tools/simqueue identical to the runtime (minus HANDOFF.txt).
+  - Cores: no lease held by this workstream; cores 6-7/14 lent to Spheral
+    (coordinator, 22:15); nothing further needs cores.
+  - Worker CPU after restart: 1 s in 496 s (0.6.1: 5 s in 2721 s).
+  - Sealed at 21:50 (47 files, seal --check ok).  OPERATIONS.md "Validation
+    of 0.6.2" written; release.json written for 0.6.2 (installed: false,
+    as for 0.6.1).
+  - suite-6-7-b (background since 21:50, waits until cores 6 AND 7 are free
+    at once): node_worker, upgrade (sealed path), switchover;
+    output tmp/suite-6-7-b.out, receipt receipts/suite-6-7-b.json.
+  - suite-6-7-a DONE: 102 run, 0 F/E, 2 skipped (live DB copy) on core 7.
+  - (old) suite-6-7-a (background since 21:46): gpuline, gpu_line_units,
+    migration_061, migration, scheduler, simqueue; --cores 6-7 --wait-any
+    --shared; output tmp/suite-6-7-a.out, receipt receipts/suite-6-7-a.json.
+  - still to run after sealing, on two cores (--min-cores 2): node_worker,
+    upgrade, switchover (switchover skips while unsealed).
+  - (old) full-suite-4 (background since 21:46): every file except
+    test_shield_helper.py and test_exclusive_mode.py, resolved tmp dir,
+    output tmp/full-suite-4.out, receipt receipts/full-suite-4.json.
+  - (old) full-suite-3 command, verbose, output tmp/full-suite-3.out,
+    receipt receipts/full-suite-3.json; patterns = every test file except
+    test_shield_helper.py (cannot import: needs source/privileged/simqueue-shield,
+    same as 0.6.1 "existing_not_run").  Both cores 0-1 (no --wait-any).
+  - (old) full-suite-2 command, output tmp/full-suite-2.out:
+      cd /home/treefor/projects/runtimes/simqueue-0.6.2-20261031/source
+      ./run-tests.py --cores 0-1 --wait-any \
+        --receipt /home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/receipts/full-suite-2.json
+    (the live guard stops it with rc 3 when Spheral work appears on cores 0-3; just rerun)
+  - OPERATIONS.md "Validation of 0.6.2" and release.json still to write (after the suite).
+
+NEXT STEPS
+  1. (done) test_upgrade.py green.
+  2. Full suite: ./run-tests.py --cores 0-1 --wait-any --receipt .../receipts/full-suite.json
+     (shield tests need privileges and skip; some node tests need 3-4 CPUs and skip).
+  3. OPERATIONS.md 0.6.2 sections; release.json for 0.6.2; seal:
+       source/tools/seal.py ; source/tools/seal.py --check
+  4. Dry run: ./upgrade.py install   (must show no PROBLEM lines)
+  5. Update this note, then live: ./upgrade.py install --execute
+     Rollback: ./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.1-to-0.6.2-<UTC> --execute
+  6. Post-install checks (see GOAL), USAGE note, copy to Power-Flow (no commit).
+
+DECISIONS TAKEN
+  - Line position of a queued job = exact submit time from the birth time
+    (statx) of its log file, created empty in the submit transaction;
+    fallback: mtime inside the created_at second; else end of that second.
+    (created_at has 1 s resolution; the earlier "+0.999" made helpers that
+    started up to 1 s after a submit go first.)
+  - Deadlock test split into phases with raw users of one lock order each:
+    raw users of different orders deadlock among themselves regardless of
+    the queue (seen in a run: core,l1,l2 vs l2,l1).
+  - Test outside users run in their own session; tearDown kills the group
+    (a failed run had leaked blocked inner flock processes).
+  - Claim units are named simq-job-gpuclaim-<token>.service (unit prefix
+    simq-job); they show in `systemctl --user list-units 'simq-job-*'`.
+  - upgrade.py backs up simqborrow.slice too and leaves it in place.
+  - HANDOFF.txt is excluded from the seal (it changes after sealing) and is
+    not copied into the Power-Flow repository.
+  - (fourth worker) run-tests.py uses the temporary directory by its
+    resolved path; --shared for cores 6-7 (queue jobs of powerflow are no
+    reason to stop; the lease protocol arbitrates); --wait-any --min-cores N
+    (looks at /proc/locks, holds nothing while waiting).
+  - test_exclusive_mode.py runs as a pure suite (needs 4 CPUs in the mask).
+  - Readiness correction in place in the installed 0.6.2 runtime (not a new
+    version): installed 15 minutes earlier, not yet committed anywhere;
+    resealed; worker restarted once; rollback backup to 0.6.1 unaffected.
+  - release.json records the install (installed: true) and the correction,
+    so the seal matches the final files.
+  - Check jobs used --gpu-mem (shared) only: an exclusive check job would
+    have made other sessions' GPU jobs wait for a drain.

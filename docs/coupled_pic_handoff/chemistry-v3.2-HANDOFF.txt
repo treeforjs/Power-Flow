@@ -1,0 +1,65 @@
+Water chemistry v3.2 -- handoff note (keep current; updated at every milestone)
+==========================================================================
+Last update: 2026-10-31 late evening MDT (dev blob t8 passes all CPU tests; next: production tables + qualification)
+
+GOAL
+  Close the refusing gap of chemistry v3.1: ion and anion + H2O above 1 keV (23 unbounded regions in v3.1). Data where
+  they exist; model estimates (model_derived, uncertainty stated, physics bound documented) where they do not (decisions of 2026-10-31 /
+  decisions below). Qualify to the v3.1 standard. v3 and v3.1 sealed; no commits; LXCat-derived tables stay local.
+
+LOCATIONS
+  component   /home/treefor/projects/runtimes/pic-water-chemistry-v3.2-20261031/
+  outputs     /home/treefor/projects/.workspace/outputs/pic-water-chemistry-v3.2-20261031/   dev/t1..t8 development blobs
+  latest dev  dev/t8: blob 51dc24e0..., 132 processes, 174 regions (83 bounded, 91 admitted, 0 refusing); test_core 200k ALL PASS
+
+DECISIONS OF 2026-10-31 (project decisions relayed by the coordinator)
+  B   sample equal-speed model estimates instead of bounds: capture of O+, OH+, H2O+, H2+ = proton sigma10 (Wedlund 2019) at
+      equal speed; target ionization of singly charged dressed ions (O+, OH+, H2O+, H3O+, H2+) = He+ sigma11 (Wedlund 2019)
+      at equal speed (Juhasz 2019 O+ 6.6 keV point as validation); anions q^2 x proton sigma11; O++ from He2+ sigma21 /
+      sigma22; projectile breakup / detachment = free-collision estimate (sits 1.5-5x high vs He+ sigma12 and H- sigma-10,
+      kept as the conservative side).
+  B2  "fast heavy ions don't stop runs": H3O+ capture = proton sigma10 x Massey adiabatic factor (a = 7 A, defect 6.10 vs
+      0.98 eV); O- rearrangement = Langevin k_L/v (capture-type); H2O+ PT = last Lishawa point as constant rate (1/v); H- PT
+      = UMIST k300/v; (my extension, same rule) OH+ and H2+ PT = thermal k f / v above 1 keV; H- double detachment from 1
+      keV (Wedlund appendix extrapolation) and above 7600 km/s scaled sigma-10 shape, v^-2 above 20000 km/s; H- detachment
+      v^-2 above 20000 km/s; O++ capture above 5350 km/s scaled proton sigma10 shape.
+  b   electron set: J=0->2 and J=0->3 rotational continued above the MuroranIT cut (5 eV) to 1 keV with the J=0->1 energy
+      dependence scaled at 5 eV (model_derived, factor 3). Swarm "unchanged" requirement replaced by re-validation against
+      the measured data at v3's tolerances; stop and report if it fails. (My extension, reported to the coordinator:) ion-pair
+      records continued above their threshold windows with the Munoz total-inelastic shape (RBEB above 10 keV), and the
+      dissociative attachment records modelled as zero above the end of their resonance tables -- these v3 regions were the
+      next refusing ones in the breakdown-mix check.
+  ISA hook: env PF_BUILD_ISA_FLAGS (whitespace-split, default empty) appended to the C++ flags of tools/dev_build*.sh,
+      recorded in the receipt's build stage.  Seal: report sampling cost per collision vs v3.1 (CPU and GPU).
+
+DONE
+  Engine: det_math exp/pow; kinds ION_IONIZE (Rudd SDCS), BREAKUP, CHARGE_X with n_out > 2; Rudd inner-shell universal set
+    for orbitals with B > 2 B_min (PFC_RUDD_INNER_SHELL_PARAMS, checked by the builder against the extracted table); Rudd
+    sampler with adaptive envelope (power or exponential, smaller mass) -- removed exhausted draws at low speed.
+  Builder: sources sum_of, rudd_analytic, branch_fraction, free_collision, adiabatic_scaled, close_distant_bound (onset);
+    placeholder_below_eV (per-range placeholders, marked ' [placeholder here]' in region names); documented_bound
+    (manifest: bound / estimate ratios); process-id separator guard.
+  Spec: tools/make_production_spec.py v32_ion_extend (all ion groups) + electron tails (above).
+  Policy: tools/make_coverage_policy.py (partial placeholders; model_estimates section with bound/estimate ratios).
+  Tools: tools/ion_beam_share.py (B/A per ion and energy), tools/breakdown_mix_share.py (representative mix check).
+  Data: data/extracted Rudd 1992 Table V / I(b), Gobet 2004 Table II (tools/research/build_ion_v32_param_tables.py);
+    helper: Wedlund He+/He2+ tables + fits, ORNL-5206 H2O tables, Juhasz 2019 O+ totals (tools/research/lit32/,
+    data/sources/ion-v32-literature-findings-20261031/FINDINGS.txt).
+  Shares (dev t8): every ion B/A < 1e-3 at 1 keV - 9 MeV (max 1.5e-4, H+ capture above 2.1 MeV); breakdown mix (Te 2/5/10
+    eV, 300 K ions, 0-10 % keV ions at 10-100 keV): max B/A 3.4e-3 (O++ double-ionization onset, electrons) -- nothing refuses.
+
+STATUS (latest)
+  Final tables (with sub-keV gap bridges and electron onset slivers): data/tables/chemistry-v3.2.blob
+    d87d1bd482d1084f50266828a3f5f45d4bb59176c2665cdd2f8a8c6c4b6e4a45, policy 259ed2e8...; 162 regions (36 bounded, 126
+    admitted, 0 refusing). Ion beam B/A 3 eV - 9 MeV: 0 except H+ >= 400 keV (<= 1.5e-4) and H2+ at 9 MeV (2e-5); mix
+    (Te 2/5/10/20 eV, thermal + epithermal 3-1000 eV + keV ions): 0 of 88 cases refuse, max B/A 5.5e-4 (v3.1: 88 of 88).
+  qual-001 (superseded tables): all stages passed except swarm re-validation: 3 points outside v3's bands by 0.2-1.2 pp
+    ((alpha-eta)/N 198 Td +3.7 %; flux 301.7 Td -11.2 %; bulk 149.9 Td -4.2 %) plus bulk 396-497 Td moved toward the data
+    (out of v3's +18..+39 % range). Reported to the coordinator; waiting for the decision (options a/b/c). Diagnostic (c)
+    running: outputs/.../swarm-scatter (seeds x 150/200/300 Td, v3.1 and v3.2 tables).
+  qual-002: stopped (tables changed). qual-003: local stages on the final tables running; swarm stage NOT started (waits
+    for the decision; then one simq submission: tools/qual_swarm_job.sh qual-003).
+
+NEXT
+  1. Coordinator decision on the swarm re-validation criterion; then qual-003 swarm stage (simq job) and RESULTS.txt
+     (tools/summarize_receipt.py <qual-003 dir> <analysis dir>), SEAL.json (tools/make_seal.py <receipt>), final report.

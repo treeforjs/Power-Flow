@@ -1,0 +1,45 @@
+Hall corrective v3.5 -- handoff note (kept current; last update 2026-10-31 22:45 MDT)
+
+Goal and version split (decided here)
+ v3.5 = restore_as_genesis (coordinator v8 HALL-V35-REQUEST.txt; runtimes/pic-water-common-commit-v8-20261031) -- the
+        unblocker for the coupled run from the 20 ns pre-run -- then seal and report.
+ v3.6 = GPU speed from v3.4 RESULTS 12 (node walks over more threads with bit-identical results, radix-sort passes/keys,
+        push divisions) with the new timing table at 200/50 um, 1e5/1e6.
+ v3.7 = the remaining integration items (graded transverse mesh 35-45 mm box, circuit port-current mode, SS304 phase
+        owner v1.2 as thermal owner, source v7 wall-response heat, merge/split relocation deposit on the GPU, GMG option,
+        v3.4 open issues 10.1-10.6 that are Hall's). CPU-ISA patches from runtimes/cpu-isa-study-20261031/PATCHES.md that
+        touch Hall: none published yet (checked 22:15).
+ Sources: this directory (copied from sealed v3.4, build b14). v3.4 stays sealed. Outputs:
+   /home/treefor/projects/.workspace/outputs/hall-corrective-v3.5-20261101/
+
+restore_as_genesis design (source/resident_owner.hpp, field_model.hpp, thermal_v3.hpp, gpu/resident_field.*)
+ - ResidentOwner::restore_as_genesis(model, device, geometry, census, dir, options, GenesisTransfer) and
+   genesis_provenance(); GenesisTransfer {thermal_declaration, native_geometry, carrier_limits, optional
+   recorded_declaration, optional recorded_limits}; GenesisProvenance (fields of the request) with sha256()
+   "hall-v3.5-genesis-provenance-v1".
+ - Accepts v3.3 (hall-v3.2-resident-checkpoint-v1), v3.4 and v3.5 resident checkpoints. The recorded configuration R is
+   identified as Model::configuration_transfer(recorded dt, solver record, motion forms, declaration, limits, rule form)
+   (rule form v3.3: the v3.3 residual rule text, no divB rule); v3.3 field seal via ResidentField::state_digest_v33
+   (v3.3 merkle form over the same leaves, residue absent).
+ - Checks in the request's order a-f inside the restoring constructor (hook after upload, before census check and
+   admission); heat slices loaded under R's declaration (sealed Coupler signature check), heat seal with R's material
+   binding, then installed into this Model's slices at revision 0 (ThermalV3::install_genesis: in-memory Coupler
+   checkpoint, zero inventory for added heat-only patches).
+ - Identity: SlotMeta::provenance appended to the resident state merkle record ("hall-v3.5-genesis-provenance");
+   heat digests use genesis_heat_identity(material, provenance). Bootstraps and plain restores of non-genesis
+   checkpoints keep the v3.4 digests.
+ - v3.5 checkpoint schema hall-v3.5-resident-checkpoint-v1 = v3.4 + genesis_provenance, thermal_declaration {sha256,
+   patches}, carrier_limits; plain restore reads v3.4 and v3.5.
+ - divB gross ledger: kept from v3.4/v3.5 checkpoints; zero for a v3.3 checkpoint (none recorded; zero is the stricter
+   floor).
+ - Host Owner restore_as_genesis: not yet (next after the resident tests pass).
+
+In progress
+ - Build g1 (test_v35 only) running: run_hall_v35.py build g1 test_v35 (both-cores.sh; log outputs/build-g1.log).
+ - Test: tests/test_v35.cpp `genesis TRACE OUT NVRTC UUID V33_CKPT V34_CKPT` with
+   V33_CKPT = .workspace/outputs/hall-corrective-v3.3-20261031/s1/gpu-prerun-20ns-130711/checkpoint-20.000000ns
+   V34_CKPT = .workspace/outputs/hall-corrective-v3.4-20261031/b13/gpu-prerun-20ns-200um-212515/checkpoint-20.000000ns
+
+Machine notes
+ run_hall_v35.py admits cores 6/7 (leases), loaned 0/1, or logical CPU 15 (testing-cpu15.lock, nice 19). GPU work:
+ simq submit or runtimes/simqueue-0.6.2-20261031/bin/gpu-lease --core any -- CMD (USAGE-GPU.md there).

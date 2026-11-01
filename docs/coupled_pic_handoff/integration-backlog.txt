@@ -1,0 +1,37 @@
+Power-Flow integration backlog (next versions), maintained 2026-10-31
+
+Hall v3.5 (after v3.4 seals):
+- restore_as_genesis: restore a vacuum pre-run checkpoint (seal checked under its recorded configuration), transfer
+  heat-only source-patch declarations, rebase revision to 0 keeping the clock, record pre-run revision/field digest/
+  configuration as provenance (coordinator v8 HALL-V35-REQUEST.txt). Needed to start the coupled run from 20 ns.
+- graded transverse mesh (per-cell coordinates, kinetic box separate from field box), 35-45 mm box
+  (resolution-series-prep graded/, circuit README: port inductance 16.04-16.15 nH)
+- circuit port-current mode (c19-circuit-drive-v1 INTEGRATION.txt), regression byte-identical to prescribed drive
+- SS304 phase owner v1.2 as the thermal owner (INTEGRATION.txt): J and B per EM cell, Lorentz work debit
+  (StepRecord::lorentz), u x B back-EMF in Ohm's law for moving melt, evaporation/radiation columns, shared session
+- source v7 wall-response heat channel (surface-v7-wall-response, may be negative), collected-electron work function
+  to wall heat, bridge-path deposits
+- merge/split relocation deposit (GPU version not yet written) and relocation_work_J
+- GMG preconditioner option (resolution-series-prep precond/)
+
+Native v8 (in progress): chemistry v3.1 production-v1 (blob 7f30e012..., policy ad3742f3...), device chemistry,
+  nonempty restore (done), stage B wall births / metal species / merge-split; nuclei ABI v4 = Raikou PFC_NUCLEUS_*.
+Chemistry v3.2 (in progress): keV ion + H2O coverage.
+Coordinator v8 stage 2 (after Hall v3.5 + native v8): bind all owners, production presets (decisions pending:
+  enabling source v7 surface physics, melt inertia model, sub-cycling K), direct native restore, start from 20 ns.
+After the CPU upgrade (9950X3D2): repartition cores -- planned split: Spheral one full chiplet (8 cores); raikou-mfem
+  hydro 4 + Power-Flow 4 on the other chiplet; shared mfem-pic work borrows idle cores from those two (owner priority);
+  SimQueue needs a borrow-only partition for mfem-pic, update SimQueue partitions, pf-launch
+  zenobia.json, core-lease helpers, lock files; requalify (fingerprint comparison).
+
+CPU tuning (added 2026-10-31 late): all components build generic x86-64 (SSE2), -O2 -ffp-contract=off -fno-fast-math,
+  single-threaded per rank. Study running in runtimes/cpu-isa-study-20261031: x86-64-v3/v4/znver5/-O3 flavors must
+  give bit-identical digests; if faster, per-site build flavor via pf-launch site file (generic kept for other hosts).
+  At the 9950X3D2 swap: keep each job's ranks inside one chiplet's L3 (map/bind by l3cache), align SimQueue partitions
+  to chiplet boundaries, verify numbering with lscpu -e.
+
+Performance on this hardware (owner priority, 2026-10-31 late): CPU performance lead in runtimes/cpu-isa-study-20261031
+  profiles host hot spots, optimizes them bit-identically, delivers PATCHES.md for the next versions, adds an ISA
+  flavor key to pf-launch site files + build flag hooks (Hall v3.4 / native v8 / chemistry v3.2 add the hook now).
+  GPU: Hall v3.4's per-kernel bandwidth/FP64/latency split feeds kernel optimization in Hall v3.5 (and native device
+  kernels). Mixed precision (FP32 factor + FP64 refinement) would change results -> owner decision before adopting.

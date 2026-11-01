@@ -1,7 +1,9 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-10-31 22:40 MDT. Keep this file current at every milestone so
-the work can be picked up from it alone.
+Last updated 2026-10-31 23:30 MDT. Keep this file current at every milestone so
+the work can be picked up from it alone. Snapshots of the in-progress workers'
+own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
+each update); the live versions are the `HANDOFF.txt` files named below.
 
 ## What this is
 
@@ -13,7 +15,7 @@ owners exchange sealed, digest-bound state through a coordinator:
 |---|---|
 | Hall corrective | electromagnetic field (E, B, J), Gauss ledger, field-only pre-run |
 | Native reaction transactions | carriers, collisions (MCC), births/sinks, motion record, restore |
-| Water chemistry | v3.1 (848e3e9): recombination and slow-ion coverage | v3.2: keV ion/negative-ion + H2O coverage: H+ from Wedlund 2019 / Gobet 2004 / Rudd 1992; heavy ions from sampled equal-speed model estimates (He+ / He2+ analogues, proton capture), tagged model-derived with uncertainty, bounds documented | swap into native v8 |
+| Water chemistry | e/ion + H2O cross-section tables, coverage policy (refuse vs bounded) |
 | Source owner | electrode surface physics: emission, desorption, wall response |
 | SS304 phase owner | electrode heating, melt, vapour |
 | C19 circuit | drive current / port coupling |
@@ -25,33 +27,54 @@ and then copied (filtered) into `artifacts/<component>-<version>-<date>/` here.
 ## Where things live
 
 - Builds: `/home/treefor/projects/runtimes/<component>-<version>-<date>/` (not in git;
-  each has README.txt and usually SEAL.json, RESULTS.txt, INTEGRATION.txt or a HANDOVER file).
+  each has README.txt and usually SEAL.json or SOURCE-SHA256.json, RESULTS.txt,
+  INTEGRATION.txt and a HANDOFF.txt while in progress).
   Native lives under `runtimes/pic-reaction-transactions-20261029/native-full-time-candidateNNN/`.
-- Run outputs and receipts: `/home/treefor/sim-workspace/powerflow/outputs/<component>-<version>-<date>/`.
-- Integration backlog (next versions, kept current):
-  `/home/treefor/sim-workspace/powerflow/outputs/integration-backlog.txt`.
+- Run outputs and receipts: `/home/treefor/sim-workspace/powerflow/outputs/<component>-<version>-<date>/`
+  (same directory as `/home/treefor/projects/.workspace/outputs/`).
+- Integration backlog: `/home/treefor/sim-workspace/powerflow/outputs/integration-backlog.txt`
+  (copy: [`coupled_pic_handoff/integration-backlog.txt`](coupled_pic_handoff/integration-backlog.txt)).
 - Repo copies: `artifacts/` here. Water-chemistry tables derived from LXCat stay
   local (LXCat terms); only the specs, digests and generators are committed.
 - Tools: `tools/pf-launch` (per-run core/GPU selection with site files),
   `tools/simqueue` (node scheduler source), `tools/pilot-render`.
 
-## Status (2026-10-31 evening)
+## Status (2026-10-31 23:30)
 
 | Component | Sealed / committed | In progress | Next |
 |---|---|---|---|
-| Hall | v3.4: host work removed (device deposit support, preflight, census; exact-sum residual; block-form digests); Hall-only step 7-19x faster than v3.3 at 1e5-1e6 carriers; FP64/bandwidth/latency split per kernel (artifacts/hall-corrective-v3.4-20261031, RESULTS.txt sections 12-13) | v3.5: `restore_as_genesis` (start the coupled run from the 20 ns vacuum checkpoint), then GPU node-walk parallelization and radix-sort passes | graded 35-45 mm transverse mesh, circuit port-current mode, SS304 v1.2 thermal owner, source v7 wall heat, merge/split relocation deposit, GMG option (v3.5 or v3.6) |
-| Native | v7.1 (2c37382): device admission, copy-on-write state | v8 (candidate008): chemistry v3.1 binding, device chemistry, nonempty restore, wall births, metal species, merge/split; nuclei ABI v4 | Raikou kinetic-core adoption |
-| Water chemistry | v3.1 (848e3e9): recombination and slow-ion coverage | v3.2: keV ion/negative-ion + H2O coverage (data where available, physics bounds elsewhere) | swap into native v8 |
+| Hall | v3.4 (61b04a1): host work removed (device deposit support, preflight, census; exact-sum residual; block-form digests). Hall-only step 7-19x faster than v3.3 at 1e5-1e6 carriers; per-kernel FP64/bandwidth/latency split in RESULTS.txt sections 12-13 | v3.5 (`runtimes/hall-corrective-v3.5-20261101`, HANDOFF.txt): `restore_as_genesis` first, then GPU node-walk parallelization (up to ~70 % of the 200 um device step) and radix-sort passes | graded 35-45 mm transverse mesh, circuit port-current mode, SS304 v1.2 thermal owner, source v7 wall heat, merge/split relocation deposit, GMG option, open issues 10.1-10.6 (v3.5 or v3.6) |
+| Native | v7.1 (2c37382): device admission, copy-on-write state | v8 (`candidate008`, HANDOFF.txt): stage A (chemistry v3.1 binding, device chemistry, persistent packet table, nonempty restore) verified on source 519423268f; now moving birth/first-hit-sink steps onto the device (~300 ms host at 1e6), then stage B (wall births, metal species, merge/split). `PF_BUILD_ISA_FLAGS` hook added | swap chemistry binding to v3.2; Raikou kinetic-core adoption |
+| Water chemistry | v3.1 (848e3e9) | v3.2 (`runtimes/pic-water-chemistry-v3.2-20261031`, HANDOFF.txt): all v3.1 refusing regions closed; keV ions, the electron rotational tail and the 3 eV-1 keV ion gaps filled with sampled model estimates; final qualification running (swarm re-validated against measured data) | bind into native v8 |
 | Coordinator | v8 stage 1 (93e3936): source v7 wired, raised dt caps, restart, launch from checkpoint | - | stage 2 after Hall v3.5 + native v8: bind all owners, production presets, direct native restore, start from 20 ns |
 | Source owner | v7 (faa7274) component | - | integrate at coordinator v8 stage 2 |
-| SS304 phase owner | v1.2 (66fa599) | - | thermal owner in Hall v3.5 |
-| C19 circuit | v1 (2feff69); Xyce 7.10 source verified, not built | - | port-current mode in Hall v3.5 |
-| SimQueue | 0.6.2 live (fair GPU hand-off: GPU reservation line, published state `pic-profile/simq-gpu-line.json`, `gpu-lease` helper replacing raw flock; rollback command in tools/simqueue/release.json) | - | 0.6.3: borrow-only `mfem-pic` partition and the 16-core node layout at the CPU swap |
+| SS304 phase owner | v1.2 (66fa599) | - | thermal owner in Hall v3.5/v3.6 |
+| C19 circuit | v1 (2feff69); Xyce 7.10 source verified, not built | - | port-current mode in Hall v3.5/v3.6 |
+| SimQueue | 0.6.2 live (78767d7): fair GPU hand-off, reservation line, published state `pic-profile/simq-gpu-line.json`, `gpu-lease` helper; rollback command in `tools/simqueue/release.json` | - | 0.6.3 at the CPU swap: zero-core borrow-only `mfem-pic` partition with lender list, 16-core node layout |
+| CPU performance | - | study (`runtimes/cpu-isa-study-20261031`, HANDOFF.txt): x86-64-v3/v4/znver5/-O3 builds must give bit-identical digests; host profiling; proven patches collected in PATCHES.md for the next versions; per-site ISA flavor via pf-launch site files | apply patches in Hall v3.6 / native v8.x / coordinator stage 2 |
 
 The 20 ns field-only pre-run inside the coordinator model matched the Hall v3.3
-20 ns checkpoint word for word (194,026 steps). Starting the coupled run from it
-is blocked only by the revision/accepted-step binding between Hall and native;
-Hall v3.5 `restore_as_genesis` resolves it without changing any check.
+20 ns checkpoint word for word (194,026 steps, 631 s). Starting the coupled run
+from it is blocked only by the revision/accepted-step binding between Hall and
+native; Hall v3.5 `restore_as_genesis` resolves it without changing any check.
+
+## Audit corrections (2026-10-31)
+
+Corrective versions are being qualified separately from the sealed builds:
+SS304 phase v1.3, water chemistry v3.1.1, native candidate008-auditfix,
+and coordinator v8.0.1. Do not bind these until their final source identities
+and verification receipts are recorded. Existing active runtimes are unchanged.
+When they are final, their fixes are folded into the in-progress versions
+(native v8, chemistry v3.2, coordinator stage 2).
+
+## Open decisions (need the project owner)
+
+- Coordinator v8 stage 2 production presets: enabling source v7 surface physics
+  in production, the melt inertia model, sub-cycling K.
+- Mixed precision for the field solve (FP32 factor + FP64 refinement): faster on
+  the RTX 3080 Ti but changes results within tolerance; bring numbers first.
+- GPU purchase deferred (prices); Hall's per-kernel split says node walks are
+  latency-bound, so software comes first.
 
 ## Decisions in force
 
@@ -59,6 +82,8 @@ Hall v3.5 `restore_as_genesis` resolves it without changing any check.
   conservation ledgers once the all-owner step works; long-history restart work after.
 - Any rank count N, configurable at launch, results independent of N (keyed RNG,
   ordered reductions, rank-independent checkpoints). Portable site files.
+- Bit-identical results are non-negotiable for every optimization (CPU ISA
+  flavors, GPU kernel changes): an optimization is kept only if digests match.
 - Adaptive time step from the physics guards replaces the fixed 10 fs; the first
   step after a start stays at 10 fs (source v7 needs two rate samples). Particle cap 10 fs by default.
 - Neutral births use the quantized electron route.
@@ -67,12 +92,28 @@ Hall v3.5 `restore_as_genesis` resolves it without changing any check.
   block-Merkle motion digest; Hall v3.4 D1-D3 (exact-sum residual, block-form
   digests, coordinator takes Hall's digest in the v7.1 lane).
 - Native v8: chemistry integration choices 1-7; coverage policy refuses
-  unbounded regions when exposure exceeds max(1 event, 1 % of applied events);
+  unbounded/bounded-only exposure above max(1 event, 1 % of applied events);
   C3 max_events 64, max_candidates 4096; nonempty restore included.
 - Chemistry v3.1: recombination 2-30 eV from digitized Rosen 2000 / Jensen 2000
   figures, bounded above; slow-ion join rules; H- detachment zero below 0.75 eV.
-- Chemistry v3.2: close the keV ion + H2O gap with literature data; where none exists, sample equal-speed model
-  estimates (tagged model-derived, with uncertainty; geometric bounds documented) so fast heavy ions do not stop runs.
+- Chemistry v3.2 (data gaps never stop runs; estimates are sampled, tagged
+  model-derived with uncertainty, and the geometric/total bounds stay documented
+  with their ratios):
+  - H+ + H2O: Wedlund 2019 capture/ionization fits, Gobet 2004 product channels,
+    Rudd 1992 secondary-electron spectra; momentum transfer ZBL (PSTAR for H+).
+  - Singly charged dressed ions (O+, OH+, H2O+, H3O+, H2+): ionization = He+
+    sigma11 at equal speed (validated against the Juhasz 2019 O+ 6.6 keV point);
+    capture = proton sigma10 at equal speed; O++ from He2+ data; anions
+    q^2 x proton; projectile breakup/detachment from the free-collision estimate
+    (1.5-5x high against He+ and H- checks).
+  - H3O+ capture, O- rearrangement, H2O+ and H- proton transfer at keV: sampled
+    estimates (energy-defect-scaled / equal-speed forms).
+  - Electron rotational J=0->2, 0->3 above 5 eV: J=0->1 energy dependence scaled
+    at 5 eV (factor 3); ion-pair formation above its windows: Munoz total-inelastic
+    shape (factor 10); dissociative attachment zero above its resonance tables.
+    Electron swarm re-validated against measured drift/diffusion at v3 tolerances.
+  - Ions 3 eV-1 keV: log-log bridges between low-energy data and the 1 keV values
+    (factor 3-10); H- detachment rises from zero at threshold.
 - Coordinator v8: restart by verified replay now, real native restore in v8;
   emission/desorption error targets 1e-3; Hall v3.5 `restore_as_genesis` for the 20 ns start.
 - Shared with Raikou: nuclei ABI v4 (16 slots: 0 H, 1 O, 2 Fe, 3 Cr, 4 Ni, 5 Mn,
@@ -83,8 +124,34 @@ Hall v3.5 `restore_as_genesis` resolves it without changing any check.
   36 nH internal; feed ~40 nH, target ~25 nH. Coupled runs need a >= 35-45 mm
   graded transverse box (the 9 mm box underestimates port inductance ~32 %).
 
-Open decisions for coordinator v8 stage 2: enabling source v7 surface physics in
-production, the melt inertia model, sub-cycling K.
+## Exact commands
+
+All builds and runs use the frozen runtime and the core leases; outputs go to
+`/home/treefor/sim-workspace/powerflow/outputs/<component>/`.
+
+- Scheduler: `simq status`, `simq partitions`, `simq show ID`;
+  `simq submit -p powerflow -c N [--gpus 1 --gpu-mem 2G] --mem X -t T -n NAME -C DIR --shell "CMD"`.
+- Direct GPU use: `G=/home/treefor/projects/runtimes/simqueue-0.6.2-20261031/bin/gpu-lease;
+  $G --core any -- CMD` (or `--core both`, `--core K`, or GPU only `$G -- CMD`); see `USAGE-GPU.md` there.
+- Core lease for CPU work: `flock <pic-profile>/testing-core7.lock taskset -c 7 nice -n 15 CMD`
+  (core 6 uses `testing-core.lock`), or `runtimes/core-lease-20261030/any-core.sh --wait CMD`.
+- Hall (in a version directory): `python3 run_hall_v34.py build|run|gpu ...` (v3.5: `run_hall_v35.py`);
+  acceptance `run_acceptance.sh`; coordinator parity `run_coordinator_parity.py`; 20 ns pre-run
+  `run_prerun.sh` (SimQueue, exclusive GPU ~11 min, notify the other sessions first).
+- Native v8 (in `candidate008`): `scripts/lease.sh env CUDA_VISIBLE_DEVICES= python3 build-components.py normal`;
+  CPU suite `scripts/cpu_suite.sh OUTDIR`; timing table `python3 scripts/timing_table.py HOSTDIR DEVDIR`;
+  compatibility `scripts/compat.py`.
+- Water chemistry (in its version directory): `taskset -c 6,7 nice -n 15 python3 -I run_checks.py LABEL
+  [inputs tables build core sanitized gpu swarm]`; table rebuild: `tools/make_production_spec.py`,
+  `tools/build_tables.py`, `tools/report_processes.py`, `tools/make_coverage_policy.py` (see its README).
+- Coordinator v8: `python3 run_v8.py build LABEL [--hall v3.3] [--native v7.1] | run | baseline`;
+  launch `tools/pf-coupled-v8` with pf-launch options (`--site --cores/--cpus --gpus --dry-run --receipt`)
+  plus `--hall-checkpoint DIR`, `--resume`, `--mesh`, `--dt-cap`, `--preset production`, `--hall-owner auto`,
+  `--window/--steps/--end-time`, `--checkpoint-every` (README section 6).
+- Per-site ISA flags (all components): `PF_BUILD_ISA_FLAGS="-march=..."` (empty by default; a build with
+  flags set needs its own label and a bit-identity check against the generic build).
+- Repository tests: `/home/treefor/projects/runtimes/arch-base-20261028/run-frozen env PYTHONPATH=$PWD
+  /home/treefor/projects/Power-Flow/.venv/bin/python -m pytest -q tests` from the repo root, under a core lease.
 
 ## Machine and sharing rules (zenobia)
 
@@ -94,23 +161,23 @@ production, the melt inertia model, sub-cycling K.
 - Cores (development split): 0-3 Spheral, 4-5 raikou-mfem, 6-7 Power-Flow; after the 16-core swap Spheral gets one
   chiplet (8 cores), raikou-mfem and Power-Flow 4 each on the other, shared mfem-pic work borrows idle cores there.
   A properly optimized run that needs all ranks may use all cores; during a Spheral full-run window Power-Flow keeps
-  only logical CPU 15 (nice 19) for one GPU host thread. The GPU is shared with
-  raikou-mfem and the Raikou kinetic-core work.
-- Use SimQueue: `simq submit -p powerflow -c N [--gpus 1 --gpu-mem 2G] --mem X -t T -- cmd`; direct GPU use goes
-  through `runtimes/simqueue-0.6.2-20261031/bin/gpu-lease [--core any|both|K] -- cmd` (never raw flock on the GPU locks);
-  `--borrow` for idle cores of other partitions. Always pass `--mem`.
+  only logical CPU 15 (nice 19) for one GPU host thread. Lending Power-Flow cores needs the project owner's direct OK.
+  The GPU is shared with raikou-mfem and the Raikou kinetic-core work.
+- Always pass `--mem`; never take the GPU lock files with raw flock (use the scheduler or `gpu-lease`).
 - Lock order: GPU locks first (`testing-gpu.lock`, then `testing-gpu-<UUID>.lock`),
   then the core lease. Lock files: `/home/treefor/sim-workspace/powerflow/outputs/pic-profile/`.
 - Notify the other project sessions before any exclusive or >30 min GPU run, and when it ends.
 
 ## Resuming
 
-1. Read this file and the integration backlog.
+1. Read this file, the snapshots in `docs/coupled_pic_handoff/`, and the integration backlog.
 2. `simq status` and `simq partitions` for running work.
-3. For an in-progress component, read its runtime README/HANDOVER and the newest
+3. For an in-progress component, read its runtime `HANDOFF.txt` and the newest
    receipts under its outputs directory; rebuild and rerun tests before trusting
    anything that was mid-edit.
-4. Commit sealed components here (filtered copies, no large checkpoints) and push
+4. Check `git status` and `git log` before committing: other work (audits) may
+   have changed files; do not revert changes you did not make.
+5. Commit sealed components here (filtered copies, no large checkpoints) and push
    to `master`. Work is committed directly to `master`; no long-lived side branches.
 
 ## Repository history
@@ -136,13 +203,6 @@ deleted branch, for restoring one (`git branch <name> <commit>`):
 | `ss304-thermal-properties-20261029` | `1445d9cda4fd` |
 | `ss304-thermal-properties-v2-20261029` | `ca74b667f19a` |
 | `surface-emission-20261029` | `52be614fa3dc` |
-
-## Audit corrections (2026-10-31)
-
-Corrective versions are being qualified separately from the sealed builds:
-SS304 phase v1.3, water chemistry v3.1.1, native candidate008-auditfix,
-and coordinator v8.0.1. Do not bind these until their final source identities
-and verification receipts are recorded. Existing active runtimes are unchanged.
 
 ## Known issues
 

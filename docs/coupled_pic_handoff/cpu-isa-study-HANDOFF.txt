@@ -1,0 +1,33 @@
+CPU ISA / performance study -- 2026-10-31 (zenobia, Ryzen 7 9850X3D)
+
+Directory: /home/treefor/projects/runtimes/cpu-isa-study-20261031
+Outputs:   /home/treefor/projects/.workspace/outputs/cpu-isa-study-20261031
+
+Question: can CPU-targeted builds (x86-64-v3 / v4 / znver5, -O3) and code changes speed up host code with
+bit-identical results? Bar: every digest and result bit-identical to the generic (-O2, no -march) build.
+
+Rules followed: since 21:46 builds/checks on CPUs 14/15 (scripts/smt-run.sh), timing on core 6/7 holding
+testing-core.lock / testing-core7.lock (scripts/time-run.sh); nice 15; prlimit-bounded address space; sealed component directories
+are only read (out-of-tree builds); every compile/run inside arch-base-20261028/run-frozen; no simq; no commits.
+
+Status log (newest last):
+- 21:45 setup: directory, lease helper scripts/lease03.sh. Core 2 = live Spheral, cores 0-1 held by a SimQueue
+  0.6.2 test suite at start; core 3 free.
+- 21:46 RETURN-CORES-0-3 set by the coordinator: builds/checks moved to logical CPUs 14/15 (scripts/smt-run.sh, study
+  locks outputs/.../locks/cpu14|15.lock), timing on core 7/6 with testing-core7.lock / testing-core.lock
+  (scripts/time-run.sh, which also takes the study lock of the SMT sibling). lease03.sh unused since.
+- 21:52 study.py (build/check/time/compare). Generic out-of-tree recipes reproduce the sealed builds byte for byte:
+  water (test_core, swarm_mc), ss304 (5 CPU tests), hall s1 (all objects + test_hall_v3, test_v32), native v7.1 (all 25
+  objects + 12 test binaries). So "generic" = the sealed binaries of record.
+- Scope expanded (coordinator): profiling + optimization + PATCHES.md + PF_BUILD_ISA_FLAGS site-file key; 9950X3D2 plan
+  with Power-Flow = 4 cores + SMT siblings on the chiplet shared with raikou-mfem.
+- 22:00 profiler: gprofng clock profiling loses most samples here; wrote tools/pfsample.c (perf_event_open task-clock
+  sampler, per-CPU inherited events, user space only, no privileges) + tools/pfreport.py (nm symbolization inside the
+  frozen root). Coordinator v8 s4 profiled (load fixture, CPU backends): prof/pf-coord-n1e5-200um.*, pf-coord-n1e6-200um.*.
+  1e6/200um: glibc fmal (long double fma, software, fenv save/restore) + fenv calls = ~31% of the step, all from
+  pic_collisions::relative (collision_scheduler.hpp, 2 fma per cross component); memcmp (string keys) ~11%;
+  Hall deposit_charge 4.8%, DepositSupportBuilder 3.8%, axial::Path 3.2%, Rb-tree iteration 3%, malloc/free 4%.
+- 22:05 opt/fma/exact_product_error.hpp: exact product error by Dekker two-product (x87), identical to
+  fmal(a,b,-a*b) in its range, fmal fallback outside; test_product_error: 0 differences in 2e6 cases, 233 ns -> 5.7 ns
+  per call; 1e9-case run queued (outputs/.../opt/product-error-*.txt). Patch set patches/coord/fma (collision_scheduler.hpp).
+- coord = coordinator v8 s4 replayed from its build receipt: generic replay byte-identical to s4 (driver_v8 too).
