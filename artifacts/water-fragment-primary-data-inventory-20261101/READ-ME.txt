@@ -1,0 +1,120 @@
+This is a primary-source inventory, not a reaction-table release. No active
+runtime, native dependency, guard, scientific tolerance or production binding
+changed. Native v8.4 remains bound to sealed chemistry v3.1.1. The comparison
+table here is the separate prepared v3.2.2, identified in BASE-PINS.json.
+
+The three encounter groups e+OH, e+O and e+H2 are absent from that table, despite
+those species existing in its registry. They are separate from its 135 refusing
+regions inside existing groups. The strict scope guard must remain enabled:
+adding one reaction to a group does not establish that the group is complete.
+
+Local review covered v3.2.2's frozen sources/extracted inputs, the earlier
+h2o-collision-data runtime, and Raikou's mechanism/provenance descriptions.
+No already-qualified numerical dataset for these three neutral targets was
+found in that scoped inventory. H2O dissociation labels mentioning OH, O or H2
+identify products, not those species as collision targets. The earlier
+fragment-continuation-gaps-v8.json also records these continuation gaps.
+
+Primary sources and concrete import constraints
+
+H2: downloaded two original MCCC X(1Sigma_g+), v=0 tables. Total ionization has
+21 rows, 15.4327-1000 eV, in a0^2; it explicitly combines dissociative and
+non-dissociative ionization. The b(3Sigma_u+) dissociative-excitation file has
+54 rows, 4.47713-150 eV, in a0^2. These are calculated data, not measurements.
+Exact filenames, hashes and retrieval selectors are in SOURCE-PINS.json.
+The papers provide state-resolved context:
+https://doi.org/10.1016/j.adt.2020.101361
+https://doi.org/10.1016/j.adt.2023.101573
+https://www.mccc-db.org/
+The site prohibits third-party redistribution and commercial use. Raw files
+are retained only in the separate local reference directory, not this artifact.
+
+OH: Chakrabarti, Laporta and Tennyson (2019) give fixed-geometry R-matrix
+elastic and excitation results; inspected figures plot elastic 1-10 eV and
+excitation up to 10 eV in bohr^2. Table 1 calculated vertical excitations are
+4.05, 7.36 and 7.89 eV. Dissociation and DEA are explicitly approximate, and
+the quoted dissociation D0=3.88 eV differs from this registry's 4.411033 eV
+O+H reference-energy cost. A machine-readable channel table was not acquired.
+Do not turn figure axes into a certified table domain or reuse H2O rates.
+https://doi.org/10.1088/1361-6595/ab364c
+https://arxiv.org/html/1907.08701v1
+The arXiv version grants distribution rights to arXiv, not a general open-data
+license. The PDF stays local. Sobrinho et al. (2004) separately provide a
+1-500 eV theoretical elastic/DCS/MT and total-absorption lead, but absorption
+does not resolve ionization versus dissociation products:
+https://doi.org/10.1103/PhysRevA.70.032717
+
+O: acquired the atomic-O supplement to Song et al. (2026), distinct from its
+O2 supplement. The workbook has total, ES, MT, five excitation, DCS and
+ionization sheets. Its CC BY-NC 4.0 license differs from the manuscript's
+CC BY license. Actual sheet extents are recorded separately; they are not
+automatically the recommended theoretical domain. The DCS sheet has 31
+energies from 0.014 to 9.999 eV and a header literally saying
+"DCS(10^16 cm^2/sr)". Resolve that exponent before using it. ES/MT state
+10^-16 cm^2 and extend about 0.069389-260.005 eV. ION spans 13.62-5000 eV.
+Excitation first-zero rows are calculated onsets, not independently verified
+physical thresholds. Source bytes are unchanged.
+https://doi.org/10.60893/figshare.jpr.30850010.v1
+https://doi.org/10.1063/5.0287254
+The original BSR paper covers elastic, excitation and ionization through
+200 eV, with ground and metastable states distinguished. Its available
+full data were offered by the authors; the new supplement is not an implicit
+license to extend every channel or omit unlisted transitions.
+https://doi.org/10.1103/PhysRevA.94.042707
+
+Recommended minimal next increment
+
+Start a separately versioned H2(X,v=0) b(3Sigma_u+) dissociation rate component
+using the exact 54-row MCCC file. This has a specific target and dissociative
+channel, a finite tabulated interval, and products that can be represented
+as two H atoms plus the scattered electron once the state/asymptotic and
+event-law contract is qualified. First deliver the importer, provenance,
+unit conversion, interpolation tests and strict coverage rows. Do not enable
+production events merely because that scalar rate imports successfully.
+
+Before event admission, reconcile the source onset with the registry reference
+cost (4.478069261841885 eV for 2H-H2), including finite target mass. Preserve
+the source table; do not silently shift its energies, lower the event threshold,
+or count a kinematically closed candidate as evidence of a qualified rate.
+Product energy sharing, recoil and electron/fragment angles need an explicit
+sourced or separately declared diagnostic model. The integrated cross section
+alone does not specify them. No new closure is supplied by this inventory.
+
+Keep the remaining H2 elastic, rotational/vibrational, other excitation,
+attachment, ionization and tail coverage explicitly missing unless separately
+qualified. Preserve missing e+OH/e+O and unknown recombination refusals.
+Total H2 ionization cannot all become H2+; its dissociative/non-dissociative
+branching must be resolved before using that total as an event hazard. An
+alternative early O elastic component is feasible after the DCS units,
+normalization, state population and low-energy coverage are resolved.
+
+Necessary qualification for the next component: exact raw hash and target-state
+binding; eV and a0^2-to-m^2 conversion using pinned constants; no endpoint hold
+outside the table; separate physical zero/unknown intervals; monotone energy
+grid and finite nonnegative rates; threshold/near-threshold and high-tail
+refusal; CPU/GPU agreement; and event-level charge, nuclei, energy, momentum,
+target debit and secondary inventory checks. Adding a supported channel must
+not make the minimum scope guard report a complete network. Thermal support
+can still reach unsupported intervals, so these finite tables do not justify
+restarting the full physical run by themselves.
+
+No qualified physical coupled EEDF was inferred. Empty or manufactured pilots
+cannot bound reachability, and the older electron-only trajectory history
+cannot establish ion/neutral channel closure. Number densities remain cm^-3
+in simulation outputs. Cross sections here retain their source area units.
+
+Reproducibility
+
+SOURCE-PINS.json identifies local-only references and public retrieval paths.
+inspect_sources.py reproduces the narrow table metadata and BASE-PINS.json;
+it does not export raw rate arrays, create a blob or alter any source table.
+The oxygen workbook was inspected read-only by its explicit sheet XML and
+column labels. The OH PDF pages 9-10 were rendered and visually checked.
+The oxygen manuscript download failed; the repository abstract, indexed
+manuscript text, primary BSR paper and actual numerical supplement were used,
+with the unresolved supplement details retained above. This work ran no
+simulation, benchmark, swarm matrix or new numerical qualification suite.
+
+network_complete=false
+physical_model_validated=false
+production_qualified=false
