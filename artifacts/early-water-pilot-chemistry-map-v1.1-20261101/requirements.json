@@ -1,0 +1,126 @@
+{
+  "schema": "early-water-pilot-chemistry-requirements-v1.1",
+  "production_qualified": false,
+  "network_complete": false,
+  "manifest_path": "/home/treefor/projects/runtimes/chemistry-dynamic-cdf-v1.1-20261101/data/chemistry-cdf-manifest.json",
+  "manifest_sha256": "e4ca58f41b5afbd20833763068e421bbbd9752a1adb4433d81d0bf0f58d20acc",
+  "actual_populated_coupled_encounter_evidence": false,
+  "actual_evidence": "Current source-stage component is manufactured cold water births with zero electrons; older electron-only history is not coupled-EEDF qualification. Root owns the forthcoming physical pilot configuration.",
+  "scope_rule": "Only positive native projectile/target co-occupancy and the actual bounded thermal support of each stage create an immediate encounter requirement. Products create the next requirements when they enter a native target census. No synthetic clipping, shifted thresholds, or unknown-rate zero substitutions.",
+  "requirements": [
+    {
+      "trigger": "initial e/H2O co-occupancy",
+      "pair": "e+H2O",
+      "status": "43 listed channels already present; retain actual coverage budget and strict unbounded guard",
+      "immediate_gap": "elastic below 1e-5 eV; above-grid joint tail; finite-rate unresolved portions remain governed by existing exposure budget",
+      "operands": [
+        "actual projectile proper velocities",
+        "actual positive H2O cell census/drift/width",
+        "whole-target energy/momentum feedback",
+        "authentic stage input and allowed coverage ledger"
+      ]
+    },
+    {
+      "trigger": "OH product or background target coexists with e",
+      "pair": "e+OH",
+      "status": "seven processes, only a4Sigma diagnostic dissociation has event support",
+      "immediate_gap": "elastic/transport and rotational/vibrational closures missing at all positive energies; other channels enter only where energetically supported",
+      "supported_component": "a4Sigma source 7.3605..10 eV, fixed7.36 eV vertical loss, ground O/H, isotropic assumed partition",
+      "operands": [
+        "integral plus angular/MT scattering operands",
+        "explicit target internal state",
+        "source/registry-compatible excitation and dissociation costs",
+        "ionization/attachment branches only for reached energies"
+      ]
+    },
+    {
+      "trigger": "H2 background or product target coexists with e",
+      "pair": "e+H2",
+      "status": "seven processes with all missing-process guards retained",
+      "immediate_gap": "elastic/transport and rotational/vibrational closures; source-conditioned dissociation missing event closure4.479288019820492..7.164126535758105 eV and above150 eV",
+      "supported_component": "MCCC v0 integral4.5..150 eV; conditional source CDF event7.164126535758105..150 eV; isolated elastic primary integral0.01..8 eV not yet event-qualified",
+      "operands": [
+        "vibrational/rotational target-state assumption",
+        "integral and differential/MT operands",
+        "finite target recoil and fragment distribution",
+        "actual reached ionization/DEA thresholds"
+      ]
+    },
+    {
+      "trigger": "O product/background target coexists with e",
+      "pair": "e+O",
+      "status": "group absent; minimum scope refuses",
+      "immediate_gap": "at least elastic transport; excitation/ionization only when actual energy support reaches their thresholds",
+      "operands": [
+        "ground/metastable state identification",
+        "primary integral+angular/MT source",
+        "matching registry O(1D) or explicit excitation-energy carrier if excited branch is used"
+      ]
+    },
+    {
+      "trigger": "H product/background target coexists with e",
+      "pair": "e+H",
+      "status": "group present but only ionization is listed; minimal pair gate is not process-completeness",
+      "immediate_gap": "elastic and excitation missing from catalog; cannot infer known zero for them from the ionization threshold",
+      "operands": [
+        "add explicit required-process admission or absent-process guards before claiming populated water-network transport",
+        "primary elastic/MT/angular operands",
+        "ground/excited H treatment for excitation"
+      ]
+    },
+    {
+      "trigger": "ions appear and coexist with relevant partners",
+      "pair": "actual present ion/e or ion/H2O groups only",
+      "status": "use per-group existing data/model windows; do not assume every ion requires new data",
+      "immediate_gap": "e+OH+ DR is entirely no-data; absent electron/ion partner groups need explicit model-scope classification; existing e+H2O+ and e+H3O+ DR components already have bounded source/model support",
+      "operands": [
+        "actual admitted ion products and census",
+        "correct charge and secondary-energy conservation",
+        "supported energy windows and existing coverage budget",
+        "gas/particle target feedback without double debit"
+      ]
+    },
+    {
+      "trigger": "an actual selected reaction consumes a charged target at a different native position from projectile-position products",
+      "pair": "charged-target-consuming reactions, e.g. electron/ion dissociative recombination",
+      "status": "conditional spatial-charge/current gate, independent of cross-section support",
+      "immediate_gap": "global exact charge closure does not establish per-node CIC continuity when actual target debit and products occur at different positions; retain Hall same_net_charge refusal",
+      "operands": [
+        "authenticated target-debit and product positions",
+        "charge-conserving local reaction/current deposition or a separately qualified spatial collision construction",
+        "per-node CIC continuity plus global charge closure"
+      ],
+      "not_triggered_by": "neutral-target e/H2O ionization alone; do not impose charged-target consumption requirements before an actual charged target is consumed"
+    }
+  ],
+  "not_required_without_actual_trigger": [
+    "Fe/Cr/Ni collision data without vapor species",
+    "keV tails without actual field-work/particle support reaching them",
+    "background species absent from the explicitly declared scoped pilot",
+    "complete vibrational manifold if an explicitly justified ground-state scoped target model is used; excited-target production cannot then be silently ignored"
+  ],
+  "supersedes_readonly_map": "cae2bb692641c287ad48f4abd8434336860775d0",
+  "spatial_charge_evidence": {
+    "counterexample_commit": "b85f1a3",
+    "final_guard_commit": "71197ae",
+    "files": {
+      "artifacts/reaction-local-charge-audit-v1-20261101/result.json": "7eb1c8c52f1000b0a047105e0f2244c4db488efcff7958d9012c808fad24a22c",
+      "artifacts/reaction-final-charge-guard-v1-20261101/result.json": "f9f1676ca37a983a0c84101ae3dc3f16c4164f20333084bbf64e33dea594545b",
+      "native/coupled_pic/include/pf_coupled/final_charge_guard.hpp": "3054372eee68232de68c4806c8855132ca1418924d8cf2dbc44c88e6875da625"
+    },
+    "actual_diagnostic_counterexample": {
+      "events": 8,
+      "charged_target_debits": 8,
+      "charged_carriers_before": 16,
+      "charged_carriers_after": 0,
+      "global_exact_charge_residual_zero": true,
+      "changed_CIC_nodes": 8,
+      "max_node_charge_change_C": 0.00031530836157120444,
+      "Hall_same_net_charge": false,
+      "accepted_native_and_rng_unchanged": true
+    },
+    "interpretation": "Manufactured diagnostic candidate with deliberately large weights; not an accepted physical pilot or density prediction. It demonstrates a separate EM continuity requirement even for source-supported recombination rates.",
+    "required_order": "Check first-stage and authenticated post-stage2 native charge against Hall before any common publication. Preserve unchanged Hall tolerance and rollback on mismatch.",
+    "remaining_work": "Reaction relocation current and its field-work/energy ownership are not implemented by this guard."
+  }
+}
