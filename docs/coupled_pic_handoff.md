@@ -1,9 +1,69 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-10-31 23:30 MDT. Keep this file current at every milestone so
+Last updated 2026-11-01 00:56 MDT. Keep this file current at every milestone so
 the work can be picked up from it alone. Snapshots of the in-progress workers'
 own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
 each update); the live versions are the `HANDOFF.txt` files named below.
+
+## Current takeover status (2026-11-01 00:56 MDT)
+
+The original audit fixes are pushed. The exact coordinator fast paths and
+native birth-validation reuse passed functional comparisons against their
+actual corrected baselines (`046f3b4`, `9c5839c`). Coordinator timing job 351
+also produced three bit-identical comparisons, but every sample exceeded the
+paired-thread activity limit. **No speedup is qualified by these timings**;
+`c9e2131` preserves the failed timing qualification without relaxing its gate.
+
+Chemistry v3.2.2 preparation passed CPU, sanitizer, and two-process GPU checks;
+its strict unsupported-region policy remains in force (`8385989`, `25b85de`).
+The separate minimum-network guard passed 41 CPU and 41 sanitized controls.
+It identifies missing encounter groups; it does not supply missing rates or
+establish a complete water network. Native all-species census integration is
+in progress in a separate successor.
+
+Gas v1.3 passed 221 CPU checks, 18 allocation-failure sites, sanitizer checks,
+and GPU/verified execution with equal state, motion, and publication digests
+(`a885dcb`, `8b8ec0e`). Native v8.3 exports admitted events and exact target
+carrier operands; its CPU/sanitizer milestone and gas v1.4's private candidate
+lifetime/generation/revision/step binding are preserved in `e12b0bd`.
+Native GPU job 363 and gas GPU job 392 remain separate pending qualifications.
+
+The records adapter passed 6,522 CPU and sanitized checks: 1,686 first-stage
+events, a multicarrier exact remainder, and all operands of 1,036 second-stage
+released carriers (`dce4d03`). Its successor reuses the validated immutable
+native export during preflight instead of repeatedly validating all events;
+6,524 checks pass with the same populated results (`40cc8fc`). No timing claim
+or GPU adapter qualification follows from those tests. Target feedback before
+sampling and common-owner publication remain unqualified.
+
+Native v8.4's opt-in all-species encounter guard has passed 55 actual native
+CPU controls; its final sanitizer check is pending. It refuses missing reaction
+groups before target filtering and explicitly refuses device execution. The
+next isolated native v8.5 successor adds CPU target feedback and closes the
+species-energy-reference registration gap. Both remain development components.
+
+The reviewed transient timing-shield helper passed 32 simulated metadata tests
+and is preserved in `2df7ac4`. Its live canary is unexecuted: noninteractive
+sudo currently requires credentials. No cgroup, process affinity or IRQ policy
+has been changed. Administrative setup is requested separately; other code and
+physics work continues without assuming approval or credentials.
+
+The existing coordinator still uses parent ionization and v5-compatible
+native construction. Porting to native-v8 chemistry requires explicit genesis
+species/identity mapping, gas target feedback before sampling, source/motion/
+sink accounting, joint rollback/publication, and gas checkpoint restoration.
+An admitted-event export alone does not remove the strict target-owner guard.
+
+Use `outputs/electron-mapping-resume.json` under the workspace for current jobs.
+The old electron-only run remains paused. The continuous early source audit
+is only 0.749788–0.769788 ns; its zero sampled water macros do not establish
+zero expected desorption or justify dropping the earlier plasma history.
+The temporary study handback flag must be removed and its saved native and
+coordinator batches resumed after the queued validation releases the cores.
+No external simulation has been signaled or duplicated.
+
+The older dated sections below retain historical component and work-plan
+context; the current status above supersedes their pending-test statements.
 
 ## Takeover and performance qualification (2026-10-31 23:47 MDT)
 
