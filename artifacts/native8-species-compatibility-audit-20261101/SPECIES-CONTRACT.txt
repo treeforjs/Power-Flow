@@ -1,0 +1,156 @@
+Native8 genesis species compatibility contract — 2026-11-01
+
+Read-only audit; no numerical test, model change or replacement constant.
+The numerical tables in mapping.json decode the actual sealed v3.1.1 blob
+70fcc2adc2fdaa62abed7ed02d68ffc09b1b18554eda8fa99c5451120ae454b8. All
+22 binary species records match its manifest. Native v8.4 retains this blob;
+the newer chemistry preparation blob is not promoted by this audit.
+
+Paths below are relative to /home/treefor/projects/runtimes. C =
+pic-water-common-commit-v8.0.2-cpu-20261031; N = pic-reaction-transactions-20261029/
+native-full-time-v8.3-admitted-export-20261101; S =
+pic-electrode-heat-source-v7-20261031; T = ss304-phase-thermal-owner-v1.3-20261031.
+
+1. Required explicit namespace/registry mapping
+Current C/source/identity_v8.hpp:159–165 declares only electron, H2O, H2O+ and
+the parent channel. New native chemistry declares all 22 pfc-v3/<blob-name>
+states and channel pfc-chem-v3 (N/source/src/chem_v3_native.cpp:46–65;
+chem_v3_native.hpp:27–29). Required source mappings are electron -> pfc-v3/e,
+H2O -> pfc-v3/H2O, and parent H2O+ -> pfc-v3/H2O+ only after mass/reference
+compatibility is resolved. Use the registry's complete ordered catalogue and
+full_time_chemistry_states helper; do not add only the old three names.
+
+Current C/source/genesis_v8.hpp:138,176–180,208 builds default native
+configuration plus ParentSubflow, not enabled native-v8 chemistry. Thus these
+are unintegrated model incompatibilities, not proof of corruption in the
+qualified parent-only pilot. Native registration already refuses absent IDs,
+wrong binary64 masses, charge or H/O. Hall consumes generic native particle
+q/m/weight rather than an electron-only catalogue (Hall v3.3 census_charge.hpp
+and motion_receipt.hpp); its species/configuration seals must nevertheless
+be regenerated for the explicit new catalogue.
+
+2. Actual incompatible mass and energy operands
+                         Current pilot/source             Pinned native chemistry
+electron mass kg         9.1093837138999998e-31             9.1093837138687491e-31
+H2O mass kg              2.9915000000000003e-26             2.9907246294231024e-26
+H2O+ mass kg             2.9914089084127589e-26             2.9906335378352291e-26
+H2O reference eV         0                                -2.476055113690002
+H2O+ reference eV        12.621                            10.141396401573912
+parent ionization Q eV  12.621                            12.617451515263914
+Charge states agree: -1,0,+1 with SI e=1.602176634e-19 C. Current electron
+mass differs by 3.43e-12 relative; water differs by 2.59258e-4. The blob uses
+isotopic H/O masses and ATcT formation references, not the pilot's rounded
+water mass/parent-threshold convention. This is not resolved by relabeling.
+
+The actual source neutral operands are C/source/identity_v8.hpp:222,237
+(arrival species and patch mass), S/native/mfem_electrode_heat_source_v7/
+source_owner.hpp:570–588 (velocity, kinetic, internal and binding energies).
+The patch constructor accepts a registry mass explicitly; the emission kernel
+still hardcodes me=9.1093837139e-31. Source v7's gyro/launch and energy ledgers
+use that mass. A new binding must prove each source/native mass and kinetic
+operand matches, or refuse. Do not change velocity or particle mass silently
+after source energy has been debited; do not loosen guards for this difference.
+
+Kinetic mass and chemical-reference bookkeeping are separate decisions. A
+new source configuration may legitimately pass the blob H2O mass into the
+existing oxide_water_patch constructor: this is an explicit model input,
+not a replacement global constant. Its new identity and birth/energy checks
+must be qualified. Source v7 has no analogous configurable electron mass;
+the emission kernel and microscopic launch equations use se::me. Exact
+registry-compatible electron sourcing therefore needs a versioned source
+extension/adapter and a qualified physical accounting convention. No heating
+cache is rescaled and no global physical constant is replaced by this audit.
+
+3. Reference and carried internal energies are distinct owners
+N/source/src/mfem_pic_full_time_chemistry.inc:1077–1087 creates internal_J=0,
+reference_J=blob.ref_eV*e. Its registration guard at181–192 currently omits
+both values. Generic arena validation permits other finite references and
+nonnegative internals, and generic reaction accounting uses them
+(mfem_pic_arena.cpp:807–808,1152–1155,1203). Native-v8 chemistry independently
+uses blob Q references. Native audit owns an isolated v8.5 guard/reproduction;
+no frozen source is altered here. A demonstrated full-v8 energy drift is not
+claimed from source inspection alone.
+
+Source neutral Packet::reference_J is zero; its adsorbed-reference removal
+is separately charged to the foil. Mapping that source to a negative ATcT
+gas reference requires an explicit, count-bound reference convention for the
+initial adsorbed inventory and gas, with no invented thermal heat term.
+A constant gas chemical reference, per-macro excitation/internal energy,
+adsorption/binding cost and electron work-function exchange must not be
+conflated or counted twice.
+
+Source v7 permits patch mass_kg and internal_eV; it does not expose a
+configurable free-gas chemical reference or a constant chemical reference of
+the adsorbed stock. Its packet reference is assigned zero at preparation;
+the configured desorption/binding parameters are physical release costs,
+not a free reference-gauge knob. A versioned coordinator/source adapter can
+in principle retain a constant gas-reference inventory alongside the exact
+stock counts: assigning the same per-molecule offset to stock and emitted
+gas makes the stock loss and birth credit cancel. It must demonstrate that
+cancellation with count-bound operands, persistence and joint publication.
+Do not debit the ATcT gas-reference offset as extra electrode heat/cooling,
+change a work function to absorb it, or silently add it to excitation energy.
+
+Current arrival-v1.1 BirthKinematics carries only position/u/origin
+(pic-arrival-owner-v1.1-20261030/include/pf_arrival_v11/native_v6_births.hpp:27–67).
+C/source/joint_step_v8.hpp:661–680 copies those and reports neutral internal
+energy but does not populate FullTimeBirth::internal_energy_J. The current
+oxide-water preset explicitly has internal_eV=0, so this is not lost energy
+in that preset. Native v8.1 supports a separate per-macro internal field
+(N/source/include/raikou/mfem_pic_full_time.h:115–135). Nonzero internal
+sources require a new qualified adapter and birth/debit/sink closure.
+
+4. Wall response is another unresolved map, currently disabled
+S/native/mfem_electrode_heat_source_v7/surface_model_v7.hpp:173–215 uses a
+12-species e/H2O/... wall table, approximate natural-abundance masses and
+its own recombination energies (H2O+ 12.621 eV). It does not accept pfc-v3/
+names and lacks O++, H-, O-, OH- and all metal states. Benchmark wall=false.
+Before enabling wall responses, require a total explicit map, matching mass
+and energy operands, and typed refusal for every unsupported species/event.
+Silently treating an unrecognized state as an electron/absorbed neutral is
+not an acceptable completion of this map.
+
+5. SS304 vapour cannot yet be appended without a material contract
+T/source/phase_law_host.hpp:25,126 uses molar masses*1e-3/N_A for six elements
+Fe,Cr,Ni,Mn,Si,C. Native full_time_metal_vapour_states uses the same listed
+atomic weights times 1.66053906660e-27, producing a 3.4558e-10 relative
+mass difference. Chemistry Fe/Cr/Ni instead use abundance-weighted isotope
+masses (make_production_spec.py:458–472); relative phase-minus-chemistry mass
+differences are Fe -2.58738e-6, Cr -6.11780e-7, Ni +9.00072e-7. Exact operands
+are retained in mapping.json. No one of these conventions is selected here.
+
+Chemistry has pfc-v3/Fe,Cr,Ni and their singly charged ions, but no Mn/Si/C.
+Native metal-v1/Mn,Si,C are nonreacting append-only states; optional
+metal-v1/Fe,Cr,Ni would duplicate physical elements under different IDs and
+would not automatically become chemistry targets. Never alias their index
+positions into the fixed blob registry. Preserve per-element nuclei/inventory
+across any extra nonreacting states and classify absent reaction coverage.
+
+The phase owner removes eps0_i + actual K + E_int(T) per evaporated atom
+(phase_law.h:18–19; phase_law_host.hpp:168–182). Chemistry neutral metals
+have reference zero. FullTimeBirth internal_energy_J can carry released
+internal energy, but does not by itself reconcile eps0, chemical reference
+and the condensed-material zero. A common material/gas reference ledger and
+return/deposition path are required. Phase v1.3 is not coupled into the current
+Hall v3.3 coordinator pilot; these are future integration gates.
+
+For metals, a single stock/gas offset is insufficient without relating the
+phase law's condensed reference and eps0 to the chemistry neutral reference.
+That relation is an explicitly authored material reference convention, not
+a kinetic-mass substitution or an additional heating source. Its evaporation
+and return offsets must cancel with the actual per-element debits/credits.
+
+Minimum genesis admission contract
+* Pin actual blob bytes, complete registry/order, source tables and material
+  configuration. Use exact binary64 mass/charge/nuclei/internal/reference
+  operands; a registry hash alongside different operands is insufficient.
+* Name every source stream, emitted/returned/wall species and extra metal
+  state explicitly. Bind the whole map into source/arrival/native/gas/Hall
+  configuration, common-clock and checkpoint identities.
+* Check source -> native -> Hall -> gas equality for every admitted birth,
+  including kinetic/internal/reference/binding work, exact counts and charge.
+  Refuse unsupported states or energy-reference conversions before mutation.
+* Carry reference inventory and per-macro internal energy through both
+  chemistry stages, field motion, surface sinks, gas transport and restart.
+  Test nonempty births/reactions/returns and exact joint rollback; an empty
+  vacuum wiring run cannot qualify this contract.
