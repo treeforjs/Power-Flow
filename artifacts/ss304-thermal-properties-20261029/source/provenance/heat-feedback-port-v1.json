@@ -1,0 +1,62 @@
+{
+  "schema": "electrode-heat-feedback-interface-proposal-v1",
+  "status": "implementing_native_component_not_full_driver",
+  "clock": "prepare [t,t+dt] against immutable base revision; parent preflights all components then commits or discards all trials",
+  "coordinate_scope": "reference physical xy; invariant25mm z; integrated J deposited once, divided by height only to assemble2D MFEM loads",
+  "geometry_owner": "SS304 thermal-expansion component; v1 thermal mesh fixed until an admitted conservative remap exists",
+  "material_owner": "ss304-thermal-properties-20261029 owns thermal/transport/phase provenance; ss304-thermal-expansion-20261029 owns mechanics/geometry",
+  "material_needed": [
+    "consistent density/reference-volume convention",
+    "h(T) or phase enthalpy and Cp/Cv conversion/work convention",
+    "k(T),sigma(T) and valid phase/range",
+    "solidus/liquidus and latent fusion; liquid/vapor branches and vaporization if hot states require them",
+    "surface inventory state-specific desorption reference/internal energy and supported rate law"
+  ],
+  "thermal_inputs": [
+    "matching mesh/material/data revisions",
+    "actual weighted surface collection or solid-volume collision deposition J with producer/event ID",
+    "Joule Q W/m3 from admitted solid EM/current state, not PIC electric work",
+    "canonical perpatch adsorbed-H2O inventory and authored release kinetics/energy reference",
+    "caller-owned neutral sampling draws; no extra RNG"
+  ],
+  "thermal_outputs": [
+    "trial evolved nativeMFEM T and enthalpy",
+    "actual packet translation/internal/reference energy and adsorbed inventory debit",
+    "local one-sided boundary T for next accepted electron/neutral source stage",
+    "energy balance and signed numerical residual; replay-safe producer watermarks",
+    "restart payload binding full mesh/material/source inputs"
+  ],
+  "source_ownership": "This accepted adsorbed-inventory state is canonical; do not independently debit a second neutral source pool. Gas transport owns emitted packets. PIC owns one electron inventory.",
+  "energy_rules": [
+    "activation barrier affects rate only, not additional binding heat",
+    "debit actual emitted packet K, not both mean2kT and sampledK",
+    "Joule is solid irreversible heat only; do not redeposit PIC electric work",
+    "plasma collision recoil remains in gas/heavy owner unless actual energy is transported to solid",
+    "material deposition excludes any secondary/reflected escaping energy already credited elsewhere",
+    "mechanical work/remapping belongs to geometry owner and is not silently zero when deformation enabled"
+  ],
+  "declared_interval": "sources frozen at accepted interval-start boundaryT; thermal advancement returns endT for next interval; coupling interval refinement required",
+  "physical_run_blockers": [
+    "existing constant-property quick heating exceeds material validity",
+    "physical water inventory/release binding/internal energies not yet calibrated",
+    "hot phase enthalpy/transport not yet supplied",
+    "actual3D/moving-geometry energy transfer not yet admitted"
+  ],
+  "electron_source_owner": "pic-thermal-field-emission-20261029; no independent emission law in heat adapter",
+  "electron_emission_heat_port": {
+    "same_accepted_stage": [
+      "surface T",
+      "physical patch normal and area",
+      "immutable mesh/material/source revision"
+    ],
+    "particle_flux_diagnostics": [
+      "weighted incoming kinetic J",
+      "weighted outgoing kinetic J"
+    ],
+    "reference_exchange": "signed material/electronic reference-energy change J, including any declared work-function contribution once",
+    "Nottingham": "optional signed COMPLETE wall heat from source owner; if used, particle K/reference are diagnostic decomposition and are not charged again",
+    "closure": "Q_wall + K_out - K_in + reference_exchange = 0 for a closed boundary energy partition; separate explicit external reservoir if source law needs it",
+    "not_a_heat_source": "PIC electric work, vacuum potential barrier or a work-function multiplier is not automatically deposited as wall heat"
+  },
+  "temperature_limit_note": "773.15K is current selected data support, not a physical phase boundary. Consume expanded supported data as supplied; never clamp or extrapolate."
+}
