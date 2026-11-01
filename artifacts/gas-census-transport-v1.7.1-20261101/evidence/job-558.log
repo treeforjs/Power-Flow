@@ -1,0 +1,23 @@
+===== simq job 558: gas-v17-census-cpu =====
+submitted: 2026-11-01T08:08:32Z
+started:   2026-11-01T08:08:33Z
+cwd:       /home/treefor/projects/Power-Flow
+partition: powerflow
+P-cores:   6
+GPUs:      none
+memory:    3G (swap 1G)
+time:      00:05:00
+unit:      simq-job-558-0424c8b338b2.service
+command:   /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 -I /home/treefor/projects/runtimes/gas-target-owner-v1.7-census-transport-20261101/tools/check_transport.py normal cpu-a01
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock (exclusive)
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/gas-target-owner-v1.7-census-transport-20261101/tools/check_transport.py", line 12, in <module>
+    assert all(os.getenv(k)=='1' for k in ('OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS'))
+           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+========================================
+finished:  2026-11-01T08:08:33Z
+exit code: 1
+state:     failed
+===== simq job 558 finished =====
