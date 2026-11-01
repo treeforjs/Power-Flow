@@ -1,0 +1,815 @@
+--- a/source/include/raikou/mfem_pic_arena.h
++++ b/source/include/raikou/mfem_pic_arena.h
+@@ -14,6 +14,7 @@
+ }
+ class PrivateFullTimeStep;
+ class FullTimeAccess;
++class FullTimeCoupledAccess;
+ struct FullTimeStepBinding;
+ struct FullTimeGenesisBinding;
+ struct FullTimeAuthoredPacket;
+@@ -228,6 +229,7 @@
+ private:
+   friend class PicArena;
+   friend class FullTimeAccess;
++  friend class FullTimeCoupledAccess;
+   friend class CollisionScope;
+   friend class PrivateFullTimeStep;
+   struct Impl;
+@@ -343,6 +345,7 @@
+ 
+ private:
+   friend class FullTimeAccess;
++  friend class FullTimeCoupledAccess;
+   friend class CollisionScope;
+   friend class PrivateFullTimeStep;
+   struct ReactionBuild;
+--- /dev/null
++++ b/source/include/raikou/mfem_pic_coupled_targets.h
+@@ -0,0 +1,24 @@
++#pragma once
++#include "raikou/mfem_pic_full_time.h"
++namespace native_gas_common { class CoupledTrial; }
++namespace raikou::mfem_backend {
++// Private native entry points for the pinned concrete CPU gas bridge. A hash,
++// diagnostic token, or caller-supplied public callback cannot authorize this path.
++class FullTimeCoupledAccess final {
++  friend class ::native_gas_common::CoupledTrial;
++  struct Continuation;
++  using Check = bool (*)(const void *) noexcept;
++  static void attach(PrivateFullTimeStep &, const std::string &contract,
++                     const std::string &initial_gas, std::uint64_t gas_step,
++                     const std::shared_ptr<const Continuation> &previous);
++  static PreparedArena prepare(PrivateFullTimeStep &,CollisionScope &,std::shared_ptr<FullTimeHostTargetProvider>);
++  static void authorize_stage(CollisionScope &,PreparedArena &,
++      std::shared_ptr<const void>,Check,const std::string &proof);
++  static std::shared_ptr<const Continuation> prepare_continuation(
++      const PrivateFullTimeStep &,const PreparedArena &);
++  static bool can_publish_final(const PrivateFullTimeStep &,const PreparedArena &) noexcept;
++  static bool publish_final(PrivateFullTimeStep &,PreparedArena &) noexcept;
++  static void authorize_final(PrivateFullTimeStep &,PreparedArena &,
++      std::shared_ptr<const void>,Check,const std::string &proof);
++};
++}
+--- a/source/include/raikou/mfem_pic_full_time.h
++++ b/source/include/raikou/mfem_pic_full_time.h
+@@ -506,6 +506,8 @@
+   // it never establishes whole-system energy closure.
+   bool diagnostic_field_target_approximation = false;
+   // Optional minimum encounter gate; passing never establishes network completeness.
++  // Explicit coupled preparation requires the private concrete owner bridge.
++  std::string coupled_target_contract_sha256;
+   bool host_target_feedback = false;
+   std::string host_target_contract_sha256;
+   FullTimeWaterScopeMode water_scope_mode = FullTimeWaterScopeMode::legacy;
+@@ -905,11 +907,14 @@
+   std::shared_ptr<const FullTimeCandidateStocks>
+   candidate_stocks(const PreparedArena &, std::size_t maximum_entries_and_parcels,
+                    std::size_t maximum_payload_bytes) const;
++  // Read-only validity for quarantined snapshots; never publication authority.
++  bool can_inspect(const PreparedArena &) const noexcept;
+   bool can_publish(const PreparedArena &) const noexcept;
+   bool try_publish(PreparedArena &) noexcept;
+ 
+ private:
+   friend class FullTimeAccess;
++  friend class FullTimeCoupledAccess;
+   friend class PicArena;
+   friend class PrivateFullTimeStep;
+   struct Impl;
+@@ -928,6 +933,7 @@
+ private:
+   friend class PrivateTransportTrial;
+   friend class FullTimeAccess;
++  friend class FullTimeCoupledAccess;
+   friend class PicArena;
+   friend class PrivateFullTimeStep;
+   struct Impl;
+@@ -999,6 +1005,7 @@
+ 
+ private:
+   friend class FullTimeAccess;
++  friend class FullTimeCoupledAccess;
+   friend class PicArena;
+   friend class PrivateFullTimeStep;
+   struct Impl;
+@@ -1023,6 +1030,7 @@
+   friend class BirthScope;
+   friend class PrivateFullTimeStep;
+   friend class FullTimeAccess;
++  friend class FullTimeCoupledAccess;
+   struct Impl;
+   explicit PreparedBirths(std::unique_ptr<Impl>);
+   std::unique_ptr<Impl> impl_;
+@@ -1044,6 +1052,7 @@
+   friend class MergeScope;
+   friend class PrivateFullTimeStep;
+   friend class FullTimeAccess;
++  friend class FullTimeCoupledAccess;
+   struct Impl;
+   explicit PreparedMergeSplit(std::unique_ptr<Impl>);
+   std::unique_ptr<Impl> impl_;
+@@ -1068,6 +1077,7 @@
+ private:
+   friend class PrivateFullTimeStep;
+   friend class FullTimeAccess;
++  friend class FullTimeCoupledAccess;
+   struct Impl;
+   explicit MergeScope(std::unique_ptr<Impl>);
+   std::unique_ptr<Impl> impl_;
+@@ -1090,6 +1100,7 @@
+ private:
+   friend class PrivateFullTimeStep;
+   friend class FullTimeAccess;
++  friend class FullTimeCoupledAccess;
+   struct Impl;
+   explicit BirthScope(std::unique_ptr<Impl>);
+   std::unique_ptr<Impl> impl_;
+@@ -1125,6 +1136,7 @@
+ private:
+   friend class PicArena;
+   friend class FullTimeAccess;
++  friend class FullTimeCoupledAccess;
+   struct Impl;
+   explicit PrivateFullTimeStep(std::unique_ptr<Impl>);
+   std::unique_ptr<Impl> impl_;
+--- a/source/src/chem_v3_native.cpp
++++ b/source/src/chem_v3_native.cpp
+@@ -179,6 +179,12 @@
+   if (c.preset == "production-v1")
+     need(!c.diagnostic_field_target_approximation && !c.policy.policy_file.empty(), RK::configuration,
+          "configuration: production preset requires strict target-energy and file-backed coverage policy");
++  if (!c.coupled_target_contract_sha256.empty())
++    need(c.coupled_target_contract_sha256.size()==64 &&
++         c.coupled_target_contract_sha256.find_first_not_of("0123456789abcdef")==std::string::npos &&
++         !c.diagnostic_field_target_approximation && c.host_target_feedback &&
++         c.execution==FullTimeChemistryExecution::host, RK::configuration,
++         "coupled target owner requires a pinned strict CPU feedback configuration");
+   auto s = std::make_shared<Setup>();
+   s->config = c;
+   s->reg = load_registry(c.blob_path, c.blob_sha256);
+@@ -296,6 +302,10 @@
+     H h; h.text("native-v8.4/minimum-water-configuration-v1"); h.text(s->base_configuration_sha256);
+     h.u32(std::uint32_t(c.water_scope_mode)); h.text(c.water_scope_contract_sha256);
+     s->configuration_sha256 = h.hex();
++  }
++  if (!c.coupled_target_contract_sha256.empty()) {
++    H h;h.text("native-v8.8/coupled-target-contract-v1");h.text(s->configuration_sha256);
++    h.text(c.coupled_target_contract_sha256);s->configuration_sha256=h.hex();
+   }
+   if (c.host_target_feedback) {
+     need(c.host_target_contract_sha256.size()==64 &&
+@@ -824,7 +834,7 @@
+   // velocities are sampled from cell moments, whereas inventory is debited
+   // from physical native packets; returned-gas heat also has no receiving
+   // energy/momentum owner. Do not silently admit that approximation.
+-  if (!act.events.empty() && !s.config.diagnostic_field_target_approximation)
++  if (!act.events.empty() && !s.config.diagnostic_field_target_approximation && !q.provisional_target_owner)
+     refuse(RK::target_energy_owner,
+            "target_energy_owner: no target energy/momentum owner; only explicit diagnostic field-target mode is available");
+   // 2. tracked-target debits (C3 order: cell, carrier ID, candidate; prefix rule;
+--- a/source/src/chem_v3_native.hpp
++++ b/source/src/chem_v3_native.hpp
+@@ -168,6 +168,7 @@
+   unsigned stage = 1;     // 1: before transport (0x30), 2: after (0x34)
+   double dt_s = 0;        // authoritative dt / 2
+   std::size_t max_release_packets = 1000000; // bounded by outer carrier cap
++  bool provisional_target_owner = false; // private native bridge only; output quarantined
+ };
+ struct StageInputs {
+   pfc::StepConfig cfg{};
+--- a/source/src/mfem_pic_arena.cpp
++++ b/source/src/mfem_pic_arena.cpp
+@@ -3,6 +3,7 @@
+ #include "raikou/mfem_pic_canonical.h"
+ #include "raikou/mfem_pic_full_time.h"
+ #include "raikou/mfem_pic_target_feedback.h"
++#include "raikou/mfem_pic_coupled_targets.h"
+ #include "pf_v7/forms.hpp"
+ #include "native_rows.hpp"
+ #include "raikou/mfem_pic_full_time_device.h"
+@@ -152,6 +153,32 @@
+     array.clear();
+   }
+ }
++// The destination must already be owned by a drain guard. Build recursively in
++// place so failed allocation never destroys a partially copied JSON tree with
++// the vendored destructor's allocating flattening stack.
++void clone_json(ArenaJson &to, const ArenaJson &from) {
++  drain_json(to);
++  if (from.is_object()) {
++    to = ArenaJson::object();
++    for (const auto &[key, value] : from.items())
++      clone_json(to[key], value);
++  } else if (from.is_array()) {
++    to = ArenaJson::array();
++    for (const auto &value : from) {
++      to.push_back(nullptr);
++      clone_json(to.back(), value);
++    }
++  } else {
++    to = from;
++  }
++}
++struct GuardedArenaJson {
++  // Avoid null-to-object operator[] promotion: the vendored JSON sets its type
++  // before allocating storage, which is not unwind-safe under persistent OOM.
++  ArenaJson value = ArenaJson::object();
++  ~GuardedArenaJson() noexcept { drain_json(value); }
++  ArenaJson release() noexcept { return std::move(value); }
++};
+ void json_depth_guard(const ArenaJson &j, unsigned depth = 0) {
+   require(depth <= 32, "bounded metadata JSON depth");
+   if (j.is_object())
+@@ -297,16 +324,28 @@
+ } // namespace
+ ArenaSnapshot::ArenaSnapshot(const ArenaSnapshot &o)
+     : packets(o.packets), ever_packet_ids(o.ever_packet_ids),
+-      event_ids(o.event_ids), journal(o.journal), sinks(o.sinks),
+-      stochastic_completions(o.stochastic_completions),
+-      full_time_context(o.full_time_context), journal_bytes(o.journal_bytes),
++      event_ids(o.event_ids), journal_bytes(o.journal_bytes),
+       chain(o.chain), revision(o.revision), accepted_steps(o.accepted_steps),
+       previous_dt_s(o.previous_dt_s), full_time_history(o.full_time_history),
+       full_time_flows(o.full_time_flows), full_time_identity(o.full_time_identity),
+       full_time_chemistry(o.full_time_chemistry),
+       full_time_packet_index(o.full_time_packet_index),
+       full_time_step_flows(o.full_time_step_flows), full_time_melt(o.full_time_melt),
+-      full_time_melt_step(o.full_time_melt_step), full_time_v81(o.full_time_v81) {}
++      full_time_melt_step(o.full_time_melt_step), full_time_v81(o.full_time_v81) {
++  try {
++    clone_json(journal, o.journal);
++    clone_json(sinks, o.sinks);
++    clone_json(stochastic_completions, o.stochastic_completions);
++    clone_json(full_time_context, o.full_time_context);
++  } catch (...) {
++    // A throwing constructor does not run this object's destructor.
++    drain_json(journal);
++    drain_json(sinks);
++    drain_json(stochastic_completions);
++    drain_json(full_time_context);
++    throw;
++  }
++}
+ ArenaSnapshot::~ArenaSnapshot() noexcept {
+   drain_json(journal);
+   drain_json(sinks);
+@@ -726,7 +765,15 @@
+ std::vector<double> PicArena::positive_carriers(ArenaCount n) {
+   return n.positive_carriers();
+ }
++struct CoupledTargetWitness {
++  std::shared_ptr<const void> retained;
++  bool (*check)(const void *) noexcept = nullptr;
++  std::string proof, native_candidate;
++  bool valid() const noexcept { return retained && check && check(retained.get()); }
++};
+ struct PreparedArena::Impl {
++  bool coupled_target_required = false;
++  std::shared_ptr<const CoupledTargetWitness> coupled_witness;
+   ~Impl() noexcept { drain_json(audit); }
+   PicArena *owner = nullptr;
+   std::uint64_t scope = 0;
+@@ -1018,7 +1065,9 @@
+   }
+ }
+ bool PicArena::can_publish(const PreparedArena &t) const noexcept {
+-  return !full_time_builder_active_ && t.impl_ && !t.impl_->private_identity &&
++  return !full_time_builder_active_ && t.impl_ &&
++         (!t.impl_->coupled_target_required || (t.impl_->coupled_witness && t.impl_->coupled_witness->valid())) &&
++         !t.impl_->private_identity &&
+          t.impl_->owner == this && t.impl_->scope == active_scope_ &&
+          bool(full_time_boundary_) == bool(t.impl_->boundary_after) &&
+          t.impl_->status == PreparedArena::Impl::Status::Staged &&
+--- a/source/src/mfem_pic_candidate_population.inc
++++ b/source/src/mfem_pic_candidate_population.inc
+@@ -85,7 +85,7 @@
+ }
+ std::shared_ptr<const FullTimeCandidatePopulation> FullTimeAccess::candidate_population(
+     const FullCollision &s,const PreparedArena &t,std::size_t cap,std::size_t bytes) {
+-  require(publishable(s,t) && t.impl_->chemistry && t.impl_->full_time_exposure,
++  require(inspectable(s,t) && t.impl_->chemistry && t.impl_->full_time_exposure,
+           "candidate population requires this live chemistry token");
+   require(!s.building && !s.outer->builder_active,"candidate population callback reentry");
+   auto &owner=*s.outer->owner;
+@@ -147,7 +147,7 @@
+   }
+   view->sha256=candidate_population_digest(*view);
+   validate_full_time_candidate_population(*view);
+-  require(publishable(s,t),"candidate population changed during construction");
++  require(inspectable(s,t),"candidate population changed during construction");
+   t.impl_->population_view=std::shared_ptr<const FullTimeCandidatePopulation>(std::move(view));
+   return t.impl_->population_view;
+ }
+--- a/source/src/mfem_pic_candidate_stocks.inc
++++ b/source/src/mfem_pic_candidate_stocks.inc
+@@ -61,7 +61,7 @@
+ } // namespace full_time_detail
+ std::shared_ptr<const FullTimeCandidateStocks> FullTimeAccess::candidate_stocks(
+     const FullCollision&s,const PreparedArena&t,std::size_t cap,std::size_t bytes) {
+-  require(publishable(s,t) && t.impl_->chemistry && t.impl_->full_time_exposure,"candidate stocks require live chemistry token");
++  require(inspectable(s,t) && t.impl_->chemistry && t.impl_->full_time_exposure,"candidate stocks require live chemistry token");
+   require(!s.building && !s.outer->builder_active,"candidate stocks callback reentry");
+   auto&owner=*s.outer->owner;
+   if(owner.full_time_execution()!=FullTimeExecution::host || t.impl_->chemistry->device || !t.impl_->native_after.particles.host_present())
+@@ -97,6 +97,6 @@
+   v->before=actual_stock_frame(*t.impl_->before,*setup);v->after=actual_stock_frame(*t.impl_->after,*setup);
+   require(v->before.chemistry_state_sha256==t.impl_->chemistry->state_before_sha256 &&
+           v->after.chemistry_state_sha256==t.impl_->chemistry->state_after_sha256,"actual stock/receipt chemistry roots");
+-  v->sha256=candidate_stocks_digest(*v);require(publishable(s,t),"candidate stock changed during construction");
++  v->sha256=candidate_stocks_digest(*v);require(inspectable(s,t),"candidate stock changed during construction");
+   t.impl_->stock_view=std::shared_ptr<const FullTimeCandidateStocks>(std::move(v));return t.impl_->stock_view;
+ }
+--- /dev/null
++++ b/source/src/mfem_pic_coupled_targets.inc
+@@ -0,0 +1,77 @@
++// Private integration entry points; no public arbitrary authority factory.
++struct FullTimeCoupledAccess::Continuation {
++  PicArena *owner=nullptr;std::weak_ptr<void> lifetime;
++  std::shared_ptr<const ArenaSnapshot> accepted;
++  std::shared_ptr<const FullTimeAcceptedBoundary> boundary;
++  std::string contract,proof;
++};
++void FullTimeCoupledAccess::attach(PrivateFullTimeStep &step,const std::string &contract,
++                                  const std::string &gas,std::uint64_t gas_step,
++                                  const std::shared_ptr<const Continuation>&previous) {
++  require(step.impl_ && step.impl_->outer,"empty coupled outer");
++  auto &o=*step.impl_->outer;FullTimeAccess::live(o);
++  const auto setup=std::static_pointer_cast<const chem8::Setup>(o.owner->chemistry_);
++  require(setup && !contract.empty() && contract==setup->config.coupled_target_contract_sha256 &&
++          digest(gas) && gas_step==o.common.accepted_step && o.phase==0 &&
++          !o.first_reserved && o.coupled_contract.empty(),"coupled owner attachment/base mismatch");
++  require(o.owner->full_time_execution()==FullTimeExecution::host &&
++          setup->config.execution==FullTimeChemistryExecution::host,"coupled owner CPU path only");
++  if(previous)
++    require(!previous->lifetime.expired() && previous->owner==o.owner &&
++            previous->accepted==o.before.snapshot && previous->boundary==o.boundary &&
++            previous->contract==contract && digest(previous->proof),"foreign/stale coupled continuation");
++  else
++    require(o.boundary->authored_full_time_genesis && o.common.accepted_step==0,
++            "coupled continuation requires an authenticated common accepted pair");
++  // Allocate all content before committing attachment.
++  std::string c=contract,g=gas;o.coupled_contract.swap(c);o.coupled_initial_gas.swap(g);
++}
++PreparedArena FullTimeCoupledAccess::prepare(PrivateFullTimeStep &step,CollisionScope &scope,
++                                           std::shared_ptr<FullTimeHostTargetProvider> provider) {
++  require(scope.impl_ && scope.impl_->scope && provider,"missing provisional scope/provider");
++  require(step.impl_ && scope.impl_->scope->outer==step.impl_->outer,"foreign coupled outer/scope");
++  auto token=FullTimeAccess::chemistry(*scope.impl_->scope,std::move(provider),true);
++  token.impl_->target_scope=scope.impl_->scope;
++  return token;
++}
++void FullTimeCoupledAccess::authorize_stage(CollisionScope &scope,PreparedArena &token,
++    std::shared_ptr<const void> retained,Check check,const std::string &proof) {
++  require(scope.impl_ && scope.impl_->scope,"empty coupled scope");
++  auto &s=*scope.impl_->scope;
++  require(FullTimeAccess::inspectable(s,token) && token.impl_->coupled_target_required &&
++          !token.impl_->coupled_witness && token.impl_->chemistry && digest(proof),"wrong provisional token/proof");
++  auto w=std::make_shared<CoupledTargetWitness>();w->retained=std::move(retained);w->check=check;w->proof=proof;
++  w->native_candidate=token.impl_->candidate_prefix;
++  require(w->valid(),"stale gas stage witness");
++  token.impl_->coupled_witness=std::move(w);
++}
++void FullTimeCoupledAccess::authorize_final(PrivateFullTimeStep &step,PreparedArena &token,
++    std::shared_ptr<const void> retained,Check check,const std::string &proof) {
++  require(step.impl_ && step.impl_->outer && token.impl_,"empty coupled final token");
++  auto &o=*step.impl_->outer;
++  require(o.sealed && token.impl_->full_outer_identity==step.impl_->outer &&
++          token.impl_->coupled_target_required && !token.impl_->private_identity &&
++          !token.impl_->coupled_witness && o.coupled_stages[0] && o.coupled_stages[1] && digest(proof),
++          "coupled final requires exact sealed outer and complete transcript");
++  auto w=std::make_shared<CoupledTargetWitness>();w->retained=std::move(retained);w->check=check;w->proof=proof;
++  require(w->valid(),"stale gas final witness");token.impl_->coupled_witness=std::move(w);
++}
++
++bool FullTimeCoupledAccess::can_publish_final(const PrivateFullTimeStep &step,const PreparedArena &token) noexcept {
++  if(!step.impl_ || !step.impl_->outer || !token.impl_) return false;
++  const auto &o=*step.impl_->outer;
++  return !o.lifetime.expired() && o.owner && o.sealed &&
++    token.impl_->full_outer_identity==step.impl_->outer && token.impl_->coupled_target_required &&
++    o.owner->can_publish(token);
++}
++bool FullTimeCoupledAccess::publish_final(PrivateFullTimeStep &step,PreparedArena &token) noexcept {
++  return can_publish_final(step,token) && step.impl_->outer->owner->try_publish(token);
++}
++
++std::shared_ptr<const FullTimeCoupledAccess::Continuation>
++FullTimeCoupledAccess::prepare_continuation(const PrivateFullTimeStep&step,const PreparedArena&token) {
++  require(can_publish_final(step,token),"continuation requires valid prepared common final token");
++  const auto&o=*step.impl_->outer;auto p=std::make_shared<Continuation>();
++  p->owner=o.owner;p->lifetime=o.lifetime;p->accepted=token.impl_->after;p->boundary=token.impl_->boundary_after;
++  p->contract=o.coupled_contract;p->proof=token.impl_->coupled_witness->proof;return p;
++}
+--- a/source/src/mfem_pic_full_time.inc
++++ b/source/src/mfem_pic_full_time.inc
+@@ -838,6 +838,8 @@
+   std::uint64_t birth_base = 0;
+   std::shared_ptr<const FullTimeStepFlows> flows;
+   bool merge_reserved = false; // v8.1
++  std::string coupled_contract, coupled_initial_gas;
++  std::array<std::shared_ptr<const CoupledTargetWitness>,2> coupled_stages{};
+ };
+ // v6 births attached to a transport trial.
+ struct BirthInfo {
+@@ -1074,6 +1076,7 @@
+   static PreparedArena reaction(FullCollision &s, const ArenaEvent &e,
+                                 int fault) {
+     live(s);
++    require(s.outer->coupled_contract.empty(),"generic reaction unavailable in coupled target transaction");
+     require(s.building &&
+                 s.outer->frame.snapshot->revision - s.base_revision < s.limit,
+             "reaction outside bounded private compound");
+@@ -1152,7 +1155,7 @@
+   static std::shared_ptr<const FullTimeCandidateStocks> candidate_stocks(
+       const FullCollision &, const PreparedArena &, std::size_t, std::size_t);
+   static void validate_host_targets(const PreparedArena &);
+-  static PreparedArena chemistry(FullCollision &s, std::shared_ptr<FullTimeHostTargetProvider> = {});
++  static PreparedArena chemistry(FullCollision &s, std::shared_ptr<FullTimeHostTargetProvider> = {}, bool provisional = false);
+   static std::shared_ptr<ChemOutcome> chemistry_host(FullCollision &s, const chem8::Setup &, const chem8::StageRequest &,
+                                                   const std::shared_ptr<FullTimeHostTargetProvider> & = {});
+   static std::shared_ptr<ChemOutcome> chemistry_device(FullCollision &s, const chem8::Setup &,
+@@ -1171,12 +1174,16 @@
+     p.full_time_key = s.phase_key;
+     return p;
+   }
+-  static bool publishable(const FullCollision &s, const PreparedArena &t) {
++  static bool inspectable(const FullCollision &s, const PreparedArena &t) {
+     live(s);
+     return t.impl_ && t.impl_->private_identity == s.token_identity &&
+            t.impl_->private_generation == s.generation &&
+            t.impl_->before == s.outer->frame.snapshot &&
+            t.impl_->status == PreparedArena::Impl::Status::Staged;
++  }
++  static bool publishable(const FullCollision &s,const PreparedArena &t) {
++    return inspectable(s,t) && (!t.impl_->coupled_target_required ||
++      (t.impl_->coupled_witness && t.impl_->coupled_witness->valid()));
+   }
+   static bool publish(FullCollision &s, PreparedArena &t) {
+     if (!publishable(s, t))
+@@ -1205,6 +1212,11 @@
+     std::swap(prepared.native.next_id, t.impl_->native_after.next_id);
+     std::swap(prepared.native.fields_current,
+               t.impl_->native_after.fields_current);
++    if (t.impl_->coupled_target_required) {
++      const auto slot=s.exposure.slot==FullTimeSlot::before_transport?0u:1u;
++      require(!o.coupled_stages[slot],"coupled stage already published");
++      o.coupled_stages[slot]=t.impl_->coupled_witness;
++    }
+     swap_frame(o.frame, prepared);
+     t.impl_->status = PreparedArena::Impl::Status::Published;
+     if (final) {
+@@ -1239,6 +1251,7 @@
+       const std::function<ArenaStochasticCompletion(CollisionScope &)> &build,
+       CollisionScope &facade) {
+     live(s);
++    require(s.outer->coupled_contract.empty(),"generic compound unavailable in coupled target transaction");
+     require(!s.building && !s.outer->builder_active && maximum > 0 &&
+                 maximum <= 4096 && bool(build),
+             "private compound cap or reentry");
+@@ -3254,6 +3267,7 @@
+ #include "mfem_pic_full_time_chemistry.inc"
+ #include "mfem_pic_candidate_population.inc"
+ #include "mfem_pic_candidate_stocks.inc"
++#include "mfem_pic_coupled_targets.inc"
+ FullTimeMotionAdmission::~FullTimeMotionAdmission() noexcept = default;
+ FullTimeMotionAdmission &
+ FullTimeMotionAdmission::operator=(FullTimeMotionAdmission &&other) noexcept {
+@@ -3339,6 +3353,10 @@
+     const PreparedArena &token, std::size_t cap, std::size_t bytes) const {
+   require(bool(impl_) && bool(impl_->scope), "empty collision scope");
+   return FullTimeAccess::candidate_population(*impl_->scope,token,cap,bytes);
++}
++bool CollisionScope::can_inspect(const PreparedArena &t) const noexcept {
++  if(!impl_ || !impl_->scope) return false;
++  try { return FullTimeAccess::inspectable(*impl_->scope,t); } catch(...) { return false; }
+ }
+ bool CollisionScope::can_publish(const PreparedArena &t) const noexcept {
+   if (!impl_ || !impl_->scope)
+@@ -3839,6 +3857,12 @@
+   require(o.phase == 3 && !o.builder_active,
+           "outer seal needs both exact collision exposures");
+   auto &owner = *o.owner;
++  const auto coupled_setup=std::static_pointer_cast<const chem8::Setup>(owner.chemistry_);
++  if(coupled_setup && !coupled_setup->config.coupled_target_contract_sha256.empty())
++    require(o.coupled_contract==coupled_setup->config.coupled_target_contract_sha256 &&
++            o.coupled_stages[0] && o.coupled_stages[1] &&
++            FullTimeAccess::prefix(o,o.frame)==o.coupled_stages[1]->native_candidate,
++            "coupled final seal requires both verified stages and unchanged final frame");
+   final_rng_guard(seals, o.second.completion);
+   require(digest(o.motion_sha),
+           "outer candidate lacks genuine consumed motion identity");
+@@ -3887,8 +3911,11 @@
+     if (fv)
+       next->full_time_v81 = fv;
+   }
+-  next->full_time_context = {{"mode", "accepted_total_field_v1"},
+-                             {"boundary", boundary_json(*boundary, false)}};
++  drain_json(next->full_time_context);
++  next->full_time_context = ArenaJson::object();
++  next->full_time_context["mode"] = "accepted_total_field_v1";
++  auto &context_boundary = next->full_time_context["boundary"];
++  context_boundary = boundary_json(*boundary, false);
+   FullRow row;
+   row.kind = RowKind::boundary;
+   row.common = o.common;
+@@ -3919,15 +3946,18 @@
+   t->candidate_prefix = FullTimeAccess::prefix(owner, *next, t->native_after,
+                                                *t->native_after_digest);
+   boundary->accepted_arena_sha256 = t->candidate_prefix;
+-  ArenaJson audit = {
+-      {"kind", "full_time_boundary"},
+-      {"common", common_json(o.common)},
+-      {"outer_step_sha256", o.outer_sha},
+-      {"transport_trial_sha256", o.motion_sha},
+-      {"first_completed_state_prefix", o.first.completed_state_prefix},
+-      {"second_completed_state_prefix", o.second.completed_state_prefix},
+-      {"boundary", boundary_json(*boundary, false)},
+-      {"row_sha256", next->chain}};
++  GuardedArenaJson audit_guard;
++  auto &audit = audit_guard.value;
++  audit["kind"] = "full_time_boundary";
++  auto &audit_common = audit["common"];
++  audit_common = common_json(o.common);
++  audit["outer_step_sha256"] = o.outer_sha;
++  audit["transport_trial_sha256"] = o.motion_sha;
++  audit["first_completed_state_prefix"] = o.first.completed_state_prefix;
++  audit["second_completed_state_prefix"] = o.second.completed_state_prefix;
++  auto &audit_boundary = audit["boundary"];
++  audit_boundary = boundary_json(*boundary, false);
++  audit["row_sha256"] = next->chain;
+   // Anchor every K accepted steps: validate the complete unanchored window
+   // from the previous anchor, then compact it into one chained commitment.
+   // Storage only; the logical identity computed above is unchanged.
+@@ -3992,7 +4022,7 @@
+     base->steps = next->accepted_steps;
+     base->previous_dt_s = next->previous_dt_s;
+     base->boundary = *boundary;
+-    base->completions = next->stochastic_completions;
++    clone_json(base->completions, next->stochastic_completions);
+     base->event_ids = next->event_ids;
+     auto compacted = std::make_shared<FullTimeHistory>(h);
+     compacted->anchors = std::move(chain);
+@@ -4000,12 +4030,14 @@
+     compacted->tail.reset();
+     // Storage replacement only; snapshot_digest excludes history by design.
+     next->full_time_history = std::move(compacted);
+-    audit["anchor"] = {{"sequence", a.sequence},
+-                       {"sha256", record->sha256},
+-                       {"first_step", a.first_step},
+-                       {"last_step", a.last_step},
+-                       {"window_rows", a.window_rows},
+-                       {"window_bytes", a.window_bytes}};
++    auto &anchor_audit = audit["anchor"];
++    anchor_audit = ArenaJson::object();
++    anchor_audit["sequence"] = a.sequence;
++    anchor_audit["sha256"] = record->sha256;
++    anchor_audit["first_step"] = a.first_step;
++    anchor_audit["last_step"] = a.last_step;
++    anchor_audit["window_rows"] = a.window_rows;
++    anchor_audit["window_bytes"] = a.window_bytes;
+   }
+   t->after = next;
+   t->audit = std::move(audit);
+@@ -4015,6 +4047,7 @@
+   exposures->transport_trial_sha256 = o.motion_sha;
+   exposures->first = o.first;
+   exposures->second = o.second;
++  t->coupled_target_required=!o.coupled_contract.empty();
+   t->exposures = exposures;
+   t->flows = o.flows;
+   o.sealed = true;
+@@ -4303,7 +4336,7 @@
+   // v8: chemistry v3 requires the v8 identity schema.
+   if (c.identity != FullTimeIdentitySchema::v5 && c.identity != FullTimeIdentitySchema::v8)
+     throw refusal(RK::configuration, "full-time identity schema");
+-  if (!c.chemistry.enabled && (c.chemistry.host_target_feedback || !c.chemistry.host_target_contract_sha256.empty()))
++  if (!c.chemistry.enabled && (c.chemistry.host_target_feedback || !c.chemistry.host_target_contract_sha256.empty() || !c.chemistry.coupled_target_contract_sha256.empty()))
+     throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::configuration,
+                                   "host target feedback requires enabled chemistry");
+   if (!c.chemistry.enabled && (c.chemistry.water_scope_mode != FullTimeWaterScopeMode::legacy ||
+--- a/source/src/mfem_pic_full_time_chemistry.inc
++++ b/source/src/mfem_pic_full_time_chemistry.inc
+@@ -78,7 +78,7 @@
+   return l;
+ }
+ ArenaJson chemistry_configuration_json(const FullTimeConfiguration &c) {
+-  ArenaJson j = {{"identity", "v8.7-actual-reservoir-stock-v1"}};
++  ArenaJson j = {{"identity", "v8.8-provisional-target-owner-v1"}};
+   if (c.merge_split.enabled) {
+     const auto &P = *c.merge_split.params;
+     j["merge_split"] = {{"cadence_steps", c.merge_split.cadence_steps},
+@@ -92,6 +92,7 @@
+     return j;
+   }
+   j["chemistry"] = {{"diagnostic_field_target_approximation", k.diagnostic_field_target_approximation},
++                    {"coupled_target_contract_sha256",k.coupled_target_contract_sha256},
+                     {"host_target_feedback",k.host_target_feedback},
+                     {"host_target_contract_sha256",k.host_target_contract_sha256},
+                     {"water_scope_mode", std::uint32_t(k.water_scope_mode)},
+@@ -116,7 +117,7 @@
+ }
+ void read_chemistry_configuration_json(const ArenaJson &j, FullTimeConfiguration &c) {
+   const bool ms = j.is_object() && j.contains("merge_split");
+-  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8.7-actual-reservoir-stock-v1", "v8 configuration schema");
++  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8.8-provisional-target-owner-v1", "v8 configuration schema");
+   c.identity = FullTimeIdentitySchema::v8;
+   if (ms) {
+     const auto &m = j.at("merge_split");
+@@ -135,9 +136,10 @@
+   const auto &k = j.at("chemistry");
+   if (k.is_null())
+     return;
+-  require(k.is_object() && k.size() == 16, "chemistry configuration schema");
++  require(k.is_object() && k.size() == 17, "chemistry configuration schema");
+   auto &x = c.chemistry;
+   x.enabled = true;
++  x.coupled_target_contract_sha256=json_text_any(k.at("coupled_target_contract_sha256"));
+   require(k.at("host_target_feedback").is_boolean(),"host target feedback boolean");
+   x.host_target_feedback=k.at("host_target_feedback").get<bool>();
+   x.host_target_contract_sha256=json_text_any(k.at("host_target_contract_sha256"));
+@@ -175,7 +177,7 @@
+   if (c.identity != FullTimeIdentitySchema::v8)
+     return "";
+   Writer w;
+-  w.tag("native-v8.7-actual-reservoir-stock-v1/identity-schema-v8");
++  w.tag("native-v8.8-provisional-target-owner-v1/identity-schema-v8");
+   if (c.chemistry.enabled)
+     w.text(chem8::make_setup(c.chemistry, o)->configuration_sha256);
+   else
+@@ -856,12 +858,16 @@
+   oc->purpose = cfg.purpose;
+   return oc;
+ }
+-PreparedArena FullTimeAccess::chemistry(FullCollision &s, std::shared_ptr<FullTimeHostTargetProvider> target_provider) {
++PreparedArena FullTimeAccess::chemistry(FullCollision &s, std::shared_ptr<FullTimeHostTargetProvider> target_provider, bool provisional) {
+   live(s);
+   auto &o = *s.outer;
+   auto &owner = *o.owner;
+   const auto setup = std::static_pointer_cast<const chem8::Setup>(owner.chemistry_);
+   require(bool(setup), "chemistry v3 is not configured for this arena");
++  const bool coupled=!setup->config.coupled_target_contract_sha256.empty();
++  if(coupled!=provisional || (coupled && o.coupled_contract!=setup->config.coupled_target_contract_sha256))
++    throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::target_energy_owner,
++                                  "coupled chemistry requires the concrete provisional owner bridge");
+   if (setup->config.host_target_feedback != bool(target_provider))
+     throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::target_fields,"host target provider/configuration mismatch");
+   if (target_provider && (setup->config.execution != FullTimeChemistryExecution::host ||
+@@ -892,7 +898,7 @@
+   require(snap.full_time_identity == 1 && bool(snap.full_time_chemistry), "frame without chemistry state");
+   const auto &before = *snap.full_time_chemistry;
+   const chem8::StageRequest req{o.common.accepted_step, first_slot ? 1u : 2u, s.exposure.collision_duration_s,
+-                              std::min<std::size_t>(o.cap, 1000000)};
++                              std::min<std::size_t>(o.cap, 1000000), provisional};
+   const bool base_valid = owner.full_time_validated(snap, base.native.particles, o.cap);
+   auto *lane = lane_of(o);
+   const auto exec = setup->config.execution;
+@@ -1010,6 +1016,7 @@
+   t->full_time_exposure = true;
+   t->completion = c;
+   t->chemistry = receipt;
++  t->coupled_target_required=provisional;
+   t->target_provider = std::move(target_provider);
+   t->audit = {{"kind", "full_time_exposure"},
+               {"exposure", exposure_json(s.exposure)},
+@@ -1051,10 +1058,10 @@
+   require(bool(t.impl_) && t.impl_->target_provider && t.impl_->chemistry &&
+           t.impl_->chemistry->host_target_feedback,"token has no host target provider");
+   auto s=std::static_pointer_cast<FullCollision>(t.impl_->target_scope.lock());
+-  require(bool(s) && publishable(*s,t),"stale host target candidate");
++  require(bool(s) && inspectable(*s,t),"stale host target candidate");
+   const auto setup=std::static_pointer_cast<const chem8::Setup>(s->outer->owner->chemistry_);
+   validate_target_provider(*s,*setup,t.impl_->target_provider,*t.impl_->chemistry->host_target_feedback);
+-  require(publishable(*s,t),"host target candidate changed during validation");
++  require(inspectable(*s,t),"host target candidate changed during validation");
+ }
+ void PreparedArena::validate_candidate_host_targets() const { FullTimeAccess::validate_host_targets(*this); }
+ std::vector<ArenaStateSpec> full_time_metal_vapour_states(bool with_fe_cr_ni) {
+@@ -1244,6 +1251,7 @@
+ void PrivateFullTimeStep::credit_ejected_melt(const FullTimeEjectedMelt &m) {
+   auto &o = *impl_->outer;
+   FullTimeAccess::live(o);
++  require(o.coupled_contract.empty(),"coupled target reference has no qualified melt transfer owner");
+   require(o.frame.snapshot->full_time_identity == 1, "ejected-melt credit requires identity schema v8");
+   require(o.phase == 3 && !o.builder_active, "ejected-melt credit after the second exposure, before seal");
+   require(o.frame.snapshot->full_time_melt_step != o.common.accepted_step + 1, "ejected-melt credit twice in one step");
+--- a/source/src/mfem_pic_full_time_rows.inc
++++ b/source/src/mfem_pic_full_time_rows.inc
+@@ -248,16 +248,19 @@
+ }
+ // ---- JSON export/typed import of the same structures (human-readable) ----
+ ArenaJson common_json(const FullTimeStepBinding &b) {
+-  return {{"accepted_step", b.accepted_step},
+-          {"accepted_arena_revision", b.accepted_arena_revision},
+-          {"begin_s", b.begin_s},
+-          {"end_s", b.end_s},
+-          {"dt_s", b.dt_s},
+-          {"accepted_arena_sha256", b.accepted_arena_sha256},
+-          {"accepted_field_sha256", b.accepted_field_sha256},
+-          {"mesh_sha256", b.mesh_sha256},
+-          {"material_sha256", b.material_sha256},
+-          {"common_clock_sha256", b.common_clock_sha256}};
++  GuardedArenaJson guard;
++  auto &j = guard.value;
++  j["accepted_step"] = b.accepted_step;
++  j["accepted_arena_revision"] = b.accepted_arena_revision;
++  j["begin_s"] = b.begin_s;
++  j["end_s"] = b.end_s;
++  j["dt_s"] = b.dt_s;
++  j["accepted_arena_sha256"] = b.accepted_arena_sha256;
++  j["accepted_field_sha256"] = b.accepted_field_sha256;
++  j["mesh_sha256"] = b.mesh_sha256;
++  j["material_sha256"] = b.material_sha256;
++  j["common_clock_sha256"] = b.common_clock_sha256;
++  return guard.release();
+ }
+ FullTimeStepBinding read_common(const ArenaJson &j) {
+   require(j.is_object() && j.size() == 10, "full-time common schema");
+@@ -275,40 +278,48 @@
+   return b;
+ }
+ ArenaJson exposure_json(const ExposureBinding &b) {
+-  return {{"common", common_json(b.common)},
+-          {"slot", b.slot == FullTimeSlot::before_transport
+-                       ? "before_transport"
+-                       : "after_transport"},
+-          {"frozen_physical_stage_s", b.frozen_physical_stage_s},
+-          {"collision_duration_s", b.collision_duration_s},
+-          {"owner_stage_sequence", b.owner_stage_sequence},
+-          {"frozen_field_sha256", b.frozen_field_sha256}};
++  GuardedArenaJson guard;
++  auto &j = guard.value;
++  auto &common = j["common"];
++  common = common_json(b.common);
++  j["slot"] = b.slot == FullTimeSlot::before_transport
++                  ? "before_transport" : "after_transport";
++  j["frozen_physical_stage_s"] = b.frozen_physical_stage_s;
++  j["collision_duration_s"] = b.collision_duration_s;
++  j["owner_stage_sequence"] = b.owner_stage_sequence;
++  j["frozen_field_sha256"] = b.frozen_field_sha256;
++  return guard.release();
+ }
+ ArenaJson boundary_json(const FullTimeAcceptedBoundary &b,
+                         bool include_arena = true) {
+-  ArenaJson j = {{"accepted_step", b.accepted_step},
+-                 {"accepted_arena_revision", b.accepted_arena_revision},
+-                 {"time_s", b.time_s},
+-                 {"field_sha256", b.field_sha256},
+-                 {"heat_sha256", b.heat_sha256},
+-                 {"source_sha256", b.source_sha256},
+-                 {"rng_sha256", b.rng_sha256},
+-                 {"mesh_sha256", b.mesh_sha256},
+-                 {"material_sha256", b.material_sha256},
+-                 {"frame_sha256", b.frame_sha256},
+-                 {"common_clock_sha256", b.common_clock_sha256},
+-                 {"authored_full_time_genesis", b.authored_full_time_genesis}};
++  GuardedArenaJson guard;
++  auto &j = guard.value;
++  j["accepted_step"] = b.accepted_step;
++  j["accepted_arena_revision"] = b.accepted_arena_revision;
++  j["time_s"] = b.time_s;
++  j["field_sha256"] = b.field_sha256;
++  j["heat_sha256"] = b.heat_sha256;
++  j["source_sha256"] = b.source_sha256;
++  j["rng_sha256"] = b.rng_sha256;
++  j["mesh_sha256"] = b.mesh_sha256;
++  j["material_sha256"] = b.material_sha256;
++  j["frame_sha256"] = b.frame_sha256;
++  j["common_clock_sha256"] = b.common_clock_sha256;
++  j["authored_full_time_genesis"] = b.authored_full_time_genesis;
+   if (include_arena)
+     j["accepted_arena_sha256"] = b.accepted_arena_sha256;
+-  return j;
+-}
+-FullTimeAcceptedBoundary read_boundary(const ArenaJson &j) {
+-  require(j.is_object() && j.size() == 13, "full-time boundary schema");
++  return guard.release();
++}
++FullTimeAcceptedBoundary read_boundary(const ArenaJson &j,
++                                      bool include_arena = true) {
++  require(j.is_object() && j.size() == (include_arena ? 13u : 12u),
++          "full-time boundary schema");
+   FullTimeAcceptedBoundary b;
+   b.accepted_step = json_u64(j.at("accepted_step"));
+   b.accepted_arena_revision = json_u64(j.at("accepted_arena_revision"));
+   b.time_s = json_scalar(j.at("time_s"));
+-  b.accepted_arena_sha256 = json_text(j.at("accepted_arena_sha256"));
++  if (include_arena)
++    b.accepted_arena_sha256 = json_text(j.at("accepted_arena_sha256"));
+   b.field_sha256 = json_text(j.at("field_sha256"));
+   b.heat_sha256 = json_text(j.at("heat_sha256"));
+   b.source_sha256 = json_text(j.at("source_sha256"));
+@@ -325,11 +336,9 @@
+   require(j.is_object() && j.size() == 12 &&
+               !j.contains("accepted_arena_sha256"),
+           "full-time boundary payload schema");
+-  auto full = j;
+-  full["accepted_arena_sha256"] = std::string(64, '0');
+-  auto b = read_boundary(full);
+-  b.accepted_arena_sha256.clear();
+-  return b;
++  // Read the payload directly. A copied JSON tree with a placeholder hash
++  // both allocates unnecessarily and has an allocating destructor on failure.
++  return read_boundary(j, false);
+ }
+ ArenaJson genesis_json(const FullTimeGenesisBinding &g) {
+   return {{"schema", "authored-full-time-genesis-v5"},

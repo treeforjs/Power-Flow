@@ -1,0 +1,41 @@
+In file included from /home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/tests/coupled_step_fixture.hpp:4,
+                 from /home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/tests/test_common_stage.cpp:1:
+/home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/include/coupled_trial.hpp: In function ‘std::string native_gas_common::coupled_contract(const raikou::mfem_backend::FullTimeChemistryConfiguration&, const raikou::mfem_backend::GapPicOptions&, const pf_gas_v1::Owner&)’:
+/home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/include/coupled_trial.hpp:14:28: error: ‘static std::string raikou::mfem_backend::PicArena::sha256(const std::string&)’ is private within this context
+   14 |  return n::PicArena::sha256(n::ArenaJson{{"schema","native-gas-provisional-owner-cpu-v1"},
+      |         ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   15 |   {"native_source",n::PicArena::source_identity()},{"base_configuration",reg.configuration_sha256},
+      |   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   16 |   {"gas_configuration",gas.configuration_sha256()},
+      |   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   17 |   {"accounting","actual-stocks;water-nuclei;explicit-numerical-defect-and-reference-conversion"},
+      |   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   18 |   {"motion_scope","same-carriers-species-weights-and-cells;no-source-or-sink"}}.dump());
+      |   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.8-provisional-target-owner-20261101/source/include/raikou/mfem_pic_full_time.h:2,
+                 from /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.8-provisional-target-owner-20261101/tests/chem_v8_fixture.hpp:8,
+                 from /home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/tests/coupled_step_fixture.hpp:3:
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.8-provisional-target-owner-20261101/source/include/raikou/mfem_pic_arena.h:414:22: note: declared private here
+  414 |   static std::string sha256(const std::string &);
+      |                      ^~~~~~
+/home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/include/coupled_trial.hpp: In member function ‘std::shared_ptr<const raikou::mfem_backend::FullTimeChemistryStageReceipt> native_gas_common::CoupledTrial::run_stage(raikou::mfem_backend::CollisionScope&)’:
+/home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/include/coupled_trial.hpp:116:39: error: ‘static std::string raikou::mfem_backend::PicArena::sha256(const std::string&)’ is private within this context
+  116 |    const auto hash=n::PicArena::sha256(proof.dump());proof["sha256"]=hash;
+      |                    ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.8-provisional-target-owner-20261101/source/include/raikou/mfem_pic_arena.h:414:22: note: declared private here
+  414 |   static std::string sha256(const std::string &);
+      |                      ^~~~~~
+/home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/include/coupled_trial.hpp: In member function ‘void native_gas_common::CoupledTrial::seal(const raikou::mfem_backend::FullTimeCommitSeals&)’:
+/home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/include/coupled_trial.hpp:139:39: error: ‘static std::string raikou::mfem_backend::PicArena::sha256(const std::string&)’ is private within this context
+  139 |    const auto hash=n::PicArena::sha256(record.dump());record["sha256"]=hash;
+      |                    ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.8-provisional-target-owner-20261101/source/include/raikou/mfem_pic_arena.h:414:22: note: declared private here
+  414 |   static std::string sha256(const std::string &);
+      |                      ^~~~~~
+/home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/tests/test_common_stage.cpp: In lambda function:
+/home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/tests/test_common_stage.cpp:20:195: error: ‘static std::string raikou::mfem_backend::PicArena::sha256(const std::string&)’ is private within this context
+   20 |  gas([&]{cfg.diagnostic_field_target_approximation=false;if(minimum){cfg.water_scope_contract=n::full_time_minimum_water_scope_contract(cfg,o);cfg.water_scope_contract_sha256=n::PicArena::sha256(cfg.water_scope_contract);cfg.water_scope_mode=n::FullTimeWaterScopeMode::minimum_water;}auto r=n::full_time_chemistry_registry(cfg,o);return std::make_shared<g::Owner>(gas_config(o,r,blob));}()),
+      |                                                                                                                                                                                ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.8-provisional-target-owner-20261101/source/include/raikou/mfem_pic_arena.h:414:22: note: declared private here
+  414 |   static std::string sha256(const std::string &);
+      |                      ^~~~~~

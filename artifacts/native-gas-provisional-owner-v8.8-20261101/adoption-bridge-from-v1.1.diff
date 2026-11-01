@@ -1,0 +1,1057 @@
+--- a/include/actual_accounting.hpp
++++ b/include/actual_accounting.hpp
+@@ -1,5 +1,6 @@
+ #pragma once
+ #include "native_gas_targets.hpp"
++#include "json_guard.hpp"
+ #include <map>
+ namespace native_gas_common {
+ namespace n=raikou::mfem_backend;namespace g=pf_gas_v1;namespace a=native_gas_stage;
+@@ -49,7 +50,7 @@
+  for(int k=0;k<3;++k){v.unheld_internal_momentum[k]=global(o,pfg::G_PINT_UN+k);v.event_defect_p[k]=global(o,pfg::G_DEF_P+k);v.reservoir_momentum[k]=global(o,pfg::G_RES_P+k);}return v;
+ }
+ inline g::Exact difference(const g::Exact&a,const g::Exact&b){auto x=a;x.merge(b,1);return x;}
+-inline n::ArenaJson exact_json(const g::Exact&x){const auto d=x.normalised();return {{"rounded",x.value()},{"digits",g::digits_text(d.data())}};}
++inline n::ArenaJson exact_json(const g::Exact&x){const auto d=x.normalised();GuardedProofJson out;out.get()["rounded"]=x.value();out.get()["digits"]=g::digits_text(d.data());return out.release();}
+ struct ReferenceOperands {g::Exact actual_species_delta_J,process_Q_J,operand_conversion_J;};
+ inline ReferenceOperands reference_operands(const a::Batch&batch,const n::FullTimeCandidatePopulation&population,const pfc::Blob&blob) {
+  const auto states=catalogue(population);ReferenceOperands out;
+@@ -81,21 +82,24 @@
+  E.merge(actual_reference);E.merge(ref.operand_conversion_J,1);
+  auto charge=delta(a.charge,b.charge,pa.si.charge,pb.si.charge),H=delta(a.hydrogen,b.hydrogen,pa.si.hydrogen,pb.si.hydrogen),O=delta(a.oxygen,b.oxygen,pa.si.oxygen,pb.si.oxygen);
+  need(charge.zero() && H.zero() && O.zero(),"actual carrier/reservoir charge or nucleus imbalance");
+- n::ArenaJson P=n::ArenaJson::array(),rawP=n::ArenaJson::array(),defectP=n::ArenaJson::array();bool momentum_zero=true;
+- for(int k=0;k<3;++k){auto v=delta(a.momentum[k],b.momentum[k],pa.si.momentum[k],pb.si.momentum[k]);v.merge(difference(ga.corrected_momentum[k],gb.corrected_momentum[k]));v.merge(difference(ga.unheld_internal_momentum[k],gb.unheld_internal_momentum[k]));v.merge(difference(ga.event_defect_p[k],gb.event_defect_p[k]));P.push_back(exact_json(v));momentum_zero&=v.zero();const auto defect=difference(ga.event_defect_p[k],gb.event_defect_p[k]);defectP.push_back(exact_json(defect));v.merge(defect,1);rawP.push_back(exact_json(v));}
++ GuardedProofJson Pg,rawPg,defectPg;auto&P=Pg.get();auto&rawP=rawPg.get();auto&defectP=defectPg.get();P=n::ArenaJson::array();rawP=n::ArenaJson::array();defectP=n::ArenaJson::array();bool momentum_zero=true;
++ for(int k=0;k<3;++k){auto v=delta(a.momentum[k],b.momentum[k],pa.si.momentum[k],pb.si.momentum[k]);v.merge(difference(ga.corrected_momentum[k],gb.corrected_momentum[k]));v.merge(difference(ga.unheld_internal_momentum[k],gb.unheld_internal_momentum[k]));v.merge(difference(ga.event_defect_p[k],gb.event_defect_p[k]));P.push_back(nullptr);P.back()=exact_json(v);momentum_zero&=v.zero();const auto defect=difference(ga.event_defect_p[k],gb.event_defect_p[k]);defectP.push_back(nullptr);defectP.back()=exact_json(defect);v.merge(defect,1);rawP.push_back(nullptr);rawP.back()=exact_json(v);}
+  auto reference=delta(a.reference,b.reference,pa.si.reference,pb.si.reference);reference.merge(difference(ga.reference_transfer,gb.reference_transfer),1);
+  auto rawE=E;rawE.merge(difference(ga.event_defect,gb.event_defect),1);rawE.merge(ref.operand_conversion_J);
+- return {{"energy_residual_J",exact_json(E)},
+- {"residual_definition","exact accounting after explicit per-event numerical-defect and reference-operand conversion ledgers; not raw physical sums"},
+- {"raw_stored_energy_balance_J",exact_json(rawE)},
+- {"recorded_numerical_energy_defect_J",exact_json(difference(ga.event_defect,gb.event_defect))},
+- {"raw_stored_momentum_balance",rawP},{"recorded_numerical_momentum_defect",defectP},{"momentum_residual_kg_m_s",P},{"charge_e",exact_json(charge)},{"H",exact_json(H)},{"O",exact_json(O)},
+- {"actual_reference_minus_event_Q_J",exact_json(reference)},
+- {"independent_stoichiometric_reference_delta_J",exact_json(ref.actual_species_delta_J)},
+- {"independent_reference_operand_conversion_J",exact_json(ref.operand_conversion_J)},
+- {"reference_operands_independently_verified",true},
+- {"pending_after_C3_per_parcel_conversion_minus_native_J",exact_json(difference(pa.per_parcel_converted_ke_J,pa.si.kinetic))},
+- {"energy_exact_zero",E.zero()},{"momentum_exact_zero",momentum_zero},{"production_qualified",false},
+- {"charged_target_correction","ledger only; no charged target distribution feedback qualified"}};
++ GuardedProofJson result;auto&r=result.get();
++ auto exact=[&](const char*key,const g::Exact&x){auto&v=r[key];v=exact_json(x);};
++ exact("energy_residual_J",E);
++ r["residual_definition"]="exact accounting after explicit per-event numerical-defect and reference-operand conversion ledgers; not raw physical sums";
++ exact("raw_stored_energy_balance_J",rawE);
++ exact("recorded_numerical_energy_defect_J",difference(ga.event_defect,gb.event_defect));
++ r["raw_stored_momentum_balance"].swap(rawP);r["recorded_numerical_momentum_defect"].swap(defectP);r["momentum_residual_kg_m_s"].swap(P);
++ exact("charge_e",charge);exact("H",H);exact("O",O);exact("actual_reference_minus_event_Q_J",reference);
++ exact("independent_stoichiometric_reference_delta_J",ref.actual_species_delta_J);
++ exact("independent_reference_operand_conversion_J",ref.operand_conversion_J);
++ r["reference_operands_independently_verified"]=true;
++ exact("pending_after_C3_per_parcel_conversion_minus_native_J",difference(pa.per_parcel_converted_ke_J,pa.si.kinetic));
++ r["energy_exact_zero"]=E.zero();r["momentum_exact_zero"]=momentum_zero;r["production_qualified"]=false;
++ r["charged_target_correction"]="ledger only; no charged target distribution feedback qualified";
++ return result.release();
+ }
+ } // namespace native_gas_common
+--- /dev/null
++++ b/include/coupled_trial.hpp
+@@ -0,0 +1,189 @@
++#pragma once
++#include "actual_accounting.hpp"
++#include "raikou/mfem_pic_coupled_targets.h"
++#include "pf_coupled/gas_step_scope.hpp"
++
++namespace native_gas_common {
++// Strict target-owner bookkeeping, bounded CPU reference. Unknown-rate/network
++// policy, native motion and materials retain their independent admission gates.
++inline std::string coupled_contract(const n::FullTimeChemistryConfiguration&configuration,
++                                   const n::GapPicOptions&options,const g::Owner&gas) {
++ auto base=configuration;base.host_target_feedback=false;base.host_target_contract_sha256.clear();
++ base.coupled_target_contract_sha256.clear();
++ const auto reg=n::full_time_chemistry_registry(base,options);
++ return native_gas_targets::sha(n::ArenaJson{{"schema","native-gas-provisional-owner-cpu-v1"},
++  {"native_source",n::PicArena::source_identity()},{"base_configuration",reg.configuration_sha256},
++  {"gas_configuration",gas.configuration_sha256()},
++  {"accounting","actual-stocks;water-nuclei;explicit-numerical-defect-and-reference-conversion"},
++  {"motion_scope","same-carriers-species-weights-and-cells;no-source-or-sink"}}.dump());
++}
++class CoupledTrial final {
++public:
++ class Continuation final {
++   friend class CoupledTrial;
++   std::shared_ptr<const n::FullTimeCoupledAccess::Continuation> native_;
++   std::shared_ptr<g::Owner> gas_;
++   std::string gas_after_,common_receipt_;
++   std::uint64_t next_step_=0;
++   Continuation()=default;
++ public:
++   Continuation(const Continuation&)=delete;Continuation&operator=(const Continuation&)=delete;
++   const std::string&common_receipt_sha256()const noexcept{return common_receipt_;}
++   std::uint64_t next_step()const noexcept{return next_step_;}
++ };
++private:
++ struct StageWitness {
++  std::shared_ptr<g::Owner> gas;g::Owner::CandidateBinding binding;std::uint64_t step=0;
++  static bool valid(const void*p) noexcept {const auto &w=*static_cast<const StageWitness*>(p);return w.gas && w.gas->matches_candidate(w.binding,w.step);}
++ };
++ struct FinalWitness {
++  std::shared_ptr<g::Owner> gas;g::Owner::PreparedCommit prepared;
++  static bool valid(const void*p) noexcept {const auto &w=*static_cast<const FinalWitness*>(p);return w.gas && w.gas->can_publish(w.prepared);}
++ };
++ struct State {
++  // Exact native outer and gas attempt ownership survive wrapper moves.
++  n::PrivateFullTimeStep outer;std::shared_ptr<g::Owner> gas;pf_coupled::GasStepScope rollback;
++  n::FullTimeChemistryConfiguration cfg;n::GapPicOptions options;n::FullTimeChemistryRegistry registry;
++  pfc::Blob blob;a::Binding binding;
++  std::string initial_gas,initial_native,contract,parent_receipt;
++  std::uint64_t step=0;std::size_t cap=0;unsigned completed=0;bool failed=false,published=false;
++  std::shared_ptr<const n::FullTimeCandidatePopulation> first_population;
++  n::ArenaJson stages=n::ArenaJson::array(),receipt;
++  std::unique_ptr<n::PreparedArena> final_native;std::shared_ptr<FinalWitness> final_gas;
++  std::shared_ptr<const Continuation> continuation;
++  g::Owner::CandidateBinding initial_binding;std::shared_ptr<StageWitness> last_witness;
++  ~State()noexcept{drain_proof_json(stages);drain_proof_json(receipt);}
++  State(n::PrivateFullTimeStep o,std::shared_ptr<g::Owner> gowner,const n::FullTimeChemistryConfiguration&c,
++    const n::GapPicOptions&opts,std::uint64_t accepted_step,std::size_t maximum_carriers)
++   :outer(std::move(o)),gas(std::move(gowner)),cfg(c),options(opts),registry(n::full_time_chemistry_registry(c,opts)),
++    blob(pfc::load_blob(c.blob_path,c.blob_sha256)),binding(*(need(bool(gas),"missing gas owner"),gas),registry,blob,opts),step(accepted_step),cap(maximum_carriers) {
++    need(cap>0 && cap<=1000000,"coupled carrier capacity");
++    need(!cfg.diagnostic_field_target_approximation && cfg.host_target_feedback &&
++      !cfg.coupled_target_contract_sha256.empty() && cfg.execution==n::FullTimeChemistryExecution::host &&
++      gas->configuration().execution==g::Execution::host && gas->configuration().transport==g::Transport::none,
++      "bounded coupled CPU strict mode/transport configuration");
++    contract=coupled_contract(cfg,options,*gas);need(contract==cfg.coupled_target_contract_sha256,"coupled contract differs");
++    initial_gas=gas->accepted_sha256();rollback=pf_coupled::GasStepScope::begin(gas,step);initial_binding=gas->candidate_binding();
++  }
++ };
++ std::unique_ptr<State>s_;
++ void active() const {need(s_ && !s_->failed && !s_->published && !s_->final_native && s_->rollback.active(),"closed/failed coupled trial");}
++ void fail() noexcept {if(s_){s_->failed=true;s_->rollback.reset();}}
++ void water_scope(std::span<const n::ArenaRateEntry>rows) const {
++  for(const auto&r:rows){auto i=s_->binding.species().find(r.state);need(i!=s_->binding.species().end() && i->second<s_->registry.species.size(),"unregistered actual state");
++   const auto&sp=s_->registry.species[i->second];for(std::size_t k=2;k<sp.nuclei.size();++k)need(sp.nuclei[k]==0,"independent nucleus accounting currently supports H/O only");}
++ }
++ void motion_scope(std::span<const n::ArenaRateEntry>rows) const {
++  need(s_->first_population && rows.size()==s_->first_population->carriers,"bounded motion carrier count changed");
++  std::map<std::uint64_t,std::pair<std::string,n::GapParticle>>before;
++  for(const auto&p:s_->first_population->packets)for(const auto&r:p.population.carriers)
++    need(before.emplace(r.id,std::make_pair(p.population.state,r)).second,"duplicate stage1 carrier");
++  const auto &cfg=s_->gas->configuration();
++  auto cell=[&](const n::GapParticle&r){std::uint32_t ix[3];for(int d=0;d<3;++d){const double x=(r.position_m[d]-cfg.grid.low[d])/(cfg.grid.high[d]-cfg.grid.low[d])*cfg.grid.n[d];need(std::isfinite(x)&&x>=0 && x<cfg.grid.n[d],"motion outside gas atlas");ix[d]=std::uint32_t(x);}return std::uint64_t(ix[0])+std::uint64_t(cfg.grid.n[0])*(ix[1]+std::uint64_t(cfg.grid.n[1])*ix[2]);};
++  for(const auto&r:rows){auto i=before.find(r.native.id);need(i!=before.end() && i->second.first==r.state &&
++    a::same(i->second.second.weight,r.native.weight) && cell(i->second.second)==cell(r.native),
++    "gas motion adapter required for new/sunk/changed/cell-crossing carriers");before.erase(i);}
++  need(before.empty(),"missing moved carriers");
++ }
++public:
++ CoupledTrial(n::PrivateFullTimeStep outer,std::shared_ptr<g::Owner>gas,const n::FullTimeChemistryConfiguration&cfg,
++              const n::GapPicOptions&options,std::uint64_t step,std::size_t maximum_carriers,
++              std::shared_ptr<const Continuation> previous={})
++  :s_(std::make_unique<State>(std::move(outer),std::move(gas),cfg,options,step,maximum_carriers)) {
++  if(previous)need(previous->gas_==s_->gas && previous->gas_after_==s_->initial_gas &&
++                    previous->next_step_==step,"foreign/stale gas accepted-pair continuation");
++  else {
++    g::Owner pristine(s_->gas->configuration());
++    need(step==0 && pristine.accepted_sha256()==s_->initial_gas,"unattested non-genesis gas pair");
++  }
++  s_->parent_receipt=previous?previous->common_receipt_:std::string{};
++  n::FullTimeCoupledAccess::attach(s_->outer,s_->contract,s_->initial_gas,step,
++                                 previous?previous->native_:nullptr);
++ }
++ CoupledTrial(CoupledTrial&&) noexcept=default;
++ CoupledTrial&operator=(CoupledTrial&&) noexcept=default;
++ CoupledTrial(const CoupledTrial&)=delete;CoupledTrial&operator=(const CoupledTrial&)=delete;
++ n::PrivateFullTimeStep&outer(){active();return s_->outer;}
++ const n::ArenaJson&stage_receipts()const {need(bool(s_),"moved coupled trial");return s_->stages;}
++ std::shared_ptr<const Continuation> continuation()const {need(s_ && s_->published && s_->continuation,"common pair not published");return s_->continuation;}
++ const n::ArenaJson&receipt()const {need(s_ && s_->final_native,"common publication not prepared");return s_->receipt;}
++ std::shared_ptr<const n::FullTimeChemistryStageReceipt> run_stage(n::CollisionScope&scope) {
++  try {
++   active();const unsigned expected=s_->completed+1;need(expected<=2,"both stages already complete");
++   const auto&ex=scope.exposure();need(ex.common.accepted_step==s_->step &&
++     (ex.slot==n::FullTimeSlot::before_transport?1u:2u)==expected,"wrong common collision stage");
++   if(expected==1)s_->initial_native=ex.common.accepted_arena_sha256;
++   else need(ex.common.accepted_arena_sha256==s_->initial_native,"native common accepted base changed");
++   need(s_->gas->accepted_sha256()==s_->initial_gas,"gas accepted base changed");
++   need(expected==1?s_->gas->matches_candidate(s_->initial_binding,s_->step):(s_->last_witness && StageWitness::valid(s_->last_witness.get())),"gas candidate changed outside prior stage transcript");
++   const auto rows=scope.rate_population(s_->cap);water_scope(rows);if(expected==2)motion_scope(rows);
++   const auto gb=owner_stock(*s_->gas);
++   auto provider=std::make_shared<native_gas_targets::Provider>(s_->gas,s_->registry,s_->blob,s_->cfg,s_->options);
++   auto token=n::FullTimeCoupledAccess::prepare(s_->outer,scope,provider);
++   need(scope.can_inspect(token) && !scope.can_publish(token),"provisional token escaped quarantine");
++   token.validate_candidate_host_targets();
++   auto population=scope.candidate_population(token,s_->cap,1u<<28);
++   auto stock=scope.candidate_stocks(token,1000000,1u<<28);
++   auto batch=a::prepare(scope,token,*s_->gas,s_->binding,1000000);batch.validate_current(scope,token,*s_->gas);
++   const auto pre=before_inventory(rows,*population,stock->before),post=after_inventory(*population,stock->after);
++   const auto pb=pending(stock->before,*population,s_->blob),pa=pending(stock->after,*population,s_->blob);
++   const auto refs=reference_operands(batch,*population,s_->blob);
++   auto stage=token.candidate_chemistry_stage();need(stage && stage->stage==expected,"native stage identity");
++   const auto gas_before=s_->gas->candidate_sha256();
++   const auto gas_after=s_->gas->take(s_->step,expected,batch.recoils(),batch.flows());
++   GuardedProofJson proof_guard(closure(pre,post,pb,pa,gb,owner_stock(*s_->gas),refs));auto&proof=proof_guard.get();
++   need(proof.at("energy_exact_zero").get<bool>() && proof.at("momentum_exact_zero").get<bool>(),"actual native/gas accounted ledger imbalance");
++   proof["stage"]=expected;proof["accepted_step"]=s_->step;proof["initial_native"]=s_->initial_native;proof["initial_gas"]=s_->initial_gas;
++   proof["gas_before"]=gas_before;proof["gas_after"]=gas_after;proof["native_population"]=population->sha256;
++   proof["native_stock"]=stock->sha256;proof["admitted_export"]=stage->admitted_export->sha256;
++   proof["native_candidate"]=token.candidate_state_prefix();proof["contract"]=s_->contract;
++   proof["events"]=stage->admitted_events;proof["released_packets"]=stage->released_packets;
++   proof["quarantine_verified"]=true;proof["feedback_changed_slots"]=provider->feedback().changed;
++   const auto hash=native_gas_targets::sha(proof.dump());proof["sha256"]=hash;
++   auto witness=std::make_shared<StageWitness>();witness->gas=s_->gas;witness->binding=s_->gas->candidate_binding();witness->step=s_->step;
++   n::FullTimeCoupledAccess::authorize_stage(scope,token,witness,&StageWitness::valid,hash);
++   // Prepare all record allocations before any private publication.
++   GuardedProofJson next_guard;auto&next=next_guard.get();clone_proof_json(next,s_->stages);next.push_back(nullptr);clone_proof_json(next.back(),proof);
++   need(scope.can_publish(token) && StageWitness::valid(witness.get()),"dead common stage witness");
++   need(scope.try_publish(token),"private coupled stage publication failed");
++   s_->stages.swap(next);s_->last_witness=std::move(witness);++s_->completed;if(expected==1)s_->first_population=std::move(population);
++   return stage;
++  }catch(...){fail();throw;}
++ }
++ void seal(const n::FullTimeCommitSeals&seals) {
++  try {
++   active();need(s_->completed==2 && s_->stages.size()==2,"missing stage transcript");
++   need(s_->last_witness && StageWitness::valid(s_->last_witness.get()),"stage2 gas candidate changed before final preparation");
++   const auto candidate=s_->gas->candidate_sha256();
++   need(s_->stages.at(1).at("gas_after")==candidate && s_->gas->accepted_sha256()==s_->initial_gas,"gas state changed after closure");
++   auto gas=std::make_shared<FinalWitness>();gas->gas=s_->gas;gas->prepared=s_->gas->prepare_commit(candidate);
++   auto native=std::make_unique<n::PreparedArena>(s_->outer.seal(seals));
++   GuardedProofJson record_guard;auto&record=record_guard.get();
++   record["schema"]="native-gas-coupled-step-v1";record["contract"]=s_->contract;record["accepted_step"]=s_->step;
++   record["parent_common_receipt"]=s_->parent_receipt;record["native_before"]=s_->initial_native;record["gas_before"]=s_->initial_gas;
++   record["native_after"]=native->candidate_state_prefix();record["gas_after"]=candidate;
++   clone_proof_json(record["stages"],s_->stages);record["production_qualified"]=false;
++   record["scope"]="CPU bounded same-cell inventory motion; complete two-stage accounting, not full network/transport qualification";
++   const auto hash=native_gas_targets::sha(record.dump());record["sha256"]=hash;
++   n::FullTimeCoupledAccess::authorize_final(s_->outer,*native,gas,&FinalWitness::valid,hash);
++   auto continuation=std::shared_ptr<Continuation>(new Continuation);
++   continuation->native_=n::FullTimeCoupledAccess::prepare_continuation(s_->outer,*native);
++   continuation->gas_=s_->gas;continuation->gas_after_=candidate;continuation->common_receipt_=hash;
++   continuation->next_step_=s_->step+1;
++   s_->receipt.swap(record);s_->continuation=std::move(continuation);
++   s_->final_gas=std::move(gas);s_->final_native=std::move(native);
++  }catch(...){fail();throw;}
++ }
++ bool can_publish()const noexcept {
++  return s_ && !s_->failed && !s_->published && s_->final_native && s_->final_gas &&
++   s_->rollback.active() && FinalWitness::valid(s_->final_gas.get()) &&
++   n::FullTimeCoupledAccess::can_publish_final(s_->outer,*s_->final_native);
++ }
++ bool try_publish()noexcept {
++  if(!can_publish())return false;
++  if(!n::FullTimeCoupledAccess::publish_final(s_->outer,*s_->final_native))return false;
++  if(!s_->gas->try_publish(s_->final_gas->prepared))std::terminate();
++  s_->published=true;return true;
++ }
++};
++} // namespace native_gas_common
+--- /dev/null
++++ b/include/json_guard.hpp
+@@ -0,0 +1,33 @@
++#pragma once
++#include "raikou/mfem_pic_full_time.h"
++namespace native_gas_common {
++// nlohmann's ordinary container destructor allocates a flattening stack. These
++// proof trees have bounded structural depth, so drain recursively before normal
++// destruction, including persistent-allocation-failure unwinding.
++inline void drain_proof_json(raikou::mfem_backend::ArenaJson&j)noexcept {
++ using J=raikou::mfem_backend::ArenaJson;
++ if(j.is_object()){auto&o=j.get_ref<J::object_t&>();for(auto&x:o)drain_proof_json(x.second);o.clear();}
++ else if(j.is_array()){auto&a=j.get_ref<J::array_t&>();for(auto&x:a)drain_proof_json(x);a.clear();}
++}
++inline void clone_proof_json(raikou::mfem_backend::ArenaJson&to,const raikou::mfem_backend::ArenaJson&from){
++ using J=raikou::mfem_backend::ArenaJson;
++ // Caller retains to under a drain guard. No nonempty JSON temporaries are
++ // created between a potentially throwing allocation and their destruction.
++ drain_proof_json(to);
++ if(from.is_object()){to=J::object();for(const auto&[key,value]:from.items())clone_proof_json(to[key],value);}
++ else if(from.is_array()){to=J::array();for(const auto&value:from){to.push_back(nullptr);clone_proof_json(to.back(),value);}}
++ else to=from;
++}
++class GuardedProofJson {
++ // Construct storage before insertion. Null-to-object operator[] promotion in
++ // the frozen JSON changes the type before its allocation can fail.
++ raikou::mfem_backend::ArenaJson value_=raikou::mfem_backend::ArenaJson::object();
++public:
++ GuardedProofJson()=default;
++ explicit GuardedProofJson(raikou::mfem_backend::ArenaJson&&value)noexcept:value_(std::move(value)){}
++ GuardedProofJson(const GuardedProofJson&)=delete;GuardedProofJson&operator=(const GuardedProofJson&)=delete;
++ ~GuardedProofJson()noexcept{drain_proof_json(value_);}
++ auto&get()noexcept{return value_;}const auto&get()const noexcept{return value_;}
++ raikou::mfem_backend::ArenaJson release()noexcept{return std::move(value_);}
++};
++}
+--- /dev/null
++++ b/include/native_gas_stage.hpp
+@@ -0,0 +1,208 @@
++#pragma once
++#include "raikou/mfem_pic_full_time.h"
++#include "pf_gas_v1/gas_owner.hpp"
++#include "chem_host.hpp"
++#include "chem_v3_native.hpp"
++#include <bit>
++#include <cstring>
++#include <limits>
++#include <set>
++
++// Development-only records adapter. It never publishes either owner, injects
++// targets, enables chemistry, or establishes whole-system energy closure.
++namespace native_gas_stage {
++namespace n = raikou::mfem_backend;
++namespace g = pf_gas_v1;
++inline void need(bool value,const char *message) {
++  if(!value) throw std::invalid_argument(std::string("native_gas_stage: ")+message);
++}
++inline bool same(double a,double b) {return std::bit_cast<std::uint64_t>(a)==std::bit_cast<std::uint64_t>(b);}
++static_assert(std::endian::native==std::endian::little);
++static_assert(sizeof(pfg::ChemEvent)==sizeof(pfc::EventRec));
++#define NGS_FIELD(field) static_assert(offsetof(pfg::ChemEvent,field)==offsetof(pfc::EventRec,field))
++NGS_FIELD(carrier);NGS_FIELD(candidate);NGS_FIELD(process);NGS_FIELD(cell);NGS_FIELD(target_species);
++NGS_FIELD(n_out);NGS_FIELD(cover_class);NGS_FIELD(internal_sink);NGS_FIELD(flags);NGS_FIELD(weight);
++NGS_FIELD(time_s);NGS_FIELD(u_in);NGS_FIELD(ut);NGS_FIELD(E_tf);NGS_FIELD(ke_in_p);NGS_FIELD(ke_in_t);
++NGS_FIELD(q_eV);NGS_FIELD(e_internal);NGS_FIELD(out_species);NGS_FIELD(out_dest);NGS_FIELD(out_u);NGS_FIELD(ke_out);
++#undef NGS_FIELD
++
++inline std::uint32_t internal_carrier(std::uint32_t kind,std::uint32_t count) {
++  switch(kind) {
++    case 1:return pfg::kNone;
++    case 2:need(count>=2,"excitation product count");return 1;
++    case 3:need(count>=2,"dissociation product count");return count-1;
++    case 4:need(count>=3,"ionization product count");return 2;
++    case 5:need(count>=1,"capture product count");return 0;
++    case 6:return count>2?count-1:pfg::kNone;
++    case 7:need(count>=3,"ion-impact ionization product count");return 2;
++    case 8:need(count>=2,"breakup product count");return count-2;
++    default:throw std::invalid_argument("native_gas_stage: unsupported process kind");
++  }
++}
++
++// Verify actual blob-derived process operands rather than accepting a registry
++// hash alongside a different process table. Extra non-chemistry gas species may
++// follow the registry, but cannot replace/reorder its indices.
++inline void configuration(const g::Configuration &cfg,const n::FullTimeChemistryRegistry &registry,
++                          const pfc::Blob &blob) {
++  need(blob.bytes>0 && blob.bytes<=blob.storage.size()*sizeof(std::uint64_t) &&
++       pfc::sha256_hex(blob.base(),blob.bytes)==blob.sha256,"actual blob bytes");
++  std::size_t ns=0,ng=0,np=0;
++  need(blob.view.species==blob.at<pfc::SpeciesRec>("species",&ns) &&
++       blob.view.groups==blob.at<pfc::GroupRec>("groups",&ng) &&
++       blob.view.procs==blob.at<pfc::ProcessRec>("procs",&np) && ns==blob.n_species &&
++       ng==blob.n_groups && np==blob.n_proc && blob.species_names.size()==ns,"blob table views");
++  need(cfg.chemistry_blob_sha256==blob.sha256 && registry.blob_sha256==blob.sha256 &&
++       cfg.chemistry_registry_sha256==registry.registry_sha256,"blob/registry identity");
++  need(registry.species.size()==blob.n_species && cfg.species.size()>=registry.species.size() &&
++       cfg.processes.size()==blob.n_proc,"registry/process cardinality");
++  std::vector<bool> targets(blob.n_species,false);
++  for(std::uint32_t k=0;k<blob.n_groups;++k) {
++    need(blob.view.groups[k].target<blob.n_species && blob.view.groups[k].projectile<blob.n_species,"group species");
++    targets[blob.view.groups[k].target]=true;
++  }
++  for(std::size_t k=0;k<registry.species.size();++k) {
++    const auto &s=registry.species[k];const auto &c=cfg.species[k];
++    const double mass=(blob.view.species[k].mass_eV*n::pic_e)/(n::pic_c*n::pic_c);
++    need(s.state=="pfc-v3/"+blob.species_names[k] && c.state==s.state && same(c.mass_kg,s.mass_kg) &&
++         same(s.mass_kg,mass) && c.charge==s.charge_e && c.charge==blob.view.species[k].charge &&
++         c.chemistry_target==targets[k] && s.target==targets[k],"species operands");
++  }
++  for(std::uint32_t k=0;k<blob.n_proc;++k) {
++    const auto &p=blob.view.procs[k];const auto &c=cfg.processes[k];
++    need(p.group<blob.n_groups && p.n_out>=1 && p.n_out<=pfg::kMaxOut,"process layout");
++    need(c.projectile==blob.view.groups[p.group].projectile && c.n_out==p.n_out && c.kind==p.kind &&
++         c.internal_carrier==internal_carrier(p.kind,p.n_out),"process operands");
++  }
++}
++
++// Construct once per immutable native/gas configuration. The native grid and
++// solid-cell mask are reused, not rebuilt on every collision stage.
++class Binding {
++  g::Configuration gas_;
++  n::FullTimeChemistryRegistry registry_;
++  n::chem8::Grid grid_;
++  std::string gas_identity_;
++  std::map<std::string,std::uint32_t> species_;
++public:
++  Binding(const g::Owner &gas,const n::FullTimeChemistryRegistry &registry,const pfc::Blob &blob,
++          const n::GapPicOptions &options) : gas_(gas.configuration()),registry_(registry) {
++    configuration(gas_,registry_,blob);
++    grid_=n::chem8::make_grid(options,gas_.grid.n);
++    need(grid_.sha256==registry_.grid_sha256 && grid_.low==gas_.grid.low && grid_.high==gas_.grid.high &&
++         grid_.n==gas_.grid.n && same(grid_.volume,gas_.grid.volume),"native/gas collision geometry");
++    gas_identity_=gas.configuration_sha256();
++    for(std::uint32_t k=0;k<gas_.species.size();++k)
++      need(species_.emplace(gas_.species[k].state,k).second,"duplicate gas species");
++  }
++  const g::Configuration &gas() const noexcept {return gas_;}
++  const n::FullTimeChemistryRegistry &registry() const noexcept {return registry_;}
++  const n::chem8::Grid &grid() const noexcept {return grid_;}
++  const std::string &gas_identity() const noexcept {return gas_identity_;}
++  const std::map<std::string,std::uint32_t> &species() const noexcept {return species_;}
++};
++
++class Batch {
++  friend Batch prepare(const n::CollisionScope &,const n::PreparedArena &,const g::Owner &,
++                       const Binding &,std::size_t);
++  std::shared_ptr<const n::FullTimeChemistryStageExport> export_;
++  std::string gas_configuration_,gas_accepted_,gas_candidate_;
++  g::Owner::CandidateBinding gas_attempt_;
++  std::vector<pfg::RecoilRecord> recoil_;
++  std::vector<pfg::FlowRecord> flows_;
++  Batch()=default;
++public:
++  Batch(const Batch &)=delete;
++  Batch &operator=(const Batch &)=delete;
++  Batch(Batch &&) noexcept=default;
++  Batch &operator=(Batch &&) noexcept=default;
++  std::span<const pfg::RecoilRecord> recoils() const noexcept {return recoil_;}
++  std::span<const pfg::FlowRecord> flows() const noexcept {return flows_;}
++  const n::FullTimeChemistryStageExport &source() const {need(bool(export_),"moved batch");return *export_;}
++  // This is a preparation-time check, not a no-fail publication operation.
++  // A digest alone never authorizes an abandoned deterministic retry.
++  void validate_current(const n::CollisionScope &scope,const n::PreparedArena &token,const g::Owner &gas) const {
++    need(export_ && scope.can_inspect(token) && gas.matches_candidate(gas_attempt_,export_->accepted_step),"dead native/gas candidate");
++    // The pinned native implementation creates and validates one immutable
++    // deep snapshot per attempt and retains no mutable alias. Rechecking its
++    // complete event/count hashes on every preflight adds work but no new
++    // information. Authority still comes from both live serial-owner tokens.
++    const auto stage=token.candidate_chemistry_stage();
++    need(stage && stage->admitted_export==export_,"different native attempt");
++    need(gas.configuration_sha256()==gas_configuration_ && gas.accepted_sha256()==gas_accepted_ &&
++         gas.candidate_sha256()==gas_candidate_,"changed gas base/candidate");
++    need(scope.can_inspect(token),"native candidate changed during validation");
++  }
++};
++
++inline Batch prepare(const n::CollisionScope &scope,const n::PreparedArena &token,const g::Owner &gas,
++                     const Binding &binding,std::size_t cap) {
++  need(cap>0 && scope.can_inspect(token) && gas.step_open(),"live candidate and positive capacity required");
++  need(gas.configuration_sha256()==binding.gas_identity(),"gas configuration changed");
++  const auto &cfg=binding.gas();const auto &registry=binding.registry();
++  Batch b;b.export_=token.candidate_admitted_export(true);need(bool(b.export_),"missing admitted export");
++  // candidate_admitted_export(true) above already performs full strict validation.
++  const auto &x=*b.export_;
++  const auto &exposure=scope.exposure();const auto &common=exposure.common;
++  need(x.configuration_sha256==registry.configuration_sha256 && x.registry_sha256==registry.registry_sha256 &&
++       x.accepted_native_sha256==common.accepted_arena_sha256 && x.common_clock_sha256==common.common_clock_sha256 &&
++       x.accepted_step==common.accepted_step && same(x.begin_s,common.begin_s) && same(x.end_s,common.end_s) &&
++       same(x.step_duration_s,common.dt_s) && same(x.collision_duration_s,exposure.collision_duration_s) &&
++       same(x.frozen_physical_stage_s,exposure.frozen_physical_stage_s) &&
++       x.frozen_field_sha256==exposure.frozen_field_sha256 && x.owner_stage_sequence==exposure.owner_stage_sequence &&
++       x.stage==(exposure.slot==n::FullTimeSlot::before_transport?1u:2u),"native exposure/registry binding");
++  b.gas_attempt_=gas.candidate_binding();
++  need(gas.matches_candidate(b.gas_attempt_,x.accepted_step),"gas/native step differs");
++  b.gas_configuration_=gas.configuration_sha256();b.gas_accepted_=gas.accepted_sha256();b.gas_candidate_=gas.candidate_sha256();
++  need(x.events.size()<=cap,"event capacity");
++  std::size_t remaining=cap-x.events.size();
++  auto account=[&](std::size_t count){need(count<=remaining,"total record capacity");remaining-=count;};
++  for(const auto &d:x.target_debits){account(d.before.carriers.size());account(d.remainder.carriers.size());}
++  for(const auto &r:x.releases)account(r.carriers.size());
++  b.recoil_.reserve(x.events.size());b.flows_.reserve(cap-x.events.size()-remaining);
++  const std::uint64_t cells=std::uint64_t(cfg.grid.n[0])*cfg.grid.n[1]*cfg.grid.n[2];
++  for(const auto &event:x.events) {
++    pfg::RecoilRecord r{};r.accepted_step=x.accepted_step;r.stage=std::uint32_t(x.stage);r.grid_cell=event.atlas_cell;
++    need(event.event_bytes.size()==sizeof(r.ev) && r.grid_cell<cells && binding.grid().vacuum[r.grid_cell],"event ABI/cell");
++    std::memcpy(&r.ev,event.event_bytes.data(),sizeof(r.ev));
++    need(r.ev.process<cfg.processes.size() && r.ev.n_out>=1 && r.ev.n_out<=pfg::kMaxOut &&
++         r.ev.target_species<registry.species.size() && same(r.ev.weight,event.weight),"event process/species");
++    bool gas_return=false;
++    for(std::uint32_t k=0;k<r.ev.n_out;++k)gas_return|=r.ev.out_dest[k]==pfg::kDestGas;
++    need(gas_return?!event.consumes_tracked_target:event.consumes_tracked_target,
++         "untracked consumed target or GAS-return debit");
++    b.recoil_.push_back(r);
++  }
++  const auto &species=binding.species();
++  auto packet=[&](const n::FullTimeChemistryPacketSnapshot &p,std::uint32_t sp,std::uint32_t kind,
++                  bool negative,std::uint32_t expected_cell) {
++    need(p.carried_internal_energy_J==0,"packet internal-energy attribution not supported");
++    if(p.packet_id.empty()) {need(p.count.zero() && p.carriers.empty(),"absent packet count");return;}
++    need(sp<cfg.species.size() && p.state==cfg.species[sp].state,"packet species mapping");
++    n::ArenaCount total;
++    for(const auto &particle:p.carriers) {
++      need(b.flows_.size()<cap-b.recoil_.size() && std::isfinite(particle.weight) && particle.weight>0 &&
++           same(particle.mass_kg,cfg.species[sp].mass_kg) && particle.charge_C==cfg.species[sp].charge*n::pic_e &&
++           pfg::finite3(particle.position_m.data()) && pfg::finite3(particle.proper_velocity_m_s.data()),"carrier operands/capacity");
++      const auto cell=binding.grid().locate(particle.position_m.data());
++      need(cell!=pfg::kNone && (expected_cell==pfg::kNone || cell==expected_cell),"carrier atlas cell");
++      pfg::FlowRecord f{};f.kind=kind;f.negative=negative?1u:0u;f.grid_cell=cell;f.species=sp;
++      f.native_id=particle.id;f.weight=particle.weight;
++      std::copy(particle.proper_velocity_m_s.begin(),particle.proper_velocity_m_s.end(),f.u);
++      b.flows_.push_back(f);total=total.credited(particle.weight);
++    }
++    need(total==p.count,"carrier count projection differs from exact packet count");
++  };
++  for(const auto &debit:x.target_debits) {
++    need(!debit.also_projectile && !debit.internal_energy_deferred,"ambiguous target debit");
++    packet(debit.before,debit.species,pfg::kFlowDebit,true,debit.atlas_cell);
++    packet(debit.remainder,debit.species,pfg::kFlowDebit,false,debit.atlas_cell);
++  }
++  for(const auto &release:x.releases) {
++    need(x.stage==2 && species.count(release.state),"release stage/species");
++    packet(release,species.at(release.state),pfg::kFlowRelease,false,pfg::kNone);
++  }
++  b.validate_current(scope,token,gas);
++  return b;
++}
++} // namespace native_gas_stage
+--- /dev/null
++++ b/include/native_gas_targets.hpp
+@@ -0,0 +1,96 @@
++#pragma once
++#include "raikou/mfem_pic_target_feedback.h"
++#include "native_gas_stage.hpp"
++
++// CPU reference preparation only. This never authorizes native/gas publication
++// or opens the strict eventful target-energy-owner gate.
++namespace native_gas_targets {
++namespace n=raikou::mfem_backend;
++namespace g=pf_gas_v1;
++namespace a=native_gas_stage;
++inline void need(bool x,const char *why){if(!x)throw std::invalid_argument(std::string("native_gas_targets: ")+why);}
++static_assert(sizeof(pfc::CellTargets)==sizeof(g::CellTargetsAbi));
++#define NGT_FIELD(x) static_assert(offsetof(pfc::CellTargets,x)==offsetof(g::CellTargetsAbi,x))
++NGT_FIELD(n);NGT_FIELD(drift);NGT_FIELD(s);NGT_FIELD(species);NGT_FIELD(n_targets);NGT_FIELD(pad);
++#undef NGT_FIELD
++inline std::string sha(const std::string &s){return pfc::sha256_hex(s.data(),s.size());}
++inline std::string contract(const n::FullTimeChemistryConfiguration &native,const n::GapPicOptions &options,
++                            const g::Owner &gas) {
++  auto base=native;base.host_target_feedback=false;base.host_target_contract_sha256.clear();base.coupled_target_contract_sha256.clear();
++  const auto registry=n::full_time_chemistry_registry(base,options);
++  return sha(n::ArenaJson{{"schema","native-gas-target-feedback-cpu-v1"},
++    {"coupled_target_contract",native.coupled_target_contract_sha256},{"native_base_configuration",registry.configuration_sha256},{"registry",registry.registry_sha256},
++    {"gas_configuration",gas.configuration_sha256()},{"model","neutral-Maxwellian-moment-correction"}}.dump());
++}
++inline std::string feedback_digest(const g::FeedbackReceipt &r) {
++  return sha(n::ArenaJson{{"schema","native-gas-feedback-receipt-v1"},{"slots",r.slots},
++    {"eligible",r.eligible},{"changed",r.changed},{"clamped",r.clamped},
++    {"before",r.cells_before_sha256},{"after",r.cells_after_sha256}}.dump());
++}
++inline bool equal(const n::FullTimeHostTargetDraft &x,const n::FullTimeHostTargetDraft &y) {
++  return x.input_sha256==y.input_sha256 && x.owner_configuration_sha256==y.owner_configuration_sha256 &&
++    x.owner_accepted_sha256==y.owner_accepted_sha256 && x.owner_candidate_sha256==y.owner_candidate_sha256 &&
++    x.owner_feedback_sha256==y.owner_feedback_sha256 && x.before_targets_root==y.before_targets_root &&
++    x.after_targets_root==y.after_targets_root && x.cells.size()==y.cells.size() &&
++    (x.cells.empty() || std::memcmp(x.cells.data(),y.cells.data(),x.cells.size()*sizeof(pfc::CellTargets))==0);
++}
++class Provider final:public n::FullTimeHostTargetProvider {
++  // Shared ownership prevents a callback retaining a dangling gas owner. Its
++  // private capability additionally rejects mutation/retry/equal-state owners.
++  std::shared_ptr<g::Owner> gas_;
++  a::Binding binding_;
++  std::string contract_;
++  g::Owner::CandidateBinding attempt_;
++  std::shared_ptr<const n::FullTimeHostTargetInputs> input_;
++  n::FullTimeHostTargetDraft output_;
++  g::FeedbackReceipt feedback_;
++  bool attempted_=false,ready_=false;
++public:
++  Provider(std::shared_ptr<g::Owner> gas,const n::FullTimeChemistryRegistry &registry,const pfc::Blob &blob,
++           const n::FullTimeChemistryConfiguration &configuration,const n::GapPicOptions &options)
++    :gas_(std::move(gas)),binding_(*(need(bool(gas_),"missing gas owner"),gas_),registry,blob,options),
++     contract_(contract(configuration,options,*gas_)) {
++    need(configuration.host_target_feedback && configuration.host_target_contract_sha256==contract_,"native contract mode");
++    need(binding_.gas().feedback && binding_.gas().execution==g::Execution::host &&
++      configuration.execution==n::FullTimeChemistryExecution::host,"explicit CPU gas feedback required");
++    const auto actual=n::full_time_chemistry_registry(configuration,options);
++    need(actual.configuration_sha256==registry.configuration_sha256 && actual.registry_sha256==registry.registry_sha256,
++      "actual native configuration differs");
++  }
++  n::FullTimeHostTargetDraft apply(std::shared_ptr<const n::FullTimeHostTargetInputs> input) override {
++    need(!attempted_,"provider is one-shot per native stage attempt");attempted_=true;
++    need(bool(input),"missing authentic native input");input_=std::move(input);
++    const auto &x=*input_;const auto &r=binding_.registry();
++    need(x.configuration_sha256==r.configuration_sha256 && x.registry_sha256==r.registry_sha256 &&
++      x.blob_sha256==r.blob_sha256 && x.grid_sha256==binding_.grid().sha256 && x.contract_sha256==contract_,
++      "native/gas configuration binding");
++    need(x.stage==(x.exposure.slot==n::FullTimeSlot::before_transport?1u:2u) &&
++      x.atlas.size()==x.cells.size() && x.targets_root==n::full_time_host_target_cells_sha256(x.cells),"native stage/targets");
++    std::uint32_t prev=0;bool first=true;
++    for(auto cell:x.atlas){need(cell<binding_.grid().vacuum.size() && binding_.grid().vacuum[cell] &&
++      (first || cell>prev),"native vacuum atlas ordering");first=false;prev=cell;}
++    attempt_=gas_->candidate_binding();
++    need(gas_->matches_candidate(attempt_,x.exposure.common.accepted_step),"gas/native step or candidate mismatch");
++    output_.input_sha256=x.sha256;output_.owner_configuration_sha256=gas_->configuration_sha256();
++    output_.owner_accepted_sha256=gas_->accepted_sha256();output_.owner_candidate_sha256=gas_->candidate_sha256();
++    output_.before_targets_root=x.targets_root;
++    std::vector<g::CellTargetsAbi> cells(x.cells.size());
++    if(!cells.empty())std::memcpy(cells.data(),x.cells.data(),cells.size()*sizeof(g::CellTargetsAbi));
++    feedback_=gas_->feedback(x.exposure.common.accepted_step,x.stage,x.atlas,cells);
++    need(feedback_.clamped==0,"gas feedback reported clamping");
++    output_.cells.resize(cells.size());
++    if(!cells.empty())std::memcpy(output_.cells.data(),cells.data(),cells.size()*sizeof(g::CellTargetsAbi));
++    output_.after_targets_root=n::full_time_host_target_cells_sha256(output_.cells);
++    output_.owner_feedback_sha256=feedback_digest(feedback_);ready_=true;
++    validate_current(input_,output_);return output_;
++  }
++  void validate_current(std::shared_ptr<const n::FullTimeHostTargetInputs> input,
++                        const n::FullTimeHostTargetDraft &draft) const override {
++    need(ready_ && input && input==input_ && equal(draft,output_),"changed feedback attempt/input/result");
++    need(gas_->matches_candidate(attempt_,input_->exposure.common.accepted_step),"gas lifetime/step/revision changed");
++    need(gas_->configuration_sha256()==output_.owner_configuration_sha256 && gas_->accepted_sha256()==output_.owner_accepted_sha256 &&
++      gas_->candidate_sha256()==output_.owner_candidate_sha256,"gas feedback state changed");
++  }
++  const g::FeedbackReceipt &feedback() const {need(ready_,"feedback not prepared");return feedback_;}
++};
++} // namespace native_gas_targets
+--- /dev/null
++++ b/tests/allocation_probe.cpp
+@@ -0,0 +1,21 @@
++#include "allocation_probe.hpp"
++void *operator new(std::size_t size) {
++  allocation_probe::tick();
++  if(void *p=std::malloc(size?size:1))return p;
++  throw std::bad_alloc();
++}
++void *operator new[](std::size_t size){return ::operator new(size);}
++void operator delete(void *p) noexcept {std::free(p);}
++void operator delete[](void *p) noexcept {std::free(p);}
++void operator delete(void *p,std::size_t) noexcept {std::free(p);}
++void operator delete[](void *p,std::size_t) noexcept {std::free(p);}
++void *operator new(std::size_t size,std::align_val_t alignment) {
++  allocation_probe::tick();void *p=nullptr;
++  if(posix_memalign(&p,std::size_t(alignment),size?size:1)!=0)throw std::bad_alloc();
++  return p;
++}
++void *operator new[](std::size_t size,std::align_val_t a){return ::operator new(size,a);}
++void operator delete(void *p,std::align_val_t) noexcept {std::free(p);}
++void operator delete[](void *p,std::align_val_t) noexcept {std::free(p);}
++void operator delete(void *p,std::size_t,std::align_val_t) noexcept {std::free(p);}
++void operator delete[](void *p,std::size_t,std::align_val_t) noexcept {std::free(p);}
+--- /dev/null
++++ b/tests/allocation_probe.hpp
+@@ -0,0 +1,13 @@
++#pragma once
++#include <cstdlib>
++#include <new>
++#include <cstddef>
++namespace allocation_probe {
++inline thread_local long fail_after=-1;
++inline thread_local std::size_t allocations=0;
++inline void tick() {
++  if(fail_after==0) throw std::bad_alloc();
++  if(fail_after>0) --fail_after;
++  ++allocations;
++}
++}
+--- /dev/null
++++ b/tests/coupled_step_fixture.hpp
+@@ -0,0 +1,144 @@
++// Derived from frozen chem_v8_fixture.hpp; only adds stage preparer injection.
++#pragma once
++#include "chem_v8_fixture.hpp"
++#include "coupled_trial.hpp"
++#include "allocation_probe.hpp"
++namespace chemfix {
++inline StepReport coupled_step(Arena &A,double dt,int k,std::shared_ptr<pf_gas_v1::Owner> gas,
++ const std::function<void(native_gas_common::CoupledTrial&,m::CollisionScope&,unsigned)>&before_stage,
++ const std::function<void(native_gas_common::CoupledTrial&)>&before_seal,
++ const std::function<void(native_gas_common::CoupledTrial&)>&before_publish,
++ nlohmann::json &receipt,std::shared_ptr<const native_gas_common::CoupledTrial::Continuation>&continuation,bool publish=true) {
++  StepReport R;
++  Timer T;
++  auto &arena = *A.arena;
++  const auto &o = A.o;
++  const auto bnd = arena.full_time_boundary();
++  m::FullTimeStepBinding b{bnd->accepted_step, bnd->accepted_arena_revision, bnd->time_s, bnd->time_s + dt, dt,
++                           bnd->accepted_arena_sha256, bnd->field_sha256, bnd->mesh_sha256, bnd->material_sha256,
++                           sha("clock/" + std::to_string(k))};
++  const auto stages = arena.full_time_chemistry().stages;
++  T.start();
++  auto raw_outer = arena.begin_full_time_step(b, A.cfg.limits.maximum_carriers, 64);
++  native_gas_common::CoupledTrial coupled(std::move(raw_outer),gas,A.cfg.chemistry,A.o,b.accepted_step,A.cfg.limits.maximum_carriers,continuation);
++  auto &outer=coupled.outer();
++  T.stop(R.phases["begin"]);
++  m::ExposureBinding e1{b, m::FullTimeSlot::before_transport, b.begin_s, .5 * dt, stages, b.accepted_field_sha256};
++  T.start();
++  auto s1 = outer.first_exposure(e1);
++  if(before_stage)before_stage(coupled,s1,1);
++  R.stage1=coupled.run_stage(s1);
++  T.stop(R.phases["stage1"]);
++
++  T.start();
++  std::optional<m::PreparedBirths> born;
++  auto trial=outer.fork_transport_trial();
++  auto flights=trial.birth_flights();
++  R.census_sha256 = trial.census_sha256();
++  T.stop(R.phases["fork_census"]);
++  // ---- producer (untimed): straight drift of the trial census
++  const auto &census = trial.census_v7();
++  std::vector<m::GapParticle> rows(census.carriers.begin(), census.carriers.end());
++  R.census = rows.size();
++  const m::PicVector shift{-.5 * o.width_m, -.5 * o.gap_m, 0};
++  std::vector<m::GapParticle> ends = rows;
++  std::vector<m::FullTimeMotionPath> paths(rows.size());
++  for (std::size_t i = 0; i < rows.size(); ++i) {
++    const auto &p = rows[i];
++    double u2 = 0;
++    for (double v : p.proper_velocity_m_s)
++      u2 += v * v;
++    const double gamma = std::sqrt(1 + u2 / (m::pic_c * m::pic_c));
++    for (int d = 0; d < 3; ++d)
++      ends[i].position_m[d] = p.position_m[d] + dt * p.proper_velocity_m_s[d] / gamma;
++    auto &pa = paths[i];
++    pa.native_id = p.id;
++    pa.flight_s = dt;
++    for(const auto&flight:flights)if(flight.native_id==p.id)pa.flight_s=flight.flight_s;
++    for (int d = 0; d < 3; ++d) {
++      pa.field_start_m[d] = p.position_m[d] + shift[d];
++      pa.field_displacement_m[d] = (ends[i].position_m[d] + shift[d]) - pa.field_start_m[d];
++    }
++  }
++  const pf_v7::HallAxialMesh hm{std::uint64_t(o.nx), 6};
++  static std::map<std::uint64_t, std::vector<double>> Es, Bs, Js;
++  auto &E = Es[hm.n], &B = Bs[hm.n], &Jc = Js[hm.n];
++  if (E.empty()) {
++    E.assign(hm.ne(), 1e3);
++    B.assign(hm.nb(), 0.0);
++    Jc.assign(hm.ne(), 0.0);
++  }
++  m::FullTimeMotionRecordV7 x;
++  x.accepted_step = b.accepted_step;
++  x.staged_arena_revision = trial.staged_arena_revision();
++  x.begin_s = b.begin_s;
++  x.end_s = b.end_s;
++  x.dt_s = dt;
++  x.staged_arena_sha256 = trial.state_prefix();
++  x.trial_field_sha256 = pf_v7::trial_field_blocks_sha256(E, B);
++  x.mesh_sha256 = b.mesh_sha256;
++  x.material_sha256 = b.material_sha256;
++  x.species_sha256 = sha("species");
++  x.common_clock_sha256 = b.common_clock_sha256;
++  x.kinetic_policy_sha256 = hall_driver::kinetic_policy_sha256(hall_driver::declared_kinetic_policy(o));
++  std::vector<m::GapParticle> start_rows(ends.size());
++  for (std::size_t i = 0; i < ends.size(); ++i) {
++    start_rows[i] = ends[i];
++    for (int d = 0; d < 3; ++d)
++      start_rows[i].position_m[d] = paths[i].field_start_m[d] - shift[d];
++  }
++  const auto K = pf_v7::kinetic_change_J({reinterpret_cast<const pf_v7::Carrier *>(start_rows.data()), start_rows.size()},
++                                         {reinterpret_cast<const pf_v7::Carrier *>(ends.data()), ends.size()}, {});
++  const auto W = pf_v7::field_work_J(dt, E, Jc);
++  x.budget = {K.value, W.value, K.value - W.value, 0, 0, 0, 0};
++  x.census_sha256 = R.census_sha256;
++  x.current_A_m_sha256 = pf_v7::current_blocks_sha256(Jc);
++  x.endpoint_charge_C_sha256 = sha("endpoint-charge");
++  x.initial_charge_C_sha256 = sha("initial-charge");
++  x.kinetic_policy = {o.width_m, o.gap_m, o.short_z_m, o.feed_z_m, o.lower_foil.left_m, o.lower_foil.right_m,
++                      o.lower_foil.bottom_m, o.lower_foil.top_m, o.upper_foil.left_m, o.upper_foil.right_m,
++                      o.upper_foil.bottom_m, o.upper_foil.top_m};
++  x.native_to_field_m = shift;
++  x.neutral_stream_dt_max_s = A.cfg.motion.neutral_stream_dt_max_s;
++  x.endpoints = ends;
++  x.paths = paths;
++  x.births=flights;
++  if(born)x.schema=m::motion_v81_schema;
++  x.record_sha256 = born?m::full_time_motion_record_v81_sha256(x):m::full_time_motion_record_v7_sha256(x);
++  x.trial_E = E;
++  x.trial_B = B;
++  x.current_A_m = Jc;
++  m::FullTimeMotionBinding mb{b, x.record_sha256, b.accepted_field_sha256, sha("f/" + std::to_string(k)),
++                              sha("h/" + std::to_string(k)), trial.source_after_sha256()};
++  T.start();
++  auto moved = trial.prepare_total_field_motion(mb, m::bind_total_field_motion_v7(x));
++  outer.accept_transport_trial(std::move(moved));
++  T.stop(R.phases["admission_accept"]);
++  m::ExposureBinding e2 = e1;
++  e2.slot = m::FullTimeSlot::after_transport;
++  e2.frozen_physical_stage_s = b.end_s;
++  e2.owner_stage_sequence = stages + 1;
++  e2.frozen_field_sha256 = mb.field_after_sha256;
++  T.start();
++  auto s2 = outer.second_exposure(e2);
++  if(before_stage)before_stage(coupled,s2,2);
++  R.stage2=coupled.run_stage(s2);
++  T.stop(R.phases["stage2"]);
++  native_gas_common::clone_proof_json(receipt,coupled.stage_receipts());
++  if (!publish) return R; // deliberately abandoned common candidate
++  if (before_seal)
++    before_seal(coupled);
++  T.start();
++  coupled.seal({mb.field_after_sha256, mb.heat_after_sha256, mb.source_after_sha256, R.stage2->state_after_sha256});
++  native_gas_common::clone_proof_json(receipt,coupled.receipt());
++  if(before_publish)before_publish(coupled);
++  allocation_probe::fail_after=0;
++  const bool ok=coupled.can_publish() && coupled.try_publish();
++  const auto remaining=allocation_probe::fail_after;allocation_probe::fail_after=-1;
++  if(!ok || remaining!=0)throw std::runtime_error("common publication refused or allocated");
++  T.stop(R.phases["seal_publish"]);
++  continuation=coupled.continuation();
++  R.boundary_sha256 = arena.full_time_boundary()->accepted_arena_sha256;
++  return R;
++}
++}
+--- a/tests/test_common_stage.cpp
++++ b/tests/test_common_stage.cpp
+@@ -1,75 +1,90 @@
+-#include "population_step_fixture.hpp"
+-#include "actual_accounting.hpp"
+-#include "pf_coupled/gas_step_scope.hpp"
++#include "coupled_step_fixture.hpp"
+ #include <filesystem>
+ #include <fstream>
+ #include <iostream>
+ namespace n=raikou::mfem_backend;namespace g=pf_gas_v1;namespace a=native_gas_stage;namespace t=native_gas_targets;namespace c=native_gas_common;
+ using J=nlohmann::json;int checks=0;
+-struct ExpectedRollback:std::runtime_error{using std::runtime_error::runtime_error;};
+ void check(bool b,const char*s){++checks;if(!b)throw std::runtime_error(s);}
+ g::Configuration gas_config(const n::GapPicOptions&o,const n::FullTimeChemistryRegistry&r,const pfc::Blob&b){
+- g::Configuration x;x.preset="diagnostic-common-native-gas-stage";x.feedback=true;auto grid=n::chem8::make_grid(o,{std::uint32_t(o.nx),std::uint32_t(o.ny),5});x.grid={grid.low,grid.high,grid.n,grid.volume};x.chemistry_blob_sha256=b.sha256;x.chemistry_registry_sha256=r.registry_sha256;
+- for(const auto&s:r.species){x.species.push_back({s.state,s.mass_kg,s.charge_e,s.target});}
+- for(std::uint32_t k=0;k<b.n_proc;++k){const auto&p=b.view.procs[k];x.processes.push_back({b.view.groups[p.group].projectile,p.n_out,a::internal_carrier(p.kind,p.n_out),p.kind});}return x;
++ g::Configuration x;x.preset="bounded-strict-native-gas-reference";x.feedback=true;
++ auto grid=n::chem8::make_grid(o,{std::uint32_t(o.nx),std::uint32_t(o.ny),5});x.grid={grid.low,grid.high,grid.n,grid.volume};
++ x.chemistry_blob_sha256=b.sha256;x.chemistry_registry_sha256=r.registry_sha256;
++ for(const auto&s:r.species)x.species.push_back({s.state,s.mass_kg,s.charge_e,s.target});
++ for(std::uint32_t k=0;k<b.n_proc;++k){const auto&p=b.view.procs[k];x.processes.push_back({b.view.groups[p.group].projectile,p.n_out,a::internal_carrier(p.kind,p.n_out),p.kind});}
++ return x;
+ }
+ struct Scenario {
+- n::GapPicOptions o; n::FullTimeChemistryConfiguration cfg;std::shared_ptr<g::Owner>gas;chemfix::Arena A;a::Binding binding;
+- Scenario(const pfc::Blob&blob,const std::vector<n::FullTimeAuthoredPacket>&packets)
+- :o(chemfix::options()),cfg(chemfix::chemistry_configuration(o)),gas([&]{auto r=n::full_time_chemistry_registry(cfg,o);return std::make_shared<g::Owner>(gas_config(o,r,blob));}()),
+-  A([&]{cfg.host_target_feedback=true;cfg.host_target_contract_sha256=t::contract(cfg,o,*gas);return chemfix::make_arena(o,cfg,packets,120000,2);}()),binding(*gas,A.reg,blob,o){}
++ n::GapPicOptions o;n::FullTimeChemistryConfiguration cfg;std::shared_ptr<g::Owner>gas;chemfix::Arena A;
++ Scenario(const pfc::Blob&blob,const std::vector<n::FullTimeAuthoredPacket>&packets,bool minimum=false)
++ :o(chemfix::options()),cfg(chemfix::chemistry_configuration(o)),
++ gas([&]{cfg.diagnostic_field_target_approximation=false;if(minimum){cfg.water_scope_contract=n::full_time_minimum_water_scope_contract(cfg,o);cfg.water_scope_contract_sha256=native_gas_targets::sha(cfg.water_scope_contract);cfg.water_scope_mode=n::FullTimeWaterScopeMode::minimum_water;}auto r=n::full_time_chemistry_registry(cfg,o);return std::make_shared<g::Owner>(gas_config(o,r,blob));}()),
++ A([&]{cfg.coupled_target_contract_sha256=c::coupled_contract(cfg,o,*gas);cfg.host_target_feedback=true;cfg.host_target_contract_sha256=t::contract(cfg,o,*gas);return chemfix::make_arena(o,cfg,packets,120000,2);}()){}
+ };
+ int main(int argc,char**argv){try{
+- if(argc!=2 && argc!=3)throw std::runtime_error("output path and optional control required");
+- const std::string control=argc==3?argv[2]:"normal";
+- check(control=="normal" || control=="feedback-weight" || control=="after-take-stage2" || control=="same-digest-stage1","unknown control");
+- bool fault_seen=false;
+- std::filesystem::path out=argv[1];std::filesystem::create_directories(out);const auto blob=pfc::load_blob(chemfix::blob_path(),chemfix::blob_sha());
+- chemfix::Population p;p.carriers=3000;p.seed=11;p.clustered=true;p.water_weight=2e13;p.charged_weight=control=="feedback-weight"?1.0:1e-10;p.electron_eV_min=5;p.electron_eV_max=300;
+- Scenario S(blob,chemfix::population(p));const auto native_before=S.A.arena->state_prefix(),rng_before=S.A.arena->full_time_chemistry().state_sha256,gas_before=S.gas->accepted_sha256();J records=J::array();
+- try {
+-  auto rollback=pf_coupled::GasStepScope::begin(S.gas,0);
+-  auto prepare=[&](n::CollisionScope&scope){
+-   const auto rows=scope.rate_population(120000);const auto gas0=c::owner_stock(*S.gas);
+-   auto provider=std::make_shared<t::Provider>(S.gas,S.A.reg,blob,S.cfg,S.o);
+-   auto token=scope.prepare_chemistry_v3_host_targets(provider);token.validate_candidate_host_targets();
+-   const auto population=scope.candidate_population(token,120000,1u<<28);const auto stock=scope.candidate_stocks(token,1000000,1u<<28);
+-   auto inputs=a::prepare(scope,token,*S.gas,S.binding,1000000);inputs.validate_current(scope,token,*S.gas);
+-   const auto pre=c::before_inventory(rows,*population,stock->before),post=c::after_inventory(*population,stock->after);
+-   const auto pending0=c::pending(stock->before,*population,blob),pending1=c::pending(stock->after,*population,blob);
+-   const auto reference=c::reference_operands(inputs,*population,blob);
+-   auto stage=token.candidate_chemistry_stage();const auto gas_after=S.gas->take(stage->accepted_step,stage->stage,inputs.recoils(),inputs.flows());
+-   if(control=="after-take-stage2" && stage->stage==2)throw ExpectedRollback("injected stage2 after take");
+-   auto post_binding=S.gas->candidate_binding();
+-   if(control=="same-digest-stage1" && stage->stage==1){const auto hash=S.gas->candidate_sha256();S.gas->prepare_keys({},{},{});check(hash==S.gas->candidate_sha256() && !S.gas->matches_candidate(post_binding,stage->accepted_step),"same-digest mutation must invalidate post-stage capability");throw ExpectedRollback("injected stage1 same-digest mutation");}
+-   const auto gas1=c::owner_stock(*S.gas);
+-   J operands={{"stage",stage->stage},{"released_packets",stage->released_packets},{"actual_pending_before_K_J",c::exact_json(pending0.si.kinetic)},
+-      {"actual_pending_after_K_J",c::exact_json(pending1.si.kinetic)},{"gas_mirror_before_K_J",c::exact_json(gas0.reservoir_energy)},
+-      {"gas_mirror_after_K_J",c::exact_json(gas1.reservoir_energy)}};
+-   std::ofstream(out/("stage-"+std::to_string(stage->stage)+"-mirror-operands.json"))<<operands.dump(2)<<"\n";
+-   auto result=c::closure(pre,post,pending0,pending1,gas0,gas1,reference);
+-   result["stage"]=stage->stage;result["events"]=stage->admitted_events;result["native_population"]=population->sha256;result["actual_stock"]=stock->sha256;result["gas_candidate"]=gas_after;result["feedback_changed_slots"]=provider->feedback().changed;
+-   auto changed=post;changed.reference.add_product(1e-19,1);bool reference_refused=false;
+-   try{(void)c::closure(pre,changed,pending0,pending1,gas0,gas1,reference);}catch(const std::invalid_argument&){reference_refused=true;}
+-   check(reference_refused,"altered actual reference must refuse");
+-   changed=post;changed.kinetic.add_product(1e-19,1);check(!c::closure(pre,changed,pending0,pending1,gas0,gas1,reference)["energy_exact_zero"].get<bool>(),"altered actual kinetic energy cannot close");
+-   records.push_back(result);std::ofstream(out/"stage-progress.json")<<records.dump(2)<<"\n";
+-   check(result["energy_exact_zero"] && result["momentum_exact_zero"],"actual combined native/gas energy or momentum ledger does not close");
+-   check(scope.can_publish(token) && S.gas->matches_candidate(post_binding,stage->accepted_step) && S.gas->candidate_sha256()==gas_after,"post-stage native/gas capability binding");
+-   return token;
+-  };
+-  const auto R=chemfix::step_with_population(S.A,1e-12,0,prepare,{},{},false);
+-  check(R.stage1->admitted_events>0 && R.stage2->released_packets>0,"populated actual common stages");
+-  auto sealed=S.gas->prepare_commit(S.gas->candidate_sha256());check(S.gas->can_publish(sealed),"gas candidate all fallible publication work prepared");
+-  // This first accounting fixture deliberately abandons both candidates.
+- }catch(const ExpectedRollback&){fault_seen=true;
+- }catch(...){
+-  const bool rollback_ok=!S.gas->step_open() && S.gas->accepted_sha256()==gas_before && S.A.arena->state_prefix()==native_before && S.A.arena->full_time_chemistry().state_sha256==rng_before;
+-  std::ofstream(out/"failure-rollback.json")<<J{{"accepted_native_rng_gas_unchanged",rollback_ok}}.dump(2)<<"\n";
+-  check(rollback_ok,"failed common trial mutated accepted owner");throw;
++ if(argc!=3)throw std::runtime_error("output path and control required");
++ const std::string control=argv[2];std::filesystem::path out=argv[1];std::filesystem::create_directories(out);
++ check(control=="normal" || control=="empty" || control=="abandon" || control=="same-digest-stage1" || control=="same-digest-stage2" || control=="abandon-final" || control=="regular-refusal" || control=="move-final" || control=="cell-crossing" || control=="two-step" || control=="destroyed-native" || control=="allocation-count" || control.starts_with("allocation-seal-"),"unknown control");
++ auto blob=pfc::load_blob(chemfix::blob_path(),chemfix::blob_sha());chemfix::Population p;
++ p.carriers=3000;p.seed=11;p.clustered=true;p.water_weight=2e13;p.charged_weight=1e-10;p.electron_eV_min=5;p.electron_eV_max=300;
++ auto packets=control=="empty"?std::vector<n::FullTimeAuthoredPacket>{}:chemfix::population(p);
++ // Place the bounded reference fixture away from cell edges. The unchanged
++ // original placement remains a genuine crossing/refusal control.
++ if(control!="cell-crossing")for(auto &packet:packets)for(int axis=0;axis<2;++axis)
++   packet.position_m[axis]=.00205+.5*(packet.position_m[axis]-.0021);
++ Scenario S(blob,packets,control=="empty");const auto native0=S.A.arena->state_prefix(),rng0=S.A.arena->full_time_chemistry().state_sha256,gas0=S.gas->accepted_sha256();
++ std::shared_ptr<const c::CoupledTrial::Continuation> continuation;
++ J record;bool retry_accepted=false;std::string retry_receipt_sha256;long seal_allocations=-1;bool refused=false,regular_refused=false;std::string error;chemfix::StepReport R;
++ try{
++  R=chemfix::coupled_step(S.A,1e-12,0,S.gas,
++   [&](c::CoupledTrial&,n::CollisionScope&scope,unsigned stage){
++    if(control=="regular-refusal" && stage==1){try{(void)scope.prepare_chemistry_v3_host_targets(std::make_shared<t::Provider>(S.gas,S.A.reg,blob,S.cfg,S.o));}
++      catch(const n::FullTimeChemistryRefusal&e){regular_refused=e.kind()==n::FullTimeChemistryRefusal::Kind::target_energy_owner;}
++      check(regular_refused,"regular public chemistry must not open coupled owner gate");}
++    if(control=="same-digest-stage1" && stage==2){const auto prior=S.gas->candidate_sha256();S.gas->prepare_keys({},{},{});check(prior==S.gas->candidate_sha256(),"fixture mutation must preserve content digest");}
++   },
++   [&](c::CoupledTrial&){if(control.starts_with("allocation-seal-"))allocation_probe::fail_after=std::stol(control.substr(16));if(control=="allocation-count")allocation_probe::fail_after=std::numeric_limits<long>::max();if(control=="same-digest-stage2"){const auto prior=S.gas->candidate_sha256();S.gas->prepare_keys({},{},{});check(prior==S.gas->candidate_sha256(),"stage2 same-digest mutation");}},
++   [&](c::CoupledTrial&trial){
++    if(control=="allocation-count"){seal_allocations=std::numeric_limits<long>::max()-allocation_probe::fail_after;allocation_probe::fail_after=-1;}
++    if(control=="destroyed-native"){S.A.arena.reset();check(!trial.can_publish() && !trial.try_publish(),"destroyed native owner must invalidate final token");}
++    if(control=="abandon-final"){S.gas->abandon();check(!trial.can_publish() && !trial.try_publish(),"abandoned gas invalidates common publication");}
++    if(control=="move-final"){c::CoupledTrial moved(std::move(trial));check(!trial.can_publish() && moved.can_publish(),"moved common capability");trial=std::move(moved);check(!moved.can_publish() && trial.can_publish(),"moved-back common capability");}
++   },record,continuation,control!="abandon");
++ }catch(const std::exception&e){allocation_probe::fail_after=-1;refused=true;error=e.what();}
++ const bool expected_refusal=control=="same-digest-stage1" || control=="same-digest-stage2" || control=="abandon-final" || control=="cell-crossing" || control=="destroyed-native" || control.starts_with("allocation-seal-");
++ if(refused!=expected_refusal)throw std::runtime_error("unexpected common trial refusal outcome: "+error);
++ const bool accepted=!refused && control!="abandon";
++ if(accepted){check(S.A.arena->state_prefix()!=native0 && S.A.arena->full_time_boundary()->accepted_step==1 && !S.gas->step_open(),"both accepted owners advanced");check(record.at("stages").size()==2,"complete two-stage transcript");
++  for(const auto&r:record.at("stages")){
++   check(r.at("energy_exact_zero") && r.at("momentum_exact_zero") && r.at("quarantine_verified"),"verified quarantined actual inventory proof");
++   for(const auto&v:r.at("momentum_residual_kg_m_s"))check(v.is_object() && v.at("digits")==g::digits_text(g::Exact{}.normalised().data()),"serialized exact momentum proof");
++   for(const auto&v:r.at("raw_stored_momentum_balance"))check(v.is_object() && v.contains("digits"),"serialized raw momentum balance");
++  }
++  if(control=="empty")check(R.stage1->admitted_events==0 && R.stage2->admitted_events==0,"empty stage transcript must remain present");
++  else check(R.stage1->admitted_events>0 && R.stage2->released_packets>0,"actual populated stages and release required");
++ }else check((control=="destroyed-native" || (S.A.arena->state_prefix()==native0 && S.A.arena->full_time_chemistry().state_sha256==rng0)) && S.gas->accepted_sha256()==gas0 && !S.gas->step_open(),"refusal/abandon changed accepted native RNG or gas");
++ if(control.starts_with("allocation-seal-")) {
++  J retry;(void)chemfix::coupled_step(S.A,1e-12,0,S.gas,{},{},{},retry,continuation);
++  check(S.A.arena->full_time_boundary()->accepted_step==1 && !S.gas->step_open() && continuation && continuation->next_step()==1,
++        "allocation refusal must permit exact accepted-pair retry");
++  retry_accepted=true;retry_receipt_sha256=retry.at("sha256").get<std::string>();
+  }
+- check(!S.gas->step_open() && S.gas->accepted_sha256()==gas_before && S.A.arena->state_prefix()==native_before && S.A.arena->full_time_chemistry().state_sha256==rng_before,"whole private common step rollback");
+- check(fault_seen==(control=="after-take-stage2" || control=="same-digest-stage1"),"expected rollback control reached");
+- J result={{"passed",true},{"control",control},{"expected_fault_seen",fault_seen},{"checks",checks},{"native_source",n::PicArena::source_identity()},{"stages",records},{"strict_owner_gate_open",false},{"common_accepted_publication",false},{"production_qualified",false}};
++ if(control=="two-step") {
++  auto old=continuation;const auto first_native=S.A.arena->state_prefix(),first_gas=S.gas->accepted_sha256();
++  std::shared_ptr<const c::CoupledTrial::Continuation> missing;
++  bool refused_missing=false;try{J discarded;(void)chemfix::coupled_step(S.A,1e-12,1,S.gas,{},{},{},discarded,missing);}catch(const std::invalid_argument&){refused_missing=true;}
++  check(refused_missing && S.A.arena->state_prefix()==first_native && S.gas->accepted_sha256()==first_gas && !S.gas->step_open(),"unattested continuation must refuse without accepted changes");
++  J second;(void)chemfix::coupled_step(S.A,1e-12,1,S.gas,{},{},{},second,continuation);
++  check(continuation && continuation->next_step()==2 && second.at("parent_common_receipt")==old->common_receipt_sha256() &&
++        S.A.arena->full_time_boundary()->accepted_step==2,"actual authenticated second common step");
++  const auto second_native=S.A.arena->state_prefix(),second_gas=S.gas->accepted_sha256();
++  bool stale=false;try{J discarded;(void)chemfix::coupled_step(S.A,1e-12,2,S.gas,{},{},{},discarded,old);}catch(const std::invalid_argument&){stale=true;}
++  check(stale && S.A.arena->state_prefix()==second_native && S.gas->accepted_sha256()==second_gas && !S.gas->step_open(),"successful publication invalidates prior accepted pair");
++  Scenario foreign(blob,packets);bool refused_foreign=false;
++  try{J discarded;(void)chemfix::coupled_step(foreign.A,1e-12,0,foreign.gas,{},{},{},discarded,continuation);}catch(const std::invalid_argument&){refused_foreign=true;}
++  check(refused_foreign && foreign.A.arena->full_time_boundary()->accepted_step==0 && !foreign.gas->step_open(),"foreign equal-content pair refuses");
++  record=J{{"first",record},{"second",second},{"continuation",continuation->common_receipt_sha256()}};
++ }
++ J result={{"passed",true},{"control",control},{"checks",checks},{"refused",refused},{"refusal",error},{"common_accepted_publication",accepted},{"native_source",n::PicArena::source_identity()},
++  {"retry_accepted",retry_accepted},{"retry_receipt_sha256",retry_receipt_sha256},{"seal_allocations",seal_allocations},{"strict_target_owner_transaction",true},{"production_qualified",false},{"record",record}};
+  std::ofstream(out/"result.json")<<result.dump(2)<<"\n";std::cout<<result.dump()<<"\n";return 0;
+- }catch(const std::exception&e){std::cerr<<e.what()<<"\n";return 1;}}
++ }catch(const std::exception&e){allocation_probe::fail_after=-1;std::cerr<<e.what()<<"\n";return 1;}}
+--- a/tools/check.py
++++ b/tools/check.py
+@@ -2,40 +2,53 @@
+ import os,sys,json,hashlib,subprocess,time,importlib.util
+ if not __debug__:raise RuntimeError('optimized Python guards refused')
+ R=Path(__file__).resolve().parents[1];RT=R.parent
+-N=RT/'pic-reaction-transactions-20261029/native-full-time-v8.7-reservoir-stock-20261101'
+-G=RT/'gas-target-owner-v1.6-reservoir-release-20261101';F=RT/'arch-base-20261028';A=RT/'native-gas-adapter-v1.2-immutable-export-20261101';T=RT/'native-gas-target-feedback-v1-20261101'
++N=RT/'pic-reaction-transactions-20261029/native-full-time-v8.8-provisional-target-owner-20261101'
++BASE=RT/'pic-reaction-transactions-20261029/native-full-time-v8.7-reservoir-stock-20261101'
++G=RT/'gas-target-owner-v1.6-reservoir-release-20261101';F=RT/'arch-base-20261028'
+ P=Path('/home/treefor/projects/Power-Flow/native/coupled_pic/include')
+-O=Path('/home/treefor/projects/.workspace/outputs/native-gas-common-stage-v1.1-reference-accounting-20261101');label=sys.argv[1];D=O/label;D.mkdir(parents=True,exist_ok=False)
++O=Path('/home/treefor/projects/.workspace/outputs/native-gas-common-stage-v1.2-provisional-owner-20261101')
++mode,label=sys.argv[1:3];reuse=sys.argv[3:]==["--reuse-native"];assert not sys.argv[3:] or reuse;assert mode in ('normal','sanitized');D=O/label;D.mkdir(parents=True,exist_ok=False)
+ def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+ assert os.getenv('SIMQ_JOB_ID','').isdigit() and os.getenv('SIMQ_LAUNCH_TOKEN')
+ aff=sorted(os.sched_getaffinity(0));assert len(aff)==1 and os.getenv('SIMQ_CPU_LIST')==str(aff[0])
+ assert os.getenv('SIMQ_PARTITION')=='powerflow' and os.environ['SIMQ_UNIT'] in Path('/proc/self/cgroup').read_text()
+ assert all(os.getenv(k)=='1' for k in ('OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS'))
+-assert os.getenv('CUDA_VISIBLE_DEVICES')=='' and not os.getenv('PF_BUILD_ISA_FLAGS','') and int(os.environ['SIMQ_MEM'])>=3*1024**3
++assert os.getenv('CUDA_VISIBLE_DEVICES')=='' and not os.getenv('PF_BUILD_ISA_FLAGS','')
++assert int(os.environ['SIMQ_MEM']) >= (8 if mode=='sanitized' else 3)*1024**3
+ rs=Path('/').stat();fs=(F/'root').stat();assert (rs.st_dev,rs.st_ino)==(fs.st_dev,fs.st_ino),'frozen root required'
+ spec=importlib.util.spec_from_file_location('native_tooling',N/'tooling.py');native=importlib.util.module_from_spec(spec);spec.loader.exec_module(native);native.resource_guard(build=True)
+-manifest=json.loads((N/'SOURCE-SHA256.json').read_text());assert manifest['source_identity']=='d795695aca20ddef0efadedaebea8baa6c994e819514c0258bbac290fb66103d';assert all(sha(N/n)==v for n,v in manifest['files'].items())
+ dep=json.loads((R/'DEPENDENCIES.json').read_text());assert all(sha(p)==v for p,v in dep.items())
+ def pins():
+- result={str(N/n):sha(N/n) for n in manifest['files']}
+- for root,dirs in ((R,['include','tests','tools']),(G,['include','src'])):
++ result={}
++ for root,dirs in ((N,['source','forms','inputs','tests']),(R,['include','tests','tools']),(G,['include','src'])):
+   for d in dirs:result.update({str(p):sha(p) for p in (root/d).rglob('*') if p.is_file() and '__pycache__' not in p.parts})
+- for p in [R/'DEPENDENCIES.json',*map(Path,dep),N/'tests/population_step_fixture.hpp',N/'tests/chem_v8_fixture.hpp',N/'tooling.py']:result[str(p)]=sha(p)
++ for p in [R/'DEPENDENCIES.json',R/'NATIVE-BUILD.json',*map(Path,dep),N/'tooling.py',N/'build-components.py']:result[str(p)]=sha(p)
+  return result
+-before=pins();deps=native.sealed_inputs();receipt={'passed':False,'job':os.environ['SIMQ_JOB_ID'],'affinity':aff,'source_inputs':before,'dependencies':deps,'frozen_root_identity':[rs.st_dev,rs.st_ino],'runs':[],'production_qualified':False,'strict_energy_owner_gate_open':False}
+-def run(cmd,name,env=None):
++before=pins();deps=native.sealed_inputs();receipt={'passed':False,'mode':mode,'job':os.environ['SIMQ_JOB_ID'],'affinity':aff,'source_inputs':before,'dependencies':deps,'frozen_root_identity':[rs.st_dev,rs.st_ino],'runs':[],'production_qualified':False}
++env=dict(os.environ,PF_V8_CHEM='v3.1');
++if mode=='sanitized':env.update(native.ASAN_ENV)
++def run(cmd,name):
+  cmd=list(map(str,cmd));start=time.monotonic()
+- with (D/(name+'.log')).open('w')as f:p=subprocess.run(cmd,stdout=f,stderr=subprocess.STDOUT,env=env,timeout=600)
++ with (D/(name+'.log')).open('w')as f:p=subprocess.run(cmd,stdout=f,stderr=subprocess.STDOUT,env=env,timeout=900)
+  receipt['runs'].append({'cmd':cmd,'rc':p.returncode,'wall_s':time.monotonic()-start,'log':name+'.log','log_sha256':sha(D/(name+'.log'))});print(name,p.returncode,flush=True)
+- if p.returncode:raise RuntimeError((D/(name+'.log')).read_text()[-7000:])
++ if p.returncode:raise RuntimeError((D/(name+'.log')).read_text()[-8000:])
+ try:
+- commands=json.loads((O.parent/'native-v8.7-reservoir-stock-20261101/build-normal/build-commands.json').read_text());original=next(x['command'] for x in commands if x['log']=='v87-stocks-compile.log');cc=original[original.index('/usr/bin/mpic++'):original.index('-c')]
+- run(cc+['-I'+str(R/'include'),'-I'+str(A/'include'),'-I'+str(T/'include'),'-I'+str(G/'include'),'-I'+str(P),'-I'+str(N/'forms/include/pf_v7'),'-MMD','-MF',D/'common.d','-c',R/'tests/test_common_stage.cpp','-o',D/'common.o'],'compile-common')
+- run(['/usr/bin/c++','-std=c++20','-O2','-Wall','-Wextra','-Werror','-ffp-contract=off','-fno-fast-math','-I'+str(G/'include'),'-I'+str(N/'forms/include/pf_v7'),'-c',G/'src/gas_owner.cpp','-o',D/'gas.o'],'compile-gas')
++ if reuse:
++  build=json.loads((R/'NATIVE-BUILD.json').read_text());assert build['mode']==mode and all(sha(N/name)==h for name,h in build['source']['files'].items()) and all(sha(p)==h for p,h in build['binaries'].items())
++  receipt['reused_native_build']=build
++ else:run(['/usr/bin/python3',N/'build-components.py',mode,'core','hall','v84-scope','audit-target-guard','v85-registration','v87-stocks'],'native-build')
++ manifest=json.loads((N/'SOURCE-SHA256.json').read_text());assert all(sha(N/n)==v for n,v in manifest['files'].items())
++ receipt['native_source']=manifest['source_identity'];tag='sanitized-' if mode=='sanitized' else ''
++ commands=json.loads((native.OUT/('build-'+mode)/'build-commands.json').read_text());original=next(x['command'] for x in commands if x['log']==tag+'v87-stocks-compile.log');cc=original[original.index('/usr/bin/mpic++'):original.index('-c')]
++ run(cc+['-I'+str(R/'include'),'-I'+str(R/'tests'),'-I'+str(G/'include'),'-I'+str(P),'-I'+str(N/'forms/include/pf_v7'),'-MMD','-MF',D/'common.d','-c',R/'tests/test_common_stage.cpp','-o',D/'common.o'],'compile-common')
++ san=['-fsanitize=address,undefined','-fno-omit-frame-pointer'] if mode=='sanitized' else []
++ run(['/usr/bin/c++','-std=c++20','-O1' if san else '-O2',*san,'-Wall','-Wextra','-Werror','-ffp-contract=off','-fno-fast-math','-I'+str(G/'include'),'-I'+str(N/'forms/include/pf_v7'),'-c',G/'src/gas_owner.cpp','-o',D/'gas.o'],'compile-gas')
++ run(['/usr/bin/c++','-std=c++20','-O1',*san,'-Wall','-Wextra','-Werror','-c',R/'tests/allocation_probe.cpp','-o',D/'allocation.o'],'compile-allocation')
+  headers={name:sha(name) for name in (D/'common.d').read_text().replace('\\\n',' ').split(':',1)[1].split()};receipt['compiler_headers']=headers
+- run(['/usr/bin/mpic++','-Wl,--gc-sections',D/'common.o',D/'gas.o',N/'build/kinetic-boundary.o',N/'build/libpic_native_v8.a',*native.LIBS,'-o',D/'test_common'],'link-common')
+- for control in ['normal','feedback-weight','after-take-stage2','same-digest-stage1']:
+-  run([D/'test_common',D/control,control],control,dict(os.environ,PF_V8_CHEM='v3.1'))
++ run(['/usr/bin/mpic++',*san,'-Wl,--gc-sections',D/'common.o',D/'gas.o',D/'allocation.o',N/'build'/(tag+'kinetic-boundary.o'),N/'build'/(tag+'libpic_native_v8.a'),*native.LIBS,'-o',D/'test_common'],'link-common')
++ controls=['normal','empty','abandon','same-digest-stage1','same-digest-stage2','abandon-final','regular-refusal','move-final','cell-crossing','two-step','destroyed-native','allocation-seal-0','allocation-seal-16','allocation-seal-64','allocation-seal-173','allocation-seal-256','allocation-seal-312','allocation-count']
++ for control in controls:run([D/'test_common',D/control,control],control)
++ for name,args in [('test_v84_scope',[D/'inherited-scope']),('test_audit_target_guard',[D/'inherited-target-energy']),('test_v85_registration',[]),('test_v87_stocks',[D/'inherited-stocks'])]:run([N/'build'/(tag+name),*args],name)
+  assert pins()==before and native.sealed_inputs()==deps and all(sha(p)==v for p,v in headers.items())
+- receipt['results']={c:json.loads((D/c/'result.json').read_text()) for c in ['normal','feedback-weight','after-take-stage2','same-digest-stage1']};assert all(r['passed'] for r in receipt['results'].values());receipt['binary_sha256']=sha(D/'test_common');receipt['passed']=True
++ receipt['results']={c:json.loads((D/c/'result.json').read_text()) for c in controls};assert all(r['passed'] for r in receipt['results'].values());receipt['binary_sha256']=sha(D/'test_common');receipt['native_archive_sha256']=sha(N/'build'/(tag+'libpic_native_v8.a'));receipt['passed']=True
+ finally:(D/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
+--- /dev/null
++++ b/tools/sweep.py
+@@ -0,0 +1,42 @@
++"""Persistent allocation refusal at every measured final-seal allocation site.
++Runs the real populated coupled binary; source/header/binary pins are unchanged.
++"""
++from pathlib import Path
++import os,sys,json,hashlib,subprocess,time
++if not __debug__:raise RuntimeError('optimized Python guards refused')
++R=Path(__file__).resolve().parents[1];F=R.parent/'arch-base-20261028'
++O=Path('/home/treefor/projects/.workspace/outputs/native-gas-common-stage-v1.2-provisional-owner-20261101')
++assert len(sys.argv)==3
++base=O/sys.argv[1];out=O/sys.argv[2];out.mkdir(exist_ok=False)
++def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
++assert os.getenv('SIMQ_JOB_ID','').isdigit() and os.getenv('SIMQ_LAUNCH_TOKEN')
++aff=sorted(os.sched_getaffinity(0));assert len(aff)==1 and os.getenv('SIMQ_CPU_LIST')==str(aff[0])
++assert os.getenv('SIMQ_PARTITION')=='powerflow' and os.environ['SIMQ_UNIT'] in Path('/proc/self/cgroup').read_text()
++assert int(os.environ['SIMQ_MEM'])>=3*1024**3
++assert all(os.getenv(k)=='1' for k in ('OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS'))
++assert os.getenv('CUDA_VISIBLE_DEVICES')=='' and not os.getenv('PF_BUILD_ISA_FLAGS','')
++a=Path('/').stat();b=(F/'root').stat();assert (a.st_dev,a.st_ino)==(b.st_dev,b.st_ino),'frozen root required'
++d=json.loads((base/'receipt.json').read_text());assert d['passed'] and d['mode']=='normal'
++binary=base/'test_common';assert sha(binary)==d['binary_sha256']
++pins={**d['source_inputs'],**d['compiler_headers'],str(binary):d['binary_sha256'],str(Path(__file__)):sha(__file__)}
++assert all(sha(p)==v for p,v in pins.items())
++count=d['results']['allocation-count']['seal_allocations'];assert isinstance(count,int) and 0<count<=10000
++receipt={'passed':False,'job':os.environ['SIMQ_JOB_ID'],'affinity':aff,'frozen_root_identity':[a.st_dev,a.st_ino],
++         'baseline_receipt':str(base/'receipt.json'),'baseline_receipt_sha256':sha(base/'receipt.json'),
++         'binary_sha256':sha(binary),'source_pins':pins,'persistent_failure':True,'measured_allocations':count,
++         'checks':[],'production_qualified':False}
++start=time.monotonic()
++try:
++ for k in range(count):
++  label='allocation-seal-'+str(k);dest=out/label
++  with (out/(label+'.log')).open('w')as f:
++   p=subprocess.run([str(binary),str(dest),label],stdout=f,stderr=subprocess.STDOUT,timeout=30)
++  assert p.returncode==0,(k,p.returncode,(out/(label+'.log')).read_text()[-4000:])
++  r=json.loads((dest/'result.json').read_text());assert r['passed'] and r['refused'] and r['retry_accepted'] and not r['common_accepted_publication'] and r['native_source']==d['native_source']
++  receipt['checks'].append({'offset':k,'result_sha256':sha(dest/'result.json'),'log_sha256':sha(out/(label+'.log')),'checks':r['checks']})
++  if k%128==0:print('passed offsets through',k,flush=True)
++ assert all(sha(p)==v for p,v in pins.items())
++ receipt['passed']=True
++finally:
++ receipt['wall_s']=time.monotonic()-start
++ (out/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')

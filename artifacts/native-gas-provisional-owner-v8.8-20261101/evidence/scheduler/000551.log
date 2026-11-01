@@ -1,0 +1,33 @@
+===== simq job 551: native-gas-oom-c7 =====
+submitted: 2026-11-01T08:05:21Z
+started:   2026-11-01T08:05:21Z
+cwd:       /home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101
+partition: powerflow
+P-cores:   7
+GPUs:      none
+memory:    3G (swap 1G)
+time:      00:15:00
+unit:      simq-job-551-08de2d4778f6.service
+command:   nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= PF_V8_CHEM=v3.1 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 -I tools/check.py normal cpu-c7
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core7.lock (exclusive)
+native-build 0
+compile-common 0
+compile-gas 0
+compile-allocation 0
+link-common 0
+normal 1
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/tools/check.py", line 50, in <module>
+    for control in controls:run([D/'test_common',D/control,control],control)
+                            ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/tools/check.py", line 34, in run
+    if p.returncode:raise RuntimeError((D/(name+'.log')).read_text()[-8000:])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: [json.exception.out_of_range.403] key 'zero' not found
+
+========================================
+finished:  2026-11-01T08:06:52Z
+exit code: 1
+state:     failed
+===== simq job 551 finished =====

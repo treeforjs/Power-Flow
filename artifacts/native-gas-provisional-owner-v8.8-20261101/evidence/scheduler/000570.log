@@ -1,0 +1,26 @@
+===== simq job 570: native-gas-full-fault-sweep =====
+submitted: 2026-11-01T08:12:12Z
+started:   2026-11-01T08:12:13Z
+cwd:       /home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101
+partition: powerflow
+P-cores:   6
+GPUs:      none
+memory:    3G (swap 1G)
+time:      00:10:00
+unit:      simq-job-570-18169d4faee2.service
+command:   nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= PF_V8_CHEM=v3.1 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 -I tools/sweep.py cpu-c10 allocation-sweep-c2
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock (exclusive)
+passed offsets through 0
+passed offsets through 128
+passed offsets through 256
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/native-gas-common-stage-v1.2-provisional-owner-20261101/tools/sweep.py", line 34, in <module>
+    assert p.returncode==0,(k,p.returncode,(out/(label+'.log')).read_text()[-4000:])
+           ^^^^^^^^^^^^^^^
+AssertionError: (312, -6, "terminate called after throwing an instance of 'std::bad_alloc'\n  what():  std::bad_alloc\n")
+========================================
+finished:  2026-11-01T08:13:36Z
+exit code: 1
+state:     failed
+===== simq job 570 finished =====
