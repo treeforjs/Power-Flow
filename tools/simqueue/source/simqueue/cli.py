@@ -1126,6 +1126,9 @@ def _show(job_id: int, store: QueueStore) -> int:
             if int(queued_job["id"]) == job_id
         )
         fields.append(("Queue position", f"{position} of {len(queued)}"))
+        if int(job.get("gpus_requested") or 0) > 0:
+            fields.append(("GPU line", _gpu_line_text(job_id) or "not waiting for the GPU alone "
+                                                                  "(other resources busy, or it starts directly)"))
     if ensemble is not None:
         members = store.list_ensemble_members(job_id)
         fields.extend(
@@ -1151,6 +1154,29 @@ def _show(job_id: int, store: QueueStore) -> int:
             text = ", ".join(f"{key}={value}" for key, value in sorted(detail.items()) if value not in (None, "", []))
             print(f"  {event['at']}  {event['kind']:<14} {text}")
     return 0
+
+
+def _gpu_line_text(job_id: int) -> str | None:
+    try:
+        config = load_node_config()
+    except ConfigError:
+        return None
+    if config is None or not config.line.enabled:
+        return None
+    from . import gpuline
+    from .gpuqueue import describe_job
+
+    state = gpuline.load_queue_state(config.line.state_path)
+    text = describe_job(state, job_id)
+    if text is None:
+        return None
+    for uuid, gpu in config.gpus.items():
+        for item in (((state or {}).get("gpus") or {}).get(uuid) or {}).get("queue") or []:
+            if int(item.get("job_id") or -1) == job_id:
+                waited = item.get("ready_since_unix")
+                if waited is not None and time.time() - float(waited) > config.line.starvation_warn_s:
+                    text += (f"; WARNING: waiting longer than {gpuline.duration_text(config.line.starvation_warn_s)}")
+    return text
 
 
 def _tail(job_id: int, store: QueueStore, *, lines: int, follow: bool) -> int:
@@ -1445,21 +1471,47 @@ def _node_status(config: NodeConfig, store: QueueStore, *, sample_s: float = 0.0
             }
         )
     gpus = []
+    from . import gpuline
+
+    line_state = gpuline.load_queue_state(config.line.state_path) if config.line.enabled else None
     for uuid, gpu in config.gpus.items():
         users = gpu_users.get(uuid, [])
-        gpus.append(
-            {
-                "uuid": uuid,
-                "index": gpu.index,
-                "name": gpu.name,
-                "budget": gpu.budget_bytes,
-                "claimed": sum(u["claim"] for u in users),
-                "jobs": users,
-                "lease_held_outside_queue": [
-                    process_description(h.pid) for h in busy_gpus.get(uuid, [])
-                ],
-            }
-        )
+        entry = {
+            "uuid": uuid,
+            "index": gpu.index,
+            "name": gpu.name,
+            "budget": gpu.budget_bytes,
+            "claimed": sum(u["claim"] for u in users),
+            "jobs": users,
+            "lease_held_outside_queue": [
+                process_description(h.pid) for h in busy_gpus.get(uuid, [])
+            ],
+        }
+        if config.line.enabled:
+            locks = gpuline.GpuLocks(uuid, gpu.index, gpu.name, config.locks.gpu_lock_order(gpu))
+            try:
+                snapshot = gpuline.gpu_snapshot(config.line, locks, queue_state=line_state, now=now,
+                                                scan_fds=not users)
+            except Exception as error:  # noqa: BLE001 - diagnostics only
+                snapshot = {"error": str(error), "holders": [], "line": [], "raw_waiters": []}
+            if users:
+                snapshot["holders"] = [
+                    {"kind": "job", "job_id": u["job_id"], "mode": "exclusive" if u["exclusive"] else "shared"}
+                    for u in users
+                ]
+            published = ((line_state or {}).get("gpus") or {}).get(uuid) or {}
+            snapshot["claim"] = published.get("claim") if gpuline.queue_state_fresh(line_state, now) else None
+            snapshot["warnings"] = []
+            for item in snapshot.get("line") or []:
+                if item.get("kind") != "job":
+                    continue
+                ready = item.get("ready_since_unix") or item.get("since_unix")
+                if ready is not None and now - float(ready) > config.line.starvation_warn_s:
+                    snapshot["warnings"].append(
+                        f"queue job {item.get('job_id')} has waited {gpuline.duration_text(now - float(ready))} "
+                        f"for the GPU (threshold {gpuline.duration_text(config.line.starvation_warn_s)})")
+            entry["line"] = snapshot
+        gpus.append(entry)
     return {
         "schema_version": "simqueue-node-status-v1",
         "node": config.node,
@@ -1478,6 +1530,12 @@ def _node_status(config: NodeConfig, store: QueueStore, *, sample_s: float = 0.0
         },
         "partitions": partitions,
         "gpus": gpus,
+        "gpu_line": {
+            "enabled": config.line.enabled,
+            "state_path": config.line.state_path,
+            "ticket_dir": config.line.ticket_dir,
+            "starvation_warn_s": config.line.starvation_warn_s,
+        },
     }
 
 
@@ -1560,8 +1618,23 @@ def _partitions(args: argparse.Namespace, store: QueueStore) -> int:
         for user in gpu["jobs"]:
             mode = "exclusive" if user["exclusive"] else f"shared {format_size(user['claim'])}"
             print(f"    job {user['job_id']}: {mode}")
-        for holder in gpu["lease_held_outside_queue"]:
-            print(f"    lease held outside the queue: {holder}")
+        line = gpu.get("line")
+        if line is None:
+            for holder in gpu["lease_held_outside_queue"]:
+                print(f"    lease held outside the queue: {holder}")
+            continue
+        from . import gpuline
+
+        claim = line.get("claim")
+        for text in gpuline.render_snapshot(line, now=time.time()):
+            print(text)
+        if claim:
+            held = claim.get("held_since_unix")
+            print(f"    queue claim: {claim.get('unit')} {claim.get('phase')}"
+                  + (f" (holding since {gpuline.now_iso(float(held))})" if held else "")
+                  + (f", handing off to job {claim['handoff_job']}" if claim.get("handoff_job") else ""))
+        for warning in line.get("warnings") or []:
+            print(f"    WARNING: {warning}")
     return 0
 
 
@@ -1658,6 +1731,27 @@ def _node_doctor(config: NodeConfig, store: QueueStore) -> int:
             problems.append("the cpu controller is not delegated to the user manager (borrow jobs need cpu.weight)")
         if not freezer:
             problems.append("cgroup freezer unavailable (--on-preempt freeze cannot work)")
+    line_detail = "disabled"
+    if config.line.enabled:
+        from . import gpuline
+
+        state = gpuline.load_queue_state(config.line.state_path)
+        if state is None:
+            age_text = "not published yet"
+        else:
+            age = time.time() - float(state.get("heartbeat_unix") or 0.0)
+            age_text = f"published {age:.0f} s ago" if state.get("heartbeat_unix") else "withdrawn (worker stopped)"
+        ticket_dir = Path(config.line.ticket_dir)
+        writable = os.access(ticket_dir if ticket_dir.exists() else ticket_dir.parent, os.W_OK)
+        line_detail = (
+            f"state {config.line.state_path} ({age_text}); tickets {config.line.ticket_dir}"
+            f"{'' if writable else ' (NOT writable)'}; claim hold limit {config.line.claim_hold_max_s:g} s; "
+            f"starvation warning after {gpuline.duration_text(config.line.starvation_warn_s)}; raw waiters "
+            + ("requeued (" + ", ".join(config.line.requeue_commands) + ")" if config.line.requeue_raw_waiters
+               else "not requeued")
+        )
+        if not writable:
+            problems.append(f"GPU line ticket directory not writable: {config.line.ticket_dir}")
     lending = "; ".join(
         f"{p.name}=" + ("timing-sensitive" if p.timing_sensitive else
                         ("lend" + (",leased-idle" if p.lend_leased_idle else "") if p.lend else "no-lend"))
@@ -1678,6 +1772,7 @@ def _node_doctor(config: NodeConfig, store: QueueStore) -> int:
         ("Lease files", lock_detail),
         ("Lending", lending),
         ("Borrow jobs", borrow_detail),
+        ("GPU line", line_detail),
         ("Queue", "paused" if store.is_paused() else "accepting jobs"),
         ("Worker unit", "simqueue.service"),
         ("Service installed", load_state),

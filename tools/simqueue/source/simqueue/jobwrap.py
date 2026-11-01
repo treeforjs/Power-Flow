@@ -12,6 +12,15 @@ the scheduler's code, process or version.
     recorded environment, wait until every other process in the unit's
     cgroup has exited, record the exit status and exit with it.
 
+GPU hand-off (SimQueue 0.6.2): when the spec has ``gpu_handoff``, the GPU
+lease files are already held by the queue's claim unit, which won them in
+the GPU line.  The wrapper receives the open file descriptions over the
+claim's abstract unix socket (SCM_RIGHTS), so the lock is never released in
+between; a ``--gpu-mem`` (shared) job downgrades them to shared, which is
+atomic.  If the core leases cannot be taken, the wrapper tells the claim to
+keep the GPU and refuses as before.  If the hand-off fails, it takes the GPU
+files itself without blocking (as 0.6.1 did).
+
 A borrow job (spec ``"borrow": true``, SimQueue 0.6.1) holds the shared
 borrow leases of its cores instead of the exclusive core leases, and runs
 the command under ``SCHED_IDLE`` (set by the unit; checked and, if needed,
@@ -31,6 +40,7 @@ import json
 import os
 import shlex
 import signal
+import socket
 import subprocess
 import sys
 import time
@@ -44,6 +54,7 @@ STOP_POST_SCHEMA = "simqueue-job-stop-post-v1"
 EXIT_REFUSED = 254
 PR_SET_CHILD_SUBREAPER = 36
 POLL_SECONDS = 0.25
+HANDOFF_PROTOCOL = "simqueue-gpu-handoff-v1"
 
 
 def _now() -> str:
@@ -143,6 +154,71 @@ def _ensure_sched_idle() -> str:
         return f"error: {error}"
 
 
+def _file_identity(path: str) -> tuple[str, int] | None:
+    try:
+        stat = os.stat(path)
+    except OSError:
+        return None
+    return f"{os.major(stat.st_dev):02x}:{os.minor(stat.st_dev):02x}", stat.st_ino
+
+
+def _fd_identity(descriptor: int) -> tuple[str, int]:
+    stat = os.fstat(descriptor)
+    return f"{os.major(stat.st_dev):02x}:{os.minor(stat.st_dev):02x}", stat.st_ino
+
+
+def _receive_gpu_handoff(spec: dict, handoff: dict) -> tuple[socket.socket, dict[str, int]]:
+    """Connect to the claim, receive the held GPU lock descriptors and check
+    them (same files; this open file description holds the lock)."""
+    connection = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET | socket.SOCK_CLOEXEC)
+    connection.settimeout(float(handoff.get("timeout_s") or 20))
+    received: list[int] = []
+    try:
+        connection.connect("\0" + str(handoff["socket_name"]))
+        request = {
+            "protocol": HANDOFF_PROTOCOL,
+            "secret": handoff["secret"],
+            "job_id": spec["job_id"],
+            "launch_token": spec["launch_token"],
+            "unit": spec["unit"],
+        }
+        connection.send(json.dumps(request).encode("utf-8"))
+        message, received, _flags, _address = socket.recv_fds(connection, 65536, 16)
+        header = json.loads(message.decode("utf-8") or "{}")
+        if not header.get("ok"):
+            raise RuntimeError(f"claim refused: {header.get('error')}")
+        paths = [str(p) for p in header.get("paths", [])]
+        if len(paths) != len(received):
+            raise RuntimeError(f"claim sent {len(received)} descriptor(s) for {len(paths)} path(s)")
+        result: dict[str, int] = {}
+        for path, descriptor in zip(paths, received):
+            if _fd_identity(descriptor) != _file_identity(path):
+                raise RuntimeError(f"descriptor for {path} is another file")
+            # This open file description holds the exclusive lock already, so
+            # the request returns at once; if it does not, someone else holds it.
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            result[path] = descriptor
+        return connection, result
+    except BaseException:
+        for descriptor in received:
+            try:
+                os.close(descriptor)
+            except OSError:
+                pass
+        connection.close()
+        raise
+
+
+def _reply(connection: socket.socket | None, payload: dict) -> None:
+    if connection is None:
+        return
+    try:
+        connection.send(json.dumps(payload).encode("utf-8"))
+    except OSError:
+        pass
+    connection.close()
+
+
 class Wrapper:
     def __init__(self, spec_path: Path) -> None:
         self.spec_path = spec_path
@@ -240,21 +316,73 @@ class Wrapper:
 
         lock_fds: list[int] = []
         held: list[dict] = []
+        handoff = spec.get("gpu_handoff")
+        connection: socket.socket | None = None
+        received: dict[str, int] = {}
+        if handoff:
+            try:
+                connection, received = _receive_gpu_handoff(spec, handoff)
+                _log(f"gpu line:  received {', '.join(received)} from {handoff.get('claim_unit')}\n")
+                self.status["gpu_handoff"] = {"claim_unit": handoff.get("claim_unit"), "paths": list(received)}
+            except Exception as error:  # noqa: BLE001 - fall back to taking the files directly
+                _log(f"gpu line:  hand-off from {handoff.get('claim_unit')} failed ({error}); "
+                     "taking the GPU leases directly\n")
+                self.status["gpu_handoff_error"] = str(error)
+                connection, received = None, {}
+
+        def give_back(reason: str) -> None:
+            for descriptor in lock_fds:
+                try:
+                    os.close(descriptor)
+                except OSError:
+                    pass
+            for path, descriptor in received.items():
+                if descriptor not in lock_fds:
+                    try:
+                        os.close(descriptor)
+                    except OSError:
+                        pass
+            _reply(connection, {"taken": False, "reason": reason})
+
+        downgrade: list[tuple[str, int]] = []
         for lease in spec.get("locks", []):
             path = lease["path"]
-            try:
-                descriptor = os.open(path, os.O_RDONLY | os.O_CREAT | os.O_APPEND, 0o644)
-            except OSError as error:
-                return self.refuse(f"cannot open lease file {path}: {error}", kind="lock-error")
-            operation = fcntl.LOCK_SH if lease.get("mode") == "shared" else fcntl.LOCK_EX
-            try:
-                fcntl.flock(descriptor, operation | fcntl.LOCK_NB)
-            except BlockingIOError:
-                os.close(descriptor)
-                return self.refuse(f"lease file {path} is held by another process", kind="lock-busy")
+            shared = lease.get("mode") == "shared"
+            if path in received:
+                descriptor = received[path]
+                if shared:
+                    downgrade.append((path, descriptor))
+            else:
+                try:
+                    descriptor = os.open(path, os.O_RDONLY | os.O_CREAT | os.O_APPEND, 0o644)
+                except OSError as error:
+                    give_back(f"cannot open {path}")
+                    return self.refuse(f"cannot open lease file {path}: {error}", kind="lock-error")
+                operation = fcntl.LOCK_SH if shared else fcntl.LOCK_EX
+                try:
+                    fcntl.flock(descriptor, operation | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    os.close(descriptor)
+                    give_back(f"{path} is held by another process")
+                    return self.refuse(f"lease file {path} is held by another process", kind="lock-busy")
             os.set_inheritable(descriptor, True)
             lock_fds.append(descriptor)
-            held.append({"path": path, "mode": lease.get("mode", "exclusive"), "fd": descriptor})
+            held.append({"path": path, "mode": lease.get("mode", "exclusive"), "fd": descriptor,
+                         **({"handoff": True} if path in received else {})})
+        # Every lease is held: only now turn the received exclusive locks of a
+        # --gpu-mem job into shared ones (atomic on the same open file
+        # description), so a refusal above always leaves the claim's
+        # exclusive lock intact.
+        for path, descriptor in downgrade:
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_SH | fcntl.LOCK_NB)
+            except OSError as error:
+                give_back(f"cannot downgrade {path}: {error}")
+                return self.refuse(f"cannot share lease file {path}: {error}", kind="lock-error")
+        for path, descriptor in received.items():
+            if descriptor not in lock_fds:  # not in the plan (configuration changed): do not keep it
+                os.close(descriptor)
+        _reply(connection, {"taken": True})
         if held:
             _log("leases:    " + ", ".join(f"{item['path']} ({item['mode']})" for item in held) + "\n")
         self.status["leases"] = held

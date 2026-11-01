@@ -1,26 +1,39 @@
 {
   "schema": "simqueue-release-v1",
-  "version": "0.6.1",
-  "runtime": "/home/treefor/projects/runtimes/simqueue-0.6.1-20261031",
-  "derived_from": "/home/treefor/projects/runtimes/simqueue-0.6.0-20261030",
+  "version": "0.6.2",
+  "runtime": "/home/treefor/projects/runtimes/simqueue-0.6.2-20261031",
+  "derived_from": "/home/treefor/projects/runtimes/simqueue-0.6.1-20261031",
   "interpreter": "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen",
-  "installed": false,
+  "installed": true,
+  "install": {
+    "at": "2026-11-01T03:49:17Z",
+    "backup": "/home/treefor/.local/state/simqueue-backups/0.6.1-to-0.6.2-20261101T034917Z",
+    "receipt": "/home/treefor/.local/state/simqueue-backups/0.6.1-to-0.6.2-20261101T034917Z/install-receipt.json",
+    "adopted_jobs": [
+      211,
+      214,
+      215
+    ],
+    "correction_after_install": "the post-install check showed a shared GPU job waiting for a core of a queue GPU job getting an exclusive claim; gpuqueue.ready_except_gpu corrected, 5 pure tests added, GPU suites rerun, runtime resealed, worker restarted at 2026-11-01T04:05:09Z (job and claim units untouched). The install receipt's seal check refers to the runtime before this correction."
+  },
   "install_command": "./upgrade.py install --execute (dry run without --execute)",
-  "rollback_command": "./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.0-to-0.6.1-<UTC> --execute [--cancel-borrow-jobs]",
-  "node_config": "config/zenobia-node.json",
+  "rollback_command": "./upgrade.py rollback --backup /home/treefor/.local/state/simqueue-backups/0.6.1-to-0.6.2-20261101T034917Z --execute",
+  "node_config": "config/zenobia-node.json (0.6.1 config plus the gpu_line section)",
   "database_schema": {
-    "from": 7,
+    "from": 8,
     "to": 8,
-    "change": "new jobs columns (borrow, borrow_from, max_borrow_cores, on_preempt, exclusive_timing, frozen_at, preempt_pending, preempt_reason, preempt_count, placement_json) and table job_events; rollback sets user_version back to 7 in place"
+    "change": "none"
   },
   "features": [
-    "simq submit --borrow/--opportunistic, --borrow-from P1,P2, --max-borrow-cores N, --on-preempt freeze|requeue|cancel",
-    "owner jobs preempt borrow jobs at once; preemptions recorded in job_events (simq show)",
-    "borrow jobs: simqborrow.slice (CPUWeight=idle, cpu.idle=1), unit CPUWeight=1, SCHED_IDLE, IOSchedulingClass=idle, shared borrow-core<K>.lock instead of the core lease",
-    "partition policy lend / lend_leased_idle / timing_sensitive; per-job --exclusive-timing",
-    "simq partitions: per-core free / job / external lease busy / idle / stale with holder pids and commands from a CPU sample of each holder tree",
-    "borrow jobs always sort after owner jobs",
-    "upgrade.py install/rollback (dry run by default) with adoption verification and automatic rollback"
+    "GPU line: a queued GPU job that is ready except for the GPU joins the line; the worker starts a claim unit (simq-job-gpuclaim-<token12>.service) that waits for testing-gpu.lock in the kernel queue, takes testing-gpu-<UUID>.lock without blocking and hands both open files to the job unit over SCM_RIGHTS",
+    "the job's time limit starts with its unit, after the GPU was won; a --gpu-mem job downgrades the received locks to shared",
+    "line order by since time: a claim's is the exact submit time of its oldest ready job (birth time of the job log), a gpu-lease user's its start time; ties go to the queue",
+    "raw flock waiters blocked on the GPU file ahead of a line member are moved to the tail of the kernel queue (SIGSTOP then SIGCONT, logged); requeue_commands default [flock]",
+    "bin/gpu-lease [--core any|both|N] [--timeout S] [--label T] -- CMD: fair direct GPU use, GPU files first, then the core lease",
+    "published state <pic-profile>/simq-gpu-line.json (schema simqueue-gpu-line-v1, heartbeat 10 s, withdrawn when the worker stops)",
+    "simq partitions / sinfo / show / status / doctor show the GPU holder, the line, raw waiters and a starvation warning after 600 s",
+    "claims survive worker restarts and upgrades and are adopted by the next worker",
+    "upgrade.py install/rollback 0.6.1 <-> 0.6.2 (dry run by default) with backup, adoption and GPU line state verification and automatic rollback"
   ],
   "zenobia_policy": {
     "spheral": {
@@ -40,35 +53,120 @@
       "note": "timing runs submit with --exclusive-timing"
     }
   },
+  "gpu_line_config": {
+    "enabled": true,
+    "starvation_warn_s": 600,
+    "claim_hold_max_s": 300,
+    "stale_after_s": 120,
+    "requeue_raw_waiters": true,
+    "requeue_commands": [
+      "flock"
+    ],
+    "poll_s": 0.1,
+    "helper_cores": [
+      6,
+      7
+    ]
+  },
   "tests": {
     "runs": {
-      "pure: test_borrow_scheduler.py, test_borrow_store_cli.py, test_migration_061.py, test_scheduler.py": {
-        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-pure.json",
-        "tests_run": 83,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 0,
-        "skipped_detail": [],
-        "cores_leased": null,
-        "runner": "pure suites (no process launched, no lease taken)"
-      },
-      "test_borrow_units.py": {
-        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-borrow-units.json",
-        "tests_run": 12,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 0,
-        "skipped_detail": [],
+      "first full run, cores 0-1 (5 environmental failures, see OPERATIONS.md Validation of 0.6.2)": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/receipts/full-suite-3.json",
+        "tests_run": 270,
+        "failures": 3,
+        "errors": 2,
+        "skipped": 8,
+        "skipped_detail": [
+          "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+          "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+          "test_node_worker.ConcurrencyTests.test_whole_partition_job_waits_for_all_cores: needs a two-core partition",
+          "test_node_worker.LeaseTests.test_outside_lease_holder_is_respected_and_job_units_hold_leases: needs a two-core partition",
+          "test_node_worker.PfLaunchInsideAllocationTests.test_pf_launch_10_refuses_on_its_own_jobs_leases: /home/treefor/projects/Power-Flow/tools/pf-launch is no longer pf-launch 1.0",
+          "test_switchover.SwitchoverTests.test_dry_run_changes_nothing: runtime not sealed yet",
+          "test_switchover.SwitchoverTests.test_install_canary_and_rollback_restore_everything: runtime not sealed yet",
+          "test_switchover.SwitchoverTests.test_install_refuses_while_a_05_job_is_active: runtime not sealed yet"
+        ],
+        "failed_detail": [
+          "test_borrow_units.BorrowUnitTests.test_borrow_unit_is_idle_priority_and_holds_only_the_borrow_lease",
+          "test_node_worker.NodeCliTests.test_idempotent_05_style_replay_keeps_its_fingerprint",
+          "test_node_worker.RefusalTests.test_wrapper_refuses_a_busy_lease_without_running_the_command",
+          "test_exclusive_mode.ExclusiveConfigTests.test_environment_cannot_redirect_or_disable_exclusive_marker",
+          "test_exclusive_mode.ExclusiveConfigTests.test_loads_valid_marker_and_rejects_malformed_marker"
+        ],
+        "duration_s": 371.186,
         "cores_leased": [
           0,
-          3
+          1
+        ],
+        "runner": "run-tests.py",
+        "counted": false
+      },
+      "borrow_scheduler, borrow_store_cli, borrow_units, ensemble (cores 0-1, resolved temporary directory)": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/receipts/full-suite-4-stopped-summary.json",
+        "files_completed": {
+          "test_borrow_scheduler": 43,
+          "test_borrow_store_cli": 11,
+          "test_borrow_units": 12,
+          "test_ensemble": 53
+        },
+        "note": "run-tests.py with the resolved temporary directory; stopped by the live guard (rc 3) when RETURN-CORES-0-3 appeared at 21:43, inside test_gpuline; no receipt was written, so this summary is derived from the verbose log. Files completed before the stop are listed with their outcomes. Four test_ensemble results print 'ok' on a line of their own after the ensemble log lines (counted).",
+        "tests_run": 119,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "cores_leased": [
+          0,
+          1
+        ],
+        "runner": "run-tests.py (stopped by RETURN-CORES-0-3; log summary)"
+      },
+      "exclusive_mode (pure)": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/receipts/pure-test_exclusive_mode.json",
+        "tests_run": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "skipped_detail": [],
+        "failed_detail": [],
+        "duration_s": 0.054,
+        "cores_leased": null,
+        "runner": "pure suite (no process launched, no lease taken)"
+      },
+      "gpuline, gpu_line_units, migration_061, migration, scheduler, simqueue (core 7, --shared; GPU suites before the readiness correction)": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/receipts/suite-6-7-a.json",
+        "tests_run": 102,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "skipped_detail": [
+          "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+          "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set"
+        ],
+        "failed_detail": [],
+        "duration_s": 139.906,
+        "cores_leased": [
+          7
         ],
         "runner": "run-tests.py"
       },
-      "test_node_worker.py": {
-        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_node_worker.json",
-        "tests_run": 30,
+      "gpuline, gpu_line_units after the readiness correction (core 6, --shared)": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/receipts/suite-6-7-c.json",
+        "tests_run": 32,
         "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "skipped_detail": [],
+        "failed_detail": [],
+        "duration_s": 120.19,
+        "cores_leased": [
+          6
+        ],
+        "runner": "run-tests.py"
+      },
+      "node_worker, upgrade, switchover (cores 6-7, --shared; the 2 switchover failures: temporary directory path contains simqueue-0.6., see the switchover run)": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/receipts/suite-6-7-b3.json",
+        "tests_run": 40,
+        "failures": 2,
         "errors": 0,
         "skipped": 3,
         "skipped_detail": [
@@ -76,123 +174,73 @@
           "test_node_worker.LeaseTests.test_outside_lease_holder_is_respected_and_job_units_hold_leases: needs a two-core partition",
           "test_node_worker.PfLaunchInsideAllocationTests.test_pf_launch_10_refuses_on_its_own_jobs_leases: /home/treefor/projects/Power-Flow/tools/pf-launch is no longer pf-launch 1.0"
         ],
+        "failed_detail": [
+          "test_switchover.SwitchoverTests.test_dry_run_changes_nothing",
+          "test_switchover.SwitchoverTests.test_install_canary_and_rollback_restore_everything"
+        ],
+        "duration_s": 114.453,
         "cores_leased": [
-          0,
-          1,
-          3
+          6,
+          7
         ],
         "runner": "run-tests.py"
       },
-      "test_switchover.py": {
-        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_switchover.json",
+      "switchover (cores 6-7, SIMQ_TEST_TMPDIR set to outputs/simq062-test-tmp)": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/receipts/suite-6-7-d-switchover.json",
         "tests_run": 3,
         "failures": 0,
         "errors": 0,
         "skipped": 0,
         "skipped_detail": [],
+        "failed_detail": [],
+        "duration_s": 3.801,
         "cores_leased": [
-          0,
-          1,
-          3
+          6,
+          7
         ],
         "runner": "run-tests.py"
-      },
-      "test_upgrade.py": {
-        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_upgrade.json",
-        "tests_run": 5,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 0,
-        "skipped_detail": [],
-        "cores_leased": [
-          0,
-          1,
-          3
-        ],
-        "runner": "run-tests.py"
-      },
-      "test_ensemble.py": {
-        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_ensemble.json",
-        "tests_run": 53,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 0,
-        "skipped_detail": [],
-        "cores_leased": [
-          2,
-          3
-        ],
-        "runner": "run-tests.py"
-      },
-      "test_simqueue.py": {
-        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_simqueue.json",
-        "tests_run": 42,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 0,
-        "skipped_detail": [],
-        "cores_leased": [
-          2,
-          3
-        ],
-        "runner": "run-tests.py"
-      },
-      "test_exclusive_mode.py": {
-        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_exclusive_mode-4cpu.json",
-        "tests_run": 9,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 0,
-        "skipped_detail": [],
-        "cores_leased": null,
-        "runner": "pure suites (no process launched, no lease taken)"
-      },
-      "test_migration.py": {
-        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/test-receipt-test_migration.json",
-        "tests_run": 4,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 1,
-        "skipped_detail": [
-          "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set"
-        ],
-        "cores_leased": null,
-        "runner": "pure suites (no process launched, no lease taken)"
       }
     },
-    "total_run": 241,
-    "failures": 0,
-    "errors": 0,
-    "skipped": 4,
-    "how": "suites that start processes ran through run-tests.py on two leased cores of 0-3 that had been free of other work for 60 s (guard on); pure suites ran without leases; see core-usage-notes.md",
-    "existing_0_6_0_suites": {
-      "test_simqueue.py": 42,
-      "test_ensemble.py": 53,
-      "test_exclusive_mode.py": 9,
-      "test_scheduler.py": 26,
-      "test_node_worker.py": 30,
-      "test_migration.py": 4,
-      "test_switchover.py": 3
-    },
-    "existing_suite_edits": "node_fixture.copy_runtime and one assertion in test_node_worker.py use the running __version__ instead of the literal 0.6.0; test_switchover.py compares the schema with store.SCHEMA_VERSION instead of the literal 7 (switchover.py likewise); test_pf_launch_10_refuses_on_its_own_jobs_leases skips when Power-Flow/tools/pf-launch/pf_launch.py is no longer 1.0 (it became 1.1.0 at 2026-10-30 18:01, after the 0.6.0 run, so the test fails on 0.6.0 as well); no other change",
-    "existing_not_run": "test_shield_helper.py (16 tests) needs privileged/simqueue-shield, as for 0.6.0",
+    "how": "process and systemd suites through run-tests.py with the cores' lease files held, live guard on, private state, lock and pic-profile directories: on cores 0-1 (lent by Spheral) until RETURN-CORES-0-3 stopped a run, then on cores 6-7 with --wait-any --shared between Power-Flow jobs; test_exclusive_mode.py as a pure suite (mocks only, needs four CPUs in the affinity mask)",
+    "existing_not_run": "test_shield_helper.py (16 tests) cannot be imported: it needs source/privileged/simqueue-shield, as for 0.6.0 and 0.6.1",
     "new_suites": {
-      "test_borrow_scheduler.py": 43,
-      "test_borrow_store_cli.py": 11,
-      "test_migration_061.py": 3,
-      "test_borrow_units.py": 12,
-      "test_upgrade.py": 5
+      "test_gpuline.py": 24,
+      "test_gpu_line_units.py": 8
     },
-    "not_run_for_0_6_1": [
-      "test_node_worker ConcurrencyTests.test_whole_partition_job_waits_for_all_cores and LeaseTests.test_outside_lease_holder_is_respected_and_job_units_hold_leases: need four leased CPUs (two-core partitions); cores 0-3 were never all free of Spheral work during a 30-minute wait",
-      "test_node_worker PfLaunchInsideAllocationTests.test_pf_launch_10_refuses_on_its_own_jobs_leases: Power-Flow/tools/pf-launch is pf-launch 1.1.0 since 2026-10-30 18:01",
-      "test_migration MigrationTests.test_copy_of_live_database: needs a schema-6 (0.5) live copy; the live database is schema 7, covered by test_migration_061.test_copy_of_live_database"
-    ]
+    "rewritten_suites": {
+      "test_upgrade.py": "0.6.1 -> 0.6.2 install, rollback and refusals (7 tests)"
+    },
+    "kernel_check": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/experiments/kernel_flock.out.json (FIFO of blocked flock waiters, requeue to the tail by SIGSTOP/SIGCONT, downgrade, SCM_RIGHTS hand-off keeps the lock)",
+    "sum_over_runs": {
+      "total_run": 305,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 5
+    },
+    "final_by_file": {
+      "test_borrow_scheduler.py": "43 ok",
+      "test_borrow_store_cli.py": "11 ok",
+      "test_borrow_units.py": "12 ok",
+      "test_ensemble.py": "53 ok",
+      "test_exclusive_mode.py": "9 ok (pure)",
+      "test_gpuline.py": "24 ok",
+      "test_gpu_line_units.py": "8 ok",
+      "test_migration_061.py": "2 ok, 1 skipped (live copy)",
+      "test_migration.py": "3 ok, 1 skipped (live copy)",
+      "test_scheduler.py": "26 ok",
+      "test_simqueue.py": "42 ok",
+      "test_node_worker.py": "27 ok, 3 skipped (two-core partitions on two leased CPUs; pf-launch 1.0 gone)",
+      "test_upgrade.py": "7 ok",
+      "test_switchover.py": "3 ok",
+      "test_shield_helper.py": "not importable (16 tests)"
+    },
+    "final_totals": {
+      "tests": 275,
+      "ok": 270,
+      "skipped": 5,
+      "failed": 0,
+      "not_run": 16
+    }
   },
-  "migration_check": {
-    "live_database_copy": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/migration/live-copy-20261031T040055Z.sqlite3",
-    "method": "sqlite3 online backup API with the live file opened mode=ro; copy made read-only (0444); migrated only in a temporary copy of that copy",
-    "result_receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/receipts/live-copy-migration.json"
-  },
-  "notes": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.1-20261031/core-usage-notes.md"
+  "notes": "/home/treefor/projects/runtimes/simqueue-0.6.2-20261031/OPERATIONS.md (The GPU line; Validation of 0.6.2); USAGE-GPU.md"
 }

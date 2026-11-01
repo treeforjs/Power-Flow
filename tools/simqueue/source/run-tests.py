@@ -1,7 +1,18 @@
 #!/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen
 """Run the SimQueue test suite while holding the cores' lease files.
 
-Usage: run-tests.py [--cores LIST] [--wait-any] [--receipt PATH] [PATTERN ...]
+Usage: run-tests.py [--cores LIST] [--wait-any [--min-cores N]] [--shared] [--receipt PATH] [PATTERN ...]
+
+0.6.2: tests run on cores 0-1 (lent by Spheral; the run refuses to start
+and stops when <pic-profile>/RETURN-CORES-0-3 exists) or 6-7 (Power-Flow's,
+as any-core.sh); cores 2-5 are never used.  Temporary files go to
+$SIMQ_TEST_TMPDIR (default: the 0.6.2 outputs directory), never /tmp.  The
+directory is used by its resolved path: the outputs directory lies behind a
+symbolic link, and the wrapper compares a job's resolved working directory
+with its project root, as do the submit fingerprints.  test_switchover.py
+needs a directory whose path does not contain "simqueue-0.6." (switchover.py
+takes that text in the sandbox unit as "0.6 already installed"), for example
+SIMQ_TEST_TMPDIR=/home/treefor/projects/.workspace/outputs/simq062-test-tmp.
 
 The runner takes the flock(2) lease file of every core it uses (the same
 testing-core<K>.lock files as any-core.sh and pf-launch, ascending order),
@@ -17,6 +28,14 @@ without a lease, as Spheral runs and builds are).  It then
 stops every test unit (``simqt*``), releases the leases and exits with
 status 3.  The same check refuses to start the run.  ``--no-live-guard``
 disables it (sandbox use only).
+
+``--shared`` (cores 6-7, shared with Power-Flow work under the lease
+protocol): queue jobs of the cores' partition are no reason to refuse or
+stop; the queue never starts a job on a core whose lease the run holds and
+starts it once the run releases the lease.  Work pinned to the leased cores
+without a lease, and the RETURN flag, still stop the run.
+``--wait-any --min-cores N`` waits until at least N of the listed cores are
+free at the same moment (nothing is held while waiting).
 """
 
 from __future__ import annotations
@@ -38,25 +57,47 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 LEASE_DIR = Path("/home/treefor/projects/.workspace/outputs/pic-profile")
 LEASE_OVERRIDES = {6: "testing-core.lock"}
-FORBIDDEN = {4, 5}  # raikou-mfem cores: never used by these tests
+FORBIDDEN = {2, 3, 4, 5}  # Spheral's own cores and the raikou-mfem allocation: never used by these tests
 LIVE_DATABASE = Path("/home/treefor/.local/state/simqueue/queue.sqlite3")
 GUARDED_PARTITIONS = ("spheral",)
 GUARDED_CORES = {0, 1, 2, 3}  # the spheral partition
+CORE_GROUPS = {"spheral": {0, 1, 2, 3}, "powerflow": {6, 7}}
+RETURN_FLAG = LEASE_DIR / "RETURN-CORES-0-3"
+DEFAULT_TMPDIR = Path("/home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/tmp")
 TEST_UNIT_PATTERN = "simqt*"
 
 
+def guarded_partitions(cores) -> tuple[str, ...]:
+    return tuple(name for name, group in CORE_GROUPS.items() if group & set(cores))
+
+
+def guarded_cores(cores) -> set[int]:
+    found: set[int] = set()
+    for group in CORE_GROUPS.values():
+        if group & set(cores):
+            found |= group
+    return found or set(GUARDED_CORES)
+
+
+def return_requested(cores) -> list[dict]:
+    if set(cores) & {0, 1, 2, 3} and RETURN_FLAG.exists():
+        return [{"flag": str(RETURN_FLAG)}]
+    return []
+
+
 def live_jobs_on(database: Path, partitions=GUARDED_PARTITIONS) -> list[dict]:
-    """Queued or active jobs of *partitions* in a live queue database (read-only)."""
-    if not database.exists():
+    """Queued or active owner jobs of *partitions* in a live queue database (read-only)."""
+    if not database.exists() or not partitions:
         return []
     marks = ",".join("?" for _ in partitions)
     try:
         with closing(sqlite3.connect(f"file:{database}?mode=ro", uri=True, timeout=2)) as connection:
             columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)")}
             partition = "COALESCE(partition, 'spheral')" if "partition" in columns else "'spheral'"
+            owner = "AND COALESCE(borrow, 0) = 0" if "borrow" in columns else ""
             rows = connection.execute(
                 f"SELECT id, name, state, {partition} FROM jobs "
-                f"WHERE state IN ('queued', 'starting', 'running', 'cancelling') AND {partition} IN ({marks})",
+                f"WHERE state IN ('queued', 'starting', 'running', 'cancelling') AND {partition} IN ({marks}) {owner}",
                 tuple(partitions),
             ).fetchall()
     except sqlite3.Error:
@@ -135,7 +176,7 @@ def foreign_work_on(cores: list[int], *, own_root: int | None = None) -> list[di
         # touching a leased one (daemons allowed on 0-7 or everywhere are not)
         if not allowed or not allowed & leased or ours(pid):
             continue
-        if not (allowed <= leased or allowed <= GUARDED_CORES):
+        if not (allowed <= leased or allowed <= guarded_cores(cores)):
             continue
         if token is not None:
             try:
@@ -166,15 +207,17 @@ def kill_run_processes(own_root: int) -> None:
 class LiveGuard(threading.Thread):
     """Abort the test run when the live queue wants the leased cores."""
 
-    def __init__(self, database: Path, cores: list[int], interval: float = 2.0) -> None:
+    def __init__(self, database: Path, cores: list[int], interval: float = 2.0, *, shared: bool = False) -> None:
         super().__init__(daemon=True)
         self.database = database
         self.cores = cores
         self.interval = interval
+        self.shared = shared
 
     def run(self) -> None:
         while True:
-            jobs = live_jobs_on(self.database) + foreign_work_on(self.cores, own_root=os.getpid())
+            jobs = (([] if self.shared else live_jobs_on(self.database, guarded_partitions(self.cores)))
+                    + foreign_work_on(self.cores, own_root=os.getpid()) + return_requested(self.cores))
             if jobs:
                 print(f"\nLIVE GUARD: other work needs the leased cores: {jobs}; stopping the tests now",
                       file=sys.stderr, flush=True)
@@ -207,11 +250,24 @@ def parse_cores(text: str) -> list[int]:
     return sorted(cores)
 
 
-def take_leases(cores: list[int], *, wait_any: bool) -> tuple[list[int], list[int]]:
+def free_by_proc_locks(cores: list[int]) -> list[int]:
+    """Cores whose lease file nobody holds, read from /proc/locks."""
+    if str(HERE) not in sys.path:
+        sys.path.insert(0, str(HERE))
+    from simqueue.locks import lock_holders
+
+    holders = lock_holders([str(lease_path(core)) for core in cores])
+    return [core for core in cores if not holders.get(str(lease_path(core)))]
+
+
+def take_leases(cores: list[int], *, wait_any: bool, min_cores: int = 1) -> tuple[list[int], list[int]]:
     held: list[int] = []
     fds: list[int] = []
     if wait_any:
-        while not held:
+        while True:
+            if min_cores > 1 and len(free_by_proc_locks(cores)) < min_cores:
+                time.sleep(2)  # look without touching the lease files until enough are free
+                continue
             for core in cores:
                 fd = os.open(lease_path(core), os.O_RDONLY | os.O_CREAT | os.O_APPEND, 0o644)
                 try:
@@ -221,9 +277,13 @@ def take_leases(cores: list[int], *, wait_any: bool) -> tuple[list[int], list[in
                     continue
                 held.append(core)
                 fds.append(fd)
-            if not held:
-                time.sleep(2)
-        return held, fds
+            if len(held) >= min_cores:
+                return held, fds
+            # too few free at once: hold nothing while waiting
+            for fd in fds:
+                os.close(fd)
+            held, fds = [], []
+            time.sleep(2)
     for core in cores:
         fd = os.open(lease_path(core), os.O_RDONLY | os.O_CREAT | os.O_APPEND, 0o644)
         try:
@@ -238,26 +298,42 @@ def take_leases(cores: list[int], *, wait_any: bool) -> tuple[list[int], list[in
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cores", default="0-3")
+    parser.add_argument("--cores", default="0-1")
     parser.add_argument("--wait-any", action="store_true", help="use whichever listed cores are free")
     parser.add_argument("--receipt")
     parser.add_argument("--receipts-dir", help="directory for test observation receipts (SIMQ_TEST_RECEIPTS)")
     parser.add_argument("--no-live-guard", action="store_true")
+    parser.add_argument("--shared", action="store_true",
+                        help="cores shared under the lease protocol: queue jobs of their partition do not stop the run")
+    parser.add_argument("--min-cores", type=int, default=1, help="with --wait-any: wait until this many are free")
     parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("patterns", nargs="*", default=["test_*.py"])
     args = parser.parse_args()
     cores = parse_cores(args.cores)
     if FORBIDDEN & set(cores):
-        parser.error("cores 4-5 belong to the raikou-mfem allocation")
+        parser.error("cores 2-5 are never used by these tests (Spheral's own cores and raikou-mfem's)")
+    tmpdir = Path(os.environ.get("SIMQ_TEST_TMPDIR") or DEFAULT_TMPDIR).resolve()
+    tmpdir.mkdir(parents=True, exist_ok=True)
+    os.environ["TMPDIR"] = str(tmpdir)
+    import tempfile
+
+    tempfile.tempdir = str(tmpdir)
     if not args.no_live_guard:
-        waiting = live_jobs_on(LIVE_DATABASE) + foreign_work_on(cores, own_root=os.getpid())
+        waiting = return_requested(cores)
+        if waiting:
+            print(f"cores 0-3 must be returned ({RETURN_FLAG}); not starting the tests", file=sys.stderr)
+            return 3
+    held, _fds = take_leases(cores, wait_any=args.wait_any, min_cores=min(args.min_cores, len(cores)))
+    if not args.no_live_guard:
+        waiting = (([] if args.shared else live_jobs_on(LIVE_DATABASE, guarded_partitions(held)))
+                   + foreign_work_on(held, own_root=os.getpid())
+                   + return_requested(held))
         if waiting:
             print(f"other work needs the cores: {waiting}; not starting the tests", file=sys.stderr)
             return 3
-    held, _fds = take_leases(cores, wait_any=args.wait_any)
     os.environ["SIMQ_TEST_RUN"] = str(os.getpid())
     if not args.no_live_guard:
-        LiveGuard(LIVE_DATABASE, held).start()
+        LiveGuard(LIVE_DATABASE, held, shared=args.shared).start()
     if args.receipts_dir:
         os.environ["SIMQ_TEST_RECEIPTS"] = args.receipts_dir
     os.sched_setaffinity(0, held)

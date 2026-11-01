@@ -4,6 +4,10 @@ The scheduler never takes these locks itself.  Each job unit's wrapper takes
 the lease files of its allocated cores and GPUs for the job's lifetime, and
 the scheduler only *observes* them through ``/proc/locks`` so that a probe can
 never make a manual ``flock -n`` fail.
+
+0.6.2: queued GPU jobs win the GPU lease files through the GPU line
+(``gpuline.py``): a claim unit waits for them in the kernel queue and hands
+the held files to the job unit.
 """
 
 from __future__ import annotations
@@ -42,22 +46,27 @@ def lock_plan_for(
     *,
     gpu_shared: bool,
 ) -> list[LockPlan]:
-    """Lease files a job unit must hold, in a global ascending order."""
+    """Lease files a job unit must hold, in the documented order (0.6.2):
+    the GPU files first (``testing-gpu.lock``, then
+    ``testing-gpu-<UUID>.lock``), then the core leases in ascending CPU
+    order.  The wrapper takes them without blocking, so the order only has
+    to agree with the tools that block (raw flock users, gpu-lease)."""
     plans: dict[str, LockPlan] = {}
-    for cpu in cpus:
-        for path in config.locks.core_lock_paths(cpu):
-            plans[path] = LockPlan(path, "exclusive", f"cpu:{cpu}")
-    for uuid in gpus:
+    for uuid in sorted(gpus):
         gpu = config.gpus.get(uuid)
         if gpu is None:
             continue
-        for path in config.locks.gpu_lock_paths(gpu):
+        for path in config.locks.gpu_lock_order(gpu):
             mode = "shared" if gpu_shared else "exclusive"
             previous = plans.get(path)
             if previous is not None and previous.mode == "exclusive":
                 continue
             plans[path] = LockPlan(path, mode, f"gpu:{uuid}")
-    return [plans[key] for key in sorted(plans)]
+    for cpu in sorted(cpus):
+        for path in config.locks.core_lock_paths(cpu):
+            if path not in plans:
+                plans[path] = LockPlan(path, "exclusive", f"cpu:{cpu}")
+    return list(plans.values())
 
 
 def borrow_lock_plan(config: NodeConfig, cpus: Iterable[int]) -> list[LockPlan]:

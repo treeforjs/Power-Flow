@@ -13,7 +13,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 RUNTIME = Path(__file__).resolve().parents[2]
-SKIP_NAMES = {"sealed-files.json"}
+SKIP_NAMES = {"sealed-files.json", "HANDOFF.txt"}  # HANDOFF.txt: working note, changes after sealing
 
 
 def files() -> dict[str, str]:

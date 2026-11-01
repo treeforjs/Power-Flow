@@ -1,3 +1,3 @@
 """A small, persistent queue for simulations on a single workstation."""
 
-__version__ = "0.6.1"
+__version__ = "0.6.2"

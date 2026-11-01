@@ -1,0 +1,9 @@
+#!/bin/sh
+# gpu-lease (SimQueue 0.6.2): run a command holding the GPU lease files, served
+# fairly in the GPU line (queued SimQueue GPU jobs that waited longer first,
+# other gpu-lease users in start order, raw `flock testing-gpu.lock` users last).
+#   gpu-lease [--core any|both|N] [--timeout S] [--label TEXT] -- COMMAND [ARGS...]
+#   gpu-lease --status
+# Lock order: testing-gpu.lock, testing-gpu-<UUID>.lock, then the core lease.
+here=$(dirname "$(readlink -f "$0")")
+exec /home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen "$here/../source/simqueue/gpuline.py" lease "$@"

@@ -1,5 +1,38 @@
 # simqueue
 
+## 0.6.2: the GPU line
+
+A queued GPU job that is ready except for the GPU now wins the GPU lease
+files when they are released, instead of losing every release to processes
+blocked in a raw `flock testing-gpu.lock`. The worker starts a small claim
+unit (`simq-job-gpuclaim-<token12>.service`) that waits for the first GPU
+lease file in the kernel's queue on behalf of the queue, takes the per-GPU
+file without blocking, and hands both open files to the job unit over a unix
+socket (SCM_RIGHTS), so the lock is never released in between and the job's
+time limit starts with its unit. Members of the line (claims and `gpu-lease`
+users) are served by their since time (a claim's: the submit time of its
+oldest ready job; a helper's: its start time). Processes blocked in a raw
+`flock` on the GPU file ahead of a member are moved to the tail of the
+kernel queue (SIGSTOP, then SIGCONT, which restarts their flock request);
+every move is logged. Lock order stays GPU files first, then core leases.
+
+`../bin/gpu-lease [--core any|both|N] -- CMD` is the fair way to use the GPU
+outside the queue: it yields to queued GPU jobs and earlier helper users,
+takes the GPU files and the optional core lease in order, runs the command
+and releases everything. The line is published in
+`<pic-profile>/simq-gpu-line.json` (waiting queue jobs with since times,
+claim, holders, helpers, raw waiters; heartbeat every 10 s) so that other
+tools can yield. `simq partitions`, `simq show` and `simq` display the
+holder and the line, with a starvation warning after 600 s.
+
+Implementation: `gpuline.py` (line engine, claim units, the helper; imports
+nothing from the scheduler), `gpuqueue.py` (worker side: claim lifecycle,
+published state), `jobwrap.py` (receives the held locks), the `gpu_line`
+section of `node.json`. No database change (schema 8). Without queued GPU
+jobs the worker schedules exactly as 0.6.1. `../upgrade.py` installs 0.6.2
+over 0.6.1 and rolls back; `../OPERATIONS.md` ("The GPU line") documents the
+design, the published state, the configuration and the limitations.
+
 ## 0.6.1: borrowing idle cores
 
 `simq submit --borrow` (alias `--opportunistic`) marks restartable work

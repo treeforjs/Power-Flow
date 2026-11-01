@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import format_cpu_list, parse_cpu_list, state_dir
+from .gpuline import LineConfig, parse_line_config
 
 
 CONFIG_SCHEMA = "simqueue-node-config-v1"
@@ -212,6 +213,24 @@ class LockConfig:
         paths.extend(self.gpu_extra.get(gpu.uuid, ()))
         return tuple(paths)
 
+    def gpu_lock_order(self, gpu: GpuSpec) -> tuple[str, ...]:
+        """The GPU's lease files in acquisition order (0.6.2): the global
+        files (``gpu_extra``, e.g. testing-gpu.lock) first, then the per-GPU
+        file (testing-gpu-<UUID>.lock), as raw flock users take them."""
+        if not self.enabled:
+            return ()
+        paths: list[str] = []
+        for extra in self.gpu_extra.get(gpu.uuid, ()):
+            if extra not in paths:
+                paths.append(extra)
+        if self.gpu_path:
+            own = self.gpu_path.replace("{uuid}", gpu.uuid).replace(
+                "{index}", "" if gpu.index is None else str(gpu.index)
+            )
+            if own not in paths:
+                paths.append(own)
+        return tuple(paths)
+
 
 @dataclass(frozen=True)
 class Partition:
@@ -283,6 +302,8 @@ class NodeConfig:
     raw: dict[str, Any]
     borrow: BorrowConfig = field(default_factory=BorrowConfig)
     smt_siblings: dict[int, tuple[int, ...]] = field(default_factory=dict)
+    # 0.6.2: the GPU line (fair hand-off of the GPU lease files; gpuline.py)
+    line: LineConfig = field(default_factory=lambda: LineConfig(enabled=False))
 
     def partition(self, name: str | None) -> Partition:
         key = name or self.default_partition
@@ -405,6 +426,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             "notes",
             "borrow",
             "smt_siblings",
+            "gpu_line",
         },
         "node config",
     )
@@ -631,6 +653,10 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         siblings = sibling_map(node_cpus)
     else:
         siblings = {}
+    try:
+        line = parse_line_config(document)
+    except ValueError as error:
+        raise ConfigError(str(error)) from error
     return NodeConfig(
         path=path,
         node=node,
@@ -644,6 +670,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         raw=document,
         borrow=borrow,
         smt_siblings=siblings,
+        line=line,
     )
 
 

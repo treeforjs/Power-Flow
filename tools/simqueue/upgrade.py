@@ -1,49 +1,60 @@
 #!/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen
-"""Upgrade the node from SimQueue 0.6.0 to 0.6.1, or roll back.  Dry run by default.
+"""Upgrade the node from SimQueue 0.6.1 to 0.6.2, or roll back.  Dry run by default.
 
-    upgrade.py install  [--execute] [--keep-node-config] [--adoption-timeout S] [--no-auto-rollback]
-    upgrade.py rollback --backup DIR [--execute] [--cancel-borrow-jobs]
+    upgrade.py install  [--execute] [--keep-node-config] [--adoption-timeout S] [--starting-timeout S]
+                        [--no-auto-rollback] [--require-doctor]
+    upgrade.py rollback --backup DIR [--execute]
     upgrade.py status
 
 Job units are independent of the worker, so running jobs are never touched:
 the worker is stopped, its wrapper and unit are switched to the other
-runtime, and the restarted worker re-adopts every running job unit.
+runtime, and the restarted worker re-adopts every running job unit.  0.6.2
+keeps the 0.6.1 database (schema 8) as it is; nothing is migrated.
 
 install (with --execute):
-  1. preflight: 0.6.1 runtime sealed, its node config valid and equal to the
-     live node.json apart from the 0.6.1 keys; wrapper points at 0.6.0;
-     database schema 7; records the active jobs and their units
-  2. stop simqueue.service (job units keep running)
-  3. back up the database (sqlite3 backup API, source opened read-only), the
-     wrapper, the simqueue link, the unit files, node.json and worker.log
-  4. install the 0.6.1 wrapper, link, simqueue.service and simqborrow.slice
-     (CPUWeight=idle) -- from here on every `simq` call runs 0.6.1
-  5. migrate the database to schema 8 (new columns and the job_events
-     table only) and verify that every schema-7 column of every existing row
-     is unchanged; install the 0.6.1 node.json
-  6. daemon-reload, start simqueue.service
-  7. verify: the 0.6.1 worker started, every job unit that was active before
-     is adopted (worker.log "adopted job N" and adopted_at) or has been
-     recorded as finished, `simq doctor` passes, the borrow slice is idle
+  1. preflight: 0.6.2 runtime sealed, its node config valid and equal to the
+     live node.json apart from the 0.6.2 key (gpu_line) and notes; wrapper
+     points at 0.6.1; database schema 8; records the active jobs and units
+  2. waits until no job is in state "starting" (--starting-timeout), stops
+     simqueue.service (job units keep running) and checks again: a job that
+     became "starting" meanwhile makes the install start the 0.6.1 worker
+     again and stop without changing anything
+  3. backs up the database (sqlite3 backup API, source opened read-only),
+     the wrapper, the simqueue link, the unit files (with simqborrow.slice),
+     node.json and worker.log, with sha256 sums in manifest.json
+  4. installs the 0.6.2 wrapper, link, simqueue.service and node.json --
+     from here on every `simq` call runs 0.6.2
+  5. opens the database with the 0.6.2 code and checks that its schema and
+     every column of every row are unchanged
+  6. daemon-reload, enable, start simqueue.service
+  7. verifies: the 0.6.2 worker started, every job unit that was active
+     before is adopted (worker.log "adopted job N") or has been recorded as
+     finished, the GPU line state file is published by 0.6.2, `simq doctor`
+     and `simq partitions` run
   On a failed verification the install rolls itself back (unless
   --no-auto-rollback).  Receipt: <backup>/install-receipt.json
 
 rollback --backup DIR (with --execute):
-  1. refuses while borrow jobs are queued or active (0.6.0 would run them as
-     owner jobs); --cancel-borrow-jobs cancels them first with the 0.6.1 CLI
-  2. stop simqueue.service (job units keep running)
-  3. keep a copy of the schema-8 database in the backup directory
-  4. restore the wrapper, link, unit file and node.json byte for byte,
-     remove simqborrow.slice (if the install created it)
-  5. set the database schema back to 7 in place: rows, including jobs that
-     0.6.1 started and that still run, are kept; the 0.6.1 columns stay
-     and are ignored by 0.6.0; verify that the 0.6.0 code opens it
-  6. daemon-reload, start simqueue.service (0.6.0)
-  7. verify that the 0.6.0 worker adopted every active job unit
+  1. checks the backup against its manifest
+  2. stops simqueue.service (job units keep running; the 0.6.2 worker
+     withdraws the published GPU line state)
+  3. stops the GPU claim units of 0.6.2 (they wait for or hold the GPU lease
+     files for queued jobs, and 0.6.1 does not hand them over); job units
+     are never stopped
+  4. keeps a copy of the database in the backup directory
+  5. restores the wrapper, link, unit files and node.json byte for byte
+  6. checks that the 0.6.1 code opens the database (schema 8, unchanged)
+  7. daemon-reload, start simqueue.service (0.6.1) and verifies that it
+     adopted every active job unit
   Receipt: <backup>/rollback-receipt.json
 
---home, --project-root, --systemctl, --service and --runtime exist so that
-the procedure can be tested in a sandbox; the defaults are the real paths.
+Job units started by 0.6.2 run the 0.6.2 jobwrap.py: keep the 0.6.2 runtime
+directory after a rollback until they have ended (and the 0.6.1 directory
+after the install, for the same reason).
+
+--home, --project-root, --systemctl, --service, --runtime and --old-runtime
+exist so that the procedure can be tested in a sandbox; the defaults are the
+real paths.
 """
 
 from __future__ import annotations
@@ -64,16 +75,17 @@ from pathlib import Path
 
 
 RUNTIME = Path(__file__).resolve().parent
-OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.6.0-20261030")
+OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.6.1-20261031")
+FROM_VERSION, TO_VERSION = "0.6.1", "0.6.2"
 PYTHON = "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen"
 REAL_HOME = "/home/treefor"
-UNIT_FILES = ("simqueue.service", "simqueue-spheral-dispatch.path", "simqueue-spheral-dispatch.service")
-BORROW_SLICE = "simqborrow.slice"
-# Keys added by 0.6.1 to the node configuration; everything else must match.
-NEW_CONFIG_KEYS = {"borrow", "smt_siblings"}
-NEW_PARTITION_KEYS = {"lend", "lend_leased_idle", "timing_sensitive"}
-NEW_LOCK_KEYS = {"borrow_path", "notes"}
-SCHEMA_OLD, SCHEMA_NEW = 7, 8
+UNIT_FILES = ("simqueue.service", "simqueue-spheral-dispatch.path", "simqueue-spheral-dispatch.service",
+              "simqborrow.slice")
+# Keys added by 0.6.2 to the node configuration; everything else must match.
+NEW_CONFIG_KEYS = {"gpu_line"}
+NEW_LOCK_KEYS = {"notes"}
+SCHEMA = 8  # unchanged by 0.6.2
+ACTIVE_STATES = ("starting", "running", "cancelling")
 
 
 def now_tag() -> str:
@@ -88,13 +100,10 @@ def sha256(path: Path) -> str | None:
 
 
 def comparable_config(document: dict) -> dict:
-    """The node configuration without the keys 0.6.1 adds (and notes)."""
+    """The node configuration without the key 0.6.2 adds (and notes)."""
     result = {k: v for k, v in document.items() if k not in NEW_CONFIG_KEYS and k != "notes"}
     if "lock_files" in result:
         result["lock_files"] = {k: v for k, v in result["lock_files"].items() if k not in NEW_LOCK_KEYS}
-    result["partitions"] = [
-        {k: v for k, v in part.items() if k not in NEW_PARTITION_KEYS} for part in document.get("partitions", [])
-    ]
     return result
 
 
@@ -106,12 +115,6 @@ def database_summary(path: Path) -> dict:
         states = dict(connection.execute("SELECT state, COUNT(*) FROM jobs GROUP BY state").fetchall())
         count = connection.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
         columns = [row[1] for row in connection.execute("PRAGMA table_info(jobs)").fetchall()]
-        borrow_open = 0
-        if "borrow" in columns:
-            borrow_open = connection.execute(
-                "SELECT COUNT(*) FROM jobs WHERE borrow = 1 AND state IN "
-                "('queued', 'starting', 'running', 'cancelling')"
-            ).fetchone()[0]
         active = [
             dict(zip(("id", "name", "state", "unit_name", "launch_token"), row))
             for row in connection.execute(
@@ -119,8 +122,8 @@ def database_summary(path: Path) -> dict:
                 + ", launch_token FROM jobs WHERE state IN ('starting', 'running', 'cancelling') ORDER BY id"
             )
         ]
-    return {"user_version": version, "jobs": count, "states": states, "columns": columns,
-            "borrow_open": borrow_open, "active": active}
+    return {"user_version": version, "jobs": count, "states": states, "columns": columns, "active": active,
+            "starting": [job["id"] for job in active if job["state"] == "starting"]}
 
 
 def row_digests(path: Path, columns: list[str]) -> dict[int, str]:
@@ -133,6 +136,20 @@ def row_digests(path: Path, columns: list[str]) -> dict[int, str]:
 def wrapper_runtime(text: str) -> Path | None:
     match = re.search(r"exec \S+ (\S+)/source/simq ", text)
     return Path(match.group(1)) if match else None
+
+
+def line_state_path(document: dict) -> str | None:
+    """The published GPU line state file of a node configuration (0.6.2)."""
+    line = document.get("gpu_line") or {}
+    if line.get("state_path"):
+        return str(line["state_path"])
+    locks = document.get("lock_files") or {}
+    for paths in (locks.get("gpu_extra") or {}).values():
+        for path in paths or []:
+            return os.path.join(os.path.dirname(str(path)), "simq-gpu-line.json")
+    if locks.get("gpu_path"):
+        return os.path.join(os.path.dirname(str(locks["gpu_path"])), "simq-gpu-line.json")
+    return None
 
 
 class Upgrade:
@@ -205,7 +222,8 @@ class Upgrade:
             "#!/bin/sh\n"
             f"# SimQueue {version} node scheduler: partitions from node.json; each job runs in its own\n"
             "# systemd user unit (spheral 0-3, raikou-mfem 4-5 + GPU, powerflow 6-7 + GPU);\n"
-            "# borrow jobs run in simqborrow.slice at idle CPU priority.\n"
+            "# borrow jobs run in simqborrow.slice at idle CPU priority; queued GPU jobs\n"
+            "# win the GPU lease files through the GPU line (gpu-lease for direct use).\n"
             "set -eu\n"
             "unset SIMQUEUE_PCORES\n"
             f"export SIMQUEUE_PROJECT_ROOT={self.project_root}\n"
@@ -214,10 +232,10 @@ class Upgrade:
             f"exec {PYTHON} {runtime / 'source' / 'simq'} \"$@\"\n"
         )
 
-    def unit_text(self, runtime: Path) -> str:
+    def unit_text(self, runtime: Path, version: str = TO_VERSION) -> str:
         return (
             "[Unit]\n"
-            "Description=SimQueue 0.6.1 node scheduler (jobs run in their own units)\n"
+            f"Description=SimQueue {version} node scheduler (jobs run in their own units)\n"
             f"Documentation=file://{runtime / 'OPERATIONS.md'}\n"
             "\n"
             "[Service]\n"
@@ -232,25 +250,14 @@ class Upgrade:
             "Nice=5\n"
             "Restart=on-failure\n"
             "RestartSec=2\n"
-            "# Job units are separate units: stopping this service never stops a job.\n"
+            "# Job units and GPU claim units are separate units: stopping this\n"
+            "# service never stops them.\n"
             "KillMode=mixed\n"
             "TimeoutStopSec=30\n"
             "UMask=0077\n"
             "\n"
             "[Install]\n"
             "WantedBy=default.target\n"
-        )
-
-    @staticmethod
-    def slice_text() -> str:
-        return (
-            "[Unit]\n"
-            "Description=SimQueue borrow jobs (preemptible; idle CPU priority)\n"
-            "\n"
-            "[Slice]\n"
-            "# cpu.idle=1: processes here get CPU time only when no other process of the\n"
-            "# user manager wants that CPU (owner job units, terminal sessions, tools).\n"
-            "CPUWeight=idle\n"
         )
 
     def write_file(self, path: Path, data: bytes | str, mode: int) -> None:
@@ -304,11 +311,13 @@ class Upgrade:
             return 0
 
     def verify_adoption(self, *, active_before: list[dict], log_offset: int, version: str,
-                        runtime: Path, timeout: float) -> dict:
+                        runtime: Path, timeout: float, state_path: str | None = None) -> dict:
         """Wait until the new worker has started and adopted (or recorded)
-        every job that was active before the switch."""
+        every job that was active before the switch; with *state_path*, also
+        until that worker has published the GPU line state."""
         deadline = time.monotonic() + timeout
         result: dict = {"version": version, "jobs": {}}
+        started_at = time.time()
         while True:
             log = self.worker_log_since(log_offset)
             started = f"node worker started; simqueue {version} from {runtime}" in log
@@ -325,7 +334,19 @@ class Upgrade:
                     pending.append(job_id)
             result["worker_started"] = started
             result["service_active"] = self.unit_property(self.service, "ActiveState") == "active"
-            if started and not pending and result["service_active"]:
+            published = True
+            if state_path is not None:
+                document = None
+                try:
+                    document = json.loads(Path(state_path).read_text())
+                except (OSError, ValueError):
+                    pass
+                published = bool(document and document.get("version") == version
+                                 and float(document.get("heartbeat_unix") or 0) >= started_at - 1)
+                result["gpu_line_state"] = {"path": state_path, "published": published,
+                                            "version": (document or {}).get("version"),
+                                            "updated_at": (document or {}).get("updated_at")}
+            if started and not pending and result["service_active"] and published:
                 result["ok"] = True
                 return result
             if time.monotonic() > deadline:
@@ -341,7 +362,7 @@ class Upgrade:
     # ----- install --------------------------------------------------------
 
     def preflight_install(self) -> dict:
-        print(f"SimQueue 0.6.1 runtime: {self.runtime}")
+        print(f"SimQueue {TO_VERSION} runtime: {self.runtime}")
         sealed = self.runtime / "sealed-files.json"
         if sealed.exists():
             manifest = json.loads(sealed.read_text())
@@ -359,11 +380,11 @@ class Upgrade:
         if current is None:
             self.problem(f"cannot read the runtime from {wrapper}")
         elif current == self.runtime:
-            self.problem("0.6.1 already installed")
+            self.problem(f"{TO_VERSION} already installed")
         elif current != self.old_runtime:
             self.problem(f"wrapper runs {current}, expected {self.old_runtime}")
         if not (self.old_runtime / "source" / "simqueue" / "jobwrap.py").exists():
-            self.problem(f"0.6.0 runtime missing: {self.old_runtime}")
+            self.problem(f"{FROM_VERSION} runtime missing: {self.old_runtime}")
         live_config = self.state / "node.json"
         new_config = Path(self.args.config)
         try:
@@ -375,35 +396,43 @@ class Upgrade:
         check = self.python_in(
             self.runtime,
             "from pathlib import Path; from simqueue.nodeconfig import load_node_config;"
-            "c = load_node_config(Path(sys.argv[2]));"
-            "print(c.node, ' '.join(f'{p.name}={p.cpus}:lend={p.lend},leased_idle={p.lend_leased_idle},"
-            "timing={p.timing_sensitive}' for p in c.partitions.values()), c.borrow.slice)",
+            "c = load_node_config(Path(sys.argv[2])); l = c.line;"
+            "print(c.node, ' '.join(f'{p.name}={p.cpus}' for p in c.partitions.values()),"
+            "f'gpu_line enabled={l.enabled} state={l.state_path} tickets={l.ticket_dir}"
+            " gpus={list(l.gpus)} requeue={l.requeue_raw_waiters}')",
             str(new_config if not self.args.keep_node_config else live_config),
         )
         if check.returncode != 0:
-            self.problem(f"node config invalid for 0.6.1: {check.stderr.strip()[-400:]}")
+            self.problem(f"node config invalid for {TO_VERSION}: {check.stderr.strip()[-400:]}")
         else:
-            print(f"0.6.1 node config ok: {check.stdout.strip()}")
+            print(f"{TO_VERSION} node config ok: {check.stdout.strip()}")
         if not self.args.keep_node_config and live_doc and new_doc:
             if comparable_config(live_doc) != comparable_config(new_doc):
-                self.problem(f"{new_config} differs from the live {live_config} beyond the 0.6.1 keys; "
+                self.problem(f"{new_config} differs from the live {live_config} beyond the {TO_VERSION} keys; "
                              "reconcile them or use --keep-node-config")
         if not self.database.exists():
             self.problem(f"database missing: {self.database}")
             return {}
         summary = database_summary(self.database)
         print(f"database: schema {summary['user_version']}, {summary['jobs']} jobs, states {summary['states']}")
-        if summary["user_version"] != SCHEMA_OLD:
-            self.problem(f"database schema is {summary['user_version']}, expected {SCHEMA_OLD} (0.6.0)")
+        if summary["user_version"] != SCHEMA:
+            self.problem(f"database schema is {summary['user_version']}, expected {SCHEMA} ({FROM_VERSION})")
         for job in summary["active"]:
             print(f"active job {job['id']} ({job['name']}): {job['state']}, unit {job['unit_name']}")
         exec_start = self.unit_property(self.service, "ExecStart")
         print(f"{self.service} ExecStart: {exec_start[:160]}")
         if str(self.bin / "simq") not in exec_start:
             self.problem(f"{self.service} does not run {self.bin / 'simq'}")
-        if (self.units / BORROW_SLICE).exists():
-            self.problem(f"{self.units / BORROW_SLICE} already exists")
         return summary
+
+    def wait_no_starting(self, timeout: float) -> list[int]:
+        """Jobs still in state "starting" after waiting up to *timeout* s."""
+        deadline = time.monotonic() + timeout
+        while True:
+            starting = database_summary(self.database)["starting"]
+            if not starting or time.monotonic() > deadline:
+                return starting
+            time.sleep(0.5)
 
     def install(self) -> int:
         self.sandbox_guard()
@@ -412,13 +441,29 @@ class Upgrade:
             print(f"install refused: {len(self.problems)} problem(s)")
             return 1
         tag = now_tag()
-        backup = self.backups / f"0.6.0-to-0.6.1-{tag}"
+        backup = self.backups / f"{FROM_VERSION}-to-{TO_VERSION}-{tag}"
+        new_doc = json.loads(Path(self.args.config if not self.args.keep_node_config
+                                  else self.state / "node.json").read_text())
+        state_path = line_state_path(new_doc)
         self.say(f"backup directory: {backup}")
+        # no job may be in "starting" at the switch (a launch in progress)
+        starting = self.wait_no_starting(self.args.starting_timeout if self.execute else 0)
+        if starting and self.execute:
+            print(f"install refused: job(s) {starting} still starting after {self.args.starting_timeout:.0f} s; retry")
+            return 1
+        if starting:
+            self.say(f"job(s) {starting} are starting now; --execute waits up to {self.args.starting_timeout:.0f} s")
         self.say(f"stopping {self.service} (job units keep running)")
         self.systemctl("stop", self.service)
         if self.execute:
             self.wait_service(False)
-        self.step("stopped-0.6.0-worker")
+            starting = database_summary(self.database)["starting"]
+            if starting:
+                self.systemctl("start", self.service)
+                print(f"install refused: job(s) {starting} became starting while the {FROM_VERSION} worker stopped; "
+                      f"the {FROM_VERSION} worker was started again and nothing was changed; retry")
+                return 1
+        self.step(f"stopped-{FROM_VERSION}-worker", starting_at_switch=[])
         # backup
         files: dict[str, dict] = {}
         if self.execute:
@@ -442,7 +487,7 @@ class Upgrade:
             before = database_summary(backup / "queue.sqlite3")
             manifest = {
                 "schema": "simqueue-upgrade-backup-v1",
-                "from": "0.6.0", "to": "0.6.1",
+                "from": FROM_VERSION, "to": TO_VERSION,
                 "created": tag,
                 "home": str(self.home),
                 "runtime": str(self.runtime),
@@ -450,64 +495,63 @@ class Upgrade:
                 "service": self.service,
                 "database": {"source": str(self.database), "backup": str(backup / "queue.sqlite3"),
                              **{k: v for k, v in before.items() if k != "columns"}},
-                "schema7_columns": before["columns"],
+                "columns": before["columns"],
                 "files": files,
                 "simqueue_symlink": os.readlink(link) if link.is_symlink() else None,
-                "borrow_slice_existed": (self.units / BORROW_SLICE).exists(),
+                "gpu_line_state_path": state_path,
                 "active_before": before["active"],
             }
             (backup / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         else:
             self.say(f"would back up {self.database}, {self.bin / 'simq'}, {self.bin / 'simqueue'}, node.json, "
                      f"worker.log and units {UNIT_FILES}")
-            manifest = {"active_before": summary.get("active", []), "schema7_columns": summary.get("columns", [])}
+            manifest = {"active_before": summary.get("active", []), "columns": summary.get("columns", [])}
         self.step("backup", directory=str(backup))
         log_offset = self.worker_log_size()
-        receipt: dict = {"schema": "simqueue-upgrade-receipt-v1", "action": "install", "executed": self.execute,
-                         "backup": str(backup), "active_before": manifest["active_before"]}
+        receipt: dict = {"schema": "simqueue-upgrade-receipt-v1", "action": "install", "from": FROM_VERSION,
+                         "to": TO_VERSION, "executed": self.execute, "backup": str(backup),
+                         "active_before": manifest["active_before"]}
         try:
-            # files first: from here on every simq call runs 0.6.1 (which
-            # accepts the 0.6.0 node.json and migrates the database itself)
-            self.write_file(self.bin / "simq", self.wrapper_text(self.runtime, "0.6.1"), 0o755)
+            # files first: from here on every simq call runs 0.6.2
+            self.write_file(self.bin / "simq", self.wrapper_text(self.runtime, TO_VERSION), 0o755)
             self.point_link(str(self.runtime / "simq"))
             self.write_file(self.units / self.service, self.unit_text(self.runtime), 0o644)
-            self.write_file(self.units / BORROW_SLICE, self.slice_text(), 0o644)
-            self.step("installed-wrapper-and-units")
-            self.say("migrating the database to schema 8 with the 0.6.1 code")
+            if not self.args.keep_node_config:
+                self.write_file(self.state / "node.json", Path(self.args.config).read_text(), 0o600)
+            self.step("installed-wrapper-unit-and-node-config", kept_node_config=bool(self.args.keep_node_config))
+            self.say(f"opening the database with the {TO_VERSION} code (no migration: schema {SCHEMA} stays)")
             if self.execute:
                 result = self.python_in(self.runtime, "from simqueue.store import QueueStore; QueueStore(); print('ok')")
                 if result.returncode != 0:
-                    raise RuntimeError(f"migration failed: {result.stderr.strip()[-400:]}")
+                    raise RuntimeError(f"{TO_VERSION} cannot open the database: {result.stderr.strip()[-400:]}")
                 after = database_summary(self.database)
-                if after["user_version"] != SCHEMA_NEW:
-                    raise RuntimeError(f"database schema is {after['user_version']} after migration")
-                old = row_digests(backup / "queue.sqlite3", manifest["schema7_columns"])
-                new = row_digests(self.database, manifest["schema7_columns"])
+                if after["user_version"] != SCHEMA:
+                    raise RuntimeError(f"database schema is {after['user_version']} after opening it")
+                if after["columns"] != manifest["columns"]:
+                    raise RuntimeError(f"database columns changed: {after['columns']}")
+                old = row_digests(backup / "queue.sqlite3", manifest["columns"])
+                new = row_digests(self.database, manifest["columns"])
                 changed = [job_id for job_id, digest in old.items() if new.get(job_id) != digest]
                 if changed:
-                    raise RuntimeError(f"migration changed schema-7 columns of jobs {changed}")
-                receipt["migration"] = {"schema": after["user_version"], "jobs_before": len(old),
-                                        "jobs_after": after["jobs"], "rows_unchanged": True,
-                                        "new_columns": [c for c in after["columns"]
-                                                        if c not in manifest["schema7_columns"]]}
-                print(f"database migrated: schema {SCHEMA_NEW}, {len(old)} existing rows unchanged")
-            self.step("migrated")
-            if not self.args.keep_node_config:
-                self.write_file(self.state / "node.json", Path(self.args.config).read_text(), 0o600)
-            self.step("installed-node-config", kept=bool(self.args.keep_node_config))
+                    raise RuntimeError(f"opening the database changed jobs {changed}")
+                receipt["database"] = {"schema": after["user_version"], "jobs": len(old), "rows_unchanged": True}
+                print(f"database: schema {SCHEMA}, {len(old)} rows unchanged")
+            self.step("database-checked")
             self.systemctl("daemon-reload")
             self.systemctl("enable", self.service)
             self.systemctl("start", self.service)
-            self.step("started-0.6.1-worker")
+            self.step(f"started-{TO_VERSION}-worker")
             if self.execute:
                 verification = self.verify_adoption(active_before=manifest["active_before"], log_offset=log_offset,
-                                                    version="0.6.1", runtime=self.runtime,
-                                                    timeout=self.args.adoption_timeout)
+                                                    version=TO_VERSION, runtime=self.runtime,
+                                                    timeout=self.args.adoption_timeout, state_path=state_path)
                 doctor = self.simq(self.runtime, "doctor")
                 partitions = self.simq(self.runtime, "partitions", "--sample", "0")
-                slice_weight = self.unit_property(BORROW_SLICE, "CPUWeight")
                 verification.update({"doctor_rc": doctor.returncode, "doctor": doctor.stdout,
-                                     "partitions": partitions.stdout, "borrow_slice_cpu_weight": slice_weight})
+                                     "partitions_rc": partitions.returncode, "partitions": partitions.stdout})
+                if partitions.returncode != 0:
+                    verification["ok"] = False
+                    verification["partitions_problem"] = partitions.stderr[-400:]
                 if self.args.require_doctor and doctor.returncode != 0:
                     verification["ok"] = False
                     verification["doctor_problem"] = True
@@ -515,7 +559,9 @@ class Upgrade:
                 print(doctor.stdout)
                 print(partitions.stdout)
                 for job_id, item in verification["jobs"].items():
-                    print(f"job {job_id}: " + ("adopted by 0.6.1" if item["adopted"] else "finished meanwhile"))
+                    print(f"job {job_id}: " + (f"adopted by {TO_VERSION}" if item["adopted"] else "finished meanwhile"))
+                if "gpu_line_state" in verification:
+                    print(f"GPU line state: {verification['gpu_line_state']}")
                 if not verification["ok"]:
                     raise RuntimeError(f"verification failed: {json.dumps(verification, default=str)[:600]}")
         except Exception as error:
@@ -525,7 +571,6 @@ class Upgrade:
                 print("rolling back automatically", flush=True)
                 (backup / "install-receipt.json").write_text(json.dumps(receipt, indent=2, default=str) + "\n")
                 self.args.backup = str(backup)
-                self.args.cancel_borrow_jobs = True
                 self.args.adoption_timeout = max(self.args.adoption_timeout, 60.0)
                 self.problems = []
                 code = self.rollback(automatic=True)
@@ -536,12 +581,70 @@ class Upgrade:
         receipt["steps"] = self.steps
         if self.execute:
             (backup / "install-receipt.json").write_text(json.dumps(receipt, indent=2, default=str) + "\n")
-            print(f"installed 0.6.1. Rollback: {RUNTIME / 'upgrade.py'} rollback --backup {backup} --execute")
+            print(f"installed {TO_VERSION}. Rollback: {self.runtime / 'upgrade.py'} rollback --backup {backup} --execute")
         else:
             self.say("no changes made; re-run with --execute")
         return 0
 
     # ----- rollback -------------------------------------------------------
+
+    def claim_units(self) -> list[str]:
+        """GPU claim units recorded in the state directory (0.6.2) that have
+        not finished.  The names come from this installation's own state, so
+        a sandbox never sees the real ones."""
+        root = self.state / "claims"
+        names = []
+        try:
+            directories = sorted(root.iterdir())
+        except OSError:
+            return names
+        for directory in directories:
+            if (directory / "finished").exists():
+                continue
+            try:
+                spec = json.loads((directory / "spec.json").read_text())
+            except (OSError, ValueError):
+                continue
+            unit = str(spec.get("unit") or "")
+            if re.fullmatch(r"[A-Za-z0-9_.-]+-gpuclaim-[0-9a-f]{12}\.service", unit):
+                names.append(unit)
+        return names
+
+    def stop_claims(self) -> list[str]:
+        names = self.claim_units()
+        if not names:
+            return []
+        if not self.execute:
+            self.say(f"would stop GPU claim unit(s) {', '.join(names)}")
+            return names
+        # Claim units are real transient units even in a sandbox (their names
+        # come from the sandbox state); job units are never stopped here.
+        stopped = []
+        for name in names:
+            result = subprocess.run(["systemctl", "--user", "stop", "--", name], text=True,
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False, timeout=60)
+            if result.returncode == 0:
+                stopped.append(name)
+            else:
+                print(f"could not stop {name}: {result.stderr.strip()}")
+        print(f"stopped GPU claim unit(s): {', '.join(stopped) or 'none'}")
+        return stopped
+
+    def withdraw_line_state(self, path: str | None) -> None:
+        if not path or not self.execute:
+            return
+        try:
+            document = json.loads(Path(path).read_text())
+        except (OSError, ValueError):
+            return
+        if not document.get("heartbeat_unix"):
+            return
+        document["heartbeat_unix"] = 0
+        document["withdrawn_at"] = datetime.now(UTC).isoformat(timespec="seconds")
+        temporary = Path(path + ".simq-new")
+        temporary.write_text(json.dumps(document, indent=2) + "\n")
+        temporary.chmod(0o644)
+        os.replace(temporary, path)
 
     def rollback(self, *, automatic: bool = False) -> int:
         if not automatic:
@@ -552,118 +655,85 @@ class Upgrade:
             self.problem(f"no manifest in {backup}")
             return 1
         manifest = json.loads(manifest_path.read_text())
+        if manifest.get("from") != FROM_VERSION or manifest.get("to") != TO_VERSION:
+            self.problem(f"{backup} is a {manifest.get('from')} to {manifest.get('to')} backup, "
+                         f"not {FROM_VERSION} to {TO_VERSION}")
         for name, info in manifest["files"].items():
             if sha256(backup / name) != info["sha256"]:
                 self.problem(f"backup file {name} does not match its recorded hash")
         old_runtime = Path(manifest.get("old_runtime") or self.old_runtime)
+        if not (old_runtime / "source" / "simqueue" / "jobwrap.py").exists():
+            self.problem(f"{FROM_VERSION} runtime missing: {old_runtime}")
         summary = database_summary(self.database)
-        print(f"database: schema {summary['user_version']}, {summary['jobs']} jobs, states {summary['states']}, "
-              f"{summary['borrow_open']} borrow job(s) queued or active")
-        if summary["borrow_open"] and not self.args.cancel_borrow_jobs:
-            self.problem(f"{summary['borrow_open']} borrow job(s) queued or active; 0.6.0 would run them as owner "
-                         "jobs. Cancel them (simq cancel ID) or re-run with --cancel-borrow-jobs")
+        print(f"database: schema {summary['user_version']}, {summary['jobs']} jobs, states {summary['states']}")
+        if summary["user_version"] != SCHEMA:
+            self.problem(f"database schema is {summary['user_version']}, expected {SCHEMA}")
         if self.problems:
             print(f"rollback refused: {len(self.problems)} problem(s)")
             return 1
-        receipt: dict = {"schema": "simqueue-upgrade-receipt-v1", "action": "rollback", "executed": self.execute,
-                         "automatic": automatic, "backup": str(backup), "at": now_tag()}
-        if summary["borrow_open"]:
-            self.say(f"canceling {summary['borrow_open']} borrow job(s) with the 0.6.1 CLI")
-            if self.execute:
-                receipt["canceled_borrow_jobs"] = self.cancel_borrow_jobs()
-        active_before = database_summary(self.database)["active"]
+        receipt: dict = {"schema": "simqueue-upgrade-receipt-v1", "action": "rollback", "from": TO_VERSION,
+                         "to": FROM_VERSION, "executed": self.execute, "automatic": automatic,
+                         "backup": str(backup), "at": now_tag()}
+        state_path = manifest.get("gpu_line_state_path")
         self.say(f"stopping {self.service} (job units keep running)")
         self.systemctl("stop", self.service)
         if self.execute:
             self.wait_service(False)
+        active_before = database_summary(self.database)["active"]
+        receipt["active_before"] = active_before
+        receipt["stopped_claim_units"] = self.stop_claims()
+        self.withdraw_line_state(state_path)
         log_offset = self.worker_log_size()
         if self.execute:
             with closing(sqlite3.connect(self.database)) as current:
                 current.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-                with closing(sqlite3.connect(backup / "queue-0.6.1-at-rollback.sqlite3")) as keep:
+                with closing(sqlite3.connect(backup / f"queue-{TO_VERSION}-at-rollback.sqlite3")) as keep:
                     current.backup(keep)
         else:
-            self.say(f"would keep the schema-8 database as {backup / 'queue-0.6.1-at-rollback.sqlite3'}")
-        # restore the 0.6.0 files before the database goes back to schema 7:
-        # a 0.6.1 command run meanwhile would migrate it again
+            self.say(f"would keep the database as {backup / f'queue-{TO_VERSION}-at-rollback.sqlite3'}")
         for name, info in manifest["files"].items():
             if name in ("worker.log",):
                 continue
             self.write_file(Path(info["source"]), (backup / name).read_bytes(), int(info["mode"], 8))
         self.point_link(manifest.get("simqueue_symlink"))
-        if not manifest.get("borrow_slice_existed"):
-            slice_path = self.units / BORROW_SLICE
-            if self.execute:
-                slice_path.unlink(missing_ok=True)
-            else:
-                self.say(f"would remove {slice_path}")
         self.step("restored-files")
         if self.execute:
-            receipt["downgrade"] = self.downgrade_database(old_runtime)
+            check = self.python_in(
+                old_runtime,
+                "from simqueue.store import QueueStore, SCHEMA_VERSION; s = QueueStore();"
+                "import sqlite3; c = sqlite3.connect(s.path); print(SCHEMA_VERSION, c.execute('PRAGMA user_version')"
+                ".fetchone()[0], c.execute('SELECT COUNT(*) FROM jobs').fetchone()[0])",
+            )
+            if check.returncode != 0:
+                print(f"{FROM_VERSION} cannot open the database: {check.stderr.strip()[-400:]}")
+                receipt["database_error"] = check.stderr.strip()[-400:]
+            else:
+                code_version, user_version, jobs = (int(x) for x in check.stdout.split())
+                receipt["database"] = {"schema": user_version, "code_schema": code_version, "jobs": jobs,
+                                       "opened_by": str(old_runtime)}
+                print(f"database schema {user_version}; opened by {old_runtime.name} ({jobs} jobs)")
         else:
-            self.say(f"would set the database schema back to {SCHEMA_OLD} and open it with {old_runtime}")
+            self.say(f"would check that {old_runtime} opens the database (schema {SCHEMA})")
         self.systemctl("daemon-reload")
         self.systemctl("start", self.service)
         if self.execute:
             verification = self.verify_adoption(active_before=active_before, log_offset=log_offset,
-                                                version="0.6.0", runtime=old_runtime,
+                                                version=FROM_VERSION, runtime=old_runtime,
                                                 timeout=self.args.adoption_timeout)
+            if "database_error" in receipt:
+                verification["ok"] = False
             receipt["verification"] = verification
             for job_id, item in verification["jobs"].items():
-                print(f"job {job_id}: " + ("adopted by 0.6.0" if item["adopted"] else "finished meanwhile"))
+                print(f"job {job_id}: " + (f"adopted by {FROM_VERSION}" if item["adopted"] else "finished meanwhile"))
             (backup / ("auto-rollback-receipt.json" if automatic else "rollback-receipt.json")).write_text(
                 json.dumps(receipt, indent=2, default=str) + "\n")
             if not verification["ok"]:
                 print(f"rollback verification failed: {verification}")
                 return 1
-            print("rolled back to SimQueue 0.6.0")
+            print(f"rolled back to SimQueue {FROM_VERSION}")
         else:
             self.say("no changes made; re-run with --execute")
         return 0
-
-    def cancel_borrow_jobs(self) -> list[int]:
-        with closing(sqlite3.connect(f"file:{self.database}?mode=ro", uri=True)) as connection:
-            ids = [row[0] for row in connection.execute(
-                "SELECT id FROM jobs WHERE borrow = 1 AND state IN ('queued', 'starting', 'running', 'cancelling')")]
-        for job_id in ids:
-            result = self.simq(self.runtime, "cancel", str(job_id))
-            print(result.stdout.strip() or result.stderr.strip())
-        deadline = time.monotonic() + 120
-        while time.monotonic() < deadline:
-            if not database_summary(self.database)["borrow_open"]:
-                return ids
-            if self.unit_property(self.service, "ActiveState") != "active":
-                # no worker to record the end: run one pass of the 0.6.1 worker
-                self.simq(self.runtime, "worker", "--once", timeout=120)
-            time.sleep(1)
-        raise RuntimeError("borrow jobs did not end within 120 s; cancel them and retry")
-
-    def downgrade_database(self, old_runtime: Path) -> dict:
-        with closing(sqlite3.connect(self.database, timeout=10)) as connection:
-            connection.execute("BEGIN IMMEDIATE")
-            columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)")}
-            if "borrow" in columns:
-                open_borrow = connection.execute(
-                    "SELECT COUNT(*) FROM jobs WHERE borrow = 1 AND state IN "
-                    "('queued', 'starting', 'running', 'cancelling')").fetchone()[0]
-                if open_borrow:
-                    connection.rollback()
-                    raise RuntimeError(f"{open_borrow} borrow job(s) appeared during the rollback")
-            connection.execute(f"PRAGMA user_version = {SCHEMA_OLD}")
-            connection.commit()
-        check = self.python_in(
-            old_runtime,
-            "from simqueue.store import QueueStore, SCHEMA_VERSION; s = QueueStore();"
-            "import sqlite3; c = sqlite3.connect(s.path); print(SCHEMA_VERSION, c.execute('PRAGMA user_version')"
-            ".fetchone()[0], c.execute('SELECT COUNT(*) FROM jobs').fetchone()[0])",
-        )
-        if check.returncode != 0:
-            raise RuntimeError(f"0.6.0 cannot open the downgraded database: {check.stderr.strip()[-400:]}")
-        code_version, user_version, jobs = (int(x) for x in check.stdout.split())
-        if user_version != SCHEMA_OLD:
-            raise RuntimeError(f"database schema is {user_version} after the downgrade")
-        print(f"database schema set back to {SCHEMA_OLD}; opened by {old_runtime.name} ({jobs} jobs)")
-        return {"schema": user_version, "jobs": jobs, "opened_by": str(old_runtime)}
 
     def status(self) -> int:
         wrapper = self.bin / "simq"
@@ -671,10 +741,11 @@ class Upgrade:
         print(f"wrapper {wrapper} runs {wrapper_runtime(text)}")
         print(f"{self.service} ExecStart: {self.unit_property(self.service, 'ExecStart')}")
         print(f"{self.service} ActiveState: {self.unit_property(self.service, 'ActiveState')}")
-        print(f"{BORROW_SLICE}: {'installed' if (self.units / BORROW_SLICE).exists() else 'absent'}")
         if self.database.exists():
             summary = database_summary(self.database)
             print(f"database: schema {summary['user_version']}, {summary['jobs']} jobs, states {summary['states']}")
+        claims = self.claim_units()
+        print(f"GPU claim units recorded as not finished: {', '.join(claims) or 'none'}")
         if self.backups.exists():
             print("backups: " + ", ".join(sorted(p.name for p in self.backups.iterdir())))
         return 0
@@ -685,11 +756,11 @@ def main() -> int:
     parser.add_argument("action", choices=["install", "rollback", "status"])
     parser.add_argument("--execute", action="store_true", help="make the changes (default: dry run)")
     parser.add_argument("--backup", help="rollback: backup directory written by install")
-    parser.add_argument("--cancel-borrow-jobs", action="store_true",
-                        help="rollback: cancel queued and active borrow jobs first")
     parser.add_argument("--keep-node-config", action="store_true",
-                        help="install: keep the live node.json (0.6.1 defaults apply to its partitions)")
+                        help="install: keep the live node.json (the GPU line then uses its defaults)")
     parser.add_argument("--adoption-timeout", type=float, default=60)
+    parser.add_argument("--starting-timeout", type=float, default=60,
+                        help="install: how long to wait for jobs in state starting before the switch")
     parser.add_argument("--no-auto-rollback", action="store_true")
     parser.add_argument("--require-doctor", action="store_true", help="install: fail when simq doctor reports a problem")
     parser.add_argument("--allow-unsealed", action="store_true", help=argparse.SUPPRESS)

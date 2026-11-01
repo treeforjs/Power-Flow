@@ -12,6 +12,11 @@ cores of any partition after every owner job has been considered, run at idle
 CPU priority, and are frozen, requeued or canceled as soon as an owner needs
 their cores (see ``borrow.py``).  With no borrow job in the queue the worker
 behaves exactly as 0.6.0.
+
+0.6.2 adds the GPU line (``gpuqueue.py``, ``gpuline.py``): a queued GPU job
+that is ready except for the GPU joins the line through a claim unit that
+wins the GPU lease files in the kernel queue and hands them to the job unit,
+so raw ``flock`` users can no longer take the GPU from it at every release.
 """
 
 from __future__ import annotations
@@ -30,6 +35,7 @@ from typing import Any, Callable
 from . import __version__
 from .config import format_cpu_list, parse_cpu_list, project_root, state_dir
 from .borrow import Borrower, Preemption, plan_node
+from .gpuqueue import GpuQueue, GpuView
 from .locks import borrow_lock_plan, busy_resources, lock_plan_for, process_description
 from .nodeconfig import NodeConfig, format_size, format_time_limit
 from .scheduler import INFINITY, Allocation, Request, Running, build_pool, plan
@@ -318,6 +324,7 @@ class NodeWorker:
         self._telemetry_used = False
         self._slice_checked_at: float | None = None
         self._slice_error: str | None = None
+        self.gpu = GpuQueue(config, self.store, self.log, runtime_dir=self.runtime_dir)
 
     # ----- infrastructure ------------------------------------------------
 
@@ -671,36 +678,43 @@ class NodeWorker:
 
     def dispatch(self) -> int:
         jobs = self.store.node_jobs()
+        self.gpu.refresh(jobs)
         if any(job.get("borrow") for job in jobs):
             return self._dispatch_with_borrowers(jobs)
         if self._telemetry_used:
             self.telemetry.reset()
             self._telemetry_used = False
-        # Without borrow jobs: exactly the 0.6.0 dispatch.
-        if self.store.is_paused():
-            return 0
+        # Without borrow jobs: the 0.6.0 dispatch plus the GPU line (0.6.2).
+        paused = self.store.is_paused()
         queued = [j for j in jobs if j["state"] == "queued"]
-        if not queued:
-            return 0
         now = self.clock()
         active = [j for j in jobs if j["state"] in ACTIVE_STATES]
         running = running_entries(active, self.config, now)
+        if paused or not queued:
+            self.gpu.idle_pass(jobs=jobs, running=running, now=now, paused=paused)
+            return 0
         allocated_cpus = {cpu for item in running for cpu in item.allocation.cpus}
         allocated_gpus = {gpu for item in running for gpu in item.allocation.gpus}
         busy_cpus, busy_gpus = busy_resources(
             self.config, allocated_cpus=allocated_cpus, allocated_gpus=allocated_gpus
         )
-        pool = build_pool(self.config, running, external_cpus=busy_cpus, external_gpus=busy_gpus)
+        view = self.gpu.prepare(jobs=jobs, running=running, busy_gpus=busy_gpus, now=now)
+        pool = build_pool(self.config, running, external_cpus=busy_cpus, external_gpus=set(view.blocked))
         requests = [job_request(j, self.config) for j in queued]
         decision = plan(self.config, pool, running, requests, now)
+        starts, deferred = self.gpu.filter_starts(decision.starts, view)
+        self.gpu.after_plan(view, jobs=jobs, running=running, busy_cpus=busy_cpus, requests=requests,
+                            starts=starts, now=now, paused=False)
         by_id = {int(j["id"]): j for j in queued}
         started = 0
-        for request, allocation in decision.starts:
+        for request, allocation in starts:
             if self.stop_requested:
                 break
-            if self._launch(by_id[request.job_id], request, allocation, busy_cpus=set(busy_cpus)):
+            if self._launch(by_id[request.job_id], request, allocation, busy_cpus=set(busy_cpus), view=view):
                 started += 1
-        self._record_reasons(decision.skipped, decision.reservation, busy_cpus)
+        skipped = dict(decision.skipped)
+        skipped.update(deferred)
+        self._record_reasons(skipped, decision.reservation, busy_cpus)
         self.last_started = started
         return started
 
@@ -711,7 +725,9 @@ class NodeWorker:
         busy_cpus: dict[int, list],
     ) -> None:
         for job_id, reason in skipped.items():
-            if reason == "resources busy":
+            if job_id in self.gpu.reasons:
+                reason = self.gpu.reasons[job_id]
+            elif reason == "resources busy":
                 holders = [
                     f"CPU {cpu}: {process_description(h.pid)}"
                     for cpu, found in busy_cpus.items()
@@ -742,7 +758,8 @@ class NodeWorker:
                     for cpu in item.allocation.cpus}
         allocated_gpus = {gpu for item in running for gpu in item.allocation.gpus}
         busy_cpus, busy_gpus = busy_resources(config, allocated_cpus=set(owner_of), allocated_gpus=allocated_gpus)
-        pool = build_pool(config, running, external_cpus=busy_cpus, external_gpus=busy_gpus)
+        view = self.gpu.prepare(jobs=jobs, running=running, busy_gpus=busy_gpus, now=now)
+        pool = build_pool(config, running, external_cpus=busy_cpus, external_gpus=set(view.blocked))
         borrowers = borrower_entries(borrow_active, config)
         self._telemetry_used = True
         cores = self.telemetry.sample(owners=owners, external=busy_cpus, borrowers=borrowers)
@@ -753,6 +770,12 @@ class NodeWorker:
             borrowers=borrowers, cores=cores, owner_of=owner_of,
             exclusive_owner_cpus=exclusive, starts_allowed=not paused,
         )
+        starts, deferred = self.gpu.filter_starts(decision.starts, view)
+        if paused or not queued:
+            self.gpu.idle_pass(jobs=jobs, running=running, now=now, paused=paused)
+        else:
+            self.gpu.after_plan(view, jobs=jobs, running=running, busy_cpus=busy_cpus, requests=requests,
+                                starts=starts, now=now, paused=False)
         active_by_id = {int(j["id"]): j for j in borrow_active}
         for item in decision.preemptions:
             if item.job_id in active_by_id:
@@ -763,7 +786,8 @@ class NodeWorker:
         by_id = {int(j["id"]): j for j in queued}
         started = 0
         skipped = dict(decision.skipped)
-        for request, allocation in decision.starts:
+        skipped.update(deferred)
+        for request, allocation in starts:
             if self.stop_requested:
                 break
             busy = set(busy_cpus)
@@ -775,7 +799,7 @@ class NodeWorker:
                 busy -= {cpu for cpu, _, cls in allocation.placement if cls == "leased-idle"}
             try:
                 launched = self._launch(by_id[request.job_id], request, allocation, busy_cpus=busy,
-                                        owner_of=owner_of, cores=cores)
+                                        owner_of=owner_of, cores=cores, view=view)
             except RuntimeError as error:
                 # The claim re-checks every active job: a borrow job whose
                 # preemption did not take effect keeps its cores until the
@@ -871,8 +895,10 @@ class NodeWorker:
         busy_cpus: set[int],
         owner_of: dict[int, int] | None = None,
         cores: dict[int, Any] | None = None,
+        view: GpuView | None = None,
     ) -> bool:
         config = self.config
+        handoff = None if view is None else view.handoffs.get(request.job_id)
         partition = config.partitions[request.partition]
         borrow = allocation.borrow
         placement_doc: dict[str, Any] | None = None
@@ -960,6 +986,12 @@ class NodeWorker:
                 "scheduler_runtime": self.runtime_dir,
                 "require_unit": True,
             }
+            if handoff is not None:
+                handoff_paths = set(config.locks.gpu_lock_order(config.gpus[handoff["gpu"]]))
+                spec["gpu_handoff"] = {k: v for k, v in handoff.items()}
+                for lease in spec["locks"]:
+                    if lease["path"] in handoff_paths:
+                        lease["handoff"] = True
             if borrow:
                 spec["borrow"] = True
                 spec["borrow_text"] = (
@@ -1005,7 +1037,10 @@ class NodeWorker:
             f"CPUs {placement['SIMQ_CPU_LIST']}, GPUs {placement['SIMQ_GPUS'] or 'none'}, "
             f"mem {format_size(mem)}, time {format_time_limit(request.time_limit)}, unit {unit}"
             + (f"; {spec.get('borrow_text')}" if borrow else "")
+            + (f"; GPU handed over by {handoff['claim_unit']}" if handoff is not None else "")
         )
+        if view is not None:
+            self.gpu.launched(claimed, view, self.clock())
         return True
 
     # ----- main loop -------------------------------------------------------
@@ -1026,6 +1061,10 @@ class NodeWorker:
             )
             + f"; drain={self.drain}"
         )
+        try:
+            self.gpu.adopt()
+        except Exception as error:  # noqa: BLE001 - the line is re-established on later passes
+            self.log(f"GPU claim adoption failed: {error!r}")
         exit_code = 0
         failures = 0
         startup = True
@@ -1050,6 +1089,8 @@ class NodeWorker:
             while not self.stop_requested and time.monotonic() < deadline:
                 time.sleep(min(0.1, self.config.launch.poll_seconds))
         remaining = len(self.store.active_jobs())
+        if not self.once:
+            self.gpu.withdraw()
         suffix = f" after signal {self.stop_signal}" if self.stop_signal else ""
         self.log(f"node worker stopped{suffix}; {remaining} job unit(s) continue independently")
         self._release_lock()

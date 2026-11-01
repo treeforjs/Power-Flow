@@ -1,4 +1,4 @@
-# SimQueue 0.6.1 on zenobia: operations
+# SimQueue 0.6.2 on zenobia: operations
 
 SimQueue 0.6 is a single-node, Slurm-shaped scheduler. One worker
 (`simqueue.service`) schedules the whole node; every job runs in its own
@@ -11,21 +11,33 @@ canceled the moment an owner needs those cores. Owners never wait for a
 borrower. With no `--borrow` job in the queue, 0.6.1 schedules exactly as
 0.6.0 (see "Borrowing idle cores" below).
 
+0.6.2 adds the **GPU line**: a queued GPU job that is ready except for the
+GPU now actually wins the GPU lease files when they are released, instead of
+losing every release to processes blocked in a raw `flock testing-gpu.lock`.
+A small claim unit waits for the lease files in the kernel's queue on behalf
+of the queue and hands the held files to the job unit, raw `flock` waiters
+are moved behind the line, `gpu-lease` serves direct GPU users fairly, and
+the line is published in `<pic-profile>/simq-gpu-line.json` (see "The GPU
+line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
+
 | Item | Path |
 |---|---|
-| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.6.1-20261031` |
-| Previous runtime (kept: running 0.6.0 job units execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.6.0-20261030` |
+| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.6.2-20261031` |
+| Previous runtime (kept: job units started by 0.6.1 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.6.1-20261031` |
 | Interpreter (unchanged from 0.5) | `/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen` |
-| Code | `source/simqueue/` (`nodeworker.py`, `scheduler.py`, `borrow.py`, `telemetry.py`, `units.py`, `jobwrap.py`, `locks.py`, `nodeconfig.py`, plus the 0.5 modules) |
+| Code | `source/simqueue/` (`nodeworker.py`, `scheduler.py`, `borrow.py`, `telemetry.py`, `gpuqueue.py`, `gpuline.py`, `units.py`, `jobwrap.py`, `locks.py`, `nodeconfig.py`, plus the 0.5 modules) |
+| Direct GPU use (0.6.2) | `bin/gpu-lease` (runs `source/simqueue/gpuline.py lease`) |
+| GPU line state, tickets, log (0.6.2) | `<pic-profile>/simq-gpu-line.json`, `<pic-profile>/gpu-line.d/`, `<pic-profile>/simq-gpu-line.log` |
+| GPU claims (0.6.2) | units `simq-job-gpuclaim-<token12>.service`; files `~/.local/state/simqueue/claims/<token>/{spec,control,status}.json`, `claim.log` |
 | Node configuration (template) | `config/zenobia-node.json` |
 | Node configuration (live) | `~/.local/state/simqueue/node.json` (`SIMQUEUE_CONFIG`) |
-| Database | `~/.local/state/simqueue/queue.sqlite3` (schema 8; 0.6.0 used schema 7) |
+| Database | `~/.local/state/simqueue/queue.sqlite3` (schema 8, unchanged by 0.6.2; 0.6.0 used schema 7) |
 | Borrow slice | `~/.config/systemd/user/simqborrow.slice` (`CPUWeight=idle`) |
 | Per-job files | `~/.local/state/simqueue/jobs/NNNNNN-<token>/{spec,status,stop-post}.json` |
 | Logs | `~/.local/state/simqueue/logs/NNNNNN.log`, `~/.local/state/simqueue/worker.log` |
-| Upgrade 0.6.0 to 0.6.1 / rollback | `upgrade.py` (dry run unless `--execute`) |
+| Upgrade 0.6.1 to 0.6.2 / rollback | `upgrade.py` (dry run unless `--execute`) |
 | Switchover from 0.5 (historical) | `switchover.py` |
-| Tests | `source/run-tests.py` (takes the cores' lease files first; stops when other work needs those cores) |
+| Tests | `source/run-tests.py` (takes the cores' lease files first; stops when other work needs those cores; `--shared` on cores 6-7) |
 
 ## Partitions on zenobia
 
@@ -115,14 +127,21 @@ core K is `/home/treefor/projects/.workspace/outputs/pic-profile/testing-core<K>
 (core 6: `testing-core.lock`), the GPU is `testing-gpu-<UUID>.lock` plus
 `testing-gpu.lock`, all flock(2).
 
-- Each job unit's wrapper takes the lease files of its cores (exclusive) and
-  GPU (exclusive, or shared for a `--gpu-mem` job) before the command starts,
-  in ascending path order, and passes them to the job's processes, so the
-  leases stay held while any process of the job lives, including across worker
-  restarts.
-- The scheduler never takes a lease itself. It reads `/proc/locks`; a core or
+- Lock order on this machine (0.6.2): the GPU files first
+  (`testing-gpu.lock`, then `testing-gpu-<UUID>.lock`), then the core leases.
+  The reverse order deadlocked once; every tool that blocks on more than one
+  lease must use this order.
+- Each job unit's wrapper takes the lease files of its GPU (exclusive, or
+  shared for a `--gpu-mem` job) and of its cores (exclusive) before the
+  command starts, in that order and without blocking, and passes them to the
+  job's processes, so the leases stay held while any process of the job
+  lives, including across worker restarts. When the GPU was contended, the
+  GPU files arrive already held from the queue's GPU claim (see "The GPU
+  line").
+- The worker never takes a lease itself. It reads `/proc/locks`; a core or
   GPU whose lease is held while no queue job owns it is busy, and
-  `simq partitions` names the holder.
+  `simq partitions` names the holder. (0.6.2: the GPU claim units, which are
+  separate units like job units, wait for and hold the GPU files.)
 - If a manual process takes a lease between the scheduler's check and the
   wrapper's start, the wrapper refuses before running anything and the job is
   requeued under the same ID.
@@ -133,6 +152,149 @@ core K is `/home/treefor/projects/.workspace/outputs/pic-profile/testing-core<K>
   `borrow-core<K>.lock` (same directory) shared instead, so the core's own
   lease stays free for its owner: a tool such as any-core.sh can take it at
   any time, and the scheduler then preempts the borrower within a pass.
+
+## The GPU line (0.6.2)
+
+`<pic-profile>` is `/home/treefor/projects/.workspace/outputs/pic-profile`
+(the same directory that `any-core.sh` reaches through its own, older path).
+
+**Problem fixed.** Before 0.6.2 the worker only observed the GPU lease files.
+A process blocked in `flock testing-gpu.lock` gets a released flock from the
+kernel at once, while the worker looked again up to a second later, so a
+queued GPU job lost every release to workers that ran raw `flock` commands
+back to back (job 169 waited more than 20 minutes this way).
+
+**How it works.**
+
+1. Each pass the worker finds the queued GPU jobs that are *ready except for
+   the GPU*: an exclusive job that the planner would start now if everybody
+   holding the GPU released it (outside holders, or the queue's own jobs on
+   it, whose cores free at the same moment); a shared (`--gpu-mem`) job that
+   it would start if only the outside holders released it, the queue's own
+   GPU jobs keeping their cores and GPU budget. A shared job that waits for
+   cores or GPU budget held by queue jobs is not waiting for the lease files
+   (it joins their shared lock when it starts), so it gets no claim.
+2. For such jobs it starts one *claim* per GPU:
+   `simq-job-gpuclaim-<token12>.service`, a small unit (one Python process,
+   `MemoryMax=256M`) that is independent of the worker like a job unit. The
+   claim enters the kernel's wait queue on `testing-gpu.lock`; raw `flock`
+   waiters that are ahead of it there are moved behind it (below). When it
+   wins `testing-gpu.lock` it takes `testing-gpu-<UUID>.lock` without
+   blocking.
+3. The worker then starts the job unit with a hand-off: the job's wrapper
+   receives the claim's open lock files over an abstract unix socket
+   (SCM_RIGHTS, checked with a per-claim secret and the peer uid), so the lock
+   is never released between claim and job. The job's time limit starts with
+   its unit, after the GPU was won. A `--gpu-mem` (shared) job turns the
+   received locks into shared ones once all its leases are held. If the job
+   cannot take its core leases, it gives the GPU back to the claim and is
+   requeued as before; if the hand-off itself fails, the wrapper takes the GPU
+   files without blocking, as 0.6.1 did.
+4. A claim is stopped when no queued job can use it (a held claim after 5 s,
+   a waiting one at once), when the queue is paused, or when it held the GPU
+   for `claim_hold_max_s` (300 s) without a hand-off. Claims survive worker
+   restarts and upgrades; the next worker adopts them from
+   `~/.local/state/simqueue/claims/`.
+
+**Order of service** (the line). Members are served by their *since* time:
+a claim's is the submit time of the oldest ready queued job (exact to the
+microsecond: the creation time of the job's log file, which `simq submit`
+creates in the same transaction); a `gpu-lease` user's is the moment it
+started. Ties go to the queue. A member enters the kernel queue only when
+every earlier member is in it or holds the GPU, and leaves it again when an
+earlier member arrives, so the kernel's FIFO order equals the line order.
+Raw `flock` users are served after every member that is in the line when the
+lock is released.
+
+**Raw waiters are moved behind the line.** A process blocked in a raw
+`flock` on the GPU file ahead of a member in the kernel queue gets SIGSTOP and,
+about 30 ms later, SIGCONT: the stop interrupts its blocked flock(2), the
+continue restarts it, and the restarted request queues at the tail. The
+process notices nothing else (`flock` neither sees the signals nor loses its
+command or timeout). Only processes of this user whose command is listed in
+`requeue_commands` (default `flock`) and that are blocked are touched; holders
+are never touched, nor jobs of an interactive job-control shell (a terminal
+would report them stopped). A member that dies between the two signals is
+cleaned up by the next reader of its ticket (SIGCONT). Every move is logged in
+`<pic-profile>/simq-gpu-line.log`. `gpu-lease --no-requeue-raw` and
+`"requeue_raw_waiters": false` turn the moves off.
+
+**Lock order and deadlocks.** Only the first GPU file is waited for in the
+kernel; the second file and core leases are polled without blocking. A
+member that finds the holder of a file it needs blocked on a file the member
+holds (someone using the reversed order, or holding a core lease and waiting
+for the GPU) releases everything and re-enters the line with its original
+since time. Raw users of two different orders can still deadlock with each
+other, whatever the queue does; use `gpu-lease`.
+
+### Direct GPU use: `gpu-lease`
+
+```sh
+G=/home/treefor/projects/runtimes/simqueue-0.6.2-20261031/bin/gpu-lease
+$G -- ./gpu-case.sh                       # GPU only
+$G --core any -- ./gpu-case.sh            # GPU, then core 6 or 7 (as any-core.sh --wait)
+$G --core both -- ./build-and-run.sh      # GPU, then cores 6 and 7 (as both-cores.sh)
+$G --core 4 --label "raikou probe" -- ./probe.sh
+$G --timeout 600 -- ./gpu-case.sh         # give up after 10 min of waiting (exit 75)
+$G --status                               # holders, line, raw waiters, queue jobs (--json)
+```
+
+It waits for queued SimQueue GPU jobs that were waiting before it started
+and for earlier `gpu-lease` users, then takes `testing-gpu.lock`,
+`testing-gpu-<UUID>.lock` and the core lease (in that order), runs the command
+(with `--core`: pinned to the core, nice 15, `PF_CORE`, `OMP_NUM_THREADS=1` as
+`any-core.sh`), and releases everything when the command and its children
+have closed the files. It exports `GPU_LEASE_GPU`, `GPU_LEASE_LOCKS` and
+(with `--core`) `GPU_LEASE_CORES`. Exit status is the command's; 75 after
+`--timeout`; SIGTERM/SIGHUP are passed to the command. It keeps working while
+the worker is stopped (it then waits for nobody in the queue) and after a
+rollback to 0.6.1. Raw `flock testing-gpu.lock ...` still works but is served
+last; use `gpu-lease` instead.
+
+### Published state: `<pic-profile>/simq-gpu-line.json`
+
+Written by the worker (atomic replace) whenever it changes and at least every
+10 s (`heartbeat_unix`); schema `simqueue-gpu-line-v1`. Per GPU (`gpus.<UUID>`):
+`queue` (the queued GPU jobs that are ready except for the GPU, that is the
+queue's part of the line, in dispatch order, with `job_id`, `name`,
+`partition`, `mode`, `since_unix`/`since`, `ready_since_unix`, `waited_s`,
+`state`; a GPU job still waiting for cores is not listed), `jobs` (queue
+jobs on the GPU), `claim`, `holders`, `helpers`
+(`gpu-lease` users), `raw_waiters`, `blocked` and `warnings`. A tool that
+wants to yield should wait while `queue` is non-empty and the file is fresh
+(`now - heartbeat_unix <= stale_after_s`, 120 s). When the worker stops it
+sets `heartbeat_unix` to 0 (withdrawn).
+
+### Display
+
+- `simq partitions` / `simq sinfo`: per GPU, the holder (queue job, `gpu-lease`
+  user, the queue's claim, or raw flock holder with pid and command), the
+  line (queue jobs and `gpu-lease` users in order, with since times), raw
+  waiters, and `WARNING: queue job N has waited ... for the GPU` once a ready
+  job has waited longer than `starvation_warn_s` (600 s). `--json` adds
+  `gpus[].line` and `gpu_line`.
+- `simq show ID` (queued GPU job): `GPU line` with its position, waiting time,
+  claim phase and holder; the job history records `gpu-wait`, `gpu-claim` and
+  `gpu-handoff` (with `waited_s`).
+- `simq` (status): the reason column says `waiting for the GPU (line position
+  N of the queue, ...; claim queued; GPU held by ...)`.
+- `simq doctor`: a `GPU line` line (state age, ticket directory, limits).
+- `worker.log`: claims started, adopted, stopped and ended, and the starvation
+  warning.
+
+### Configuration (`gpu_line` in node.json)
+
+| Key | zenobia | Meaning |
+|---|---|---|
+| `enabled` | true | default true when lease files and a GPU are configured |
+| `state_path`, `ticket_dir`, `log_path` | see above | default: next to the GPU lease files |
+| `starvation_warn_s` | 600 | warning threshold for a ready queued GPU job |
+| `claim_hold_max_s` | 300 | a held claim that no job takes releases the GPU |
+| `stale_after_s` | 120 | readers ignore an older published state |
+| `requeue_raw_waiters`, `requeue_commands` | true, `["flock"]` | move raw waiters behind the line |
+| `poll_s` | 0.1 | polling interval of claims and helpers |
+| `helper_cores` | `[6, 7]` | cores of `gpu-lease --core any/both` |
+| `claim_cpus` | (unset) | CPUAffinity of claim units (tests only) |
 
 ## Borrowing idle cores (0.6.1)
 
@@ -335,10 +497,10 @@ systemctl --user start simqueue.service     # adopts running jobs, records jobs 
 simq; tail ~/.local/state/simqueue/worker.log   # look for "adopted job N"
 ```
 
-### Upgrading 0.6.0 to 0.6.1: `upgrade.py`
+### Upgrading 0.6.1 to 0.6.2: `upgrade.py`
 
 ```sh
-cd /home/treefor/projects/runtimes/simqueue-0.6.1-20261031
+cd /home/treefor/projects/runtimes/simqueue-0.6.2-20261031
 ./upgrade.py install                         # dry run: preflight and the exact actions
 ./upgrade.py install --execute               # upgrade; running job units keep running
 ./upgrade.py status
@@ -346,51 +508,57 @@ cd /home/treefor/projects/runtimes/simqueue-0.6.1-20261031
 
 `install --execute`:
 
-1. Preflight: 0.6.1 runtime sealed; its `config/zenobia-node.json` valid and
-   identical to the live `node.json` apart from the 0.6.1 keys (`borrow`,
-   `lend`, `lend_leased_idle`, `timing_sensitive`, `borrow_path`, notes);
-   the wrapper runs 0.6.0; database schema 7; lists the active jobs.
-2. Stops `simqueue.service` (job units keep running).
+1. Preflight: 0.6.2 runtime sealed; its `config/zenobia-node.json` valid and
+   identical to the live `node.json` apart from the 0.6.2 key `gpu_line` (and
+   notes); the wrapper runs 0.6.1; database schema 8; lists the active jobs.
+2. Waits until no job is in state `starting` (`--starting-timeout`, 60 s),
+   stops `simqueue.service` (job units keep running) and checks again; a job
+   that became `starting` meanwhile makes it start the 0.6.1 worker again and
+   stop without changing anything.
 3. Backs up the database (sqlite3 backup API, source opened read-only), the
-   wrapper, the `simqueue` link, the three simqueue unit files, `node.json` and
-   `worker.log` to `~/.local/state/simqueue-backups/0.6.0-to-0.6.1-<UTC>/`
-   with a manifest of sha256 sums.
-4. Installs the 0.6.1 wrapper, link, `simqueue.service` and
-   `simqborrow.slice`. From here on every `simq` call runs 0.6.1.
-5. Migrates the database to schema 8 (new columns and the `job_events`
-   table; nothing else changes) and checks that every schema-7 column of every
-   existing row is unchanged; installs the 0.6.1 `node.json`.
+   wrapper, the `simqueue` link, the unit files (`simqueue.service`, the two
+   spheral dispatch units, `simqborrow.slice`), `node.json` and `worker.log` to
+   `~/.local/state/simqueue-backups/0.6.1-to-0.6.2-<UTC>/` with a manifest of
+   sha256 sums.
+4. Installs the 0.6.2 wrapper, link, `simqueue.service` and `node.json`. From
+   here on every `simq` call runs 0.6.2. `simqborrow.slice` stays as it is.
+5. Opens the database with the 0.6.2 code and checks that the schema (8),
+   the columns and every column of every row are unchanged (0.6.2 migrates
+   nothing).
 6. daemon-reload, enable, start.
-7. Verifies that the 0.6.1 worker started and adopted every job unit that was
-   active before (or recorded its end) within `--adoption-timeout` (60 s);
-   records `simq doctor`, `simq partitions` and the borrow slice weight in the
-   receipt (`--require-doctor` also fails the install on a doctor problem).
-   If the verification fails, it rolls back by itself. Receipt:
+7. Verifies that the 0.6.2 worker started, adopted every job unit that was
+   active before (or recorded its end) and published
+   `<pic-profile>/simq-gpu-line.json` within `--adoption-timeout` (60 s), and
+   that `simq partitions` runs; records `simq doctor` and `simq partitions` in
+   the receipt (`--require-doctor` also fails the install on a doctor
+   problem). If the verification fails, it rolls back by itself. Receipt:
    `<backup>/install-receipt.json`.
 
-Rollback (0.6.0 again; jobs keep running and are adopted by 0.6.0):
+Rollback (0.6.1 again; jobs keep running and are adopted by 0.6.1):
 
 ```sh
-./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.0-to-0.6.1-<UTC>                 # dry run
-./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.0-to-0.6.1-<UTC> --execute
-./upgrade.py rollback --backup ... --execute --cancel-borrow-jobs   # when borrow jobs are queued or running
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.1-to-0.6.2-<UTC>             # dry run
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.1-to-0.6.2-<UTC> --execute
 ```
 
-It refuses while borrow jobs are queued or active (0.6.0 would run them as
-owner jobs) unless `--cancel-borrow-jobs`; stops the worker; keeps the
-schema-8 database as `<backup>/queue-0.6.1-at-rollback.sqlite3`; restores the
-wrapper, link, unit files and `node.json` byte for byte and removes
-`simqborrow.slice`; then sets the database back to schema 7 in place (all
-rows stay, including owner jobs started under 0.6.1 that still run; the 0.6.1
-columns stay and are ignored by 0.6.0) and checks that the 0.6.0 code opens
-it; starts the 0.6.0 worker and verifies that it adopted every active job.
-Owner job units started by 0.6.1 run the 0.6.1 `jobwrap.py`, so the 0.6.1
-runtime directory must stay until they end (as the 0.6.0 one must stay after
-the upgrade).
+It checks the backup against its manifest, stops the worker (the 0.6.2
+worker withdraws the published GPU line state), stops the GPU claim units
+recorded in `~/.local/state/simqueue/claims/` that have not finished (0.6.1
+would never hand their locks over; job units are never stopped), keeps the
+database as `<backup>/queue-0.6.2-at-rollback.sqlite3`, restores the wrapper,
+link, unit files and `node.json` byte for byte, checks that the 0.6.1 code
+opens the database (schema 8, nothing to undo), starts the 0.6.1 worker and
+verifies that it adopted every active job. Queued GPU jobs stay queued and
+are started by 0.6.1 as before (without the line). `gpu-lease` keeps working
+after a rollback (it reads the live `node.json`; the line defaults apply).
+Job units started by 0.6.2 run the 0.6.2 `jobwrap.py`, so the 0.6.2 runtime
+directory must stay until they end (as the 0.6.1 one must stay after the
+upgrade). The 0.6.0 to 0.6.1 procedure is documented in the 0.6.1 runtime's
+`OPERATIONS.md` and `upgrade.py`.
 
 - Keep the old runtime directory until its last job has finished: running units
   execute that runtime's `jobwrap.py`.
-- A newer build must keep reading schema 7 (or migrate it in place); the worker
+- A newer build must keep reading schema 8 (or migrate it in place); the worker
   refuses a database whose schema is newer than itself.
 - `simq cancel` works while the worker is down (it stops the unit directly; the
   next worker records `canceled`).
@@ -565,6 +733,70 @@ needs one node definition per core group (several `slurmd -N` instances or
 `NodeName` with `CPUSpecList`), or accepting shared cores with per-partition
 `MaxCPUsPerNode`.
 
+## Validation of 0.6.2 (2026-10-31)
+
+See `release.json` and
+`/home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/`
+(`receipts/`, `experiments/`):
+
+- Kernel behavior the GPU line relies on, checked on private lock files
+  (`experiments/kernel_flock.out.json`): blocked flock(2) waiters are served
+  in FIFO order; SIGSTOP then SIGCONT of a blocked raw `flock` moves it to
+  the tail of the queue; an exclusive lock turns shared atomically on the
+  same open file description; a lock received over SCM_RIGHTS stays held
+  after the sender exits.
+- `test_gpuline.py` (24, processes on private lock files): which queued
+  jobs are ready except for the GPU (pure), `/proc/locks`
+  chain parsing, a queue claim and a `gpu-lease` user each win the first
+  release over earlier back-to-back raw waiters, helpers are FIFO by start
+  time, a helper yields to an earlier queued job, back-off from reversed
+  lock orders and from core holders waiting for the GPU, cleanup after a
+  member dies between SIGSTOP and SIGCONT, interactive jobs are not
+  requeued, hand-off without a gap, wrong secret refused, atomic shared
+  downgrade.
+- `test_gpu_line_units.py` (8, real claim and job units on the leased test
+  cores with private lock files and a private `<pic-profile>`): a queued GPU job starts
+  at the first release despite raw `flock` and `gpu-lease` users; a helper
+  that started before the job goes first; the time limit starts with the
+  job; shared jobs end with a shared lease; cancel of a waiting job stops the
+  claim; worker restart while the job waits and while it runs; no deadlock
+  between GPU users and core leases; `simq partitions`, `simq show` and the
+  published state.
+- `test_upgrade.py` (7): 0.6.1 job units keep running through the install
+  and are adopted by 0.6.2, 0.6.2 job units through the rollback (claims
+  stopped), refusal while a job is starting, automatic rollback after a
+  failed verification, dry run changes nothing.
+- The 0.6.1 suites, unchanged, through `run-tests.py` (leases held, live
+  guard on, private state and lock files; the real GPU lease files never
+  touched): first on cores 0-1 (lent by Spheral) until Spheral asked for
+  them back (`RETURN-CORES-0-3`, which stopped a run as designed), then on
+  cores 6-7 with `--wait-any --shared`, between Power-Flow jobs under the
+  same lease files. `test_exclusive_mode.py` runs as a
+  pure suite (mocks only; its fixture needs four CPUs in the affinity
+  mask). `test_shield_helper.py` cannot be imported without
+  `source/privileged/simqueue-shield`, as for 0.6.0 and 0.6.1.
+- The test temporary directory is used by its resolved path (the outputs
+  directory lies behind a symbolic link): with the unresolved path the
+  wrapper's working-directory check and the 0.5 submit fingerprint
+  comparison fail in the tests, because 0.6.1 ran its tests in `/tmp`.
+- `test_switchover.py` (the historical 0.5 to 0.6 switchover) runs only on
+  a sealed runtime and with a temporary directory whose path does not
+  contain `simqueue-0.6.` (`switchover.py` takes that text in the sandbox
+  unit for an installed 0.6); it ran with
+  `SIMQ_TEST_TMPDIR=<outputs>/simq062-test-tmp`.
+- `test_borrow_units.py` places real borrow jobs by a CPU-idle sample of
+  the leased cores; with only two cores, load of the test harness itself can
+  make one of them look busy (one run placed the borrower on the other
+  core). The test and the borrow code are unchanged since 0.6.1.
+- `upgrade.py install` dry run against the live installation: no problem.
+- Post-install check on the live queue (2026-11-01): a shared check job
+  waiting for a core held by a shared queue GPU job was counted as ready
+  except for the GPU and got an exclusive claim, which held back every
+  queued GPU job until the GPU drained. The readiness rule was corrected
+  (`gpuqueue.ready_except_gpu`, five pure tests in `test_gpuline.py`), the
+  GPU suites were run again, and the worker was restarted on the corrected
+  code (job and claim units are separate units and kept running).
+
 ## Validation of 0.6.1 (2026-10-31)
 
 See `release.json` and
@@ -589,6 +821,53 @@ a relocated copy of the code, a spheral job that finished while the worker was
 down, the GPU canary).
 
 ## Known limitations
+
+0.6.2 GPU line:
+
+- The line never preempts. A process that already holds the GPU lease files
+  (raw `flock`, `gpu-lease`, a pf-launch run) keeps them until it ends; the
+  line only decides who gets them next. A long outside holder still delays a
+  queued GPU job, which `simq partitions` then flags after
+  `starvation_warn_s`.
+- Only blocked waiters whose command (`/proc/PID/comm`) is listed in
+  `requeue_commands` (`flock`) are moved behind the line. A program that
+  blocks in flock(2) on a GPU lease file by itself (for example Python
+  `fcntl.flock` without `LOCK_NB`), and any job-control job of an interactive
+  shell, keeps its place in the kernel queue and can still take a release
+  ahead of the line. Such waiters are listed as raw waiters in the published
+  state and logged as "not requeueing".
+- A queued job joins the line only when it is ready except for the GPU
+  (cores, memory and the planner's order allow it). While it waits for
+  cores or behind other jobs, `gpu-lease` users that start meanwhile go
+  first; once it is ready its since time is its submit time, so helpers
+  still waiting that started after the submit move behind it (a helper that
+  already holds the GPU keeps it).
+- A shared (`--gpu-mem`) job that waits for the cores of a queue job on the
+  same GPU (or for GPU budget) gets no claim; when the last queue job on the
+  GPU ends, a raw `flock` or `gpu-lease` user blocked at that moment can take
+  the release first, and the shared job joins the line after that (one
+  release cycle at most, since raw waiters are then moved behind its claim).
+- While a claim waits for the GPU, queued GPU jobs do not start on it
+  directly, even shared jobs that would fit next to the queue's shared jobs
+  already on it: an exclusive job in the line waits until the GPU drains,
+  and later shared jobs do not overtake it.
+- Between the claim winning the GPU and the hand-off (normally well under a
+  second) and after a failed start (the job's core lease taken outside the
+  queue in the meantime), the claim holds the GPU without using it: up to
+  5 s when no queued job can use it, up to `claim_hold_max_s` (300 s) while
+  a job is still expected.
+- The line order uses the creation time (statx birth time) of the job's log
+  file; on a filesystem without birth times it falls back to the
+  modification time within the `created_at` second, else the end of that
+  second.
+- Raw users of two different lock orders (for example core lease then GPU,
+  and GPU then core lease) can deadlock with each other; claims and
+  `gpu-lease` back off from such chains but cannot break them. Use
+  `gpu-lease`, which always takes the GPU files first.
+- The published state is advisory: a tool that neither reads it nor uses
+  `gpu-lease` is affected only through the raw-waiter moves.
+- After a rollback to 0.6.1 queued GPU jobs again lose releases to raw
+  `flock` waiters (`gpu-lease` keeps serving its own users fairly).
 
 0.6.1 borrowing:
 

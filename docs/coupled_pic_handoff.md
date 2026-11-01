@@ -46,7 +46,7 @@ and then copied (filtered) into `artifacts/<component>-<version>-<date>/` here.
 | Source owner | v7 (faa7274) component | - | integrate at coordinator v8 stage 2 |
 | SS304 phase owner | v1.2 (66fa599) | - | thermal owner in Hall v3.5 |
 | C19 circuit | v1 (2feff69); Xyce 7.10 source verified, not built | - | port-current mode in Hall v3.5 |
-| SimQueue | 0.6.1 live (d819b50) | 0.6.2: fair GPU handoff (reservation line, published state, direct-use helper), live upgrade with backup/rollback | partitions for the 16-core CPU |
+| SimQueue | 0.6.2 live (fair GPU hand-off: GPU reservation line, published state `pic-profile/simq-gpu-line.json`, `gpu-lease` helper replacing raw flock; rollback command in tools/simqueue/release.json) | - | 0.6.3: borrow-only `mfem-pic` partition and the 16-core node layout at the CPU swap |
 
 The 20 ns field-only pre-run inside the coordinator model matched the Hall v3.3
 20 ns checkpoint word for word (194,026 steps). Starting the coupled run from it
@@ -96,7 +96,8 @@ production, the melt inertia model, sub-cycling K.
   A properly optimized run that needs all ranks may use all cores; during a Spheral full-run window Power-Flow keeps
   only logical CPU 15 (nice 19) for one GPU host thread. The GPU is shared with
   raikou-mfem and the Raikou kinetic-core work.
-- Use SimQueue: `simq submit -p powerflow -c N [--gpus 1 --gpu-mem 2G] --mem X -t T -- cmd`;
+- Use SimQueue: `simq submit -p powerflow -c N [--gpus 1 --gpu-mem 2G] --mem X -t T -- cmd`; direct GPU use goes
+  through `runtimes/simqueue-0.6.2-20261031/bin/gpu-lease [--core any|both|K] -- cmd` (never raw flock on the GPU locks);
   `--borrow` for idle cores of other partitions. Always pass `--mem`.
 - Lock order: GPU locks first (`testing-gpu.lock`, then `testing-gpu-<UUID>.lock`),
   then the core lease. Lock files: `/home/treefor/sim-workspace/powerflow/outputs/pic-profile/`.

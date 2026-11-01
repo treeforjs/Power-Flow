@@ -30,6 +30,7 @@ from .nodeconfig import BorrowConfig, LaunchConfig
 
 
 JOBWRAP = Path(__file__).resolve().with_name("jobwrap.py")
+GPULINE = Path(__file__).resolve().with_name("gpuline.py")
 SHOW_PROPERTIES = (
     "Id",
     "LoadState",
@@ -148,6 +149,52 @@ def build_run_command(
         command.append(f"--setenv={key}={value}")
     command.extend(["--", python, str(wrapper), "run", spec_path])
     return command
+
+
+def claim_unit_name(prefix: str, token: str) -> str:
+    """GPU claim unit (0.6.2): ``<prefix>-gpuclaim-<token12>.service``."""
+    return f"{prefix}-gpuclaim-{re.sub(r'[^0-9a-fA-F]', '', token)[:12]}.service"
+
+
+def build_claim_command(
+    launch: LaunchConfig,
+    *,
+    unit: str,
+    description: str,
+    spec_path: str,
+    log_path: str,
+    program: Path = GPULINE,
+    cpus: Iterable[int] = (),
+) -> list[str]:
+    """systemd-run command of a GPU claim unit (0.6.2).
+
+    The claim waits in the GPU line for the GPU lease files on behalf of the
+    queue and hands them to the job unit the worker starts; like a job unit
+    it is independent of the worker.  It is tiny (one Python process and,
+    while it waits in the kernel queue, one forked waiter)."""
+    return [
+        launch.systemd_run,
+        "--user",
+        f"--unit={unit}",
+        f"--slice={launch.slice}",
+        "--service-type=exec",
+        "--collect",
+        "--quiet",
+        f"--description={_systemd_value(description)}",
+        "--property=MemoryMax=256M",
+        "--property=KillMode=control-group",
+        "--property=TimeoutStopSec=10s",
+        "--property=SendSIGKILL=yes",
+        "--property=UMask=0077",
+        f"--property=StandardOutput=append:{log_path}",
+        f"--property=StandardError=append:{log_path}",
+        *([f"--property=CPUAffinity={' '.join(str(c) for c in sorted(cpus))}"] if cpus else []),
+        "--",
+        launch.wrapper_python,
+        str(program),
+        "claim",
+        spec_path,
+    ]
 
 
 def start_unit(command: list[str], *, timeout: float = 60.0) -> None:
