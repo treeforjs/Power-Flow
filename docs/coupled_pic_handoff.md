@@ -1,6 +1,6 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-11-01 01:45 MDT. Keep this file current at every milestone so
+Last updated 2026-11-01 01:56 MDT. Keep this file current at every milestone so
 the work can be picked up from it alone. Snapshots of the in-progress workers'
 own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
 each update); the live versions are the `HANDOFF.txt` files named below.
@@ -68,11 +68,30 @@ complete water network.
 
 The common publication defect is now reproduced: allocation failure after Hall
 publication leaves arrival at the old accepted step (job 466). Arrival v1.2 is
-qualified and pushed (`25bdc3e`). The isolated coordinator successor prepares
-arrival and source hashes before any accepted swap. Its integration tests are
-underway, including a newly identified inactive-source object replacement case.
+qualified and pushed (`25bdc3e`). The coordinator successor prepares
+arrival and source hashes before any accepted swap and retains exact source
+objects, including inactive slices. An actual foreign thermal-source replacement
+preimage is preserved. Normal and rebuilt coordinator/source/Hall sanitizer suites
+each pass 53 controls; the whole publication window allocates zero times. Twelve
+continuation checks and two populated/adaptive baseline comparisons pass with
+bit-identical trajectories. Commits `0802bdc` and metadata correction `4ab0625`
+preserve the result. This remains the parent-chemistry coordinator, separate
+from the new native/gas and B3 physics integration.
 Source and evidence milestones are pushed and backed up outside projects. No
 full physical run has been started.
+
+The declared-mass emission cache is qualified (`b45476e`): 211 CPU and 211
+ASan/UBSan controls, exact scalar spectrum/refusal parity, actual registry mass
+at default quadrature, complete mass/provenance cache keys and unchanged legacy
+raw bytes. Source-owner adoption will use a new successor; no wall-time speedup
+is claimed. The collision RNG audit also found and fixed overlapping target and
+scattering draw ranges in a separate CPU/GPU-qualified layout (`39639c6`). Native
+adoption is still explicit work. The real strict native/gas first-step fixture
+has passed (524), but it remains bounded to unchanged carrier/cell membership;
+transport, source/sink flows, authenticated continuation and common restart are
+still being connected. Genuine B3 source tokens are qualified (`f34224b`);
+source/native/Hall bridge current, conductor-bank charge and field-work ownership
+are the next coupling gates.
 
 ## Current takeover status (2026-11-01 01:03 MDT)
 
