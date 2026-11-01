@@ -1,6 +1,6 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-11-01 09:10 UTC. Keep this file current at every milestone so
+Last updated 2026-11-01 09:20 UTC. Keep this file current at every milestone so
 the work can be picked up from it alone. Snapshots of the in-progress workers'
 own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
 each update); the live versions are the `HANDOFF.txt` files named below.
@@ -18,7 +18,26 @@ accounts and must telescope exactly across accepted steps. Root configuration
 is versioned downstream of genesis, with no chemistry identity cycle. The v1.3.2
 bridge retains actual immutable stage and motion proofs; they confer no new
 publication authority. This retains the no-conductor-sink/held-layer-refused
-neutral subset. The checkpoint ledger codec is being qualified separately.
+neutral subset. The exact checkpoint ledger codec now passes 46 normal/46 UBSan controls
+(job 683, commit `479c7bd`), including signed residuals below binary64 range and
+actual two-step ledger roundtrips. Its component checksum is not owner authority.
+SourceStage CDF adoption passes 22 stage plus 85 reference checks in each build
+(job 687, `533ff61`), preserving the pinned dynamic registry.
+
+The root v9.3 actual-graph checkpoint draft is in
+`/home/treefor/projects/runtimes/pic-water-common-v9.3-checkpoint-20261101`.
+It restores the genuine native/gas pair, then Hall against that actual census,
+then source ports bound to that precise restored Hall and arrival state. It
+recomputes the accepted source-publication receipt, checks arrival/native/Hall
+clocks, decodes exact cumulative accounts and independently reconstructs restored
+material/gas/field/thermal endpoint stocks. The new actual-run tests compare
+nonanchor/anchor continuation and refuse resigned cross-step owner/arrival mixes.
+External phase-owner views are explicitly refused because they are not yet owned
+or restored by this transaction. Tests are pending: 702/703 were canceled before
+start; borrow job 705 was scheduler-preempted/requeued for memory, with its partial
+attempt preserved. Do not equate a scheduler preemption with a physics failure.
+The untouched draft backup is outside projects under
+`reconstructed-source-20261029/common-checkpoint-draft-20261101-0919`.
 
 `artifacts/common-neutral-integration-v9.1-20261101` now preserves the actual
 root source/Hall/native/gas transaction and phase profiling. Job658 passes 28
@@ -56,7 +75,10 @@ marker and a concrete validated loader; old unattested restores remain refused.
 The original native/gas bridge v1.3 has a reproduced allocation-unwind abort at
 motion allocation 1163. Corrected v1.3.1 binds JSON destination references before
 constructing populated temporaries: normal 653, sanitizer 656 and all 1,255 motion
-allocation failures 655 pass with identical retry receipts. Final-seal 657 passed all 1,463 allocation failures with identical retry receipts. Native v8.9 source/archive remain frozen at
+allocation failures 655 pass with identical retry receipts. Final-seal 657 passed all 1,463 allocation failures with identical retry receipts. The CDF successor v8.10 also passes normal/sanitizer and complete motion/seal
+allocation sweeps (`0fda7fc`). The native/gas pair-checkpoint successor v8.11
+normal job 693 passes 17 dedicated restore controls; sanitizer and full sweeps
+698/700/701 are pending. Native v8.9 source/archive remain frozen at
 8e8d9553/bb3def23. Root 658 uses this corrected bridge; it does not replace its
 independent full fault qualification.
 
