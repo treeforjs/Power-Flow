@@ -1,0 +1,92 @@
+In file included from /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/test_source_v7.cpp:807:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In function 'void {anonymous}::surface_birth_group(Results&, const std::filesystem::__cxx11::path&)':
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:10:13: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_surface_birth'
+   10 |   auto b=o->prepare_surface_birth(p,2.,.6,.35,.1,42,t,event(1),policy);const auto raw=o->sample_birth(p,2.,.6,.35,.1,42,policy);const auto&packet=b.phase().packet;
+      |             ^~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:12:14: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_with_surface_births'
+   12 |   auto tr=o->prepare_with_surface_births(e,pf.f,actual,std::span<const s7::SurfaceBirth>(&b,1),{{}});const auto&l=packet.particle.ledger;
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:12:72: error: ISO C++ forbids declaration of 'type name' with no type [-fpermissive]
+   12 |   auto tr=o->prepare_with_surface_births(e,pf.f,actual,std::span<const s7::SurfaceBirth>(&b,1),{{}});const auto&l=packet.particle.ledger;
+      |                                                                        ^~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:12:88: error: template argument 1 is invalid
+   12 |   auto tr=o->prepare_with_surface_births(e,pf.f,actual,std::span<const s7::SurfaceBirth>(&b,1),{{}});const auto&l=packet.particle.ledger;
+      |                                                                                        ^
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:18:112: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_surface_birth'
+   18 |   J refused=J::object();auto bad=policy;bad.return_extent_m=20e-6;refused["unqualified_return"]=attempt([&]{o->prepare_surface_birth(p,2.,.6,.35,.1,42,t,event(1),bad);}).threw;
+      |                                                                                                                ^~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:19:38: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_surface_birth'
+   19 |   refused["end_time"]=attempt([&]{o->prepare_surface_birth(p,2.,.6,.35,.1,42,e.t+e.dt,event(1),policy);}).threw;
+      |                                      ^~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:20:42: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_surface_birth'
+   20 |   refused["earlier_time"]=attempt([&]{o->prepare_surface_birth(p,2.,.6,.35,.1,42,std::nextafter(e.t,-INFINITY),event(1),policy);}).threw;
+      |                                          ^~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:21:38: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_surface_birth'
+   21 |   refused["NaN_time"]=attempt([&]{o->prepare_surface_birth(p,2.,.6,.35,.1,42,NAN,event(1),policy);}).threw;
+      |                                      ^~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:22:37: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_surface_birth'
+   22 |   refused["zero_id"]=attempt([&]{o->prepare_surface_birth(p,2.,.6,.35,.1,0,t,event(1),policy);}).threw;
+      |                                     ^~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:23:41: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_surface_birth'
+   23 |   refused["zero_weight"]=attempt([&]{o->prepare_surface_birth(p,0.,.6,.35,.1,42,t,event(1),policy);}).threw;
+      |                                         ^~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:24:41: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_surface_birth'
+   24 |   refused["closed_mark"]=attempt([&]{o->prepare_surface_birth(p,2.,0.,.35,.1,42,t,event(1),policy);}).threw;
+      |                                         ^~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:25:89: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_surface_birth'
+   25 |   auto ev=event(1);ev.energy_owner.clear();refused["empty_energy_owner"]=attempt([&]{o->prepare_surface_birth(p,2.,.6,.35,.1,42,t,ev,policy);}).threw;
+      |                                                                                         ^~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:26:124: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_with_surface_births'
+   26 |   auto other=owner<VB>(patch(),1500,*hv,cfg);refused["foreign_owner"]=!other->preflight(b,pf.f,actual)&&attempt([&]{other->prepare_with_surface_births(e,pf.f,actual,std::span<const s7::SurfaceBirth>(&b,1),{{}});}).threw;
+      |                                                                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:26:182: error: ISO C++ forbids declaration of 'type name' with no type [-fpermissive]
+   26 |   auto other=owner<VB>(patch(),1500,*hv,cfg);refused["foreign_owner"]=!other->preflight(b,pf.f,actual)&&attempt([&]{other->prepare_with_surface_births(e,pf.f,actual,std::span<const s7::SurfaceBirth>(&b,1),{{}});}).threw;
+      |                                                                                                                                                                                      ^~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:26:198: error: template argument 1 is invalid
+   26 |   auto other=owner<VB>(patch(),1500,*hv,cfg);refused["foreign_owner"]=!other->preflight(b,pf.f,actual)&&attempt([&]{other->prepare_with_surface_births(e,pf.f,actual,std::span<const s7::SurfaceBirth>(&b,1),{{}});}).threw;
+      |                                                                                                                                                                                                      ^
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In function 'void {anonymous}::surface_birth_group(Results&, const std::filesystem::__cxx11::path&)':
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:28:18: error: 'SurfaceBirth' is not a member of '{anonymous}::s7'
+   28 |   std::array<s7::SurfaceBirth,2>duplicates{b,b};refused["duplicate_id"]=attempt([&]{o->prepare_with_surface_births(e,pf.f,actual,duplicates,{{}});}).threw;
+      |                  ^~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:28:32: error: template argument 1 is invalid
+   28 |   std::array<s7::SurfaceBirth,2>duplicates{b,b};refused["duplicate_id"]=attempt([&]{o->prepare_with_surface_births(e,pf.f,actual,duplicates,{{}});}).threw;
+      |                                ^
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:28:33: error: scalar object 'duplicates' requires one element in initializer
+   28 |   std::array<s7::SurfaceBirth,2>duplicates{b,b};refused["duplicate_id"]=attempt([&]{o->prepare_with_surface_births(e,pf.f,actual,duplicates,{{}});}).threw;
+      |                                 ^~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:28:88: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_with_surface_births'
+   28 |   std::array<s7::SurfaceBirth,2>duplicates{b,b};refused["duplicate_id"]=attempt([&]{o->prepare_with_surface_births(e,pf.f,actual,duplicates,{{}});}).threw;
+      |                                                                                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:29:44: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_with_surface_births'
+   29 |   refused["duplicate_heat"]=attempt([&]{o->prepare_with_surface_births(e,pf.f,actual,std::span<const s7::SurfaceBirth>(&b,1),{{}},{b.heat()});}).threw;
+      |                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:29:102: error: ISO C++ forbids declaration of 'type name' with no type [-fpermissive]
+   29 |   refused["duplicate_heat"]=attempt([&]{o->prepare_with_surface_births(e,pf.f,actual,std::span<const s7::SurfaceBirth>(&b,1),{{}},{b.heat()});}).threw;
+      |                                                                                                      ^~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:29:118: error: template argument 1 is invalid
+   29 |   refused["duplicate_heat"]=attempt([&]{o->prepare_with_surface_births(e,pf.f,actual,std::span<const s7::SurfaceBirth>(&b,1),{{}},{b.heat()});}).threw;
+      |                                                                                                                      ^
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:39:122: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_surface_birth'
+   39 |  R.record("surface-birth","actual linear-extent, source-variation and matching gyro guards remain closed",attempt([&]{o->prepare_surface_birth(p,1.,.6,.35,.1,42,t,event(1),tiny);}).threw&&attempt([&]{o->prepare_surface_birth(p,1.,.6,.35,.1,42,t,event(1),fast);}).threw&&attempt([&]{o->prepare_surface_birth(gp,1.,.6,.35,.1,42,t,event(1),policy);}).threw);
+      |                                                                                                                          ^~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:39:204: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_surface_birth'
+   39 |  R.record("surface-birth","actual linear-extent, source-variation and matching gyro guards remain closed",attempt([&]{o->prepare_surface_birth(p,1.,.6,.35,.1,42,t,event(1),tiny);}).threw&&attempt([&]{o->prepare_surface_birth(p,1.,.6,.35,.1,42,t,event(1),fast);}).threw&&attempt([&]{o->prepare_surface_birth(gp,1.,.6,.35,.1,42,t,event(1),policy);}).threw);
+      |                                                                                                                                                                                                            ^~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc: In lambda function:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.3-surface-birth-20261101/tests/surface_birth_checks.inc:39:286: error: 'class electrode_heat_v7::Owner' has no member named 'prepare_surface_birth'
+   39 |  R.record("surface-birth","actual linear-extent, source-variation and matching gyro guards remain closed",attempt([&]{o->prepare_surface_birth(p,1.,.6,.35,.1,42,t,event(1),tiny);}).threw&&attempt([&]{o->prepare_surface_birth(p,1.,.6,.35,.1,42,t,event(1),fast);}).threw&&attempt([&]{o->prepare_surface_birth(gp,1.,.6,.35,.1,42,t,event(1),policy);}).threw);
+      |                                                                                                                                                                                                                                                                                              ^~~~~~~~~~~~~~~~~~~~~
