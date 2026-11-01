@@ -1,0 +1,20 @@
+--- a/source/src/mfem_pic_full_time.inc
++++ b/source/src/mfem_pic_full_time.inc
+@@ -1848,8 +1848,15 @@
+       dg->root = device_after->carrier_root;
+       dg->records = device_after->n;
+       after->after.digest = dg;
+-    } else
+-      o.owner->full_time_validate(*next, native.particles, o.cap);
++    } else {
++      // Host schema-v8 births append checked one-carrier packets to a validated
++      // immutable base: IDs, states, exact weights and cap are proved above.
++      // Reuse that proof only for this append transaction and this exact cap.
++      if (v8 && o.owner->full_time_validated(*base.snapshot, base.native.particles, o.cap))
++        o.owner->full_time_mark_validated(*next, native.particles, o.cap);
++      else
++        o.owner->full_time_validate(*next, native.particles, o.cap);
++    }
+     after->after.snapshot = next;
+     if (!device_after)
+       (void)native_digest(native, after->after.digest, &base.native, &base.digest);

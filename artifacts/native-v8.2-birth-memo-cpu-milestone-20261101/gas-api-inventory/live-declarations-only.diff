@@ -1,0 +1,93 @@
+--- a/source/include/raikou/mfem_pic_full_time.h
++++ b/source/include/raikou/mfem_pic_full_time.h
+@@ -502,6 +502,8 @@
+   // Default refuses events. Opt-in is bound into configuration/checkpoint identity;
+   // it never establishes whole-system energy closure.
+   bool diagnostic_field_target_approximation = false;
++  // Declaration-only: binding remains refused until transactional integration.
++  std::shared_ptr<class FullTimeTargetEnergyOwner> target_owner;
+   std::string blob_path, blob_sha256;  // table blob and its expected identity
+   std::uint64_t run_seed = 0;          // the arrival owner's run seed
+   double release_weight = 0;           // w0 of the quantized release
+@@ -585,6 +587,8 @@
+ // One chemistry stage (API-008.txt 3): counts, digests, exact ledgers.
+ struct FullTimeChemistryStageReceipt {
+   bool diagnostic_field_target_approximation = false;
++  // Declaration-only: binding remains refused until transactional integration.
++  std::shared_ptr<class FullTimeTargetEnergyOwner> target_owner;
+   bool full_system_energy_closure = false; // never asserted by this component
+   std::uint64_t accepted_step = 0, stage = 0, purpose = 0;
+   double dt_s = 0, nu_dt_max = 0;
+@@ -607,6 +611,53 @@
+   double device_ms = 0;
+   bool device = false;
+ };
++// Target-energy owner hook (API-008.txt 3.8; gas energy/momentum owner).
++// Recoil records: the admitted chemistry v3 C3 EventRec bytes as they are (384
++// bytes, pf_chem_v3 chem_event.h layout: u_in, ut, out species/destination/u,
++// q_eV, e_internal, internal_sink, W, process, candidate, carrier), with the
++// accepted step, stage and the native collision-grid cell (atlas ID, not the
++// stage's compact cell index); canonical order carrier ID, candidate. The owner
++// recomputes every SI term and checks the records root against the stage
++// receipt's records digest.
++struct FullTimeTargetRecoilRecord {
++  std::uint64_t accepted_step = 0, stage = 0;
++  std::uint32_t grid_cell = 0, reserved = 0;
++  std::array<unsigned char, 384> event{}; // pfc::EventRec bytes
++};
++// Target-species population changes the records do not show: for every debited
++// packet its carriers before (+1) and the remainder carriers after (-1), so a
++// partial debit stays exact; in stage 2 the released packets (-1: leaving the
++// reservoir into the carrier population).
++enum class FullTimeTargetFlowKind : std::uint8_t { debit_before = 1, debit_remainder = 2, release = 3 };
++struct FullTimeTargetFlowRecord {
++  FullTimeTargetFlowKind kind = FullTimeTargetFlowKind::debit_before;
++  std::int32_t sign = 1;          // +1 before, -1 after
++  std::uint32_t grid_cell = 0;    // atlas ID
++  std::string state;              // species state
++  double weight = 0;              // binary64 carrier weight
++  PicVector proper_velocity_m_s{};
++  double internal_energy_J = 0;   // carried internal energy (v8.1 metal vapour), else 0
++};
++// Interface of the gas energy/momentum owner. Call points (native v8.x, once
++// per chemistry stage): feedback() after the stage's CellTargets are built and
++// before the kernel (it may rewrite drift/s only in neutral target slots that
++// hold a deposit, and must leave the bytes untouched when its feedback is off,
++// so native's inputs digest binds the result); take() after the stage's
++// resolution and before publication (its digest is bound into the stage
++// receipt). The owner's configuration identity is bound into the chemistry
++// configuration identity. Native v8 declares the hook only: no owner can be
++// bound yet (a bound owner is refused as a configuration), so it is a no-op.
++class FullTimeTargetEnergyOwner {
++public:
++  virtual ~FullTimeTargetEnergyOwner() = default;
++  virtual std::string configuration_sha256() const = 0;
++  // cells: one pfc::CellTargets per atlas entry (chem_event.h layout), in place.
++  virtual void feedback(std::uint64_t accepted_step, std::uint64_t stage, std::span<const std::uint32_t> atlas,
++                        void *cells) = 0;
++  virtual std::string take(std::uint64_t accepted_step, std::uint64_t stage,
++                           std::span<const FullTimeTargetRecoilRecord> records,
++                           std::span<const FullTimeTargetFlowRecord> flows) = 0;
++};
+ // Ejected melt of one phase-owner step (StepRecord::eject_N[6] Fe, Cr, Ni, Mn,
+ // Si, C atoms; eject_E total and eject_K kinetic energy, J) and the producer's
+ // digest of the step record it comes from.
+@@ -625,6 +676,8 @@
+ struct FullTimeChemistryStatus {
+   bool enabled = false;
+   bool diagnostic_field_target_approximation = false;
++  // Declaration-only: binding remains refused until transactional integration.
++  std::shared_ptr<class FullTimeTargetEnergyOwner> target_owner;
+   bool full_system_energy_closure = false;
+   std::string state_sha256, configuration_sha256, registry_sha256, blob_sha256;
+   std::uint64_t stages = 0, reservoirs = 0, events = 0;
+--- a/source/src/chem_v3_native.cpp
++++ b/source/src/chem_v3_native.cpp
+@@ -166,6 +166,7 @@
+ // ------------------------------------------------------------- setup
+ std::shared_ptr<const Setup> make_setup(const FullTimeChemistryConfiguration &c, const GapPicOptions &o) {
+   need(c.enabled, RK::configuration, "configuration: chemistry not enabled");
++  need(!c.target_owner, RK::configuration, "configuration: gas target owner requires transactional integration");
+   need(std::isfinite(c.release_weight) && c.release_weight > 0 && std::isnormal(c.release_weight), RK::configuration,
+        "configuration: release weight w0");
+   need(std::isfinite(c.trunc_sigmas) && c.trunc_sigmas > 0 && c.trunc_sigmas <= 64, RK::configuration,
