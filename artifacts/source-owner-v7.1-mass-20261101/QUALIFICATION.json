@@ -1,0 +1,56 @@
+{
+  "schema": "source-v7.1-mass-qualification-v1",
+  "status": "passed",
+  "runtime": "/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.1-mass-20261101",
+  "source_identity_sha256": "3ae8d5724b75ecce4d4b1e8de5728d375138234cab2e083f2f4ec1946833269f",
+  "job": 443,
+  "normal_cases": 115,
+  "ubsan_cases": 115,
+  "legacy_default_bytes": {
+    "equal": true,
+    "new_sha256": "f2bd3bf481198d201e8a255fcdd68f89019dcb7464d8417676d3b38f2100584c",
+    "old_sha256": "f2bd3bf481198d201e8a255fcdd68f89019dcb7464d8417676d3b38f2100584c"
+  },
+  "verified_after_completion": {
+    "both_build_sources": true,
+    "all_compiler_dependencies": true,
+    "both_build_binaries": true
+  },
+  "builds": {
+    "c5": {
+      "variant": "normal",
+      "binary_sha256": {
+        "test_registry_mass": "0282b9d1bd3a179df11b22d372149efed8f858d4578537a864309e831788f661",
+        "legacy_kernel_new": "a262bf30e68edf54968d59367a3f67dcebfd1a4818a0db729a54a550a44d8b10",
+        "legacy_kernel_old": "742e377c83b4658276b5fad2d092699cf544fb11c52273474b44e0f4171bfdbd",
+        "test_source_v7": "3061d24c5a72f8f4178cd824b7c7b7731b331aba1e4930a2528d0b6abcc6e408",
+        "test_source_v6_on_v7": "ac00d5891677e4ffd0579b386a793f0455672903f3e6531a31678d7ce7963864",
+        "test_surface_v7": "f678ce95802d9914304e1c8ccf49a6f8fa22ef9470909a2acd0ed022b6669370"
+      },
+      "dependency_count": 825
+    },
+    "u2": {
+      "variant": "ubsan",
+      "binary_sha256": {
+        "test_registry_mass": "9acd0b1d1382284460939d72fa3a94d82570ce5be57f113af603e48ab12f9a23",
+        "legacy_kernel_new": "bb39082c8083beb9c83c5a087a6e0b2d825a18b4ee40bd34dc4f830dc763ca5d",
+        "legacy_kernel_old": "995c3ae21f9491601f426edcb94175f886051da0cb8087dc0b0a682bdcf334e8",
+        "test_source_v7": "64fb597837ba30801915177ddfd59f1e996c094950ec6e32535694aed1e77292",
+        "test_source_v6_on_v7": "bd17527198672cbb2aab25dbb21053ad8513e5a7c5c6032e67aab6dddf124a0c",
+        "test_surface_v7": "02e4c8129f445d3a28ff659872f269fe86ec011054ace839c6087fd63011fbd0"
+      },
+      "dependency_count": 825
+    }
+  },
+  "limits": [
+    "CPU component/actual-registry qualification only; no coupled plasma evolution or GPU wall qualification.",
+    "Nonlegacy mass uses correctness-first scalar emission evaluation; mass-aware immutable caching still required before performance adoption.",
+    "Chemical reference stock transfer, wall/metal species and actual microscopic bridge coupling remain separate gates."
+  ],
+  "earlier_attempts": {
+    "415": "failed initial missing private header/type/API compilation; canceled own job, no promoted result",
+    "417/420": "preliminary c2 source tests; compiler dependency provenance subsequently corrected",
+    "425/431/434/435": "c3/u1 passed before snapshot accessor addition",
+    "440": "c4 failed missing getter closing brace; u2 not started; fixed before final c5/u2"
+  }
+}
