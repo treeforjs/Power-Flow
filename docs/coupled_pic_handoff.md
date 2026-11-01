@@ -137,12 +137,18 @@ deleted branch, for restoring one (`git branch <name> <commit>`):
 | `ss304-thermal-properties-v2-20261029` | `ca74b667f19a` |
 | `surface-emission-20261029` | `52be614fa3dc` |
 
+## Audit corrections (2026-10-31)
+
+Corrective versions are being qualified separately from the sealed builds:
+SS304 phase v1.3, water chemistry v3.1.1, native candidate008-auditfix,
+and coordinator v8.0.1. Do not bind these until their final source identities
+and verification receipts are recorded. Existing active runtimes are unchanged.
+
 ## Known issues
 
-- 14 tests in `tests/test_pilot_comparison_bridge.py` and
-  `tests/test_pilot_comparison_evidence.py` fail on Linux checkouts:
-  `data/dissertation/pilot_comparison_manifest.json` records the sha256 of
-  `data/dissertation/figure_4_20_profiles.csv` with CRLF line endings
-  (53a0ac56...), while the repository stores LF bytes (551a6cbb...). Fails
-  identically before and after the 2026-10-31 merge; the rest of the suite
-  passes (3636 passed, 39 skipped).
+- Resolved the 14 dissertation-comparison failures: ten evidence files had
+  LF bytes where their manifests recorded CRLF. Restored the original
+  manifest-bound bytes and added `.gitattributes` preservation rules; no
+  scientific values or expected hashes changed. Frozen-runtime SimQueue job
+  232: 26 passed, 2 skipped for the two affected test modules. The complete
+  repository suite has not yet been rerun for this correction.
