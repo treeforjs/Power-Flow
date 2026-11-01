@@ -1,0 +1,70 @@
+#include "source_hall_iteration.hpp"
+#include "positive_source_fixture.hpp"
+#include "final_charge_guard.hpp"
+#include "chem_v8_fixture.hpp"
+#include "raikou/json.h"
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+namespace ss=powerflow::source_stage_v8;namespace h=hall_corrective_v3;namespace n=raikou::mfem_backend;
+namespace it=powerflow::source_hall_iteration_v1;namespace fx=powerflow::positive_source_fixture_v1;namespace cg=powerflow::coupled_genesis_v9;
+using J=raikou::Json;
+struct Fixture {
+ n::GapPicOptions options=chemfix::options();n::FullTimeChemistryConfiguration chemistry=chemfix::chemistry_configuration(options);
+ n::FullTimeChemistryRegistry registry=n::full_time_chemistry_registry(chemistry,options);
+ std::vector<n::ArenaStateSpec> states=n::full_time_chemistry_states(registry);
+ std::shared_ptr<h::Model> model;std::shared_ptr<h::Owner>hall;ss::OwnerSet owners;ss::AcceptedSourceState base;
+ std::unique_ptr<n::PicArena>arena;n::FullTimeStepBinding common;fx::Receipt declared;
+ std::string native_before,field_before,heat_before;double dt=1e-14;
+ Fixture(const char*trace,bool water_enabled,double weight){
+  axial::Mesh geometry(45,4,.009,1);std::vector<cg::PortSpec>ports;ss::pa::Configuration arrival;arrival.run_seed=chemistry.run_seed;
+  const auto water=std::find_if(states.begin(),states.end(),[](const auto&s){return s.id=="pfc-v3/H2O";});
+  const auto config=native_source_v7::electron_mass_configuration(surface_emission::Config{4.3},chemfix::blob_path(),chemfix::blob_sha(),registry,states);
+  for(int k=geometry.kshort;k<geometry.kfeed;++k)for(int body=0;body<2;++body){
+   const auto index=std::uint32_t(ports.size());cg::PortSpec port;auto&s=port.slice;s.body=body;s.slice=k;s.source_hash="manufactured/positive-source-Hall/C19-start";
+   ss::eh::Patch p;p.id="gap/"+std::to_string(index);p.face=body?ss::eh::Face::LowY:ss::eh::Face::HighY;p.begin=0;p.end=1;p.state_id=p.parent_id="pfc-v3/H2O";p.mass_kg=water->mass_kg;p.initial_particles=64;p.desorption_enabled=true;p.attempt_s=1e13;p.activation_eV=p.desorption_eV=p.internal_eV=0;p.source_hash=s.source_hash;s.patches.push_back(p);
+   ss::s7::SourceSettings set;set.spectrum=config;set.layer.local_linear_vacuum_extent_m=25e-6;set.quantized_neutral_weight=2;set.sampling_policy_identity="manufactured/positive-source-Hall";s.settings.push_back(set);s.identities.push_back({p.id,"manufactured-layer",.005*geometry.dz});
+   arrival.streams.push_back({2*index,ss::pa::Kind::electron,index,"pfc-v3/e",1e6,64});arrival.streams.push_back({2*index+1,ss::pa::Kind::neutral,index,"pfc-v3/H2O",2,64});port.registration.push_back({0,2*index+1,2*index,body==1,ss::hb::slice_center_z(geometry,k)});ports.push_back(port);
+  }
+  fx::Spec spec;spec.water_enabled=water_enabled;spec.electron_weight=weight;declared=fx::apply(ports,arrival,options,chemistry,spec);
+  std::vector<ss::hb::SliceSource>slices;for(const auto&p:ports)slices.push_back(p.slice);h::MotionForms forms;forms.native_v7=forms.native_v81_bridges=true;forms.neutral_stream_dt_max_s=1e-11;
+  model=std::make_shared<h::Model>(h::MeshSpec{},trace,h::make_cpu_pcg(),h::CarrierLimits{},ss::hb::declaration(slices),dt,forms);auto seed=model->dc_seed();const auto&g=model->mesh();h::ChargeLedger charge;charge.particles=h::charge_of_census(g,options,{});charge.conductor_C.resize(g.nn);charge.exterior_C.resize(g.nn);charge.conductor_declaration=chemfix::sha("positive/actual-dc-conductor");charge.exterior_declaration=chemfix::sha("positive/actual-dc-exterior");const auto Q=h::field_charge(g,seed);for(int k=0;k<g.nn;++k){if(g.node_body[k]>=0||g.short_node[k])charge.conductor_C[k]=Q[k];else if(g.outer_node[k])charge.exterior_C[k]=Q[k];}
+  hall=std::make_shared<h::Owner>(model,seed,charge,options,std::span<const n::ArenaRateEntry>{});owners.arrival_policy=std::make_shared<const ss::pa::Policy>(arrival);owners.arrival=std::make_shared<ss::pa::Owner>(owners.arrival_policy,0);for(auto&p:ports)owners.ports.push_back(ss::bind_port(hall,p.slice,p.options,options,chemistry,p.registration));
+  base.arrival_state=owners.arrival->state_sha256();h::Digest digest("manufactured/positive-source-Hall/genesis");for(const auto&p:owners.ports){base.source_states.push_back(p.source()->state_sha256());digest.text(base.source_states.back());}digest.text(base.arrival_state);base.source_seal=digest.hex();
+  n::FullTimeConfiguration nc;nc.identity=n::FullTimeIdentitySchema::v8;nc.chemistry=chemistry;nc.limits.maximum_carriers=1000;nc.limits.memory_budget_bytes=1000*n::full_time_bytes_per_carrier+n::full_time_fixed_bytes;nc.limits.maximum_identity_entries=1u<<22;nc.motion.neutral_stream_dt_max_s=1e-11;
+  n::FullTimeGenesisBinding genesis;genesis.time_s=hall->time_s();genesis.field_sha256=hall->field_sha256();genesis.heat_sha256=hall->heat_sha256();genesis.source_sha256=base.source_seal;genesis.mesh_sha256=hall->motion_mesh_sha256();genesis.material_sha256=model->material_sha256();genesis.frame_sha256=chemfix::sha("positive/frame");genesis.common_clock_sha256=chemfix::sha("positive/genesis-clock");genesis.rng_sha256=registry.initial_rng_sha256;genesis.origin_provenance="manufactured phi2eV cold C19-start source-Hall component; diagnostic chemistry, not plasma calibration";
+  arena=n::PicArena::create_full_time(options,states,{registry.channel},{},genesis,nc);const auto b=arena->full_time_boundary();common={b->accepted_step,b->accepted_arena_revision,b->time_s,b->time_s+dt,dt,b->accepted_arena_sha256,b->field_sha256,b->mesh_sha256,b->material_sha256,chemfix::sha("positive/fixed-common-clock")};native_before=arena->state_prefix();field_before=hall->field_sha256();heat_before=hall->heat_sha256();
+ }
+ bool unchanged()const {if(arena->state_prefix()!=native_before||hall->field_sha256()!=field_before||hall->heat_sha256()!=heat_before||owners.arrival->state_sha256()!=base.arrival_state)return false;for(std::size_t i=0;i<owners.ports.size();++i)if(owners.ports[i].source()->state_sha256()!=base.source_states[i])return false;return true;}
+};
+J run(const char*trace,bool water,double weight){
+ Fixture f(trace,water,weight);J report={{"water_enabled",water},{"work_function_eV",f.declared.declared.work_function_eV},{"electron_weight",weight},{"electron_weight_bits",f.declared.electron_weight_bits},{"work_function_bits",f.declared.work_function_bits},{"registry_sha256",f.registry.registry_sha256},{"electron_mass_kg",f.declared.electron_mass_kg},{"source_ports",f.owners.ports.size()},{"start_s",f.common.begin_s},{"dt_s",f.dt},{"maximum_outer_attempts",4},{"maximum_forks_per_outer",4},{"attempts",J::array()},{"passed",false}};
+ std::unique_ptr<it::RetrySeed> seed;bool converged=false;
+ try{
+  for(unsigned attempt=0;attempt<4;++attempt){
+   auto outer=f.arena->begin_full_time_step(f.common,1000,128);n::ExposureBinding ex{f.common,n::FullTimeSlot::before_transport,f.common.begin_s,.5*f.dt,0,f.common.accepted_field_sha256};auto first_scope=outer.first_exposure(ex);auto first=first_scope.prepare_chemistry_v3();if(!first_scope.try_publish(first))throw std::runtime_error("first chemistry slot refused");
+   ss::s7::BirthPolicy policy;policy.subcell_extent_m=20e-6;policy.return_extent_m=0;
+   auto result=it::prepare(outer,f.owners,f.base,f.common,f.options,f.registry,policy,1000,4,seed.get());J a={{"outer",attempt+1},{"iterations",J::array()},{"accepted_unchanged",f.unchanged()}};
+   for(const auto&i:result.iterations)a["iterations"].push_back({{"fork",i.fork},{"carriers",i.carriers},{"electron_births",i.electron_births},{"neutral_births",i.neutral_births},{"bridges",i.bridges},{"identical_midpoint",i.identical_midpoint},{"source_field",i.source_field_sha256},{"hall_field",i.hall_field_sha256},{"source_wall_s",i.source.wall_s},{"field_wall_s",i.field.wall_s}});
+   report["attempts"].push_back(std::move(a));if(!f.unchanged())throw std::runtime_error("accepted owner changed during bounded iteration");
+   if(result.retry){seed=std::move(result.retry);continue;}
+   if(!result.ready)throw std::runtime_error("iteration returned neither result nor retry");auto&r=*result.ready;
+   std::size_t lower=0,upper=0;double bridge_activity=0,current_activity=0;
+   // Count faces from the genuine source port, independently of native axes.
+   lower=upper=0;for(std::size_t p=0;p<r.source.source_trials().size();++p)for(const auto&b:r.source.source_trials()[p].surface_births()){(void)b;(f.owners.ports[p].slice().body?upper:lower)++;}
+   for(double w:r.proposal.motion().bridge_work_J())bridge_activity+=std::abs(w);for(double j:r.proposal.motion().extra_current_A_m())current_activity+=std::abs(j);
+   report["lower_electrons"]=lower;report["upper_electrons"]=upper;report["electron_births"]=r.source.reference().electron_births();report["neutral_births"]=r.source.reference().neutral_births();report["bridge_count"]=r.proposal.motion().bridges().size();report["bridge_work_activity_J"]=bridge_activity;report["bridge_current_activity_A_m"]=current_activity;report["ready_accepted_unchanged"]=f.unchanged();
+   if(!lower||!upper||!(bridge_activity>0)||!(current_activity>0)||r.proposal.motion().bridges().empty())throw std::runtime_error("fixture did not create both-face electrons and nonzero genuine B3 work/current");
+   if((water&&r.source.reference().neutral_births()==0)||(!water&&r.source.reference().neutral_births()!=0))throw std::runtime_error("fixture neutral source coverage differs");
+   auto moved=r.prepare_motion(f.common);outer.accept_transport_trial(std::move(moved));auto second_ex=ex;second_ex.slot=n::FullTimeSlot::after_transport;second_ex.owner_stage_sequence=1;second_ex.frozen_physical_stage_s=f.common.end_s;second_ex.frozen_field_sha256=r.proposal.candidate_field_sha256();auto second_scope=outer.second_exposure(second_ex);auto second=second_scope.prepare_chemistry_v3();
+   const auto population=second_scope.candidate_population(second,1000,1u<<26);if(!second_scope.can_publish(second))throw std::runtime_error("second candidate lost authentic inspection");std::vector<n::ArenaRateEntry> final_census;for(const auto&p:population->packets)for(const auto&c:p.population.carriers)final_census.push_back({p.population.packet_id,p.population.state,c});std::sort(final_census.begin(),final_census.end(),[](const auto&a,const auto&b){return a.native.id<b.native.id;});const auto final_charge=powerflow::final_charge_guard_v1::require_consistent(f.hall->mesh(),f.options,r.proposal.motion().endpoints(),final_census,1000);
+   auto chemistry=second.candidate_chemistry_stage();report["chemistry_events"]=chemistry->admitted_events;report["final_charge_census"]=final_charge.final_native_census_sha256;if(!second_scope.try_publish(second))throw std::runtime_error("second chemistry publication refused");auto final=outer.seal({r.proposal.candidate_field_sha256(),r.proposal.candidate_heat_sha256(),r.source.source_after_sha256(),chemistry->state_after_sha256});const auto boundary=final.candidate_full_time_boundary();
+   const bool all=f.arena->can_publish(final)&&f.hall->preflight_final(r.proposal,r.census,*boundary)&&r.source.preflight_sources(f.owners)&&f.unchanged();report["all_owner_preflight"]=all;if(!all)throw std::runtime_error("full component preflight refused");
+   if(!f.arena->try_publish(final))throw std::runtime_error("native publication failed");f.hall->publish_prevalidated(std::move(r.proposal));r.source.publish_sources_prevalidated(f.owners);
+   bool actual=f.owners.arrival->state_sha256()==r.future.arrival_state;for(std::size_t i=0;i<f.owners.ports.size();++i)actual=actual&&f.owners.ports[i].source()->state_sha256()==r.future.source_states[i];if(!actual)throw std::runtime_error("future source/arrival digests differ after publication");report["future_hashes_match"]=true;report["accepted_end_s"]=f.hall->time_s();report["passed"]=true;converged=true;break;
+  }
+  if(!converged)throw std::runtime_error("bounded four-outer source/Hall fixed-point attempts exhausted");
+ }catch(const std::exception&e){report["refusal"]=e.what();report["accepted_unchanged_on_refusal"]=f.unchanged();}
+ return report;
+}
+int main(int argc,char**argv){try{if(argc!=4)throw std::runtime_error("TRACE OUT WEIGHT");std::filesystem::create_directories(argv[2]);const double weight=std::stod(argv[3]);J result={{"scope","manufactured source/Hall component with diagnostic chemistry; not full native/gas plasma"},{"cases",J::array()},{"passed",true}};for(bool water:{false,true}){auto r=run(argv[1],water,weight);result["passed"]=result["passed"].get<bool>()&&r["passed"].get<bool>();result["cases"].push_back(std::move(r));std::ofstream(std::filesystem::path(argv[2])/"positive.json")<<result.dump(2)<<'\n';}std::cout<<result.dump()<<'\n';return result["passed"].get<bool>()?0:1;}catch(const std::exception&e){std::cerr<<e.what()<<'\n';return 2;}}

@@ -1,0 +1,25 @@
+===== simq job 634: source-hall-positive-c1 =====
+submitted: 2026-11-01T08:39:32Z
+started:   2026-11-01T08:39:33Z
+cwd:       /home/treefor/projects/Power-Flow
+partition: powerflow
+P-cores:   6
+GPUs:      none
+memory:    6G (swap 1G)
+time:      00:25:00
+unit:      simq-job-634-5e0c829a3cd0.service
+command:   python /home/treefor/projects/runtimes/pic-source-hall-positive-test-v1-20261101/qualify_positive.py c1
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock (exclusive)
+qualification_attempt c1/attempt-001
+test_stage.log 1
+/home/treefor/projects/runtimes/pic-source-hall-positive-test-v1-20261101/tests/test_positive.cpp: In function 'J run(const char*, bool, double)':
+/home/treefor/projects/runtimes/pic-source-hall-positive-test-v1-20261101/tests/test_positive.cpp:60:97: error: 'class raikou::mfem_backend::CollisionScope' has no member named 'can_inspect'
+   60 |    const auto population=second_scope.candidate_population(second,1000,1u<<26);if(!second_scope.can_inspect(second))throw std::runtime_error("second candidate lost authentic inspection");std::vector<n::ArenaRateEntry> final_census;for(const auto&p:population->packets)for(const auto&c:p.population.carriers)final_census.push_back({p.population.packet_id,p.population.state,c});std::sort(final_census.begin(),final_census.end(),[](const auto&a,const auto&b){return a.native.id<b.native.id;});const auto final_charge=powerflow::final_charge_guard_v1::require_consistent(f.hall->mesh(),f.options,r.proposal.motion().endpoints(),final_census,1000);
+      |                                                                                                 ^~~~~~~~~~~
+
+========================================
+finished:  2026-11-01T08:39:38Z
+exit code: 1
+state:     failed
+===== simq job 634 finished =====
