@@ -1,0 +1,2207 @@
+--- /dev/null
++++ b/BASELINE-HANDOFF.txt
+@@ -0,0 +1,78 @@
++Native v8 (candidate008) -- handoff note
++Updated: 2026-10-31 23:10 MDT (fourth worker resumed 21:30)
++
++Goal
++ Native v8 of the native reaction-transaction owner (Power-Flow coupled PIC water breakdown), sealed:
++ stage A (v8.0) chemistry v3/v3.1 in the native owner, device chemistry stage, persistent packet table, host
++ time target; stage B (v8.1) wall-response births, metal neutral species, merge/split; nonempty restore;
++ COORDINATOR-V8-LINK.txt and HALL-LINK-8.txt; final verification run with receipts and RESULTS-008.txt.
++ Contract: API-008.txt. Results: RESULTS-008.txt (placeholders [TABLE], [DEVICE-COMPAT], [GPU], [SAN],
++ [REGRESSION] still to fill from the final run).
++ Outputs: /home/treefor/projects/.workspace/outputs/native-v8-20261031/
++
++Binding in force
++ production-v1 preset = chemistry v3.1 blob sha256 7f30e0123d04424887a2f5154df3e09006c6c59f5759422abec9c8ceecd943a5,
++ coverage policy file sha256 ad3742f359549e8af4bcb8b38654518df97deeaf7604e401478bb62953e0fe21,
++ max_events 64, max_candidates 4096, refuse bounded region when B_r > max(1, 0.01 A). v3 blob kept for parity tests.
++ Headers compiled: pic-water-chemistry-v3.1-20261031 (tooling.py CHEM). A v3.2 blob (keV ions) is being built
++ elsewhere; the binding is by path + sha256 constants in mfem_pic_full_time.h (swappable).
++
++Current source identity: 519423268f493abde0a2df8d1a8b1b3d5d00a4f6c25f4383056aeb9231b26fa6 (build20, after the
++ persistent_containers.h per-entry digest cache change).
++
++Done (receipts)
++ - Compatible mode (v7.1 host suites vs v7.1 evidence, identical): outputs/.../compat-c4/ (on 519423268f).
++ - CPU v8 controls on 519423268f, all pass: outputs/.../resume-cpu1/progress.txt
++   (containers 145; chemistry v3 and v3.1 61 controls each; restore K=2,3,5 continuation identical, 7/7 tamper
++   refused; sinks 6 controls). Script: scripts/cpu_suite.sh OUTDIR.
++ - Device chemistry controls and device timings (earlier identity 7989fcf5): outputs/.../gpu2/ (one segfault at
++   45/1e4/1e14, fixed afterwards in native_device.cpp chem module ownership; to be rerun).
++ - Host timings (v8 host mode): outputs/.../timing2/. Table: python3 scripts/timing_table.py <hostdir> <devdir>.
++ - Nonempty restore, published sinks, ejected-melt reservoir, v7.1 dangling-record fix (API-008 5, 7).
++ - SimQueue job 179 (native-v8-gpu-series): canceled before launch by the previous worker (the 4h24m shown is
++   time since creation, no run). Its work ran outside the queue as gpu1 (killed) and gpu2 (completed).
++
++Stage A verification on 519423268f (complete)
++ - SimQueue job 200 (v8-gpu3-series) succeeded: device controls v3 and v3.1 (5/5 each), device_verified regression,
++   device timings 1e4/1e5/1e6 x meshes 45/180 x water 1e14/1e6: outputs/.../gpu3/ (1e6, mesh 45, 1e14: 71.8 ms host CPU).
++ - SimQueue job 201 (v8-compat-d1): every v7.1 suite passes in device and device_verified modes; outputs equal the v7.1
++   device evidence (78 files compared, no differences): outputs/.../compat-d1/compat-result.json (the job's own comparison
++   step failed on a compat.py bug, fixed; compared with scripts/compat.py d1 --device-only --compare-only).
++ - SimQueue job 191 (v8-prof2): host CPU 73.5 ms per step at 1e6 (device mode), see prof2/.
++
++Device admission of births/sinks (stage A item 2) -- DONE on build21 (identity c3922df6..., interim)
++ - Changed: native_kernels.cu, native_device.{hpp,cpp}, mfem_pic_full_time.inc (sink_ledger() shared; motion_v7_device
++   with sinks/newborns, host checks from gathered rows; births appended on device rows). Test tests/test_v8_flows_gpu.cpp:
++   48 steps host = device_verified = device every step (births every step, 42 sinks, newborns sunk in their first
++   flight in 16 steps, two-carrier packets sunk whole); device mode 48/48 admissions on the device, 0 host; refusal
++   parity 3/3 (same typed text). outputs/.../dev1/ (also chemistry device controls 5/5, v7.1 regression, timing).
++ - Host flows suite after the sink_ledger refactor equals v7.1 (compat-c5).
++
++In progress (fourth worker): stage B (v8.1) in source (not yet built)
++ - Header: FullTimeBirth bridge/returned/internal_energy_J; FullTimeWallBirth + FullTimeBirthCredit::wall;
++   FullTimeBirthBridge; receipt arrival_next_id_after/wall_entries/wall_credits/bridges/internal; exposure
++   internal_energy_J; motion record v8.1 extras (relocations, bridges, extra current, extra work).
++ - Rows: RowKind birth_v81 = 9, merge_split = 10; motion row extras when schema v8.1; grammar updated.
++ - State: FullTimeFlowsV81 (chem_v3_native.{hpp,cpp}: digest/codec), snapshot field, checkpoint "v81", restore.
++ - births(): v8.1 arrival fields, wall births, returned births, bridges, internal energy entries; sink_ledger publishes
++   internal energy; seal releases internal energy of packets removed/changed by chemistry.
++ - TODO: motion v8.1 extras admission (host+device), merge/split (MergeScope, transact via the component CPU reference
++   compiled from resolution-series-prep-20261031/merge-split/src/merge_split.cpp), status API, metal states helper,
++   tests (v8.1 births/sinks/merge, restore), build, GPU runs.
++ - CORE LOAN (coordinator, ~6 h from 23:00): only logical CPU 15, nice 19, flock testing-cpu15.lock. Use
++   PF_CPU15_ONLY=1 with scripts/lease.sh / lease2.sh (routes to scripts/lease15.sh); GPU runs directly: flock -s
++   testing-gpu.lock, flock -s testing-gpu-<UUID>.lock, then scripts/lease15.sh. No timing measurements meanwhile.
++ - Build infra: PF_BUILD_ISA_FLAGS hook in build-components.py (coordinator ask); one compile per leased CPU.
++
++Next steps
++ 1. Stage A close-out: host-time reductions (resolve, packets, token_prefix phases of the chemistry stage);
++    device compat suites (scripts/compat.py LABEL --device, via SimQueue); GPU series rerun
++    (scripts/gpu_series.sh); then message main "stage A verified".
++ 2. Stage B: wall-response births (source v7 B2), matching-plane births with bridge paths (B3), born-and-collected
++    births (B4); Mn/Si/C states and released internal energy of metal-vapour births; merge/split native
++    transaction (merge-split INTEGRATION 2) with relocation records in the motion record.
++ 3. verify-final.py for v8 (copy is v7.1's), final run, RESULTS-008.txt, LINK files update.
++
++Decisions taken (by this and the previous worker; see API-008.txt for the full list)
++ - Approved by the owner: chemistry integration choices 1-7; production coverage policy; restore scope.
++ - Job 179 not rerun as such: superseded by the rerun of scripts/gpu_series.sh on the final identity.
+--- /dev/null
++++ b/BASELINE-verify-final.py
+@@ -0,0 +1,238 @@
++"""Native v7.1 final verification with receipts. Start restricted to cores 6-7:
++  taskset -c 6,7 nice -n 15 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \\
++      MKL_NUM_THREADS=1 python3 verify-final.py LABEL
++Builds run under core-lease-20261030/both-cores.sh (build-components.py all); every CPU
++test process runs under scripts/lease.sh (one free core of 6, 7 and the lent cores 0, 1;
++nice 15, one thread, no GPU) inside the frozen launcher, at most three at a time (the GPU sequence runs beside them); GPU processes take the
++two GPU locks first, then a core lease. Host mode: every suite, compared with the native v7
++evidence; ASan/UBSan (host mode). Device modes (device_verified, device): the same suites
++(history reduced) compared with host mode. Timing: native per-step host cost, native v7
++(reference build of the same driver) vs v7.1 host vs v7.1 device, 1e4/1e5/1e6 carriers,
++200 um and 50 um meshes. Never modifies native v7, its evidence or any sealed input."""
++import sys
++import threading
++from concurrent.futures import ThreadPoolExecutor
++from tooling import *
++
++LEASE = Path('/home/treefor/projects/runtimes/core-lease-20261030')
++label = sys.argv[1] if len(sys.argv) > 1 else 'final'
++cpus = os.sched_getaffinity(0)
++need(cpus <= {6, 7} and os.getpriority(os.PRIO_PROCESS, 0) >= 15, 'start under taskset -c 6,7 nice 15')
++need(os.environ.get('CUDA_VISIBLE_DEVICES', None) == '', 'CUDA_VISIBLE_DEVICES must be empty')
++F = OUT / label
++F.mkdir(parents=True, exist_ok=False)
++records = []
++records_lock = threading.Lock()
++inputs_before = sealed_inputs()
++
++
++def execute(name, argv, timeout=7200):
++    log = F / (name + '.log')
++    start = time.monotonic()
++    with log.open('w') as h:
++        try:
++            rc = subprocess.run([str(a) for a in argv], stdout=h, stderr=subprocess.STDOUT, timeout=timeout,
++                                cwd=str(P)).returncode
++        except subprocess.TimeoutExpired:
++            rc = 'timeout'
++    rec = {'name': name, 'argv': [str(a) for a in argv], 'returncode': rc, 'elapsed_s': round(time.monotonic() - start, 3),
++           'log': str(log), 'log_sha256': sha256(log), 'utc': utc()}
++    with records_lock:
++        records.append(rec)
++        (F / 'receipt-commands.json').write_text(json.dumps(records, indent=1) + '\n')
++        print(name, rc, rec['elapsed_s'], flush=True)
++    return rc
++
++
++def cpu_run(name, argv, sanitized=False, rlimit=RLIMIT_AS, timeout=7200):
++    env = ['env', 'CUDA_VISIBLE_DEVICES=']
++    if sanitized:
++        env += ['%s=%s' % kv for kv in ASAN_ENV.items()]
++        prefix = [FROZEN]
++    else:
++        prefix = [FROZEN, 'prlimit', '--as=%d' % rlimit, '--']
++    return execute(name, [P / 'scripts/lease.sh', *env, *prefix, *argv], timeout)
++
++
++def gpu_run(name, argv, mode=None, timeout=3600):
++    env = ['env', 'CUDA_VISIBLE_DEVICES=' + GPU_UUID]
++    if mode:
++        env += ['PF_V71_EXECUTION=' + mode, 'PF_V71_UUID=' + GPU_UUID, 'PF_V71_NVRTC=' + str(NVRTC)]
++    return execute(name, ['flock', LEASES / 'testing-gpu.lock', 'flock', LEASES / ('testing-gpu-%s.lock' % GPU_UUID),
++                          P / 'scripts/lease.sh', *env, FROZEN, *argv], timeout)
++
++
++v7_before = tree_hashes(V7)
++v7_out_before = tree_hashes(V7_OUT / 'final')
++rc = execute('build', [LEASE / 'both-cores.sh', 'env', 'CUDA_VISIBLE_DEVICES=', sys.executable, P / 'build-components.py', 'all'],
++             timeout=7200)
++need(rc == 0, 'build failed')
++manifest = json.loads((P / 'SOURCE-SHA256.json').read_text())
++identity = manifest['source_identity']
++B = P / 'build'
++G = 3 * 1024 ** 3
++H2O = P / 'inputs/h2o-gas-20261029.json'
++SUITES = [('ported', 'test_ported', []), ('work', 'test_work_gross', []), ('forms-native', 'test_forms_native', []),
++          ('flows', 'test_flows', []), ('source', 'test_source_arrival', []), ('history-reduced', 'test_history', ['reduced'])]
++d = {}
++
++
++def out_dir(name):
++    d[name] = F / name
++    d[name].mkdir(exist_ok=True)
++    return d[name]
++
++
++runs = [('legacy', [B / 'test_legacy', H2O, out_dir('legacy')], False, G),
++        ('history', [B / 'test_history', out_dir('history')], False, G),
++        ('forms-cpu', [B / 'test_forms_cpu', out_dir('forms-cpu'), 1000000], False, G),
++        ('flows-long-200000', [B / 'test_flows', out_dir('flows-long'), 'long=200000'], False, G),
++        ('parity-host', [B / 'test_parity', out_dir('parity') / 'host.json', 60], False, G),
++        ('parity-v7', [B / 'v7_test_parity', d['parity'] / 'v7.json', 60], False, G),
++        ('san-legacy', [B / 'sanitized-test_legacy', H2O, out_dir('san-legacy')], True, None),
++        ('san-ported', [B / 'sanitized-test_ported', out_dir('san-ported')], True, None),
++        ('san-history', [B / 'sanitized-test_history', out_dir('san-history'), 'reduced'], True, None),
++        ('san-flows', [B / 'sanitized-test_flows', out_dir('san-flows'), 'reduced'], True, None),
++        ('san-source-arrival', [B / 'sanitized-test_source_arrival', out_dir('san-source'), 'reduced'], True, None),
++        ('san-forms-cpu', [B / 'sanitized-test_forms_cpu', out_dir('san-forms-cpu'), 100000], True, None),
++        ('san-forms-native', [B / 'sanitized-test_forms_native', out_dir('san-forms-native'), 'reduced'], True, None),
++        ('san-work-gross', [B / 'sanitized-test_work_gross', out_dir('san-work-gross')], True, None)]
++for name, exe, extra in SUITES:
++    runs.append(('host-' + name, [B / exe, out_dir('host-' + name), *extra], False, G))
++for mode in ['device_verified', 'device']:
++    for name, exe, extra in SUITES:
++        out_dir('%s-%s' % (mode, name))
++
++
++def gpu_phase():
++    """GPU forms parity (two fresh processes) and the device-mode suites; runs beside the CPU tests."""
++    codes = {}
++    for k in [1, 2]:
++        codes['gpu-forms-run%d' % k] = gpu_run('gpu-forms-run%d' % k, [B / 'test_forms_gpu', NVRTC, GPU_UUID, 1000000])
++    for mode in ['device_verified', 'device']:
++        for name, exe, extra in SUITES:
++            tag = '%s-%s' % (mode, name)
++            codes[tag] = gpu_run(tag, [B / exe, d[tag], *extra], mode)
++        codes[mode + '-parity'] = gpu_run(mode + '-parity', [B / 'test_parity', d['parity'] / ('%s.json' % mode), 60], mode)
++    return codes
++
++
++with ThreadPoolExecutor(max_workers=4) as pool:
++    gpu_future = pool.submit(gpu_phase)
++    futures = {name: pool.submit(cpu_run, name, argv, san, lim or G) for name, argv, san, lim in runs}
++    codes = {name: f.result() for name, f in futures.items()}
++    codes.update(gpu_future.result())
++need(all(c == 0 for c in codes.values()), 'test failures: %s' % {k: v for k, v in codes.items() if v != 0})
++rc = cpu_run('verify-exact', ['/usr/bin/python', '-I', P / 'forms/tests/verify_exact.py', d['forms-cpu'] / 'adversarial.txt'])
++need(rc == 0, 'rational verification failed')
++timing = out_dir('timing')
++for mesh in [45, 180]:
++    for n, steps in [(10000, 8), (100000, 5), (1000000, 4)]:
++        tag = '%d-%d' % (mesh, n)
++        need(cpu_run('timing-v7-host-' + tag, [B / 'v7_test_step_timing', timing / ('v7-host-%s.json' % tag), 'host', n, steps,
++                                               mesh, NVRTC, GPU_UUID], rlimit=12 * 1024 ** 3) == 0, 'timing failed')
++        need(cpu_run('timing-v71-host-' + tag, [B / 'test_step_timing', timing / ('v71-host-%s.json' % tag), 'host', n, steps,
++                                                mesh, NVRTC, GPU_UUID], rlimit=12 * 1024 ** 3) == 0, 'timing failed')
++        need(gpu_run('timing-v71-device-' + tag, [B / 'test_step_timing', timing / ('v71-device-%s.json' % tag), 'device', n,
++                                                  steps, mesh, NVRTC, GPU_UUID]) == 0, 'timing failed')
++    # Device lane with the v7 streaming field/current digests (hashed on the host): the cost the block form removes.
++    need(gpu_run('timing-v71-device_stream-%d-10000' % mesh, [B / 'test_step_timing', timing / ('v71-device_stream-%d-10000.json' % mesh),
++                                                            'device_stream', 10000, 8, mesh, NVRTC, GPU_UUID]) == 0, 'timing failed')
++
++# 2. Parity and results.
++load = lambda p: json.loads(Path(p).read_text())
++V7F = V7_OUT / 'final'
++
++
++def flat(x, p=''):
++    if isinstance(x, dict):
++        for k, v in x.items():
++            yield from flat(v, p + '/' + k)
++    elif isinstance(x, list):
++        for i, v in enumerate(x):
++            yield from flat(v, p + '/' + str(i))
++    else:
++        yield p, x
++
++
++def measured(k):
++    """Run-dependent measurements (memory, elapsed seconds) recorded by the suites."""
++    leaf = k.rsplit('/', 1)[-1]
++    return k == '/seconds' or ('/measurements/' in k and ('KiB' in leaf or leaf.endswith('_s') or leaf == 'seconds'))
++
++
++def differences(a, b, ignore=(), exact=(), contains=()):
++    """Paths whose values differ, other than measurements and the given paths."""
++    fa, fb = dict(flat(a)), dict(flat(b))
++    return sorted(k for k in set(fa) | set(fb) if fa.get(k) != fb.get(k) and not measured(k)
++                  and not (ignore and k.endswith(tuple(ignore))) and k not in exact and not any(c in k for c in contains))
++
++
++# Checkpoint fields bound to the source identity: the file digest, source_sha256 and the history anchors.
++IDENTITY_BOUND = {'exact': ('/sha256', '/payload/source_sha256'), 'contains': ('anchor_root_sha256', '/history/anchors/')}
++
++
++OUTPUT = {'ported': 'candidate005-ported-tests.json', 'work': 'v7-work-gross.json', 'forms-native': 'v7-forms-native.json',
++          'flows': 'v6-flows-tests.json', 'source': 'v6-source-arrival-tests.json', 'history-reduced': 'v5-history-tests.json'}
++V7_NAME = {'ported': 'ported', 'work': 'work-gross', 'forms-native': 'forms-native', 'flows': 'flows', 'source': 'source'}
++host_vs_v7 = {}
++for name, v7dir in V7_NAME.items():
++    host_vs_v7[name] = differences(load(V7F / v7dir / OUTPUT[name]), load(d['host-' + name] / OUTPUT[name]))
++host_vs_v7['history'] = differences(load(V7F / 'history' / OUTPUT['history-reduced']), load(d['history'] / OUTPUT['history-reduced']))
++for name, v7dir, ours in [('ported', 'ported', 'host-ported'), ('forms-native', 'forms-native', 'host-forms-native'),
++                          ('flows', 'flows', 'host-flows'), ('history', 'history', 'history'), ('legacy', 'legacy', 'legacy')]:
++    # Checkpoints: equal except the fields bound to the source identity (source_sha256, anchors, file digest).
++    for f in sorted((V7F / v7dir).glob('*.json')):
++        if f.name != OUTPUT.get(name, '') and f.name != 'arena-tests.json':
++            host_vs_v7['%s/%s' % (name, f.name)] = differences(load(f), load(d[ours] / f.name), **IDENTITY_BOUND)
++need(all(not v for v in host_vs_v7.values()), 'host-mode outputs differ from native v7: %s' % host_vs_v7)
++need(load(V7F / 'legacy/arena-tests.json') == load(d['legacy'] / 'arena-tests.json') == load(d['san-legacy'] / 'arena-tests.json'),
++     'legacy results differ from native v7')
++device_vs_host = {}
++for mode in ['device_verified', 'device']:
++    for name in OUTPUT:
++        device_vs_host['%s-%s' % (mode, name)] = differences(load(d['host-' + name] / OUTPUT[name]),
++                                                            load(d['%s-%s' % (mode, name)] / OUTPUT[name]))
++        # Every other file the suite wrote (checkpoints): identical bytes.
++        for f in sorted(d['host-' + name].glob('*.json')):
++            if f.name not in (OUTPUT[name], 'execution.json'):
++                same = f.read_bytes() == (d['%s-%s' % (mode, name)] / f.name).read_bytes()
++                device_vs_host['%s-%s/%s' % (mode, name, f.name)] = [] if same else ['bytes differ']
++need(all(not v for v in device_vs_host.values()), 'device-mode outputs differ from host mode: %s' % device_vs_host)
++executions = {k: load(d[k] / 'execution.json') for k in d if k.startswith('device')}
++for mode in ['device_verified', 'device']:
++    executions[mode + '-parity'] = load(d['parity'] / ('%s.json.execution.json' % mode))
++p_host, p_v7 = load(d['parity'] / 'host.json'), load(d['parity'] / 'v7.json')
++parity = {'v7_vs_host': differences(p_v7, p_host, ignore=('/seconds', 'anchor_head_sha256', 'anchor_root_sha256', 'source_identity'))}
++for mode in ['device_verified', 'device']:
++    parity[mode + '_vs_host'] = differences(p_host, load(d['parity'] / ('%s.json' % mode)))
++need(not parity['v7_vs_host'] and not parity['device_verified_vs_host'] and not parity['device_vs_host'],
++     'parity traces differ: %s' % parity)
++
++
++def results_of(log):
++    return [line.strip() for line in log.read_text().splitlines() if line.startswith('RESULT ')]
++
++
++g1, g2 = results_of(F / 'gpu-forms-run1.log'), results_of(F / 'gpu-forms-run2.log')
++strip = lambda lines: [' '.join(t for t in l.split() if 'ms' not in t and 'wall' not in t and 'us_per' not in t) for l in lines]
++need(strip(g1) == strip(g2) and any('gpu_checks=' in l and 'failures=0' in l for l in g1), 'GPU forms runs differ or failed')
++timings = {p.stem: load(p) for p in sorted(timing.glob('*.json'))}
++need(tree_hashes(V7) == v7_before and tree_hashes(V7_OUT / 'final') == v7_out_before, 'native v7 or its evidence changed')
++need(sealed_inputs() == inputs_before, 'sealed inputs changed during verification')
++need(json.loads((P / 'SOURCE-SHA256.json').read_text()) == manifest, 'v7.1 source changed during verification')
++artifacts = {str(p.relative_to(P)): sha256(p) for p in sorted(B.glob('*')) if p.is_file()}
++(F / 'build-artifact-hashes.json').write_text(json.dumps(artifacts, indent=2) + '\n')
++result = {'status': 'passed', 'source_identity': identity, 'base_v7_identity': V7_IDENTITY,
++          'host_vs_v7_differences': host_vs_v7, 'device_vs_host_differences': device_vs_host, 'executions': executions,
++          'parity': parity, 'forms_cpu': results_of(F / 'forms-cpu.log'),
++          'exact_rational_verification': results_of(F / 'verify-exact.log'), 'gpu_forms': g1, 'timings': timings,
++          'sanitized': {k: (F / (k + '.log')).read_text().strip().splitlines()[-1] for k in
++                        ['san-legacy', 'san-ported', 'san-history', 'san-flows', 'san-source-arrival', 'san-forms-cpu',
++                         'san-forms-native', 'san-work-gross']},
++          'long_run_200000': load(d['flows-long'] / 'v6-flows-long-run.json')['measurements']['long_run'],
++          'suite_summaries': {rec['name']: Path(rec['log']).read_text().strip().splitlines()[-1] for rec in records
++                              if rec['name'] != 'build' and Path(rec['log']).read_text().strip()},
++          'sealed_inputs': inputs_before, 'utc': utc()}
++(F / 'verification-result.json').write_text(json.dumps(result, indent=2) + '\n')
++print(json.dumps({k: result[k] for k in ['status', 'source_identity', 'parity']}, indent=1))
+--- a/HANDOFF.txt
++++ b/HANDOFF.txt
+@@ -1,78 +1,29 @@
+-Native v8 (candidate008) -- handoff note
+-Updated: 2026-10-31 23:10 MDT (fourth worker resumed 21:30)
++Native v8.2 audit corrections: component qualification passed
++Source identity: 5f7d171c62708cf3e2e03f0fd843e7c906ed65a5db7d5955624773dee3516f2b
++Runtime: /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix
++Archive: build/libpic_native_v8.a
++Archive SHA256: 098c1aaa14a533877ba4474f1ffae432994329db809b12b2f1391c6e2a65f9d7
+ 
+-Goal
+- Native v8 of the native reaction-transaction owner (Power-Flow coupled PIC water breakdown), sealed:
+- stage A (v8.0) chemistry v3/v3.1 in the native owner, device chemistry stage, persistent packet table, host
+- time target; stage B (v8.1) wall-response births, metal neutral species, merge/split; nonempty restore;
+- COORDINATOR-V8-LINK.txt and HALL-LINK-8.txt; final verification run with receipts and RESULTS-008.txt.
+- Contract: API-008.txt. Results: RESULTS-008.txt (placeholders [TABLE], [DEVICE-COMPAT], [GPU], [SAN],
+- [REGRESSION] still to fill from the final run).
+- Outputs: /home/treefor/projects/.workspace/outputs/native-v8-20261031/
++SimQueue 286 passed frozen build plus all 14 CPU commands. Jobs 290, 291, 292
++passed independent short shared-GPU lifetime, flow and chemistry checks.
++QUALIFICATION.json and qualification/ in the artifact hold exact evidence.
++Compatible v5 remains available for the coordinator. No timing claim is made.
+ 
+-Binding in force
+- production-v1 preset = chemistry v3.1 blob sha256 7f30e0123d04424887a2f5154df3e09006c6c59f5759422abec9c8ceecd943a5,
+- coverage policy file sha256 ad3742f359549e8af4bcb8b38654518df97deeaf7604e401478bb62953e0fe21,
+- max_events 64, max_candidates 4096, refuse bounded region when B_r > max(1, 0.01 A). v3 blob kept for parity tests.
+- Headers compiled: pic-water-chemistry-v3.1-20261031 (tooling.py CHEM). A v3.2 blob (keV ions) is being built
+- elsewhere; the binding is by path + sha256 constants in mfem_pic_full_time.h (swappable).
++Schema v8.2-auditfix2 and chemistry-state-codec-v3-parcels-support intentionally
++refuse older v8 chemistry checkpoints. Actual parcels cannot be reconstructed
++from signed moments; no label-only migration is valid. See APPLY-INSTRUCTIONS.
+ 
+-Current source identity: 519423268f493abde0a2df8d1a8b1b3d5d00a4f6c25f4383056aeb9231b26fa6 (build20, after the
+- persistent_containers.h per-entry digest cache change).
++Target energy/momentum ownership remains absent. Strict eventful chemistry
++refuses; diagnostic_field_target_approximation=true permits only a labeled
++field-target approximation, never full-system energy closure. Unknown reaction
++support remains a strict refusal even at zero physical exposure. No full coupled
++plasma or material convergence is established by these component checks.
+ 
+-Done (receipts)
+- - Compatible mode (v7.1 host suites vs v7.1 evidence, identical): outputs/.../compat-c4/ (on 519423268f).
+- - CPU v8 controls on 519423268f, all pass: outputs/.../resume-cpu1/progress.txt
+-   (containers 145; chemistry v3 and v3.1 61 controls each; restore K=2,3,5 continuation identical, 7/7 tamper
+-   refused; sinks 6 controls). Script: scripts/cpu_suite.sh OUTDIR.
+- - Device chemistry controls and device timings (earlier identity 7989fcf5): outputs/.../gpu2/ (one segfault at
+-   45/1e4/1e14, fixed afterwards in native_device.cpp chem module ownership; to be rerun).
+- - Host timings (v8 host mode): outputs/.../timing2/. Table: python3 scripts/timing_table.py <hostdir> <devdir>.
+- - Nonempty restore, published sinks, ejected-melt reservoir, v7.1 dangling-record fix (API-008 5, 7).
+- - SimQueue job 179 (native-v8-gpu-series): canceled before launch by the previous worker (the 4h24m shown is
+-   time since creation, no run). Its work ran outside the queue as gpu1 (killed) and gpu2 (completed).
++Original candidate008 and all sealed predecessors were unchanged. This fork
++preserves the named shared_ptr fix and tests its device-only refusal/verification
++path. Complete published sinks are bound before/at anchors. Added restoration
++fixes cover long valid coverage labels and identity initialization before v8.1
++journal validation; exact region checks and all v8.1 schema guards remain.
+ 
+-Stage A verification on 519423268f (complete)
+- - SimQueue job 200 (v8-gpu3-series) succeeded: device controls v3 and v3.1 (5/5 each), device_verified regression,
+-   device timings 1e4/1e5/1e6 x meshes 45/180 x water 1e14/1e6: outputs/.../gpu3/ (1e6, mesh 45, 1e14: 71.8 ms host CPU).
+- - SimQueue job 201 (v8-compat-d1): every v7.1 suite passes in device and device_verified modes; outputs equal the v7.1
+-   device evidence (78 files compared, no differences): outputs/.../compat-d1/compat-result.json (the job's own comparison
+-   step failed on a compat.py bug, fixed; compared with scripts/compat.py d1 --device-only --compare-only).
+- - SimQueue job 191 (v8-prof2): host CPU 73.5 ms per step at 1e6 (device mode), see prof2/.
+-
+-Device admission of births/sinks (stage A item 2) -- DONE on build21 (identity c3922df6..., interim)
+- - Changed: native_kernels.cu, native_device.{hpp,cpp}, mfem_pic_full_time.inc (sink_ledger() shared; motion_v7_device
+-   with sinks/newborns, host checks from gathered rows; births appended on device rows). Test tests/test_v8_flows_gpu.cpp:
+-   48 steps host = device_verified = device every step (births every step, 42 sinks, newborns sunk in their first
+-   flight in 16 steps, two-carrier packets sunk whole); device mode 48/48 admissions on the device, 0 host; refusal
+-   parity 3/3 (same typed text). outputs/.../dev1/ (also chemistry device controls 5/5, v7.1 regression, timing).
+- - Host flows suite after the sink_ledger refactor equals v7.1 (compat-c5).
+-
+-In progress (fourth worker): stage B (v8.1) in source (not yet built)
+- - Header: FullTimeBirth bridge/returned/internal_energy_J; FullTimeWallBirth + FullTimeBirthCredit::wall;
+-   FullTimeBirthBridge; receipt arrival_next_id_after/wall_entries/wall_credits/bridges/internal; exposure
+-   internal_energy_J; motion record v8.1 extras (relocations, bridges, extra current, extra work).
+- - Rows: RowKind birth_v81 = 9, merge_split = 10; motion row extras when schema v8.1; grammar updated.
+- - State: FullTimeFlowsV81 (chem_v3_native.{hpp,cpp}: digest/codec), snapshot field, checkpoint "v81", restore.
+- - births(): v8.1 arrival fields, wall births, returned births, bridges, internal energy entries; sink_ledger publishes
+-   internal energy; seal releases internal energy of packets removed/changed by chemistry.
+- - TODO: motion v8.1 extras admission (host+device), merge/split (MergeScope, transact via the component CPU reference
+-   compiled from resolution-series-prep-20261031/merge-split/src/merge_split.cpp), status API, metal states helper,
+-   tests (v8.1 births/sinks/merge, restore), build, GPU runs.
+- - CORE LOAN (coordinator, ~6 h from 23:00): only logical CPU 15, nice 19, flock testing-cpu15.lock. Use
+-   PF_CPU15_ONLY=1 with scripts/lease.sh / lease2.sh (routes to scripts/lease15.sh); GPU runs directly: flock -s
+-   testing-gpu.lock, flock -s testing-gpu-<UUID>.lock, then scripts/lease15.sh. No timing measurements meanwhile.
+- - Build infra: PF_BUILD_ISA_FLAGS hook in build-components.py (coordinator ask); one compile per leased CPU.
+-
+-Next steps
+- 1. Stage A close-out: host-time reductions (resolve, packets, token_prefix phases of the chemistry stage);
+-    device compat suites (scripts/compat.py LABEL --device, via SimQueue); GPU series rerun
+-    (scripts/gpu_series.sh); then message main "stage A verified".
+- 2. Stage B: wall-response births (source v7 B2), matching-plane births with bridge paths (B3), born-and-collected
+-    births (B4); Mn/Si/C states and released internal energy of metal-vapour births; merge/split native
+-    transaction (merge-split INTEGRATION 2) with relocation records in the motion record.
+- 3. verify-final.py for v8 (copy is v7.1's), final run, RESULTS-008.txt, LINK files update.
+-
+-Decisions taken (by this and the previous worker; see API-008.txt for the full list)
+- - Approved by the owner: chemistry integration choices 1-7; production coverage policy; restore scope.
+- - Job 179 not rerun as such: superseded by the rerun of scripts/gpu_series.sh on the final identity.
++Adoption diff/base hashes and coherent snapshot proof accompany the artifact.
++Root coordinator owns commit/push. No commit/push was made by this task.
+--- /dev/null
++++ b/README-AUDIT.txt
+@@ -0,0 +1,45 @@
++Native v8.2 audit correction (candidate008-auditfix)
++=================================================
++This is an isolated fork of candidate008. AUDIT-SNAPSHOT.json proves before,
++after and copied file hashes agreed. Originals and sealed inputs are not edited.
++
++Changes
++- Accepted v8.2 snapshots bind the full last-step published sink data, including
++  absent/present state, start position and internal energy. Checkpoint restore
++  reconstructs all sink tallies and validates the accepted digest even at a
++  history anchor. Missing/tampered metadata cannot retain the same boundary.
++- Compatible v5 mode retains the candidate008 named-shared_ptr lifetime fix for
++  device-only verification/refusal records. Qualification adds a device-only
++  bad-record fallback and a valid verified continuation.
++- Conservative neutral release delegates to chemistry v3.1.1's actual-parcel
++  helper. Positive partial-weight packets preserve phase-space spread and
++  exact count/momentum/kinetic stock. Packet allocation is capped before release.
++- Chemistry state codec v3-parcels-support and v8.2-auditfix2 configuration/snapshot tags
++  explicitly reject old v8 restart data. No safe migration of signed legacy
++  reservoirs is implied. Compatible v5 identity logic remains unchanged.
++- Whole-system target energy/momentum ownership remains UNIMPLEMENTED. Default
++  chemistry refuses eventful stages with target_energy_owner. Explicit
++  diagnostic_field_target_approximation=true is identity-bound, serialized and
++  exposed in receipts/status; full_system_energy_closure is always false.
++  This guard does not implement target heating or momentum feedback.
++- Long valid coverage labels restore using bounded text and exact membership
++  in the pinned blob; unknown labels remain refused.
++- Restore initializes the accepted identity schema before journal replay, so
++  retained v8.1 motion, birth and merge rows pass only their proper v8 guards.
++  The v8.1 guards are retained; schema-v5 records do not acquire v8 privileges.
++- Unbounded regions are not recommended for production. Physics coverage uses
++  the corrected chemistry corpus and strict production policy.
++
++Verification
++Use audit-tests.py through SimQueue, one CPU and --mem3G. GPU mode needs a
++shared GPU claim; no timing claims. Source and binary identities and actual
++results are recorded in the final artifact, not inferred from older reports.
++Tests include sink tampering before/at anchors, diagnostic-only target-energy
++scope with strict refusal/no mutation/restore, parcel codec/thermal spread and
++nonrealizable stock refusal, chemistry controls, v5 flows/work controls,
++nonempty restore, device-only verification and birth/sink/chemistry GPU parity.
++The copied historical RESULTS-008.txt does not qualify this fork.
++
++Reachability correction: v8.2-auditfix2 and chemistry-state-codec-v3-parcels-support
++bind per-region reachable support counts, including zero physical rate. Unknown
++support is a coverage refusal independent of dt; explicit diagnostics retain X=B=0.
+--- /dev/null
++++ b/audit-tests.py
+@@ -0,0 +1,41 @@
++"""Targeted audit qualification. Submit through SimQueue with one CPU, explicit memory;
++GPU mode additionally requires a GPU share. No timing conclusions are drawn."""
++import sys
++from tooling import *
++mode=sys.argv[1]
++resource_guard(gpu=mode=='gpu')
++label=sys.argv[2] if len(sys.argv)>2 else 'final-'+mode
++out=OUT/label
++r=Runner(out,'audit')
++inputs=sealed_inputs()
++B=P/'build'
++if mode=='cpu':
++    for directory in ['flows-v5','work-gross']:
++        (out/directory).mkdir(parents=True,exist_ok=True)
++    cmds=[('sinks',[B/'test_v8_sinks',out/'sinks']),
++          ('target-energy',[B/'test_audit_target_guard',out/'target-energy']),
++          ('parcels',[B/'test_audit_parcels_codec']),
++          ('chemistry',[B/'test_v8_chemistry',out/'chemistry','full']),
++          ('flows-v5',[B/'test_flows',out/'flows-v5','reduced']),
++          ('work-gross',[B/'test_work_gross',out/'work-gross']),
++          ('stage-b',[B/'test_v8_stage_b',out/'stage-b'])]
++    for k in [2,3]:
++        for action in ['unbroken','save','restore']+(['tamper'] if k==3 else []):
++            cmds.append((f'restore-{k}-{action}',[B/'test_v8_restore',out/f'restore-{k}',action,k]))
++elif mode=='gpu':
++    need(bool(os.environ.get('SIMQ_GPUS')),'SimQueue GPU allocation required')
++    cmds=[('device-only-verified',[B/'test_step_timing',out/'device-only.json','device_verified',1000,2,45,NVRTC,GPU_UUID]),
++          ('flows-gpu',[B/'test_v8_flows_gpu',out/'flows-gpu',NVRTC,GPU_UUID,32]),
++          ('chemistry-gpu',[B/'test_v8_chemistry_gpu',out/'chemistry-gpu',NVRTC,GPU_UUID])]
++else: raise ValueError(mode)
++if len(sys.argv)>3:
++    selected=set(sys.argv[3:])
++    need(selected <= {name for name, _ in cmds}, 'unknown audit control selection')
++    cmds=[(name,argv) for name,argv in cmds if name in selected]
++for name,argv in cmds:
++    r.run(argv,name+'.log',timeout=240,env={'PF_V8_CHEM':'v3.1'},rlimit=3*1024**3,limit=mode!='gpu')
++need(sealed_inputs()==inputs,'dependency inputs changed during audit')
++(out/'audit-result.json').write_text(json.dumps({'passed':True,'mode':mode,'source_identity':json.loads((P/'SOURCE-SHA256.json').read_text())['source_identity'],
++    'library_sha256':sha256(B/'libpic_native_v8.a'),'commands':r.records,
++    'note':'component qualification only; target energy/momentum owner absent; no full-system energy closure'},indent=2)+'\n')
++print(mode,'audit controls passed',flush=True)
+--- a/build-components.py
++++ b/build-components.py
+@@ -139,6 +139,8 @@
+         ('step-timing-v8', 'tests/time_step_v8.cpp', '-O2', [], 'sealed', True),
+         ('v8-restore', 'tests/test_v8_restore.cpp', '-O2', [], 'sealed', False),
+         ('v8-sinks', 'tests/test_v8_sinks.cpp', '-O1', [], 'v6', False),
++        ('audit-target-guard', 'tests/test_audit_target_guard.cpp', '-O1', [], 'sealed', False),
++        ('audit-parcels-codec', 'tests/test_audit_parcels_codec.cpp', '-O1', [], 'sealed', False),
+         ('v8-flows-gpu', 'tests/test_v8_flows_gpu.cpp', '-O1', [], 'v6', True),
+         ('v8-stage-b', 'tests/test_v8_stage_b.cpp', '-O1', [], 'v6', False)]
+     for name, src, level, wraps, kind, normal_only in tests:
+@@ -179,7 +181,7 @@
+                  'source-arrival': [o('source-v5-harness'), B / 'surface_emission.o', B / 'micro_layer.o', o('kinetic-boundary')],
+                  'forms-cpu': [], 'forms-native': [o('kinetic-boundary')], 'work-gross': v2_hall,
+                  'parity': sealed_hall, 'bench': v2_hall, 'long-run': sealed_hall, 'digest-bench': [],
+-                 'step-timing': v2_hall, 'v8-containers': [], 'v8-chemistry': [o('kinetic-boundary')],
++                 'step-timing': v2_hall, 'v8-containers': [], 'v8-chemistry': [o('kinetic-boundary')], 'audit-target-guard': [o('kinetic-boundary')], 'audit-parcels-codec': [o('kinetic-boundary')],
+                  'v8-chemistry-gpu': [o('kinetic-boundary')], 'step-timing-v8': [o('kinetic-boundary')],
+                  'v8-restore': [o('kinetic-boundary')], 'v8-sinks': v2_hall, 'v8-flows-gpu': v2_hall, 'v8-stage-b': v2_hall}[name]
+         exe = B / (tag + 'test_' + name.replace('-', '_'))
+@@ -219,4 +221,6 @@
+     build(True)
+ if mode in ['gpu', 'all']:
+     build_gpu()
++need(sealed_inputs() == inputs, 'dependency inputs changed during build')
++need(source_manifest() == manifest, 'native source changed during build')
+ print('source identity', identity)
+--- /dev/null
++++ b/scripts/audit_build_cpu.sh
+@@ -0,0 +1,5 @@
++#!/bin/bash
++set -euo pipefail
++export CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
++/usr/bin/python build-components.py normal core hall v8-sinks step-timing audit-target-guard audit-parcels-codec v8-chemistry v8-restore flows work-gross v8-stage-b v8-chemistry-gpu v8-flows-gpu
++/usr/bin/python audit-tests.py cpu final-cpu-v4
+--- /dev/null
++++ b/scripts/audit_cpu.sh
+@@ -0,0 +1,5 @@
++#!/bin/bash
++set -euo pipefail
++export CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
++/usr/bin/python build-components.py normal v8-chemistry
++/usr/bin/python audit-tests.py cpu final-cpu
+--- a/scripts/cpu_suite.sh
++++ b/scripts/cpu_suite.sh
+@@ -2,7 +2,7 @@
+ # Native v8 CPU controls (host mode), each on one leased core (scripts/lease.sh), two lanes in parallel.
+ # usage: scripts/cpu_suite.sh OUTDIR
+ O=$1; mkdir -p $O
+-D=/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008
++D=/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix
+ F=/home/treefor/projects/runtimes/arch-base-20261028/run-frozen
+ B=$D/build
+ run() { name=$1; shift; mkdir -p $O/$name; $D/scripts/lease.sh env CUDA_VISIBLE_DEVICES= $F prlimit --as=4294967296 -- "$@" > $O/$name.log 2>&1; echo "$name exit $? $(tail -n 1 $O/$name.log | cut -c1-160)" >> $O/progress.txt; }
+--- a/scripts/gpu_series.sh
++++ b/scripts/gpu_series.sh
+@@ -6,7 +6,7 @@
+ O=$1; mkdir -p $O
+ NV=/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/tools/nvrtc/nvidia/cuda_nvrtc/lib/libnvrtc.so.12
+ U=GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9
+-D=/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008
++D=/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix
+ F=/home/treefor/projects/runtimes/arch-base-20261028/run-frozen
+ export CUDA_VISIBLE_DEVICES=$U OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
+ nice -n 15 $F $D/build/test_v8_chemistry_gpu $O/gpu-controls $NV $U > $O/gpu-controls.log 2>&1; echo "controls exit $?" >> $O/progress.txt
+--- a/scripts/sanitized.sh
++++ b/scripts/sanitized.sh
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ # ASan/UBSan runs (host mode, CPU only), one at a time on one leased core. usage: scripts/sanitized.sh OUTDIR
+ O=$1; mkdir -p $O
+-D=/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008
++D=/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix
+ F=/home/treefor/projects/runtimes/arch-base-20261028/run-frozen
+ B=$D/build
+ E="env CUDA_VISIBLE_DEVICES= ASAN_OPTIONS=detect_leaks=1:abort_on_error=1:hard_rss_limit_mb=4096 UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+--- a/scripts/timing_host.sh
++++ b/scripts/timing_host.sh
+@@ -4,7 +4,7 @@
+ export PF_V8_CHEM=${PF_V8_CHEM:-v3.1}
+ NV=/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/tools/nvrtc/nvidia/cuda_nvrtc/lib/libnvrtc.so.12
+ U=GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9
+-D=/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008
++D=/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix
+ for w in $4; do for mesh in $3; do for n in $2; do
+   steps=5; [ $n -ge 1000000 ] && steps=3
+   $D/scripts/lease.sh env CUDA_VISIBLE_DEVICES= /home/treefor/projects/runtimes/arch-base-20261028/run-frozen prlimit --as=8589934592 -- \
+--- a/source/include/raikou/mfem_pic_full_time.h
++++ b/source/include/raikou/mfem_pic_full_time.h
+@@ -257,8 +257,8 @@
+   ArenaCount positive_charge_e, negative_charge_e; // elementary charges
+ };
+ // v8 (source owner v7 INTEGRATION B1): one published first-hit sink with the
+-// fields the next step's wall response needs (not part of the ledger digest;
+-// bound by the records root of the step's sink row).
++// fields the next step's wall response needs. Audit schema v8.2 binds the
++// complete exposure into the accepted snapshot, including at history anchors.
+ struct FullTimeSinkExposure {
+   FullTimeSinkRecord record;
+   std::string packet_id, state;
+@@ -479,7 +479,8 @@
+ // coverage-ledger-v3 refusal policy (schema pfc-chem-v3-coverage-policy-1):
+ // refuse a step iff a bounded region has B_r > max(event_limit,
+ // event_fraction * A) (A = admitted events of the step) or an unbounded region
+-// has X_r > 0 and is not admitted. Region names are those of the blob.
++// has reachable carrier support > 0 and is not admitted (including zero-speed
++// encounters with physical X_r = B_r = 0). Region names are those of the blob.
+ // A = the applied physical events of the step (exact sum of the admitted
+ // events' weights W over both stages), as chemistry v3.1's policy file states.
+ // policy_file (schema pfc-chem-v3.1-coverage-policy-1, sha256 policy_file_sha256)
+@@ -497,6 +498,10 @@
+ // ledgers. Requires identity schema v8.
+ struct FullTimeChemistryConfiguration {
+   bool enabled = false;
++  // Diagnostic field-target MCC has no owner for target energy/momentum.
++  // Default refuses events. Opt-in is bound into configuration/checkpoint identity;
++  // it never establishes whole-system energy closure.
++  bool diagnostic_field_target_approximation = false;
+   std::string blob_path, blob_sha256;  // table blob and its expected identity
+   std::uint64_t run_seed = 0;          // the arrival owner's run seed
+   double release_weight = 0;           // w0 of the quantized release
+@@ -522,6 +527,7 @@
+     carrier_domain,    // native ID >= 2^48, carrier outside the grid
+     debit_conflict,    // admitted debits exceed the carriers left by the stage
+     configuration,     // blob/registry/configuration mismatch
++    target_energy_owner, // event requires a target-energy owner; diagnostic opt-in only
+     event              // event record fails conservation/destination checks
+   };
+   FullTimeChemistryRefusal(Kind k, const std::string &message)
+@@ -561,11 +567,11 @@
+ // bounded regions refused when B_r > max(1, 0.01 A). An empty blob_path selects
+ // the default v3.1 location.
+ inline constexpr char full_time_chemistry_production_v1_blob_sha256[] =
+-    "7f30e0123d04424887a2f5154df3e09006c6c59f5759422abec9c8ceecd943a5";
++    "70fcc2adc2fdaa62abed7ed02d68ffc09b1b18554eda8fa99c5451120ae454b8";
+ inline constexpr char full_time_chemistry_production_v1_policy_sha256[] =
+-    "ad3742f359549e8af4bcb8b38654518df97deeaf7604e401478bb62953e0fe21";
++    "15d44a91b8af93e0b14beb89434c55dc402e7196f10ca4bdaa2357564474b2d3";
+ inline constexpr char full_time_chemistry_v31_tables[] =
+-    "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1-20261031/data/tables/";
++    "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/data/tables/";
+ FullTimeChemistryConfiguration full_time_chemistry_preset(const std::string &name, const GapPicOptions &,
+                                                           const std::string &blob_path, std::uint64_t run_seed,
+                                                           double release_weight,
+@@ -578,6 +584,8 @@
+ };
+ // One chemistry stage (API-008.txt 3): counts, digests, exact ledgers.
+ struct FullTimeChemistryStageReceipt {
++  bool diagnostic_field_target_approximation = false;
++  bool full_system_energy_closure = false; // never asserted by this component
+   std::uint64_t accepted_step = 0, stage = 0, purpose = 0;
+   double dt_s = 0, nu_dt_max = 0;
+   std::uint64_t projectiles = 0, cells = 0, candidates = 0, events = 0, admitted_events = 0,
+@@ -616,6 +624,8 @@
+ // Accepted chemistry state summary (API-008.txt 3.6).
+ struct FullTimeChemistryStatus {
+   bool enabled = false;
++  bool diagnostic_field_target_approximation = false;
++  bool full_system_energy_closure = false;
+   std::string state_sha256, configuration_sha256, registry_sha256, blob_sha256;
+   std::uint64_t stages = 0, reservoirs = 0, events = 0;
+   std::vector<std::pair<std::string, FullTimeExactValue>> cumulative_energy, cumulative_counts;
+--- a/source/src/chem_v3_kernels.cu
++++ b/source/src/chem_v3_kernels.cu
+@@ -307,6 +307,7 @@
+   ull *candidates, *status;    // status[8]
+   ull *numax;                  // bits of max nu_dt_max
+   pf7_i64 *region;             // regions x 2 x acc_digits (exposure, bound)
++  ull *support;                // reachable carrier/region pairs; n_proj bounded by uint32
+ };
+ __device__ void ch_atomic_term(pf7_i64 *digit, const Term &t) {
+   if (t.zero || t.bad)
+@@ -329,6 +330,7 @@
+   atomicAdd(&a.status[o.status & 7u], 1ull);
+   atomicMax(a.numax, (ull)bits_of(o.nu_dt_max));
+   for (pf7_u32 k = 0; k < o.n_cover && k < PFC_MAX_COVER_SLOTS; ++k) {
++    atomicAdd(&a.support[o.cover_region[k]], 1ull);
+     pf7_i64 *base = a.region + (pf7_u64)o.cover_region[k] * 2 * acc_digits;
+     ch_atomic_term(base, product_term(o.cover_exposure[k], 1.0));
+     ch_atomic_term(base + acc_digits, product_term(o.cover_bound[k], 1.0));
+--- a/source/src/chem_v3_native.cpp
++++ b/source/src/chem_v3_native.cpp
+@@ -176,6 +176,9 @@
+   need(std::isfinite(c.policy.event_limit) && c.policy.event_limit >= 0 && std::isfinite(c.policy.event_fraction) &&
+            c.policy.event_fraction >= 0,
+        RK::configuration, "configuration: refusal policy");
++  if (c.preset == "production-v1")
++    need(!c.diagnostic_field_target_approximation && !c.policy.policy_file.empty(), RK::configuration,
++         "configuration: production preset requires strict target-energy and file-backed coverage policy");
+   auto s = std::make_shared<Setup>();
+   s->config = c;
+   s->reg = load_registry(c.blob_path, c.blob_sha256);
+@@ -203,8 +206,13 @@
+       refuse(RK::configuration, std::string("configuration: coverage-policy file: ") + e.what());
+     }
+     need(j.value("schema", "") == "pfc-chem-v3.1-coverage-policy-1" && j.value("blob_sha256", "") == b.sha256 &&
+-             j.value("region_count", 0u) == b.n_regions,
++             j.value("region_count", 0u) == b.n_regions &&
++             j.value("reachability_schema", "") == "pfc-region-reachable-support-v1",
+          RK::configuration, "configuration: coverage-policy file schema/blob/region count");
++    if (c.preset == "production-v1")
++      need(j.value("model_mode", "") == "strict-production" &&
++               j.at("admitted_unbounded_regions").is_array() && j.at("admitted_unbounded_regions").empty(),
++           RK::configuration, "configuration: production preset cannot admit unknown cross sections");
+     const auto &pol = j.at("policy");
+     need(std::bit_cast<std::uint64_t>(pol.at("event_limit_physical_events").get<double>()) ==
+                  std::bit_cast<std::uint64_t>(c.policy.event_limit) &&
+@@ -237,7 +245,7 @@
+   }
+   {
+     H h;
+-    h.text("pfc-chem-v3-coverage-policy-1");
++    h.text("pfc-chem-v3.1.1-coverage-policy-reachable-support-v1");
+     h.text("A = admitted physical events (sum of W)");
+     h.f64(c.policy.event_limit);
+     h.f64(c.policy.event_fraction);
+@@ -252,7 +260,8 @@
+   }
+   {
+     H h;
+-    h.text("native-v8/chemistry-v3-configuration-v1");
++    h.text("native-v8.2/chemistry-v3-configuration-v2");
++    h.u32(c.diagnostic_field_target_approximation ? 1 : 0);
+     h.text(b.sha256);
+     h.text(s->reg->sha256);
+     h.text(s->grid.sha256);
+@@ -262,7 +271,7 @@
+     h.f64(c.trunc_sigmas);
+     h.u32(c.max_candidates);
+     h.u32(c.max_events);
+-    h.text("pfc-chem-stream-v3");
++    h.text("pfc-chem-stream-v3;release=pfc-neutral-parcels-v1-no-rng");
+     for (std::uint32_t p : {PFC_PURPOSE_MCC, PFC_PURPOSE_MCC_SECOND, PFC_PURPOSE_RELEASE_COUNT, PFC_PURPOSE_RELEASE_PICK})
+       h.u32(p);
+     h.text("stage-split dt/2 x 2, step = accepted step of the base state");
+@@ -312,6 +321,9 @@
+   for (std::size_t k = 0; k < a.region_exposure.size(); ++k) {
+     a.region_exposure[k].add(b.region_exposure[k]);
+     a.region_bound[k].add(b.region_bound[k]);
++    need(b.region_support[k] <= UINT64_MAX - a.region_support[k], RK::configuration,
++         "configuration: chemistry region support count overflow");
++    a.region_support[k] += b.region_support[k];
+   }
+   a.events += b.events;
+   a.closure_violations += b.closure_violations;
+@@ -342,7 +354,7 @@
+ }
+ std::string ledger_digest(const Ledger &L) {
+   H h;
+-  h.text("native-v8/chemistry-ledger-v1");
++  h.text("native-v8.2/chemistry-ledger-v2-reachable-support");
+   const auto &a = L.c3;
+   for (const auto *x : {&a.ke_in_projectile, &a.ke_in_target, &a.ke_out_survivor, &a.ke_out_birth,
+                         &a.ke_out_reservoir, &a.ke_out_gas, &a.q_reference, &a.defect, &a.charge_created,
+@@ -366,6 +378,7 @@
+   for (std::size_t k = 0; k < a.region_exposure.size(); ++k) {
+     h.sum(a.region_exposure[k]);
+     h.sum(a.region_bound[k]);
++    h.u64(a.region_support[k]);
+   }
+   for (auto v : {a.events, a.closure_violations, a.carriers, a.candidates})
+     h.u64(v);
+@@ -397,7 +410,7 @@
+   if (!st.digest.empty())
+     return st.digest;
+   H h;
+-  h.text("native-v8/chemistry-state-v1");
++  h.text("native-v8.2/chemistry-state-v3-parcels-support");
+   h.text(st.configuration_sha256);
+   h.u64(st.stages);
+   h.u32(st.pending ? 1 : 0);
+@@ -409,10 +422,8 @@
+     for (const auto &m : r.momentum)
+       h.sum(m);
+     h.sum(r.kinetic);
+-    for (double x : r.last_x)
+-      h.f64(x);
+-    h.u64(r.step_entries.size());
+-    for (const auto &e : r.step_entries) {
++    h.u64(r.parcels.size());
++    for (const auto &e : r.parcels) {
+       h.f64(e.weight);
+       for (double v : e.u)
+         h.f64(v);
+@@ -743,6 +754,7 @@
+   a.totals.nu_dt_max = tmp.nu_dt_max;
+   a.totals.exposure = tmp.region_exposure;
+   a.totals.bound = tmp.region_bound;
++  a.totals.support = tmp.region_support;
+   return a;
+ }
+ Resolution resolve(const Setup &s, const StageActive &act, const StageRequest &q, const FullTimeChemistryState &before,
+@@ -776,6 +788,13 @@
+       }
+     }
+   }
++  // Event-local closure is not closure of actual tracked targets: target
++  // velocities are sampled from cell moments, whereas inventory is debited
++  // from physical native packets; returned-gas heat also has no receiving
++  // energy/momentum owner. Do not silently admit that approximation.
++  if (!act.events.empty() && !s.config.diagnostic_field_target_approximation)
++    refuse(RK::target_energy_owner,
++           "target_energy_owner: no target energy/momentum owner; only explicit diagnostic field-target mode is available");
+   // 2. tracked-target debits (C3 order: cell, carrier ID, candidate; prefix rule;
+   // target-consuming events only)
+   std::vector<std::size_t> order(act.carriers.size());
+@@ -824,6 +843,8 @@
+     a.nu_dt_max = act.totals.nu_dt_max;
+     a.region_exposure = act.totals.exposure;
+     a.region_bound = act.totals.bound;
++    need(act.totals.support.size() == b.n_regions, RK::event, "event: region support count size");
++    a.region_support = act.totals.support;
+   }
+   std::set<std::uint32_t> consumed_rows;
+   // 3. per carrier outcome (ascending carrier ID), ledgers, births, deposits
+@@ -882,8 +903,10 @@
+           R.momentum[0].add_product(e.weight, pp.x);
+           R.momentum[1].add_product(e.weight, pp.y);
+           R.momentum[2].add_product(e.weight, pp.z);
+-          R.kinetic.add_product(e.weight, e.ke_out[p]);
+-          R.step_entries.push_back(pfc::ReservoirEntry{e.weight, {u.x, u.y, u.z}, {c.x[0], c.x[1], c.x[2]}});
++          const double phase_ke = pfc::ke_from_u(m, u);
++          need(e.ke_out[p] == phase_ke, RK::event, "event: reservoir product energy differs from phase space");
++          R.kinetic.add_product(e.weight, phase_ke);
++          R.parcels.push_back(pfc::ReservoirEntry{e.weight, {u.x, u.y, u.z}, {c.x[0], c.x[1], c.x[2]}});
+           break;
+         }
+         case PFC_DEST_GAS: {
+@@ -950,7 +973,7 @@
+     const double A = physical.approx();
+     const double limit = std::max(s.config.policy.event_limit, s.config.policy.event_fraction * A);
+     for (pfc_u32 r = 0; r < b.n_regions; ++r) {
+-      const double X = step.c3.region_exposure[r].approx(), B = step.c3.region_bound[r].approx();
++      const double B = step.c3.region_bound[r].approx();
+       if (reg.region_bounded[r]) {
+         if (B > limit) {
+           out.policy_refused = true;
+@@ -958,9 +981,9 @@
+                                std::to_string(B) + " > " + std::to_string(limit) + " (" + b.region_names[r] + ")";
+           break;
+         }
+-      } else if (X > 0 && !s.admitted[r]) {
++      } else if (step.c3.region_support[r] > 0 && !s.admitted[r]) {
+         out.policy_refused = true;
+-        out.policy_message = "coverage_policy: unbounded region " + std::to_string(r) + " exposed and not admitted (" +
++        out.policy_message = "coverage_policy: unbounded region " + std::to_string(r) + " reachable and not admitted (" +
+                              b.region_names[r] + ")";
+         break;
+       }
+@@ -970,84 +993,25 @@
+     refuse(RK::coverage_policy, out.policy_message);
+   // 6. quantized release (stage 2): C3 release_reservoirs with atlas keys
+   if (q.stage == 2) {
+-    const double w0 = s.config.release_weight;
+     Ledger &S = st->step;
+-    for (auto &[key, R] : st->reservoirs) {
+-      const double C = R.count.approx();
+-      if (!(C > 0.0)) {
+-        R.step_entries.clear();
+-        continue;
+-      }
+-      const double x = C / w0;
+-      need(x < 0x1p52, RK::event, "event: release count too large");
+-      const double fl = std::floor(x);
+-      pfc::ChemKey ck{s.config.run_seed, q.step, (pfa_u64(key.species) << 32) | key.cell, PFC_PURPOSE_RELEASE_COUNT};
+-      pfa_u64 cnt = pfa_u64(fl) + pfa_u64(pfc::word_bernoulli(ck, 0, x - fl));
+-      while (cnt > 0) {
+-        ESum needw;
+-        needw.add_product(double(cnt), w0);
+-        ESum rem = R.count;
+-        rem.sub(needw);
+-        if (!rem.negative())
+-          break;
+-        --cnt;
+-      }
+-      const double m = b.view.species[key.species].mass_eV;
+-      double total_w = 0.0;
+-      for (auto &e : R.step_entries)
+-        total_w += e.weight;
+-      for (pfa_u64 k = 0; k < cnt; ++k) {
+-        pfc::V3 u;
+-        double xp[3] = {R.last_x[0], R.last_x[1], R.last_x[2]};
+-        if (!R.step_entries.empty()) {
+-          pfc::ChemKey pk2{s.config.run_seed, q.step, (pfa_u64(key.species) << 32) | key.cell, PFC_PURPOSE_RELEASE_PICK};
+-          const double y = pfc::chem_u01(pk2, pfc_u32(k), 0) * total_w;
+-          double cum = 0.0;
+-          std::size_t j = R.step_entries.size() - 1;
+-          for (std::size_t e = 0; e < R.step_entries.size(); ++e) {
+-            cum += R.step_entries[e].weight;
+-            if (y < cum) {
+-              j = e;
+-              break;
+-            }
+-          }
+-          u = pfc::v3(R.step_entries[j].u[0], R.step_entries[j].u[1], R.step_entries[j].u[2]);
+-          for (int a = 0; a < 3; ++a)
+-            xp[a] = R.step_entries[j].x[a];
+-        } else {
+-          const double c = PFC_C_M_S;
+-          u = pfc::v3(R.momentum[0].approx() / C / m * c, R.momentum[1].approx() / C / m * c,
+-                      R.momentum[2].approx() / C / m * c);
+-        }
+-        const pfc::V3 p = pfc::p_from_u(m, u);
+-        R.count.add(-w0);
+-        for (int a = 0; a < 3; ++a) {
+-          const double comp = a == 0 ? p.x : (a == 1 ? p.y : p.z);
+-          ESum t;
+-          t.add_product(w0, comp);
+-          R.momentum[a].sub(t);
+-        }
+-        ESum ke;
+-        ke.add_product(w0, pfc::ke_from_u(m, u));
+-        R.kinetic.sub(ke);
+-        Release rl;
+-        rl.cell = key.cell;
+-        rl.species = key.species;
+-        rl.index = pfc_u32(k);
+-        rl.weight = w0;
+-        rl.u[0] = u.x;
+-        rl.u[1] = u.y;
+-        rl.u[2] = u.z;
+-        for (int a = 0; a < 3; ++a)
+-          rl.x[a] = xp[a];
+-        out.plan.releases.push_back(rl);
+-        S.released_packets++;
+-        S.released_weight.add(w0);
+-      }
+-      if (!R.step_entries.empty())
+-        for (int a = 0; a < 3; ++a)
+-          R.last_x[a] = R.step_entries.back().x[a];
+-      R.step_entries.clear();
++    std::map<pfc::InventoryKey, pfc::Reservoir> stock;
++    for (const auto &[key, R] : st->reservoirs)
++      stock.emplace(pfc::InventoryKey{key.cell, key.species}, R);
++    std::vector<pfc::ReleasedPacket> released;
++    try {
++      released = pfc::release_reservoirs(b, stock, s.config.release_weight, s.config.run_seed, q.step, q.max_release_packets);
++    } catch (const std::exception &e) {
++      refuse(RK::event, std::string("event: conservative neutral release: ") + e.what());
++    }
++    for (auto &[key, R] : stock)
++      st->reservoirs[Key{key.cell, key.species}] = std::move(R);
++    for (const auto &r : released) {
++      Release rl;
++      rl.cell = r.cell; rl.species = r.species; rl.index = r.index; rl.weight = r.weight;
++      for (int a = 0; a < 3; ++a) { rl.u[a] = r.u[a]; rl.x[a] = r.x[a]; }
++      out.plan.releases.push_back(rl);
++      S.released_packets++;
++      S.released_weight.add(r.weight);
+     }
+     out.stage.released_packets = S.released_packets;
+     out.stage.released_weight = S.released_weight;
+@@ -1184,13 +1148,14 @@
+       physical.add(pt.weight);
+     const double threshold = std::max(s.config.policy.event_limit, s.config.policy.event_fraction * physical.approx());
+     for (pfc_u32 r = 0; r < b.n_regions; ++r) {
+-      if (L.c3.region_exposure[r].is_zero() && L.c3.region_bound[r].is_zero())
++      if (L.c3.region_support[r] == 0 && L.c3.region_exposure[r].is_zero() && L.c3.region_bound[r].is_zero())
+         continue;
+       const double B = to_forms(L.c3.region_bound[r]).value();
+       o << (first ? "" : ",") << "{\"region\":" << r << ",\"name\":\"" << b.region_names[r] << "\""
+         << ",\"threshold\":" << threshold << ",\"bound_over_threshold\":" << (threshold > 0 ? B / threshold : 0.0)
+         << ",\"bounded\":" << (s.reg->region_bounded[r] ? "true" : "false")
+         << ",\"admitted\":" << (s.admitted[r] ? "true" : "false")
++        << ",\"reachable_support\":" << L.c3.region_support[r]
+         << ",\"exposure\":" << to_forms(L.c3.region_exposure[r]).value()
+         << ",\"bound\":" << to_forms(L.c3.region_bound[r]).value() << ",\"exposure_digits\":\""
+         << exact_digits(L.c3.region_exposure[r]) << "\",\"bound_digits\":\"" << exact_digits(L.c3.region_bound[r])
+@@ -1199,7 +1164,7 @@
+     }
+     o << "]";
+   };
+-  o << "{\"schema\":\"pfc-chem-v3-coverage-ledger-1\",\"policy_sha256\":\"" << s.policy_sha256
++  o << "{\"schema\":\"pfc-chem-v3.1.1-coverage-ledger-reachable-support-1\",\"policy_sha256\":\"" << s.policy_sha256
+     << "\",\"last_step\":";
+   ledger(st.last_step);
+   o << ",\"cumulative\":";
+@@ -1210,6 +1175,8 @@
+ void fill_receipt(FullTimeChemistryStageReceipt &r, const Setup &s, const StageInputs &in, const StageActive &act,
+                   const Resolution &res, const StageRequest &q) {
+   r.accepted_step = q.step;
++  r.diagnostic_field_target_approximation = s.config.diagnostic_field_target_approximation;
++  r.full_system_energy_closure = false;
+   r.stage = q.stage;
+   r.purpose = in.cfg.purpose;
+   r.dt_s = q.dt_s;
+@@ -1231,7 +1198,7 @@
+   r.energy = energy_values(res.stage);
+   r.counts = count_values(s, res.stage);
+   for (std::size_t k = 0; k < res.stage.c3.region_exposure.size(); ++k)
+-    r.coverage_regions_exposed += !res.stage.c3.region_exposure[k].is_zero();
++    r.coverage_regions_exposed += res.stage.c3.region_support[k] > 0;
+   if (s.config.retain_stage_inputs) {
+     r.step_config_bytes.assign(reinterpret_cast<const char *>(&in.cfg), sizeof in.cfg);
+     r.carrier_bytes.assign(reinterpret_cast<const char *>(in.carriers.data()),
+@@ -1337,6 +1304,7 @@
+   for (std::size_t k = 0; k < a.region_exposure.size(); ++k) {
+     o.sum(a.region_exposure[k]);
+     o.sum(a.region_bound[k]);
++    o.u64(a.region_support[k]);
+   }
+   for (auto v : {a.events, a.closure_violations, a.carriers, a.candidates})
+     o.u64(v);
+@@ -1392,6 +1360,7 @@
+   for (std::size_t k = 0; k < a.region_exposure.size(); ++k) {
+     a.region_exposure[k] = in.sum();
+     a.region_bound[k] = in.sum();
++    a.region_support[k] = in.u64();
+   }
+   for (auto *v : {&a.events, &a.closure_violations, &a.carriers, &a.candidates})
+     *v = in.u64();
+@@ -1420,7 +1389,7 @@
+ } // namespace
+ std::string encode_state(const FullTimeChemistryState &st) {
+   Out o;
+-  o.text("native-v8/chemistry-state-codec-v1");
++  o.text("native-v8.2/chemistry-state-codec-v3-parcels-support");
+   o.text(st.configuration_sha256);
+   o.u64(st.stages);
+   o.u64(st.pending ? 1 : 0);
+@@ -1432,10 +1401,8 @@
+     for (const auto &m : r.momentum)
+       o.sum(m);
+     o.sum(r.kinetic);
+-    for (double x : r.last_x)
+-      o.f64(x);
+-    o.u64(r.step_entries.size());
+-    for (const auto &e : r.step_entries) {
++    o.u64(r.parcels.size());
++    for (const auto &e : r.parcels) {
+       o.f64(e.weight);
+       for (double v : e.u)
+         o.f64(v);
+@@ -1450,7 +1417,7 @@
+ }
+ std::shared_ptr<FullTimeChemistryState> decode_state(const Setup &s, const std::string &bytes) {
+   In in{bytes};
+-  need(in.text() == "native-v8/chemistry-state-codec-v1", RK::configuration, "configuration: chemistry state codec tag");
++  need(in.text() == "native-v8.2/chemistry-state-codec-v3-parcels-support", RK::configuration, "configuration: chemistry state codec tag");
+   auto st = std::make_shared<FullTimeChemistryState>();
+   st->configuration_sha256 = in.text();
+   need(st->configuration_sha256 == s.configuration_sha256, RK::configuration,
+@@ -1469,8 +1436,6 @@
+     for (auto &m : r.momentum)
+       m = in.sum();
+     r.kinetic = in.sum();
+-    for (double &x : r.last_x)
+-      x = in.f64();
+     const auto ne = in.count(1ull << 32);
+     for (std::uint64_t e = 0; e < ne; ++e) {
+       pfc::ReservoirEntry en;
+@@ -1479,8 +1444,9 @@
+         v = in.f64();
+       for (double &v : en.x)
+         v = in.f64();
+-      r.step_entries.push_back(en);
+-    }
++      r.parcels.push_back(en);
++    }
++    pfc::validate_reservoir(*s.reg->blob, pfc::InventoryKey{k.cell, k.species}, r);
+   }
+   get_ledger(in, st->cumulative, *s.reg->blob);
+   get_ledger(in, st->step, *s.reg->blob);
+--- a/source/src/chem_v3_native.hpp
++++ b/source/src/chem_v3_native.hpp
+@@ -91,12 +91,7 @@
+ };
+ std::string ledger_digest(const Ledger &);
+ // ------------------------------------------------------------- reservoir
+-struct Reservoir {
+-  ESum count, kinetic;
+-  std::array<ESum, 3> momentum;
+-  std::vector<pfc::ReservoirEntry> step_entries;
+-  double last_x[3] = {0, 0, 0};
+-};
++using Reservoir = pfc::Reservoir; // pfc-neutral-parcels-v1, persistent conservative phase-space stock
+ } // namespace chem8
+ // v8 ejected-melt reservoir (exact; immutable once shared).
+ struct FullTimeMeltState {
+@@ -166,6 +161,7 @@
+   std::uint64_t step = 0;
+   unsigned stage = 1;     // 1: before transport (0x30), 2: after (0x34)
+   double dt_s = 0;        // authoritative dt / 2
++  std::size_t max_release_packets = 1000000; // bounded by outer carrier cap
+ };
+ struct StageInputs {
+   pfc::StepConfig cfg{};
+@@ -250,6 +246,7 @@
+   std::map<std::uint32_t, std::uint64_t> status_counts;
+   double nu_dt_max = 0;
+   std::vector<ESum> exposure, bound;  // per region (exact)
++  std::vector<std::uint64_t> support; // reachable carrier/region pairs, including zero rate
+   std::uint64_t bad_carrier = ~0ull;  // first carrier (ascending ID) with a refusing status
+   std::uint32_t bad_status = 0;
+ };
+--- a/source/src/mfem_pic_full_time.inc
++++ b/source/src/mfem_pic_full_time.inc
+@@ -175,7 +175,7 @@
+           "full-time snapshot has no legacy JSON journal or sinks");
+   const bool v8 = s.full_time_identity == 1;
+   Writer w;
+-  w.tag(v8 ? "native-full-time-snapshot-v8" : "native-full-time-snapshot-v5");
++  w.tag(v8 ? "native-full-time-snapshot-v8.2-auditfix2" : "native-full-time-snapshot-v5");
+   w.text(v8 ? packets_digest_v8(s.packets) : packets_digest(s.packets));
+   w.text(id_set_digest_for(s.ever_packet_ids, v8));
+   w.text(id_set_digest_for(s.event_ids, v8));
+@@ -204,6 +204,11 @@
+   if (v8 && s.full_time_v81) {
+     w.text("native-v8.1/flows");
+     w.text(chem8::flows_v81_digest(*s.full_time_v81));
++  }
++  if (v8) {
++    const auto sinks = s.full_time_step_flows ? s.full_time_step_flows->sinks : nullptr;
++    w.boolean(bool(sinks));
++    if (sinks) w.text(published_sinks_digest(*sinks));
+   }
+   s.digest_cache = cn::sha256_hex(w.bytes);
+   return s.digest_cache;
+@@ -4988,6 +4993,9 @@
+         std::make_shared<const FullTimeWindowNode>(std::move(stored), rebuilt->tail);
+   }
+   auto probe = std::make_shared<ArenaSnapshot>(final);
++  // Metadata uses the common reader; establish the validated identity before
++  // replay so v8.1 motion/birth/merge guards inspect the actual schema.
++  probe->full_time_identity = configuration.identity == FullTimeIdentitySchema::v8 ? 1u : 0u;
+   probe->full_time_history = rebuilt;
+   (void)window_validate(*probe, owner->channels_, cap);
+   if (configuration.identity != FullTimeIdentitySchema::v8)
+@@ -5057,81 +5065,89 @@
+       std::map<std::uint64_t, double> carried(fv->last_sink_internal.begin(), fv->last_sink_internal.end());
+       for (auto &e : sinks->exposed)
+         if (const auto it = carried.find(e.record.native_id); it != carried.end())
+-          e.internal_energy_J = it->second;
++          require(e.internal_energy_J == it->second, "published sink internal energy differs from accepted flows");
+     }
+     require(sinks->accepted_step + 1 == saved_boundary.accepted_step, "published sinks belong to the last step");
++    FullTimeSinkLedger L;
++    L.accepted_step = sinks->accepted_step;
++    L.transport_trial_sha256 = sinks->transport_trial_sha256;
++    L.carriers = sinks->records.size();
++    L.records_root_sha256 = sinks->records_root_sha256;
++    std::map<std::pair<int, std::string>, std::size_t> index;
++    std::vector<std::array<ExactSum, 2>> sums;
++    std::array<std::array<ExactSum, 4>, 5> surface_sums;
++    std::array<std::uint64_t, 5> surface_carriers{};
++    std::set<std::string> removed;
++    for (const auto &e : sinks->exposed) {
++      const auto &spec = owner->states_.at(e.state);
++      require(e.charge_C == spec.charge_e * pic_e && e.mass_kg == spec.mass_kg && e.weight > 0 &&
++                  !probe->packets.count(e.packet_id) && std::isfinite(e.weight) &&
++                  std::isfinite(e.internal_energy_J) && e.internal_energy_J >= 0 &&
++                  std::all_of(e.start_position_m.begin(), e.start_position_m.end(), [](double v) { return std::isfinite(v); }),
++              "published sink species/charge/mass/packet");
++      GapParticle hit;
++      hit.mass_kg = e.mass_kg;
++      hit.charge_C = e.charge_C;
++      hit.weight = e.weight;
++      hit.proper_velocity_m_s = e.record.incident_proper_velocity_m_s;
++      const double energy = e.weight * pic_kinetic_energy_J(hit);
++      const int surface = int(e.record.surface);
++      require(surface >= 0 && surface < 5, "published sink surface");
++      auto [where, fresh] = index.emplace(std::make_pair(surface, e.state), L.tallies.size());
++      if (fresh) {
++        FullTimeSinkTally t;
++        t.surface = e.record.surface;
++        t.kind = e.record.kind;
++        t.state = e.state;
++        t.charge_e = spec.charge_e;
++        L.tallies.push_back(t);
++        sums.emplace_back();
++      }
++      ++L.tallies[where->second].carriers;
++      sums[where->second][0].add(e.weight);
++      sums[where->second][1].add(energy);
++      ++surface_carriers[std::size_t(surface)];
++      auto &ss = surface_sums[std::size_t(surface)];
++      ss[0].add(e.weight);
++      ss[1].add(energy);
++      for (int q = 0; q < std::abs(spec.charge_e); ++q)
++        ss[spec.charge_e > 0 ? 2 : 3].add(e.weight);
++      removed.insert(e.packet_id);
++    }
++    for (std::size_t q = 0; q < L.tallies.size(); ++q) {
++      L.tallies[q].weight = sums[q][0].count();
++      L.tallies[q].kinetic_energy_J = sums[q][1].count();
++    }
++    std::sort(L.tallies.begin(), L.tallies.end(), [](const auto &a, const auto &c) {
++      return std::make_pair(int(a.surface), a.state) < std::make_pair(int(c.surface), c.state);
++    });
++    for (int k = 0; k < 5; ++k) {
++      FullTimeSinkSurfaceTotals t;
++      t.surface = static_cast<FullTimeSinkSurface>(k);
++      t.kind = (k == 0 || k == 1 || k == 3) ? FullTimeSinkKind::collected_at_conductor
++                                             : FullTimeSinkKind::escaped_exterior;
++      t.carriers = surface_carriers[std::size_t(k)];
++      t.weight = surface_sums[std::size_t(k)][0].count();
++      t.kinetic_energy_J = surface_sums[std::size_t(k)][1].count();
++      t.positive_charge_e = surface_sums[std::size_t(k)][2].count();
++      t.negative_charge_e = surface_sums[std::size_t(k)][3].count();
++      L.surfaces.push_back(t);
++    }
++    L.removed_packets.assign(removed.begin(), removed.end());
++    require(sink_ledger_digest(L) == sinks->ledger_sha256,
++            "published sink exposure differs from its accepted ledger");
++    L.ledger_sha256 = sinks->ledger_sha256;
++    L.row_sha256 = sinks->row_sha256;
++    L.records = std::move(sinks->records);
++    L.exposed = std::move(sinks->exposed);
++    *sinks = std::move(L);
+     for (const auto *row : window_rows(*rebuilt)) {
+       const auto r = decode_row(row->bytes);
+-      if (!(r.kind == RowKind::sink && r.sink.accepted_step == sinks->accepted_step))
+-        continue;
+-      require(r.sink.records_root == sinks->records_root_sha256, "published sinks differ from the journal sink row");
+-      // the exposure's weights, states, charges and masses rebuild the step's sink ledger digest
+-      FullTimeSinkLedger L;
+-      L.accepted_step = sinks->accepted_step;
+-      L.transport_trial_sha256 = r.sink.transport_trial_sha256;
+-      L.carriers = sinks->records.size();
+-      L.records_root_sha256 = sinks->records_root_sha256;
+-      std::map<std::pair<int, std::string>, std::size_t> index;
+-      std::vector<std::array<ExactSum, 2>> sums;
+-      std::array<std::array<ExactSum, 4>, 5> surface_sums;
+-      std::array<std::uint64_t, 5> surface_carriers{};
+-      std::set<std::string> removed;
+-      for (const auto &e : sinks->exposed) {
+-        const auto &spec = owner->states_.at(e.state);
+-        require(e.charge_C == spec.charge_e * pic_e && e.mass_kg == spec.mass_kg && e.weight > 0 &&
+-                    !probe->packets.count(e.packet_id),
+-                "published sink species/charge/mass/packet");
+-        GapParticle hit;
+-        hit.mass_kg = e.mass_kg;
+-        hit.charge_C = e.charge_C;
+-        hit.weight = e.weight;
+-        hit.proper_velocity_m_s = e.record.incident_proper_velocity_m_s;
+-        const double energy = e.weight * pic_kinetic_energy_J(hit);
+-        const int surface = int(e.record.surface);
+-        require(surface >= 0 && surface < 5, "published sink surface");
+-        auto [where, fresh] = index.emplace(std::make_pair(surface, e.state), L.tallies.size());
+-        if (fresh) {
+-          FullTimeSinkTally t;
+-          t.surface = e.record.surface;
+-          t.kind = e.record.kind;
+-          t.state = e.state;
+-          t.charge_e = spec.charge_e;
+-          L.tallies.push_back(t);
+-          sums.emplace_back();
+-        }
+-        ++L.tallies[where->second].carriers;
+-        sums[where->second][0].add(e.weight);
+-        sums[where->second][1].add(energy);
+-        ++surface_carriers[std::size_t(surface)];
+-        auto &ss = surface_sums[std::size_t(surface)];
+-        ss[0].add(e.weight);
+-        ss[1].add(energy);
+-        for (int q = 0; q < std::abs(spec.charge_e); ++q)
+-          ss[spec.charge_e > 0 ? 2 : 3].add(e.weight);
+-        removed.insert(e.packet_id);
+-      }
+-      for (std::size_t q = 0; q < L.tallies.size(); ++q) {
+-        L.tallies[q].weight = sums[q][0].count();
+-        L.tallies[q].kinetic_energy_J = sums[q][1].count();
+-      }
+-      std::sort(L.tallies.begin(), L.tallies.end(), [](const auto &a, const auto &c) {
+-        return std::make_pair(int(a.surface), a.state) < std::make_pair(int(c.surface), c.state);
+-      });
+-      for (int k = 0; k < 5; ++k) {
+-        FullTimeSinkSurfaceTotals t;
+-        t.surface = static_cast<FullTimeSinkSurface>(k);
+-        t.kind = (k == 0 || k == 1 || k == 3) ? FullTimeSinkKind::collected_at_conductor
+-                                               : FullTimeSinkKind::escaped_exterior;
+-        t.carriers = surface_carriers[std::size_t(k)];
+-        t.weight = surface_sums[std::size_t(k)][0].count();
+-        t.kinetic_energy_J = surface_sums[std::size_t(k)][1].count();
+-        t.positive_charge_e = surface_sums[std::size_t(k)][2].count();
+-        t.negative_charge_e = surface_sums[std::size_t(k)][3].count();
+-        L.surfaces.push_back(t);
+-      }
+-      L.removed_packets.assign(removed.begin(), removed.end());
+-      require(sink_ledger_digest(L) == r.sink.ledger_sha256,
+-              "published sink exposure differs from the journal sink ledger");
++      if (r.kind != RowKind::sink || r.sink.accepted_step != sinks->accepted_step) continue;
++      require(r.sink.records_root == sinks->records_root_sha256 &&
++                  r.sink.transport_trial_sha256 == sinks->transport_trial_sha256 &&
++                  r.sink.ledger_sha256 == sinks->ledger_sha256 && row->sha256 == sinks->row_sha256,
++              "published sinks differ from their retained journal row");
+     }
+     auto fl = std::make_shared<FullTimeStepFlows>();
+     fl->sinks = sinks;
+--- a/source/src/mfem_pic_full_time_chemistry.inc
++++ b/source/src/mfem_pic_full_time_chemistry.inc
+@@ -23,20 +23,25 @@
+                      r.hit_point_m[1], r.hit_point_m[2], r.incident_proper_velocity_m_s[0],
+                      r.incident_proper_velocity_m_s[1], r.incident_proper_velocity_m_s[2], r.flight_s,
+                      r.discarded_flight_s, e.weight, e.charge_C, e.mass_kg, e.start_position_m[0],
+-                     e.start_position_m[1], e.start_position_m[2]})
++                     e.start_position_m[1], e.start_position_m[2], e.internal_energy_J})
+       v.push_back(bits_hex(x));
+     ex.push_back({{"native_id", r.native_id}, {"kind", int(r.kind)}, {"surface", int(r.surface)}, {"axis", r.axis},
+                   {"packet_id", e.packet_id}, {"state", e.state}, {"values", v}});
+   }
+-  return {{"accepted_step", l.accepted_step}, {"records_root_sha256", l.records_root_sha256}, {"exposed", ex}};
++  return {{"accepted_step", l.accepted_step}, {"records_root_sha256", l.records_root_sha256},
++          {"transport_trial_sha256", l.transport_trial_sha256}, {"ledger_sha256", l.ledger_sha256},
++          {"row_sha256", l.row_sha256}, {"exposed", ex}};
+ }
+ std::shared_ptr<FullTimeSinkLedger> read_step_sinks(const ArenaJson &j) {
+-  require(j.is_object() && j.size() == 3 && j.at("exposed").is_array(), "published sinks schema");
++  require(j.is_object() && j.size() == 6 && j.at("exposed").is_array(), "published sinks schema");
+   auto l = std::make_shared<FullTimeSinkLedger>();
+   l->accepted_step = json_u64(j.at("accepted_step"));
+   l->records_root_sha256 = json_text(j.at("records_root_sha256"));
++  l->transport_trial_sha256 = json_text(j.at("transport_trial_sha256"));
++  l->ledger_sha256 = json_text(j.at("ledger_sha256"));
++  l->row_sha256 = json_text(j.at("row_sha256"));
+   for (const auto &x : j.at("exposed")) {
+-    require(x.is_object() && x.size() == 7 && x.at("values").is_array() && x.at("values").size() == 19,
++    require(x.is_object() && x.size() == 7 && x.at("values").is_array() && x.at("values").size() == 20,
+             "published sink schema");
+     FullTimeSinkExposure e;
+     auto &r = e.record;
+@@ -44,8 +49,8 @@
+     r.kind = FullTimeSinkKind(std::uint8_t(json_u64(x.at("kind"))));
+     r.surface = FullTimeSinkSurface(std::uint8_t(json_u64(x.at("surface"))));
+     r.axis = std::uint32_t(json_u64(x.at("axis")));
+-    std::array<double, 19> v;
+-    for (int k = 0; k < 19; ++k)
++    std::array<double, 20> v;
++    for (int k = 0; k < 20; ++k)
+       v[k] = hex_bits(x.at("values")[k]);
+     r.plane_m = v[0];
+     r.fraction = v[1];
+@@ -58,6 +63,7 @@
+     e.charge_C = v[14];
+     e.mass_kg = v[15];
+     e.start_position_m = {v[16], v[17], v[18]};
++    e.internal_energy_J = v[19];
+     e.packet_id = json_text(x.at("packet_id"));
+     e.state = json_text(x.at("state"));
+     l->records.push_back(r);
+@@ -70,7 +76,7 @@
+   return l;
+ }
+ ArenaJson chemistry_configuration_json(const FullTimeConfiguration &c) {
+-  ArenaJson j = {{"identity", "v8"}};
++  ArenaJson j = {{"identity", "v8.2-auditfix2"}};
+   if (c.merge_split.enabled) {
+     const auto &P = *c.merge_split.params;
+     j["merge_split"] = {{"cadence_steps", c.merge_split.cadence_steps},
+@@ -83,7 +89,8 @@
+     j["chemistry"] = nullptr;
+     return j;
+   }
+-  j["chemistry"] = {{"blob_path", k.blob_path},
++  j["chemistry"] = {{"diagnostic_field_target_approximation", k.diagnostic_field_target_approximation},
++                    {"blob_path", k.blob_path},
+                     {"blob_sha256", k.blob_sha256},
+                     {"run_seed", k.run_seed},
+                     {"release_weight", k.release_weight},
+@@ -102,7 +109,7 @@
+ }
+ void read_chemistry_configuration_json(const ArenaJson &j, FullTimeConfiguration &c) {
+   const bool ms = j.is_object() && j.contains("merge_split");
+-  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8", "v8 configuration schema");
++  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8.2-auditfix2", "v8 configuration schema");
+   c.identity = FullTimeIdentitySchema::v8;
+   if (ms) {
+     const auto &m = j.at("merge_split");
+@@ -121,9 +128,11 @@
+   const auto &k = j.at("chemistry");
+   if (k.is_null())
+     return;
+-  require(k.is_object() && k.size() == 10, "chemistry configuration schema");
++  require(k.is_object() && k.size() == 11, "chemistry configuration schema");
+   auto &x = c.chemistry;
+   x.enabled = true;
++  require(k.at("diagnostic_field_target_approximation").is_boolean(), "target energy mode boolean");
++  x.diagnostic_field_target_approximation = k.at("diagnostic_field_target_approximation").get<bool>();
+   x.blob_path = json_text(k.at("blob_path"));
+   x.blob_sha256 = json_text(k.at("blob_sha256"));
+   x.run_seed = json_u64(k.at("run_seed"));
+@@ -142,7 +151,9 @@
+   x.policy.event_limit = json_scalar(p.at("event_limit"));
+   x.policy.event_fraction = json_scalar(p.at("event_fraction"));
+   for (const auto &r : p.at("admitted_regions"))
+-    x.policy.admitted_regions.push_back(json_text(r));
++    // Region labels come from the SHA-bound table and may exceed packet-ID
++    // lengths. make_setup validates exact membership in that registry.
++    x.policy.admitted_regions.push_back(json_text_any(r));
+ }
+ // Identity extension of the configuration digest: empty in schema v5 (v7.1
+ // identities unchanged); in schema v8 the chemistry configuration identity.
+@@ -150,7 +161,7 @@
+   if (c.identity != FullTimeIdentitySchema::v8)
+     return "";
+   Writer w;
+-  w.tag("native-v8/identity-schema-v8");
++  w.tag("native-v8.2-auditfix2/identity-schema-v8");
+   if (c.chemistry.enabled)
+     w.text(chem8::make_setup(c.chemistry, o)->configuration_sha256);
+   else
+@@ -724,7 +735,8 @@
+   const auto &snap = *base.snapshot;
+   require(snap.full_time_identity == 1 && bool(snap.full_time_chemistry), "frame without chemistry state");
+   const auto &before = *snap.full_time_chemistry;
+-  const chem8::StageRequest req{o.common.accepted_step, first_slot ? 1u : 2u, s.exposure.collision_duration_s};
++  const chem8::StageRequest req{o.common.accepted_step, first_slot ? 1u : 2u, s.exposure.collision_duration_s,
++                              std::min<std::size_t>(o.cap, 1000000)};
+   const bool base_valid = owner.full_time_validated(snap, base.native.particles, o.cap);
+   auto *lane = lane_of(o);
+   const auto exec = setup->config.execution;
+@@ -923,6 +935,8 @@
+     return out;
+   const auto &st = *accepted_->full_time_chemistry;
+   out.enabled = true;
++  out.diagnostic_field_target_approximation = setup->config.diagnostic_field_target_approximation;
++  out.full_system_energy_closure = false;
+   out.state_sha256 = chem8::state_digest(st);
+   out.configuration_sha256 = setup->configuration_sha256;
+   out.registry_sha256 = setup->reg->sha256;
+@@ -996,17 +1010,10 @@
+   return out;
+ }
+ std::vector<std::string> full_time_chemistry_recommended_admitted(const FullTimeChemistryRegistry &r) {
+-  std::vector<std::string> out;
+-  for (std::size_t i = 0; i < r.region_names.size(); ++i) {
+-    if (r.region_bounded[i])
+-      continue;
+-    const auto &n = r.region_names[i];
+-    const bool placeholder = n.find("(no data)") != std::string::npos;
+-    const bool top = n.find("|decade 1e7 eV") != std::string::npos;
+-    if (placeholder || top)
+-      out.push_back(n);
+-  }
+-  return out;
++  (void)r;
++  // No unbounded cross-section region is recommended for production.
++  // Explicit diagnostic policies may list them, with exposure recorded.
++  return {};
+ }
+ FullTimeChemistryConfiguration full_time_chemistry_preset(const std::string &name, const GapPicOptions &o,
+                                                           const std::string &blob_path, std::uint64_t run_seed,
+--- a/source/src/mfem_pic_full_time_flows.inc
++++ b/source/src/mfem_pic_full_time_flows.inc
+@@ -330,6 +330,25 @@
+   w.u64(l.surfaces.size());
+   for (const auto &t : l.surfaces)
+     codec_surface_totals(w, t);
++  return cn::sha256_hex(w.bytes);
++}
++// Audit schema v8.2: all published wall-response inputs are accepted state,
++// independent of whether their journal row has already been compacted.
++std::string published_sinks_digest(const FullTimeSinkLedger &l) {
++  Writer w;
++  w.tag("native-v8.2/published-sinks-v1");
++  w.text(sink_ledger_digest(l));
++  w.text(l.ledger_sha256);
++  w.text(l.row_sha256);
++  w.u64(l.records.size());
++  for (const auto &r : l.records) encode_sink_record(w, r);
++  w.u64(l.exposed.size());
++  for (const auto &e : l.exposed) {
++    encode_sink_record(w, e.record);
++    w.text(e.packet_id); w.text(e.state);
++    w.f64(e.weight); w.f64(e.charge_C); w.f64(e.mass_kg);
++    w.vec(e.start_position_m); w.f64(e.internal_energy_J);
++  }
+   return cn::sha256_hex(w.bytes);
+ }
+ std::string text_list_digest(const char *tag, const std::vector<std::string> &v) {
+--- a/source/src/native_device.cpp
++++ b/source/src/native_device.cpp
+@@ -30,19 +30,19 @@
+ #embed "chem_v3_kernels.cu"
+     , 0};
+ const char kChemEvent[] = {
+-#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1-20261031/include/pf_chem_v3/chem_event.h"
++#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/include/pf_chem_v3/chem_event.h"
+     , 0};
+ const char kChemKin[] = {
+-#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1-20261031/include/pf_chem_v3/chem_kinematics.h"
++#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/include/pf_chem_v3/chem_kinematics.h"
+     , 0};
+ const char kChemRng[] = {
+-#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1-20261031/include/pf_chem_v3/chem_rng.h"
++#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/include/pf_chem_v3/chem_rng.h"
+     , 0};
+ const char kChemTables[] = {
+-#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1-20261031/include/pf_chem_v3/chem_tables.h"
++#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/include/pf_chem_v3/chem_tables.h"
+     , 0};
+ const char kChemMath[] = {
+-#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1-20261031/include/pf_chem_v3/det_math.h"
++#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/include/pf_chem_v3/det_math.h"
+     , 0};
+ const char kPhilox[] = {
+ #embed "/home/treefor/projects/runtimes/pic-arrival-owner-v1-20261030/include/pf_arrival/philox_core.h"
+@@ -678,7 +678,7 @@
+ };
+ struct SumArgs {
+   std::uint32_t begin, count;
+-  u64 outs, nev, active, bad, candidates, status, numax, region;
++  u64 outs, nev, active, bad, candidates, status, numax, region, support;
+ };
+ struct ActiveRec {
+   u64 id;
+@@ -940,6 +940,7 @@
+   const u64 nev = blk(n_proj * 4), activef = blk(n_proj * 4), offs = blk(chunk * 8);
+   const u64 counters = blk(16 * 8); // bad, candidates, status[8], numax, ev_total, overflow, chunk grand
+   const u64 region = blk(u64(R) * 2 * pf7::acc_digits * 8);
++  const u64 support = blk(u64(R) * 8);
+   const u64 n_leaves = (n_proj + 255) / 256;
+   const u64 rec_leaves = blk(n_leaves * 32);
+   const std::string rtag = "native-v8/chemistry-records-leaf";
+@@ -958,6 +959,7 @@
+       I.copy_words(1, up->address, counters);
+     }
+     zero(region, u64(R) * 2 * pf7::acc_digits * 8);
++    zero(support, u64(R) * 8);
+     for (u64 b0 = 0; b0 < n_proj; b0 += chunk) {
+       const unsigned begin = unsigned(b0), count = unsigned(std::min<u64>(chunk, n_proj - b0));
+       {
+@@ -970,7 +972,7 @@
+         I.s.launch(M.k["ch_mcc"], {(count + 127) / 128}, {128}, 0, args);
+       }
+       {
+-        SumArgs sa{begin, count, out_chunk, nev, activef, counters, counters + 8, counters + 16, counters + 80, region};
++        SumArgs sa{begin, count, out_chunk, nev, activef, counters, counters + 8, counters + 16, counters + 80, region, support};
+         void *args[] = {&sa};
+         I.s.launch(M.k["ch_summary"], {(count + 255) / 256}, {256}, 0, args);
+       }
+@@ -1018,6 +1020,7 @@
+     std::vector<ActiveRec> ar(n_act);
+     out.active.events.resize(n_ev);
+     std::vector<std::int64_t> reg(u64(R) * 2 * pf7::acc_digits);
++    out.active.totals.support.resize(R);
+     std::vector<std::uint32_t> lw(n_leaves * 8), lc(Lc.second * 8), lt(Lt.second * 8), la(La.second * 8);
+     out.active.cell_atlas.resize(n_occ);
+     auto dl = [&](void *dst, u64 addr, std::size_t bytes) {
+@@ -1030,6 +1033,7 @@
+     dl(ar.data(), act, n_act * sizeof(ActiveRec));
+     dl(out.active.events.data(), compact, n_ev * sizeof(pfc::EventRec));
+     dl(reg.data(), region, reg.size() * 8);
++    dl(out.active.totals.support.data(), support, u64(R) * 8);
+     dl(lw.data(), rec_leaves, lw.size() * 4);
+     dl(lc.data(), Lc.first, lc.size() * 4);
+     dl(lt.data(), Lt.first, lt.size() * 4);
+--- /dev/null
++++ b/tests/audit_cold_support.hpp
+@@ -0,0 +1,55 @@
++#pragma once
++#include "chem_v8_fixture.hpp"
++#include "raikou/json.hpp"
++#include <filesystem>
++#include <functional>
++#include <stdexcept>
++namespace audit {
++namespace m=raikou::mfem_backend;
++inline int cold_support(const std::filesystem::path &out,
++                        m::FullTimeChemistryExecution execution=m::FullTimeChemistryExecution::host,
++                        const std::function<void(m::PicArena&)> &attach={}) {
++  auto need=[](bool ok,const char *s){if(!ok)throw std::runtime_error(s);};
++  const auto o=chemfix::options(45);
++  auto c=chemfix::chemistry_configuration(o);
++  c.execution=execution;
++  const m::PicVector x{.00215,.00215,0.0}, u{0,0,0};
++  const std::vector<m::FullTimeAuthoredPacket> p{
++      {"cold/e","pfc-v3/e","manufactured/cold-support",m::ArenaCount(1,0),x,u},
++      {"cold/OH+","pfc-v3/OH+","manufactured/cold-support",m::ArenaCount(1,0),x,u}};
++  for(const double dt:{1e-12,1e-15}) {
++    auto strict=c; strict.policy.admitted_regions.clear();
++    auto A=chemfix::make_arena(o,strict,p,1000);
++    if(attach) attach(*A.arena);
++    const auto before=*A.arena->full_time_boundary();
++    const auto status=A.arena->full_time_chemistry();
++    bool refused=false;
++    try{(void)chemfix::step(A,dt,0);}
++    catch(const m::FullTimeChemistryRefusal&e){refused=e.kind()==m::FullTimeChemistryRefusal::Kind::coverage_policy;}
++    need(refused,"cold unknown support must refuse regardless of timestep");
++    need(A.arena->full_time_boundary()->accepted_arena_sha256==before.accepted_arena_sha256,
++         "cold refusal mutated accepted state/RNG/stock");
++    need(A.arena->full_time_chemistry().coverage_json==status.coverage_json,
++         "cold refusal mutated coverage ledger");
++  }
++  auto A=chemfix::make_arena(o,c,p,1000,1);
++  if(attach)attach(*A.arena);
++  const auto r=chemfix::step(A,1e-12,0);
++  need(r.stage1->admitted_events+r.stage2->admitted_events==0,"cold diagnostic unexpectedly had events");
++  const auto status=A.arena->full_time_chemistry();
++  const auto coverage=nlohmann::json::parse(status.coverage_json);
++  std::uint64_t support=0;
++  for(const auto&row:coverage.at("cumulative")) {
++    support+=row.at("reachable_support").get<std::uint64_t>();
++    need(row.at("exposure").get<double>()==0 && row.at("bound").get<double>()==0,
++         "cold support fabricated a physical rate");
++  }
++  need(support>0,"cold diagnostic lost reachable support");
++  std::filesystem::create_directories(out);
++  A.arena->save((out/"cold-support.json").string());
++  auto restored=m::PicArena::restore_full_time((out/"cold-support.json").string(),o,A.states,A.channels,
++                                             *A.arena->full_time_boundary());
++  need(restored->full_time_chemistry().coverage_json==status.coverage_json,"cold support restore mismatch");
++  return 7;
++}
++}
+--- a/tests/chem_v8_fixture.hpp
++++ b/tests/chem_v8_fixture.hpp
+@@ -32,11 +32,11 @@
+   return e && std::string(e) == "v3.1";
+ }
+ inline const char *blob_path() {
+-  return v31() ? "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1-20261031/data/tables/chemistry-v3.1.blob"
++  return v31() ? "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/data/tables/chemistry-v3.1.blob"
+                : "/home/treefor/projects/runtimes/pic-water-chemistry-v3-20261031/data/tables/chemistry-v3.blob";
+ }
+ inline const char *blob_sha() {
+-  return v31() ? "7f30e0123d04424887a2f5154df3e09006c6c59f5759422abec9c8ceecd943a5"
++  return v31() ? "70fcc2adc2fdaa62abed7ed02d68ffc09b1b18554eda8fa99c5451120ae454b8"
+                : "3ca3ea495630e6b6e125c05ebf45488fd89a899544a2aa138cefb9b1dd415b0a";
+ }
+ inline std::string sha(const std::string &s) { return m::canonical::sha256_hex(s); }
+@@ -130,6 +130,7 @@
+ inline m::FullTimeChemistryConfiguration chemistry_configuration(const m::GapPicOptions &o, unsigned partitions = 1) {
+   m::FullTimeChemistryConfiguration c;
+   c.enabled = true;
++  c.diagnostic_field_target_approximation = true; // component qualification, not full-system closure
+   c.blob_path = blob_path();
+   c.blob_sha256 = blob_sha();
+   c.run_seed = 0x5EED5EED20261031ull;
+--- /dev/null
++++ b/tests/test_audit_parcels_codec.cpp
+@@ -0,0 +1,43 @@
++#include "chem_v8_fixture.hpp"
++#include "chem_v3_native.hpp"
++#include <iostream>
++#include <stdexcept>
++namespace c=raikou::mfem_backend::chem8;
++void need(bool ok,const char*m){if(!ok)throw std::runtime_error(m);}
++int main(){try{
++  auto cfg=chemfix::chemistry_configuration(chemfix::options(45));
++  auto setup=c::make_setup(cfg,chemfix::options(45));
++  auto state=c::initial_state(*setup);
++  const auto& b=*setup->reg->blob;
++  std::uint32_t species=0;
++  while(species<b.n_species && b.species_names[species]!="H2O") ++species;
++  need(species<b.n_species,"water species");
++  c::Key key{0,species}; auto& R=state->reservoirs[key];
++  const double m=b.view.species[species].mass_eV;
++  for(int i=0;i<2;++i){
++    pfc::ReservoirEntry e{1.0,{1000.0*i,0,0},{.003+i*.00001,.004,0}};
++    R.parcels.push_back(e);const auto u=pfc::v3(e.u[0],e.u[1],e.u[2]);const auto p=pfc::p_from_u(m,u);
++    R.count.add(e.weight);R.momentum[0].add_product(e.weight,p.x);R.momentum[1].add_product(e.weight,p.y);
++    R.momentum[2].add_product(e.weight,p.z);R.kinetic.add_product(e.weight,pfc::ke_from_u(m,u));
++  }
++  const auto bytes=c::encode_state(*state);
++  auto restored=c::decode_state(*setup,bytes);
++  need(c::state_digest(*restored)==c::state_digest(*state),"parcel codec identity");
++  need(c::encode_state(*restored)==bytes,"parcel codec canonical bytes");
++  std::map<pfc::InventoryKey,pfc::Reservoir> a{{{0,species},R}}, d{{{0,species},restored->reservoirs.at(key)}};
++  const auto x=pfc::release_reservoirs(b,a,.75,1,0);const auto y=pfc::release_reservoirs(b,d,.75,999,999);
++  need(x.size()==4 && y.size()==x.size(),"partial deterministic parcel split");
++  for(std::size_t i=0;i<x.size();++i){
++    need(x[i].weight==y[i].weight && x[i].u[0]==y[i].u[0] && x[i].x[0]==y[i].x[0],"restored release phase space");
++  }
++  need(a.begin()->second.count.is_zero() && a.begin()->second.kinetic.is_zero(),"empty reservoir energy");
++  auto corrupt=c::initial_state(*setup);corrupt->reservoirs[key]=R;corrupt->reservoirs[key].kinetic.add(-1.0);
++  bool refused=false;try{(void)c::decode_state(*setup,c::encode_state(*corrupt));}catch(const std::exception&){refused=true;}
++  need(refused,"nonrealizable checkpoint stock refused");
++  auto old=bytes;const std::string tag="native-v8.2/chemistry-state-codec-v3-parcels-support";
++  const auto pos=old.find(tag);need(pos!=std::string::npos,"codec tag");old[pos]='X';
++  refused=false;try{(void)c::decode_state(*setup,old);}catch(const std::exception&){refused=true;}
++  need(refused,"incompatible codec refused");
++  std::cout<<"audit parcels: persisted thermal spread, partial release, exact stock, corrupt codec refusal passed\n";
++  return 0;
++}catch(const std::exception&e){std::cerr<<e.what()<<'\n';return 1;}}
+--- /dev/null
++++ b/tests/test_audit_target_guard.cpp
+@@ -0,0 +1,54 @@
++#include "chem_v8_fixture.hpp"
++#include "audit_cold_support.hpp"
++#include <filesystem>
++#include <fstream>
++#include <iostream>
++#include <stdexcept>
++namespace m = raikou::mfem_backend;
++void need(bool ok, const char* msg) { if (!ok) throw std::runtime_error(msg); }
++int main(int argc, char**argv) {
++  try {
++    const std::filesystem::path out = argc > 1 ? argv[1] : ".";
++    std::filesystem::create_directories(out);
++    auto o = chemfix::options(45);
++    auto diagnostic = chemfix::chemistry_configuration(o);
++    need(std::any_of(diagnostic.policy.admitted_regions.begin(), diagnostic.policy.admitted_regions.end(),
++                    [](const std::string &r){return r.size()>=1024;}), "long valid region fixture");
++    chemfix::Population p;
++    p.carriers=1500; p.seed=71; p.water_weight=2e13; p.clustered=true;
++    p.electron_eV_min=5; p.electron_eV_max=300;
++    auto A=chemfix::make_arena(o,diagnostic,chemfix::population(p),40000,2);
++    const auto r=chemfix::step(A,1e-12,0);
++    need(r.stage1->admitted_events+r.stage2->admitted_events>0,"fixture must exercise events");
++    need(r.stage1->diagnostic_field_target_approximation && !r.stage1->full_system_energy_closure,
++         "receipt must explicitly exclude full-system closure");
++    const auto status=A.arena->full_time_chemistry();
++    need(status.diagnostic_field_target_approximation && !status.full_system_energy_closure,"diagnostic status");
++    auto strict=diagnostic; strict.diagnostic_field_target_approximation=false;
++    auto B=chemfix::make_arena(o,strict,chemfix::population(p),40000,2);
++    const auto before=*B.arena->full_time_boundary();
++    bool refused=false;
++    try { (void)chemfix::step(B,1e-12,0); }
++    catch(const m::FullTimeChemistryRefusal&e) { refused=e.kind()==m::FullTimeChemistryRefusal::Kind::target_energy_owner; }
++    need(refused,"strict chemistry must refuse unsupported target energy closure");
++    need(B.arena->full_time_boundary()->accepted_arena_sha256==before.accepted_arena_sha256,"refusal mutated state");
++    const auto boundary=*A.arena->full_time_boundary();
++    A.arena->save((out/"diagnostic.json").string());
++    auto restored=m::PicArena::restore_full_time((out/"diagnostic.json").string(),o,A.states,A.channels,boundary);
++    need(restored->full_time_chemistry().diagnostic_field_target_approximation &&
++         !restored->full_time_chemistry().full_system_energy_closure,"restore lost diagnostic scope");
++    nlohmann::json saved;
++    {std::ifstream f(out/"diagnostic.json"); f>>saved;}
++    auto payload=saved.at("payload");
++    payload["configuration"]["v8"]["chemistry"]["policy"]["admitted_regions"][0]="unknown/"+std::string(2048,'x');
++    {std::ofstream f(out/"unknown-region.json");
++     f<<nlohmann::json{{"payload",payload},{"sha256",chemfix::sha(payload.dump())}}.dump();}
++    std::string message;
++    try{(void)m::PicArena::restore_full_time((out/"unknown-region.json").string(),o,A.states,A.channels,boundary);}
++    catch(const std::exception&e){message=e.what();}
++    need(message.find("unknown admitted region")!=std::string::npos,"unknown long region must refuse exact registry validation");
++    std::cout<<"audit target-energy guard: diagnostic scope, strict refusal, no mutation, long valid region restore and unknown region refusal passed\n";
++    std::cout << audit::cold_support(out/"cold-host") << " cold reachable-support controls passed\n";
++    return 0;
++  } catch(const std::exception&e) {std::cerr<<e.what()<<'\n';return 1;}
++}
+--- a/tests/test_v8_chemistry.cpp
++++ b/tests/test_v8_chemistry.cpp
+@@ -271,7 +271,7 @@
+                                return e;
+                              }()}};
+     }
+-    // ------------------------------------------------------------ 3b. quantized release (w0 = 1.5)
++    // ------------------------------------------------------------ 3b. conservative parcel release (w <= 1.5)
+     {
+       auto chem = chemfix::chemistry_configuration(o);
+       chem.release_weight = 1.5;
+@@ -287,10 +287,11 @@
+       for (const auto &[id, p] : A.arena->snapshot()->packets)
+         if (id.find("/release/") != std::string::npos) {
+           ++carriers;
+-          weights = weights && p.count == m::ArenaCount(1.5, 0) && p.native_ids.size() == 1;
++          const auto w = p.count.positive_carriers();
++          weights = weights && w.size() == 1 && w.front() > 0 && w.front() <= 1.5 && p.native_ids.size() == 1;
+         }
+       check(released > 0 && carriers == released && weights,
+-            "release: quantized packets of weight w0 become native carriers", {{"released", released}});
++            "release: positive parcel packets bounded by w0 become native carriers", {{"released", released}});
+       results["release"] = {{"released_packets", released}};
+     }
+     // ------------------------------------------------------------ 4. mutations
+@@ -418,6 +419,9 @@
+                                   std::string(m::full_time_chemistry_production_v1_policy_sha256),
+             "preset production-v1: v3.1 blob and coverage-policy file validated", {{"refusal", what}});
+       if (what == "none") {
++        check(!pre.diagnostic_field_target_approximation, "production default requires target energy owner");
++        pre.preset.clear(); // explicit component diagnostic, not a production preset
++        pre.diagnostic_field_target_approximation = true; // isolate the coverage refusal in this test
+         // ions 2 keV relative to the water: an unbounded region refused by the production list; the
+         // refusal names the region
+         auto P = dense(400, 81);
+--- a/tests/test_v8_chemistry_gpu.cpp
++++ b/tests/test_v8_chemistry_gpu.cpp
+@@ -7,6 +7,7 @@
+ //                         tests/time_step_v71.cpp device_verified mode)
+ // usage: test_v8_chemistry_gpu OUT_DIR NVRTC UUID
+ #include "chem_v8_fixture.hpp"
++#include "audit_cold_support.hpp"
+ #include "forms_gpu.hpp"
+ #include "hall_gpu_common.hpp"
+ #include "raikou/mfem_pic_full_time_device.h"
+@@ -115,6 +116,9 @@
+     }
+     check(texts[0] == texts[1] && texts[0].find("chemistry_v3/coverage_policy") == 0,
+           "refusal parity: device and host give the same typed coverage refusal", {{"host", texts[0]}, {"device", texts[1]}});
++    check(audit::cold_support(out/"cold-device",m::FullTimeChemistryExecution::device,
++          [&](m::PicArena &a){a.attach_full_time_device(dev,m::FullTimeExecution::device);})==7,
++          "cold reachable-support strict refusal, no mutation, diagnostic zero rate and restore");
+     const auto cnt = dev->counters();
+     res["counters"] = {{"verified_comparisons", cnt.verified_comparisons}, {"row_uploads", cnt.row_uploads},
+                        {"row_downloads", cnt.row_downloads}, {"device_admissions", cnt.device_admissions}};
+--- a/tests/test_v8_sinks.cpp
++++ b/tests/test_v8_sinks.cpp
+@@ -34,11 +34,12 @@
+   try {
+     const std::filesystem::path out = argc > 1 ? argv[1] : ".";
+     std::filesystem::create_directories(out);
++    for (const unsigned anchor_interval : {1u, 2u}) {
+     m::FullTimeConfiguration c;
+     c.identity = m::FullTimeIdentitySchema::v8;
+     c.limits.maximum_carriers = 64;
+     c.limits.memory_budget_bytes = 64 * m::full_time_bytes_per_carrier + m::full_time_fixed_bytes;
+-    c.history.anchor_interval_steps = 2;
++    c.history.anchor_interval_steps = anchor_interval;
+     // electron 0.1 um above the lower foil's top face (y = 2 mm), moving down (u = 3e7 m/s)
+     std::vector<m::FullTimeAuthoredPacket> pop = {
+         {"electron", "e", "manufactured/source", {4, 0}, {.004, .0020001, 0}, {0, -3e7, 0}},
+@@ -68,18 +69,25 @@
+     need(g && g->sinks && f && f->sinks && g->sinks->records_root_sha256 == f->sinks->records_root_sha256 &&
+              g->sinks->exposed.size() == f->sinks->exposed.size() &&
+              g->sinks->exposed.front().packet_id == f->sinks->exposed.front().packet_id &&
+-             g->sinks->exposed.front().weight == f->sinks->exposed.front().weight,
++             g->sinks->exposed.front().weight == f->sinks->exposed.front().weight &&
++             g->sinks->ledger_sha256 == f->sinks->ledger_sha256 &&
++             g->sinks->row_sha256 == f->sinks->row_sha256 &&
++             g->sinks->tallies.size() == f->sinks->tallies.size() &&
++             g->sinks->surfaces.size() == f->sinks->surfaces.size(),
+          "restore: published sinks equal (records root, exposure)");
+     need(restored->full_time_boundary()->accepted_arena_sha256 == saved_boundary.accepted_arena_sha256,
+          "restore: accepted identity");
+-    // tampered exposure (re-signed envelope): refused
+-    {
++    // Both unanchored and compacted checkpoints bind complete exposures.
++    for (const std::string mutation : {"weight", "start", "missing", "internal"}) {
+       std::ifstream in(out / "sinks.json");
+       JJ doc;
+       in >> doc;
+       auto p = doc.at("payload");
+-      auto &v = p["metadata"]["step_sinks"]["exposed"][0]["values"][13];
+-      v = v.get<std::string>() == "4010000000000000" ? "4014000000000000" : "4010000000000000";
++      if (mutation == "missing") p["metadata"].erase("step_sinks");
++      else {
++        const int index = mutation == "weight" ? 13 : mutation == "start" ? 16 : 19;
++        p["metadata"]["step_sinks"]["exposed"][0]["values"][index] = "4014000000000000";
++      }
+       const auto bad = JJ{{"payload", p}, {"sha256", sha_hex(p.dump())}}.dump();
+       std::ofstream(out / "tampered.json") << bad;
+       std::string what = "none";
+@@ -89,11 +97,12 @@
+       } catch (const std::exception &e) {
+         what = e.what();
+       }
+-      need(what != "none", "restore: tampered sink exposure refused (" + what + ")");
++      need(what != "none", "restore: " + mutation + " sink exposure refused at anchor interval " + std::to_string(anchor_interval) + " (" + what + ")");
+     }
+     (void)v6::full_step(*arena, plan, st, hooks);
+     const auto h = arena->full_time_published_flows();
+     need(!h || !h->sinks, "published flows replaced by the next step (no sinks)");
++    }
+     std::cout << (fails ? "FAILED " : "") << n_checks - fails << " native v8 published-sink controls passed\n";
+     return fails ? 1 : 0;
+   } catch (const std::exception &e) {
+--- a/tests/time_step_v71.cpp
++++ b/tests/time_step_v71.cpp
+@@ -300,6 +300,20 @@
+       }
+       m::FullTimeMotionBinding mb{b, x.record_sha256, b.accepted_field_sha256, sha("f/" + std::to_string(k)),
+                                   sha("h/" + std::to_string(k)), bnd->source_sha256};
++#ifndef TIMING_REFERENCE
++      // Device-only bad record forces the host refusal fallback, including
++      // the lifetime of its materialized record. Do not alter accepted state.
++      if (device && k == 0) {
++        const auto before = arena->full_time_boundary()->accepted_arena_sha256;
++        auto bad = x;
++        bad.budget[0] += 1e-3;
++        bool refused = false;
++        try { (void)trial.prepare_total_field_motion(mb, m::bind_total_field_motion_v7(bad)); }
++        catch (const std::invalid_argument &) { refused = true; }
++        if (!refused || arena->full_time_boundary()->accepted_arena_sha256 != before)
++          throw std::runtime_error("device-only refusal mutated or admitted");
++      }
++#endif
+       T.start();
+       auto moved = trial.prepare_total_field_motion(mb, m::bind_total_field_motion_v7(x));
+       outer.accept_transport_trial(std::move(moved));
+@@ -375,6 +389,10 @@
+     out["host_row_materialisations"] = m::FullTimeDevice::row_materialisations() - mat0;
+     if (dev) {
+       const auto cnt = dev->counters();
++      out["host_refusal_texts"] = cnt.host_refusal_texts;
++      if (mode == "device_verified" &&
++          (cnt.verified_comparisons != std::uint64_t(steps) || cnt.host_refusal_texts < 1))
++        throw std::runtime_error("device-only verified/refusal regression did not exercise both paths");
+       out["verified_comparisons"] = cnt.verified_comparisons;
+       out["device_admissions"] = cnt.device_admissions;
+       out["host_admissions"] = cnt.host_admissions;
+--- a/tooling.py
++++ b/tooling.py
+@@ -22,19 +22,21 @@
+ V6_ADAPTER_SHA = '7fcac96a019414e23905804e181b330b73bef84918397df2923c65f1cf7551e2'
+ V6_V3_ADAPTER_SHA = '597c7e1eaa2992dd0e520b9793424cc41cd5936939ec2997e3b3d2834d2e648f'
+ EXACT = RT / 'native-exact-count'
+-OUT = Path('/home/treefor/projects/.workspace/outputs/native-v8-20261031')
++OUT = Path('/home/treefor/projects/.workspace/outputs/native-v8-auditfix-20261031')
+ V71 = RT / 'native-full-time-candidate007.1'
+ V71_IDENTITY = '86b4500195013def19e5c4e45e398dacf75c9c44b23007b02130e7b40178fad8'
+ V71_LIB_SHA = 'cce8d900a0106b3eb1882c84d4f95f1f3a96f28e031b94a26970d01ca539a741'
+ V71_OUT = Path('/home/treefor/projects/.workspace/outputs/native-v7.1-20261031')
+-CHEM = Path('/home/treefor/projects/runtimes/pic-water-chemistry-v3.1-20261031')
++CHEM = Path('/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031')
+ CHEM_V3 = Path('/home/treefor/projects/runtimes/pic-water-chemistry-v3-20261031')
+ CHEM_BLOB = CHEM_V3 / 'data/tables/chemistry-v3.blob'
+ CHEM_BLOB_SHA = '3ca3ea495630e6b6e125c05ebf45488fd89a899544a2aa138cefb9b1dd415b0a'
+ CHEM31_BLOB = CHEM / 'data/tables/chemistry-v3.1.blob'
+-CHEM31_BLOB_SHA = '7f30e0123d04424887a2f5154df3e09006c6c59f5759422abec9c8ceecd943a5'
++CHEM31_BLOB_SHA = '70fcc2adc2fdaa62abed7ed02d68ffc09b1b18554eda8fa99c5451120ae454b8'
+ CHEM31_POLICY = CHEM / 'data/tables/chemistry-v3.1-coverage-policy.json'
+-CHEM31_POLICY_SHA = 'ad3742f359549e8af4bcb8b38654518df97deeaf7604e401478bb62953e0fe21'
++CHEM31_POLICY_SHA = '15d44a91b8af93e0b14beb89434c55dc402e7196f10ca4bdaa2357564474b2d3'
++CHEM_HEADER_SHA = {'chem_host.hpp': '87715119d2837b52b57162bd40a30687bc8cc109f6d170de5f8dd0f2ae11691e',
++                   'chem_event.h': '95f460ec3111d93dbe9ca38e7737cbb95e80a3d3fcfee912e7745be3596d8b3b'}
+ MESHES = Path('/home/treefor/projects/runtimes/resolution-series-prep-20261031/meshes')
+ MERGE_SPLIT = Path('/home/treefor/projects/runtimes/resolution-series-prep-20261031/merge-split')
+ V7 = RT / 'native-full-time-candidate007'
+@@ -96,7 +98,20 @@
+     cpus = os.sched_getaffinity(0)
+     pairs = [{a, b} for a in (6, 7, 14, 15, 0, 1) for b in (6, 7, 14, 15, 0, 1) if a < b]
+     allowed = [{6}, {7}, {0}, {1}, {15}] + (pairs if build else [])
+-    need(cpus in allowed, f'core lease required (affinity {sorted(cpus)})')
++    if os.environ.get('SIMQ_JOB_ID'):
++        spec = os.environ.get('SIMQ_CPU_LIST', '')
++        scheduled = set()
++        for item in spec.split(','):
++            if '-' in item:
++                lo, hi = map(int, item.split('-')); scheduled.update(range(lo, hi + 1))
++            elif item:
++                scheduled.add(int(item))
++        need(bool(os.environ.get('SIMQ_LAUNCH_TOKEN')) and bool(os.environ.get('SIMQ_UNIT')) and
++             os.environ.get('SIMQ_PARTITION') == 'powerflow' and cpus == scheduled and len(cpus) <= 2 and
++             os.environ['SIMQ_UNIT'] in Path('/proc/self/cgroup').read_text(),
++             'SimQueue allocation must match the process affinity')
++    else:
++        need(cpus in allowed, f'core lease required (affinity {sorted(cpus)})')
+     need(not (cpus & {0, 1, 2, 3} and (LEASES / 'RETURN-CORES-0-3').exists()), 'cores 0-3 must be returned')
+     need(os.getpriority(os.PRIO_PROCESS, 0) >= 15, 'nice >= 15 required')
+     for name in ['OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS']:
+@@ -155,6 +170,8 @@
+     need(sha256(CHEM_BLOB) == CHEM_BLOB_SHA, 'chemistry v3 blob changed')
+     need(sha256(CHEM31_BLOB) == CHEM31_BLOB_SHA, 'chemistry v3.1 blob changed')
+     need(sha256(CHEM31_POLICY) == CHEM31_POLICY_SHA, 'chemistry v3.1 coverage policy changed')
++    for name, digest in CHEM_HEADER_SHA.items():
++        need(sha256(CHEM / 'include/pf_chem_v3' / name) == digest, 'chemistry v3.1.1 header changed: ' + name)
+     for name, digest in MERGE_SPLIT_SHA.items():
+         need(sha256(MERGE_SPLIT / name) == digest, 'merge/split component file changed: ' + name)
+     return {'merge_split_v1': {'path': str(MERGE_SPLIT), 'files': MERGE_SPLIT_SHA},
+--- a/verify-final.py
++++ b/verify-final.py
+@@ -1,238 +1,6 @@
+-"""Native v7.1 final verification with receipts. Start restricted to cores 6-7:
+-  taskset -c 6,7 nice -n 15 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \\
+-      MKL_NUM_THREADS=1 python3 verify-final.py LABEL
+-Builds run under core-lease-20261030/both-cores.sh (build-components.py all); every CPU
+-test process runs under scripts/lease.sh (one free core of 6, 7 and the lent cores 0, 1;
+-nice 15, one thread, no GPU) inside the frozen launcher, at most three at a time (the GPU sequence runs beside them); GPU processes take the
+-two GPU locks first, then a core lease. Host mode: every suite, compared with the native v7
+-evidence; ASan/UBSan (host mode). Device modes (device_verified, device): the same suites
+-(history reduced) compared with host mode. Timing: native per-step host cost, native v7
+-(reference build of the same driver) vs v7.1 host vs v7.1 device, 1e4/1e5/1e6 carriers,
+-200 um and 50 um meshes. Never modifies native v7, its evidence or any sealed input."""
+-import sys
+-import threading
+-from concurrent.futures import ThreadPoolExecutor
+-from tooling import *
+-
+-LEASE = Path('/home/treefor/projects/runtimes/core-lease-20261030')
+-label = sys.argv[1] if len(sys.argv) > 1 else 'final'
+-cpus = os.sched_getaffinity(0)
+-need(cpus <= {6, 7} and os.getpriority(os.PRIO_PROCESS, 0) >= 15, 'start under taskset -c 6,7 nice 15')
+-need(os.environ.get('CUDA_VISIBLE_DEVICES', None) == '', 'CUDA_VISIBLE_DEVICES must be empty')
+-F = OUT / label
+-F.mkdir(parents=True, exist_ok=False)
+-records = []
+-records_lock = threading.Lock()
+-inputs_before = sealed_inputs()
+-
+-
+-def execute(name, argv, timeout=7200):
+-    log = F / (name + '.log')
+-    start = time.monotonic()
+-    with log.open('w') as h:
+-        try:
+-            rc = subprocess.run([str(a) for a in argv], stdout=h, stderr=subprocess.STDOUT, timeout=timeout,
+-                                cwd=str(P)).returncode
+-        except subprocess.TimeoutExpired:
+-            rc = 'timeout'
+-    rec = {'name': name, 'argv': [str(a) for a in argv], 'returncode': rc, 'elapsed_s': round(time.monotonic() - start, 3),
+-           'log': str(log), 'log_sha256': sha256(log), 'utc': utc()}
+-    with records_lock:
+-        records.append(rec)
+-        (F / 'receipt-commands.json').write_text(json.dumps(records, indent=1) + '\n')
+-        print(name, rc, rec['elapsed_s'], flush=True)
+-    return rc
+-
+-
+-def cpu_run(name, argv, sanitized=False, rlimit=RLIMIT_AS, timeout=7200):
+-    env = ['env', 'CUDA_VISIBLE_DEVICES=']
+-    if sanitized:
+-        env += ['%s=%s' % kv for kv in ASAN_ENV.items()]
+-        prefix = [FROZEN]
+-    else:
+-        prefix = [FROZEN, 'prlimit', '--as=%d' % rlimit, '--']
+-    return execute(name, [P / 'scripts/lease.sh', *env, *prefix, *argv], timeout)
+-
+-
+-def gpu_run(name, argv, mode=None, timeout=3600):
+-    env = ['env', 'CUDA_VISIBLE_DEVICES=' + GPU_UUID]
+-    if mode:
+-        env += ['PF_V71_EXECUTION=' + mode, 'PF_V71_UUID=' + GPU_UUID, 'PF_V71_NVRTC=' + str(NVRTC)]
+-    return execute(name, ['flock', LEASES / 'testing-gpu.lock', 'flock', LEASES / ('testing-gpu-%s.lock' % GPU_UUID),
+-                          P / 'scripts/lease.sh', *env, FROZEN, *argv], timeout)
+-
+-
+-v7_before = tree_hashes(V7)
+-v7_out_before = tree_hashes(V7_OUT / 'final')
+-rc = execute('build', [LEASE / 'both-cores.sh', 'env', 'CUDA_VISIBLE_DEVICES=', sys.executable, P / 'build-components.py', 'all'],
+-             timeout=7200)
+-need(rc == 0, 'build failed')
+-manifest = json.loads((P / 'SOURCE-SHA256.json').read_text())
+-identity = manifest['source_identity']
+-B = P / 'build'
+-G = 3 * 1024 ** 3
+-H2O = P / 'inputs/h2o-gas-20261029.json'
+-SUITES = [('ported', 'test_ported', []), ('work', 'test_work_gross', []), ('forms-native', 'test_forms_native', []),
+-          ('flows', 'test_flows', []), ('source', 'test_source_arrival', []), ('history-reduced', 'test_history', ['reduced'])]
+-d = {}
+-
+-
+-def out_dir(name):
+-    d[name] = F / name
+-    d[name].mkdir(exist_ok=True)
+-    return d[name]
+-
+-
+-runs = [('legacy', [B / 'test_legacy', H2O, out_dir('legacy')], False, G),
+-        ('history', [B / 'test_history', out_dir('history')], False, G),
+-        ('forms-cpu', [B / 'test_forms_cpu', out_dir('forms-cpu'), 1000000], False, G),
+-        ('flows-long-200000', [B / 'test_flows', out_dir('flows-long'), 'long=200000'], False, G),
+-        ('parity-host', [B / 'test_parity', out_dir('parity') / 'host.json', 60], False, G),
+-        ('parity-v7', [B / 'v7_test_parity', d['parity'] / 'v7.json', 60], False, G),
+-        ('san-legacy', [B / 'sanitized-test_legacy', H2O, out_dir('san-legacy')], True, None),
+-        ('san-ported', [B / 'sanitized-test_ported', out_dir('san-ported')], True, None),
+-        ('san-history', [B / 'sanitized-test_history', out_dir('san-history'), 'reduced'], True, None),
+-        ('san-flows', [B / 'sanitized-test_flows', out_dir('san-flows'), 'reduced'], True, None),
+-        ('san-source-arrival', [B / 'sanitized-test_source_arrival', out_dir('san-source'), 'reduced'], True, None),
+-        ('san-forms-cpu', [B / 'sanitized-test_forms_cpu', out_dir('san-forms-cpu'), 100000], True, None),
+-        ('san-forms-native', [B / 'sanitized-test_forms_native', out_dir('san-forms-native'), 'reduced'], True, None),
+-        ('san-work-gross', [B / 'sanitized-test_work_gross', out_dir('san-work-gross')], True, None)]
+-for name, exe, extra in SUITES:
+-    runs.append(('host-' + name, [B / exe, out_dir('host-' + name), *extra], False, G))
+-for mode in ['device_verified', 'device']:
+-    for name, exe, extra in SUITES:
+-        out_dir('%s-%s' % (mode, name))
+-
+-
+-def gpu_phase():
+-    """GPU forms parity (two fresh processes) and the device-mode suites; runs beside the CPU tests."""
+-    codes = {}
+-    for k in [1, 2]:
+-        codes['gpu-forms-run%d' % k] = gpu_run('gpu-forms-run%d' % k, [B / 'test_forms_gpu', NVRTC, GPU_UUID, 1000000])
+-    for mode in ['device_verified', 'device']:
+-        for name, exe, extra in SUITES:
+-            tag = '%s-%s' % (mode, name)
+-            codes[tag] = gpu_run(tag, [B / exe, d[tag], *extra], mode)
+-        codes[mode + '-parity'] = gpu_run(mode + '-parity', [B / 'test_parity', d['parity'] / ('%s.json' % mode), 60], mode)
+-    return codes
+-
+-
+-with ThreadPoolExecutor(max_workers=4) as pool:
+-    gpu_future = pool.submit(gpu_phase)
+-    futures = {name: pool.submit(cpu_run, name, argv, san, lim or G) for name, argv, san, lim in runs}
+-    codes = {name: f.result() for name, f in futures.items()}
+-    codes.update(gpu_future.result())
+-need(all(c == 0 for c in codes.values()), 'test failures: %s' % {k: v for k, v in codes.items() if v != 0})
+-rc = cpu_run('verify-exact', ['/usr/bin/python', '-I', P / 'forms/tests/verify_exact.py', d['forms-cpu'] / 'adversarial.txt'])
+-need(rc == 0, 'rational verification failed')
+-timing = out_dir('timing')
+-for mesh in [45, 180]:
+-    for n, steps in [(10000, 8), (100000, 5), (1000000, 4)]:
+-        tag = '%d-%d' % (mesh, n)
+-        need(cpu_run('timing-v7-host-' + tag, [B / 'v7_test_step_timing', timing / ('v7-host-%s.json' % tag), 'host', n, steps,
+-                                               mesh, NVRTC, GPU_UUID], rlimit=12 * 1024 ** 3) == 0, 'timing failed')
+-        need(cpu_run('timing-v71-host-' + tag, [B / 'test_step_timing', timing / ('v71-host-%s.json' % tag), 'host', n, steps,
+-                                                mesh, NVRTC, GPU_UUID], rlimit=12 * 1024 ** 3) == 0, 'timing failed')
+-        need(gpu_run('timing-v71-device-' + tag, [B / 'test_step_timing', timing / ('v71-device-%s.json' % tag), 'device', n,
+-                                                  steps, mesh, NVRTC, GPU_UUID]) == 0, 'timing failed')
+-    # Device lane with the v7 streaming field/current digests (hashed on the host): the cost the block form removes.
+-    need(gpu_run('timing-v71-device_stream-%d-10000' % mesh, [B / 'test_step_timing', timing / ('v71-device_stream-%d-10000.json' % mesh),
+-                                                            'device_stream', 10000, 8, mesh, NVRTC, GPU_UUID]) == 0, 'timing failed')
+-
+-# 2. Parity and results.
+-load = lambda p: json.loads(Path(p).read_text())
+-V7F = V7_OUT / 'final'
+-
+-
+-def flat(x, p=''):
+-    if isinstance(x, dict):
+-        for k, v in x.items():
+-            yield from flat(v, p + '/' + k)
+-    elif isinstance(x, list):
+-        for i, v in enumerate(x):
+-            yield from flat(v, p + '/' + str(i))
+-    else:
+-        yield p, x
+-
+-
+-def measured(k):
+-    """Run-dependent measurements (memory, elapsed seconds) recorded by the suites."""
+-    leaf = k.rsplit('/', 1)[-1]
+-    return k == '/seconds' or ('/measurements/' in k and ('KiB' in leaf or leaf.endswith('_s') or leaf == 'seconds'))
+-
+-
+-def differences(a, b, ignore=(), exact=(), contains=()):
+-    """Paths whose values differ, other than measurements and the given paths."""
+-    fa, fb = dict(flat(a)), dict(flat(b))
+-    return sorted(k for k in set(fa) | set(fb) if fa.get(k) != fb.get(k) and not measured(k)
+-                  and not (ignore and k.endswith(tuple(ignore))) and k not in exact and not any(c in k for c in contains))
+-
+-
+-# Checkpoint fields bound to the source identity: the file digest, source_sha256 and the history anchors.
+-IDENTITY_BOUND = {'exact': ('/sha256', '/payload/source_sha256'), 'contains': ('anchor_root_sha256', '/history/anchors/')}
+-
+-
+-OUTPUT = {'ported': 'candidate005-ported-tests.json', 'work': 'v7-work-gross.json', 'forms-native': 'v7-forms-native.json',
+-          'flows': 'v6-flows-tests.json', 'source': 'v6-source-arrival-tests.json', 'history-reduced': 'v5-history-tests.json'}
+-V7_NAME = {'ported': 'ported', 'work': 'work-gross', 'forms-native': 'forms-native', 'flows': 'flows', 'source': 'source'}
+-host_vs_v7 = {}
+-for name, v7dir in V7_NAME.items():
+-    host_vs_v7[name] = differences(load(V7F / v7dir / OUTPUT[name]), load(d['host-' + name] / OUTPUT[name]))
+-host_vs_v7['history'] = differences(load(V7F / 'history' / OUTPUT['history-reduced']), load(d['history'] / OUTPUT['history-reduced']))
+-for name, v7dir, ours in [('ported', 'ported', 'host-ported'), ('forms-native', 'forms-native', 'host-forms-native'),
+-                          ('flows', 'flows', 'host-flows'), ('history', 'history', 'history'), ('legacy', 'legacy', 'legacy')]:
+-    # Checkpoints: equal except the fields bound to the source identity (source_sha256, anchors, file digest).
+-    for f in sorted((V7F / v7dir).glob('*.json')):
+-        if f.name != OUTPUT.get(name, '') and f.name != 'arena-tests.json':
+-            host_vs_v7['%s/%s' % (name, f.name)] = differences(load(f), load(d[ours] / f.name), **IDENTITY_BOUND)
+-need(all(not v for v in host_vs_v7.values()), 'host-mode outputs differ from native v7: %s' % host_vs_v7)
+-need(load(V7F / 'legacy/arena-tests.json') == load(d['legacy'] / 'arena-tests.json') == load(d['san-legacy'] / 'arena-tests.json'),
+-     'legacy results differ from native v7')
+-device_vs_host = {}
+-for mode in ['device_verified', 'device']:
+-    for name in OUTPUT:
+-        device_vs_host['%s-%s' % (mode, name)] = differences(load(d['host-' + name] / OUTPUT[name]),
+-                                                            load(d['%s-%s' % (mode, name)] / OUTPUT[name]))
+-        # Every other file the suite wrote (checkpoints): identical bytes.
+-        for f in sorted(d['host-' + name].glob('*.json')):
+-            if f.name not in (OUTPUT[name], 'execution.json'):
+-                same = f.read_bytes() == (d['%s-%s' % (mode, name)] / f.name).read_bytes()
+-                device_vs_host['%s-%s/%s' % (mode, name, f.name)] = [] if same else ['bytes differ']
+-need(all(not v for v in device_vs_host.values()), 'device-mode outputs differ from host mode: %s' % device_vs_host)
+-executions = {k: load(d[k] / 'execution.json') for k in d if k.startswith('device')}
+-for mode in ['device_verified', 'device']:
+-    executions[mode + '-parity'] = load(d['parity'] / ('%s.json.execution.json' % mode))
+-p_host, p_v7 = load(d['parity'] / 'host.json'), load(d['parity'] / 'v7.json')
+-parity = {'v7_vs_host': differences(p_v7, p_host, ignore=('/seconds', 'anchor_head_sha256', 'anchor_root_sha256', 'source_identity'))}
+-for mode in ['device_verified', 'device']:
+-    parity[mode + '_vs_host'] = differences(p_host, load(d['parity'] / ('%s.json' % mode)))
+-need(not parity['v7_vs_host'] and not parity['device_verified_vs_host'] and not parity['device_vs_host'],
+-     'parity traces differ: %s' % parity)
+-
+-
+-def results_of(log):
+-    return [line.strip() for line in log.read_text().splitlines() if line.startswith('RESULT ')]
+-
+-
+-g1, g2 = results_of(F / 'gpu-forms-run1.log'), results_of(F / 'gpu-forms-run2.log')
+-strip = lambda lines: [' '.join(t for t in l.split() if 'ms' not in t and 'wall' not in t and 'us_per' not in t) for l in lines]
+-need(strip(g1) == strip(g2) and any('gpu_checks=' in l and 'failures=0' in l for l in g1), 'GPU forms runs differ or failed')
+-timings = {p.stem: load(p) for p in sorted(timing.glob('*.json'))}
+-need(tree_hashes(V7) == v7_before and tree_hashes(V7_OUT / 'final') == v7_out_before, 'native v7 or its evidence changed')
+-need(sealed_inputs() == inputs_before, 'sealed inputs changed during verification')
+-need(json.loads((P / 'SOURCE-SHA256.json').read_text()) == manifest, 'v7.1 source changed during verification')
+-artifacts = {str(p.relative_to(P)): sha256(p) for p in sorted(B.glob('*')) if p.is_file()}
+-(F / 'build-artifact-hashes.json').write_text(json.dumps(artifacts, indent=2) + '\n')
+-result = {'status': 'passed', 'source_identity': identity, 'base_v7_identity': V7_IDENTITY,
+-          'host_vs_v7_differences': host_vs_v7, 'device_vs_host_differences': device_vs_host, 'executions': executions,
+-          'parity': parity, 'forms_cpu': results_of(F / 'forms-cpu.log'),
+-          'exact_rational_verification': results_of(F / 'verify-exact.log'), 'gpu_forms': g1, 'timings': timings,
+-          'sanitized': {k: (F / (k + '.log')).read_text().strip().splitlines()[-1] for k in
+-                        ['san-legacy', 'san-ported', 'san-history', 'san-flows', 'san-source-arrival', 'san-forms-cpu',
+-                         'san-forms-native', 'san-work-gross']},
+-          'long_run_200000': load(d['flows-long'] / 'v6-flows-long-run.json')['measurements']['long_run'],
+-          'suite_summaries': {rec['name']: Path(rec['log']).read_text().strip().splitlines()[-1] for rec in records
+-                              if rec['name'] != 'build' and Path(rec['log']).read_text().strip()},
+-          'sealed_inputs': inputs_before, 'utc': utc()}
+-(F / 'verification-result.json').write_text(json.dumps(result, indent=2) + '\n')
+-print(json.dumps({k: result[k] for k in ['status', 'source_identity', 'parity']}, indent=1))
++"""Audit qualification entry point: cpu|gpu LABEL, in a matching SimQueue allocation.
++CPU and GPU receipts are separate; neither alone claims complete qualification.
++"""
++from pathlib import Path
++import runpy
++runpy.run_path(str(Path(__file__).with_name("audit-tests.py")), run_name="__main__")

@@ -1,0 +1,29 @@
+Native v8.2 audit corrections; frozen component CPU/GPU qualification passed.
+
+Original coherent source snapshot is recorded in AUDIT-SNAPSHOT.json. The new
+runtime is native-full-time-candidate008-auditfix; existing candidate008 and all
+sealed predecessors were left untouched.
+
+adoption.diff uses the coherent snapshot as its base. adoption-base contains
+exact preimages for changed original files, and adoption-hashes.json lists
+pre/post SHA256 values. git apply --check passed against audit-baseline.
+Do not overwrite later live changes: compare preimages, merge explicitly, and
+repeat frozen build plus CPU/GPU qualification after adoption.
+
+The v5 compatible arena interface is retained. Corrected native v8 chemistry
+checkpoints use v8.2-auditfix2 and chemistry-state-codec-v3-parcels-support.
+Moment-only reservoirs cannot reconstruct actual neutral parcels, and old
+checkpoints lack complete sink/reachable-support identity. Such v8 checkpoints
+are deliberately refused; changing a version label is not a valid migration.
+Restart those cases from supported genesis or separately prove a migration.
+
+Chemistry depends on corrected pic-water-chemistry-v3.1.1-20261031, with the
+blob/policy/header pins in tooling.py. Data remain in the pinned runtime;
+this artifact does not copy licensed collision datasets. Deterministic release
+changes the release stream; its no-RNG parcel contract is bound into identity.
+
+Strict chemistry refuses events without a target energy/momentum owner.
+Explicit diagnostic_field_target_approximation=true enables only a labeled
+field-target approximation. No full-system energy closure is claimed. Strict
+coverage refuses reachable unknown support even at zero physical rate; diagnostic
+admission preserves exact physical exposure/bounds and separate support counts.

@@ -1,0 +1,27 @@
+===== simq job 271: native-audit-final-gpu =====
+submitted: 2026-11-01T05:09:06Z
+started:   2026-11-01T05:10:33Z
+cwd:       /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix
+partition: powerflow
+P-cores:   6
+GPUs:      GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9 (shared, claim 3G)
+memory:    3G (swap 1G)
+time:      00:05:00
+unit:      simq-job-271-a0c5c1ef0598.service
+command:   nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 /usr/bin/python audit-tests.py gpu final-gpu
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-gpu.lock (shared), /home/treefor/projects/.workspace/outputs/pic-profile/testing-gpu-GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9.lock (shared), /home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock (exclusive)
+error: bounded string JSON required
+
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix/audit-tests.py", line 30, in <module>
+    r.run(argv,name+'.log',timeout=240,env={'PF_V8_CHEM':'v3.1'},rlimit=3*1024**3,limit=mode!='gpu')
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix/tooling.py", line 231, in run
+    raise RuntimeError(f'failed {log} exit {p.returncode}')
+RuntimeError: failed chemistry-gpu.log exit 2
+========================================
+finished:  2026-11-01T05:15:01Z
+exit code: 1
+state:     failed
+===== simq job 271 finished =====

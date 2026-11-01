@@ -1,0 +1,78 @@
+Native v8 (candidate008) -- handoff note
+Updated: 2026-10-31 23:10 MDT (fourth worker resumed 21:30)
+
+Goal
+ Native v8 of the native reaction-transaction owner (Power-Flow coupled PIC water breakdown), sealed:
+ stage A (v8.0) chemistry v3/v3.1 in the native owner, device chemistry stage, persistent packet table, host
+ time target; stage B (v8.1) wall-response births, metal neutral species, merge/split; nonempty restore;
+ COORDINATOR-V8-LINK.txt and HALL-LINK-8.txt; final verification run with receipts and RESULTS-008.txt.
+ Contract: API-008.txt. Results: RESULTS-008.txt (placeholders [TABLE], [DEVICE-COMPAT], [GPU], [SAN],
+ [REGRESSION] still to fill from the final run).
+ Outputs: /home/treefor/projects/.workspace/outputs/native-v8-20261031/
+
+Binding in force
+ production-v1 preset = chemistry v3.1 blob sha256 7f30e0123d04424887a2f5154df3e09006c6c59f5759422abec9c8ceecd943a5,
+ coverage policy file sha256 ad3742f359549e8af4bcb8b38654518df97deeaf7604e401478bb62953e0fe21,
+ max_events 64, max_candidates 4096, refuse bounded region when B_r > max(1, 0.01 A). v3 blob kept for parity tests.
+ Headers compiled: pic-water-chemistry-v3.1-20261031 (tooling.py CHEM). A v3.2 blob (keV ions) is being built
+ elsewhere; the binding is by path + sha256 constants in mfem_pic_full_time.h (swappable).
+
+Current source identity: 519423268f493abde0a2df8d1a8b1b3d5d00a4f6c25f4383056aeb9231b26fa6 (build20, after the
+ persistent_containers.h per-entry digest cache change).
+
+Done (receipts)
+ - Compatible mode (v7.1 host suites vs v7.1 evidence, identical): outputs/.../compat-c4/ (on 519423268f).
+ - CPU v8 controls on 519423268f, all pass: outputs/.../resume-cpu1/progress.txt
+   (containers 145; chemistry v3 and v3.1 61 controls each; restore K=2,3,5 continuation identical, 7/7 tamper
+   refused; sinks 6 controls). Script: scripts/cpu_suite.sh OUTDIR.
+ - Device chemistry controls and device timings (earlier identity 7989fcf5): outputs/.../gpu2/ (one segfault at
+   45/1e4/1e14, fixed afterwards in native_device.cpp chem module ownership; to be rerun).
+ - Host timings (v8 host mode): outputs/.../timing2/. Table: python3 scripts/timing_table.py <hostdir> <devdir>.
+ - Nonempty restore, published sinks, ejected-melt reservoir, v7.1 dangling-record fix (API-008 5, 7).
+ - SimQueue job 179 (native-v8-gpu-series): canceled before launch by the previous worker (the 4h24m shown is
+   time since creation, no run). Its work ran outside the queue as gpu1 (killed) and gpu2 (completed).
+
+Stage A verification on 519423268f (complete)
+ - SimQueue job 200 (v8-gpu3-series) succeeded: device controls v3 and v3.1 (5/5 each), device_verified regression,
+   device timings 1e4/1e5/1e6 x meshes 45/180 x water 1e14/1e6: outputs/.../gpu3/ (1e6, mesh 45, 1e14: 71.8 ms host CPU).
+ - SimQueue job 201 (v8-compat-d1): every v7.1 suite passes in device and device_verified modes; outputs equal the v7.1
+   device evidence (78 files compared, no differences): outputs/.../compat-d1/compat-result.json (the job's own comparison
+   step failed on a compat.py bug, fixed; compared with scripts/compat.py d1 --device-only --compare-only).
+ - SimQueue job 191 (v8-prof2): host CPU 73.5 ms per step at 1e6 (device mode), see prof2/.
+
+Device admission of births/sinks (stage A item 2) -- DONE on build21 (identity c3922df6..., interim)
+ - Changed: native_kernels.cu, native_device.{hpp,cpp}, mfem_pic_full_time.inc (sink_ledger() shared; motion_v7_device
+   with sinks/newborns, host checks from gathered rows; births appended on device rows). Test tests/test_v8_flows_gpu.cpp:
+   48 steps host = device_verified = device every step (births every step, 42 sinks, newborns sunk in their first
+   flight in 16 steps, two-carrier packets sunk whole); device mode 48/48 admissions on the device, 0 host; refusal
+   parity 3/3 (same typed text). outputs/.../dev1/ (also chemistry device controls 5/5, v7.1 regression, timing).
+ - Host flows suite after the sink_ledger refactor equals v7.1 (compat-c5).
+
+In progress (fourth worker): stage B (v8.1) in source (not yet built)
+ - Header: FullTimeBirth bridge/returned/internal_energy_J; FullTimeWallBirth + FullTimeBirthCredit::wall;
+   FullTimeBirthBridge; receipt arrival_next_id_after/wall_entries/wall_credits/bridges/internal; exposure
+   internal_energy_J; motion record v8.1 extras (relocations, bridges, extra current, extra work).
+ - Rows: RowKind birth_v81 = 9, merge_split = 10; motion row extras when schema v8.1; grammar updated.
+ - State: FullTimeFlowsV81 (chem_v3_native.{hpp,cpp}: digest/codec), snapshot field, checkpoint "v81", restore.
+ - births(): v8.1 arrival fields, wall births, returned births, bridges, internal energy entries; sink_ledger publishes
+   internal energy; seal releases internal energy of packets removed/changed by chemistry.
+ - TODO: motion v8.1 extras admission (host+device), merge/split (MergeScope, transact via the component CPU reference
+   compiled from resolution-series-prep-20261031/merge-split/src/merge_split.cpp), status API, metal states helper,
+   tests (v8.1 births/sinks/merge, restore), build, GPU runs.
+ - CORE LOAN (coordinator, ~6 h from 23:00): only logical CPU 15, nice 19, flock testing-cpu15.lock. Use
+   PF_CPU15_ONLY=1 with scripts/lease.sh / lease2.sh (routes to scripts/lease15.sh); GPU runs directly: flock -s
+   testing-gpu.lock, flock -s testing-gpu-<UUID>.lock, then scripts/lease15.sh. No timing measurements meanwhile.
+ - Build infra: PF_BUILD_ISA_FLAGS hook in build-components.py (coordinator ask); one compile per leased CPU.
+
+Next steps
+ 1. Stage A close-out: host-time reductions (resolve, packets, token_prefix phases of the chemistry stage);
+    device compat suites (scripts/compat.py LABEL --device, via SimQueue); GPU series rerun
+    (scripts/gpu_series.sh); then message main "stage A verified".
+ 2. Stage B: wall-response births (source v7 B2), matching-plane births with bridge paths (B3), born-and-collected
+    births (B4); Mn/Si/C states and released internal energy of metal-vapour births; merge/split native
+    transaction (merge-split INTEGRATION 2) with relocation records in the motion record.
+ 3. verify-final.py for v8 (copy is v7.1's), final run, RESULTS-008.txt, LINK files update.
+
+Decisions taken (by this and the previous worker; see API-008.txt for the full list)
+ - Approved by the owner: chemistry integration choices 1-7; production coverage policy; restore scope.
+ - Job 179 not rerun as such: superseded by the rerun of scripts/gpu_series.sh on the final identity.
