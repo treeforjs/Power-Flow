@@ -1,0 +1,63 @@
+Native v8.3 admitted-event / actual-target-debit export
+=====================================================
+This is a diagnostic component interface for a future gas-owner adapter. Strict
+eventful production chemistry still refuses without a target energy owner. No
+gas feedback, transport closure, common publication, or physical breakdown run
+is implemented here. Existing numerical guards remain.
+
+PreparedArena::candidate_admitted_export(true) returns the same immutable object
+as candidate_chemistry_stage()->admitted_export after validating commitments and
+refusing ambiguous projectile/target or carried internal-energy consumption.
+Passing false permits diagnostic inspection only. A public struct or digest is
+not a transaction capability. The consuming adapter must retain the actual live
+CollisionScope and PreparedArena, check can_publish before and after extraction,
+and recheck at use/publication. Every prepare attempt creates a fresh shared
+object; deterministic retry facts can have the same digest. Retaining the old
+object prevents address reuse. This identity does not grant gas authority.
+
+The export separates the raw candidate-record root from the admitted prefix
+root. Per-carrier raw ranges and admitted prefix lengths identify exactly which
+raw EventRec bytes were applied. Only admitted records appear in events; raw
+rejected suffixes are not reclassified as reactions. Event bytes use the pinned
+C3 EventRec ABI, not a portable wire format. The adapter must validate that ABI,
+process/target metadata, blob, registry, species mass/charge, and tracked-target
+semantics. A non-GAS-return consuming event with no tracked-target debit is not
+sufficient for gas closure and must refuse there.
+
+Actual debits carry original packet identity, state, atlas cell, exact ArenaCount
+amount, and before/remainder snapshots. Each snapshot contains exact packet
+count plus all actual positive binary64 carrier weights, IDs, positions, proper
+velocities, masses and charges. Those weights are individual moment operands;
+a single rounded double is never an exact-count replacement. Whole consumption
+has an absent remainder. Partial nonbinary remainders can require several native
+carriers. The validator telescopes counts exactly and matches summed actual
+debits to summed admitted consuming weights by cell/species. GAS-return events
+never debit target inventory. Releases report actual released parcels separately.
+
+A packet that is also changed as a projectile exports both actual snapshots,
+sets also_projectile, and refuses the default consuming getter: attributing the
+moment change to target consumption alone would double-count the projectile
+kick. Nonzero carried internal energy sets internal_energy_deferred and also
+refuses: current native ownership is resolved later; no proportional split or
+invented credit is supplied. Manufactured refusal cases test these flags; the
+current populated controls do not qualify real overlap/internal-owner paths.
+
+All roots bind stage/accepted-step, common clock, accepted native digest, private
+frame snapshot/history, native ID interval, exposure sequence/duration/field,
+configuration/registry/input and chemistry-before/after identities. A retained
+chemistry journal row stores the final export commitment. The whole fact body
+is not serialized for independent replay from a checkpoint.
+
+Configuration identity is v8.3-admitted-export-v1 and the native snapshot tag
+also changes. v8.2 checkpoints are deliberately refused; no silent migration.
+The public header/receipt layout changes require dependent code to be rebuilt.
+The pinned C3 parcel/state codec stays unchanged. Adoption must use the complete
+source patch, source identity and matching archive, not selected headers alone.
+
+Device target segment inspection adds exact x/u fields to the existing compact
+per-debit download (11 words instead of 5). No full population download is added.
+Existing explicit host fallback for unsupported multi-carrier target editing
+remains. Device-verified mode compares complete export digests against host.
+Export memory grows with admitted records/debits/releases; no peak-memory or
+performance qualification is claimed. Allocation failures remain before native
+publication. Resource and physics thresholds are not relaxed.
