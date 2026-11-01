@@ -1,6 +1,6 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-10-31 21:50 MDT. Keep this file current at every milestone so
+Last updated 2026-10-31 22:40 MDT. Keep this file current at every milestone so
 the work can be picked up from it alone.
 
 ## What this is
@@ -13,7 +13,7 @@ owners exchange sealed, digest-bound state through a coordinator:
 |---|---|
 | Hall corrective | electromagnetic field (E, B, J), Gauss ledger, field-only pre-run |
 | Native reaction transactions | carriers, collisions (MCC), births/sinks, motion record, restore |
-| Water chemistry | e/ion + H2O cross-section tables, coverage policy (refuse vs bounded) |
+| Water chemistry | v3.1 (848e3e9): recombination and slow-ion coverage | v3.2: keV ion/negative-ion + H2O coverage: H+ from Wedlund 2019 / Gobet 2004 / Rudd 1992; heavy ions from sampled equal-speed model estimates (He+ / He2+ analogues, proton capture), tagged model-derived with uncertainty, bounds documented | swap into native v8 |
 | Source owner | electrode surface physics: emission, desorption, wall response |
 | SS304 phase owner | electrode heating, melt, vapour |
 | C19 circuit | drive current / port coupling |
@@ -39,7 +39,7 @@ and then copied (filtered) into `artifacts/<component>-<version>-<date>/` here.
 
 | Component | Sealed / committed | In progress | Next |
 |---|---|---|---|
-| Hall | v3.3 (111953c): exact-form magnetic update, 20 ns pre-run | v3.4: remove remaining host work (device deposit support, device preflight/census, exact-sum residual, block-form digests for native v7.1) | v3.5: `restore_as_genesis` (start the coupled run from the 20 ns vacuum checkpoint), graded 35-45 mm transverse mesh, circuit port-current mode, SS304 v1.2 thermal owner, source v7 wall heat, merge/split relocation deposit, GMG option |
+| Hall | v3.4: host work removed (device deposit support, preflight, census; exact-sum residual; block-form digests); Hall-only step 7-19x faster than v3.3 at 1e5-1e6 carriers; FP64/bandwidth/latency split per kernel (artifacts/hall-corrective-v3.4-20261031, RESULTS.txt sections 12-13) | v3.5: `restore_as_genesis` (start the coupled run from the 20 ns vacuum checkpoint), then GPU node-walk parallelization and radix-sort passes | graded 35-45 mm transverse mesh, circuit port-current mode, SS304 v1.2 thermal owner, source v7 wall heat, merge/split relocation deposit, GMG option (v3.5 or v3.6) |
 | Native | v7.1 (2c37382): device admission, copy-on-write state | v8 (candidate008): chemistry v3.1 binding, device chemistry, nonempty restore, wall births, metal species, merge/split; nuclei ABI v4 | Raikou kinetic-core adoption |
 | Water chemistry | v3.1 (848e3e9): recombination and slow-ion coverage | v3.2: keV ion/negative-ion + H2O coverage (data where available, physics bounds elsewhere) | swap into native v8 |
 | Coordinator | v8 stage 1 (93e3936): source v7 wired, raised dt caps, restart, launch from checkpoint | - | stage 2 after Hall v3.5 + native v8: bind all owners, production presets, direct native restore, start from 20 ns |
@@ -71,7 +71,8 @@ Hall v3.5 `restore_as_genesis` resolves it without changing any check.
   C3 max_events 64, max_candidates 4096; nonempty restore included.
 - Chemistry v3.1: recombination 2-30 eV from digitized Rosen 2000 / Jensen 2000
   figures, bounded above; slow-ion join rules; H- detachment zero below 0.75 eV.
-- Chemistry v3.2: close the keV ion + H2O gap with literature data or physics bounds.
+- Chemistry v3.2: close the keV ion + H2O gap with literature data; where none exists, sample equal-speed model
+  estimates (tagged model-derived, with uncertainty; geometric bounds documented) so fast heavy ions do not stop runs.
 - Coordinator v8: restart by verified replay now, real native restore in v8;
   emission/desorption error targets 1e-3; Hall v3.5 `restore_as_genesis` for the 20 ns start.
 - Shared with Raikou: nuclei ABI v4 (16 slots: 0 H, 1 O, 2 Fe, 3 Cr, 4 Ni, 5 Mn,
@@ -90,7 +91,10 @@ production, the melt inertia model, sub-cycling K.
 - Ryzen 7 9850X3D (8 cores; logical 0-7 cores, 8-15 SMT), RTX 3080 Ti 12 GB, 30 GB RAM
   (~12 GB free under load). A 16-core Ryzen 9 9950X3D2 is due around 2026-11-05;
   afterwards repartition and requalify by fingerprint comparison.
-- Cores: 0-3 Spheral, 4-5 raikou-mfem, 6-7 Power-Flow. The GPU is shared with
+- Cores (development split): 0-3 Spheral, 4-5 raikou-mfem, 6-7 Power-Flow; after the 16-core swap Spheral gets one
+  chiplet (8 cores), raikou-mfem and Power-Flow 4 each on the other, shared mfem-pic work borrows idle cores there.
+  A properly optimized run that needs all ranks may use all cores; during a Spheral full-run window Power-Flow keeps
+  only logical CPU 15 (nice 19) for one GPU host thread. The GPU is shared with
   raikou-mfem and the Raikou kinetic-core work.
 - Use SimQueue: `simq submit -p powerflow -c N [--gpus 1 --gpu-mem 2G] --mem X -t T -- cmd`;
   `--borrow` for idle cores of other partitions. Always pass `--mem`.

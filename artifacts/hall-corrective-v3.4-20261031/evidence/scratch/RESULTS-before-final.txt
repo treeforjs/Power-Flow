@@ -1,0 +1,227 @@
+Hall corrective v3.4 -- results of record (2026-10-31)
+Sources: /home/treefor/projects/runtimes/hall-corrective-v3.4-20261031 (README.txt: design, rules, derivations).
+Outputs: /home/treefor/projects/.workspace/outputs/hall-corrective-v3.4-20261031 (one receipted directory per run).
+
+0. Builds
+ b12   final Hall v3.4 build (run_hall_v34.py build b12): native v7.1 forms library (candidate007.1/forms, HALL_FORMS_V71),
+       blocking waits in the device path, trial-field digest once per step, native v7.1 lane configuration. Acceptance,
+       bench (device, lane) and qualification runs below are on b12 unless stated.
+ b13   = b12 plus two test-fixture fixes (tests/test_v32.cpp resealing helpers, tests/test_resident.cpp residual comparison;
+       section 11); the v3.3 suites in both host-work modes and the Hall v3 component tests run on b13 (section 5).
+ b3    bench "before" rows (owner = v3.3 Owner; v33 = resident owner on the v3.3 host path; the v3.3 paths are unchanged
+       in b12) and the device/lane rows before the blocking-wait fix (section 1.3).
+ b4    20 ns pre-run and the 100/50 um windows (same divB rule and field arithmetic as b12).
+ c2    coordinator v5 T1-T7 parity build/run (run_coordinator_parity.py; host Owner path, final sources).
+ r6    coordinator v7.1 copy, Hall v3.4 + native v7.1 (device lane); r7: Hall v3.4 + native v7 (host admission).
+ v3.3 reruns: sealed build s1 of v3.3 (run_v33_rerun.sh; receipts in the v3.3 outputs s1/).
+
+1. Host cost per item, before (v3.3 path) and after (device path)
+ test_v34 bench, load fixture (e/H2O+ pairs, 2% neutrals), 6/4/3 steps at 1e4/1e5/1e6, median over the steps after the
+ first, ms per step. Columns: 1e4, 1e5, 1e6 carriers, each "200 um / 50 um". Modes: owner = v3.3 Owner (host Model);
+ v33 = resident owner on the v3.3 host path (verification mode; the before rows of every item); device = v3.4 device
+ path in the native v7 configuration (host census input, host record arrays, streaming digests); lane = native v7.1
+ configuration (device census, no host record arrays, block-form digests). Before rows are wall times of host-bound
+ loops (= host CPU within a few %), after rows are thread CPU time of the host thread. Tables: bench-tables/b3.txt
+ (owner, v33; device/lane before the blocking-wait fix), bench-tables/b12.txt (device, lane).
+
+ item                                           1e4 200/50        1e5 200/50        1e6 200/50
+ 1 deposit support + bank transfer  v33         12.5 / 14.4       122 / 187         1790 / 1803
+                                    device,lane  0.000 / 0.000     0.001 / 0.001     0.002 / 0.003   (support on the device; bank O(S+B))
+ 2 preflight recomputation          v33          8.0 / 24.5        71 / 88           793 / 854
+                                    device       1.37 / 15.2       1.13 / 14.9       1.33 / 15.6
+                                    lane         0.36 / 3.36       0.41 / 3.29       0.51 / 3.49
+ 3 push host parts + motion fold    v33 (wall)   6.2 / 21.2        51 / 78           733 / 722       (push upload 136, admit 325, assemble 62 at 1e6/200)
+                                    device,lane  0.39 / 0.49       0.41 / 0.71       0.90 / 0.78     (device step motion, CPU)
+   record v7 (accepted iterate)     v33          0.87 / 3.9        6.7 / 9.8         65 / 70
+                                    device       0.36 / 4.0        1.28 / 4.6        14.1 / 16.2     (host record arrays: memcpy)
+                                    lane         0.13 / 1.63       0.15 / 1.63       0.17 / 1.66
+ 4 census admission                 v33          2.5 / 5.4         21.5 / 24.7       222 / 241
+                                    device       0.12 / 0.16       0.64 / 0.57       9.97 / 9.86     (host census gather, 80 B/row)
+                                    lane         0.06 / 0.09       0.11 / 0.11       0.14 / 0.12     (device census in place)
+ 6 independent residual             v33          1.5 / 28.3        1.6 / 42.9        2.6 / 45.9
+                                    device,lane  0 (device kernels; decoded with the step's results)
+   trial-field digest               v33          per iterate inside item 3 (streaming SHA-256 of the trial E/B)
+                                    device       0.62 / 10.2       0.67 / 10.3       0.68 / 12.2     (once per step)
+                                    lane         0 / 0 (block form on the device)
+   field step host part (CPU)       device,lane  0.39 / 1.8        0.55 / 2.7        0.94 / 3.2      (launches, leaf roots, sample)
+   finish (thermal, heat, digests)  device,lane  0.6 / 8.2         0.7 / 7.8         0.7 / 8.0       (host thermal owner; unchanged item)
+ 5 whole coupled step, host CPU (prepare + preflight + publish)
+                                    owner        67 / 689          317 / 1259        3690 / 4761
+                                    v33          32.7 / 127.5      273 / 475         3536 / 3807
+                                    device       3.97 / 42.2       5.51 / 43.1       28.9 / 67.2
+                                    lane         2.07 / 18.2       2.61 / 17.8       3.79 / 18.4
+   us per carrier at 1e6: owner 3.69 / 4.76; v33 3.54 / 3.81; device 0.029 / 0.067; lane 0.0038 / 0.018.
+   The remaining lane cost is per mesh, not per carrier (50 um: finish 8.1, preflight 3.5, field step 2.9, record 1.7
+   (endpoint/initial charge streaming digests)); per carrier it is flat from 1e4 to 1e6.
+ 1.3 Blocking waits (b3 -> b12, device mode, host CPU): 6.4/52.8, 20.5/74.5, 224/200 -> 3.97/42.2, 5.51/43.1, 28.9/67.2;
+     device-step motion CPU at 1e6/200 198 -> 0.90 ms. The v3.3 event waits (cuEventSynchronize on CU_EVENT_DEFAULT
+     events) busy-wait for the whole device time; the device path now waits with cuStreamSynchronize under
+     CU_CTX_SCHED_BLOCKING_SYNC. GPU time per step is unchanged (push 64 ms at 1e6/200, 34 ms at 1e6/50).
+ Device time per step (b12, lane; device and v33 alike): push 0.94 / 0.73, 6.6 / 3.5, 63.8 / 33.9 ms (1e4, 1e5, 1e6;
+   200 / 50 um); the field step (device CG solve and kernels) 3.6 / 36 ms wall at both carrier counts; 2-3 fixed-point
+   iterations. Hall prepare wall time per step at 1e6/200 um: v33 2957 ms, lane 313 ms (device-bound: 3 iterations of
+   push, fold, support and field step).
+ Item 7 (native v7.1 exposure): the lane rows above; DeviceStep::session()/forms()/record_view() (README 1.6).
+
+2. Parity, CPU vs GPU bit identity, tamper (build b12; b12/cpu-x87-*, b12/gpu-v34-*)
+ x87 emulation (CPU): add/sub/mul/floor/le/to_double bit-identical to the host long double on 4e6 random operations
+   (near cancellation, wide exponent spread); the same_net_charge and free_charge_guard node predicates identical to the
+   host form; the emulated deposit support bit-identical to DepositSupportBuilder on every node of every random set
+   (60 sets, meshes 45 and 180) and the displacement-guard refusal at the same carrier with the sealed text. 6/6 pass.
+ Lockstep parity (test_v34 parity), three resident owners per fixture: v33 (v3.3 host path), device (native v7
+   configuration) and lane (native v7.1 configuration). 200 um: 33/33 pass; 50 um: 33/33 pass. 24 motion fixtures
+   (pairs 2e3 and 1e4, node-plane pairs, dense blob with sinks, 19 sink geometries including newborn faces and newborn
+   sinks within the flight, 400 random near-foil carriers) and 9 refusal fixtures (duplicate ID, empty packet, divergent
+   packet, unsorted census, carrier in foil, newborn listed twice / absent / outside the step, interval): identical
+   decisions and refusal texts in all three owners. Per accepted step, bitwise: candidate field/heat/ledger digests,
+   iterations, combined balance, census v2, record v7 (and its host recomputation), trial field, budget, work scales,
+   sinks, births, endpoints, paths, current/initial/endpoint charge, independent residual (value, rhs norm, target),
+   trial E/B, accepted state words and digests, free-charge mirror, next census; CPU vs GPU for every moved item:
+   deposit support (sealed DepositSupportBuilder on the v33 receipt vs the device array), bank transfer (sealed dense vs
+   sparse), preflight of all three owners. Lane owner: same state digests, motion and accepted digests as v33; its
+   trial-field and current digests equal pf_v7::trial_field_blocks_sha256 / current_blocks_sha256 (native v7.1 CPU
+   forms) of the device owner's host arrays; its record digest equals a host recomputation with those digests; the roots
+   of Forms::block_lists, the step's own kernels and pf_v7::block_list agree; no host arrays in its proposals.
+ Tamper (test_v34 tamper, 15/15 pass): one ulp of an endpoint position word, a path displacement word, one bit of a sink
+   hit point, one ulp of a device census row velocity, one ulp of a candidate free-charge word: refused at preflight; a
+   different census span refused; a superseded proposal refused, the later one admitted; controls admitted. Lane
+   configuration: one ulp of the device current J, of an endpoint word and of a path word refused; controls admitted.
+ Block digests (test_v34 blocks, 6/6 pass): field-E/B roots on the device equal the host reference; step kernels =
+   Forms::block_lists = pf_v7::block_list for E, B and J (and the empty array); trial-field and current block digests
+   equal the native v7.1 CPU functions.
+ divB (test_v34 divb, 7/7 pass): section 3.
+
+
+3. divB check in coefficient form with the rounding floor (rule divb-coefficient-gross-v1; README section 3)
+ 3.1 Seed and ledger (test_v34 divb, 2000 steps 200 um): the DC seed's largest |divB| is 5.59e-28 T/m in coefficient form
+     (v3.3: 6.6e-15 T/m at the box-edge cells (0,22,5)/(44,22,5), ratio 2.5e-3; the coefficient mismatch, not the field);
+     ratio to the bound 3.7e-17. Host Model::prepare and device k_divb_gross give the same G_c bit for bit at every one of
+     the 2000 steps (and the same state); the floor 8 eps^2 G_c stays <= 5.2e-30 T/m.
+ 3.2 Tamper: one ulp of G_c in the accepted device slot refused at preflight (leaves recomputed); one ulp of G_c in an
+     unsealed resident checkpoint and in an unsealed host checkpoint refused at restore ("checkpoint field/charge seal
+     mismatch"); a nonzero G_c at bootstrap refused (host and resident: "bootstrap divB gross ledger must be zero"); the
+     unmodified checkpoint restores to the same state digest.
+ 3.3 A09 50 T/m single-face divB: A09_PENDING
+ 3.4 Vacuum runs (resident owner, dt 1e-13 s, native v7 motion forms; build b4):
+       run                      steps    worst cell |divB|/bound   max floor 8 eps^2 G_c   floor/bound   ms/step
+       200 um, 0.75 -> 20 ns    194026   1.65e-13 (4.15 ns)        1.32e-25 T/m            <= 2.5e-13    3.40
+       100 um, 0.75 -> 5 ns      42844   1.31e-16 (4.59 ns)        4.63e-26 T/m            <= 8.8e-17    8.74
+       50 um,  0.75 -> 3 ns      22659   1.76e-16 (3.00 ns)        4.70e-26 T/m            <= 1.5e-16    31.5
+     v3.3 on the same 20 ns run: worst cell ratio 2.5e-3 (box-edge cells, coefficient mismatch). Largest G_c at 20 ns:
+     3.3e5 T/m (cumulative gross face increments of the drive). The floor is ~1e-13 of the bound at its largest: it is a
+     rounding allowance and does not weaken the check (A09 margins above).
+ 3.5 Physical state of the 20 ns run against the sealed v3.3 run (tools/compare_prerun_v33.py, same arguments): at all
+     20 checkpoints (1 ns apart) the field words (E, E_low, B, B_low), revision, time, the charge ledger, the admitted
+     Gauss ledger, the kinetic ledgers and the heat slices are byte-identical; only the identity-bearing values differ
+     (configuration_sha256, solver descriptor, field_sha256 (state digest with the divB ledger), checkpoint schema) and
+     v3.4 adds divb_gross_T_m. (b4/gpu-prerun-20ns-200um-150433/v33-comparison.json)
+
+4. The 4-6x resident-process slowdown of the host DepositSupportBuilder (test_v34 hostloop, 1e4 carriers, 30 reps)
+     phase                                      support (ms)  arithmetic 2e6 (ms)  32 MB stream (ms)
+     no CUDA context                            3.60          5.52                 1.58
+     device context (blocking sync)             3.58          5.47                 1.59
+     resident owner and push engine allocated   3.54          5.42                 1.52
+     after three coupled device steps           3.55          5.43                 1.52
+   Not reproduced in-process: host arithmetic, the builder and memory bandwidth are unchanged by the CUDA context and
+   the resident allocations. The host time that grew with the device work in the resident process was the busy wait of
+   the v3.3 event waits (section 1.3: host CPU = device time). Moot for v3.4 in any case: the support runs on the device.
+
+SECTION-5-PENDING
+
+6. Coordinator
+ 6.1 Coordinator v5 T1-T7 on Hall v3.4 (host Owner path, run_coordinator_parity.py c2): T1 101/101, T2 28/28, T3 35/35,
+     T4 10/10, T5 37/37, T6 6/6, T7 9/9; two fresh T1 processes byte-identical; against the coordinator v5 run on v3.3
+     (run-s1-124252): Hall field words, charge ledger and heat slices identical in all four populations, 109 digests
+     mapped one to one (configuration identity), one documented value change: genesis admitted max_divB_T_m 7.91e-15 ->
+     5.59e-28 (coefficient form; README 3). Status passed. (coordinator-parity/run-c2-150053)
+ 6.2 Coordinator v7.1 copy with Hall v3.4 + native v7.1 (device lane; r6), load fixture 1e4 carriers, 200 um, 8 steps:
+     native device mode: 8 device admissions, 0 host admissions, 0 streaming field digests, 0 field-array downloads;
+     native host mode on the same Hall records (native reads Hall's device arrays back): every step-digest column
+     identical to device mode (native state, Hall field, heat, kinetic ledgers, source, rng, arrival). Against Hall v3.4 +
+     native v7 (r7, host admission, streaming digests) on the same fixture: Hall field, heat, kinetic ledgers, source,
+     rng and arrival identical every step; the native state differs only through the record digest (block-form
+     trial-field/current digests in the record). native device_verified mode: see open issue 10.1 (native defect).
+     Native rows are still materialised on the host every step (row_materialisations 8 in 8 steps): that is the
+     coordinator's own per-step population traversal (native_census, rate_population), not the lane or Hall.
+ 6.3 Profile (coordinator-v7.1-copy/run_profile.sh r6, the coordinator v7.1 prof6 settings: load fixture, 8/4/2 steps,
+     GPU field and push; tools/profile_report.py; wall ms per step, median over the steps after the first). Baseline:
+     coordinator v7.1 prof6 (Hall v3.2 host Owner + native v7). Columns 1e4, 1e5, 1e6 carriers, each 200 um / 50 um.
+                                  1e4 200/50       1e5 200/50        1e6 200/50
+       Hall group     prof6       93.5 / 1037      423 / 1278        4038 / 4889
+                      r6          16.3 / 83.8      31.4 / 96.6       185 / 238     (wall: includes the GPU push and solve)
+       Hall t_cp (preflight)      14.1 / 110 -> 2.96 / 11.0;  91 / 181 -> 5.1 / 12.8;  977 / 1084 -> 24.5 / 25.3
+       native motion admission    3.0 / 16.6 -> 3.8 / 4.4;  21.8 / 35.0 -> 5.0 / 5.6;  211 / 224 -> 8.3 / 9.0  (device lane)
+       native group               10.6 / 25.4 -> 9.7 / 10.4;  116 / 112 -> 57 / 59;  1219 / 1169 -> 745 / 675
+       whole step                 150 / 1194 -> 68 / 181;  964 / 1724 -> 457 / 438;  22305 / 9781 -> 17845 / 4347
+     Lane counters (every run): all motion steps admitted on the device, 0 host admissions, 0 streaming field digests,
+     0 field-array downloads. What remains O(N) per step is outside Hall: the chemistry exposures (15.9 s at 1e6/200),
+     the coordinator's controller inputs and totals, native's birth credit and the coordinator's native_census
+     (t_census 380 ms at 1e6/200), which also makes native materialise its rows once per step.
+     Reports: coordinator-v7.1-copy/r6-profile-report.txt, prof6-baseline-report.txt.
+
+SECTION-7-PENDING
+
+8. Identity changes (v3.3 -> v3.4; physical state unchanged everywhere)
+ - divB rule divb-coefficient-gross-v1 in every Model's configuration identity; the host state digest adds the divB gross
+   ledger (text hall-v3.4-divb-gross-ledger-v1 + one binary64 per cell); checkpoints carry divb_gross_T_m (resident
+   checkpoint schema hall-v3.4-resident-checkpoint-v1).
+ - Resident Models: backend descriptor hall-v3.4-resident-field-descriptor-v1 (new kernels, v7.1 forms core, residual
+   rule hall-v3.4-independent-residual-v1: exact sum of squares instead of the x87 sequential norm), block-Merkle state
+   digest hall-v3.4-field-state-merkle-v1 (+ divb_gross array).
+ - Native v7.1 lane configuration only (field_digest_form = blocks_v71): the record's trial_field_sha256 and
+   current_A_m_sha256 in the API-071 block forms, hence a different record v7 digest for the same motion.
+ - Unchanged (bit for bit, both host-work modes): deposit support values (x87 emulated exactly, no identity change),
+   census v2, record v7 in the streaming form, K, W, work scales, sinks/births records, motion and field arithmetic, refusal
+   texts and points, heat and kinetic-ledger digests.
+
+9. Remaining host work of the Hall coupled step (device path) and why
+ O(1) + O(sinks + newborns) per step, plus:
+  - host census input (native v7 only): one gather pass, 80 bytes per row (memcpy + ID order + text lengths); none with
+    the native v7.1 device census (lane bench: census CPU LANE_CENSUS at 1e6);
+  - host record arrays (native v7 only): endpoint/path download and memcpy (O(N) bytes); none in the lane;
+  - O(mesh) once per step: the streaming trial-field digest (native v7; the block form is device-computed for v7.1), the
+    endpoint and initial charge digests of the record header (motion-array-binary64-v1, O(nodes); API-007 defines no
+    block form for them), the current's streaming digest (native v7 only), the host-midpoint digest at preflight (host
+    record arrays only);
+  - the thermal owner (ThermalV3, host-resident: conductivity and Joule power of the metal cells, O(metal cells));
+  - block-Merkle roots of the device state leaves (O(mesh/256)) and a 16-leaf host sample per digest.
+
+10. Open issues
+ 10.1 Native v7.1 defect (candidate007.1, source/src/mfem_pic_full_time.inc, motion_v7_dispatch, device_verified
+      branch): `const auto &hr = r.device.present() ? *host_record(r, dev, keep) : r;` binds a reference to the record
+      owned by the temporary shared_ptr returned by host_record, which is destroyed at the end of that statement; the
+      host path then reads a dangling record. With Hall's device-only record (no host spans) the host path refused with
+      "unrecognized motion record schema" (coordinator-v7.1-copy/r6-verified-n10000-200um). The host-mode branch holds the
+      temporary for the duration of the call and works. Fix on the native side: keep the shared_ptr in a named variable.
+      Qualification here used device mode vs host mode on the same records instead (section 6.2).
+ 10.2 The coordinator integration is a copy (coordinator-v7.1-copy); coordinator v7.1 itself is unchanged.
+ 10.3 The record header's endpoint and initial charge digests stay streaming (O(nodes) host hashing per step); a block
+      form for them needs an amendment of the forms contract.
+ 10.4 The coordinator's own per-step O(N) host work (native_census of the trial, accepted-population traversal,
+      species checks, controller inputs) remains and makes native materialise rows each step (6.2).
+ 10.5 First-step NVRTC compilation of the step, push, forms and resident programs (~20 s once per process and device).
+ 10.6 The thermal owner remains host-resident (section 9).
+
+11. Decisions taken (engineering; approved decisions D1-D3 in README 4a)
+ - Deposit support on the device by exact emulation of the sealed x87 builder (64-bit significand, nearest even; 192-bit
+   window add/sub, exact 128-bit product, sealed carrier order per node): no identity change; the approved exact-sum
+   alternative with an identity change was not needed.
+ - Device-path waits: blocking stream synchronise instead of the busy-waiting event waits (no value changes).
+ - Trial-field digest of the binding computed once per step for the accepted iterate (same value; the earlier iterates
+   are discarded and the fixed point leaves the trial buffers unchanged).
+ - Hall v3.4 builds against the native v7.1 forms library (v7 forms unchanged plus the block forms); the NVRTC kernels
+   embed the v7.1 forms core (same digests).
+ - Native v7.1 lane: Hall recomputes its own census v2 from native's device rows (independent of native's census digest);
+   the census state table is the registered states, ascending, checked against the device census's states digest
+   every step; the endpoint and initial charge digests of the record header stay streaming (no block form defined).
+ - Coordinator copy: one hall_gpu Session/primitives/forms implementation in the v7.1 build (the native v7.1 library's
+   objects, same sources as Hall's); the v7 build keeps its own objects; the T1-T7 parity comparator classifies the
+   genesis max_divB_T_m change as the documented divB change (finite, nonnegative, not larger) instead of a mismatch.
+ - Native lane qualification by device mode vs host mode on the same records (native v7.1 device_verified mode is
+   unusable with device-only records: 10.1).
+ - Bench lane mode: the test uploads the census to the device before each step (untimed), standing in for native's
+   device census.
+ - Test fixture fixes: the resealing helpers of test_v32 (host and resident checkpoints) now include the divB gross
+   ledger in the state digest they reseal; test_resident parity-vacuum compares the solve record of the host reference
+   backends (v3.3 norm rule) with the resident backend (v3.4 rule, D1) as: iterations bitwise, rhs norm and residual
+   within the summation rounding |a - b| <= (n 2^-64 + 2^-51) max(a, b).

@@ -1,0 +1,130 @@
+{
+ "cases": [
+  {
+   "evidence": {
+    "max_bound_T_m": 3.2062159033742287e-10,
+    "max_divB_T_m": 5.593516856082737e-28,
+    "max_divB_ratio": 3.68514482884432e-17
+   },
+   "group": "divb",
+   "name": "DC seed admitted in coefficient form; largest |divB|/bound stated",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "equal_G": 2000,
+    "equal_state": 2000,
+    "max_divB_ratio": 3.712097800093973e-17,
+    "max_floor_T_m": 5.240745747570699e-30,
+    "series": [
+     {
+      "max_G_T_m": 0.012312052952371602,
+      "max_divB_ratio": 3.664193584742481e-17,
+      "max_floor_T_m": 4.8562486185684465e-33,
+      "step": 200
+     },
+     {
+      "max_G_T_m": 0.0981213337751149,
+      "max_divB_ratio": 3.6203421275910946e-17,
+      "max_floor_T_m": 3.870204209166509e-32,
+      "step": 400
+     },
+     {
+      "max_G_T_m": 0.329071560086346,
+      "max_divB_ratio": 3.641293288123996e-17,
+      "max_floor_T_m": 1.2979584438610275e-31,
+      "step": 600
+     },
+     {
+      "max_G_T_m": 0.7729120213918643,
+      "max_divB_ratio": 3.5548895112418147e-17,
+      "max_floor_T_m": 3.0486003842569407e-31,
+      "step": 800
+     },
+     {
+      "max_G_T_m": 1.4839402085207658,
+      "max_divB_ratio": 3.557000448330746e-17,
+      "max_floor_T_m": 5.853112080937742e-31,
+      "step": 1000
+     },
+     {
+      "max_G_T_m": 2.516787067257492,
+      "max_divB_ratio": 3.63544500855576e-17,
+      "max_floor_T_m": 9.926974620626403e-31,
+      "step": 1200
+     },
+     {
+      "max_G_T_m": 4.190817265439885,
+      "max_divB_ratio": 3.639991353837949e-17,
+      "max_floor_T_m": 1.6529859508153766e-30,
+      "step": 1400
+     },
+     {
+      "max_G_T_m": 6.494196290834025,
+      "max_divB_ratio": 3.627971087202013e-17,
+      "max_floor_T_m": 2.561508782335133e-30,
+      "step": 1600
+     },
+     {
+      "max_G_T_m": 9.511106593980449,
+      "max_divB_ratio": 3.660857256829764e-17,
+      "max_floor_T_m": 3.7514700786904756e-30,
+      "step": 1800
+     },
+     {
+      "max_G_T_m": 13.286868985103075,
+      "max_divB_ratio": 3.64420693584108e-17,
+      "max_floor_T_m": 5.240745747570699e-30,
+      "step": 2000
+     }
+    ],
+    "steps": 2000
+   },
+   "group": "divb",
+   "name": "host Model::prepare and device k_divb_gross give the same G_c bit for bit every step",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "cell": 8585
+   },
+   "group": "divb-tamper",
+   "name": "one ulp of G_c in the accepted device slot refused at preflight (leaves recomputed)",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": "checkpoint field/charge seal mismatch"
+   },
+   "group": "divb-tamper",
+   "name": "one ulp of G_c in a resident checkpoint (not resealed) refused at restore",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "refusal": "checkpoint field/charge seal mismatch"
+   },
+   "group": "divb-tamper",
+   "name": "one ulp of G_c in a host checkpoint (not resealed) refused at restore",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "error": ""
+   },
+   "group": "divb-tamper",
+   "name": "control: the unmodified resident checkpoint restores with the same state digest",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "host": "bootstrap divB gross ledger must be zero",
+    "resident": "bootstrap divB gross ledger must be zero"
+   },
+   "group": "divb-tamper",
+   "name": "bootstrap with a nonzero divB gross ledger refused (host and resident)",
+   "passed": true
+  }
+ ],
+ "failed": 0
+}

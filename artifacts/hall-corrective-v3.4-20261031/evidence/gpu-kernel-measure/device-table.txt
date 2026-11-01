@@ -1,0 +1,70 @@
+per coupled step, ms (host = thread CPU; wall = prepare + preflight; device = sum of kernel times, kernel timer)
+  mesh   carriers mode      host_cpu       wall     device  iter
+  200um  1e+05    owner        316.7      332.1       17.4     2
+  200um  1e+05    v33          273.0      290.6       21.3     2
+  200um  1e+05    device        5.51       44.3          -     2
+  200um  1e+05    lane          2.61       38.1       40.0     2
+  200um  1e+06    owner       3689.6     3905.7      201.7     3
+  200um  1e+06    v33         3536.3     3752.0      207.8     3
+  200um  1e+06    device        28.9      425.8          -     3
+  200um  1e+06    lane          3.79      382.7      380.4     3
+  50um   1e+05    owner       1259.2     1286.7       18.0     3
+  50um   1e+05    v33          474.7      518.7       52.9     3
+  50um   1e+05    device        43.1      104.8          -     3
+  50um   1e+05    lane          17.8       78.2       59.8     3
+  50um   1e+06    owner       4761.2     4893.9      112.5     3
+  50um   1e+06    v33         3807.1     3955.9      147.5     3
+  50um   1e+06    device        67.2      272.8          -     3
+  50um   1e+06    lane          18.4      204.6      167.1     3
+== lane 200um/100000: device 39.98 ms/step; share by class: latency-bound 57%, FP64 candidate 23%, no static counts 8%, bandwidth candidate 6%, data-dependent loop, not estimated 3%, latency/launch-bound 3%, walk near a peak: fp64 0%
+  k34_charge_nodes               9.48 ms  23.7%  fp64     2.2% int   0.7% dram    1.4% I   0.44 slots   0.12  latency-bound
+  hgp_reduce_end_nodes_v3        8.10 ms  20.3%  fp64     2.4% int   0.7% dram    1.8% I   0.39 slots   0.12  latency-bound
+  k34_support_nodes              4.04 ms  10.1%  fp64     0.2% int   3.2% dram    2.6% I   0.02 slots   0.12  latency-bound
+  hgp_carrier_v3                 3.31 ms   8.3%  fp64   996.0% int   7.8% dram   34.9% I   8.32 slots   0.81  FP64 candidate
+  hgp_emit_edges                 1.29 ms   3.2%  fp64    27.9% int   0.4% dram    5.2% I   1.56 slots   0.81  FP64 candidate
+  pf7_chunks                     1.21 ms   3.0%  fp64     nan% int   nan% dram    nan% I    nan slots    nan  no static counts
+  hgd_radix_scatter              1.19 ms   3.0%  fp64     0.0% int   2.6% dram   11.2% I   0.00 slots   1.12  bandwidth candidate
+  hgp_reduce_start_nodes         1.05 ms   2.6%  fp64    14.6% int   1.3% dram   33.4% I   0.13 slots   0.12  latency-bound
+  k_admit_nodes                  0.94 ms   2.3%  fp64    36.8% int   0.3% dram    4.8% I   2.25 slots   0.12  FP64 candidate
+  pf7_tree                       0.69 ms   1.7%  fp64     nan% int   nan% dram    nan% I    nan slots    nan  no static counts
+  hgp_reduce_edges               0.64 ms   1.6%  fp64     nan% int   nan% dram    nan% I    nan slots    nan  data-dependent loop, not estimated
+  k_reduce1                      0.59 ms   1.5%  fp64  2406.9% int  43.3% dram  351.0% I   2.00 slots   5.88  FP64 candidate
+== lane 200um/1000000: device 380.37 ms/step; share by class: latency-bound 71%, FP64 candidate 17%, latency/launch-bound 5%, data-dependent loop, not estimated 3%, bandwidth candidate 2%, no static counts 2%, walk near a peak: fp64 0%
+  hgp_reduce_end_nodes_v3      102.14 ms  26.9%  fp64     2.5% int   0.7% dram    1.8% I   0.39 slots   0.12  latency-bound
+  k34_charge_nodes              88.26 ms  23.2%  fp64     2.4% int   0.8% dram    1.6% I   0.44 slots   0.12  latency-bound
+  k34_support_nodes             66.23 ms  17.4%  fp64     0.1% int   2.5% dram    2.1% I   0.02 slots   0.12  latency-bound
+  hgp_carrier_v3                36.08 ms   9.5%  fp64  1172.1% int   9.2% dram   41.1% I   8.32 slots   8.14  FP64 candidate
+  hgd_radix_scatter             17.41 ms   4.6%  fp64     0.0% int   2.2% dram    9.5% I   0.00 slots  11.36  latency/launch-bound
+  hgp_emit_edges                16.89 ms   4.4%  fp64    27.5% int   0.4% dram    5.1% I   1.56 slots   8.14  FP64 candidate
+  hgp_reduce_start_nodes        13.97 ms   3.7%  fp64    14.2% int   1.2% dram   32.4% I   0.13 slots   0.12  latency-bound
+  hgp_reduce_edges               8.21 ms   2.2%  fp64     nan% int   nan% dram    nan% I    nan slots    nan  data-dependent loop, not estimated
+  k34_records_charge             4.88 ms   1.3%  fp64    95.8% int   1.1% dram   27.3% I   1.02 slots   8.14  FP64 candidate
+  k34_sum                        2.98 ms   0.8%  fp64     nan% int   nan% dram    nan% I    nan slots    nan  data-dependent loop, not estimated
+  pf7_chunks                     2.45 ms   0.6%  fp64     nan% int   nan% dram    nan% I    nan slots    nan  no static counts
+  pf7_census_pack                2.25 ms   0.6%  fp64     nan% int   nan% dram    nan% I    nan slots    nan  no static counts
+== lane 50um/100000: device 59.82 ms/step; share by class: FP64 candidate 72%, bandwidth candidate 9%, no static counts 6%, data-dependent loop, not estimated 5%, latency-bound 4%, latency/launch-bound 4%, walk near a peak: dram 0%, walk near a peak: fp64 0%
+  k_admit_nodes                 10.15 ms  17.0%  fp64    60.6% int   0.5% dram    7.9% I   2.25 slots   1.87  FP64 candidate
+  hgp_carrier_v3                 4.00 ms   6.7%  fp64  1057.6% int   8.3% dram   37.1% I   8.32 slots   0.81  FP64 candidate
+  k_ledger                       3.11 ms   5.2%  fp64    25.1% int   0.5% dram    6.2% I   1.18 slots   1.87  FP64 candidate
+  k_admit_cells                  3.04 ms   5.1%  fp64    99.9% int   0.5% dram    9.2% I   3.15 slots   1.58  FP64 candidate
+  k_reduce1                      2.52 ms   4.2%  fp64   672.2% int  12.1% dram   98.0% I   2.00 slots   5.89  FP64 candidate
+  k_face                         2.44 ms   4.1%  fp64   151.2% int   3.8% dram  116.5% I   0.38 slots   5.03  FP64 candidate
+  k_edge                         2.27 ms   3.8%  fp64    52.0% int   1.7% dram   37.3% I   0.41 slots   1.07  FP64 candidate
+  hgd_radix_scatter              2.11 ms   3.5%  fp64     0.0% int   2.8% dram   11.8% I   0.00 slots   1.14  bandwidth candidate
+  k_continuity                   1.91 ms   3.2%  fp64    48.7% int   0.3% dram    6.8% I   2.09 slots   1.87  FP64 candidate
+  k_rhs                          1.91 ms   3.2%  fp64   136.7% int   0.9% dram   31.2% I   1.28 slots   5.31  FP64 candidate
+  k_update_B                     1.69 ms   2.8%  fp64   101.7% int   0.4% dram   18.3% I   1.62 slots   5.03  FP64 candidate
+  k_leaves                       1.63 ms   2.7%  fp64     0.0% int   0.7% dram    0.7% I   0.00 slots   0.11  latency/launch-bound
+== lane 50um/1000000: device 167.07 ms/step; share by class: FP64 candidate 50%, bandwidth candidate 19%, latency-bound 13%, data-dependent loop, not estimated 8%, no static counts 4%, walk near a peak: dram 3%, latency/launch-bound 1%, walk near a peak: fp64 0%
+  hgp_carrier_v3                29.37 ms  17.6%  fp64  1439.8% int  11.3% dram   50.4% I   8.32 slots   8.14  FP64 candidate
+  hgd_radix_scatter             21.81 ms  13.1%  fp64     0.0% int   2.7% dram   11.4% I   0.00 slots  11.37  bandwidth candidate
+  hgp_emit_edges                13.58 ms   8.1%  fp64    34.2% int   0.5% dram    6.4% I   1.56 slots   8.14  FP64 candidate
+  k_admit_nodes                 10.35 ms   6.2%  fp64    59.5% int   0.5% dram    7.7% I   2.25 slots   1.87  FP64 candidate
+  hgp_reduce_edges               9.28 ms   5.6%  fp64     nan% int   nan% dram    nan% I    nan slots    nan  data-dependent loop, not estimated
+  k34_charge_nodes               8.91 ms   5.3%  fp64    23.3% int   7.7% dram   15.4% I   0.44 slots   1.87  latency-bound
+  hgp_reduce_end_nodes_v3        7.57 ms   4.5%  fp64    33.4% int   9.4% dram   25.0% I   0.39 slots   1.87  latency-bound
+  hgp_reduce_start_nodes         5.66 ms   3.4%  fp64    35.1% int   3.1% dram   80.0% I   0.13 slots   1.87  walk near a peak: dram
+  k34_support_nodes              5.58 ms   3.3%  fp64     1.6% int  30.2% dram   24.5% I   0.02 slots   1.87  latency-bound
+  k34_records_charge             4.92 ms   2.9%  fp64    95.0% int   1.1% dram   27.0% I   1.02 slots   8.14  FP64 candidate
+  k34_sum                        3.22 ms   1.9%  fp64     nan% int   nan% dram    nan% I    nan slots    nan  data-dependent loop, not estimated
+  k_ledger                       3.15 ms   1.9%  fp64    24.7% int   0.5% dram    6.1% I   1.18 slots   1.87  FP64 candidate

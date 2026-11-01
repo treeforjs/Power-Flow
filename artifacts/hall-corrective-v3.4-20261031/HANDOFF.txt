@@ -1,0 +1,42 @@
+Hall corrective v3.4 -- handoff note (last update 2026-10-31 22:10 MDT): SEALED
+
+Goal
+ Hall v3.4 for the Power-Flow coupled PIC simulation: coupled-step host work O(1) + O(sinks/births) (device coupled step for
+ the resident owner), v3.3 host path kept as the verification mode (HALL_HOST_WORK=v33), divB check in coefficient form
+ with the rounding floor 8 eps^2 G_c (approved), native v7.1 device lane folded in (HALL-LINK-7.1). Then seal v3.4 and
+ stop; v3.5 (integration-backlog.txt) is not started here.
+ Design and rules: README.txt (this directory). Results of record:
+   /home/treefor/projects/.workspace/outputs/hall-corrective-v3.4-20261031/RESULTS.txt
+
+State: SEALED on build b14 (2026-10-31 22:07 MDT)
+ SOURCE-SHA256.json in this directory: schema hall-v3.4-sealed-source-v1, build_label b14, 96 files, sha256
+ dfdf9db55c535331d7d04f7c107fde484df7aea973c88ee7fb2e2f132bb34c08. Sealed files and their directories are read-only;
+ build/, coordinator-v7.1-copy/build/, scratch/ (seal.py, compare-prerun-b13.sh) and this note are not sealed.
+ b14 = b13 sources + the PF_BUILD_ISA_FLAGS hook in the three build scripts; all five binaries byte-identical to b13
+ (isa-hook-rebuild.json; c4 = c3, r8 = r6, r9 = r7 too), so the b12/b13 evidence applies to b14 unchanged.
+ Results of record: /home/treefor/projects/.workspace/outputs/hall-corrective-v3.4-20261031/RESULTS.txt (sections 0-13).
+
+Completed in the last session (receipts under the outputs directory above)
+ - Coordinator v5 T1-T7 on final sources: coordinator-parity/build-c3, run-c3-211057 (SimQueue 190) passed.
+ - 20 ns 200 um pre-run on b13 (SimQueue 199): b13/gpu-prerun-20ns-200um-212515; physical state byte-identical to v3.3 s1
+   and to b4 at all 20 checkpoints.
+ - Static PTX counts (SimQueue 202): gpu-kernel-measure/ptx-counts.json.
+ - Kernel-timer device times for the v3.3 modes and 50 um (SimQueue 215): gpu-kernel-measure/m2/; analysis
+   tools/kernel_timer/device_table.py -> gpu-kernel-measure/device-table.json/.txt.
+ - RESULTS: 3.3 (A09 margins 3.54e11 bootstrap, 2.78e11 at 1.30 ns), 3.4/3.5, 5, 6.1, 7, 12 (kernel split), 13 (timing
+   table v3.3 vs v3.4), decisions 11. README: layout (measurement tools, ISA hook), pointer to RESULTS 12/13.
+
+Left for later (not part of v3.4)
+ - Hall v3.5 (integration-backlog.txt) -- separate hand-off.
+ - GPU kernel work for v3.5 per RESULTS 12: node walks (latency-bound, up to ~70% of the 200 um device step), FP64-side
+   kernels (push, 50 um mesh kernels; confirm with dynamic counts), radix sort scatter (bandwidth).
+ - Open issues RESULTS 10.1-10.6 (native v7.1 device_verified dangling record; coordinator copy; streaming charge digests;
+   coordinator per-step O(N); first-step NVRTC compile; host thermal owner).
+ - Non-empty PF_BUILD_ISA_FLAGS flavours are not qualified here (own label + bit-identity check needed).
+
+Decisions taken (engineering; full list in RESULTS.txt section 11 and README 4a)
+ - Bit-preserving x87 emulation for the device deposit support (no identity change).
+ - Blocking stream synchronise in the device path; trial-field digest once per step.
+ - test_resident parity-vacuum compares the v3.3-rule host reference with the v3.4-rule resident residual within the
+   summation rounding (the v3.4 rule itself is checked bitwise CPU vs GPU in test_v34 parity).
+ - Measurement tools (tools/ptx_count.py, tools/kernel_timer/) are outside the Hall build and qualification.
