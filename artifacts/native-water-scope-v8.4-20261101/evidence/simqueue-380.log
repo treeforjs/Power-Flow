@@ -1,0 +1,28 @@
+===== simq job 380: water-scope-native-cpu =====
+submitted: 2026-11-01T06:45:31Z
+started:   2026-11-01T06:45:32Z
+cwd:       /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.4-water-scope-20261101
+partition: powerflow
+P-cores:   6
+GPUs:      none
+memory:    4G (swap 1G)
+time:      00:20:00
+unit:      simq-job-380-3c138c3ac30a.service
+command:   /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.4-water-scope-20261101/qualify-scope.py normal cpu-attempt1
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock (exclusive)
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.4-water-scope-20261101/qualify-scope.py", line 6, in <module>
+    resource_guard(build=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.4-water-scope-20261101/tooling.py", line 116, in resource_guard
+    need(os.getpriority(os.PRIO_PROCESS, 0) >= 15, 'nice >= 15 required')
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.4-water-scope-20261101/tooling.py", line 94, in need
+    raise RuntimeError(message)
+RuntimeError: nice >= 15 required
+========================================
+finished:  2026-11-01T06:45:32Z
+exit code: 1
+state:     failed
+===== simq job 380 finished =====

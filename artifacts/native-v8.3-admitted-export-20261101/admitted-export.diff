@@ -1,0 +1,602 @@
+--- a/source/include/raikou/mfem_pic_arena.h
++++ b/source/include/raikou/mfem_pic_arena.h
+@@ -22,6 +22,7 @@
+ struct FullTimeConfiguration;
+ struct FullTimeHistory;
+ struct FullTimeHistoryStatus;
++struct FullTimeChemistryStageExport;
+ // Native v6: cumulative birth/sink state of an accepted full-time snapshot
+ // (absent until the first birth credit or sink), and one step's flows.
+ struct FullTimeFlows;
+@@ -217,6 +218,10 @@
+   // Native v8: receipt of the chemistry stage of an exposure token (null
+   // otherwise).
+   std::shared_ptr<const FullTimeChemistryStageReceipt> candidate_chemistry_stage() const;
++  // Diagnostic facts from this candidate; not accepted/publication authority.
++  // Default refuses unresolved target/projectile or internal-energy ownership.
++  std::shared_ptr<const FullTimeChemistryStageExport>
++  candidate_admitted_export(bool require_unambiguous_targets = true) const;
+ 
+ private:
+   friend class PicArena;
+--- a/source/include/raikou/mfem_pic_full_time.h
++++ b/source/include/raikou/mfem_pic_full_time.h
+@@ -582,6 +582,55 @@
+   double value = 0;
+   std::string digits;
+ };
++// Native v8.3 diagnostic export of admitted events and actual packet debits.
++// These immutable facts are not publication authority: a consumer must also
++// preflight the live PreparedArena candidate in a common transaction.
++struct FullTimeChemistryAdmission {
++  std::uint64_t carrier = 0, raw_begin = 0, raw_count = 0, admitted_count = 0;
++  std::uint32_t compact_cell = 0, atlas_cell = 0;
++};
++struct FullTimeChemistryAdmittedEvent {
++  std::uint64_t raw_index = 0;
++  std::uint32_t atlas_cell = 0, target_species = 0;
++  bool consumes_tracked_target = false;
++  double weight = 0;
++  std::string event_bytes; // exact pinned C3 EventRec ABI, not a native struct dump
++};
++struct FullTimeChemistryPacketSnapshot {
++  std::string packet_id, state;
++  ArenaCount count;
++  std::vector<GapParticle> carriers; // ascending native ID; exact positive weights
++  double carried_internal_energy_J = 0;
++};
++struct FullTimeChemistryTargetDebit {
++  std::uint32_t atlas_cell = 0, species = 0;
++  ArenaCount amount;
++  FullTimeChemistryPacketSnapshot before, remainder;
++  bool also_projectile = false;
++  bool internal_energy_deferred = false;
++};
++struct FullTimeChemistryStageExport {
++  std::string schema = "native-v8.3/admitted-target-export-v1";
++  std::uint64_t accepted_step = 0, stage = 0, purpose = 0;
++  std::uint64_t base_native_id = 0, next_native_id = 0;
++  std::uint64_t owner_stage_sequence = 0;
++  double begin_s = 0, end_s = 0, step_duration_s = 0, collision_duration_s = 0;
++  double frozen_physical_stage_s = 0;
++  std::string accepted_native_sha256, common_clock_sha256, frame_snapshot_sha256,
++      frame_history_sha256, configuration_sha256, registry_sha256,
++      inputs_sha256, chemistry_before_sha256, chemistry_after_sha256,
++      frozen_field_sha256, ledger_sha256, births_root, raw_records_root;
++  std::vector<FullTimeChemistryAdmission> admissions;
++  std::vector<FullTimeChemistryAdmittedEvent> events;
++  std::vector<FullTimeChemistryTargetDebit> target_debits;
++  std::vector<FullTimeChemistryPacketSnapshot> releases;
++  std::string admitted_root, target_debits_root, releases_root, sha256;
++};
++// Checks canonical commitments and exact inventory identities. The default also
++// refuses target/projectile overlap or deferred internal-energy attribution.
++// Passing false permits diagnostic inspection only, never gas publication.
++void validate_full_time_chemistry_stage_export(const FullTimeChemistryStageExport &,
++                                              bool require_unambiguous_targets = true);
+ // One chemistry stage (API-008.txt 3): counts, digests, exact ledgers.
+ struct FullTimeChemistryStageReceipt {
+   bool diagnostic_field_target_approximation = false;
+@@ -606,6 +655,7 @@
+   // Device accounting (device modes): device wall time (ms) of the stage.
+   double device_ms = 0;
+   bool device = false;
++  std::shared_ptr<const FullTimeChemistryStageExport> admitted_export;
+ };
+ // Ejected melt of one phase-owner step (StepRecord::eject_N[6] Fe, Cr, Ni, Mn,
+ // Si, C atoms; eject_E total and eject_K kinetic energy, J) and the producer's
+--- a/source/src/chem_v3_kernels.cu
++++ b/source/src/chem_v3_kernels.cu
+@@ -418,18 +418,20 @@
+   for (int k = 0; k < acc_digits; ++k)
+     out[i * acc_digits + k] = inv[which[i] * acc_digits + k];
+ }
+-// Rows of one segment: (row index, native ID, key, flags, weight bits).
++// Rows of one segment: row, ID, key, flags, weight and six exact x/u words.
+ extern "C" __global__ void ch_gather_seg(pf7_u32 cnt, const pf7_u32 *seg_rows, const pf7_u64 *rows, const pf7_u64 *keys,
+                                          const pf7_u32 *flags, pf7_u64 *out) {
+   const pf7_u32 j = blockIdx.x * 256 + threadIdx.x;
+   if (j >= cnt)
+     return;
+   const pf7_u32 r = seg_rows[j];
+-  out[5 * (pf7_u64)j] = r;
+-  out[5 * (pf7_u64)j + 1] = rows[10 * (pf7_u64)r];
+-  out[5 * (pf7_u64)j + 2] = keys[r];
+-  out[5 * (pf7_u64)j + 3] = flags[r];
+-  out[5 * (pf7_u64)j + 4] = rows[10 * (pf7_u64)r + 9];
++  out[11 * (pf7_u64)j] = r;
++  out[11 * (pf7_u64)j + 1] = rows[10 * (pf7_u64)r];
++  out[11 * (pf7_u64)j + 2] = keys[r];
++  out[11 * (pf7_u64)j + 3] = flags[r];
++  out[11 * (pf7_u64)j + 4] = rows[10 * (pf7_u64)r + 9];
++  for (int d = 0; d < 6; ++d)
++    out[11 * (pf7_u64)j + 5 + d] = rows[10 * (pf7_u64)r + 1 + d];
+ }
+ extern "C" __global__ void ch_nonzero(const pf7_u32 *in, pf7_u64 n, pf7_u32 *out) {
+   const pf7_u64 i = (pf7_u64)blockIdx.x * 256 + threadIdx.x;
+--- a/source/src/chem_v3_native.cpp
++++ b/source/src/chem_v3_native.cpp
+@@ -829,6 +829,19 @@
+       D.debited[key].add(e.weight);
+     }
+     admitted[i] = k;
++  }
++  // Retain the exact accepted prefixes separately from raw producer records.
++  // StageActive events retain canonical raw event order (zero-event carriers
++  // contribute no entries); rejected suffixes never enter this export.
++  for (std::size_t i = 0; i < act.carriers.size(); ++i) {
++    const auto &c = act.carriers[i];
++    out.admissions.push_back({c.id, c.begin, c.end - c.begin, admitted[i], c.cell, act.cell_atlas.at(c.cell)});
++    for (std::uint32_t k = 0; k < admitted[i]; ++k) {
++      const auto &e = act.events[c.begin + k];
++      out.admitted_records.push_back({c.begin + k, act.cell_atlas.at(c.cell), e.target_species,
++          bool(reg.target[e.target_species] && consumes_target(e)), e.weight,
++          std::string(reinterpret_cast<const char *>(&e), sizeof e)});
++    }
+   }
+   auto st = std::make_shared<FullTimeChemistryState>(before);
+   st->digest.clear();
+--- a/source/src/chem_v3_native.hpp
++++ b/source/src/chem_v3_native.hpp
+@@ -232,6 +232,8 @@
+   pfc::DebitResult debits;
+   bool policy_refused = false;
+   std::string policy_message;
++  std::vector<FullTimeChemistryAdmission> admissions;
++  std::vector<FullTimeChemistryAdmittedEvent> admitted_records;
+ };
+ // Carriers with events (ascending native ID) and the totals over every
+ // carrier record of the stage (host: from the records; device: reductions).
+--- /dev/null
++++ b/source/src/mfem_pic_admitted_export.inc
+@@ -0,0 +1,204 @@
++// Canonical diagnostic facts for a future prepared gas-owner transaction.
++// No gas owner is bound here and the strict eventful-stage refusal is unchanged.
++namespace full_time_detail {
++void export_count(Writer &w, const ArenaCount &c) {
++  auto value = c;
++  codec_count(w, value);
++}
++void export_packet(Writer &w, const FullTimeChemistryPacketSnapshot &p) {
++  w.text(p.packet_id); w.text(p.state); export_count(w, p.count);
++  w.f64(p.carried_internal_energy_J); w.u64(p.carriers.size());
++  for (const auto &r : p.carriers) {
++    w.u64(r.id);
++    for (double v : r.position_m) w.f64(v);
++    for (double v : r.proper_velocity_m_s) w.f64(v);
++    w.f64(r.charge_C); w.f64(r.mass_kg); w.f64(r.weight);
++  }
++}
++std::string export_admitted_root(const FullTimeChemistryStageExport &x) {
++  Writer w; w.tag("native-v8.3/admitted-prefixes-v1");
++  w.u64(x.admissions.size());
++  for (const auto &p : x.admissions) {
++    w.u64(p.carrier); w.u64(p.raw_begin); w.u64(p.raw_count); w.u64(p.admitted_count);
++    w.u64(p.compact_cell); w.u64(p.atlas_cell);
++  }
++  w.u64(x.events.size());
++  for (const auto &e : x.events) {
++    w.u64(e.raw_index); w.u64(e.atlas_cell); w.u64(e.target_species);
++    w.boolean(e.consumes_tracked_target); w.f64(e.weight); w.text(e.event_bytes);
++  }
++  return cn::sha256_hex(w.bytes);
++}
++std::string export_debits_root(const FullTimeChemistryStageExport &x) {
++  Writer w; w.tag("native-v8.3/actual-target-debits-v1"); w.u64(x.target_debits.size());
++  for (const auto &d : x.target_debits) {
++    w.u64(d.atlas_cell); w.u64(d.species); export_count(w, d.amount);
++    w.boolean(d.also_projectile); w.boolean(d.internal_energy_deferred);
++    export_packet(w, d.before); export_packet(w, d.remainder);
++  }
++  return cn::sha256_hex(w.bytes);
++}
++std::string export_releases_root(const FullTimeChemistryStageExport &x) {
++  Writer w; w.tag("native-v8.3/actual-parcel-releases-v1"); w.u64(x.releases.size());
++  for (const auto &r : x.releases) export_packet(w, r);
++  return cn::sha256_hex(w.bytes);
++}
++std::string export_digest(const FullTimeChemistryStageExport &x) {
++  Writer w; w.tag(x.schema);
++  for (auto v : {x.accepted_step, x.stage, x.purpose, x.base_native_id, x.next_native_id, x.owner_stage_sequence}) w.u64(v);
++  w.f64(x.begin_s); w.f64(x.end_s); w.f64(x.step_duration_s); w.f64(x.collision_duration_s);
++  w.f64(x.frozen_physical_stage_s);
++  for (const auto *p : {&x.accepted_native_sha256, &x.common_clock_sha256, &x.frame_snapshot_sha256,
++                       &x.frame_history_sha256, &x.configuration_sha256, &x.registry_sha256,
++                       &x.inputs_sha256, &x.chemistry_before_sha256, &x.chemistry_after_sha256,
++                       &x.frozen_field_sha256, &x.ledger_sha256, &x.births_root, &x.raw_records_root,
++                       &x.admitted_root, &x.target_debits_root, &x.releases_root})
++    w.text(*p);
++  return cn::sha256_hex(w.bytes);
++}
++ArenaCount export_sum(const ArenaCount &a, const ArenaCount &b) {
++  auto c = a;
++  for (double v : b.positive_carriers()) c = c.credited(v);
++  return c;
++}
++ArenaCount export_difference(const ArenaCount &a, const ArenaCount &b) {
++  auto c = a;
++  for (double v : b.positive_carriers()) c = c.debit(v);
++  return c;
++}
++template<class RowAt>
++FullTimeChemistryPacketSnapshot export_snapshot(const ArenaSnapshot &s, const ArenaPacket &p, RowAt row_at) {
++  FullTimeChemistryPacketSnapshot out;
++  out.packet_id = p.id; out.state = p.state; out.count = p.count;
++  for (auto id : p.native_ids) out.carriers.push_back(row_at(id));
++  std::sort(out.carriers.begin(), out.carriers.end(), [](const auto &a, const auto &b) { return a.id < b.id; });
++  if (s.full_time_v81) {
++    const auto it = s.full_time_v81->internal.find(p.id);
++    if (it != s.full_time_v81->internal.end()) out.carried_internal_energy_J = it->second.energy_J;
++  }
++  return out;
++}
++std::shared_ptr<FullTimeChemistryStageExport> export_begin(const chem8::Resolution &res) {
++  auto x = std::make_shared<FullTimeChemistryStageExport>();
++  x->admissions = res.admissions; x->events = res.admitted_records;
++  return x;
++}
++void export_finish(FullTimeChemistryStageExport &x, const FullCollision &s, const chem8::Setup &setup,
++                   const FullTimeChemistryStageReceipt &r) {
++  const auto &o = *s.outer;
++  x.accepted_step = r.accepted_step; x.stage = r.stage; x.purpose = r.purpose;
++  x.base_native_id = r.base_native_id; x.next_native_id = r.next_native_id;
++  x.begin_s = o.common.begin_s; x.end_s = o.common.end_s;
++  x.step_duration_s = o.common.dt_s;
++  x.collision_duration_s = s.exposure.collision_duration_s;
++  x.owner_stage_sequence = s.exposure.owner_stage_sequence;
++  x.frozen_physical_stage_s = s.exposure.frozen_physical_stage_s;
++  x.frozen_field_sha256 = s.exposure.frozen_field_sha256;
++  x.accepted_native_sha256 = o.common.accepted_arena_sha256;
++  x.common_clock_sha256 = o.common.common_clock_sha256;
++  x.frame_snapshot_sha256 = snapshot_digest(*o.frame.snapshot);
++  x.frame_history_sha256 = o.frame.snapshot->chain;
++  x.configuration_sha256 = setup.configuration_sha256; x.registry_sha256 = setup.reg->sha256;
++  x.inputs_sha256 = r.inputs_sha256; x.chemistry_before_sha256 = r.state_before_sha256;
++  x.chemistry_after_sha256 = r.state_after_sha256; x.ledger_sha256 = r.ledger_sha256; x.births_root = r.births_root;
++  x.raw_records_root = r.records_root;
++  std::uint64_t raw_count = 0;
++  for (const auto &p : x.admissions) raw_count = checked_add(raw_count, p.raw_count, "export raw events");
++  require(raw_count == r.events && x.events.size() == r.admitted_events &&
++          x.target_debits.size() == r.debited_packets && x.releases.size() == r.released_packets,
++          "export counts differ from the applied chemistry receipt");
++  x.admitted_root = export_admitted_root(x); x.target_debits_root = export_debits_root(x);
++  x.releases_root = export_releases_root(x); x.sha256 = export_digest(x);
++  validate_full_time_chemistry_stage_export(x, false);
++}
++} // namespace full_time_detail
++
++void validate_full_time_chemistry_stage_export(const FullTimeChemistryStageExport &x, bool unambiguous) {
++  using namespace full_time_detail;
++  using CK = FullTimeChemistryRefusal::Kind;
++  auto check = [&](bool ok, const char *message) {
++    if (!ok) throw FullTimeChemistryRefusal(CK::event, std::string("admitted_export: ") + message);
++  };
++  check(x.schema == "native-v8.3/admitted-target-export-v1", "schema");
++  check((x.stage == 1 || x.stage == 2) && std::isfinite(x.begin_s) && std::isfinite(x.end_s) &&
++        x.end_s > x.begin_s && std::isfinite(x.step_duration_s) && x.step_duration_s > 0 &&
++        x.end_s == x.begin_s + x.step_duration_s && x.collision_duration_s == .5 * x.step_duration_s &&
++        x.purpose == (x.stage == 1 ? PFC_PURPOSE_MCC : PFC_PURPOSE_MCC_SECOND) &&
++        x.frozen_physical_stage_s == (x.stage == 1 ? x.begin_s : x.end_s) &&
++        x.base_native_id > 0 && x.next_native_id >= x.base_native_id, "stage binding");
++  for (const auto *p : {&x.accepted_native_sha256, &x.common_clock_sha256, &x.frame_snapshot_sha256,
++                       &x.frame_history_sha256, &x.configuration_sha256, &x.registry_sha256,
++                       &x.inputs_sha256, &x.chemistry_before_sha256, &x.chemistry_after_sha256,
++                       &x.frozen_field_sha256, &x.ledger_sha256, &x.births_root, &x.raw_records_root})
++    check(digest(*p), "identity digest");
++  using Key = std::pair<std::uint32_t, std::uint32_t>;
++  std::map<Key, ArenaCount> admitted, debited;
++  std::size_t ei = 0;
++  std::uint64_t raw_end = 0, previous = 0;
++  for (const auto &p : x.admissions) {
++    check(p.carrier > previous && p.raw_begin == raw_end && p.raw_count > 0 &&
++          p.admitted_count <= p.raw_count && p.raw_count <= ~std::uint64_t(0) - raw_end, "prefix ordering");
++    previous = p.carrier; raw_end += p.raw_count;
++    for (std::uint64_t j = 0; j < p.admitted_count; ++j) {
++      check(ei < x.events.size(), "missing admitted record");
++      const auto &r = x.events[ei++];
++      check(r.raw_index == p.raw_begin + j && r.atlas_cell == p.atlas_cell &&
++            r.event_bytes.size() == sizeof(pfc::EventRec) && std::isfinite(r.weight) && r.weight > 0,
++            "admitted record layout/order");
++      pfc::EventRec e{}; std::memcpy(&e, r.event_bytes.data(), sizeof e);
++      check(e.carrier == p.carrier && e.cell == p.compact_cell && e.target_species == r.target_species &&
++            std::bit_cast<std::uint64_t>(e.weight) == std::bit_cast<std::uint64_t>(r.weight) &&
++            e.n_out > 0 && e.n_out <= PFC_MAX_OUT, "admitted record binding");
++      bool gas_return = false;
++      for (pfc_u32 k = 0; k < e.n_out; ++k) gas_return |= e.out_dest[k] == PFC_DEST_GAS;
++      check(!gas_return || !r.consumes_tracked_target, "GAS-return event debits inventory");
++      if (r.consumes_tracked_target) {
++        auto &c = admitted[{r.atlas_cell, r.target_species}]; c = c.credited(r.weight);
++      }
++    }
++  }
++  check(ei == x.events.size(), "unselected admitted records");
++  std::set<std::uint64_t> before_ids, after_ids;
++  std::set<std::string> packet_ids;
++  auto packet = [&](const FullTimeChemistryPacketSnapshot &p, bool before) {
++    check(std::isfinite(p.carried_internal_energy_J) && p.carried_internal_energy_J >= 0,
++          "packet internal energy");
++    if (p.packet_id.empty()) {
++      check(p.state.empty() && p.count.zero() && p.carriers.empty() && p.carried_internal_energy_J == 0,
++            "absent remainder"); return;
++    }
++    check(!p.state.empty() && !p.count.zero() && !p.carriers.empty(), "resident packet");
++    ArenaCount sum; std::uint64_t prior = 0;
++    const auto &first = p.carriers.front();
++    for (const auto &r : p.carriers) {
++      check(r.id > prior && (before ? before_ids : after_ids).insert(r.id).second,
++            "duplicate carrier ownership"); prior = r.id;
++      native_particle_guard(r);
++      check(r.position_m == first.position_m && r.proper_velocity_m_s == first.proper_velocity_m_s &&
++            r.mass_kg == first.mass_kg && r.charge_C == first.charge_C, "divergent packet phase space");
++      check(before ? r.id < x.base_native_id : r.id < x.next_native_id, "carrier ID range");
++      sum = sum.credited(r.weight);
++    }
++    check(sum == p.count, "packet exact count");
++  };
++  for (const auto &d : x.target_debits) {
++    check(!d.before.packet_id.empty() && packet_ids.insert(d.before.packet_id).second && !d.amount.zero(),
++          "duplicate or empty target debit");
++    packet(d.before, true); packet(d.remainder, false);
++    check(d.remainder.packet_id.empty() || (d.remainder.packet_id == d.before.packet_id &&
++          d.remainder.state == d.before.state), "remainder identity/species");
++    check(export_sum(d.amount, d.remainder.count) == d.before.count, "debit does not telescope exactly");
++    check(d.internal_energy_deferred == (d.before.carried_internal_energy_J != 0), "internal ownership label");
++    auto &c = debited[{d.atlas_cell, d.species}]; c = export_sum(c, d.amount);
++    if (unambiguous && (d.also_projectile || d.internal_energy_deferred))
++      throw FullTimeChemistryRefusal(CK::target_energy_owner, "admitted_export: target debit attribution unresolved");
++  }
++  check(admitted == debited, "admitted consuming count differs from actual target debit");
++  for (const auto &p : x.releases) {
++    check(x.stage == 2 && !p.packet_id.empty() && packet_ids.insert(p.packet_id).second, "release identity/stage");
++    packet(p, false);
++    for (const auto &r : p.carriers) check(r.id >= x.base_native_id, "release native ID");
++  }
++  check(x.admitted_root == export_admitted_root(x) && x.target_debits_root == export_debits_root(x) &&
++        x.releases_root == export_releases_root(x) && x.sha256 == export_digest(x), "commitment mismatch");
++}
+--- a/source/src/mfem_pic_full_time.inc
++++ b/source/src/mfem_pic_full_time.inc
+@@ -175,7 +175,7 @@
+           "full-time snapshot has no legacy JSON journal or sinks");
+   const bool v8 = s.full_time_identity == 1;
+   Writer w;
+-  w.tag(v8 ? "native-full-time-snapshot-v8.2-auditfix2" : "native-full-time-snapshot-v5");
++  w.tag(v8 ? "native-full-time-snapshot-v8.3-admitted-export-v1" : "native-full-time-snapshot-v5");
+   w.text(v8 ? packets_digest_v8(s.packets) : packets_digest(s.packets));
+   w.text(id_set_digest_for(s.ever_packet_ids, v8));
+   w.text(id_set_digest_for(s.event_ids, v8));
+@@ -524,7 +524,7 @@
+       require(k.accepted_step == steps && k.accepted_step == common.accepted_step &&
+                   digest(k.inputs_sha256) && digest(k.records_root) &&
+                   digest(k.ledger_sha256) && digest(k.state_before_sha256) &&
+-                  digest(k.state_after_sha256) && digest(k.births_root),
++                  digest(k.state_after_sha256) && digest(k.births_root) && digest(k.admitted_export_sha256),
+               "full-time journal chemistry stage row");
+       children.push_back(r);
+       continue;
+--- a/source/src/mfem_pic_full_time_chemistry.inc
++++ b/source/src/mfem_pic_full_time_chemistry.inc
+@@ -2,6 +2,7 @@
+ // registration, the chemistry stage of an exposure (FullTimeAccess::chemistry)
+ // and the accepted chemistry status. Included in mfem_pic_full_time.inc after
+ // the FullTimeAccess class (same TU as the arena).
++#include "mfem_pic_admitted_export.inc"
+ namespace full_time_detail {
+ // v8 restart state of the published sinks (source v7 B1/D8): bit-exact JSON.
+ std::string bits_hex(double x) {
+@@ -76,7 +77,7 @@
+   return l;
+ }
+ ArenaJson chemistry_configuration_json(const FullTimeConfiguration &c) {
+-  ArenaJson j = {{"identity", "v8.2-auditfix2"}};
++  ArenaJson j = {{"identity", "v8.3-admitted-export-v1"}};
+   if (c.merge_split.enabled) {
+     const auto &P = *c.merge_split.params;
+     j["merge_split"] = {{"cadence_steps", c.merge_split.cadence_steps},
+@@ -109,7 +110,7 @@
+ }
+ void read_chemistry_configuration_json(const ArenaJson &j, FullTimeConfiguration &c) {
+   const bool ms = j.is_object() && j.contains("merge_split");
+-  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8.2-auditfix2", "v8 configuration schema");
++  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8.3-admitted-export-v1", "v8 configuration schema");
+   c.identity = FullTimeIdentitySchema::v8;
+   if (ms) {
+     const auto &m = j.at("merge_split");
+@@ -161,7 +162,7 @@
+   if (c.identity != FullTimeIdentitySchema::v8)
+     return "";
+   Writer w;
+-  w.tag("native-v8.2-auditfix2/identity-schema-v8");
++  w.tag("native-v8.3-admitted-export-v1/identity-schema-v8");
+   if (c.chemistry.enabled)
+     w.text(chem8::make_setup(c.chemistry, o)->configuration_sha256);
+   else
+@@ -299,6 +300,7 @@
+     return out;
+   };
+   auto res = chem8::resolve(*setup, active, req, before, da);
++  auto stage_export = export_begin(res);
+   const auto &plan = res.plan;
+   // ---- apply the plan to a new private frame
+   auto next = std::make_shared<ArenaSnapshot>(snap);
+@@ -454,6 +456,30 @@
+   receipt->next_native_id = next_id;
+   receipt->remainder_carriers = remainder_carriers;
+   receipt->births_root = births_root(born_list);
++  auto before_row = [&](std::uint64_t id) { return rows[row_of(id)]; };
++  auto after_row = [&](std::uint64_t id) {
++    const auto &rr = native.particles.host();
++    const auto it = std::lower_bound(rr.begin(), rr.end(), id,
++        [](const GapParticle &p, std::uint64_t value) { return p.id < value; });
++    require(it != rr.end() && it->id == id, "export remainder carrier missing");
++    return *it;
++  };
++  for (const auto &d : plan.debits) {
++    FullTimeChemistryTargetDebit flow;
++    const auto &p = *owner_of[d.row];
++    flow.atlas_cell = in.row_cell[d.row]; flow.species = species[d.row];
++    flow.before = export_snapshot(snap, p, before_row);
++    const auto it = next->packets.find(p.id);
++    if (it != next->packets.end()) flow.remainder = export_snapshot(*next, it->second, after_row);
++    flow.amount = export_difference(flow.before.count, flow.remainder.count);
++    flow.also_projectile = vel[d.row] >= 0;
++    flow.internal_energy_deferred = flow.before.carried_internal_energy_J != 0;
++    stage_export->target_debits.push_back(std::move(flow));
++  }
++  for (const auto &rl : plan.releases)
++    stage_export->releases.push_back(export_snapshot(*next, next->packets.at(chem8::packet_id_release(req.step, rl)), after_row));
++  export_finish(*stage_export, s, *setup, *receipt);
++  receipt->admitted_export = std::move(stage_export);
+   oc->next = next;
+   oc->native = std::move(native);
+   oc->inputs_sha256 = in.sha256;
+@@ -568,6 +594,7 @@
+     return out;
+   };
+   auto res = chem8::resolve(setup, ds.active, req, before, da);
++  auto stage_export = export_begin(res);
+   prof.mark("resolve");
+   const auto &plan = res.plan;
+   std::map<std::uint32_t, const chem8::ActiveCarrier *> active_of;
+@@ -702,6 +729,47 @@
+   receipt.births_root = births_root(born_list);
+   receipt.device = true;
+   receipt.device_ms = ds.device_wall_ms;
++  for (const auto &d : plan.debits) {
++    const auto &sr = seg_rows.at(d.row);
++    const auto &p = packet_of_key(sr.key);
++    const auto sp = std::find(reg.states.begin(), reg.states.end(), p.state) - reg.states.begin();
++    require(sp < std::ptrdiff_t(reg.states.size()), "export target species");
++    GapParticle original;
++    original.id = sr.id; original.position_m = sr.position; original.proper_velocity_m_s = sr.proper_velocity;
++    original.charge_C = reg.charge[sp] * pic_e; original.mass_kg = reg.mass_kg[sp]; original.weight = sr.weight;
++    FullTimeChemistryTargetDebit flow;
++    flow.atlas_cell = setup.grid.locate(original.position_m.data()); flow.species = std::uint32_t(sp);
++    flow.before = export_snapshot(snap, p, [&](std::uint64_t id) {
++      require(id == original.id, "export device target ID"); return original;
++    });
++    const auto velocity = std::lower_bound(plan.velocity.begin(), plan.velocity.end(), d.row,
++        [](const auto &v, std::uint32_t row) { return v.first < row; });
++    flow.also_projectile = velocity != plan.velocity.end() && velocity->first == d.row;
++    const auto it = next->packets.find(p.id);
++    if (it != next->packets.end()) {
++      auto remainder = original;
++      const auto weights = it->second.count.positive_carriers();
++      require(weights.size() == 1, "export device remainder weight");
++      remainder.weight = weights.front();
++      if (flow.also_projectile) remainder.proper_velocity_m_s = velocity->second;
++      flow.remainder = export_snapshot(*next, it->second, [&](std::uint64_t id) {
++        require(id == remainder.id, "export device remainder ID"); return remainder;
++      });
++    }
++    flow.amount = export_difference(flow.before.count, flow.remainder.count);
++    flow.internal_energy_deferred = flow.before.carried_internal_energy_J != 0;
++    stage_export->target_debits.push_back(std::move(flow));
++  }
++  for (const auto &rl : plan.releases) {
++    const auto &p = next->packets.at(chem8::packet_id_release(req.step, rl));
++    stage_export->releases.push_back(export_snapshot(*next, p, [&](std::uint64_t id) {
++      const auto it = std::lower_bound(ed.append.begin(), ed.append.end(), id,
++          [](const GapParticle &p, std::uint64_t value) { return p.id < value; });
++      require(it != ed.append.end() && it->id == id, "export device release ID"); return *it;
++    }));
++  }
++  export_finish(*stage_export, s, setup, receipt);
++  receipt.admitted_export = std::move(stage_export);
+   prof.mark("receipt");
+   oc->next = next;
+   oc->native = std::move(native);
+@@ -752,6 +820,7 @@
+       const auto &a = *oc->receipt, &b = *h->receipt;
+       const auto hroot = cn::carrier_rows_digest(h->native.particles)->root;
+       if (a.records_root != b.records_root || a.inputs_sha256 != b.inputs_sha256 || a.ledger_sha256 != b.ledger_sha256 ||
++          a.admitted_export->sha256 != b.admitted_export->sha256 ||
+           a.state_after_sha256 != b.state_after_sha256 || a.births_root != b.births_root ||
+           a.next_native_id != b.next_native_id || oc->digest->root != hroot ||
+           snapshot_digest(*oc->next) != snapshot_digest(*h->next) || oc->native.particles.size() != h->native.particles.size())
+@@ -819,6 +888,7 @@
+   k.state_before_sha256 = receipt->state_before_sha256;
+   k.state_after_sha256 = receipt->state_after_sha256;
+   k.births_root = receipt->births_root;
++  k.admitted_export_sha256 = receipt->admitted_export->sha256;
+   full_time_append(*next, row);
+   const auto stage_chain = next->chain;
+   next->stochastic_completions[c.integration_owner_id] = completion_json(c);
+@@ -852,6 +922,7 @@
+               {"chemistry_stage",
+                {{"stage", req.stage},
+                 {"records_root", receipt->records_root},
++                {"admitted_export_sha256", receipt->admitted_export->sha256},
+                 {"inputs_sha256", receipt->inputs_sha256},
+                 {"ledger_sha256", receipt->ledger_sha256},
+                 {"projectiles", receipt->projectiles},
+@@ -871,6 +942,15 @@
+ std::shared_ptr<const FullTimeChemistryStageReceipt> PreparedArena::candidate_chemistry_stage() const {
+   require(bool(impl_), "empty prepared token");
+   return impl_->chemistry;
++}
++std::shared_ptr<const FullTimeChemistryStageExport>
++PreparedArena::candidate_admitted_export(bool require_unambiguous_targets) const {
++  require(bool(impl_), "empty prepared token");
++  if (!impl_->chemistry) return {};
++  const auto &x = impl_->chemistry->admitted_export;
++  require(bool(x), "chemistry token without admitted export");
++  validate_full_time_chemistry_stage_export(*x, require_unambiguous_targets);
++  return x;
+ }
+ std::vector<ArenaStateSpec> full_time_metal_vapour_states(bool with_fe_cr_ni) {
+   constexpr double u = 1.66053906660e-27; // kg (CODATA 2018)
+--- a/source/src/mfem_pic_full_time_rows.inc
++++ b/source/src/mfem_pic_full_time_rows.inc
+@@ -612,7 +612,7 @@
+                 births = 0, consumed = 0, debited_packets = 0, removed_packets = 0,
+                 released_packets = 0, remainder_carriers = 0;
+   std::string configuration_sha256, inputs_sha256, records_root, ledger_sha256,
+-      state_before_sha256, state_after_sha256, births_root;
++      state_before_sha256, state_after_sha256, births_root, admitted_export_sha256;
+ };
+ template <class IO> void codec_chemistry(IO &io, ChemistryRow &r) {
+   for (auto *v : {&r.accepted_step, &r.stage, &r.purpose})
+@@ -625,7 +625,7 @@
+     io.u64(*v);
+   for (auto *d : {&r.configuration_sha256, &r.inputs_sha256, &r.records_root,
+                   &r.ledger_sha256, &r.state_before_sha256, &r.state_after_sha256,
+-                  &r.births_root})
++                  &r.births_root, &r.admitted_export_sha256})
+     codec_digest(io, *d);
+ }
+ struct FullRow {
+--- a/source/src/native_device.cpp
++++ b/source/src/native_device.cpp
+@@ -1177,15 +1177,17 @@
+   if (!si.count)
+     return out;
+   std::uint32_t cnt = si.count;
+-  auto b = take(I.pool, u64(cnt) * 40);
++  auto b = take(I.pool, u64(cnt) * 88);
+   u64 sr = K.seg_rows + 4 * si.offset, rw = K.rows, ky = K.keys, fl = K.flags, o = b->address;
+   void *args[] = {&cnt, &sr, &rw, &ky, &fl, &o};
+   I.s.launch(K.mod->k["ch_gather_seg"], {(cnt + 255) / 256}, {256}, 0, args);
+-  std::vector<u64> w(u64(cnt) * 5);
++  std::vector<u64> w(u64(cnt) * 11);
+   I.download(w.data(), *b, 0, w.size() * 8);
+   for (std::uint32_t j = 0; j < cnt; ++j)
+-    out.push_back({std::uint32_t(w[5 * j]), std::uint32_t(w[5 * j + 3]), w[5 * j + 1], w[5 * j + 2],
+-                   std::bit_cast<double>(w[5 * j + 4])});
++    out.push_back({std::uint32_t(w[11 * j]), std::uint32_t(w[11 * j + 3]), w[11 * j + 1], w[11 * j + 2],
++                   std::bit_cast<double>(w[11 * j + 4]),
++                   {std::bit_cast<double>(w[11*j+5]), std::bit_cast<double>(w[11*j+6]), std::bit_cast<double>(w[11*j+7])},
++                   {std::bit_cast<double>(w[11*j+8]), std::bit_cast<double>(w[11*j+9]), std::bit_cast<double>(w[11*j+10])}});
+   std::sort(out.begin(), out.end(), [](const auto &a, const auto &c) { return a.id < c.id; });
+   return out;
+ }
+--- a/source/src/native_device.hpp
++++ b/source/src/native_device.hpp
+@@ -118,6 +118,7 @@
+   std::uint32_t row = 0, flags = 0;
+   std::uint64_t id = 0, key = 0;
+   double weight = 0;
++  std::array<double, 3> position{}, proper_velocity{};
+ };
+ std::vector<ChemSegmentRow> device_chem_segment(FullTimeDevice &, const ChemDeviceStage &, std::uint32_t cell,
+                                                 std::uint32_t species);

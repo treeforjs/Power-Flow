@@ -45,8 +45,8 @@ species-energy-reference registration gap. Both remain development components.
 The reviewed transient timing-shield helper passed 32 simulated metadata tests
 and is preserved in `2df7ac4`. Its live canary is unexecuted: noninteractive
 sudo currently requires credentials. No cgroup, process affinity or IRQ policy
-has been changed. Administrative setup is requested separately; other code and
-physics work continues without assuming approval or credentials.
+has been changed. Authorization is already clear; the missing OS credentials
+only block this canary. Other code and physics work continues.
 
 The existing coordinator still uses parent ionization and v5-compatible
 native construction. Porting to native-v8 chemistry requires explicit genesis

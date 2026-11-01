@@ -1,0 +1,799 @@
+--- a/source/include/raikou/mfem_pic_full_time.h
++++ b/source/include/raikou/mfem_pic_full_time.h
+@@ -496,12 +496,16 @@
+ // collision stages per step (dt/2 each, purposes 0x30 and 0x34) on the native
+ // census, products, target debits, the quantized neutral release and exact
+ // ledgers. Requires identity schema v8.
++enum class FullTimeWaterScopeMode : std::uint32_t { legacy = 0, minimum_water = 1 };
+ struct FullTimeChemistryConfiguration {
+   bool enabled = false;
+   // Diagnostic field-target MCC has no owner for target energy/momentum.
+   // Default refuses events. Opt-in is bound into configuration/checkpoint identity;
+   // it never establishes whole-system energy closure.
+   bool diagnostic_field_target_approximation = false;
++  // Optional minimum encounter gate; passing never establishes network completeness.
++  FullTimeWaterScopeMode water_scope_mode = FullTimeWaterScopeMode::legacy;
++  std::string water_scope_contract, water_scope_contract_sha256;
+   std::string blob_path, blob_sha256;  // table blob and its expected identity
+   std::uint64_t run_seed = 0;          // the arrival owner's run seed
+   double release_weight = 0;           // w0 of the quantized release
+@@ -528,6 +532,7 @@
+     debit_conflict,    // admitted debits exceed the carriers left by the stage
+     configuration,     // blob/registry/configuration mismatch
+     target_energy_owner, // event requires a target-energy owner; diagnostic opt-in only
++    network_scope,     // absent/unsupported required encounter or unqualified census lane
+     event              // event record fails conservation/destination checks
+   };
+   FullTimeChemistryRefusal(Kind k, const std::string &message)
+@@ -556,6 +561,9 @@
+ // Loads and validates the blob; registry, identities and the channel binding.
+ FullTimeChemistryRegistry full_time_chemistry_registry(const FullTimeChemistryConfiguration &,
+                                                        const GapPicOptions &);
++// Build the canonical minimum contract against the base physics configuration.
++// Input must have legacy mode and empty scope fields; callers explicitly opt in.
++std::string full_time_minimum_water_scope_contract(const FullTimeChemistryConfiguration &, const GapPicOptions &);
+ // Arena state specs of the 22 species (hydrogen/oxygen counts, charge, mass).
+ std::vector<ArenaStateSpec> full_time_chemistry_states(const FullTimeChemistryRegistry &);
+ // Recommended admitted unbounded regions (SCOPE.md section 5 placeholders and
+@@ -643,6 +651,8 @@
+   std::uint64_t base_native_id = 0, next_native_id = 0;
+   std::string inputs_sha256, records_sha256, records_root, ledger_sha256,
+       coverage_sha256, state_before_sha256, state_after_sha256, births_root;
++  // Empty in legacy mode; native-created pre-filter census commitment otherwise.
++  std::string water_scope_contract_sha256, water_scope_census_sha256, water_scope_binding_sha256;
+   // exact energy ledger (eV): ke_in_projectile, ke_in_target, ke_out_survivor,
+   // ke_out_birth, ke_out_reservoir, ke_out_gas, q_reference, internal[6], defect
+   std::vector<std::pair<std::string, FullTimeExactValue>> energy;
+@@ -673,6 +683,7 @@
+ };
+ // Accepted chemistry state summary (API-008.txt 3.6).
+ struct FullTimeChemistryStatus {
++  std::string water_scope_census_sha256, water_scope_binding_sha256, water_scope_history_sha256;
+   bool enabled = false;
+   bool diagnostic_field_target_approximation = false;
+   bool full_system_energy_closure = false;
+--- a/source/include/water_network_scope.hpp
++++ b/source/include/water_network_scope.hpp
+@@ -0,0 +1,89 @@
++#pragma once
++#include <compare>
++#include <cstdint>
++#include <span>
++#include <string>
++#include <utility>
++#include <vector>
++
++namespace water_scope {
++enum class Mode { legacy_parent, legacy_diagnostic, full_water_breakdown_candidate };
++enum class PairStatus { absent, supported, entirely_unbounded };
++struct Pair { std::uint32_t projectile, target; auto operator<=>(const Pair&) const = default; };
++struct InventoryRow {
++    std::uint64_t native_id;
++    std::uint64_t collision_cell;
++    std::uint32_t species;
++    double physical_count;
++};
++struct StageIdentity {
++    std::string input_state_sha256;
++    std::string native_registry_sha256;
++    std::string configuration_sha256;
++    std::string expected_census_sha256;
++    std::string expected_stage_binding_sha256;
++    std::uint64_t native_row_count;
++    std::uint64_t step;
++    std::uint32_t stage;
++    double dt_s;
++    double collision_cell_volume_m3;
++    bool all_registered_species_before_target_filter;
++};
++struct Gap { std::uint64_t cell; Pair pair; PairStatus status; };
++struct Admission {
++    bool enforced = false;
++    bool admitted = false;
++    bool existing_region_admission_required = false;
++    bool network_complete = false;
++    bool physical_model_validated = false;
++    std::string scope_sha256, census_sha256, stage_binding_sha256;
++    std::vector<Gap> gaps;
++};
++
++std::string sha256(std::span<const unsigned char> bytes);
++std::string sha256(const std::string& text);
++std::string census_digest(std::span<const InventoryRow> rows);
++
++// Immutable minimal catalogue read from the actual table bytes. No rates are
++// invented and no cross-section interpolation or energy support is evaluated.
++class Catalogue {
++public:
++    Catalogue(std::span<const unsigned char> bytes, const std::string& expected_blob_sha256);
++    const std::string& blob_sha256() const { return blob_sha_; }
++    const std::string& registry_sha256() const { return registry_sha_; }
++    const std::vector<std::string>& species() const { return names_; }
++    const std::vector<Pair>& pairs() const { return pairs_; }
++    std::uint32_t species_id(const std::string& name) const;
++    PairStatus status(Pair pair) const;
++    bool has_resolved_interval(Pair pair) const;
++private:
++    std::string blob_sha_, registry_sha_;
++    std::vector<std::string> names_;
++    std::vector<Pair> pairs_;
++    std::vector<PairStatus> status_;
++    std::vector<bool> resolved_;
++};
++
++// This minimum scope includes every existing table pair plus e+OH/O/H2. It is
++// deliberately not described as a complete water/plasma reaction network.
++std::string minimum_contract(const Catalogue& table, const std::string& native_registry_sha256,
++                             const std::string& configuration_sha256);
++class Guard {
++public:
++    Guard(Catalogue table, const std::string& contract, const std::string& expected_contract_sha256);
++    // The native owner computes and retains this from its immutable stage
++    // snapshot, then supplies it to check. It must not re-sign mutated inputs.
++    std::string bind_stage(std::span<const InventoryRow> rows, const StageIdentity& identity) const;
++    Admission check(std::span<const InventoryRow> rows, const StageIdentity& identity) const;
++    const Catalogue& catalogue() const { return table_; }
++private:
++    Catalogue table_;
++    std::string contract_sha_, native_registry_sha_, configuration_sha_;
++    std::vector<Pair> required_;
++};
++
++// Existing parent/diagnostic paths bypass this opt-in gate without asserting
++// full-network admission or requiring a new contract. Unknown modes refuse.
++Admission admit(Mode mode, const Guard* guard, std::span<const InventoryRow> rows,
++                const StageIdentity& identity);
++} // namespace water_scope
+--- a/source/src/chem_v3_native.cpp
++++ b/source/src/chem_v3_native.cpp
+@@ -281,6 +281,22 @@
+     }
+     s->configuration_sha256 = h.hex();
+   }
++  s->base_configuration_sha256 = s->configuration_sha256;
++  need(c.water_scope_mode == FullTimeWaterScopeMode::legacy ||
++       c.water_scope_mode == FullTimeWaterScopeMode::minimum_water, RK::configuration, "configuration: water scope mode");
++  if (c.water_scope_mode == FullTimeWaterScopeMode::legacy) {
++    need(c.water_scope_contract.empty() && c.water_scope_contract_sha256.empty(), RK::configuration,
++         "configuration: legacy mode cannot carry a scope contract");
++  } else {
++    water_scope::Catalogue cat(std::span(reinterpret_cast<const unsigned char *>(b.base()), b.bytes), b.sha256);
++    need(c.water_scope_contract == water_scope::minimum_contract(cat, s->reg->sha256, s->base_configuration_sha256),
++         RK::configuration, "configuration: minimum water contract differs from native base");
++    s->water_scope = std::make_shared<const water_scope::Guard>(std::move(cat), c.water_scope_contract,
++                                                              c.water_scope_contract_sha256);
++    H h; h.text("native-v8.4/minimum-water-configuration-v1"); h.text(s->base_configuration_sha256);
++    h.u32(std::uint32_t(c.water_scope_mode)); h.text(c.water_scope_contract_sha256);
++    s->configuration_sha256 = h.hex();
++  }
+   auto &ch = s->channel;
+   ch.id = channel_id;
+   ch.primary_state = std::string(state_prefix) + "e";
+@@ -410,8 +426,9 @@
+   if (!st.digest.empty())
+     return st.digest;
+   H h;
+-  h.text("native-v8.2/chemistry-state-v3-parcels-support");
++  h.text("native-v8.4/chemistry-state-v4-water-scope");
+   h.text(st.configuration_sha256);
++  h.text(st.water_scope_census_sha256); h.text(st.water_scope_binding_sha256); h.text(st.water_scope_history_sha256);
+   h.u64(st.stages);
+   h.u32(st.pending ? 1 : 0);
+   h.u64(st.reservoirs.size());
+@@ -1402,8 +1419,9 @@
+ } // namespace
+ std::string encode_state(const FullTimeChemistryState &st) {
+   Out o;
+-  o.text("native-v8.2/chemistry-state-codec-v3-parcels-support");
++  o.text("native-v8.4/chemistry-state-codec-v4-water-scope");
+   o.text(st.configuration_sha256);
++  o.text(st.water_scope_census_sha256); o.text(st.water_scope_binding_sha256); o.text(st.water_scope_history_sha256);
+   o.u64(st.stages);
+   o.u64(st.pending ? 1 : 0);
+   o.u64(st.reservoirs.size());
+@@ -1430,12 +1448,23 @@
+ }
+ std::shared_ptr<FullTimeChemistryState> decode_state(const Setup &s, const std::string &bytes) {
+   In in{bytes};
+-  need(in.text() == "native-v8.2/chemistry-state-codec-v3-parcels-support", RK::configuration, "configuration: chemistry state codec tag");
++  need(in.text() == "native-v8.4/chemistry-state-codec-v4-water-scope", RK::configuration, "configuration: chemistry state codec tag");
+   auto st = std::make_shared<FullTimeChemistryState>();
+   st->configuration_sha256 = in.text();
+   need(st->configuration_sha256 == s.configuration_sha256, RK::configuration,
+        "configuration: checkpoint chemistry configuration (blob, registry, policy, w0) differs");
++  st->water_scope_census_sha256 = in.text(); st->water_scope_binding_sha256 = in.text();
++  st->water_scope_history_sha256 = in.text();
+   st->stages = in.u64();
++  auto scope_digest = [](const std::string &v) {
++    return v.size() == 64 && v.find_first_not_of("0123456789abcdef") == std::string::npos;
++  };
++  if (s.water_scope && st->stages > 0)
++    need(scope_digest(st->water_scope_census_sha256) && scope_digest(st->water_scope_binding_sha256) &&
++         scope_digest(st->water_scope_history_sha256), RK::configuration, "configuration: missing scope checkpoint binding");
++  else
++    need(st->water_scope_census_sha256.empty() && st->water_scope_binding_sha256.empty() &&
++         st->water_scope_history_sha256.empty(), RK::configuration, "configuration: unexpected scope checkpoint binding");
+   const auto pend = in.u64();
+   need(pend <= 1, RK::configuration, "configuration: chemistry state flag");
+   st->pending = pend == 1;
+--- a/source/src/chem_v3_native.hpp
++++ b/source/src/chem_v3_native.hpp
+@@ -9,6 +9,7 @@
+ // No arena types besides GapParticle and the public configuration.
+ #pragma once
+ #include "chem_host.hpp"
++#include "water_network_scope.hpp"
+ #include "pf_v7/forms.hpp"
+ #include "raikou/mfem_pic_full_time.h"
+ #include <array>
+@@ -65,6 +66,8 @@
+ Grid make_grid(const GapPicOptions &, const std::array<std::uint32_t, 3> &counts);
+ // ------------------------------------------------------------- setup
+ struct Setup {
++  std::string base_configuration_sha256;
++  std::shared_ptr<const water_scope::Guard> water_scope;
+   FullTimeChemistryConfiguration config;
+   std::shared_ptr<const Registry> reg;
+   Grid grid;
+@@ -129,6 +132,8 @@
+ };
+ struct FullTimeChemistryState {
+   std::string configuration_sha256; // chemistry configuration identity
++  // Latest admitted census and rolling scope history, authenticated by state/row roots.
++  std::string water_scope_census_sha256, water_scope_binding_sha256, water_scope_history_sha256;
+   std::map<chem8::Key, chem8::Reservoir> reservoirs;
+   chem8::Ledger cumulative;     // every accepted stage
+   chem8::Ledger step;           // pending: stage 1 of the step in progress (empty between steps)
+--- a/source/src/mfem_pic_full_time.inc
++++ b/source/src/mfem_pic_full_time.inc
+@@ -524,7 +524,7 @@
+       require(k.accepted_step == steps && k.accepted_step == common.accepted_step &&
+                   digest(k.inputs_sha256) && digest(k.records_root) &&
+                   digest(k.ledger_sha256) && digest(k.state_before_sha256) &&
+-                  digest(k.state_after_sha256) && digest(k.births_root) && digest(k.admitted_export_sha256),
++                  digest(k.state_after_sha256) && digest(k.births_root) && digest(k.admitted_export_sha256) && digest(k.water_scope_sha256),
+               "full-time journal chemistry stage row");
+       children.push_back(r);
+       continue;
+@@ -4105,6 +4105,10 @@
+ void PicArena::attach_full_time_device(std::shared_ptr<FullTimeDevice> d, FullTimeExecution mode) {
+   require(full_time_boundary_ && !active_scope_ && active_full_time_outer_.expired(),
+           "device lane attaches to a full-time arena between steps");
++  const auto scope_setup = std::static_pointer_cast<const chem8::Setup>(chemistry_);
++  if (scope_setup && scope_setup->water_scope && mode != FullTimeExecution::host)
++    throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::network_scope,
++                                  "water_scope: native device census is not qualified");
+   require(mode == FullTimeExecution::host || bool(d), "device execution requires a device");
+   if (!lane_) {
+     auto l = std::make_shared<FullTimeLane>();
+@@ -4258,6 +4262,10 @@
+   // v8: chemistry v3 requires the v8 identity schema.
+   if (c.identity != FullTimeIdentitySchema::v5 && c.identity != FullTimeIdentitySchema::v8)
+     throw refusal(RK::configuration, "full-time identity schema");
++  if (!c.chemistry.enabled && (c.chemistry.water_scope_mode != FullTimeWaterScopeMode::legacy ||
++      !c.chemistry.water_scope_contract.empty() || !c.chemistry.water_scope_contract_sha256.empty()))
++    throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::configuration,
++                                  "water_scope: disabled chemistry cannot carry a scope request");
+   if (c.chemistry.enabled && c.identity != FullTimeIdentitySchema::v8)
+     throw refusal(RK::configuration, "chemistry v3 requires identity schema v8");
+   // v8.1 merge/split policy: schema v8, a valid policy, one state per species.
+--- a/source/src/mfem_pic_full_time_chemistry.inc
++++ b/source/src/mfem_pic_full_time_chemistry.inc
+@@ -77,7 +77,7 @@
+   return l;
+ }
+ ArenaJson chemistry_configuration_json(const FullTimeConfiguration &c) {
+-  ArenaJson j = {{"identity", "v8.3-admitted-export-v1"}};
++  ArenaJson j = {{"identity", "v8.4-minimum-water-scope-v1"}};
+   if (c.merge_split.enabled) {
+     const auto &P = *c.merge_split.params;
+     j["merge_split"] = {{"cadence_steps", c.merge_split.cadence_steps},
+@@ -91,6 +91,9 @@
+     return j;
+   }
+   j["chemistry"] = {{"diagnostic_field_target_approximation", k.diagnostic_field_target_approximation},
++                    {"water_scope_mode", std::uint32_t(k.water_scope_mode)},
++                    {"water_scope_contract", k.water_scope_contract},
++                    {"water_scope_contract_sha256", k.water_scope_contract_sha256},
+                     {"blob_path", k.blob_path},
+                     {"blob_sha256", k.blob_sha256},
+                     {"run_seed", k.run_seed},
+@@ -110,7 +113,7 @@
+ }
+ void read_chemistry_configuration_json(const ArenaJson &j, FullTimeConfiguration &c) {
+   const bool ms = j.is_object() && j.contains("merge_split");
+-  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8.3-admitted-export-v1", "v8 configuration schema");
++  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8.4-minimum-water-scope-v1", "v8 configuration schema");
+   c.identity = FullTimeIdentitySchema::v8;
+   if (ms) {
+     const auto &m = j.at("merge_split");
+@@ -129,11 +132,15 @@
+   const auto &k = j.at("chemistry");
+   if (k.is_null())
+     return;
+-  require(k.is_object() && k.size() == 11, "chemistry configuration schema");
++  require(k.is_object() && k.size() == 14, "chemistry configuration schema");
+   auto &x = c.chemistry;
+   x.enabled = true;
+   require(k.at("diagnostic_field_target_approximation").is_boolean(), "target energy mode boolean");
+   x.diagnostic_field_target_approximation = k.at("diagnostic_field_target_approximation").get<bool>();
++  const auto sm = json_u64(k.at("water_scope_mode"));
++  require(sm <= 1, "water scope mode"); x.water_scope_mode = FullTimeWaterScopeMode(sm);
++  x.water_scope_contract = json_text_any(k.at("water_scope_contract"));
++  x.water_scope_contract_sha256 = json_text_any(k.at("water_scope_contract_sha256"));
+   x.blob_path = json_text(k.at("blob_path"));
+   x.blob_sha256 = json_text(k.at("blob_sha256"));
+   x.run_seed = json_u64(k.at("run_seed"));
+@@ -162,7 +169,7 @@
+   if (c.identity != FullTimeIdentitySchema::v8)
+     return "";
+   Writer w;
+-  w.tag("native-v8.3-admitted-export-v1/identity-schema-v8");
++  w.tag("native-v8.4-minimum-water-scope-v1/identity-schema-v8");
+   if (c.chemistry.enabled)
+     w.text(chem8::make_setup(c.chemistry, o)->configuration_sha256);
+   else
+@@ -278,6 +285,40 @@
+     }
+   }
+   chem8::RowView view{rows.data(), n, species.data(), single.data()};
++  water_scope::Admission scope_admission;
++  if (setup->water_scope) {
++    std::vector<water_scope::InventoryRow> census; census.reserve(n);
++    for (std::size_t i = 0; i < n; ++i) {
++      if (!owner_of[i] || species[i] == chem8::none)
++        throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::network_scope,
++                                      "water_scope: native species lacks an explicit registry mapping");
++      const auto cell = setup->grid.locate(rows[i].position_m.data());
++      if (cell == chem8::none)
++        throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::network_scope,
++                                      "water_scope: native carrier outside vacuum atlas");
++      census.push_back({rows[i].id, cell, species[i], rows[i].weight});
++    }
++    Writer input; input.tag("native-v8.4/authentic-water-census-input-v1");
++    input.text(snapshot_digest(snap)); input.text(snap.chain);
++    input.text(cn::carrier_rows_digest(base.native.particles)->root);
++    input.text(o.common.common_clock_sha256); input.text(setup->grid.sha256);
++    input.text(s.exposure.frozen_field_sha256); input.f64(s.exposure.frozen_physical_stage_s);
++    input.u64(s.exposure.owner_stage_sequence);
++    water_scope::StageIdentity identity;
++    identity.input_state_sha256 = cn::sha256_hex(input.bytes);
++    identity.native_registry_sha256 = setup->reg->sha256;
++    identity.configuration_sha256 = setup->base_configuration_sha256;
++    identity.native_row_count = n; identity.step = req.step; identity.stage = req.stage;
++    identity.dt_s = req.dt_s; identity.collision_cell_volume_m3 = setup->grid.volume;
++    identity.all_registered_species_before_target_filter = true;
++    identity.expected_census_sha256 = water_scope::census_digest(census);
++    identity.expected_stage_binding_sha256 = setup->water_scope->bind_stage(census, identity);
++    scope_admission = setup->water_scope->check(census, identity);
++    if (!scope_admission.admitted)
++      throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::network_scope,
++          "water_scope: required encounter absent or wholly unsupported in " +
++          std::to_string(scope_admission.gaps.size()) + " cell/pair entries");
++  }
+   auto in = chem8::build_inputs(*setup, view, req);
+   auto rec = chem8::run_host(*setup, in, setup->config.host_partitions);
+   const auto active = chem8::active_of(*setup, in, rec, view);
+@@ -300,6 +341,16 @@
+     return out;
+   };
+   auto res = chem8::resolve(*setup, active, req, before, da);
++  if (setup->water_scope) {
++    res.state->water_scope_census_sha256 = scope_admission.census_sha256;
++    res.state->water_scope_binding_sha256 = scope_admission.stage_binding_sha256;
++    Writer history; history.tag("native-v8.4/water-scope-history-v1");
++    history.text(before.water_scope_history_sha256); history.u64(req.step); history.u64(req.stage);
++    history.text(scope_admission.scope_sha256); history.text(scope_admission.census_sha256);
++    history.text(scope_admission.stage_binding_sha256);
++    res.state->water_scope_history_sha256 = cn::sha256_hex(history.bytes);
++    res.state->digest.clear();
++  }
+   auto stage_export = export_begin(res);
+   const auto &plan = res.plan;
+   // ---- apply the plan to a new private frame
+@@ -452,6 +503,9 @@
+   receipt->records_root = chem8::records_root(rec);
+   receipt->records_sha256 = chem8::records_stream_sha256(rec);
+   receipt->state_before_sha256 = chem8::state_digest(before);
++  receipt->water_scope_contract_sha256 = scope_admission.scope_sha256;
++  receipt->water_scope_census_sha256 = scope_admission.census_sha256;
++  receipt->water_scope_binding_sha256 = scope_admission.stage_binding_sha256;
+   receipt->base_native_id = base_id;
+   receipt->next_native_id = next_id;
+   receipt->remainder_carriers = remainder_carriers;
+@@ -783,6 +837,10 @@
+   auto &owner = *o.owner;
+   const auto setup = std::static_pointer_cast<const chem8::Setup>(owner.chemistry_);
+   require(bool(setup), "chemistry v3 is not configured for this arena");
++  if (setup->water_scope && (setup->config.execution != FullTimeChemistryExecution::host ||
++                            owner.full_time_execution() != FullTimeExecution::host))
++    throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::network_scope,
++                                  "water_scope: device census is not qualified; no host fallback");
+   require(!s.building && !o.builder_active, "private compound cap or reentry");
+   require(s.outstanding_token.expired() &&
+               s.generation <= std::numeric_limits<std::uint64_t>::max() - 2,
+@@ -889,6 +947,9 @@
+   k.state_after_sha256 = receipt->state_after_sha256;
+   k.births_root = receipt->births_root;
+   k.admitted_export_sha256 = receipt->admitted_export->sha256;
++  Writer scope_row; scope_row.tag("native-v8.4/water-scope-row-v1");
++  scope_row.text(receipt->water_scope_contract_sha256); scope_row.text(receipt->water_scope_census_sha256);
++  scope_row.text(receipt->water_scope_binding_sha256); k.water_scope_sha256 = cn::sha256_hex(scope_row.bytes);
+   full_time_append(*next, row);
+   const auto stage_chain = next->chain;
+   next->stochastic_completions[c.integration_owner_id] = completion_json(c);
+@@ -1017,6 +1078,9 @@
+   out.enabled = true;
+   out.diagnostic_field_target_approximation = setup->config.diagnostic_field_target_approximation;
+   out.full_system_energy_closure = false;
++  out.water_scope_census_sha256 = st.water_scope_census_sha256;
++  out.water_scope_binding_sha256 = st.water_scope_binding_sha256;
++  out.water_scope_history_sha256 = st.water_scope_history_sha256;
+   out.state_sha256 = chem8::state_digest(st);
+   out.configuration_sha256 = setup->configuration_sha256;
+   out.registry_sha256 = setup->reg->sha256;
+@@ -1043,6 +1107,14 @@
+     out.melt.sha256 = chem8::melt_digest(*ml);
+   }
+   return out;
++}
++std::string full_time_minimum_water_scope_contract(const FullTimeChemistryConfiguration &c, const GapPicOptions &o) {
++  if (c.water_scope_mode != FullTimeWaterScopeMode::legacy || !c.water_scope_contract.empty() ||
++      !c.water_scope_contract_sha256.empty())
++    throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::configuration, "water_scope: contract requires the base configuration");
++  const auto s = chem8::make_setup(c, o); const auto &b = *s->reg->blob;
++  water_scope::Catalogue table(std::span(reinterpret_cast<const unsigned char *>(b.base()), b.bytes), b.sha256);
++  return water_scope::minimum_contract(table, s->reg->sha256, s->base_configuration_sha256);
+ }
+ FullTimeChemistryRegistry full_time_chemistry_registry(const FullTimeChemistryConfiguration &c,
+                                                        const GapPicOptions &o) {
+--- a/source/src/mfem_pic_full_time_rows.inc
++++ b/source/src/mfem_pic_full_time_rows.inc
+@@ -612,7 +612,7 @@
+                 births = 0, consumed = 0, debited_packets = 0, removed_packets = 0,
+                 released_packets = 0, remainder_carriers = 0;
+   std::string configuration_sha256, inputs_sha256, records_root, ledger_sha256,
+-      state_before_sha256, state_after_sha256, births_root, admitted_export_sha256;
++      state_before_sha256, state_after_sha256, births_root, admitted_export_sha256, water_scope_sha256;
+ };
+ template <class IO> void codec_chemistry(IO &io, ChemistryRow &r) {
+   for (auto *v : {&r.accepted_step, &r.stage, &r.purpose})
+@@ -625,7 +625,7 @@
+     io.u64(*v);
+   for (auto *d : {&r.configuration_sha256, &r.inputs_sha256, &r.records_root,
+                   &r.ledger_sha256, &r.state_before_sha256, &r.state_after_sha256,
+-                  &r.births_root, &r.admitted_export_sha256})
++                  &r.births_root, &r.admitted_export_sha256, &r.water_scope_sha256})
+     codec_digest(io, *d);
+ }
+ struct FullRow {
+--- a/source/src/water_network_scope.cpp
++++ b/source/src/water_network_scope.cpp
+@@ -0,0 +1,195 @@
++#include "water_network_scope.hpp"
++#include <openssl/evp.h>
++#include <algorithm>
++#include <bit>
++#include <cmath>
++#include <limits>
++#include <map>
++#include <memory>
++#include <set>
++#include <sstream>
++#include <stdexcept>
++
++namespace water_scope {
++namespace {
++constexpr std::uint32_t none = 0xffffffffu;
++void need(bool ok, const std::string& why) { if (!ok) throw std::runtime_error("water scope: " + why); }
++void digest_valid(const std::string& d) {
++    need(d.size()==64 && d.find_first_not_of("0123456789abcdef")==std::string::npos,"invalid identity digest");
++}
++void append_u64(std::string& s, std::uint64_t n) { for (int i=0;i<8;++i) s.push_back(char((n>>(8*i))&255)); }
++void append_text(std::string& s, const std::string& v) { append_u64(s,v.size()); s+=v; }
++std::uint64_t read_le(std::span<const unsigned char> b, std::size_t off, std::size_t n) {
++    need(n<=8 && off<=b.size() && n<=b.size()-off,"truncated table section");
++    std::uint64_t v=0; for (std::size_t i=0;i<n;++i) v|=std::uint64_t(b[off+i])<<(8*i); return v;
++}
++std::vector<InventoryRow> canonical(std::span<const InventoryRow> rows) {
++    std::vector<InventoryRow> result(rows.begin(),rows.end());
++    for (const auto& row:result) need(std::isfinite(row.physical_count) && row.physical_count>=0,"invalid inventory count");
++    std::sort(result.begin(),result.end(),[](const auto& a,const auto& b){return a.native_id<b.native_id;});
++    for (std::size_t i=1;i<result.size();++i) need(result[i-1].native_id!=result[i].native_id,"duplicate native row ID");
++    return result;
++}
++std::vector<Pair> required(const Catalogue& table) {
++    auto pairs=table.pairs();
++    for (const auto* target:{"OH","O","H2"}) pairs.push_back({table.species_id("e"),table.species_id(target)});
++    std::sort(pairs.begin(),pairs.end()); pairs.erase(std::unique(pairs.begin(),pairs.end()),pairs.end());
++    return pairs;
++}
++} // namespace
++
++std::string sha256(std::span<const unsigned char> bytes) {
++    unsigned char out[EVP_MAX_MD_SIZE]; unsigned n=0;
++    need(EVP_Digest(bytes.data(),bytes.size(),out,&n,EVP_sha256(),nullptr)==1 && n==32,"digest failure");
++    static constexpr char hex[]="0123456789abcdef"; std::string result;
++    for (unsigned i=0;i<n;++i) {result.push_back(hex[out[i]>>4]);result.push_back(hex[out[i]&15]);}
++    return result;
++}
++std::string sha256(const std::string& text) {
++    return sha256(std::span(reinterpret_cast<const unsigned char*>(text.data()),text.size()));
++}
++std::string census_digest(std::span<const InventoryRow> rows) {
++    const auto sorted=canonical(rows); std::string data="all-species-native-census-v1";
++    append_u64(data,sorted.size());
++    for (const auto& row:sorted) {
++        append_u64(data,row.native_id);append_u64(data,row.collision_cell);append_u64(data,row.species);
++        append_u64(data,std::bit_cast<std::uint64_t>(row.physical_count==0?0.0:row.physical_count));
++    }
++    return sha256(data);
++}
++
++Catalogue::Catalogue(std::span<const unsigned char> bytes,const std::string& expected) {
++    digest_valid(expected);blob_sha_=sha256(bytes);need(blob_sha_==expected,"table identity differs");
++    need(bytes.size()>=16 && std::string(reinterpret_cast<const char*>(bytes.data()),8)=="PFCHEMV3","table magic");
++    need(read_le(bytes,8,4)==1,"table schema");const auto ns=read_le(bytes,12,4);
++    need(ns>0 && ns<64 && 16+40*ns<=bytes.size(),"table directory");
++    std::map<std::string,std::span<const unsigned char>> sections;
++    std::vector<std::pair<std::uint64_t,std::uint64_t>> intervals;
++    for (std::uint64_t i=0;i<ns;++i) {
++        const auto at=16+40*i;std::string name;
++        for (std::size_t j=0;j<24 && bytes[at+j];++j) name.push_back(char(bytes[at+j]));
++        const auto off=read_le(bytes,at+24,8),len=read_le(bytes,at+32,8);
++        need(!name.empty() && off%64==0 && off>=16+40*ns && off<=bytes.size() && len<=bytes.size()-off,"table section bounds");
++        need(sections.emplace(name,bytes.subspan(off,len)).second,"duplicate section");
++        intervals.emplace_back(off,off+len);
++    }
++    std::sort(intervals.begin(),intervals.end());
++    for (std::size_t i=1;i<intervals.size();++i) need(intervals[i-1].second<=intervals[i].first,"overlapping sections");
++    auto section=[&](const char* name){const auto it=sections.find(name);need(it!=sections.end(),std::string("missing section ")+name);return it->second;};
++    const auto meta=section("meta");need(meta.size()==16,"meta size");
++    const auto count=read_le(meta,0,4),groups=read_le(meta,4,4),procs=read_le(meta,8,4),regions=read_le(meta,12,4);
++    need(count>0 && count<=64 && groups<=count*count,"species/group count");
++    const auto sp=section("species"),gr=section("groups"),lookup=section("group_of");
++    need(sp.size()==64*count && gr.size()==64*groups && lookup.size()==4*count*count,"registry section size");
++    const auto strings=section("strings");std::vector<std::string> lines;std::string line;
++    for (unsigned char c:strings) {if (c=='\n') {lines.push_back(line);line.clear();}else {need(c!=0,"NUL name");line.push_back(char(c));}}
++    need(line.empty() && lines.size()==count+2*procs+regions,"registry names");
++    names_.assign(lines.begin(),lines.begin()+count);
++    std::set<std::string> unique;
++    std::string registry="table-species-registry-v1";append_u64(registry,count);
++    for (std::size_t i=0;i<count;++i) {
++        need(!names_[i].empty() && names_[i].find_first_of(" \t\r\n")==std::string::npos && unique.insert(names_[i]).second,"species name");
++        append_text(registry,names_[i]);registry.append(reinterpret_cast<const char*>(sp.data()+64*i),64);
++    }
++    registry_sha_=sha256(registry);
++    const auto bo=section("bin_off"),br=section("bin_region"),bounds=section("bin_row");
++    need(bo.size()==4*groups && br.size()==bounds.size() && br.size()%4==0,"coverage section size");
++    struct GroupInfo {Pair pair; PairStatus status; bool resolved;};std::vector<GroupInfo> info;
++    std::map<Pair,std::uint32_t> index;
++    for (std::uint32_t g=0;g<groups;++g) {
++        const Pair pair{std::uint32_t(read_le(gr,64*g,4)),std::uint32_t(read_le(gr,64*g+4,4))};
++        need(pair.projectile<count && pair.target<count && index.emplace(pair,g).second,"group registry");
++        const auto n=read_le(gr,64*g+12,4),off=read_le(bo,4*g,4);
++        need(n>=2 && off<=br.size()/4 && n+1<=br.size()/4-off,"coverage range");
++        bool all_unknown=true,any_resolved=false;
++        for (std::uint64_t j=0;j<=n;++j) {
++            const auto region=read_le(br,4*(off+j),4),bound=read_le(bounds,4*(off+j),4);
++            need(region==none || region<regions,"coverage region ID");
++            any_resolved=any_resolved || region==none;
++            all_unknown=all_unknown && region!=none && bound==none;
++        }
++        info.push_back({pair,all_unknown?PairStatus::entirely_unbounded:PairStatus::supported,any_resolved});
++    }
++    for (std::uint32_t p=0;p<count;++p) for (std::uint32_t t=0;t<count;++t) {
++        const auto it=index.find({p,t}); const auto expected_index=it==index.end()?none:it->second;
++        need(read_le(lookup,4*(std::uint64_t(p)*count+t),4)==expected_index,"group lookup differs from registry");
++    }
++    std::sort(info.begin(),info.end(),[](const auto& a,const auto& b){return a.pair<b.pair;});
++    for (const auto& entry:info) {pairs_.push_back(entry.pair);status_.push_back(entry.status);resolved_.push_back(entry.resolved);}
++}
++std::uint32_t Catalogue::species_id(const std::string& name) const {
++    const auto it=std::find(names_.begin(),names_.end(),name);need(it!=names_.end(),"required species absent: "+name);
++    return std::uint32_t(it-names_.begin());
++}
++PairStatus Catalogue::status(Pair pair) const {
++    const auto it=std::lower_bound(pairs_.begin(),pairs_.end(),pair);
++    return it==pairs_.end() || *it!=pair ? PairStatus::absent : status_[std::size_t(it-pairs_.begin())];
++}
++bool Catalogue::has_resolved_interval(Pair pair) const {
++    const auto it=std::lower_bound(pairs_.begin(),pairs_.end(),pair);
++    return it!=pairs_.end() && *it==pair && resolved_[std::size_t(it-pairs_.begin())];
++}
++std::string minimum_contract(const Catalogue& table,const std::string& native_registry,const std::string& configuration) {
++    digest_valid(native_registry);digest_valid(configuration);
++    std::ostringstream s;s<<"MINIMUM-WATER-ENCOUNTERS 1\nmodel_scope full_water_breakdown_candidate\n"
++      <<"blob_sha256 "<<table.blob_sha256()<<"\nregistry_sha256 "<<table.registry_sha256()<<"\n"
++      <<"native_registry_sha256 "<<native_registry<<"\nconfiguration_sha256 "<<configuration<<"\n"
++      <<"census all_registered_species_before_target_filter\nzero_inventory inactive_unresolved\n"
++      <<"existing_region_admission required\nnetwork_complete false\nphysical_model_validated false\n";
++    const auto pairs=required(table);s<<"required_pairs "<<pairs.size()<<'\n';
++    for (const auto pair:pairs) s<<"pair "<<table.species()[pair.projectile]<<' '<<table.species()[pair.target]<<'\n';
++    return s.str();
++}
++Guard::Guard(Catalogue table,const std::string& contract,const std::string& expected):table_(std::move(table)) {
++    digest_valid(expected);contract_sha_=sha256(contract);need(contract_sha_==expected,"scope contract identity differs");
++    std::istringstream s(contract);std::string line;
++    while(std::getline(s,line)) {
++        const std::string n="native_registry_sha256 ",c="configuration_sha256 ";
++        if(line.starts_with(n)) {need(native_registry_sha_.empty(),"duplicate native registry");native_registry_sha_=line.substr(n.size());}
++        if(line.starts_with(c)) {need(configuration_sha_.empty(),"duplicate configuration");configuration_sha_=line.substr(c.size());}
++    }
++    need(contract==minimum_contract(table_,native_registry_sha_,configuration_sha_),"scope contract differs from the explicit minimum");
++    required_=required(table_);
++}
++Admission Guard::check(std::span<const InventoryRow> rows,const StageIdentity& id) const {
++    digest_valid(id.input_state_sha256);digest_valid(id.expected_census_sha256);
++    need(id.native_registry_sha256==native_registry_sha_ && id.configuration_sha256==configuration_sha_,"native registry/configuration identity differs");
++    need(id.native_row_count==rows.size() && id.all_registered_species_before_target_filter,"incomplete pre-filter census");
++    need((id.stage==1 || id.stage==2) && std::isfinite(id.dt_s) && id.dt_s>0 &&
++         std::isfinite(id.collision_cell_volume_m3) && id.collision_cell_volume_m3>0,"invalid stage interval/cell volume");
++    Admission result;result.enforced=true;result.existing_region_admission_required=true;result.scope_sha256=contract_sha_;
++    result.census_sha256=census_digest(rows);need(result.census_sha256==id.expected_census_sha256,"census identity differs");
++    result.stage_binding_sha256=bind_stage(rows,id);
++    digest_valid(id.expected_stage_binding_sha256);
++    need(result.stage_binding_sha256==id.expected_stage_binding_sha256,"stage input binding differs");
++    std::map<std::uint64_t,std::uint64_t> positive;
++    for (const auto& row:rows) {
++        need(row.species<table_.species().size(),"unregistered census species");
++        if (row.physical_count>0) positive[row.collision_cell]|=std::uint64_t(1)<<row.species;
++    }
++    for (const auto& [cell,present]:positive) for (const auto pair:required_) {
++        if ((present&(std::uint64_t(1)<<pair.projectile)) && (present&(std::uint64_t(1)<<pair.target))) {
++            const auto status=table_.status(pair);
++            if (status!=PairStatus::supported) result.gaps.push_back({cell,pair,status});
++        }
++    }
++    result.admitted=result.gaps.empty();
++    return result;
++}
++std::string Guard::bind_stage(std::span<const InventoryRow> rows,const StageIdentity& id) const {
++    std::string binding="minimum-water-stage-admission-v1";
++    for (const auto& value:{contract_sha_,table_.blob_sha256(),table_.registry_sha256(),id.native_registry_sha256,
++                           id.configuration_sha256,id.input_state_sha256,census_digest(rows)}) append_text(binding,value);
++    append_u64(binding,id.native_row_count);append_u64(binding,id.step);append_u64(binding,id.stage);
++    append_u64(binding,std::bit_cast<std::uint64_t>(id.dt_s));append_u64(binding,std::bit_cast<std::uint64_t>(id.collision_cell_volume_m3));
++    append_u64(binding,id.all_registered_species_before_target_filter?1:0);
++    return sha256(binding);
++}
++Admission admit(Mode mode,const Guard* guard,std::span<const InventoryRow> rows,const StageIdentity& identity) {
++    switch(mode) {
++    case Mode::legacy_parent: case Mode::legacy_diagnostic: return Admission{};
++    case Mode::full_water_breakdown_candidate: need(guard!=nullptr,"strict mode requires pinned scope guard");return guard->check(rows,identity);
++    }
++    throw std::runtime_error("water scope: unknown mode");
++}
++} // namespace water_scope
+--- a/tests/test_v84_scope.cpp
++++ b/tests/test_v84_scope.cpp
+@@ -0,0 +1,129 @@
++// Native-owned minimum scope gate: manufactured populations, no physical validation.
++#include "chem_v8_fixture.hpp"
++#include "raikou/mfem_pic_full_time_device.h"
++#include "raikou/json.hpp"
++#include <filesystem>
++#include <fstream>
++#include <iostream>
++namespace m=raikou::mfem_backend;
++using J=nlohmann::json;
++unsigned checks=0;
++void check(bool b,const char *why){++checks;if(!b)throw std::runtime_error(why);}
++template<class F> void refuses(F f,m::FullTimeChemistryRefusal::Kind kind,const char *why){
++  bool hit=false;try{f();}catch(const m::FullTimeChemistryRefusal &e){hit=e.kind()==kind;}
++  check(hit,why);
++}
++template<class F> void any_refusal(F f,const char *why){bool hit=false;try{f();}catch(const std::exception &){hit=true;}check(hit,why);}
++m::FullTimeChemistryConfiguration scoped(m::FullTimeChemistryConfiguration c,const m::GapPicOptions &o){
++  c.water_scope_contract=m::full_time_minimum_water_scope_contract(c,o);
++  c.water_scope_contract_sha256=chemfix::sha(c.water_scope_contract);
++  c.water_scope_mode=m::FullTimeWaterScopeMode::minimum_water;return c;
++}
++std::vector<m::FullTimeAuthoredPacket> pair(const std::string &target,double ux=1e6,double x2=.00215){
++  return {{"load/e","pfc-v3/e","manufactured/scope",m::ArenaCount(1),{.00215,.00215,-.01},{ux,0,0}},
++          {"load/target","pfc-v3/"+target,"manufactured/scope",m::ArenaCount(2),{x2,.00215,-.01},{0,0,0}}};
++}
++void refusal_unchanged(chemfix::Arena &A,m::FullTimeChemistryRefusal::Kind kind,const char *why,double dt=1e-15){
++  const auto a=A.arena->full_time_boundary()->accepted_arena_sha256;
++  const auto b=A.arena->full_time_chemistry().state_sha256;
++  refuses([&]{chemfix::step(A,dt,0);},kind,why);
++  check(A.arena->full_time_boundary()->accepted_arena_sha256==a && A.arena->full_time_chemistry().state_sha256==b,
++        "refusal changed accepted population/history/RNG");
++}
++int main(int argc,char **argv){try{
++  if(argc!=2)throw std::runtime_error("usage: test_v84_scope OUT");
++  std::filesystem::path out=argv[1];std::filesystem::create_directories(out);
++  const auto o=chemfix::options();const auto base=chemfix::chemistry_configuration(o);const auto c=scoped(base,o);
++  using K=m::FullTimeChemistryRefusal::Kind;
++  for(const auto *name:{"OH","O","H2"}){
++    auto A=chemfix::make_arena(o,c,pair(name),1000,2);refusal_unchanged(A,K::network_scope,"missing required neutral encounter not refused");
++    // Diagnostic legacy behavior is preserved: missing groups are not admitted by the new mode accidentally.
++    auto L=chemfix::make_arena(o,base,pair(name),1000,2);auto r=chemfix::step(L,1e-15,0);
++    check(r.stage1->water_scope_binding_sha256.empty() && r.stage2->water_scope_binding_sha256.empty(),"legacy scope changed");
++  }
++  auto U=chemfix::make_arena(o,c,pair("OH+",0),1000,2);
++  refusal_unchanged(U,K::network_scope,"wholly unknown recombination must refuse even cold-at-rest");
++  auto separated=chemfix::make_arena(o,c,pair("OH",0,.00255),1000,2);
++  check(chemfix::step(separated,1e-15,0).stage1->water_scope_binding_sha256.size()==64,"different-cell gap should be inactive");
++  auto converge=chemfix::make_arena(o,c,pair("OH",4e7,.00255),1000,2);
++  const auto converge_before=converge.arena->full_time_boundary()->accepted_arena_sha256;
++  const auto converge_rng=converge.arena->full_time_chemistry().state_sha256;bool stage1_passed=false;
++  refuses([&]{chemfix::step(converge,1e-11,0,[&](auto &){stage1_passed=true;});},K::network_scope,
++          "new stage2 encounter after motion not refused");
++  check(stage1_passed && converge.arena->full_time_boundary()->accepted_arena_sha256==converge_before &&
++        converge.arena->full_time_chemistry().state_sha256==converge_rng,"stage2 refusal did not preserve outer rollback");
++  auto one=pair("OH");one.pop_back();auto absent=chemfix::make_arena(o,c,one,1000,2);
++  check(chemfix::step(absent,1e-15,0).stage1->water_scope_census_sha256.size()==64,"absent target handling");
++  // Genuine all-row mapping cannot be replaced by the current target flags.
++  auto unknown=pair("OH");unknown[1].state="unmapped/metal";
++  any_refusal([&]{(void)chemfix::make_arena(o,c,unknown,1000,2);},"unregistered authored native state refused");
++  auto unmapped=chemfix::make_arena(o,c,{},1000,2);
++  auto extra=*std::find_if(unmapped.states.begin(),unmapped.states.end(),[](const auto &s){return s.id=="pfc-v3/OH";});
++  extra.id="unmapped/metal";unmapped.states.push_back(extra);
++  unmapped.arena=m::PicArena::create_full_time(o,unmapped.states,unmapped.channels,unknown,unmapped.g,unmapped.cfg);
++  refusal_unchanged(unmapped,K::network_scope,"registered native state silently omitted from chemistry census");
++  for(auto execution:{m::FullTimeChemistryExecution::device,m::FullTimeChemistryExecution::device_verified}){
++    auto d=c;d.execution=execution;auto D=chemfix::make_arena(o,d,pair("H"),1000,2);
++    refusal_unchanged(D,K::network_scope,"strict device mode fell back to host");
++  }
++  for(auto execution:{m::FullTimeExecution::device,m::FullTimeExecution::device_verified}){
++    auto D=chemfix::make_arena(o,c,pair("H"),1000,2);
++    refuses([&]{D.arena->attach_full_time_device({},execution);},K::network_scope,
++            "strict host chemistry accepted a native device lane request");
++    check(D.arena->full_time_execution()==m::FullTimeExecution::host,"refused device attach changed native lane");
++  }
++  // Scope support is not permission to bypass the existing region policy.
++  auto strict=base;strict.policy.admitted_regions.clear();strict=scoped(strict,o);
++  auto C=chemfix::make_arena(o,strict,pair("H2O",0),1000,2);
++  refusal_unchanged(C,K::coverage_policy,"existing cold unknown-region guard relaxed");
++  for(int k=0;k<4;++k){auto bad=c;
++    if(k==0)bad.water_scope_contract+="weakened\n";
++    if(k==1)bad.water_scope_contract_sha256=chemfix::sha("wrong");
++    if(k==2)bad.run_seed++;
++    if(k==3)bad.water_scope_mode=m::FullTimeWaterScopeMode(99);
++    any_refusal([&]{(void)m::full_time_chemistry_registry(bad,o);},"scope/base configuration tamper admitted");
++  }
++  for(int k=0;k<2;++k){auto empty=chemfix::make_arena(o,base,{},1000,2);auto disabled=empty.cfg;
++    disabled.chemistry.enabled=false;
++    if(k==0)disabled.chemistry.water_scope_mode=m::FullTimeWaterScopeMode::minimum_water;
++    else disabled.chemistry.water_scope_contract="stray contract";
++    refuses([&]{(void)m::PicArena::create_full_time(o,empty.states,empty.channels,{},empty.g,disabled);},
++            K::configuration,"disabled chemistry silently lost scope request");
++  }
++  // Two actual native stages and repeated restart; inherited physical fields are synthetic.
++  auto A=chemfix::make_arena(o,c,pair("H"),1000,2);auto B=chemfix::make_arena(o,c,pair("H"),1000,2);
++  for(int k=0;k<3;++k){
++    const auto r=chemfix::step(A,1e-15,k);const auto q=chemfix::step(B,1e-15,k);
++    check(r.stage1->water_scope_contract_sha256==c.water_scope_contract_sha256 &&
++          r.stage2->water_scope_contract_sha256==c.water_scope_contract_sha256,"stage scope contract lost");
++    check(r.stage1->water_scope_binding_sha256.size()==64 && r.stage2->water_scope_binding_sha256.size()==64 &&
++          r.stage1->water_scope_binding_sha256!=r.stage2->water_scope_binding_sha256,"stage2 reused stage1 binding");
++    check(r.boundary_sha256==q.boundary_sha256 && r.stage2->state_after_sha256==q.stage2->state_after_sha256,
++          "restored continuation differs");
++    const auto st=B.arena->full_time_chemistry();const auto boundary=*B.arena->full_time_boundary();
++    const auto path=out/("scope-"+std::to_string(k)+".json");B.arena->save(path.string());
++    B.arena=m::PicArena::restore_full_time(path.string(),o,B.states,B.channels,boundary);
++    const auto restored=B.arena->full_time_chemistry();
++    check(st.water_scope_history_sha256.size()==64 && st.water_scope_history_sha256==restored.water_scope_history_sha256 &&
++          st.water_scope_census_sha256==restored.water_scope_census_sha256 && st.water_scope_binding_sha256==restored.water_scope_binding_sha256,
++          "scope roots lost on restore");
++    J doc;std::ifstream(path)>>doc;auto payload=doc.at("payload");
++    payload["configuration"]["v8"]["chemistry"]["water_scope_contract_sha256"]=chemfix::sha("tampered scope");
++    J altered={{"payload",payload},{"sha256",chemfix::sha(payload.dump())}};auto wrong=out/("wrong-"+std::to_string(k)+".json");
++    std::ofstream(wrong)<<altered.dump();
++    any_refusal([&]{(void)m::PicArena::restore_full_time(wrong.string(),o,B.states,B.channels,boundary);},"re-signed scope checkpoint tamper accepted");
++    auto changed=doc.at("payload");auto hex=changed["metadata"]["chemistry"]["state_hex"].get<std::string>();
++    static constexpr char digits[]="0123456789abcdef";std::string needle;
++    for(unsigned char v:st.water_scope_binding_sha256){needle+=digits[v>>4];needle+=digits[v&15];}
++    const auto pos=hex.find(needle);check(pos!=std::string::npos,"checkpoint must contain latest native-held scope binding");
++    // Change one ASCII hex digit to another valid digest digit, then re-sign only the envelope.
++    hex.replace(pos,2,hex.substr(pos,2)=="30"?"31":"30");changed["metadata"]["chemistry"]["state_hex"]=hex;
++    auto wrong_root=out/("wrong-root-"+std::to_string(k)+".json");
++    std::ofstream(wrong_root)<<J{{"payload",changed},{"sha256",chemfix::sha(changed.dump())}}.dump();
++    any_refusal([&]{(void)m::PicArena::restore_full_time(wrong_root.string(),o,B.states,B.channels,boundary);},
++                "re-signed native scope binding tamper accepted");
++  }
++  J result={{"passed",true},{"checks",checks},{"actual_native_fixture",true},{"scope_contract_sha256",c.water_scope_contract_sha256},
++            {"network_complete",false},{"physical_model_validated",false},{"device_census_qualified",false},{"production_qualified",false}};
++  std::ofstream(out/"result.json")<<result.dump(2)<<'\n';std::cout<<result.dump(2)<<'\n';return 0;
++}catch(const std::exception &e){std::cerr<<e.what()<<'\n';return 1;}}
