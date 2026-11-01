@@ -1,0 +1,46 @@
+SS304 phase thermal owner v1.3 -- transaction correction qualification
+2026-10-31 local / 2026-11-01 UTC
+
+Build c3 passed, followed by 200204 corrected CPU checks and 73 GPU-suite checks,
+with zero failures. A separate probe reproduced all three original defects in
+unchanged v1.2. That probe's three checks are not counted as corrected checks.
+
+CPU suites: law 200057; owner 49; v1.1 26; v1.2 41; historical physical regression 4;
+new transactions 27. The GPU suite includes all 27 transaction checks on both CPU
+and GPU, plus v1/v1.1/v1.2 parity, quantized releases, leveling, Merkle identity,
+borrowed sessions, dam/ejection and direct-device accumulation. CPU and GPU final
+transaction state SHA256 agree:
+dff235ce1b7db35c7fe500b8fd7c065b43dd76d392b8ee3490d5d86de968e4b1
+
+SimQueue job 243 built and ran CPU tests on physical CPU 6, one core, 3 GiB RAM,
+10-minute limit. Job 246 ran GPU parity on physical CPU 7, one core, 3 GiB RAM,
+one shared GPU with a 3 GiB claim, 5-minute limit. Both succeeded. The frozen
+launcher, compiler dependencies, source hashes and sealed inputs matched their
+receipts. No full simulation or timing benchmark ran. Shared-GPU elapsed times
+are recorded for provenance only.
+
+The correction invalidates superseded scratch-backed trials; makes proposed
+back-pressure publish only on commit; and binds pending accumulation to trial,
+state and input identity. New checks exercise different successive prepares,
+refused replacement, refused pressure, explicit pressure changes, checkpoint
+continuation, newer field contributions, and spatial energy/force/invalid-flag
+digest differences. Pending windows cannot be overwritten by restart or bypassed
+by a direct thermal step. V1.2 checkpoints remain incompatible and are refused.
+
+All 45 copied historical v1.2 inputs were verified unchanged. Runtime and artifact
+source mirrors match. SOURCE-SHA256.json seals 52 source/support files with aggregate:
+56411ab1d632e5cc5dec1376cf74eb0b67b1b6b4d3f933e0a2ac91f0a15a3607
+QUALIFICATION.json indexes exact results, build/run receipts, queue records and
+small restart examples under evidence/c3. Build c1 was development evidence only;
+the partially built borrowed-core c2 was canceled when its lease was preempted.
+Only final c3 qualifies this sealed source.
+
+Scope limits: this is a standalone transaction correction. Phase/melt/ejection
+arithmetic is retained. No new physical calibration, full Hall-size qualification,
+sanitizer run, cross-architecture result or performance claim is made. GPU pending
+window identity currently downloads the EM-cell accumulator arrays on demand.
+Hall/PIC/chemistry/circuit integration remains separate. A moving conductor still
+requires actual field/current u x B work coupling with compatible discrete energy
+exchange; merely subtracting Lorentz work in a ledger is forbidden. See the
+corrected source/INTEGRATION.txt. Historical v1.2 timing numbers there are explicitly
+context only and do not qualify this version.

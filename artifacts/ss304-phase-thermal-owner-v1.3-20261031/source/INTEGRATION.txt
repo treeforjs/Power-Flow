@@ -1,0 +1,93 @@
+SS304 phase thermal owner v1.3 -- integration contract (2026-10-31)
+
+Base contracts: INTEGRATION-v1.1.txt and INTEGRATION-v1.txt (namespace ss304_phase_v1_3 here, per-cell functions
+px_*). The inherited v1.2 physics contracts below apply to v1.3, with corrected work coupling in Sec. 1.3 and
+transaction requirements in Sec. 5. Nothing is integrated here. Historical timing numbers are v1.2 context only;
+they are not measurements or performance qualifications of v1.3.
+
+----------------------------------------------------------------------------------------------------------------------
+1. Hall
+
+1.1 Construction: Config::enable_v1_2(c) = enable_v1_1 + depth-averaged melt layer (flow_model 2) + ejection +
+    diagnostics. The slices of one foil body must carry consecutive k (SliceSpec::k) for flow along the 25 mm height;
+    the slice map of the Hall foil (125 k x 2 bodies) is already of that form. GpuOptions::session = &hall_session
+    as in v1.1.
+1.2 Sub-cycling (recommended). Per field step, after Hall has the cell power and J, B on the device:
+        owner.accumulate_device(d_power, d_JB, dt_field);      // d_power[n_em] W, d_JB[6 n_em] (J A/m2, B T)
+    (device pointers on the shared session, read in stream order; no synchronization, one small kernel), or
+    owner.accumulate(power, JB, dt_field) with host vectors. Every K field steps:
+        StepInput in; in.use_accumulated = true;               // dt = window (in.dt 0 or the window length)
+        (loads, deposits, back pressures, releases as before) owner.prepare(in) / commit, or owner.advance(in)
+        sigma = owner.sigma_em();                              // from the step, no extra evaluation
+    and use sigma for the next K field steps. Joule: the window word is the exact sum of the per-field-step words
+    from_double(P_e dt_k), i.e. the ledger is the same as calling the owner every field step. Melt force: the window
+    mean of (J x B) dt per EM cell.
+    Accuracy bound per window (StepRecord): sigma_change_max = max over EM cells |sigma_end/sigma_start - 1| (the
+    error of using sigma_start for K field steps; choose K so that it stays below the field tolerance, e.g. 1e-3);
+    window_heating_K = max over EM cells of the window Joule energy / (m c_p,min) (largest possible temperature
+    change inside one window). Measured on the SS304 foil test (3e6 W per EM cell): K = 16 gives sigma change
+    5.2e-5 and a temperature difference to the per-field-step owner of 7e-5 K (bound 0.79 K).
+1.3 Required electromagnetic work coupling (not implemented by this correction).
+    StepRecord::lorentz is W_L = integral u . (J x B) dV dt received by the melt. A coupled moving conductor must
+    satisfy J = sigma (E + u x B) and J . E = J^2/sigma + u . (J x B), with compatible discrete field, current,
+    force and velocity work. Hall currently advances a stationary conductor and computes its field-energy change
+    from the actual E/B state. Merely subtracting W_L from a ledger or relabeling Joule as Joule-minus-W_L would
+    falsify that balance and is forbidden. The field/current evolution must include the motional term and exchange
+    the same W_L that the thermal/mechanical owner receives, with a verified combined energy balance. Until this
+    exists and is qualified, melt forcing is externally prescribed work, not fully coupled electromagnetic heating.
+    PatchReport supplies layer_ux_m_s/layer_uz_m_s for future field coupling; this correction does not invent a field
+    model. Surface-force work W_S comes from vapor momentum/surface energy, not from Hall; dissipation is internal
+    conversion of owned kinetic energy to thermal energy.
+1.4 Owner energy closure (every step, exact): dE + dK = Joule + loads + metal_return + boundary + W_L + W_S
+    - evaporation(reference + kinetic + internal) - radiation - release_energy - ejected_energy (record fields dE,
+    dK, joule, loads, deposit_E, boundary, lorentz, surface, evap_ref, evap_kin, evap_int, radiation, release_E,
+    eject_E). Atoms: dN_i = deposited - evaporated - released - ejected (eject_N).
+1.5 Refusals added: melt-flow-cfl (a layer wave would still cross more than cfl of a column after the sub-step
+    doublings: shorten the window), invalid-input for a nonfinite or negative accumulated input (reported at the
+    owner step), checkpoint with a non-empty window. geometry-departure now concerns mainly crater depth: outward
+    displacement above 0.25 EM cell is ejected (1.6/2.1); the refusal stays at 0.5. melt-flow-reynolds applies to the
+    lubrication model only.
+1.6 Digest: state_sha256 hashes the cell and face-column roots (v1.1 tags) plus the layer-flow root
+    ("ss304-phase-v1.2/layer-flow": momentum, layer mass, kinetic-energy word per face column) and the new ledger
+    words; leaves on the device as in v1.1.
+1.7 Historical v1.2 cost on the Hall foil (262,500 cells, RTX 3080 Ti, all v1.2 options, 10 fs field step): owner step 3.0 ms per
+    window (one sub-step up to K = 746), accumulation 1.5 us per field step; per field step 3.0 / 0.75 / 0.38 / 0.19 /
+    0.093 ms for K = 1 / 4 / 8 / 16 / 32 (the original v1.2 RESULTS.txt Sec. 3, not this correction). Historical suggested
+    start: K = 8 (0.38 ms next to Hall's 2.85 ms field step), raised or lowered from sigma_change_max.
+
+----------------------------------------------------------------------------------------------------------------------
+2. Native owner (ejected melt)
+2.1 Output per owner step: StepRecord::eject_N[6] (atoms Fe, Cr, Ni, Mn, Si, C), eject_E (J: thermal energy of the
+    liquid in the owner's enthalpy scale plus kinetic energy), eject_K (J: kinetic part); per patch:
+    patch_eject_N[p], patch_eject_E[p], patch_eject_K[p]; cumulative per patch in PatchReport::cumulative_ejected_
+    atoms / _J / _kinetic_J. Thermal part E_th = eject_E - eject_K; mean specific enthalpy (E_th / mass) gives the
+    droplet temperature through the owner's law (px_T_of_h); mean speed sqrt(2 eject_K / mass).
+2.2 Origin: open x edges (liquid leaving a face at x = x0 or x0 + width, moving along +-x in the face plane) and
+    departure (liquid lifted beyond 0.25 EM cell, leaving along the face normal). The owner does not resolve droplet
+    sizes or directions beyond this.
+2.3 The ejected mass and energy are no longer in the owner. A future droplet/vapor species of the native owner must
+    take them (as macro-particles or a reservoir) to keep the coupled ledger closed; until then the coupled ledger
+    must book them as a sink column "ejected melt" with the owner's words.
+
+----------------------------------------------------------------------------------------------------------------------
+3. Source owner: unchanged from INTEGRATION-v1.1.txt Sec. 2 (back pressure per patch, surface composition, recoil).
+   The recoil pressure now drives the inertial layer (PatchReport::recoil_pressure_Pa unchanged).
+
+----------------------------------------------------------------------------------------------------------------------
+4. Fixed Hall mesh (update of INTEGRATION-v1.1.txt Sec. 4)
+4.1 Outward displacement is limited by ejection at Config::eject_fraction (0.25 EM cell); inward displacement (crater
+    from evaporation, ejection and outflow) still ends in the geometry refusal at 0.5 EM cell
+    (StepRecord::max_crater_fraction, PatchReport::crater_depth_m report it).
+4.2 Item 4.2e of v1.1 (melt leaving the foil) is now the ejected-melt reservoir (2.1); items a-d and f remain.
+
+5. v1.3 transaction and identity requirements
+    Each prepare invalidates all older proposals before scratch use. Only its newest successful Trial may commit;
+    a replacement refusal also invalidates older Trials. A successful prepare does not publish its pressure.
+    StepInput::back_pressure_Pa is trial-local; commit publishes it. quote(dt, proposed_pressure) can provide the
+    matching evaporation quote without changing accepted pressure. set_back_pressure explicitly updates accepted
+    pressure and invalidates proposals. Every accumulate/accumulate_device invalidates proposals; prepare a fresh
+    accumulated trial after the final field contribution. Stale commit returns false without resetting the window.
+    Direct thermal steps are refused while a window is pending. Save refuses nonempty windows; load refuses them too.
+    v1.3 state identity includes accepted pressure and all pending energy/force/flag operands; the accumulated input
+    digest includes the full same snapshot. Namespace is ss304_phase_v1_3; identities/checkpoints are versioned v1.3.
+    Historical v1.2 checkpoint conversion is not implemented; callers must not bypass the identity refusal.

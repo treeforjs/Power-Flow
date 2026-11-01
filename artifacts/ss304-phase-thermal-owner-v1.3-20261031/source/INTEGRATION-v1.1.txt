@@ -1,0 +1,79 @@
+SS304 phase thermal owner v1.1 -- integration contract (2026-10-31)
+
+Base contract: INTEGRATION-v1.txt (v1 text, unchanged; namespace ss304_phase_v1 there is ss304_phase_v1_1 here, and
+the per-cell functions are pq_* instead of pt_*). Everything below is what changes for Hall (the version after v3.2),
+the source owner (after v7) and the native owner when they adopt v1.1 instead of v1. Nothing is integrated here.
+
+----------------------------------------------------------------------------------------------------------------------
+1. Hall (after v3.2)
+
+1.1 Construction: as v1, then Config::enable_v1_1(c) (pulse-heating liquid, activities, JANAF internal energy, Knight
+    Knudsen layer, radiation, Mn/Si/C composition, melt flow, geometry refusal at 0.5 EM cell). Law domain 298.2-6000 K.
+    To reproduce v1 exactly keep the defaults (every v1.1 option off).
+1.2 GPU: GpuOptions::session = &hall_session runs the owner on Hall's hall_gpu::Session and stream (no second
+    session or context); Hall keeps the session open longer than the owner. The owner compiles its own NVRTC module on
+    that session (one extra module).
+1.3 New per-step coupling input: StepInput::em_JB[6 e + 0..5] = (J_x, J_y, J_z) in A/m2 and (B_x, B_y, B_z) in T at the
+    centre of owner EM cell e (same cell map as em_power_W, INTEGRATION-v1 1.2), from Hall's authoritative midpoint
+    fields (cell-averaged current density and |B| at cell centres, as Hall's k_cells already forms). Without it the
+    melt flow sees no Lorentz force (recoil, capillary and Marangoni terms still act).
+1.4 Ledger columns added to the thermal closure: thermal_delta = Joule + loads + metal_return - evaporation_reference
+    - evaporation_kinetic - evaporation_internal - radiation - release_energy (record fields evap_int, radiation).
+    Melt flow moves mass and energy between cells inside the owner and adds no column. Not in any ledger: the work of
+    the Lorentz force on the melt flow and its viscous dissipation (lubrication model; see README O5). If Hall's
+    energy audit needs it, the owner can report sum(f_x q dz) per step (not built).
+1.5 Heat digest: Owner::state_sha256() now hashes the block-Merkle roots of the state words (cells: E, six atom words,
+    flags; face columns: face mass words) plus ledgers and watermarks; on the GPU engine the leaves are hashed on the
+    device (1.4 ms for 262,500 cells) and only 8 words per leaf are downloaded. Hall can seal the thermal state every
+    step with it; Owner::verify_state_leaves() recomputes every leaf on the host for audits (downloads the state).
+1.6 New refusal kinds Hall must route: melt-flow-step (shorten the step), melt-flow-reynolds (if Config::max_reynolds
+    is set), geometry-departure (see 4), phase-explosion. temperature-above-domain is now at 6000 K.
+1.7 Cost: 22.6 ms per 10 fs step on the RTX 3080 Ti for the full foil (v1: 6.7 ms). Calling the owner every K field
+    steps with StepInput::em_energy_J (accumulated) and the J, B of the last field step keeps the ledgers exact.
+
+----------------------------------------------------------------------------------------------------------------------
+2. Source owner (after v7)
+2.1 Back pressure: the Knudsen layer needs the pressure of the gas at each patch surface. The source/native side
+    provides StepInput::back_pressure_Pa[p] (Pa) per owner patch, e.g. sum over species of n_s k T_s from the native
+    neutral and plasma densities in the first cell layer off the face; a patch at or above the alloy saturation
+    pressure stops evaporating (no condensation from the background).
+2.2 Surface composition and temperature: PatchReport::surface_atom_fraction (Fe, Cr, Ni, Mn, Si, C) and mean_T; Mn
+    dominates evaporation below about 2500 K.
+2.3 Water desorption cap (3000 K) and emission-law domain: unchanged from INTEGRATION-v1 2.2/2.3; the foil can now
+    reach 6000 K, so the emission law needs an extension or its own typed cap.
+2.4 Recoil pressure (PatchReport::recoil_pressure_Pa) is available for a field-emission or plasma-pressure balance.
+
+----------------------------------------------------------------------------------------------------------------------
+3. Native owner (quantized metal vapor, evap_mode = 2)
+3.1 Species: six neutral metal species Fe, Cr, Ni, Mn, Si, C (masses 55.845, 51.9961, 58.6934, 54.938043, 28.085,
+    12.011 u). Quotes carry six expected counts per patch.
+3.2 Internal energy: with gas = 1 every released atom carries internal energy E_int(T_cell) in addition to its kinetic
+    energy (electronic excitation and the element/alloy caloric difference); the owner debits it and reports the total
+    per patch (PatchReport::released_internal_J). The native owner must carry it on the released macros (one value
+    per macro: released_internal_J / n per (patch, element) in the step). A Deposit credits only eps0 + kinetic, so
+    the internal energy of a returning atom must be delivered by the native owner as wall heat (a SurfaceLoad) or kept
+    in the gas ledger; this is a choice for the native version.
+3.3 Recondensation: with knudsen = 1 the Knudsen-layer return is part of the net flux; atoms that the native owner
+    tracks back to the foil are deposits, so do not also count a recondensation fraction.
+
+----------------------------------------------------------------------------------------------------------------------
+4. Fixed Hall mesh and what a moving-boundary Hall would need
+4.1 What the owner reports now: per face column (slice, face, x column) the outward surface displacement eta (m) =
+    mass gained through the face (evaporation, deposits, releases, melt flow) / (rho0 A) + half the column's thermal
+    expansion from the density law; PatchReport::displacement_mean_m / displacement_max_abs_m; StepRecord::
+    max_displacement_fraction = max |eta| / EM cell thickness. The owner refuses (geometry-departure) when this
+    exceeds Config::geometry_refusal_fraction (0.5 in enable_v1_1): beyond half an EM cell the fixed conductor mask
+    of Hall no longer represents the foil surface.
+4.2 A moving-boundary Hall would need:
+    a. a conductor geometry that follows eta: per EM cell a conductor volume fraction (cut cells) or a level set, with
+       the conductivity sigma_eff scaled by the filled fraction (the owner can report filled fractions per EM cell);
+    b. conservative remapping of E, B and of the conductor/exterior charge banks when cells change between conductor
+       and vacuum, with the field energy change booked in the coupled energy ledger;
+    c. the native first-hit surfaces moved with the same geometry (ions and electrons collected on the displaced
+       surface), and the source owner's patch positions and areas updated;
+    d. the owner's thermal grid moving with the surface: the owner already keeps mass-based thicknesses (melt layer)
+       and exact transfers, but its cells keep a fixed reference geometry; a moving owner grid needs conservative
+       remap of E and atom words between old and new cells (exact in the 128-bit words) and the face-column
+       displacement reset after each remap;
+    e. melt leaving the foil (droplets, jets) as a new owner of mass and energy in the gap (not modelled);
+    f. a time-step control on the displacement per step (the owner's flow_max_fraction plays this role now).
