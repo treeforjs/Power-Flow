@@ -59,3 +59,10 @@ owner leaves zero stock in emptied cells and keeps exact exit destinations.
 The motion integration gate remains closed pending native capability and
 common field/thermal accounting; conductor correction is not automatically
 electrode heat. See the v2 README for the candidate sequence and limits.
+
+The native_genesis.hpp builder admits the actual native/Hall/source/gas startup.
+Normal and UBSan job606 each pass20 controls, including all8 foil source ports,
+actual blob process operands, grid/mass identity, seeded RNG consistency and
+populated census parity. See artifacts/joint-native-genesis-v9-20261101 for the
+pinned development SourceStage snapshot and launcher. This startup qualification
+does not open connected-evolution or checkpoint/continuation gates.
