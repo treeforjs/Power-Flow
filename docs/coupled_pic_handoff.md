@@ -1,9 +1,67 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-11-01 08:31 UTC. Keep this file current at every milestone so
+Last updated 2026-11-01 08:57 UTC. Keep this file current at every milestone so
 the work can be picked up from it alone. Snapshots of the in-progress workers'
 own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
 each update); the live versions are the `HANDOFF.txt` files named below.
+
+## Current common integration milestone
+
+`artifacts/common-neutral-integration-v9.1-20261101` now preserves the actual
+root source/Hall/native/gas transaction and phase profiling. Job658 passes28
+normal and28 UBSan controls, with24 then48 actual neutral carriers over two10fs
+steps from the supported0.749788055492ns start. Source/Hall requires exact
+midpoint convergence; actual final native charge is checked before any accepted
+swap. Abandon/retry and independent continuous roots agree; all-owner publication
+allocates zero times. Wrong authored mass/provenance refuses, then legitimate
+source provenance is rebound to the final coupled registry. This is a bounded
+neutral-desorption engineering fixture, not water-plasma or positive-source
+qualification. It currently refuses every conductor sink until the authentic
+per-exit correction and material destination are integrated.
+
+The actual-field positive-source fixture refuses the straight matching
+projection. The pure time-resolved Lorentz/image layer test654 admits6 active
+layers and20 thermal handoffs, but refuses21 of47 attempts on its magnetic
+barrier-domain guard. The whole step remains refused; no packet is dropped or
+resampled. `0588d36` preserves the exact manufactured inputs and outcomes.
+Source-held IDs/charge/current/image energy and eventual native handoff require
+the versioned source-attempt lifecycle now under development by the source worker.
+This does not establish which packets a calibrated SS304 run would produce.
+
+The per-exit conductor correction guard (`094cc1b`, job641,51 controls) refuses
+real opposite corrections that cancel in the old aggregate ledger. The new
+bridge retains the actual immutable transport receipt needed to use it. Source
+and gas material-reference/internal-energy transfers also require explicit
+boundary stocks; field wall heat alone only accounts for incident kinetic energy.
+
+The checkpoint file envelope (`eb11190`, job651,32 normal/32 ASan+UBSan controls)
+hashes through a64KiB buffer, includes nested owner manifests, and checks exact
+file sets with fsync/rename publication. It does not authorize restored owners.
+The native worker is implementing a persisted acyclic native/gas accepted-pair
+marker and a concrete validated loader; old unattested restores remain refused.
+
+The original native/gas bridge v1.3 has a reproduced allocation-unwind abort at
+motion allocation1163. Corrected v1.3.1 binds JSON destination references before
+constructing populated temporaries: normal653, sanitizer656 and all1255 motion
+allocation failures655 pass with identical retry receipts. Final-seal657 is
+still running as of this update. Native v8.9 source/archive remain frozen at
+8e8d9553/bb3def23. Root658 uses this corrected bridge; it does not replace its
+independent full fault qualification.
+
+Root phase clocks on this small neutral fixture record about0.125 CPU seconds
+per10fs step. Roughly80ms is source/Hall field preparation, with about8ms spent
+inside the linear solves. These are diagnostic loaded-core timings, not a
+production ETA or speedup. Sampling660 collected52690 samples/no loss across
+five whole test executions, including startup and refusal controls. Dynamic
+library function labels are approximate; the displayed RC4_options name must
+not be interpreted as evidence of RC4 use. The raw samples stay under outputs;
+committed reports and input pins are in the integration artifact.
+
+Immediate work: independent combined stock/energy closure (chemistry worker),
+source-held Lorentz/image lifecycle (source worker), corrected native/CDF motion
+and checkpoint capability (native worker), then root adoption and continuous
+populated/restart tests. Do not launch the old paused electron-only production
+run or relabel this neutral fixture as physical breakdown.
 
 ## Sunday milestone (2026-11-01)
 

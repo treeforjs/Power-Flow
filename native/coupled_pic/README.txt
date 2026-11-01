@@ -72,3 +72,6 @@ motion endpoints with the unchanged per-node Hall bound. ASan/UBSan job616
 rejects an actual8-event recombination counterexample that conserved total
 charge but changed8 CIC nodes. Candidate authentication and this check must
 both precede common publication; this helper alone grants no authority.
+
+Common neutral integration milestone (2026-11-01)
+common_step.hpp + source_hall_iteration.hpp implement the actual bounded native/gas/source/Hall step. See artifacts/common-neutral-integration-v9.1-20261101 for exact frozen include/link recipes and evidence; these headers are not a standalone production launcher. The initial scope refuses every conductor sink and unsupported magnetic electron launch. Full material/energy/restart and source-held layer coupling remain open. checkpoint_files.hpp handles byte integrity/durability only, never restored-owner authority.
