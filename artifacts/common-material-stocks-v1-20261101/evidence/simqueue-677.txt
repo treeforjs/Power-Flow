@@ -1,0 +1,33 @@
+===== simq job 677: independent-material-stocks-bound =====
+submitted: 2026-11-01T09:02:42Z
+started:   2026-11-01T09:03:36Z
+cwd:       /home/treefor/projects/runtimes/common-material-stocks-v1-20261101
+partition: powerflow
+P-cores:   4
+GPUs:      none
+memory:    4G (swap 1G)
+time:      00:15:00
+borrowed:  CPU 4 from raikou-mfem (free); on preempt: freeze
+unit:      simq-job-677-f93a113ffab1.service
+command:   /usr/bin/nice -n 15 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 -I /home/treefor/projects/runtimes/common-material-stocks-v1-20261101/tools/qualify.py c2
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core4.lock (shared)
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/common-material-stocks-v1-20261101/tools/qualify.py", line 29, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/treefor/projects/runtimes/common-material-stocks-v1-20261101/tools/qualify.py", line 26, in main
+    raw=run([out/variant,TRACE],variant+'-controls');need(run([out/variant,TRACE],variant+'-replay')==raw,'deterministic replay');results[variant]=json.loads(raw);need(results[variant]['passed'],'controls');
+  File "/home/treefor/projects/runtimes/common-material-stocks-v1-20261101/tools/qualify.py", line 18, in run
+    proc=subprocess.run([str(x) for x in args],cwd=P,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=480);(out/(name+'.stdout')).write_bytes(proc.stdout);(out/(name+'.stderr')).write_bytes(proc.stderr);commands.append({'argv':[str(x) for x in args],'returncode':proc.returncode});need(proc.returncode==0,name+': '+proc.stderr.decode()[-5000:]);return proc.stdout
+                                                                                                                                                                                                                                                                                              ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/common-material-stocks-v1-20261101/tools/qualify.py", line 6, in need
+    if not x:raise RuntimeError(s)
+             ^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: normal-controls: common material stocks: actual particle operands and explicit packet-owned internal energy
+
+========================================
+finished:  2026-11-01T09:03:51Z
+exit code: 1
+state:     failed
+===== simq job 677 finished =====

@@ -1,0 +1,94 @@
+Independent whole-step energy, H/O and elementary-charge accounting
+
+Status: component arithmetic qualification only. No full coupled pilot, source
+held-layer integration, or production physics qualification is claimed.
+
+Acquire actual operands before publishing any owner:
+1. Hold the exact live CoupledTrial and source/Hall candidate. Read accepted
+   native rows from the still-accepted arena. Read stage_stocks(1)->before,
+   stage_stocks(2)->after, stage_population(2), stage_export(1/2), and the retained
+   accepted_motion_snapshot()/motion_transport_receipt() from that same trial.
+   Require the same registry/blob, common accepted root, step, clock, first/second
+   exposure order, and final population identity. Historical snapshots alone
+   never confer authority. Keep all existing native/gas/Hall/source preflights.
+2. native_before()/native_after() include actual packet K/reference, packet-owned
+   U, and pending neutral parcels. Validate pending_inventory(...).kinetic_J
+   against gas_stock(...).pending_mirror_J at both ends. The gas mirror is a
+   check, not a second energy store. Current registered species must have zero
+   intrinsic internal_J; carried packet U is the explicit owner.
+3. gas_stock(owner,false/true) includes signed target recoil corrections and
+   unheld internal sinks. It excludes cumulative event throughput and the
+   pending mirror. Charged-target correction is still an explicit ledger model;
+   these arithmetic checks do not qualify its distribution feedback.
+4. source_stocks(actual owners, prepared stage, final catalogue) evaluates exact
+   before/after finite adsorbate counts and chemical reference. Adsorption
+   binding is a separate finite-stock potential -D*N + D*alpha*N^2/(2*capacity)
+   under the explicitly declared quantized Temkin law. All current direct
+   surface births must restore their image reference to zero. Active layers,
+   source candidates, and handoffs require a new actual layer-stock reader;
+   they are refused here. source_wall_J is diagnostic, never added again after
+   counting actual Hall thermal storage.
+5. admitted_event_operands() decodes only the actual admitted export bytes and
+   independently reconstructs process Q, stoichiometric species-reference
+   change, and numerical KE defect. combine() verifies Q/defect against gas
+   ledger changes. It does not replace actual native target debits by sampled
+   target kinetic energy; those differences belong to actual gas corrections.
+6. boundary_stocks() uses genuine exposed native sinks and matching per-exit
+   exact transport digits. Foil K is already in Hall heat and is not exported
+   twice. Short/exterior K leaves this thermal system. Species chemical
+   reference/nuclei/charge and packet U are separately retained at the material
+   or exterior boundary. Nonzero foil packet U and nonzero per-exit conductor
+   gas correction refuse until local heat/material routing is qualified.
+7. field_thermal_assessment(actual Hall owner, actual JointProposal) derives
+   actual compensated EM endpoint energies, Q1 temperature/material stocks and
+   terminal drive/exterior operands. No component residual is an input.
+8. combine() gives raw stored-energy balance and a separate accounting balance
+   with explicit numerical event defect, species-reference operand conversion,
+   stable-vs-reference thermal rounding, and source K/binding operand rounding.
+   It requires exact H/O/charge and exact independent chemical-reference change.
+   Root must apply its unchanged physical/work/thermal error bounds to the
+   resulting energy balance and retain both raw and accounting values. A small
+   accounting balance does not justify a large physical numerical defect.
+
+Persistent common state (zero at a deliberately empty genesis; restore exactly):
+- Exact electrode_electron_reference_J, incremented once by the authenticated
+  source ledger's electron_reference_change_J. This is work-function/reservoir
+  bookkeeping, not the zero native electron species reference.
+- Per-destination species counts/reference/U plus short/exterior K and exterior
+  correction energy. These boundary increments must telescope across restarts.
+- Source held layers, when implemented, own instantaneous K and image U directly.
+  Do NOT count both that stock and cumulative image exchange. Present direct
+  conditional handoffs restore image U to zero.
+
+Conditional material limitation: ordinary native electron recollection currently
+routes incident K through Hall, but not the source collection model's reversal
+of work-function reference plus corresponding phi heat. Keep the no-conductor-
+sink subset, or implement that authentic collection transaction before treating
+an emission/recollection cycle as physically closed. Global arithmetic alone
+cannot qualify material accommodation. The separate post-stage2 CIC-charge guard
+also remains mandatory; global exact charge does not provide reaction current.
+
+Thermal material remains fixed-volume nominal SS304 solid; no variable-volume
+mechanical work, phase change, metal ablation, radiation or external gas feed is
+included by this stock reader. Nonzero new channels need explicit actual stocks
+and transfers when encountered; they are not silently assigned zero.
+
+Energy refusal, not only reporting:
+Call derive_energy_bound(actual Hall Owner, actual JointProposal, source stage,
+actual native-before/after inventories, boundary stocks, field assessment), then
+require_energy_closure(combined,bound) before any accepted publication.
+- Hall allowance copies the existing FieldHeatProposal formula exactly:
+  2e-20 + 1e-10*admitted_transfer_activity + thermal.roundoff_bound_J.
+- Add the unchanged motion_work_tolerance(actual motion work scales).
+- Add actual source ledger partition allowances already used by the certified
+  heat exchange: (1e-10 + 128*epsilon) times each birth's gross operands.
+- The arithmetic bridge from ordered binary64 reductions to exact stocks uses
+  gamma_n times an independently recovered transition-operand norm, plus the
+  second-order compensated-field endpoint term. It does not use any reported
+  residual or absolute thermal reference baseline as a tolerance scale.
+The final test uses canonical exact digits, not value() alone, so sub-binary64
+residuals cannot pass a zero bound by rounding away. All existing component
+preflights/guards still run; this additional combined test does not replace or
+relax them. A fixed-reference thermal endpoint allowance can exceed tiny birth
+energies, so local source, exact count/reference, and material-operand checks
+remain essential alongside this whole-step bound.
