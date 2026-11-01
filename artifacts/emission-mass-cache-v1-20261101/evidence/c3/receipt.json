@@ -1,0 +1,151 @@
+{
+  "passed": true,
+  "mode": "normal",
+  "job": "521",
+  "affinity": [
+    5
+  ],
+  "input_hashes": {
+    "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/fast/fast_emission.cpp": "1afeb897ef2a011559c2784bda20856bfcdc8c83fd622597d0bb43fe1c561103",
+    "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/fast/fast_emission.hpp": "8b9a7b5050fa6153a0c27519a9fcb6947fa13b8cee6db37cf05d45ed964a9b03",
+    "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/baseline-fast/fast_emission.cpp": "cb963edd56f358271b60f5982617fd080ff99cf622cc5ca61e5700bf628348c3",
+    "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/baseline-fast/fast_emission.hpp": "8b9a7b5050fa6153a0c27519a9fcb6947fa13b8cee6db37cf05d45ed964a9b03",
+    "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/reference-kernel/include/surface_emission.hpp": "ffb969d287e40787e7e754be135db3dce23d08dbe676475788fb221b6af10e00",
+    "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/reference-kernel/src/micro_layer.cpp": "03451ca643e30ce807bcdb8ea0ff1018966fd15585c585e64cc37777221e7cfc",
+    "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/reference-kernel/src/surface_emission.cpp": "7266ab7f607246e237fe65bfc339281f5a99e3cf7e212fb6d96da9296e019d0a",
+    "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests/distribution_bytes.hpp": "3c003a52aef559e2af777da35ba2a925a180ec18b53fb1530f1bf5716c9c4186",
+    "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests/legacy_trace.cpp": "f9edfcd0ade4da0898cb3345e364bcec2aa5013c805711fc7619c354b7e7c89f",
+    "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests/qualified-registry-mass.json": "d70c2ccfeb816ac38ad0467969ecb053dbb7700b4eea757295f55ca7004958de",
+    "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests/registry_mass_fixture.hpp": "567bfdbc3c89f4503901181fedd14541f218debff62e272885622c66e3ee2807",
+    "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests/test_mass_cache.cpp": "eb208d721f6ab4c5f8a5958dc42c751fa585115a9b9eff26c3abe103acc391e2",
+    "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tools/qualify.py": "c416663e76e4bcab9bab0094de5290955c88ade466f57595256d150d9262ca79"
+  },
+  "frozen_root_identity": [
+    66313,
+    1712032
+  ],
+  "commands": [
+    {
+      "name": "build-tests",
+      "argv": [
+        "/usr/bin/c++",
+        "-std=c++20",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-ffp-contract=off",
+        "-fno-fast-math",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-Wl,--gc-sections",
+        "-I",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/reference-kernel/include",
+        "-I",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests",
+        "-O2",
+        "-I",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/fast",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests/test_mass_cache.cpp",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/fast/fast_emission.cpp",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/reference-kernel/src/surface_emission.cpp",
+        "-o",
+        "/home/treefor/projects/.workspace/outputs/emission-mass-cache-v1-20261101/c3/test_mass_cache"
+      ],
+      "returncode": 0,
+      "wall_s": 2.333293366998987
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "/home/treefor/projects/.workspace/outputs/emission-mass-cache-v1-20261101/c3/test_mass_cache"
+      ],
+      "returncode": 0,
+      "wall_s": 0.09829396600252949
+    },
+    {
+      "name": "build-legacy-old",
+      "argv": [
+        "/usr/bin/c++",
+        "-std=c++20",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-ffp-contract=off",
+        "-fno-fast-math",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-Wl,--gc-sections",
+        "-I",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/reference-kernel/include",
+        "-I",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests",
+        "-O2",
+        "-I",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/baseline-fast",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests/legacy_trace.cpp",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/baseline-fast/fast_emission.cpp",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/reference-kernel/src/surface_emission.cpp",
+        "-o",
+        "/home/treefor/projects/.workspace/outputs/emission-mass-cache-v1-20261101/c3/legacy-old"
+      ],
+      "returncode": 0,
+      "wall_s": 2.139415540998016
+    },
+    {
+      "name": "legacy-old",
+      "argv": [
+        "/home/treefor/projects/.workspace/outputs/emission-mass-cache-v1-20261101/c3/legacy-old"
+      ],
+      "returncode": 0,
+      "wall_s": 0.007793827997375047
+    },
+    {
+      "name": "build-legacy-new",
+      "argv": [
+        "/usr/bin/c++",
+        "-std=c++20",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-ffp-contract=off",
+        "-fno-fast-math",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-Wl,--gc-sections",
+        "-I",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/reference-kernel/include",
+        "-I",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests",
+        "-O2",
+        "-I",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/fast",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests/legacy_trace.cpp",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/fast/fast_emission.cpp",
+        "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/reference-kernel/src/surface_emission.cpp",
+        "-o",
+        "/home/treefor/projects/.workspace/outputs/emission-mass-cache-v1-20261101/c3/legacy-new"
+      ],
+      "returncode": 0,
+      "wall_s": 2.194628818997444
+    },
+    {
+      "name": "legacy-new",
+      "argv": [
+        "/home/treefor/projects/.workspace/outputs/emission-mass-cache-v1-20261101/c3/legacy-new"
+      ],
+      "returncode": 0,
+      "wall_s": 0.007880067001678981
+    }
+  ],
+  "binaries": {
+    "test_mass_cache": "9ec68f0938d1c2bf0a0d244eaf0f281aaf762391f543220702234750d63302f6",
+    "legacy-old": "12f36e1257aa6777ef9ba6e939d82e1301d34748414c4479f8d714f37c20796d",
+    "legacy-new": "24b625ecff1b573ea5257a2d99b2173c671a86be697912582ee53c63ae8d63e9"
+  },
+  "speedup_qualified": false,
+  "runtime_manifest_sha256": "0023853587ae0a5aa0b8d920f20294b5c9470d52c49d157e33a4383a23301bd2",
+  "launcher_sha256": "d149ac9c013dd630ca11ba69a6d91b603dd715e0ca3ee41e03e00d51122faa5c",
+  "compiler_sha256": "f04191f6a7b2cd7d9a62e1745872b8a6088791e5af6955488c69c9b2c4668bc9",
+  "legacy_trace_sha256": "183342413daf0ab86f337fd24d070f082876262396cbebadc32ec1d8eda17268",
+  "inputs_unchanged": true
+}

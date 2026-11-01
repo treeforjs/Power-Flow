@@ -1,0 +1,7 @@
+Exact emission cache for declared electron mass
+
+The qualified source kernel supports declared electron mass and provenance, but the previous fast wrapper sent every nonlegacy mass directly to the scalar implementation. This successor permits bounded retarding-spectrum reuse and the existing guarded extracting fast path for those configurations. Cache keys include exact mass bits and policy identity. Barrier curvature, action and underflow bounds, Richardson factor and decay width use the declared mass; returned-distribution comparison checks both mass and identity. The scalar per-configuration self-check and fallback remain active.
+
+CPU530 and ASan/UBSan531 pass independent serialized field/node/refusal comparisons, cache-key isolation, invalid-configuration checks, explicit fallback and fast-path admission. Tests include default quadrature with the actual mass/provenance from the qualified registry fixture, adjacent mass bits, same-mass different policy and a diagnostic doubled mass. Old and new legacy spectra are byte-identical, including default quadrature. Raw legacy traces and hashes are retained. Initial516 rejected an uninitialized work-function value in the new test fixture at compile time; no numerical guard was changed.
+
+No reference kernel, frozen userspace or active simulation was changed. This is an isolated component ready for explicit source-owner adoption, not a coupled performance qualification. No speedup is claimed from shared-core wall times; functional fast-path use and byte parity are established.

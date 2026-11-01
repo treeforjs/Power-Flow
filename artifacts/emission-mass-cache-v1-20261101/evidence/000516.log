@@ -1,0 +1,40 @@
+===== simq job 516: emission-mass-cache-c1 =====
+submitted: 2026-11-01T07:51:36Z
+started:   2026-11-01T07:51:36Z
+cwd:       /home/treefor/projects/runtimes/emission-mass-cache-v1-20261101
+partition: powerflow
+P-cores:   5
+GPUs:      none
+memory:    3G (swap 1G)
+time:      00:10:00
+borrowed:  CPU 5 from raikou-mfem (free); on preempt: freeze
+unit:      simq-job-516-8cb0a67bd828.service
+command:   /usr/bin/nice -n 15 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen python3 -I tools/qualify.py normal c1
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core5.lock (shared)
+build-tests 1
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tools/qualify.py", line 22, in <module>
+    run('build-tests',[*flags,'-I',R/'fast',R/'tests/test_mass_cache.cpp',R/'fast/fast_emission.cpp',R/'reference-kernel/src/surface_emission.cpp','-o',D/'test_mass_cache'])
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tools/qualify.py", line 17, in run
+    if p.returncode:raise RuntimeError((p.stderr or p.stdout).decode(errors='replace')[-4000:])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: In file included from /home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/fast/fast_emission.hpp:37,
+                 from /home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests/test_mass_cache.cpp:1:
+In copy constructor ‘constexpr surface_emission::Config::Config(const surface_emission::Config&)’,
+    inlined from ‘int main()’ at /home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests/test_mass_cache.cpp:16:16:
+/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/reference-kernel/include/surface_emission.hpp:11:8: error: ‘legacy.surface_emission::Config::work_function_eV’ is used uninitialized [-Werror=uninitialized]
+   11 | struct Config {
+      |        ^~~~~~
+/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests/test_mass_cache.cpp: In function ‘int main()’:
+/home/treefor/projects/runtimes/emission-mass-cache-v1-20261101/tests/test_mass_cache.cpp:15:13: note: ‘legacy’ declared here
+   15 |  se::Config legacy;legacy.energy_panels=32;legacy.action_nodes=32;
+      |             ^~~~~~
+cc1plus: all warnings being treated as errors
+
+========================================
+finished:  2026-11-01T07:51:39Z
+exit code: 1
+state:     failed
+===== simq job 516 finished =====
