@@ -1,0 +1,149 @@
+SPATIAL MATERIAL OWNER — receipt and integration contract v1
+
+Implementation: runtimes/ss304-spatial-metal-transfer-20261029/source/
+spatial_material.hpp. Qualification status is in HANDOFF.md/disposition.json
+when complete. The sealed ef5e28f uniform-block release is untouched.
+
+This is a separate cell-centered finite-volume material/thermal owner, not an
+extension of the fixed-mass Q1 heat owner's accepted temperature state. Every
+cell has exactly one canonical represented-binary mass [kg], energy [J], and
+fixed-support impulse [N s]. T, phase, current-mass heat capacity, intrinsic k
+and sigma are projections of that one stock and sealed material v2. There is no
+second accepted T field, latent reservoir, metal gas population, gas debit,
+native allocator, source RNG, or collision backend. Never run this owner and the
+old fixed-mass heat owner as two accepted solid reservoirs for the same cells.
+Root/heat owner must choose one store and bind all thermal sources to it.
+
+Geometry: strictly increasing Cartesian x/y cell edges, fixed reference extrusion
+zlo..zhi, physical boundary patches with explicit face/tangent/z extents. Particle
+point transfers go to one adjacent FV cell, with a deterministic high-cell tie
+at internal edges (last physical endpoint remains in last cell). Source normal
+coordinates can differ by one nextafter only. Native first-hit coordinates are
+used directly. Integrated patch heat maps by actual face overlap and assigns the
+last exact remainder; total J is identical to the incoming canonical operand.
+No nodal interpolation, axis rotation, arbitrary epsilon coordinate snapping,
+axial temperature resolution or geometrical recession is claimed.
+
+Required common binding for EACH immutable prepare
+ accepted_step, begin_s, end_s, authoritative dt_s (end == begin + dt),
+ material_prefix (this owner's accepted stock/journal hash),
+ common_sha256, field_sha256, mesh_sha256,
+ gas_base_sha256, gas_trial_sha256, source_sha256, native_source_sha256.
+The native owner must certify these against the SAME typed private full-time
+trial, including its source/transport/exposure order. Do not reconstruct dt by
+subtracting absolute C19 endpoints. Every failed field/source iterate starts
+again from the same accepted material stock; no material prepare publishes.
+
+GasPort::certified_batch(binding) is a TRUSTED native-owner API, not a generic
+JSON admission service. A matching scope string alone is no attestation. The
+new native outer owner must implement it from opaque owner tokens. It must
+verify current generation, actual packet/native ID correspondence, native
+canonical count and positive carrier sum, birth/deletion/first-hit operations,
+actual native K and u, exact material/mesh/field/source/common bindings, one
+motion owner per subinterval, and complete typed outer-trial order. It must
+refuse unsupported source layers, partial packets, partial condensation, split
+native hits or foreign species before issuing a batch. It must be revalidated
+at common preflight by root, not merely at material preparation.
+
+Batch fields
+ binding: exact object above; material_sha256: sealed v2 source seal;
+ scope: full-time-outer-native-owner;
+ packets: bounded vector of material exchanges. Each record contains:
+  receipt_id, packet_id, patch, emit;
+  species = SS304_CONGRUENT_NEUTRAL, full_packet = true;
+  mass_per_atom_kg = (0.0553096362 / 6.02214076e23) binary64;
+  internal_per_atom_J = 0;
+  reference_per_atom_J = mass_per_atom * sealed NeutralVapor.atomic_u0();
+  position_m[3], proper_velocity_m_s[3], time_s;
+  exact_atoms = {hex, exponent}: exact sum of actual positive native weights;
+  carriers = [{native_id, weight, kinetic_per_atom_J}, ...].
+ Emission: native_removed=false; sampled_temperature_K equals the local accepted
+ cell projection and is at least1800K. The source proposal uses five caller-owned
+ open uniforms, the local half-Maxwell sample, physical v -> native proper u.
+ Native owner creates the real IDs and certifies native K; this owner never
+ mints a particle or substitutes mean2kT for that K.
+ Collection: native_removed=true, first_hit=true; actual first-hit position/u/
+ time, actual native sink ID, full canonical packet count and carrier IDs. The
+ gas deletion is ALREADY part of the same private native trial. Do not delete,
+ recreate, or debit that gas packet again. Reject foreign boundary/species
+ receipts here; root routes them to their actual owners.
+
+This implementation rejects the same native ID or packet twice in one batch,
+including birth/recollection of the same ID in one interval. An actual full-time
+source return needs an explicit native-owner incremental transition port before
+admission. No silent netting is provided. Root must also ensure once-only source
+birth IDs across trials/steps; first-hit receipt IDs are consumed once here.
+
+Per-cell physical equation, with signed outward native packet operands
+ m_next = m_before - sum(sign * count * atom_mass)
+ E_after_transfer = E_before + canonical_other_heat
+                    - sum(sign * count * (native_K + internal0 + reference))
+ support_impulse_next = support_impulse_before
+                    - sum(sign * count * atom_mass * actual_proper_u)
+sign = +1 emission, -1 collection. Products/sums use exact represented-binary
+currency. Support is fixed, so support work is0. No extra latent, mean kinetic,
+field, Joule or mechanical term is invented. Native absorbed-K counters for these
+consumed receipts are throughput diagnostics, not a second external energy sink.
+External Heat receipts have unique id, canonical owner, monotonic owner sequence,
+cell and exact integrated signed J. Root provides actual Joule, source Qwall,
+reversible mechanics or other admitted operands once. Source Wfield remains with
+the field/current owner. No other thermal state is advanced behind this store.
+
+Conduction after transfer
+ Recompute each local capacity from REMAINING material mass times sealed cp(T).
+ Use harmonic intrinsic k on each fixed cell face and actual area/distance.
+ Explicit stable substeps use conservative sealed bounds cp>=400 and k<=100;
+ each pair's exact J is subtracted and added once. Substep exact durations sum
+ to authoritative dt. Derive T from E/m at each substep. Global energy closure
+ is exact in represented binary currency, not an error-tolerance budget.
+This is a new FV component scheme, not qualification of the old MFEM Q1 solver
+with variable mass. It is first order in source/conduction splitting and time;
+the source evaluates accepted-start local T. Root must refine intervals and
+qualify the field/source/thermal coupling; no converged C19 prediction is claimed.
+
+Guards and physics limits
+ Local exact E/m stays within298.2..3000K before conduction and after EACH
+ conduction substep. A locally unsupported source trial rejects even if another
+ cell has headroom or subsequent conduction might cool it. No temperature clamp,
+ zero-energy floor, extrapolation or3000K model extension. Recession/deposition
+ fractions are explicit caller-owned LOCAL budgets (default0), not measured
+ physical validity limits. Crossing them requires geometry/support handoff.
+ Fixed geometry, intact conduction paths and intrinsic sigma/k after small mass
+ loss are CONDITIONAL approximations; no porosity, moving interface, stress,
+ melt-flow or free-surface model is supplied. Mechanics773.15K support remains
+ unchanged; a caller cannot route unsupported mechanics as authored heat.
+ Congruent neutral SS304 proxy only; no alloy fractionation, ionization,
+ excitation, H2O/metal chemistry, vapor collision data, measured accommodation,
+ evaporation event rate, evolving surface area, or experimental calibration.
+ Mesh<=4096 cells, transfers<=4096, conduction<=10000 substeps and16384 total
+ edge-flux records/trial, material journal<=8MiB and4096 entries. Refuse on caps;
+ no truncation or invented count backend.
+
+Commit, rollback, restart
+ prepare -> immutable Prepared; local can_publish pins owner/generation/base.
+ Root separately preflights native/source/RNG/field owners against the SAME
+ binding, then performs only noexcept publication swaps. publish_prevalidated
+ here changes only the accepted material pointer; no callbacks/filesystem/math.
+ Root owns atomic visibility and rollback order across owners. A gas failure
+ invalidates common publication even if material-only preflight remains true.
+ rollback is LIFO and restores this entire stock/journal pointer. Stale, foreign,
+ moved-from, double and rolled-back local tokens cannot publish.
+ A common accepted-boundary marker binds material prefix, native gas, fields,
+ source/RNG seals, accepted step/time. No partial outer step can checkpoint.
+ restore requires a fresh material owner, compiled/config identity and the exact
+ outer marker. It replays the entire material journal and exact conduction using
+ external GasPort history certified against the native owner's validated journal.
+ A rehashed stock/impulse/receipt/flux/clock alone cannot bypass semantic replay.
+ Root owns multi-file publication, crash consistency, and actual full-time field/
+ source/RNG restoration. The component fixture checkpoint is not a production
+ full-time checkpoint schema.
+
+Native fixture scope
+ The exact sealed v6.2 source is compiled UNMODIFIED from archive SHA
+ d14f1e229bbd8a84cf75b782f49562217972d4cd55b086fd8f932cc4f0e37db4.
+ Its source identity is5fa3a59f863e98f21e20af698b9c16417f3749344b555f18e3d2cba1e4f5a705.
+ It has real first-hit transport but no typed surface-birth API. Test source
+ poses/counts/IDs/K are actual native GENESIS fixtures and are labelled as such;
+ production configuration refuses that fixture scope. This package does NOT
+ extend/fork native gas count code or claim full-time driver source integration.
+ The new native owner implements the production GasPort and whole outer trial.

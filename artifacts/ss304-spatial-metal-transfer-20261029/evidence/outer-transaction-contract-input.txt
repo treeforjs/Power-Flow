@@ -1,0 +1,147 @@
+FULL-TIME OUTER TRANSACTION — PROPOSED OWNER API, revision 1
+
+Status: requested integration interface; not implemented or qualified by this
+document. Sealed arena v6.2 and ParentSubflow ad499... do not expose it. This
+proposal precedes implementation of an adapter that depends on the extension.
+The existing collision-only compound must remain collision-only.
+
+Base source
+  canonical-completion-scope-source-v6_2.tar.gz
+  SHA256 d14f1e229bbd8a84cf75b782f49562217972d4cd55b086fd8f932cc4f0e37db4
+  source identity 5fa3a59f863e98f21e20af698b9c16417f3749344b555f18e3d2cba1e4f5a705
+
+Owners and lifetime
+  PicArena remains the only accepted particle/count/ID/journal owner.
+  ParentSubflow remains the only accepted scheduler RNG, product RNG and event/
+  interval sequence owner. Fields, heat and surface source retain their owners.
+  A move-only outer trial holds bounded, transient native/arena staging storage.
+  It cannot be checkpointed, does not publish to the accepted PicArena, and does
+  not create a second persistent population. Const censuses are transient views.
+  First chemistry, every field/source iteration and second chemistry operate on
+  this private storage. Dropping any trial changes no accepted owner.
+
+Minimal arena-facing additions (names illustrative; semantics required)
+  enum FullTimeSlot { before_transport, after_transport };
+  struct FullTimeStepBinding {
+    accepted_step, accepted_arena_revision;
+    begin_s, end_s, dt_s;                 // end == begin + authoritative dt
+    accepted_arena_sha256, accepted_field_sha256;
+    mesh_sha256, material_sha256, common_clock_sha256;
+  };
+  struct ExposureBinding {
+    FullTimeStepBinding common;
+    FullTimeSlot slot;
+    frozen_physical_stage_s;             // exactly begin or end
+    collision_duration_s;               // exactly dt/2, independent local clock
+    owner_stage_sequence;               // first n, second n+1
+  };
+  PicArena::begin_full_time_step(binding) -> PrivateFullTimeStep;
+  PrivateFullTimeStep::first_exposure() -> restricted CollisionScope;
+  PrivateFullTimeStep::fork_transport_trial() -> PrivateTransportTrial;
+  PrivateTransportTrial::native_census(cap) -> const canonical carrier census;
+  PrivateTransportTrial::prepare_total_field_motion(binding, endpoints,
+      transport_receipts, source_receipts) -> PreparedPrivateMotion;
+  PrivateFullTimeStep::accept_transport_trial(PreparedPrivateMotion&&);
+  PrivateFullTimeStep::second_exposure() -> restricted CollisionScope;
+  PrivateFullTimeStep::seal() -> PreparedArena;
+  Existing PicArena::can_publish/try_publish/try_rollback apply to the sealed
+  outer token. No public mutable GapPic/vector access is introduced.
+
+The private state machine is first exposure -> transport iteration(s) -> second
+exposure -> sealed. Each new transport iteration starts from the same completed
+first-exposure state, including source/RNG state. A failed iterate cannot become
+the next iterate's initial state. Only one successful transport candidate is
+consumed. A second first/second exposure, transport after second exposure, or a
+token from another trial/owner/generation is rejected. Child tokens escaping
+their scope become inert. Resource caps apply to the sum of both exposures,
+transport/source records and transient carrier storage, before allocation.
+
+Root ParentSubflow addition REQUIRED
+  ParentSubflow::prepare_on(CollisionScope&, ExposureBinding,
+                           const PreparedParentState* predecessor = nullptr)
+      -> PreparedParentStage;
+  predecessor null uses accepted RNG/event/interval state. The second exposure
+  must use the first exposure's staged successor, never the accepted RNG again.
+  ParentSubflow::seal(first_stage, second_stage, outer_arena_token)
+      -> PreparedParentState;
+  ParentSubflow::can_publish(prepared_state) and noexcept publish_prevalidated
+  swap ONLY its own RNG/sequence state. Arena publication belongs to the outer
+  coordinator. Bind lifetime, generation, both completion hashes and final arena
+  state. Keep existing prepare()/try_publish() behavior for v6.2 callers.
+  The current ParentSubflow::Prepared combines an arena token with RNG state and
+  its try_publish commits both. It must not be invoked on the accepted owner
+  halfway through a common step, copied by serialization, or temporarily rebound
+  with a raw arena reference.
+
+Collision clock and phase extension REQUIRED
+  Introduce a distinct FullTimeEndpoint phase tied to an outer trial and slot.
+  It is never an alias for InitialFieldProof or ProvisionalEqualDtMidX. Add an
+  authoritative collision_duration_s to the full-time scheduler interval and
+  completion wrapper. At each slot, 0 < tau_1 < ... <= dt/2; tau never moves x
+  or advances native time. Do not calculate duration by subtracting absolute
+  endpoint doubles: at the nonzero C19 epoch this changes the requested dt/2.
+  Keep v6.2 completion records/schema validation unchanged for legacy callers.
+  For the new typed wrapper, retain every v6.2 scoped SSA check: contiguous
+  reaction-only child range, strict ordered positive elapsed offsets, exact
+  physical-stage/channel/dataset/kernel/binding/model/common-clock matching,
+  owner sequence and before/after RNG hash chain. Validate at completion AND
+  replay. Only the duration operand comes from the explicit local exposure.
+  The full-time wrapper additionally binds slot, outer interval, predecessor
+  completion and final common token. Forced fixtures remain explicitly tagged
+  forced_kernel_integration_only and do not count as actual SSA qualification.
+
+Native full-time initialization and transport
+  Add an explicit fresh-genesis total-field initialization path with authored
+  x(t0), u(t0), native time t0, mesh/frame and Maxwell field hash. It must bypass
+  native solve_fields and mark the coupling mode in canonical state. Do not
+  relabel a legacy checkpoint or assert a legacy leapfrog u is full-time u.
+  Native Poisson state is inapplicable in this mode, not 'current solved'. Arena
+  reaction staging/save/restore must branch on the typed mode; their current
+  unconditional field solve is a real integration gate.
+  Motion endpoints carry exactly the existing native IDs, charge, mass, weight
+  and packet correspondence; only x and full-time u may change. Count2 positive
+  carriers and their equal kinematics are preserved. No rounded count selection.
+  All neutral carriers drift as q=0 through the same full-time clock. Total E/B
+  replace native electrostatic+external gather; pic_boris momentum is unchanged.
+  Canonical native coordinates may be translated into the field frame, with the
+  translation sealed in mesh identity. No rotation of E/B/u, extra Hall velocity,
+  duplicated F0, native advance(), native D-K-D or native Poisson solve.
+
+Source ownership
+  Every native carrier receives exactly one motion owner for each subinterval.
+  Active-layer IDs are explicitly excluded from ordinary push. Their source
+  owner supplies the same IDs, segments, entry/exit times and final endpoints;
+  after a handoff the ordinary push receives only the remaining interval. No
+  implicit frozen layer, duplicate carrier, silent deletion or source ID minting
+  is admitted. Population-changing source operations remain the arena/source
+  owner's typed transactions, not arbitrary writes allowed by the outer API.
+  A first adapter may explicitly reject nonempty layer/boundary/source mutation
+  receipts; this is a documented scope gate, not completed source integration.
+  Quantum bridges retain q*D/common_dt, including zero-duration paths. Compatible
+  paths bind endpoint charge, current and work to the same trial E. Qwall alone
+  enters source heat; source Wfield and Joule are separate actual operands.
+
+Common commit and restart
+  All potentially throwing validation/allocation happens before common preflight.
+  Pin each owner's accepted generation/hash. After a successful common preflight,
+  commit by noexcept swaps of arena, final two-RNG state, fields, heat and source;
+  no computation, callbacks or filesystem operations are allowed between swaps.
+  Preflight failure and any preparation exception leave every accepted byte,
+  count, native ID allocator, RNG stream, source journal and clock unchanged.
+  Existing arena rollback is useful before final publication but is not a
+  substitute for restoring all owners. Root owns cross-owner crash consistency.
+  Write a new full-time checkpoint schema/source identity with an outer accepted
+  boundary marker, native phase, fields/heat/source/RNG seals and both exposure
+  records. Never accept a partial slot as a completed step. No old schema or phase
+  relabeling. Replay must revalidate the complete typed order and scoped SSA
+  ranges as well as count/native endpoint and final RNG completion bindings.
+
+Required qualification before calling this driver-integrated
+  Actual ParentSubflow on both sides with private staged inventories and both
+  RNG streams; variable dt with fixed physical endpoints/local exposure clocks;
+  counts, charge, current/work, source heat and energy owner reconciliation;
+  first/transport/second/commit failures and stale/foreign/double tokens;
+  accepted owner observations unchanged throughout prepare and after exceptions;
+  actual source ownership transitions or explicit rejection scope; fresh-process
+  exact restart and semantic corruption rejection for each slot/completion;
+  unchanged 359 arena and 442 parent-subflow regressions; no native Poisson/DKD.
