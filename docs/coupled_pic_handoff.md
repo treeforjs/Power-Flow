@@ -1,6 +1,6 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-11-01 01:56 MDT. Keep this file current at every milestone so
+Last updated 2026-11-01 08:12 UTC. Keep this file current at every milestone so
 the work can be picked up from it alone. Snapshots of the in-progress workers'
 own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
 each update); the live versions are the `HANDOFF.txt` files named below.
@@ -92,6 +92,47 @@ transport, source/sink flows, authenticated continuation and common restart are
 still being connected. Genuine B3 source tokens are qualified (`f34224b`);
 source/native/Hall bridge current, conductor-bank charge and field-work ownership
 are the next coupling gates.
+
+Subsequent milestones: genuine source-reference mapping v2 is qualified and
+pushed (`92df0e4`, 82 normal/82 UBSan controls), including both electrodes and
+signed slice centers. Source v7.4 adopts the exact mass-aware emission cache
+(`f8bf226`, 145/145 controls). Host Hall B3 component (`6cfb793`) passes 41/41
+controls, genuine native v8.1 bridge admission, retained producer-array lifetime,
+correct emitting-bank debit and missing/doubled-bank refusal. Fourteen accepted
+no-bridge steps across six scenarios match the actual prior Hall bytes.
+These components do not yet qualify common source-to-midpoint work closure.
+
+The dynamic H2 fragment-CDF descriptor is CPU/GPU-qualified and pushed
+(`19ccfd7`). All six historical kinds preserve their records under RNG layout2.
+Unsupported selected CDF events are hard failures, not null collisions. Explicit
+native adoption is underway; incomplete H2/OH/O coverage remains closed.
+
+Checked gas source/motion mapping is maintained in native/coupled_pic
+(`bf6c883`, CPU548/ASan552, 64 controls each). These actual gas-owner checks
+reproduced nonzero correction stranded in an emptied origin cell, and exposed
+the need to separate exterior from conductor correction losses. Gas v1.7.1
+(`615cc89`, log addendum `e5f7adb`) adds an explicit CPU census-conservative mode,
+exact deterministic residual routing and separate exact destination ledgers.
+CPU563 and sanitizer564 each pass135 new,415 inherited and196 allocation-failure
+controls. Newborns share the same-species cell correction immediately by this
+model; it does not preserve individual recoil histories. Physical feedback
+realizability remains a separate guard/qualification.
+
+Root mapper v2 at runtimes/native-gas-motion-v2-census-20261101 adopts that mode;
+CPU565 passes71 controls with zero empty-origin residue and correct exterior
+versus conductor correction assignment. Sanitizer569 is pending. Neither mapper
+can authorize publication: native is adding a cached snapshot factory tied to
+the exact live PreparedPrivateMotion and outer step. Current strict native/gas
+continuation remains unsealed: the exhaustive persistent-allocation sweep found
+additional vendored JSON exception-safety defects after selected failures passed.
+Those failures occur before accepted publication; fixes and full sweep continue.
+
+The new coordinator route uses the actual native-v8/pfc registry, rather than
+adapting legacy parent-chemistry masses or reference energies. SourceStage is
+under development in pic-water-common-commit-v8.0.4-b3-20261101. Its ports are
+minted against and retain the exact Hall thermal owner. Root joint-genesis draft
+is in pic-water-common-genesis-v9-20261101; it is not yet compiled/qualified.
+Old v8.0.3 is frozen, and the electron-only production simulation stays paused.
 
 ## Current takeover status (2026-11-01 01:03 MDT)
 
