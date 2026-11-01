@@ -1,0 +1,575 @@
+--- a/device/gas_kernels.cu
++++ b/device/gas_kernels.cu
+@@ -116,8 +116,11 @@
+     if (e < 0)
+       continue;
+     int clamped = 0;
+-    if (pfg::feedback_slot(c.n[k], V, species[sp].mass_kg, value + (u64)e * pfg::kEntryQ, c.drift[k], &c.s[k],
+-                           &clamped)) {
++    const int result = pfg::feedback_slot(c.n[k], V, species[sp].mass_kg, value + (u64)e * pfg::kEntryQ,
++                                          c.drift[k], &c.s[k], &clamped);
++    if (result < 0)
++      atomicAdd(out + 3, 1ull);
++    else if (result > 0) {
+       atomicAdd(out + 1, 1ull);
+       if (clamped)
+         atomicAdd(out + 2, 1ull);
+--- a/include/pf_gas_v1/gas_core.h
++++ b/include/pf_gas_v1/gas_core.h
+@@ -545,33 +545,49 @@
+ // Sampling representation of the local gas state (README 4). Slot k of a cell:
+ // N = n V; shift d = P_d / (N m); thermal energy per unit mass changes by
+ // E_d / (N m) - drift.d - |d|^2 / 2 (the bulk-flow energy of the shift is
+-// removed); s'^2 = s^2 + (2/3) of that, clamped at 0. A slot whose deposit is
++// removed); s'^2 = s^2 + (2/3) of that. Negative/nonfinite variance is refused.
++// A slot whose deposit is
+ // exactly zero is left untouched (bit-identical to feedback off).
+-// value: E, Px, Py, Pz, U of the entry. Returns 1 if the slot changed, and sets
+-// *clamped when s'^2 < 0.
++// value: E, Px, Py, Pz, U. Returns -1 on refusal without changing the slot,
++// 0 unchanged, 1 changed. The legacy clamped output is always zero.
+ PFG_HD int feedback_slot(double n, double V, double m, const double *value, double *drift, double *s, int *clamped) {
+   *clamped = 0;
++  if (!pf7::finite(n) || n < 0 || !pf7::finite(V) || !(V > 0) || !pf7::finite(m) || !(m > 0) ||
++      !finite3(drift) || !pf7::finite(*s) || *s < 0)
++    return -1;
++  const double base_s2 = (*s) * (*s);
++  if (!pf7::finite(base_s2))
++    return -1;
++  bool nonzero = false;
++  for (u32 q = 0; q < kEntryQ; ++q) {
++    if (!pf7::finite(value[q]))
++      return -1;
++    nonzero = nonzero || value[q] != 0.0;
++  }
++  const double N = n * V;
++  if (!pf7::finite(N) || (nonzero && !(N > 0)))
++    return -1;
+   const double E = value[kQE], P0 = value[kQPX], P1 = value[kQPY], P2 = value[kQPZ];
+   if (E == 0.0 && P0 == 0.0 && P1 == 0.0 && P2 == 0.0)
+     return 0;
+-  const double N = n * V;
+-  if (!(N > 0) || !(m > 0))
+-    return 0;
+   const double Nm = N * m;
++  if (!pf7::finite(Nm) || !(Nm > 0))
++    return -1;
+   const double d0 = P0 / Nm, d1 = P1 / Nm, d2 = P2 / Nm;
+   const double cross = (drift[0] * d0 + drift[1] * d1) + drift[2] * d2;
+   const double half = ((d0 * d0 + d1 * d1) + d2 * d2) / 2;
+   const double de = (E / Nm - cross) - half;
+-  const double s2 = (*s) * (*s) + (2.0 / 3.0) * de;
+-  drift[0] = drift[0] + d0;
+-  drift[1] = drift[1] + d1;
+-  drift[2] = drift[2] + d2;
+-  if (s2 > 0)
+-    *s = pf7::fsqrt(s2);
+-  else {
+-    *s = 0.0;
+-    *clamped = 1;
+-  }
++  const double s2 = base_s2 + (2.0 / 3.0) * de;
++  const double next[3] = {drift[0] + d0, drift[1] + d1, drift[2] + d2};
++  if (!pf7::finite(s2) || s2 < 0 || !finite3(next))
++    return -1;
++  const double next_s = pf7::fsqrt(s2);
++  if (!pf7::finite(next_s))
++    return -1;
++  drift[0] = next[0];
++  drift[1] = next[1];
++  drift[2] = next[2];
++  *s = next_s;
+   return 1;
+ }
+ 
+--- a/include/pf_gas_v1/gas_owner.hpp
++++ b/include/pf_gas_v1/gas_owner.hpp
+@@ -11,7 +11,7 @@
+ //
+ // Execution: host (CPU reference) or device (GPU-resident state, NVRTC
+ // kernels compiled from gas_core.h and forms_core.h) or device_verified (both,
+-// every digest compared). Results are bit-identical in all three.
++// every digest compared). CPU/device equality requires qualification evidence.
+ #pragma once
+ #include "pf_gas_v1/gas_core.h"
+ 
+@@ -65,9 +65,9 @@
+   std::string device_uuid, nvrtc_library;
+ };
+ // Presets (README 7, INTEGRATION.txt 4):
+-//   "production-gas-feedback": feedback on, carrier_shares transport (production, owner decision 2026-11-01)
++//   "production-gas-feedback": feedback on, carrier_shares transport (historical preset name; unqualified)
+ //   "production-gas-ledger":   feedback off, carrier_shares transport (chemistry results identical to the
+-//                              field-target approximation; exact closure; comparison runs)
++//                              field-target approximation; closure requires independent qualification)
+ // Returns base with the preset fields set and the preset name bound.
+ Configuration preset(const std::string &name, Configuration base);
+ std::string configuration_sha256(const Configuration &);
+@@ -148,6 +148,9 @@
+   std::vector<std::int64_t> entry, global;   // digits (not normalised)
+   std::array<std::uint64_t, pfg::C_COUNTERS> counter{};
+   std::uint64_t keys = 0;                    // key-table size it was built on
++  std::uint64_t accepted_step = 0, stage = 0;
++  std::string key_table_sha256, configuration_sha256, payload_sha256, candidate_sha256;
++  std::vector<std::string> input_sha256;
+ };
+ 
+ // Census of a population (host utility): exact count, kinetic energy and
+@@ -240,11 +243,17 @@
+   std::vector<pfg::ProcessInfo> procs_;
+   std::unique_ptr<State> acc_, cand_;
+   bool open_ = false;
++  bool failed_ = false;  // a failed mutating operation requires abandon
++  std::uint64_t next_stage_ = 1;
++  bool partial_batch_ready_ = false;
++  std::vector<std::string> partial_batch_inputs_;
+   std::uint64_t open_step_ = 0;
+   std::unique_ptr<DeviceLane> dev_;
+   bool host() const noexcept;
+   void ensure_open(std::uint64_t step, const char *what) const;
+   void insert_keys(State &, std::vector<std::uint64_t> keys);
++  void prepare_keys_impl(std::span<const RecoilRecord>, std::span<const FlowRecord>, std::span<const MoverRecord>, bool bind);
++  Partial accumulate_impl(std::span<const RecoilRecord>, std::span<const FlowRecord>, bool bind) const;
+   std::string finish(State &, const char *what);
+   std::string run(std::uint64_t stage, std::span<const RecoilRecord>, std::span<const FlowRecord>, const char *what);
+   std::array<std::uint64_t, pfg::C_COUNTERS> device_apply(std::span<const RecoilRecord>, std::span<const FlowRecord>,
+--- a/src/gas_device.cpp
++++ b/src/gas_device.cpp
+@@ -173,7 +173,7 @@
+   k.k_gleaf = k.s->kernel(k.module, "gas_global_leaves");
+   k.L = L;
+   k.S = u32(species.size());
+-  k.NP = u32(procs.size());
++  k.NP = L.NP;
+   k.G = L.total();
+   k.species = k.s->alloc(species.size() * sizeof(pfg::SpeciesInfo), "gas species");
+   k.up(k.species, 0, species.data(), species.size() * sizeof(pfg::SpeciesInfo));
+@@ -327,9 +327,11 @@
+   unsigned long long *out = k.counters.as<unsigned long long>();
+   void *args[] = {&a, &c, &n, &keys, &nk, &v, &sp, &S, &volume, &out};
+   k.launch(k.k_fb, n, args);
++  std::array<u64, 4> o{};
++  k.down(o.data(), k.counters, 0, 32);
++  if (o[3])
++    throw Refusal(Refusal::Kind::exactness, "exactness: nonrealizable gas feedback");
+   k.down(cells.data(), k.in, off, cb);
+-  std::array<u64, 3> o{};
+-  k.down(o.data(), k.counters, 0, 24);
+   r.eligible = o[0];
+   r.changed = o[1];
+   r.clamped = o[2];
+--- a/src/gas_owner.cpp
++++ b/src/gas_owner.cpp
+@@ -63,6 +63,43 @@
+     return r;
+   }
+ };
++
++std::vector<std::string> input_digests(std::span<const RecoilRecord> recs, std::span<const FlowRecord> flows) {
++  std::vector<std::string> v; v.reserve(recs.size() + flows.size());
++  for (const auto &r : recs) {
++    Hash h; h.text("gas-v1.1/recoil-input"); h.u64v(r.accepted_step); h.u64v(r.stage); h.u64v(r.grid_cell);
++    const auto &e = r.ev;
++    h.u64v(e.carrier); h.u64v(e.candidate); h.u64v(e.process); h.u64v(e.cell); h.u64v(e.target_species);
++    h.u64v(e.n_out); h.u64v(e.cover_class); h.u64v(e.internal_sink); h.u64v(e.flags);
++    h.f64(e.weight); h.f64(e.time_s); for (auto x : e.u_in) h.f64(x); for (auto x : e.ut) h.f64(x);
++    h.f64(e.E_tf); h.f64(e.ke_in_p); h.f64(e.ke_in_t); h.f64(e.q_eV); h.f64(e.e_internal);
++    for (auto x : e.out_species) h.u64v(x);
++    for (auto x : e.out_dest) h.u64v(x);
++    for (const auto &u : e.out_u) for (auto x : u) h.f64(x);
++    for (auto x : e.ke_out) h.f64(x);
++    v.push_back(h.hex());
++  }
++  for (const auto &f : flows) {
++    Hash h; h.text("gas-v1.1/flow-input"); h.u64v(f.kind); h.u64v(f.negative); h.u64v(f.grid_cell);
++    h.u64v(f.species); h.u64v(f.native_id); h.f64(f.weight); for (auto x : f.u) h.f64(x); h.f64(f.internal_J);
++    v.push_back(h.hex());
++  }
++  std::sort(v.begin(), v.end()); return v;
++}
++std::string key_table_digest(const std::vector<u64> &keys) {
++  Hash h; h.text("gas-v1.1/key-table"); h.u64v(keys.size());
++  for (auto k : keys) h.u64v(k);
++  return h.hex();
++}
++std::string partial_digest(const Partial &p) {
++  Hash h; h.text("gas-v1.1/partial"); h.text(p.configuration_sha256); h.text(p.key_table_sha256);
++  h.u64v(p.accepted_step); h.u64v(p.stage); h.u64v(p.keys); h.text(p.candidate_sha256);
++  h.u64v(p.input_sha256.size()); for (const auto &x : p.input_sha256) h.text(x);
++  h.u64v(p.entry.size()); for (auto x : p.entry) h.i64v(x);
++  h.u64v(p.global.size()); for (auto x : p.global) h.i64v(x);
++  for (auto x : p.counter) h.u64v(x);
++  return h.hex();
++}
+ 
+ const char *fixed_name(u32 g) {
+   static const char *names[] = {"W", "W_gas", "W_consume", "E_in_projectile", "E_in_target", "E_out_survivor",
+@@ -188,7 +225,7 @@
+ 
+ std::string configuration_sha256(const Configuration &c) {
+   Hash h;
+-  h.text("gas-target-owner-v1/configuration");
++  h.text("gas-target-owner-v1.1-guards/configuration");
+   h.text(c.preset);
+   h.u64v(c.feedback ? 1 : 0);
+   h.u64v(u64(c.transport));
+@@ -292,6 +329,16 @@
+              std::isfinite(c.grid.high[d]),
+          Refusal::Kind::configuration, "configuration: grid");
+   need(std::isfinite(c.grid.volume) && c.grid.volume > 0, Refusal::Kind::configuration, "configuration: grid volume");
++  u64 cell_count = 1;
++  for (auto n : c.grid.n) {
++    need(cell_count <= u64(pfg::kNone) / n, Refusal::Kind::configuration, "configuration: grid cell ID overflow");
++    cell_count *= n;
++  }
++  const double expected_volume = ((c.grid.high[0] - c.grid.low[0]) / c.grid.n[0]) *
++                                 ((c.grid.high[1] - c.grid.low[1]) / c.grid.n[1]) *
++                                 ((c.grid.high[2] - c.grid.low[2]) / c.grid.n[2]);
++  need(c.grid.volume == expected_volume, Refusal::Kind::configuration,
++       "configuration: volume differs from native grid formula");
+   need(c.max_entries > 0, Refusal::Kind::configuration, "configuration: max_entries");
+   std::set<std::string> names;
+   for (const auto &s : c.species) {
+@@ -332,15 +379,23 @@
+ 
+ void Owner::ensure_open(std::uint64_t step, const char *what) const {
+   need(open_, Refusal::Kind::transaction, std::string("transaction: ") + what + " without an open step");
++  need(!failed_, Refusal::Kind::transaction, "transaction: failed candidate requires abandon");
+   need(step == open_step_, Refusal::Kind::transaction, std::string("transaction: ") + what + " for another step");
+ }
+ 
+ void Owner::begin_step(std::uint64_t accepted_step) {
+   need(!open_, Refusal::Kind::transaction, "transaction: step already open");
++  const bool genesis = acc_->counter[pfg::C_STAGES] == 0;
++  need(genesis ? accepted_step <= 1 : acc_->step != ~u64(0) && accepted_step == acc_->step + 1,
++       Refusal::Kind::transaction, "transaction: step must follow the accepted step (genesis permits 0 or 1)");
+   cand_ = std::make_unique<State>(*acc_);
+   cand_->step = accepted_step;
+   open_ = true;
+   open_step_ = accepted_step;
++  next_stage_ = 1;
++  partial_batch_ready_ = false;
++  partial_batch_inputs_.clear();
++  failed_ = false;
+ #ifdef PF_GAS_WITH_DEVICE
+   if (dev_)
+     dev_->begin_step(accepted_step);
+@@ -383,11 +438,17 @@
+ 
+ void Owner::prepare_keys(std::span<const RecoilRecord> recs, std::span<const FlowRecord> flows,
+                          std::span<const MoverRecord> movs) {
+-  need(open_, Refusal::Kind::transaction, "transaction: keys without an open step");
++  prepare_keys_impl(recs, flows, movs, true);
++}
++void Owner::prepare_keys_impl(std::span<const RecoilRecord> recs, std::span<const FlowRecord> flows,
++                              std::span<const MoverRecord> movs, bool bind) {
++  ensure_open(open_step_, "keys");
+   std::vector<u64> add;
+   const u32 S = L_.S;
++  const u64 cells = u64(cfg_.grid.n[0]) * cfg_.grid.n[1] * cfg_.grid.n[2];
+   auto gas = [&](u32 s) { return s < S && (species_[s].flags & pfg::kSpGas); };
+   for (const auto &r : recs) {
++    need(r.grid_cell < cells, Refusal::Kind::input, "input: recoil cell outside grid");
+     const auto &ev = r.ev;
+     if (gas(ev.target_species))
+       add.push_back(pfg::entry_key(r.grid_cell, ev.target_species));
+@@ -396,31 +457,61 @@
+         add.push_back(pfg::entry_key(r.grid_cell, ev.out_species[i]));
+   }
+   for (const auto &f : flows)
+-    if (f.kind == pfg::kFlowDebit && gas(f.species))
++    if (f.kind == pfg::kFlowDebit && gas(f.species)) {
++      need(f.grid_cell < cells, Refusal::Kind::input, "input: debit cell outside grid");
+       add.push_back(pfg::entry_key(f.grid_cell, f.species));
+-  for (const auto &m : movs)
++    }
++  for (const auto &m : movs) {
++    if (gas(m.species))
++      need(m.from_cell < cells && (m.to_cell == pfg::kNone || m.to_cell < cells), Refusal::Kind::input,
++           "input: mover cell outside grid");
+     if (gas(m.species) && m.to_cell != pfg::kNone &&
+         std::binary_search(cand_->keys.begin(), cand_->keys.end(), pfg::entry_key(m.from_cell, m.species)))
+       add.push_back(pfg::entry_key(m.to_cell, m.species));
++  }
+   insert_keys(*cand_, std::move(add));
++  partial_batch_ready_ = bind;
++  partial_batch_inputs_ = bind ? input_digests(recs, flows) : std::vector<std::string>{};
+ }
+ 
+ Partial Owner::accumulate(std::span<const RecoilRecord> recs, std::span<const FlowRecord> flows) const {
+-  need(open_, Refusal::Kind::transaction, "transaction: accumulate without an open step");
++  return accumulate_impl(recs, flows, true);
++}
++Partial Owner::accumulate_impl(std::span<const RecoilRecord> recs, std::span<const FlowRecord> flows, bool bind) const {
++  ensure_open(open_step_, "accumulate");
++  if (bind) need(partial_batch_ready_, Refusal::Kind::transaction, "transaction: prepare complete input batch before partial accumulation");
+   need(host(), Refusal::Kind::configuration, "configuration: host accumulation in device execution");
+   const State &s = *cand_;
+   Partial p;
+   p.keys = s.keys.size();
++  p.accepted_step = open_step_;
++  p.stage = next_stage_;
++  if (bind) p.key_table_sha256 = key_table_digest(s.keys);
++  p.configuration_sha256 = cfg_sha_;
++  if (bind) {
++    p.candidate_sha256 = digest(s, true);
++    p.input_sha256 = input_digests(recs, flows);
++    need(std::includes(partial_batch_inputs_.begin(), partial_batch_inputs_.end(), p.input_sha256.begin(), p.input_sha256.end()),
++         Refusal::Kind::transaction, "transaction: partial input outside prepared batch");
++  }
++  for (const auto &r : recs)
++    need(r.accepted_step == open_step_ && r.stage == next_stage_, Refusal::Kind::input,
++         "input: partial record of another step/stage");
++  for (const auto &f : flows)
++    if (!(f.kind == pfg::kFlowDebit || (next_stage_ == 2 && f.kind == pfg::kFlowRelease)))
++      p.stage = 0; // External population flows cannot masquerade as a chemistry partial.
++
+   p.entry.assign(s.keys.size() * pfg::kEntryQ * D, 0);
+   p.global.assign(u64(L_.total()) * D, 0);
+   HostSink sink{p.entry.data(), p.global.data(), p.counter.data()};
+-  pfg::Tables T{species_.data(), L_.S, procs_.data(), u32(procs_.size()), s.keys.data(), s.keys.size(), L_};
++  pfg::Tables T{species_.data(), L_.S, procs_.data(), L_.NP, s.keys.data(), s.keys.size(), L_};
+   for (const auto &r : recs)
+     pfg::apply_record(sink, T, r);
+   for (const auto &f : flows)
+     pfg::apply_flow(sink, T, f);
+   p.counter[pfg::C_RECORDS] += recs.size();
+   p.counter[pfg::C_FLOWS] += flows.size();
++  if (bind) p.payload_sha256 = partial_digest(p);
+   return p;
+ }
+ 
+@@ -468,16 +559,29 @@
+ 
+ std::string Owner::merge(std::uint64_t accepted_step, std::uint64_t stage, std::span<const Partial> parts) {
+   ensure_open(accepted_step, "merge");
++  need((stage == 1 || stage == 2) && stage == next_stage_, Refusal::Kind::transaction,
++       "transaction: chemistry stages must occur once in order");
+   need(host() && !dev_, Refusal::Kind::configuration, "configuration: partial merge is the host reference path");
+   State &s = *cand_;
+   std::array<u64, pfg::C_COUNTERS> c{};
++  need(partial_batch_ready_, Refusal::Kind::transaction, "transaction: no prepared partial batch");
++  std::vector<std::string> inputs;
++  const auto state_sha = digest(s, true);
+   for (const auto &p : parts) {
++    need(p.accepted_step == accepted_step && p.stage == stage && p.configuration_sha256 == cfg_sha_ &&
++             p.key_table_sha256 == key_table_digest(s.keys) && p.payload_sha256 == partial_digest(p) &&
++             p.candidate_sha256 == state_sha,
++         Refusal::Kind::transaction, "transaction: stale or modified partial binding");
+     need(p.keys == s.keys.size() && p.entry.size() == s.entry.size() && p.global.size() == s.global.size(),
+          Refusal::Kind::transaction, "transaction: partial built on another key table");
+     merge_counters(c, p.counter);
+-  }
++    inputs.insert(inputs.end(), p.input_sha256.begin(), p.input_sha256.end());
++  }
++  std::sort(inputs.begin(), inputs.end());
++  need(inputs == partial_batch_inputs_, Refusal::Kind::transaction, "transaction: incomplete or duplicated partial inputs");
+   need(c[pfg::C_STATUS] == 0, Refusal::Kind::input,
+        "input: stage " + std::to_string(stage) + " status " + std::to_string(c[pfg::C_STATUS]));
++  failed_ = true;
+   for (const auto &p : parts) {
+     for (u64 i = 0; i < s.entry.size(); ++i)
+       s.entry[i] += p.entry[i];
+@@ -487,7 +591,11 @@
+   merge_counters(s.counter, c);
+   if (stage)
+     ++s.counter[pfg::C_STAGES];
+-  return finish(s, "merge");
++  const auto result = finish(s, "merge");
++  ++next_stage_;
++  partial_batch_ready_ = false;
++  failed_ = false;
++  return result;
+ }
+ 
+ std::string Owner::run(std::uint64_t stage, std::span<const RecoilRecord> recs, std::span<const FlowRecord> flows,
+@@ -495,10 +603,11 @@
+   State &s = *cand_;
+   Partial p;
+   if (host()) {
+-    p = accumulate(recs, flows);
++    p = accumulate_impl(recs, flows, false);
+     need(p.counter[pfg::C_STATUS] == 0, Refusal::Kind::input,
+          std::string("input: ") + what + " status " + std::to_string(p.counter[pfg::C_STATUS]));
+   }
++  failed_ = true;
+   const auto dc = device_apply(recs, flows, {}, host() ? &p.counter : nullptr);
+   if (host()) {
+     for (u64 i = 0; i < s.entry.size(); ++i)
+@@ -510,26 +619,34 @@
+     merge_counters(s.counter, dc);
+   if (stage)
+     ++s.counter[pfg::C_STAGES];
+-  return finish(s, what);
++  const auto result = finish(s, what);
++  failed_ = false;
++  return result;
+ }
+ 
+ std::string Owner::take(std::uint64_t accepted_step, std::uint64_t stage, std::span<const RecoilRecord> recs,
+                         std::span<const FlowRecord> flows) {
+   ensure_open(accepted_step, "take");
+   need(stage == 1 || stage == 2, Refusal::Kind::input, "input: stage");
++  need(stage == next_stage_, Refusal::Kind::transaction, "transaction: chemistry stages must occur once in order");
+   for (const auto &r : recs)
+     need(r.accepted_step == accepted_step && r.stage == stage, Refusal::Kind::input,
+          "input: record of another step/stage");
+   for (const auto &f : flows)
+     need(f.kind == pfg::kFlowDebit || (stage == 2 && f.kind == pfg::kFlowRelease), Refusal::Kind::input,
+          "input: stage flows are debits (and stage-2 releases)");
+-  prepare_keys(recs, flows, {});
+-  return run(stage, recs, flows, "take");
++  prepare_keys_impl(recs, flows, {}, false);
++  const auto result = run(stage, recs, flows, "take");
++  ++next_stage_;
++  return result;
+ }
+ 
+ std::string Owner::apply_flows(std::uint64_t accepted_step, std::span<const FlowRecord> flows) {
+   ensure_open(accepted_step, "flows");
+-  prepare_keys({}, flows, {});
++  for (const auto &f : flows)
++    need(f.kind == pfg::kFlowBirth || f.kind == pfg::kFlowSink || f.kind == pfg::kFlowTransaction,
++         Refusal::Kind::input, "input: chemistry flows require take");
++  prepare_keys_impl({}, flows, {}, false);
+   return run(0, {}, flows, "flows");
+ }
+ 
+@@ -537,7 +654,7 @@
+   ensure_open(accepted_step, "transport");
+   need(cfg_.transport == Transport::carrier_shares, Refusal::Kind::configuration,
+        "configuration: transport is none in this configuration");
+-  prepare_keys({}, {}, movs);
++  prepare_keys_impl({}, {}, movs, false);
+   State &s = *cand_;
+   std::vector<i64> e, g;
+   std::array<u64, pfg::C_COUNTERS> c{};
+@@ -545,11 +662,12 @@
+     e.assign(s.entry.size(), 0);
+     g.assign(s.global.size(), 0);
+     HostSink sink{e.data(), g.data(), c.data()};
+-    pfg::Tables T{species_.data(), L_.S, procs_.data(), u32(procs_.size()), s.keys.data(), s.keys.size(), L_};
++    pfg::Tables T{species_.data(), L_.S, procs_.data(), L_.NP, s.keys.data(), s.keys.size(), L_};
+     for (const auto &m : movs)
+       pfg::apply_mover(sink, T, m, s.value.data());
+     need(c[pfg::C_STATUS] == 0, Refusal::Kind::input, "input: transport status " + std::to_string(c[pfg::C_STATUS]));
+   }
++  failed_ = true;
+   auto dc = device_apply({}, {}, movs, host() ? &c : nullptr);
+   if (host()) {
+     for (u64 i = 0; i < e.size(); ++i)
+@@ -561,27 +679,45 @@
+   c[pfg::C_MOVERS] = movs.size();
+   c[pfg::C_TRANSPORTS] = 1;
+   merge_counters(s.counter, c);
+-  return finish(s, "transport");
++  const auto result = finish(s, "transport");
++  failed_ = false;
++  return result;
+ }
+ 
+ FeedbackReceipt Owner::feedback(std::uint64_t accepted_step, std::uint64_t stage, std::span<const std::uint32_t> atlas,
+                                 std::span<CellTargetsAbi> cells) const {
+-  (void)stage;
++  need(stage == 1 || stage == 2, Refusal::Kind::input, "input: feedback stage");
++  if (open_) {
++    ensure_open(accepted_step, "feedback");
++    need(stage == next_stage_, Refusal::Kind::transaction, "transaction: feedback stage order");
++  } else
++    need(accepted_step == acc_->step, Refusal::Kind::transaction, "transaction: feedback for another accepted state");
+   need(atlas.size() == cells.size(), Refusal::Kind::input, "input: feedback atlas size");
+   if (open_)
+     need(accepted_step == open_step_, Refusal::Kind::transaction, "transaction: feedback for another step");
+-  auto cells_sha = [&]() {
++  std::vector<CellTargetsAbi> candidate(cells.begin(), cells.end());
++  auto cells_sha = [&](std::span<const CellTargetsAbi> data) {
+     Hash h;
+     h.text("gas-target-owner-v1/cell-targets");
+     h.u64v(cells.size());
+     h.bytes(atlas.data(), atlas.size() * 4);
+-    h.bytes(cells.data(), cells.size() * sizeof(CellTargetsAbi));
++    h.bytes(data.data(), data.size() * sizeof(CellTargetsAbi));
+     return h.hex();
+   };
+   FeedbackReceipt r;
+-  r.cells_before_sha256 = cells_sha();
+-  for (const auto &c : cells) {
++  r.cells_before_sha256 = cells_sha(cells);
++  std::set<u32> occupied;
++  const u64 total_cells = u64(cfg_.grid.n[0]) * cfg_.grid.n[1] * cfg_.grid.n[2];
++  for (std::size_t i = 0; i < cells.size(); ++i) {
++    const auto &c = cells[i];
++    need(atlas[i] < total_cells && occupied.insert(atlas[i]).second, Refusal::Kind::input,
++         "input: duplicate or out-of-grid feedback atlas");
+     need(c.n_targets <= pfg::kMaxTargets, Refusal::Kind::input, "input: cell with more than 12 targets");
++    std::set<u32> slots;
++    for (u32 k = 0; k < c.n_targets; ++k)
++      need(c.species[k] < L_.S && slots.insert(c.species[k]).second && std::isfinite(c.n[k]) && c.n[k] >= 0 &&
++               pfg::finite3(c.drift[k]) && std::isfinite(c.s[k]) && c.s[k] >= 0,
++           Refusal::Kind::input, "input: invalid or duplicate feedback target");
+     r.slots += c.n_targets;
+   }
+   if (cfg_.feedback) {
+@@ -596,7 +732,7 @@
+     if (host()) {
+       const State &s = open_ ? *cand_ : *acc_;
+       for (std::size_t i = 0; i < cells.size(); ++i) {
+-        auto &c = cells[i];
++        auto &c = candidate[i];
+         for (u32 k = 0; k < c.n_targets; ++k) {
+           const u32 sp = c.species[k];
+           if (sp >= L_.S || !(species_[sp].flags & pfg::kSpFeedback))
+@@ -606,8 +742,10 @@
+           if (e < 0)
+             continue;
+           int clamped = 0;
+-          if (pfg::feedback_slot(c.n[k], cfg_.grid.volume, species_[sp].mass_kg, s.value.data() + e * pfg::kEntryQ,
+-                                 c.drift[k], &c.s[k], &clamped)) {
++          const int result = pfg::feedback_slot(c.n[k], cfg_.grid.volume, species_[sp].mass_kg,
++                                                s.value.data() + e * pfg::kEntryQ, c.drift[k], &c.s[k], &clamped);
++          need(result >= 0, Refusal::Kind::exactness, "exactness: nonrealizable gas feedback");
++          if (result > 0) {
+             ++r.changed;
+             r.clamped += u64(clamped);
+           }
+@@ -617,23 +755,26 @@
+ #ifdef PF_GAS_WITH_DEVICE
+     if (dev_) {
+       if (!host()) {
+-        std::copy(dev_cells.begin(), dev_cells.end(), cells.begin());
++        std::copy(dev_cells.begin(), dev_cells.end(), candidate.begin());
+         r.eligible = dr.eligible;
+         r.changed = dr.changed;
+         r.clamped = dr.clamped;
+       } else
+-        need(std::memcmp(dev_cells.data(), cells.data(), cells.size() * sizeof(CellTargetsAbi)) == 0 &&
++        need(std::memcmp(dev_cells.data(), candidate.data(), cells.size() * sizeof(CellTargetsAbi)) == 0 &&
+                  dr.changed == r.changed && dr.clamped == r.clamped && dr.eligible == r.eligible,
+              Refusal::Kind::device, "device: feedback differs from the host reference");
+     }
+ #endif
+   }
+-  r.cells_after_sha256 = cells_sha();
++  r.cells_after_sha256 = cells_sha(candidate);
++  std::copy(candidate.begin(), candidate.end(), cells.begin());
+   return r;
+ }
+ 
+ void Owner::commit(const std::string &candidate_sha256) {
+   need(open_, Refusal::Kind::transaction, "transaction: commit without an open step");
++  need(!failed_ && next_stage_ == 3 && cand_->counter[pfg::C_STATUS] == 0,
++       Refusal::Kind::transaction, "transaction: commit requires two successful ordered stages");
+   const std::string d = digest(*cand_, true);
+   need(d == candidate_sha256, Refusal::Kind::transaction, "transaction: commit digest differs from the candidate");
+   State &s = *cand_;
+@@ -665,6 +806,10 @@
+ void Owner::abandon() {
+   cand_.reset();
+   open_ = false;
++  failed_ = false;
++  next_stage_ = 1;
++  partial_batch_ready_ = false;
++  partial_batch_inputs_.clear();
+ #ifdef PF_GAS_WITH_DEVICE
+   if (dev_)
+     dev_->abandon();

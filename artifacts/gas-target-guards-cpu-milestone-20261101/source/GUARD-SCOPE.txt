@@ -1,0 +1,38 @@
+Gas target guard successor v1.1 -- qualification pending
+
+The unchanged source snapshot is under baseline/, with BASELINE.json recording
+all preimages. This successor does not modify the active v1 writer.
+
+Corrections:
+- Negative or nonfinite thermal variance is refused without clamping; exact
+  zero is valid. Nonfinite inputs and residual deposits in an empty population
+  refuse. All feedback updates publish together, after host/device comparison.
+- Two chemistry stages must occur exactly once in order before commit; stage
+  flow types cannot bypass take through apply_flows. A failed mutation requires
+  abandon. After the first step (0 or 1), clocks advance by exactly one.
+- Distributed partials bind configuration, actual key table, candidate state,
+  step/stage and payload, plus an exact multiset of the complete prepared input
+  batch. Missing/duplicated work and cross-history reuse refuse. Empty rank
+  shards remain admissible. Direct take does not pay distributed input hashing.
+- Empty process tables refuse process zero rather than exposing the allocation
+  placeholder as a real reaction. Grid cell counts must fit the native ID ABI.
+
+Configuration identity changes to gas-target-owner-v1.1-guards/configuration;
+old checkpoints cannot silently acquire these semantics. No old checkpoint
+migration is supplied. ABI of chemistry/flow/cell records is unchanged.
+
+Boundary and limitations:
+This component stores target-side energy/momentum corrections. Its prepared
+batch MUST still be matched to native's admitted events and actual debit plan.
+The native strict coupled-target-owner guard remains enabled; this code is not
+connected to it. Target Maxwellians must be reconstructed from the unmodified
+native moments before every feedback trial; reapplying feedback to an already
+corrected input compounds the correction and is not an admitted adapter flow.
+Transport-share closure/realizability, gas internal-state closure, full material
+release/circuit coupling and full breakdown production remain unqualified.
+The inherited API preset names containing 'production' are historical names,
+not qualification or permission to run a physical model.
+
+New functional tests use frozen userspace in a one-core, bounded-memory
+SimQueue job; opportunistic scheduling may freeze for an owner job. No timing
+claim is made by these guard tests. GPU checks request shared GPU memory.
