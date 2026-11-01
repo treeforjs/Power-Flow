@@ -2,7 +2,7 @@ from pathlib import Path
 from fractions import Fraction as F
 from decimal import Decimal as D,localcontext
 import fcntl,json,math,os
-O=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-native-metal-transfer-20261029')
+O=Path('/home/treefor/sim-workspace/powerflow/outputs/ss304-native-metal-transfer-20261029')
 def dyad(j):return F(int(j['hex'],16))*(F(2)**j['exponent'])
 def exact(x):return F.from_float(float(x))
 def count(x):return exact(x[0])+exact(x[1])

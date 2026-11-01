@@ -46,7 +46,7 @@ Jacobians, strain and nominal proof-screen guards.
 
 Full raw native checkpoints, all 59 geometry states and runtime binaries are
 preserved outside Git under
-`/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-expansion-20261029/foil-support-v4`.
+`/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-expansion-20261029/foil-support-v4`.
 The final `HANDOFF.md`, `handoff.json`, preservation receipt and push receipt
 there bind this evidence to the results commit and backup. The backup contains
 a selected-source archive and an incremental Git bundle based on the already

@@ -19,8 +19,8 @@ import struct
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PILOT = Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-material-feedback-pilot-20261029')
-OUTPUT = Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-expansion-20261029/foil-support-v4/pilot-audit')
+PILOT = Path('/home/treefor/sim-workspace/powerflow/outputs/ss304-material-feedback-pilot-20261029')
+OUTPUT = Path('/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-expansion-20261029/foil-support-v4/pilot-audit')
 EXPORT_SCHEMA = 'material-feedback-mechanics-export-v1'
 HEAT_MAGIC_V2 = 0x454C484541543034
 

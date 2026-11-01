@@ -1,6 +1,6 @@
 This versioned publication successor corrects the surface-model wording only; its earlier audit and appendix remain sealed. This separate appendix records the requested **melt-triggered, energy-limited
 ablation approximation** and a finite surface-layer inventory. It does not alter
-the [completed readiness audit](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-material-geometry-readiness-audit-20261029/READINESS-AUDIT.md),
+the [completed readiness audit](/home/treefor/sim-workspace/powerflow/outputs/ss304-material-geometry-readiness-audit-20261029/READINESS-AUDIT.md),
 its findings, any sealed material/source code, or the existing guards. No model
 parameters are selected here and no integration tests are run. The new request
 does not resolve the current correctness or integration defects.
@@ -189,7 +189,7 @@ preparation data have not been recovered by this appendix.
   removed, remaining mechanical applicability and the common accepted-boundary
   checkpoint schema for all inventories and geometry.
 
-The machine-readable [input register](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-melt-ablation-proposal-v1-20261030/publication/model-input-register-v2.json)
+The machine-readable [input register](/home/treefor/sim-workspace/powerflow/outputs/ss304-melt-ablation-proposal-v1-20261030/publication/model-input-register-v2.json)
 keeps unresolved numerical values null; zero is not used to conceal missing data.
 
 **Mass, current, geometry and common-transaction requirements**
@@ -225,7 +225,7 @@ tests in the present audit step.
 Primary references reused, with no new literature acquisition:
 
 - [Lamppa et al., Assessment of Electrode Contamination Mitigation at0.5MA Scale,
-  SAND2021-12691,2021](/home/treefor/Documents/Codex/2026-10-28/we/work/field-comparison/sand2021-12691.pdf),
+  SAND2021-12691,2021](/home/treefor/sim-workspace/powerflow/work/field-comparison/sand2021-12691.pdf),
   pp.11,48–49; Fig.2 and Tables3–4. The cached PDF pages11 and49 were rendered
   and visually inspected for this appendix.
 - [Lane et al.,2018, doi:10.1088/1361-648X/aae4af](https://doi.org/10.1088/1361-648X/aae4af),
@@ -235,5 +235,5 @@ Primary references reused, with no new literature acquisition:
   [Kim1975](https://www.osti.gov/servlets/purl/4152287), and the sealed material
   source records. No new property values were fitted or selected.
 - [Bennett et al.,2023, PRAB26,040401](https://doi.org/10.1103/PhysRevAccelBeams.26.040401),
-  supplied/cached full text; [Smith dissertation](/home/treefor/Documents/Codex/2026-10-28/we/work/dissertation-layout.txt),
+  supplied/cached full text; [Smith dissertation](/home/treefor/sim-workspace/powerflow/work/dissertation-layout.txt),
   printed pp.17–18 in the cached layout text.

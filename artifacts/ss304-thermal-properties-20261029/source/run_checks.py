@@ -16,7 +16,7 @@ import sys
 import time
 
 SOURCE = Path(__file__).resolve().parent
-OUTPUTS = Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs')
+OUTPUTS = Path('/home/treefor/sim-workspace/powerflow/outputs')
 LOCK = OUTPUTS/'pic-profile/testing-core7.lock'
 EPS = sys.float_info.epsilon
 

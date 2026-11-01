@@ -10,7 +10,7 @@ from mhdlab.solid_foil_caloric_v2 import SealedNominalCaloricV2,SOURCE_SEAL_SHA2
 from mhdlab.solid_foil_native_heat_v4 import NativeSourceConductiveHeat,electron_action
 from mhdlab.solid_foil_native_coupling_v4 import NativeSourceFoilCorrector,digest,file_digest
 
-MATERIAL_SEAL=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-properties-v2-20261029/source-manifest.json')
+MATERIAL_SEAL=Path('/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-properties-v2-20261029/source-manifest.json')
 SCENARIO={'schema':'sealed-source-native-mechanics-component-v4','geometry_m':[2e-6,1e-6,2e-6],'cells_xyz':[4,2,2],
  'thermal_state':'mean +0.2*cos(pi*x/width), uniform y,z; open smooth coefficient segment',
  'initial_mechanics':'affine thermal strain at mean T; signed0.2m/s x dilation at faces',

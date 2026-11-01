@@ -15,7 +15,7 @@ from mhdlab.solid_foil_caloric_v2 import SealedNominalCaloricV2,SOURCE_SEAL_SHA2
 from mhdlab.solid_foil_native_heat import NativeConductiveHeat
 from mhdlab.solid_foil_native_coupling import NativeFoilCorrector,file_digest
 
-MATERIAL_SEAL=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-properties-v2-20261029/source-manifest.json')
+MATERIAL_SEAL=Path('/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-properties-v2-20261029/source-manifest.json')
 SCENARIO={'schema':'manufactured-native-thermoelastic-v3','geometry_m':[2e-6,1e-6,2e-6],
     'cells_xyz':[4,2,2],'temperature':'299.5+0.6*cos(pi*x/width), uniform y,z',
     'initial_velocity':'signed 0.2m/s linear dilation at x faces, centered',

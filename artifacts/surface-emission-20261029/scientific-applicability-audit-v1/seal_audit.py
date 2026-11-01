@@ -1,7 +1,7 @@
 from pathlib import Path
 import json,hashlib,os,datetime,re
 assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15
-out=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-emission-scientific-audit-20261029')
+out=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-emission-scientific-audit-20261029')
 W=out.parent
 roots={
  'source-v1':Path('/home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/snapshots/usable-api-v1'),

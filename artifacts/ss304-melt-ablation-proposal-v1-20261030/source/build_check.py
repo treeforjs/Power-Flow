@@ -12,7 +12,7 @@ import time
 
 P = Path(__file__).resolve().parent.parent
 S = P / 'source'
-O = Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs') / P.name
+O = Path('/home/treefor/sim-workspace/powerflow/outputs') / P.name
 FROZEN = '/home/treefor/projects/runtimes/arch-base-20261028/run-frozen'
 
 

@@ -21,7 +21,7 @@ from mhdlab.solid_foil_geometry import deform_hex_mesh,midplane_gap,parallel_pla
 from mhdlab.solid_foil_coupling import thermoelastic_exchange,coupled_cell_heat_step,von_mises_Pa,project_exchange_to_thermal_xy
 
 SOURCE='/home/treefor/projects/Power-Flow/runs/quick_heating_256x32_domain40mm_height25mm_20261029'
-SEAL='/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-properties-20261029/source-manifest.json'
+SEAL='/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-properties-20261029/source-manifest.json'
 SEAL_SHA='8fc064a3341519c8f6254f2f0e971bff6638a6d6160d69176fa00c5d1b1a17fc'
 def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def dump(p,value):p.write_text(json.dumps(value,indent=2,allow_nan=False)+'\n')

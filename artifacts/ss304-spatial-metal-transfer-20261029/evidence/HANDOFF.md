@@ -52,7 +52,7 @@ authored-energy diagnostics are fixture initialization records, not an additiona
 production source ledger. Production configuration rejects the fixture receipt
 scope. The new native outer owner must supply the production `GasPort` from its
 opaque typed trial. Required fields and semantics are specified in
-[spatial-material-port-v1.txt](/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-spatial-metal-transfer-20261029/spatial-material-port-v1.txt).
+[spatial-material-port-v1.txt](/home/treefor/sim-workspace/powerflow/outputs/ss304-spatial-metal-transfer-20261029/spatial-material-port-v1.txt).
 
 This cell-centered FV owner must be the single accepted solid energy store for
 its cells. It cannot coexist with the old fixed-mass Q1 heat owner as a second

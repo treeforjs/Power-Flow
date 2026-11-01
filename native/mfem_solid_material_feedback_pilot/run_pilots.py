@@ -2,11 +2,11 @@
 from pathlib import Path
 import fcntl,subprocess,json,time,os,hashlib,csv
 from contextlib import contextmanager
-ROOT=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-material-feedback-pilot-20261029')
+ROOT=Path('/home/treefor/sim-workspace/powerflow/outputs/ss304-material-feedback-pilot-20261029')
 RUNTIME=Path('/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029')
 BINARY=RUNTIME/'build-solid-material-pilot/solid-material-feedback-pilot'
 FROZEN='/home/treefor/projects/runtimes/arch-base-20261028/run-frozen'
-LOCK=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/testing-core7.lock')
+LOCK=Path('/home/treefor/sim-workspace/powerflow/outputs/pic-profile/testing-core7.lock')
 @contextmanager
 def lease():
  with LOCK.open('a')as f:

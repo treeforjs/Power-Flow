@@ -3,7 +3,7 @@ import fcntl,hashlib,json,os,subprocess,sys,time
 S=Path(__file__).resolve().parent
 P=S.parent
 N=P/'prerequisites/native-v6_2'
-O=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-spatial-metal-transfer-20261029')
+O=Path('/home/treefor/sim-workspace/powerflow/outputs/ss304-spatial-metal-transfer-20261029')
 B=P/'build'
 B.mkdir(exist_ok=True)
 def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()

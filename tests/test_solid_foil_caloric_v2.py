@@ -10,7 +10,7 @@ import mhdlab.solid_foil_caloric_v2 as adapter
 from mhdlab.thermal_expansion import load_ss304_material
 
 
-SEAL = Path(os.environ.get("SS304_V2_SOURCE_SEAL", "/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-properties-v2-20261029/source-manifest.json"))
+SEAL = Path(os.environ.get("SS304_V2_SOURCE_SEAL", "/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-properties-v2-20261029/source-manifest.json"))
 
 
 def _construct(**updates):

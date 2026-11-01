@@ -4,7 +4,7 @@ import ctypes as C
 import fcntl,hashlib,json,math,os,random,shutil,subprocess,sys,time
 from decimal import Decimal as D,localcontext
 S=Path(__file__).resolve().parent
-O=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/ss304-thermal-properties-v2-20261029')
+O=Path('/home/treefor/sim-workspace/powerflow/outputs/ss304-thermal-properties-v2-20261029')
 V1=O.parent/'ss304-thermal-properties-20261029'
 LOCK=O.parent/'pic-profile/testing-core7.lock'
 EPS=sys.float_info.epsilon
