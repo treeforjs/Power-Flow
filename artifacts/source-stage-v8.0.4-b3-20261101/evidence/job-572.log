@@ -1,0 +1,46 @@
+===== simq job 572: source-stage-c1 =====
+submitted: 2026-11-01T08:13:34Z
+started:   2026-11-01T08:13:35Z
+cwd:       /home/treefor/projects/Power-Flow
+partition: powerflow
+P-cores:   4
+GPUs:      none
+memory:    6G (swap 1G)
+time:      00:25:00
+borrowed:  CPU 4 from raikou-mfem (free); on preempt: freeze
+unit:      simq-job-572-adc8d90947e2.service
+command:   python /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.4-b3-20261101/run_source_stage.py c1
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core4.lock (shared)
+test_reference.log 1
+In file included from /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.4-b3-20261101/source/source_stage_v8.hpp:5,
+                 from /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.4-b3-20261101/tests/test_source_stage.cpp:1:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/binding/hall_source_binding_v7.hpp:107:8: error: 'ElectronExposure' does not name a type
+  107 | inline ElectronExposure electron_input(std::uint32_t stream_id, const s61::PreparedPatch& p, const v3::Exposure& x, double step_end_s) {
+      |        ^~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/binding/hall_source_binding_v7.hpp:118:69: error: 'Staged' does not name a type
+  118 | inline std::vector<double> neutral_times(const s61::Trial& t, const Staged& s, std::uint32_t stream_id, const std::string& source_patch_id) {
+      |                                                                     ^~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/binding/hall_source_binding_v7.hpp: In function 'std::vector<double> pf_arrival_v11::source_v7::neutral_times(const electrode_heat_v7::Trial&, const int&, uint32_t, const std::string&)':
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/binding/hall_source_binding_v7.hpp:120:28: error: request for member 'births' in 's', which is of non-class type 'const int'
+  120 |     for (const auto& b : s.births())
+      |                            ^~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/binding/hall_source_binding_v7.hpp:130:23: error: 'RefusalKind' has not been declared
+  130 |         throw Refusal(RefusalKind::incomplete, "source neutral packets", "stream=" + std::to_string(stream_id), "packets differ from the staged leaves");
+      |                       ^~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/binding/hall_source_binding_v7.hpp:130:15: error: 'Refusal' was not declared in this scope; did you mean 'electrode_heat_v7::Refusal'?
+  130 |         throw Refusal(RefusalKind::incomplete, "source neutral packets", "stream=" + std::to_string(stream_id), "packets differ from the staged leaves");
+      |               ^~~~~~~
+      |               electrode_heat_v7::Refusal
+In file included from /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:33,
+                 from /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.4-b3-20261101/vendor/source_stock_reference.hpp:6,
+                 from /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.4-b3-20261101/source/source_stage_v8.hpp:4:
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/admission_v7.hpp:68:8: note: 'electrode_heat_v7::Refusal' declared here
+   68 | struct Refusal:std::invalid_argument {
+      |        ^~~~~~~
+
+========================================
+finished:  2026-11-01T08:13:40Z
+exit code: 1
+state:     failed
+===== simq job 572 finished =====

@@ -1,0 +1,64 @@
+===== simq job 574: source-stage-c2 =====
+submitted: 2026-11-01T08:14:02Z
+started:   2026-11-01T08:14:08Z
+cwd:       /home/treefor/projects/Power-Flow
+partition: powerflow
+P-cores:   4
+GPUs:      none
+memory:    6G (swap 1G)
+time:      00:25:00
+borrowed:  CPU 4 from raikou-mfem (free); on preempt: freeze
+unit:      simq-job-574-fe54cc6b3569.service
+command:   python /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.4-b3-20261101/run_source_stage.py c2
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core4.lock (shared)
+test_reference.log 0
+fast_emission.log 0
+emission_hot_v7.log 0
+surface_emission.log 0
+micro_layer.log 0
+motion_provider_v3.log 0
+link.log 0
+test.log 0
+test_reference.log 0
+fast_emission.log 0
+emission_hot_v7.log 0
+surface_emission.log 0
+micro_layer.log 0
+simq: frozen at 2026-11-01T08:15:04Z: CPU 4 needed by job 576
+simq: preempted at 2026-11-01T08:18:48Z (requeue): memory needed by job 590 (a frozen job keeps its memory)
+========================================
+finished:  2026-11-01T08:18:49Z
+exit code: -15
+simq: preempted (memory needed by job 590 (a frozen job keeps its memory)); requeued at 2026-11-01T08:18:50Z
+===== simq job 574 preempted; requeued under the same ID =====
+===== simq job 574: source-stage-c2 =====
+submitted: 2026-11-01T08:14:02Z
+started:   2026-11-01T08:19:35Z
+cwd:       /home/treefor/projects/Power-Flow
+partition: powerflow
+P-cores:   5
+GPUs:      none
+memory:    6G (swap 1G)
+time:      00:25:00
+borrowed:  CPU 5 from raikou-mfem (free); on preempt: freeze
+unit:      simq-job-574-f045c5e68578.service
+command:   python /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.4-b3-20261101/run_source_stage.py c2
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core5.lock (shared)
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.4-b3-20261101/run_source_stage.py", line 55, in <module>
+    raise SystemExit(qualify(sys.argv[1]))
+                     ~~~~~~~^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.4-b3-20261101/run_source_stage.py", line 29, in qualify
+    adm=SOURCE['admission']('run');out=OUT/label;out.mkdir(parents=True,exist_ok=False);build=P/'build'/label;build.mkdir(parents=True,exist_ok=False)
+                                                 ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '/home/treefor/projects/.workspace/outputs/source-stage-v8.0.4-b3-20261101/c2'
+========================================
+finished:  2026-11-01T08:19:35Z
+exit code: 1
+state:     failed
+===== simq job 574 finished =====
