@@ -1,0 +1,60 @@
+{
+  "schema": "immutable-native-metal-vapor-port-v1",
+  "status": "qualified_bounded_uniform_native_component_parent_owns_coordinator",
+  "source_root": "/home/treefor/projects/runtimes/ss304-native-metal-transfer-20261029/source",
+  "entry_header": "/home/treefor/projects/runtimes/ss304-native-metal-transfer-20261029/source/metal_transfer.hpp",
+  "native_qualification_tests": 75,
+  "unchanged_arena_regressions": 190,
+  "independent_highprecision_assertions": 171,
+  "model_binding": "sealed_v2_source_sha256_1a1845e04f1f6fda33338d9bd284f5e1ead9cbc4b7747d0c6355e32cb5661c2d",
+  "thermal_domain_K": [
+    298.2,
+    3000
+  ],
+  "emission_source_domain_K": [
+    1800,
+    3000
+  ],
+  "phase": "sealed_v2_solid_mushy_liquid; no new phase data",
+  "accepted_owner": "Adapter Snapshot has one compensated solid-atom Count and one exact dyadic total energy; fixed-support impulse; no private gas population",
+  "gas_owner": "PicArena and actual GapPic carriers exclusively",
+  "heat_solver": "unmodified heat Coupler used as an ephemeral immutable MFEM trial evaluator, with current material mass; no second persistent material inventory",
+  "thermal_scope": "one uniform1x1 native thermal block; full spatial/nodal mapping remains parent/heat-owner integration",
+  "coordinates": "Config geometry in native PIC xy; explicit axial_center_m with full short/feed binding; no hidden center translation",
+  "callbacks": {
+    "source_sample": "sample(id,Count,five caller-owned open draws); heat API assigns physical-v -> proper-u and nativeK",
+    "source_prepare": "prepare(Event) -> Prepared; actualCount/pose/state energy, fixed upper back face only",
+    "native_absorption_prepare": "prepare_native_collection(Event,std::move(actual PicArena prepare_transport token)); consumes actual first-hit receipts; no recreated/second gas debit",
+    "preflight_publish_rollback": "can_publish,try_publish,try_rollback; root preflights other owners and uses LIFO rollback before exposing any joint state",
+    "restart": "checkpoint() returns source+arena-bound record; restore() replays exact canonical journal against actual accepted arena stage receipts"
+  },
+  "canonical_energy": "E_next=E_before+admitted_other_heat-sum(signed_count*(actual_native_per_atom_K+registry_internal+registry_reference))",
+  "native_heat_load": "E_next-m_next*u_model(T_old); includes carried material energy exactly once",
+  "thermal_temperature": "bounded projection of exact E/(exactCount*atomMass); native MFEM trial independently checks projected energy under unchanged solver checks",
+  "no_extra_debits": [
+    "no mean2kT plus actualK",
+    "no extra latent heat",
+    "no extra PIC electric field work",
+    "no external authored particle reservoir debit"
+  ],
+  "momentum": "exact sum signed_count*mass*proper_u goes to fixed support with opposite sign; support work0 only for admitted immobile support; moving recoil rejected",
+  "actual_native_sinks": "one-block qualifier requires all new sinks be this surrogate metal on upper back face; foreign H2O/other sinks/escapes are refused; parent needs multi-owner receipt routing for full coordinator",
+  "consumed_sink_energy_rule": "native absorbed-energy ledgers are diagnostic throughput for these IDs; root must not also count consumed sinkK as external loss after crediting heat",
+  "primitive_roundoff": "exact dyadic ledger uses represented per-atom nativeK times exact carrier weights; aggregate binary64 sink diagnostics can differ by ordinary rounding, not extra wall heat",
+  "unresolved_physics": [
+    "conditional congruent neutral alloy only; no FeCrNi-resolved chemistry/ionization",
+    "no H2O collision data inheritance; any collision channel containing proxy is rejected",
+    "physical internal state only ground0; nonzero manufactured states explicitly tagged",
+    "fixed-reference-volume Cp-as-Cv proxy; no compressibleEOS",
+    "no moving geometry/remap or mechanics guard relaxation",
+    "full spatial/native coordinator and60ns coupled validation pending"
+  ],
+  "preserved": [
+    "sealed_v2",
+    "original shared native source",
+    "original heat source and numerical guards",
+    "productionT/frozen1",
+    "CPU7/nice15/sharedlease/noGPU/no dependency installs"
+  ],
+  "source_seal_sha256": "8cc68cb04aee21eb8e65cfb9f35afff4dc20803a374a422baa9789cdee560446"
+}
