@@ -1,0 +1,33 @@
+math | exp and log within 2 ulp of libm over [-700, 700]: pass
+math | sincos_turn within 1e-15 absolute of libm (reference argument rounding <= 4.4e-16): pass
+math | lgamma within 1e-13 relative on [0.5, 200]; P(a,x) within 1e-13: pass
+rng | Philox4x32-10 Random123 known answers; distinct streams per (seed, step, id, purpose); salted key; budget flag: pass
+emission | SN barrier action: v(f) of the sealed kernel within Forbes 2006 bound 0.0024 of v ~ 1 - f + (f/6) ln f: pass
+emission | 0 K current: kernel vs Murphy-Good FN (exact v, Forbes t): total within 6 % for f <= 0.35; deviation = first-order curvature term -3 c2 d^2 within 2 % (Forbes t 0.8 % in J + higher orders of G(E)): pass
+emission | 0 K current: kernel vs Murphy-Good FN with Forbes v and t within the stated Forbes error band: pass
+emission | Murphy-Good temperature factor pi w/sin(pi w) (w <= 0.6) within 3 % (check value 1.845 at 1 V/nm, 300 K, phi 4.5 eV): pass
+emission | Richardson law A0 T^2 exp(-phi/kT) at F = 0 within 1e-6 (A0 = 120.173 A cm^-2 K^-2): pass
+emission | Richardson-Schottky (1e4-1e7 V/m, 1000-3000 K) within 20 % (finite-temperature barrier corrections): pass
+emission | work-function coupling: ln J(phi, T, F=0) equals the exact Fermi-Dirac law ln(A0 T^2 (-Li2(-exp(-phi/kT)))) within 1e-8 (phi 3.38-4.95 eV): pass
+emission | v6.1 fast spectrum bit-identical to the sealed kernel on v7 work-function grid values: pass
+workfn | oxidized SS304 phi(theta): 4.35 eV at theta 0, -0.97 eV at one monolayer, monotone, initial slope -0.97(1+c), grid 2^-12 eV; benchmark 4.3 eV: pass
+see | Furman-Pivi stainless: delta_max 2.05 at E_max 292 eV (Table I) within 0.01 and 2 eV: pass
+see | 300 eV components vs measured split 0.12/0.75/1.17 (Fig. 2) within 0.06 each: pass
+see | as-received stainless SEY table 50-1950 eV (independent sample): every point within 20 %, RMS within 10 %: pass
+see | sampled yields and elastic/rediffused fractions equal delta(E0) within 5 sigma (2e5 events per energy): pass
+see | true-secondary energies: Gamma(p_n, eps_n) marginals (FP Eqs. 33, 53), Kolmogorov-Smirnov at 1 % for every n with >= 2000 samples (E0 1100 eV): pass
+see | rediffused energies follow (E/E0)^(q+1) (KS 1 %), elastic within 6 sigma_e of E0, cosine law <cos> = 2/3, sum of emitted K <= E0: pass
+see | oblique incidence: model limits of the stainless angular parameters (TiN/Al-derived) reported; violations clamped and flagged per event: pass
+see | low-energy limit delta(1 meV) = P1e_hat (0.5, extrapolated; band 0.02-1 recorded as open): pass
+ions | Thomas-Janev-Smith H on Fe: R_N and R_E within 2 % of the recommended table 0.01-100 keV: pass
+ions | ion and neutral channels: sampled reflection, PE+KE electrons, fragments, sticking and accommodation equal the model within 5 sigma: pass
+ions | ESD cross section: zero below the 10 eV threshold, 8e-17 cm^2 at 100 eV, 2e-16 cm^2 at 300 eV: pass
+ledger | 1e6 mixed wall events: every per-event exact identity holds (energy quanta, charge, counts); no refused event; electron wall heat >= 0: pass
+ledger | global exact sums (int128): sum e_in = sum e_out + sum wall; e_out = sum K + n_e phi - E_ads; births = sum of outputs; charge out = -electrons out: pass
+partition | outputs bit-identical and integer sums equal for 1/2/5/8 partitions (contiguous, strided, reversed), merged in reverse order: pass
+interval | explicit start-of-step exposure is first order (observed p within 0.15 of 1) and the bound dt = 2 eps s / |dlnN/dt| keeps the error <= eps: pass
+hot | extended evaluate bit-identical to the sealed kernel for T <= 3000 K (and refuses where it refuses): pass
+hot | 3200-5000 K: Fermi-Dirac thermal law at F = 0 within 1e-8; Richardson-Schottky (1e4-1e7 V/m) within 20 %: pass
+hot | 3500-5000 K: current and energy moment converged to 1e-6 under quadrature refinement: pass
+hot | validity map 300-5000 K x 1e5-6e9 V/m written; refusals only at |F| > 5e9 V/m or barrier collapse: pass
+registry | every parameter has a tag, source, location and a band containing its value; names unique: pass

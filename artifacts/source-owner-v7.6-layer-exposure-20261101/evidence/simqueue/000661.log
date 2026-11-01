@@ -1,0 +1,33 @@
+===== simq job 661: source-v76-exposure =====
+submitted: 2026-11-01T08:55:11Z
+started:   2026-11-01T08:55:11Z
+cwd:       /home/treefor/projects/Power-Flow
+partition: powerflow
+P-cores:   7
+GPUs:      none
+memory:    6G (swap 1G)
+time:      00:20:00
+unit:      simq-job-661-f09b03255f9a.service
+command:   python /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.6-layer-exposure-20261101/qualify_legacy.py
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core7.lock (exclusive)
+compile-test_registry_mass 0 3.8
+compile-legacy_kernel_new 0 0.3
+compile-legacy_kernel_old 0 0.3
+compile-surface_emission_old 0 0.7
+compile-micro_layer_old 0 0.4
+compile-test_source_v7 1 4.0
+compile-test_source_v6_on_v7 0 18.3
+compile-test_surface_v7 0 5.2
+compile-fast_emission 0 1.3
+compile-emission_hot_v7 0 0.5
+compile-motion_provider_v3 0 5.5
+compile-kinetic_boundary 0 1.5
+compile-surface_emission 0 0.7
+compile-micro_layer 0 0.4
+{"build": "/home/treefor/projects/.workspace/outputs/source-owner-v7.6-layer-exposure-20261101/c1/build", "status": "failed", "error": "compile-test_source_v7 failed:\nectrode_heat_v7::Field>&, const electrode_heat_v7::FinalFieldView&) const'\n      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:489:7:\n        489 |  bool preflight(const SurfaceBirth&b,const std::shared_ptr<const Field>&field,const FinalFieldView&actual)const noexcept{try{surface_birth(b);return b.d_->prepared.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}\n            |       ^~~~~~~~~\n      \u2022 no known conversion for argument 1 from 'electrode_heat_v7::PreparedPatch' to 'const electrode_heat_v7::SurfaceBirth&'\n        /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:489:36:\n          489 |  bool preflight(const SurfaceBirth&b,const std::shared_ptr<const Field>&field,const FinalFieldView&actual)const noexcept{try{surface_birth(b);return b.d_->prepared.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}\n              |                 ~~~~~~~~~~~~~~~~~~~^\n    \u2022 candidate 2: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::Candidate&, const std::shared_ptr<const electrode_heat_v7::Field>&, const electrode_heat_v7::FinalFieldView&, bool) const'\n      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:502:7:\n        502 |  bool preflight(const Candidate&c,const std::shared_ptr<const Field>&field,const FinalFieldView&actual,bool qualification=false)const noexcept{try{candidate(c,qualification);return c.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}\n            |       ^~~~~~~~~\n      \u2022 no known conversion for argument 1 from 'electrode_heat_v7::PreparedPatch' to 'const electrode_heat_v7::Candidate&'\n        /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:502:33:\n          502 |  bool preflight(const Candidate&c,const std::shared_ptr<const Field>&field,const FinalFieldView&actual,bool qualification=false)const noexcept{try{candidate(c,qualification);return c.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}\n              |                 ~~~~~~~~~~~~~~~~^\n    \u2022 candidate 3: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::Trial&, const electrode_heat_v7::FinalFieldView&) const'\n      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:831:13:\n        831 | inline bool Owner::preflight(const Trial&t,const FinalFieldView&actual)const noexcept{try{if(t.d_&&!t.d_->phase_sha.empty()&&(!options_.phase||options_.phase->sha256()!=t.d_->phase_sha))return false;if(!t.d_||!live(t.d_->life,t.d_->generation)||t.d_->source_base!=state_sha256()||t.d_->thermal_revis"}
+========================================
+finished:  2026-11-01T08:55:55Z
+exit code: 1
+state:     failed
+===== simq job 661 finished =====

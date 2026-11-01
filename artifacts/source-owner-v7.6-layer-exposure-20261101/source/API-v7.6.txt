@@ -1,0 +1,17 @@
+Source owner v7.6: authentic exposure inspection
+
+Adds observational exposure APIs:
+ const v3::Exposure& PreparedPatch::exposure() const noexcept;
+The immutable borrowed bounds expire on move/destruction of PreparedPatch.
+They preserve actual duration/begin/quadrature, so count staging never assumes
+a partial exposure spans a complete common interval.
+
+ bool Owner::preflight(const PreparedPatch&, const shared_ptr<const Field>&,
+                       const FinalFieldView&) const noexcept;
+It calls the existing private prepared() lifetime/generation/content validator
+and requires the exact retained immutable field plus actual final arrays.
+False covers foreign owner, stale source/thermal clock, foreign field or changed
+field arrays. It grants no publication authority and cannot mutate source.
+This closes zero-sampled-attempt provenance admission for the new source-attempt
+owner. All numerical models, source defaults, configuration/state encoders and
+existing outcomes remain unchanged. Qualification pending.

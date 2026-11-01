@@ -1,0 +1,225 @@
+{
+ "cases": [
+  {
+   "evidence": {
+    "source_configuration_sha256": "b774f211b1413e7fd69dacd78cd817e829677ef695fbad522b58316c839bf289",
+    "undeclared_hall_slice": "electrode heat: v6 thermal view is not the declared heat-only slice of this source configuration",
+    "wrong_slice_view": "electrode heat: v6 thermal view is not the declared heat-only slice of this source configuration"
+   },
+   "group": "binding",
+   "name": "source v6 binds the declared heat-only Hall slice; another slice or an undeclared Hall slice is refused",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "hall_patch_mean_T_K": 300.1660361163313,
+    "hall_revision": 1,
+    "published": true,
+    "source_exposure_T_K": 300.1660361163313,
+    "source_quote_T_K": 300.1660361163313,
+    "source_thermal_revision": 1
+   },
+   "group": "temperature",
+   "name": "after Hall heats the slice, desorption and emission use the Hall temperature bit for bit (no private engine)",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "audit": "",
+    "channels": {
+     "desorption-neutral-release": -1.7717794692708205e-10,
+     "source-layer-certified-exchange": 1.7387140232080405e-11
+    },
+    "hall_external_J": -1.5979080669500163e-10,
+    "hall_joule_J": 1.2994281216317354e-08,
+    "hall_ledger_loads": 4,
+    "hall_thermal_delta_J": 1.2834493282806265e-08,
+    "layer_status": 0,
+    "load_energy_J": -1.5979080669500163e-10,
+    "loads": 3,
+    "published": true,
+    "released_H2O": 999999500.0001671,
+    "replayed_loads_refused": "thermal refusal [thermal-engine] slice enthalpy step at foil-0-slice-2: electrode heat: duplicate/stale event or canonical energy owner; missing species/parent/channel identity",
+    "source_budget_joule_J": 0.0,
+    "source_budget_wall_net_J": -1.5979080669500163e-10
+   },
+   "group": "exactly-once",
+   "name": "emission layer and desorption loads of source v6 enter Hall once: thermal delta = Joule + loads, source reports no Joule, the single-owner audit passes, replaying the same loads next step is refused",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "audit_v5": "thermal refusal [double-joule] second thermal store at source-v5-private-engine: Joule heat or electrode temperature evolved by more than one thermal owner (Hall owns sigma(T), Joule and T)",
+    "audit_v6": "",
+    "hall_external_joule_load": "thermal refusal [external-joule] surface load channel at source-v5-private-heat/source-v5-joule: Joule heat is owned by the Hall field/heat proposal; an external Joule load would count it twice",
+    "hall_joule_J": 1.2994282776634147e-08,
+    "v5_private_joule_J": 6.25e-08,
+    "v5_private_thermal_delta_J": 6.232282554031809e-08
+   },
+   "group": "double-joule",
+   "name": "a source v5 private engine with its own Joule term is detected (audit refuses typed); v6 passes; an external Joule load is refused by Hall",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "release_1e20": {
+     "hall_unchanged": true,
+     "load_J": -17.717485760817585,
+     "released": 1e+20,
+     "typed": {
+      "bound": -0.043303961867203505,
+      "identity": "foil-0-slice-2",
+      "kind": "net-cooling-exceeds-capacity",
+      "observed": -17.71748575919332,
+      "quantity": "net slice energy J"
+     }
+    },
+    "release_5e21": {
+     "hall_unchanged": true,
+     "load_J": -885.8742880408793,
+     "released": 5e+21,
+     "typed": {
+      "bound": 35.33130396186721,
+      "identity": "foil-0-slice-2;producer=v6-neutral/lower-foil-inner-surface-slice-2/conditional-single-layer/lower-foil-inner-face/0;sequence=1;channel=desorption-neutral-release",
+      "kind": "load-exceeds-material-range",
+      "observed": -885.8742880408793,
+      "quantity": "surface load energy J"
+     }
+    },
+    "sealed_v5_release_5e21": "electrode heat: thermal step outside phase/data domain or Newton stagnation; no committed clamp",
+    "stock_1e200": {
+     "hall_unchanged": true,
+     "load_J": -1.7717485760817584e+181,
+     "released": 1e+200,
+     "typed": {
+      "bound": 35.33130396186721,
+      "identity": "foil-0-slice-2;producer=v6-neutral/lower-foil-inner-surface-slice-2/conditional-single-layer/lower-foil-inner-face/0;sequence=1;channel=desorption-neutral-release",
+      "kind": "load-exceeds-material-range",
+      "observed": -1.7717485760817584e+181,
+      "quantity": "surface load energy J"
+     }
+    }
+   },
+   "group": "typed-refusals",
+   "name": "1e200 stock and ~5e21 release: source v6 loads refused typed by Hall before any engine call (sealed v5: untyped engine error / abort)",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "joint_step_published": true,
+    "restore": "",
+    "restore_after_hall_advanced": "electrode heat: v6 checkpoint thermal clock differs from the bound thermal owner",
+    "same_state": true
+   },
+   "group": "checkpoint",
+   "name": "v6 checkpoint restores inventory/layers bound to the Hall clock; a different Hall clock is refused",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "active_layers": 1,
+    "after": false,
+    "before": true
+   },
+   "group": "protocol",
+   "name": "source v6 trial preflights against the Hall thermal clock: valid before, stale after a Hall publication",
+   "passed": true
+  },
+  {
+   "evidence": {
+    "expected_total_D": 5999982000.008503,
+    "leaves_total": 6000,
+    "non_w0_leaf_refused": "electrode heat: v6 quantized release: every neutral leaf has weight exactly w0",
+    "steps": [
+     {
+      "debit_exact_carriers": [
+       1000000000.0
+      ],
+      "exact_debit_equals_credit": true,
+      "leaves": 1000,
+      "quote_D": 999999500.0001671
+     },
+     {
+      "debit_exact_carriers": [
+       1000000000.0
+      ],
+      "exact_debit_equals_credit": true,
+      "leaves": 1000,
+      "quote_D": 999998500.0006671
+     },
+     {
+      "debit_exact_carriers": [
+       1000000000.0
+      ],
+      "exact_debit_equals_credit": true,
+      "leaves": 1000,
+      "quote_D": 999997500.0011672
+     },
+     {
+      "debit_exact_carriers": [
+       1000000000.0
+      ],
+      "exact_debit_equals_credit": true,
+      "leaves": 1000,
+      "quote_D": 999996500.0016671
+     },
+     {
+      "debit_exact_carriers": [
+       1000000000.0
+      ],
+      "exact_debit_equals_credit": true,
+      "leaves": 1000,
+      "quote_D": 999995500.0021671
+     },
+     {
+      "debit_exact_carriers": [
+       1000000000.0
+      ],
+      "exact_debit_equals_credit": true,
+      "leaves": 1000,
+      "quote_D": 999994500.0026671
+     }
+    ],
+    "stock_conserved_exactly": true,
+    "w0": 1000000.0
+   },
+   "group": "quantized-release",
+   "name": "quantized release: leaves of exactly w0, exact source debit = arrival credit = packet sum, stock + released = initial stock exactly, a non-w0 leaf is refused",
+   "passed": true
+  },
+  {
+   "evidence": [
+    {
+     "decisions": 200000,
+     "mean_n": 0.000875,
+     "x": 0.001,
+     "z": -1.7686514999083707
+    },
+    {
+     "decisions": 200000,
+     "mean_n": 0.30022,
+     "x": 0.3,
+     "z": 0.21469801604868813
+    },
+    {
+     "decisions": 200000,
+     "mean_n": 1.70036,
+     "x": 1.7,
+     "z": 0.3513240262615152
+    },
+    {
+     "decisions": 200000,
+     "mean_n": 12.49947,
+     "x": 12.5,
+     "z": -0.47404641122995544
+    }
+   ],
+   "group": "unbiasedness",
+   "name": "v1.1 keyed stochastic rounding: mean n equals D/w0 within 5 standard deviations (2e5 decisions per x)",
+   "passed": true
+  }
+ ],
+ "failed": 0,
+ "hall_configuration_sha256": "6ed18ba172789c947b11945257e2728d57e2d501cd58bc82b0252810ec7d788f",
+ "hall_material_sha256": "f8010f6fd335aa33e7f9a4a73517836e0633eb7d3d64e5c4d75239c02f620246"
+}

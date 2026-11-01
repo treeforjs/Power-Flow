@@ -1,0 +1,127 @@
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.6-layer-exposure-20261101/tests/test_source_v7.cpp: In function 'void {anonymous}::declared_mass_group(Results&, const std::filesystem::__cxx11::path&)':
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.6-layer-exposure-20261101/tests/test_source_v7.cpp:795:95: error: no matching function for call to 'electrode_heat_v7::Owner::preflight(electrode_heat_v7::PreparedPatch&, std::shared_ptr<const electrode_heat_v7::Field>&, electrode_heat_v7::FinalFieldView&)'
+  795 |  R.record("exposure","actual prepared patch passes without changing source state",a->preflight(p,pf.f,v)&&a->state_sha256()==snapbase);
+      |                                                                                   ~~~~~~~~~~~~^~~~~~~~~~
+  • there are 3 candidates
+In file included from /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.6-layer-exposure-20261101/tests/test_source_v7.cpp:17:
+    • candidate 1: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::SurfaceBirth&, const std::shared_ptr<const electrode_heat_v7::Field>&, const electrode_heat_v7::FinalFieldView&) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:489:7:
+        489 |  bool preflight(const SurfaceBirth&b,const std::shared_ptr<const Field>&field,const FinalFieldView&actual)const noexcept{try{surface_birth(b);return b.d_->prepared.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from 'electrode_heat_v7::PreparedPatch' to 'const electrode_heat_v7::SurfaceBirth&'
+        /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:489:36:
+          489 |  bool preflight(const SurfaceBirth&b,const std::shared_ptr<const Field>&field,const FinalFieldView&actual)const noexcept{try{surface_birth(b);return b.d_->prepared.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+              |                 ~~~~~~~~~~~~~~~~~~~^
+    • candidate 2: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::Candidate&, const std::shared_ptr<const electrode_heat_v7::Field>&, const electrode_heat_v7::FinalFieldView&, bool) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:502:7:
+        502 |  bool preflight(const Candidate&c,const std::shared_ptr<const Field>&field,const FinalFieldView&actual,bool qualification=false)const noexcept{try{candidate(c,qualification);return c.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from 'electrode_heat_v7::PreparedPatch' to 'const electrode_heat_v7::Candidate&'
+        /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:502:33:
+          502 |  bool preflight(const Candidate&c,const std::shared_ptr<const Field>&field,const FinalFieldView&actual,bool qualification=false)const noexcept{try{candidate(c,qualification);return c.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+              |                 ~~~~~~~~~~~~~~~~^
+    • candidate 3: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::Trial&, const electrode_heat_v7::FinalFieldView&) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:831:13:
+        831 | inline bool Owner::preflight(const Trial&t,const FinalFieldView&actual)const noexcept{try{if(t.d_&&!t.d_->phase_sha.empty()&&(!options_.phase||options_.phase->sha256()!=t.d_->phase_sha))return false;if(!t.d_||!live(t.d_->life,t.d_->generation)||t.d_->source_base!=state_sha256()||t.d_->thermal_revision!=heat_->state().revision||t.d_->thermal_time!=heat_->state().time||t.d_->thermal_signature!=heat_->config_signature()||!t.d_->field->matches(actual)||t.d_->content!=trial_content(*t.d_))return false;for(const auto&c:t.d_->sources){candidate(c,t.d_->qualification);if(c.d_->field!=t.d_->field)return false;}for(const auto&h:t.d_->handoffs)if(!h.d_||h.d_->content!=handoff_content(*h.d_))return false;for(const auto&b:t.d_->surface_births){surface_birth(b);if(b.d_->prepared.d_->field!=t.d_->field)return false;}return true;}catch(...){return false;}}
+            |             ^~~~~
+      • candidate expects 2 arguments, 3 provided
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.6-layer-exposure-20261101/tests/test_source_v7.cpp:796:146: error: no matching function for call to 'electrode_heat_v7::Owner::preflight(electrode_heat_v7::PreparedPatch&, std::shared_ptr<const electrode_heat_v7::Field>&, electrode_heat_v7::FinalFieldView&)'
+  796 |  auto foreign=owner<VB>(patch(),1500,*hv,cfg);R.record("exposure","equal-content foreign source owner rejects prepared patch",!foreign->preflight(p,pf.f,v)&&foreign->state_sha256()==snapbase);
+      |                                                                                                                                ~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+  • there are 3 candidates
+    • candidate 1: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::SurfaceBirth&, const std::shared_ptr<const electrode_heat_v7::Field>&, const electrode_heat_v7::FinalFieldView&) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:489:7:
+        489 |  bool preflight(const SurfaceBirth&b,const std::shared_ptr<const Field>&field,const FinalFieldView&actual)const noexcept{try{surface_birth(b);return b.d_->prepared.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from 'electrode_heat_v7::PreparedPatch' to 'const electrode_heat_v7::SurfaceBirth&'
+        /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:489:36:
+          489 |  bool preflight(const SurfaceBirth&b,const std::shared_ptr<const Field>&field,const FinalFieldView&actual)const noexcept{try{surface_birth(b);return b.d_->prepared.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+              |                 ~~~~~~~~~~~~~~~~~~~^
+    • candidate 2: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::Candidate&, const std::shared_ptr<const electrode_heat_v7::Field>&, const electrode_heat_v7::FinalFieldView&, bool) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:502:7:
+        502 |  bool preflight(const Candidate&c,const std::shared_ptr<const Field>&field,const FinalFieldView&actual,bool qualification=false)const noexcept{try{candidate(c,qualification);return c.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from 'electrode_heat_v7::PreparedPatch' to 'const electrode_heat_v7::Candidate&'
+        /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:502:33:
+          502 |  bool preflight(const Candidate&c,const std::shared_ptr<const Field>&field,const FinalFieldView&actual,bool qualification=false)const noexcept{try{candidate(c,qualification);return c.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+              |                 ~~~~~~~~~~~~~~~~^
+    • candidate 3: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::Trial&, const electrode_heat_v7::FinalFieldView&) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:831:13:
+        831 | inline bool Owner::preflight(const Trial&t,const FinalFieldView&actual)const noexcept{try{if(t.d_&&!t.d_->phase_sha.empty()&&(!options_.phase||options_.phase->sha256()!=t.d_->phase_sha))return false;if(!t.d_||!live(t.d_->life,t.d_->generation)||t.d_->source_base!=state_sha256()||t.d_->thermal_revision!=heat_->state().revision||t.d_->thermal_time!=heat_->state().time||t.d_->thermal_signature!=heat_->config_signature()||!t.d_->field->matches(actual)||t.d_->content!=trial_content(*t.d_))return false;for(const auto&c:t.d_->sources){candidate(c,t.d_->qualification);if(c.d_->field!=t.d_->field)return false;}for(const auto&h:t.d_->handoffs)if(!h.d_||h.d_->content!=handoff_content(*h.d_))return false;for(const auto&b:t.d_->surface_births){surface_birth(b);if(b.d_->prepared.d_->field!=t.d_->field)return false;}return true;}catch(...){return false;}}
+            |             ^~~~~
+      • candidate expects 2 arguments, 3 provided
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.6-layer-exposure-20261101/tests/test_source_v7.cpp:797:182: error: no matching function for call to 'electrode_heat_v7::Owner::preflight(electrode_heat_v7::PreparedPatch&, std::shared_ptr<const electrode_heat_v7::Field>&, electrode_heat_v7::FinalFieldView&)'
+  797 |  auto changed_field=field<VB>(g,*a,2,1e8);auto changed_view=view<VB>(changed_field,g);R.record("exposure","foreign immutable field and final-array binding are refused",!a->preflight(p,changed_field.f,changed_view)&&!a->preflight(p,pf.f,changed_view));
+      |                                                                                                                                                                          ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  • there are 3 candidates
+    • candidate 1: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::SurfaceBirth&, const std::shared_ptr<const electrode_heat_v7::Field>&, const electrode_heat_v7::FinalFieldView&) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:489:7:
+        489 |  bool preflight(const SurfaceBirth&b,const std::shared_ptr<const Field>&field,const FinalFieldView&actual)const noexcept{try{surface_birth(b);return b.d_->prepared.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from 'electrode_heat_v7::PreparedPatch' to 'const electrode_heat_v7::SurfaceBirth&'
+        /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:489:36:
+          489 |  bool preflight(const SurfaceBirth&b,const std::shared_ptr<const Field>&field,const FinalFieldView&actual)const noexcept{try{surface_birth(b);return b.d_->prepared.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+              |                 ~~~~~~~~~~~~~~~~~~~^
+    • candidate 2: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::Candidate&, const std::shared_ptr<const electrode_heat_v7::Field>&, const electrode_heat_v7::FinalFieldView&, bool) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:502:7:
+        502 |  bool preflight(const Candidate&c,const std::shared_ptr<const Field>&field,const FinalFieldView&actual,bool qualification=false)const noexcept{try{candidate(c,qualification);return c.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from 'electrode_heat_v7::PreparedPatch' to 'const electrode_heat_v7::Candidate&'
+        /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:502:33:
+          502 |  bool preflight(const Candidate&c,const std::shared_ptr<const Field>&field,const FinalFieldView&actual,bool qualification=false)const noexcept{try{candidate(c,qualification);return c.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+              |                 ~~~~~~~~~~~~~~~~^
+    • candidate 3: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::Trial&, const electrode_heat_v7::FinalFieldView&) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:831:13:
+        831 | inline bool Owner::preflight(const Trial&t,const FinalFieldView&actual)const noexcept{try{if(t.d_&&!t.d_->phase_sha.empty()&&(!options_.phase||options_.phase->sha256()!=t.d_->phase_sha))return false;if(!t.d_||!live(t.d_->life,t.d_->generation)||t.d_->source_base!=state_sha256()||t.d_->thermal_revision!=heat_->state().revision||t.d_->thermal_time!=heat_->state().time||t.d_->thermal_signature!=heat_->config_signature()||!t.d_->field->matches(actual)||t.d_->content!=trial_content(*t.d_))return false;for(const auto&c:t.d_->sources){candidate(c,t.d_->qualification);if(c.d_->field!=t.d_->field)return false;}for(const auto&h:t.d_->handoffs)if(!h.d_||h.d_->content!=handoff_content(*h.d_))return false;for(const auto&b:t.d_->surface_births){surface_birth(b);if(b.d_->prepared.d_->field!=t.d_->field)return false;}return true;}catch(...){return false;}}
+            |             ^~~~~
+      • candidate expects 2 arguments, 3 provided
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.6-layer-exposure-20261101/tests/test_source_v7.cpp:797:229: error: no matching function for call to 'electrode_heat_v7::Owner::preflight(electrode_heat_v7::PreparedPatch&, std::shared_ptr<const electrode_heat_v7::Field>&, electrode_heat_v7::FinalFieldView&)'
+  797 |  auto changed_field=field<VB>(g,*a,2,1e8);auto changed_view=view<VB>(changed_field,g);R.record("exposure","foreign immutable field and final-array binding are refused",!a->preflight(p,changed_field.f,changed_view)&&!a->preflight(p,pf.f,changed_view));
+      |                                                                                                                                                                                                                         ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~
+  • there are 3 candidates
+    • candidate 1: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::SurfaceBirth&, const std::shared_ptr<const electrode_heat_v7::Field>&, const electrode_heat_v7::FinalFieldView&) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:489:7:
+        489 |  bool preflight(const SurfaceBirth&b,const std::shared_ptr<const Field>&field,const FinalFieldView&actual)const noexcept{try{surface_birth(b);return b.d_->prepared.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from 'electrode_heat_v7::PreparedPatch' to 'const electrode_heat_v7::SurfaceBirth&'
+        /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:489:36:
+          489 |  bool preflight(const SurfaceBirth&b,const std::shared_ptr<const Field>&field,const FinalFieldView&actual)const noexcept{try{surface_birth(b);return b.d_->prepared.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+              |                 ~~~~~~~~~~~~~~~~~~~^
+    • candidate 2: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::Candidate&, const std::shared_ptr<const electrode_heat_v7::Field>&, const electrode_heat_v7::FinalFieldView&, bool) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:502:7:
+        502 |  bool preflight(const Candidate&c,const std::shared_ptr<const Field>&field,const FinalFieldView&actual,bool qualification=false)const noexcept{try{candidate(c,qualification);return c.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from 'electrode_heat_v7::PreparedPatch' to 'const electrode_heat_v7::Candidate&'
+        /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:502:33:
+          502 |  bool preflight(const Candidate&c,const std::shared_ptr<const Field>&field,const FinalFieldView&actual,bool qualification=false)const noexcept{try{candidate(c,qualification);return c.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+              |                 ~~~~~~~~~~~~~~~~^
+    • candidate 3: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::Trial&, const electrode_heat_v7::FinalFieldView&) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:831:13:
+        831 | inline bool Owner::preflight(const Trial&t,const FinalFieldView&actual)const noexcept{try{if(t.d_&&!t.d_->phase_sha.empty()&&(!options_.phase||options_.phase->sha256()!=t.d_->phase_sha))return false;if(!t.d_||!live(t.d_->life,t.d_->generation)||t.d_->source_base!=state_sha256()||t.d_->thermal_revision!=heat_->state().revision||t.d_->thermal_time!=heat_->state().time||t.d_->thermal_signature!=heat_->config_signature()||!t.d_->field->matches(actual)||t.d_->content!=trial_content(*t.d_))return false;for(const auto&c:t.d_->sources){candidate(c,t.d_->qualification);if(c.d_->field!=t.d_->field)return false;}for(const auto&h:t.d_->handoffs)if(!h.d_||h.d_->content!=handoff_content(*h.d_))return false;for(const auto&b:t.d_->surface_births){surface_birth(b);if(b.d_->prepared.d_->field!=t.d_->field)return false;}return true;}catch(...){return false;}}
+            |             ^~~~~
+      • candidate expects 2 arguments, 3 provided
+/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.6-layer-exposure-20261101/tests/test_source_v7.cpp:803:137: error: no matching function for call to 'electrode_heat_v7::Owner::preflight(electrode_heat_v7::PreparedPatch&, std::shared_ptr<const electrode_heat_v7::Field>&, electrode_heat_v7::FinalFieldView&)'
+  803 |  R.record("exposure","prepared patch is stale after genuine source and thermal publication",a->thermal_state().revision>0&&!a->preflight(p,pf.f,v));
+      |                                                                                                                             ~~~~~~~~~~~~^~~~~~~~~~
+  • there are 3 candidates
+    • candidate 1: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::SurfaceBirth&, const std::shared_ptr<const electrode_heat_v7::Field>&, const electrode_heat_v7::FinalFieldView&) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:489:7:
+        489 |  bool preflight(const SurfaceBirth&b,const std::shared_ptr<const Field>&field,const FinalFieldView&actual)const noexcept{try{surface_birth(b);return b.d_->prepared.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from 'electrode_heat_v7::PreparedPatch' to 'const electrode_heat_v7::SurfaceBirth&'
+        /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:489:36:
+          489 |  bool preflight(const SurfaceBirth&b,const std::shared_ptr<const Field>&field,const FinalFieldView&actual)const noexcept{try{surface_birth(b);return b.d_->prepared.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+              |                 ~~~~~~~~~~~~~~~~~~~^
+    • candidate 2: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::Candidate&, const std::shared_ptr<const electrode_heat_v7::Field>&, const electrode_heat_v7::FinalFieldView&, bool) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:502:7:
+        502 |  bool preflight(const Candidate&c,const std::shared_ptr<const Field>&field,const FinalFieldView&actual,bool qualification=false)const noexcept{try{candidate(c,qualification);return c.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+            |       ^~~~~~~~~
+      • no known conversion for argument 1 from 'electrode_heat_v7::PreparedPatch' to 'const electrode_heat_v7::Candidate&'
+        /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:502:33:
+          502 |  bool preflight(const Candidate&c,const std::shared_ptr<const Field>&field,const FinalFieldView&actual,bool qualification=false)const noexcept{try{candidate(c,qualification);return c.d_->field==field&&field&&field->matches(actual);}catch(...){return false;}}
+              |                 ~~~~~~~~~~~~~~~~^
+    • candidate 3: 'bool electrode_heat_v7::Owner::preflight(const electrode_heat_v7::Trial&, const electrode_heat_v7::FinalFieldView&) const'
+      /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.4-mass-cache-20261101/native/mfem_electrode_heat_source_v7/source_owner.hpp:831:13:
+        831 | inline bool Owner::preflight(const Trial&t,const FinalFieldView&actual)const noexcept{try{if(t.d_&&!t.d_->phase_sha.empty()&&(!options_.phase||options_.phase->sha256()!=t.d_->phase_sha))return false;if(!t.d_||!live(t.d_->life,t.d_->generation)||t.d_->source_base!=state_sha256()||t.d_->thermal_revision!=heat_->state().revision||t.d_->thermal_time!=heat_->state().time||t.d_->thermal_signature!=heat_->config_signature()||!t.d_->field->matches(actual)||t.d_->content!=trial_content(*t.d_))return false;for(const auto&c:t.d_->sources){candidate(c,t.d_->qualification);if(c.d_->field!=t.d_->field)return false;}for(const auto&h:t.d_->handoffs)if(!h.d_||h.d_->content!=handoff_content(*h.d_))return false;for(const auto&b:t.d_->surface_births){surface_birth(b);if(b.d_->prepared.d_->field!=t.d_->field)return false;}return true;}catch(...){return false;}}
+            |             ^~~~~
+      • candidate expects 2 arguments, 3 provided

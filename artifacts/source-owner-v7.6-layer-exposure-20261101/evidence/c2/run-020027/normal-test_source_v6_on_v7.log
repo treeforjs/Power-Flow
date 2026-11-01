@@ -1,0 +1,9 @@
+binding | source v6 binds the declared heat-only Hall slice; another slice or an undeclared Hall slice is refused: pass
+temperature | after Hall heats the slice, desorption and emission use the Hall temperature bit for bit (no private engine): pass
+exactly-once | emission layer and desorption loads of source v6 enter Hall once: thermal delta = Joule + loads, source reports no Joule, the single-owner audit passes, replaying the same loads next step is refused: pass
+double-joule | a source v5 private engine with its own Joule term is detected (audit refuses typed); v6 passes; an external Joule load is refused by Hall: pass
+typed-refusals | 1e200 stock and ~5e21 release: source v6 loads refused typed by Hall before any engine call (sealed v5: untyped engine error / abort): pass
+checkpoint | v6 checkpoint restores inventory/layers bound to the Hall clock; a different Hall clock is refused: pass
+protocol | source v6 trial preflights against the Hall thermal clock: valid before, stale after a Hall publication: pass
+quantized-release | quantized release: leaves of exactly w0, exact source debit = arrival credit = packet sum, stock + released = initial stock exactly, a non-w0 leaf is refused: pass
+unbiasedness | v1.1 keyed stochastic rounding: mean n equals D/w0 within 5 standard deviations (2e5 decisions per x): pass
