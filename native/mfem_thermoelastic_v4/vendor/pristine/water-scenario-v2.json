@@ -1,0 +1,120 @@
+{
+  "schema": "conditional-oxide-water-scenario-v2",
+  "status": "conditional_source_scenario_not_calibrated_SS304",
+  "source": {
+    "title": "Water desorption from rapidly heated metal oxide surfaces: first principles, molecular dynamics, and the Temkin isotherm",
+    "authors": "Lane, Leung, Thompson, Cuneo",
+    "doi": "10.1088/1361-648X/aae4af",
+    "url": "https://www.osti.gov/servlets/purl/1595030",
+    "local_pdf_sha256": "af8706a7c8d556b5564b45dd46b7bb83dfe7a36c5bd9e0a1a83e3882690c5010",
+    "visually_reviewed_manuscript_pages": [
+      4,
+      22
+    ],
+    "parameter_pages": [
+      3,
+      4,
+      5,
+      22,
+      25,
+      26
+    ]
+  },
+  "provenance": {
+    "literature_facts": {
+      "substrate": "ideal Fe2O3(0001) oxide facet; not bare SS304",
+      "monolayer_molecules_m2": 1.3e+19,
+      "monolayer_definition": "three H2O per exposed metal ion; approximately13/nm2",
+      "unrefit_ClayFF_low_coverage_binding_eV": 0.87,
+      "Temkin_alpha": 0.5,
+      "kinetic_order": 1,
+      "comparison_temperature_K": [
+        300,
+        1300
+      ],
+      "MD_heating_ramps_K_per_ns": [
+        20,
+        2000
+      ],
+      "effective_MD_fit_kinetic_barrier_eV": 0.695
+    },
+    "selected_model_assumptions": {
+      "surface_surrogate": "Fe2O3(0001)-like passive oxide on nominal SS304",
+      "initial_coverage": 0.33,
+      "initial_coverage_is_measured": false,
+      "coverage_sensitivity": [
+        0.06,
+        0.33,
+        0.67,
+        1.0
+      ],
+      "prefactor": "k_B*T/h; Eyring transmission coefficient1; chosen model, not a fitted material prefactor",
+      "activation_barrier": "0.87*(1-0.5*theta) eV",
+      "binding_marginal_cost": "0.87*(1-0.5*theta) eV; authored thermodynamic closure, distinct from kinetic barrier",
+      "gas_H2O_reference_eV": 0,
+      "gas_internal_energy_above_ground_reference_eV": 0,
+      "rotational_vibrational_equilibration": "not represented; explicit ground-state emission hypothesis",
+      "velocity_distribution": "nonrelativistic effusive Maxwell; actual native relativistic K and momentum debit",
+      "momentum": "negative actual weighted m*u sent to fixed infinite-mass support; no finite recoil work invented"
+    }
+  },
+  "range_selection_required": {
+    "Reviewed300To1300": {
+      "admitted_T_K": [
+        300,
+        1300
+      ],
+      "outside_policy": "reject with remaining inventory"
+    },
+    "ConditionalAnalytic298To3000": {
+      "admitted_T_K": [
+        298.2,
+        3000
+      ],
+      "outside_literature_range": "explicit analytical continuation of the same ideal stable oxide law, including unchanged surface identity; not validated MD data; parent must admit this hypothesis jointly with material/source phase model",
+      "outside_policy": "reject"
+    }
+  },
+  "inventory": {
+    "one_adsorbed_water_pool_per_physical_surface_partition": true,
+    "coverage": "N_current/(monolayer_m2*physical_patch_area_m2), never N/N_initial",
+    "initial_N": "assumed_theta0*monolayer_m2*physical_patch_area_m2",
+    "physical_invariant_height_m": 0.025,
+    "both_full_electrode_perimeters_area_m2": 0.00052,
+    "total_initial_N_at_theta033": 2230799999999999.8,
+    "canonical_count": "normalized hi/lo; no scalar gas-inventory conversion",
+    "state_and_mass_binding": "caller must supply actual H2O gas state and parent IDs and positive mass from canonical arena registry"
+  },
+  "energy_ownership": {
+    "adsorbed_reference_U_J": "-Eb0*q_e*(N-alpha_ref*N^2/(2*N_ML))",
+    "reference_change_on_release_J": "Eb0*q_e*dN*(1-alpha_ref*(theta_before+theta_after)/2)",
+    "heat_delta_J": "-(actual_packet_K + actual_internal + delta_U_ads)",
+    "packet_reference_J": 0,
+    "packet_adsorbed_reference_change_J": "diagnostic reservoir delta, NOT a transported gas reference or fragment debit",
+    "activation_barrier_extra_debit": false,
+    "mean_2kT_extra_debit": false,
+    "checkpoint_owner": "hi/lo canonical inventory plus sealed law determines adsorbed reference; no second independent reference state"
+  },
+  "numerics": {
+    "coverage_and_temperature": "held at accepted start for frozen hazard; first-order coupling, refinement required",
+    "per_step_fraction": "-expm1(-k(T,theta)*dt)",
+    "binding_integration": "finite-step exact integral of selected marginal binding law; same reference price apportioned by actual packet weight",
+    "sampling": "caller-owned draws; no resampling/floors/clamps"
+  },
+  "required_sensitivities": [
+    "initial coverage .06,.33,.67,1",
+    "kinetic-only .695eV effective MD fit versus .87eV unrefit; binding model remains .87eV",
+    "ideal Eyring prefactor versus explicitly declared alternatives",
+    "step interval refinement",
+    "joint oxide/work-function surface hypothesis; clean4.3eV electron benchmark is not a measured oxide calibration"
+  ],
+  "omissions": [
+    "actual SS304 surface oxide composition and shot coverage",
+    "OH recombination and molecular fragments at desorption",
+    "water clusters/multilayer evaporation",
+    "coverage redistribution/surface diffusion",
+    "field-induced neutral release",
+    "liquid oxide dissolution or evolving surface chemistry"
+  ],
+  "drive_policy": "measured C19 total-current selected by parent; source adapter does not impose old110kV bias"
+}

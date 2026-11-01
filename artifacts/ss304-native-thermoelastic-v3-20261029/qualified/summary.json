@@ -1,0 +1,111 @@
+{
+  "schema": "native-thermoelastic-v3-validation",
+  "scenario": {
+    "schema": "manufactured-native-thermoelastic-v3",
+    "geometry_m": [
+      2e-06,
+      1e-06,
+      2e-06
+    ],
+    "cells_xyz": [
+      4,
+      2,
+      2
+    ],
+    "temperature": "299.5+0.6*cos(pi*x/width), uniform y,z",
+    "initial_velocity": "signed 0.2m/s linear dilation at x faces, centered",
+    "initial_displacement": "affine thermal strain at mean initial T, centered",
+    "boundary": "free",
+    "dt_s": 1e-10,
+    "external_heat_J": 0.0,
+    "reference_temperature_K": 300.0,
+    "interpretation": "microscale numerical binding benchmark; not the 5mm foil or production water breakdown"
+  },
+  "source_sha256": "d5daa70b935ad05d30edf946ebcfe2884fab80258880d776a9e54de6efe40cac",
+  "native_executable_sha256": "0084f865f81f1f4b5f0631c6a2260c99a88981533180e7a233eead1f0eb57e2b",
+  "caloric_source_seal_sha256": "1a1845e04f1f6fda33338d9bd284f5e1ead9cbc4b7747d0c6355e32cb5661c2d",
+  "cases": {
+    "expansion": {
+      "rollback_preserved_state": true,
+      "restart_bitwise_equal": true,
+      "initial_minmax_K": [
+        298.9,
+        300.1
+      ],
+      "final_minmax_K": [
+        298.9056019735268,
+        300.09419101712405
+      ],
+      "max_global_energy_residual_J": 2.0402120472189763e-22,
+      "max_native_nodal_energy_residual_J": 5.400993091603738e-26,
+      "peak_native_conduction_node_J": 7.369152621850734e-16,
+      "signed_mechanical_transfer_by_step_J": [
+        -1.1786092032847517e-13,
+        3.940593628405303e-14,
+        9.75104330472489e-14,
+        9.799158127874728e-15
+      ],
+      "max_proof_screen_ratio": 0.036878926181276674,
+      "corrector_iterations": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "final_state_digest": "12ed5fe352bb92140540a2fc042862a958c3011c8c20daa6bd80d24bbb287335"
+    },
+    "compression": {
+      "rollback_preserved_state": true,
+      "restart_bitwise_equal": true,
+      "initial_minmax_K": [
+        298.9,
+        300.1
+      ],
+      "final_minmax_K": [
+        298.9058061500071,
+        300.0943882213148
+      ],
+      "max_global_energy_residual_J": 2.0515080901683678e-22,
+      "max_native_nodal_energy_residual_J": 5.383580939709498e-26,
+      "peak_native_conduction_node_J": 7.369054784015859e-16,
+      "signed_mechanical_transfer_by_step_J": [
+        1.175195771908283e-13,
+        -3.981327374070409e-14,
+        -9.720757538387413e-14,
+        -9.439738506895727e-15
+      ],
+      "max_proof_screen_ratio": 0.036847312217464116,
+      "corrector_iterations": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "final_state_digest": "0e1f454d08be97b32c809546b1bd56fe61e47ae8346d21204322f71df013b646"
+    }
+  },
+  "external_heat_J": 0.0,
+  "joule_J": 0.0,
+  "authored_heat_J": 0.0,
+  "native_conduction_solved": true,
+  "joint_rollback_restart_verified": true,
+  "mechanics_max_K": 773.15,
+  "reference_mesh_fixed": true,
+  "physical_EOS_ready": false,
+  "production_run_performed": false,
+  "GPU_used": false,
+  "limitations": [
+    "manufactured microscale benchmark, not prescribed source foil history",
+    "fixed reference geometry; no deformed Maxwell or native moving mesh",
+    "conditional Cp-as-Cv caloric energy; no physical EOS",
+    "same XY grid; cell caloric averaging reduces subcell thermal variation",
+    "piecewise thermoelastic coefficient-knot crossings rejected",
+    "nominal proof-stress screen, no plasticity or measured fixture qualification"
+  ],
+  "resources": {
+    "affinity": [
+      7
+    ],
+    "nice": 15
+  }
+}

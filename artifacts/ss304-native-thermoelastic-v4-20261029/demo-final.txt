@@ -1,0 +1,44 @@
+{
+  "schema": "sealed-source-native-mechanics-v4-validation",
+  "scenario": {
+    "schema": "sealed-source-native-mechanics-component-v4",
+    "geometry_m": [
+      2e-06,
+      1e-06,
+      2e-06
+    ],
+    "cells_xyz": [
+      4,
+      2,
+      2
+    ],
+    "thermal_state": "mean +0.2*cos(pi*x/width), uniform y,z; open smooth coefficient segment",
+    "initial_mechanics": "affine thermal strain at mean T; signed0.2m/s x dilation at faces",
+    "surface_partitions": "LowY first half oxide-water; second half clean4.3eV electron component hypothesis",
+    "source_weight": 1000.0,
+    "source_weight_is_predicted_event_count": false,
+    "water": "sealed ideal-oxide surrogate;0.33 monolayer; explicit range selection",
+    "source_surface": "stationary fixed reference surface approximation; no moving-wall momentum/work coupling",
+    "field": "explicit prescribed one-sided total E/B for component verification; no field solve",
+    "Joule_authored_heat_J": 0.0,
+    "production_run": false
+  },
+  "source_sha256": "55b7c94f25d84633a177e19eceaf65607fba7a76206e822bdd84886fd7f9d1ce",
+  "native_executable_sha256": "ddac5713252581184025059b2c8d8d67131831bfea0388176b077c696f236dcc",
+  "Joule_authored_heat_J": 0.0,
+  "gas_reference_J": 0.0,
+  "mechanics_max_K": 773.15,
+  "moving_source_surface_coupled": false,
+  "production_run_performed": false,
+  "physical_EOS_ready": false,
+  "GPU_used": false,
+  "resources": {
+    "CPU_affinity": [
+      7
+    ],
+    "nice": 15,
+    "thread_jobs": 1
+  }
+}
+expansion {"rollback_preserved_complete_state": true, "restart_bitwise_equal": true, "checkpoint_layer_statuses": [0], "max_joint_energy_residual_J": 4.407121084464572e-21, "max_native_nodal_energy_residual_J": 1.3537132704483734e-23, "max_proof_screen_ratio": 0.056566167367234466, "corrector_iterations": [5, 7, 7, 7], "mechanical_exchange_J": [-3.169567335356839e-17, -4.89194867344691e-15, -3.139768088306872e-13, 9.03389302032289e-14], "electron_wall_J": [-3.26100020409486e-16, 0.0, 0.0, 0.0], "water_adsorbed_change_J": [8.59202497749855e-20, 8.591726170025469e-17, 8.560018134635796e-15, 8.325616967210755e-15], "source_field_work_J": [3.5715340504532496e-16, 3.158411344098082e-14, 0.0, 0.0], "final_temperature_range_K": [699.819492703271, 700.1722292897607], "final_state_digest": "87e9a3e87d2d0a44f61e36186d3accf688a604c379b84a6467a64ef56ea67abc"}
+compression {"rollback_preserved_complete_state": true, "restart_bitwise_equal": true, "checkpoint_layer_statuses": [0], "max_joint_energy_residual_J": 4.395871451484134e-21, "max_native_nodal_energy_residual_J": 1.348154740809109e-23, "max_proof_screen_ratio": 0.05657275983096795, "corrector_iterations": [5, 7, 7, 7], "mechanical_exchange_J": [-2.192729567842194e-17, 4.8761455303469e-15, 3.1295151011404645e-13, -8.996781804925181e-14], "electron_wall_J": [-3.26100020409486e-16, 0.0, 0.0, 0.0], "water_adsorbed_change_J": [8.59202497749855e-20, 8.59172625816773e-17, 8.560105738192505e-15, 8.33117421809614e-15], "source_field_work_J": [3.5715340504532496e-16, 3.158411344098082e-14, 0.0, 0.0], "final_temperature_range_K": [699.8277696651251, 700.1805144732433], "final_state_digest": "aa50b753a51aeb483192af38a2affa871c7d1c0700c0fad8885f2afb0c49400d"}

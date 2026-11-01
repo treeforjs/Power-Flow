@@ -1,0 +1,43 @@
+{
+  "schema": "solid-only-native-material-feedback-pilot-v1",
+  "status": "bounded_actual_pilot_complete_three_histories_stop_at_material_support",
+  "code": "/home/treefor/projects/runtimes/pic-electrode-heat-feedback-20261029/native/mfem_solid_material_feedback_pilot",
+  "field_formulation": "existing z-invariant two-conductor A_z MQS current Schur complement; not full axial/total Hall-Maxwell solver",
+  "drive": "bounded unshifted measured-digitized C19 schedule; no simultaneous voltage constraint",
+  "geometry": {
+    "foil_width_m": 0.005,
+    "foil_thickness_m": 0.0002,
+    "gap_m": 0.005,
+    "invariant_length_m": 0.025,
+    "exterior_half_extent_m": 0.04
+  },
+  "initial_state": "first supported C19 knot;300K uniform fixed-geometry DC currents+/-I0; missing prior history not reconstructed",
+  "initial_pilot_mesh": {
+    "nx": 32,
+    "ny": 4,
+    "outside": 20,
+    "gap_cells": 12,
+    "reference_quick_nx": 128,
+    "reference_quick_ny": 16,
+    "spatial_convergence_claim": false
+  },
+  "material": "v2 explicit q2 source_conditioned_liquid_3000, rho_ref8000 Cp-as-Cv; callbacks from sealed heat/source v2",
+  "coupling": "frozen accepted-start sigma reassembled each accepted interval; same sigma,E_z quadrature for current and Joule; h(T),k(T),phase/latent in native thermal trial, sigma updated next interval",
+  "energy": "terminal drive work = delta magnetic + irreversible Joule + BE magnetic numerical damping; same Joule to two thermal states; damping not charged to heat",
+  "source_physics": {
+    "water": false,
+    "electron_emission": false,
+    "plasma": false,
+    "metal_vapor": false,
+    "mechanics": false
+  },
+  "rejection": "unchanged material domain guards; leave accepted heat and EM state at last common checkpoint; bounded-domain rejected-step residual certificate may report unsupported J without accepting a clamped or extrapolated trajectory",
+  "resource": "CPU7 nice15 one thread frozen dependencies, exclusive testing-core7.lock, <=8steps or15s per chunk",
+  "Hall_coordination": "contract/results via these files, no edits to Hall runtime; root owns full total-field integration",
+  "GPU_work": false,
+  "coarse_ready": "mesh32-dt250ps/summary.json",
+  "no_accepted_extrapolation_or_clamp": true,
+  "results": "results.json",
+  "execution_receipt": "execution-receipt.json",
+  "accepted_clamped_or_extrapolated_state": false
+}
