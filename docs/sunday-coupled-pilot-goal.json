@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "status": "active",
+  "deadline_local": "2026-11-01T23:59:59-07:00",
+  "timezone": "America/Denver",
+  "deadline_utc": "2026-11-02T06:59:59Z",
+  "objective": "Deliver a reproducible, tested coupled pilot connecting electrode heating and fields to emission, desorption, particle transport and supported water-plasma reactions, with common conservation, rollback and restart evidence.",
+  "relationship_to_active_goal": "Sunday milestone of the existing audited Power-Flow takeover and coupled-breakdown goal; the larger goal remains active until its physical qualification is complete.",
+  "deliverables": [
+    {
+      "id": "integration",
+      "acceptance": "Maintained repository source and a reproducible pinned launcher exercise a populated coupled pilot. Live gas target feedback precedes chemistry sampling; source, particle, gas, field and thermal state use one common accepted-step transaction. A manufactured population used for qualification is labelled as such."
+    },
+    {
+      "id": "conservation_and_recovery",
+      "acceptance": "Charge, species/element inventory, source stock, gas recoil and full declared energy transfers close under existing tolerances. Injected failures leave every accepted owner unchanged. A stale rollback guard cannot discard a newer candidate. Nonempty continuous and checkpoint-restored histories agree."
+    },
+    {
+      "id": "supported_physics",
+      "acceptance": "Mass and chemical-reference conventions agree at owner boundaries. Supported reaction channels retain their provenance and validity ranges; missing channels, unsupported encounters and unresolved wall/material mappings refuse explicitly. Engineering integration evidence is distinguished from a validated full breakdown model."
+    },
+    {
+      "id": "runtime",
+      "acceptance": "Profile populated coupled steps and implement measured hot-path improvements with physical and ledger parity. Report no speedup unless uncontended benchmark pairs pass the existing resource criteria. Lack of administrative access for the timing shield does not block functional implementation."
+    },
+    {
+      "id": "delivery",
+      "acceptance": "Commit and push tested source and receipts, back them up outside projects, and render a white-background GIF with densities in cm^-3, the actual accepted time range and explicit model limitations."
+    }
+  ],
+  "next_physical_run": "After all applicable gates pass, progress toward continuous evolution from the supported start through 60 ns. A completed 60 ns physical run is a stretch outcome, not part of a guaranteed Sunday result, and no cold start may substitute for missing early history.",
+  "known_blockers": [
+    "Complete electron-OH/O/H2 reaction coverage is not established. A partial H2 table cannot qualify a complete water network.",
+    "Native/gas feedback, source species compatibility and joint publication are currently separate development components.",
+    "Source-stock chemical-reference accounting and enabled wall/material species mapping require explicit integration.",
+    "Clean timing qualification awaits an uncontended core; the reviewed isolation canary still needs available administrative credentials."
+  ],
+  "execution_constraints": [
+    "Keep the paused electron-only production run paused; do not launch duplicate simulations.",
+    "Use frozen dependencies and SimQueue allocations for new numerical work. Respect current external jobs and the restored ISA-study leases.",
+    "Do not rerun expensive improved-resolution heating or relax physics/resource guards to meet the deadline.",
+    "Do not create recurring monitoring or deadline automations.",
+    "An unmet acceptance criterion remains outstanding at the deadline; it must not be relabelled as complete."
+  ]
+}

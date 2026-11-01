@@ -1,9 +1,26 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-11-01 01:03 MDT. Keep this file current at every milestone so
+Last updated 2026-11-01 01:09 MDT. Keep this file current at every milestone so
 the work can be picked up from it alone. Snapshots of the in-progress workers'
 own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
 each update); the live versions are the `HANDOFF.txt` files named below.
+
+## Sunday milestone (2026-11-01)
+
+The active goal now has a Sunday end-of-day milestone: **November 1, 2026,
+23:59:59 Mountain (MST)**. Its exact deliverables and acceptance criteria are in
+[`sunday-coupled-pilot-goal.json`](sunday-coupled-pilot-goal.json). Deliver a
+populated coupled pilot, a pinned repository launcher, common conservation and
+failure/restart checks, a measured runtime breakdown, and a white-background
+GIF. Commit and push the tested work and preserve an outside-project backup.
+
+The milestone drives implementation in parallel: native/gas target feedback,
+source species compatibility, supported fragment channels, and common-owner
+transaction integration. Missing OH/O/H2 coverage remains explicit. A
+qualification fixture does not establish complete physical water breakdown.
+Continuous physical evolution through 60 ns follows only after the applicable
+gates pass; it is a stretch outcome for this deadline. No recurring automation
+is added, and the old electron-only production run stays paused.
 
 ## Current takeover status (2026-11-01 01:03 MDT)
 
@@ -18,8 +35,8 @@ Chemistry v3.2.2 preparation passed CPU, sanitizer, and two-process GPU checks;
 its strict unsupported-region policy remains in force (`8385989`, `25b85de`).
 The separate minimum-network guard passed 41 CPU and 41 sanitized controls.
 It identifies missing encounter groups; it does not supply missing rates or
-establish a complete water network. Native all-species census integration is
-in progress in a separate successor.
+establish a complete water network. Native all-species census integration has
+passed the CPU and sanitizer controls described below.
 
 Gas v1.3 passed 221 CPU checks, 18 allocation-failure sites, sanitizer checks,
 and GPU/verified execution with equal state, motion, and publication digests
