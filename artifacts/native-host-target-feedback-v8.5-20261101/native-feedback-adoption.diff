@@ -1,0 +1,698 @@
+--- a/source/include/raikou/mfem_pic_arena.h
++++ b/source/include/raikou/mfem_pic_arena.h
+@@ -222,6 +222,8 @@
+   // Default refuses unresolved target/projectile or internal-energy ownership.
+   std::shared_ptr<const FullTimeChemistryStageExport>
+   candidate_admitted_export(bool require_unambiguous_targets = true) const;
++  // Preparation-time validation only; the native live scope must also preflight.
++  void validate_candidate_host_targets() const;
+ 
+ private:
+   friend class PicArena;
+--- a/source/include/raikou/mfem_pic_full_time.h
++++ b/source/include/raikou/mfem_pic_full_time.h
+@@ -8,6 +8,8 @@
+ 
+ struct MsParams; // merge-split-transaction-v1 policy (resolution-series-prep merge-split ms_core.h)
+ namespace raikou::mfem_backend {
++class FullTimeHostTargetProvider;
++struct FullTimeHostTargetReceipt;
+ enum class FullTimeSlot { before_transport, after_transport };
+ struct FullTimeStepBinding {
+   std::uint64_t accepted_step = 0, accepted_arena_revision = 0;
+@@ -504,6 +506,8 @@
+   // it never establishes whole-system energy closure.
+   bool diagnostic_field_target_approximation = false;
+   // Optional minimum encounter gate; passing never establishes network completeness.
++  bool host_target_feedback = false;
++  std::string host_target_contract_sha256;
+   FullTimeWaterScopeMode water_scope_mode = FullTimeWaterScopeMode::legacy;
+   std::string water_scope_contract, water_scope_contract_sha256;
+   std::string blob_path, blob_sha256;  // table blob and its expected identity
+@@ -532,6 +536,7 @@
+     debit_conflict,    // admitted debits exceed the carriers left by the stage
+     configuration,     // blob/registry/configuration mismatch
+     target_energy_owner, // event requires a target-energy owner; diagnostic opt-in only
++    target_fields,     // invalid/unqualified external target input or stale owner
+     network_scope,     // absent/unsupported required encounter or unqualified census lane
+     event              // event record fails conservation/destination checks
+   };
+@@ -618,7 +623,7 @@
+   bool internal_energy_deferred = false;
+ };
+ struct FullTimeChemistryStageExport {
+-  std::string schema = "native-v8.3/admitted-target-export-v1";
++  std::string schema = "native-v8.5/admitted-target-export-v2";
+   std::uint64_t accepted_step = 0, stage = 0, purpose = 0;
+   std::uint64_t base_native_id = 0, next_native_id = 0;
+   std::uint64_t owner_stage_sequence = 0;
+@@ -627,7 +632,7 @@
+   std::string accepted_native_sha256, common_clock_sha256, frame_snapshot_sha256,
+       frame_history_sha256, configuration_sha256, registry_sha256,
+       inputs_sha256, chemistry_before_sha256, chemistry_after_sha256,
+-      frozen_field_sha256, ledger_sha256, births_root, raw_records_root;
++      frozen_field_sha256, ledger_sha256, births_root, raw_records_root, host_target_feedback_sha256;
+   std::vector<FullTimeChemistryAdmission> admissions;
+   std::vector<FullTimeChemistryAdmittedEvent> events;
+   std::vector<FullTimeChemistryTargetDebit> target_debits;
+@@ -653,6 +658,7 @@
+       coverage_sha256, state_before_sha256, state_after_sha256, births_root;
+   // Empty in legacy mode; native-created pre-filter census commitment otherwise.
+   std::string water_scope_contract_sha256, water_scope_census_sha256, water_scope_binding_sha256;
++  std::shared_ptr<const FullTimeHostTargetReceipt> host_target_feedback;
+   // exact energy ledger (eV): ke_in_projectile, ke_in_target, ke_out_survivor,
+   // ke_out_birth, ke_out_reservoir, ke_out_gas, q_reference, internal[6], defect
+   std::vector<std::pair<std::string, FullTimeExactValue>> energy;
+@@ -684,6 +690,7 @@
+ // Accepted chemistry state summary (API-008.txt 3.6).
+ struct FullTimeChemistryStatus {
+   std::string water_scope_census_sha256, water_scope_binding_sha256, water_scope_history_sha256;
++  std::string host_target_feedback_sha256, host_target_history_sha256;
+   bool enabled = false;
+   bool diagnostic_field_target_approximation = false;
+   bool full_system_energy_closure = false;
+@@ -824,6 +831,7 @@
+   // returns the completed exposure token (publish it with try_publish).
+   // Throws FullTimeChemistryRefusal (typed) or FullTimeResourceRefusal.
+   PreparedArena prepare_chemistry_v3();
++  PreparedArena prepare_chemistry_v3_host_targets(std::shared_ptr<FullTimeHostTargetProvider>);
+   bool can_publish(const PreparedArena &) const noexcept;
+   bool try_publish(PreparedArena &) noexcept;
+ 
+--- /dev/null
++++ b/source/include/raikou/mfem_pic_target_feedback.h
+@@ -0,0 +1,35 @@
++#pragma once
++#include "raikou/mfem_pic_full_time.h"
++#include "chem_event.h" // frozen C3 ABI; this interface is not a portable wire format
++namespace raikou::mfem_backend {
++// Authentic native-owned immutable inputs. Every preparation creates a fresh
++// deep snapshot; public data and digests are facts, never owner authority.
++struct FullTimeHostTargetInputs {
++  ExposureBinding exposure;
++  std::uint64_t stage = 0, native_rows = 0;
++  std::string contract_sha256, configuration_sha256, registry_sha256, blob_sha256,
++      grid_sha256, native_rows_root, census_sha256, water_scope_binding_sha256,
++      frame_snapshot_sha256, frame_history_sha256, carriers_root, targets_root, sha256;
++  std::vector<std::uint32_t> atlas;
++  std::vector<pfc::CellTargets> cells;
++};
++struct FullTimeHostTargetDraft {
++  std::vector<pfc::CellTargets> cells;
++  std::string input_sha256, owner_configuration_sha256, owner_accepted_sha256,
++      owner_candidate_sha256, owner_feedback_sha256, before_targets_root, after_targets_root;
++};
++class FullTimeHostTargetProvider {
++public:
++  virtual ~FullTimeHostTargetProvider() = default;
++  virtual FullTimeHostTargetDraft apply(std::shared_ptr<const FullTimeHostTargetInputs>) = 0;
++  // Preparation-time operation; may allocate/throw. No publication authority.
++  virtual void validate_current(std::shared_ptr<const FullTimeHostTargetInputs>,
++                                const FullTimeHostTargetDraft &) const = 0;
++};
++struct FullTimeHostTargetReceipt {
++  std::shared_ptr<const FullTimeHostTargetInputs> input;
++  FullTimeHostTargetDraft output; // native deep copy, sealed after validation
++  std::string sha256;
++};
++std::string full_time_host_target_cells_sha256(std::span<const pfc::CellTargets>);
++} // namespace raikou::mfem_backend
+--- a/source/src/chem_v3_native.cpp
++++ b/source/src/chem_v3_native.cpp
+@@ -297,6 +297,13 @@
+     h.u32(std::uint32_t(c.water_scope_mode)); h.text(c.water_scope_contract_sha256);
+     s->configuration_sha256 = h.hex();
+   }
++  if (c.host_target_feedback) {
++    need(c.host_target_contract_sha256.size()==64 &&
++         c.host_target_contract_sha256.find_first_not_of("0123456789abcdef")==std::string::npos,
++         RK::configuration,"configuration: host target feedback contract");
++    H h; h.text("native-v8.5/host-target-configuration-v1"); h.text(s->configuration_sha256);
++    h.text(c.host_target_contract_sha256); s->configuration_sha256=h.hex();
++  } else need(c.host_target_contract_sha256.empty(),RK::configuration,"configuration: disabled host target contract");
+   auto &ch = s->channel;
+   ch.id = channel_id;
+   ch.primary_state = std::string(state_prefix) + "e";
+@@ -426,9 +433,10 @@
+   if (!st.digest.empty())
+     return st.digest;
+   H h;
+-  h.text("native-v8.4/chemistry-state-v4-water-scope");
++  h.text("native-v8.5/chemistry-state-v5-host-targets");
+   h.text(st.configuration_sha256);
+   h.text(st.water_scope_census_sha256); h.text(st.water_scope_binding_sha256); h.text(st.water_scope_history_sha256);
++  h.text(st.host_target_feedback_sha256); h.text(st.host_target_history_sha256);
+   h.u64(st.stages);
+   h.u32(st.pending ? 1 : 0);
+   h.u64(st.reservoirs.size());
+@@ -572,6 +580,10 @@
+     in.carriers.push_back(c);
+     in.carrier_row.push_back(std::uint32_t(r));
+   }
++  rehash_inputs(in);
++  return in;
++}
++void rehash_inputs(StageInputs &in, const std::string &feedback) {
+   std::vector<std::uint64_t> atlas(in.cell_atlas.begin(), in.cell_atlas.end());
+   in.sha256 = inputs_digest(in.cfg, block_root("native-v8/chemistry-carriers", in.carriers.data(), sizeof(pfc::CarrierIn),
+                                                in.carriers.size(), 1024),
+@@ -579,8 +591,11 @@
+                             block_root("native-v8/chemistry-cells", in.cells.data(), sizeof(pfc::CellTargets),
+                                        in.cells.size(), 64),
+                             in.cells.size(), block_root("native-v8/chemistry-atlas", atlas.data(), 8, atlas.size(), 4096));
+-  return in;
+-}
++  if (!feedback.empty()) {
++    H h; h.text("native-v8.5/feedback-bound-inputs-v1"); h.text(in.sha256); h.text(feedback); in.sha256=h.hex();
++  }
++}
++
+ std::string block_root_of(const std::string &tag, std::uint64_t n, const std::vector<std::array<unsigned char, 32>> &leaves) {
+   pfc::Sha256 h;
+   h.text(tag + "/root");
+@@ -1419,9 +1434,10 @@
+ } // namespace
+ std::string encode_state(const FullTimeChemistryState &st) {
+   Out o;
+-  o.text("native-v8.4/chemistry-state-codec-v4-water-scope");
++  o.text("native-v8.5/chemistry-state-codec-v5-host-targets");
+   o.text(st.configuration_sha256);
+   o.text(st.water_scope_census_sha256); o.text(st.water_scope_binding_sha256); o.text(st.water_scope_history_sha256);
++  o.text(st.host_target_feedback_sha256); o.text(st.host_target_history_sha256);
+   o.u64(st.stages);
+   o.u64(st.pending ? 1 : 0);
+   o.u64(st.reservoirs.size());
+@@ -1448,13 +1464,14 @@
+ }
+ std::shared_ptr<FullTimeChemistryState> decode_state(const Setup &s, const std::string &bytes) {
+   In in{bytes};
+-  need(in.text() == "native-v8.4/chemistry-state-codec-v4-water-scope", RK::configuration, "configuration: chemistry state codec tag");
++  need(in.text() == "native-v8.5/chemistry-state-codec-v5-host-targets", RK::configuration, "configuration: chemistry state codec tag");
+   auto st = std::make_shared<FullTimeChemistryState>();
+   st->configuration_sha256 = in.text();
+   need(st->configuration_sha256 == s.configuration_sha256, RK::configuration,
+        "configuration: checkpoint chemistry configuration (blob, registry, policy, w0) differs");
+   st->water_scope_census_sha256 = in.text(); st->water_scope_binding_sha256 = in.text();
+   st->water_scope_history_sha256 = in.text();
++  st->host_target_feedback_sha256=in.text(); st->host_target_history_sha256=in.text();
+   st->stages = in.u64();
+   auto scope_digest = [](const std::string &v) {
+     return v.size() == 64 && v.find_first_not_of("0123456789abcdef") == std::string::npos;
+@@ -1465,6 +1482,12 @@
+   else
+     need(st->water_scope_census_sha256.empty() && st->water_scope_binding_sha256.empty() &&
+          st->water_scope_history_sha256.empty(), RK::configuration, "configuration: unexpected scope checkpoint binding");
++  if(s.config.host_target_feedback && st->stages>0)
++    need(scope_digest(st->host_target_feedback_sha256) && scope_digest(st->host_target_history_sha256),
++         RK::configuration,"configuration: missing host target checkpoint binding");
++  else
++    need(st->host_target_feedback_sha256.empty() && st->host_target_history_sha256.empty(),
++         RK::configuration,"configuration: unexpected host target checkpoint binding");
+   const auto pend = in.u64();
+   need(pend <= 1, RK::configuration, "configuration: chemistry state flag");
+   st->pending = pend == 1;
+--- a/source/src/chem_v3_native.hpp
++++ b/source/src/chem_v3_native.hpp
+@@ -134,6 +134,7 @@
+   std::string configuration_sha256; // chemistry configuration identity
+   // Latest admitted census and rolling scope history, authenticated by state/row roots.
+   std::string water_scope_census_sha256, water_scope_binding_sha256, water_scope_history_sha256;
++  std::string host_target_feedback_sha256, host_target_history_sha256;
+   std::map<chem8::Key, chem8::Reservoir> reservoirs;
+   chem8::Ledger cumulative;     // every accepted stage
+   chem8::Ledger step;           // pending: stage 1 of the step in progress (empty between steps)
+@@ -178,6 +179,7 @@
+   std::map<pfc::InventoryKey, ESum> inventory; // (compact cell, target species) exact counts
+   std::string sha256;                        // inputs digest
+ };
++void rehash_inputs(StageInputs &, const std::string &target_feedback_sha256 = {});
+ StageInputs build_inputs(const Setup &, const RowView &, const StageRequest &);
+ // native-v8 block roots (API-008.txt 3.3): leaf = SHA256(text tag/leaf, u64
+ // leaf, u64 count, record bytes); root = SHA256(text tag/root, u64 n, u64
+--- a/source/src/mfem_pic_admitted_export.inc
++++ b/source/src/mfem_pic_admitted_export.inc
+@@ -52,7 +52,7 @@
+                        &x.frame_history_sha256, &x.configuration_sha256, &x.registry_sha256,
+                        &x.inputs_sha256, &x.chemistry_before_sha256, &x.chemistry_after_sha256,
+                        &x.frozen_field_sha256, &x.ledger_sha256, &x.births_root, &x.raw_records_root,
+-                       &x.admitted_root, &x.target_debits_root, &x.releases_root})
++                       &x.admitted_root, &x.target_debits_root, &x.releases_root, &x.host_target_feedback_sha256})
+     w.text(*p);
+   return cn::sha256_hex(w.bytes);
+ }
+@@ -102,6 +102,7 @@
+   x.inputs_sha256 = r.inputs_sha256; x.chemistry_before_sha256 = r.state_before_sha256;
+   x.chemistry_after_sha256 = r.state_after_sha256; x.ledger_sha256 = r.ledger_sha256; x.births_root = r.births_root;
+   x.raw_records_root = r.records_root;
++  if(r.host_target_feedback)x.host_target_feedback_sha256=r.host_target_feedback->sha256;
+   std::uint64_t raw_count = 0;
+   for (const auto &p : x.admissions) raw_count = checked_add(raw_count, p.raw_count, "export raw events");
+   require(raw_count == r.events && x.events.size() == r.admitted_events &&
+@@ -119,7 +120,7 @@
+   auto check = [&](bool ok, const char *message) {
+     if (!ok) throw FullTimeChemistryRefusal(CK::event, std::string("admitted_export: ") + message);
+   };
+-  check(x.schema == "native-v8.3/admitted-target-export-v1", "schema");
++  check(x.schema == "native-v8.5/admitted-target-export-v2", "schema");
+   check((x.stage == 1 || x.stage == 2) && std::isfinite(x.begin_s) && std::isfinite(x.end_s) &&
+         x.end_s > x.begin_s && std::isfinite(x.step_duration_s) && x.step_duration_s > 0 &&
+         x.end_s == x.begin_s + x.step_duration_s && x.collision_duration_s == .5 * x.step_duration_s &&
+@@ -131,6 +132,7 @@
+                        &x.inputs_sha256, &x.chemistry_before_sha256, &x.chemistry_after_sha256,
+                        &x.frozen_field_sha256, &x.ledger_sha256, &x.births_root, &x.raw_records_root})
+     check(digest(*p), "identity digest");
++  check(x.host_target_feedback_sha256.empty() || digest(x.host_target_feedback_sha256),"host target feedback digest");
+   using Key = std::pair<std::uint32_t, std::uint32_t>;
+   std::map<Key, ArenaCount> admitted, debited;
+   std::size_t ei = 0;
+--- a/source/src/mfem_pic_arena.cpp
++++ b/source/src/mfem_pic_arena.cpp
+@@ -2,6 +2,7 @@
+ #include "full_time_contract_validation.hpp"
+ #include "raikou/mfem_pic_canonical.h"
+ #include "raikou/mfem_pic_full_time.h"
++#include "raikou/mfem_pic_target_feedback.h"
+ #include "pf_v7/forms.hpp"
+ #include "native_rows.hpp"
+ #include "raikou/mfem_pic_full_time_device.h"
+@@ -748,6 +749,8 @@
+   std::shared_ptr<const FullTimeStepFlows> flows;
+   // Native v8: chemistry stage receipt of an exposure token.
+   std::shared_ptr<const FullTimeChemistryStageReceipt> chemistry;
++  std::shared_ptr<FullTimeHostTargetProvider> target_provider;
++  std::weak_ptr<void> target_scope;
+   enum class Status { Staged, Published, RolledBack };
+   Status status = Status::Staged;
+ };
+--- a/source/src/mfem_pic_full_time.inc
++++ b/source/src/mfem_pic_full_time.inc
+@@ -524,7 +524,7 @@
+       require(k.accepted_step == steps && k.accepted_step == common.accepted_step &&
+                   digest(k.inputs_sha256) && digest(k.records_root) &&
+                   digest(k.ledger_sha256) && digest(k.state_before_sha256) &&
+-                  digest(k.state_after_sha256) && digest(k.births_root) && digest(k.admitted_export_sha256) && digest(k.water_scope_sha256),
++                  digest(k.state_after_sha256) && digest(k.births_root) && digest(k.admitted_export_sha256) && digest(k.water_scope_sha256) && digest(k.host_target_sha256),
+               "full-time journal chemistry stage row");
+       children.push_back(r);
+       continue;
+@@ -1136,8 +1136,21 @@
+   // v8: one chemistry v3 stage on the private frame (mfem_pic_full_time_chemistry.inc):
+   // the stage outcome on the host or the device, then one exposure token.
+   struct ChemOutcome;
+-  static PreparedArena chemistry(FullCollision &s);
+-  static std::shared_ptr<ChemOutcome> chemistry_host(FullCollision &s, const chem8::Setup &, const chem8::StageRequest &);
++  static void enter_target_callback(FullCollision &s) {
++    live(s);
++    auto &o=*s.outer;
++    require(!s.building && !o.builder_active && !o.owner->full_time_builder_active_,
++            "host target callback reentry");
++    s.building=true;o.builder_active=true;o.owner->full_time_builder_active_=true;
++  }
++  static void leave_target_callback(FullCollision &s) noexcept {
++    s.building=false;s.outer->builder_active=false;
++    if(!s.outer->lifetime.expired())s.outer->owner->full_time_builder_active_=false;
++  }
++  static void validate_host_targets(const PreparedArena &);
++  static PreparedArena chemistry(FullCollision &s, std::shared_ptr<FullTimeHostTargetProvider> = {});
++  static std::shared_ptr<ChemOutcome> chemistry_host(FullCollision &s, const chem8::Setup &, const chem8::StageRequest &,
++                                                  const std::shared_ptr<FullTimeHostTargetProvider> & = {});
+   static std::shared_ptr<ChemOutcome> chemistry_device(FullCollision &s, const chem8::Setup &,
+                                                        const chem8::StageRequest &, FullTimeLane &);
+   static ArenaPhase phase_for(const FullCollision &s) {
+@@ -3301,6 +3314,13 @@
+   require(bool(impl_), "empty collision scope");
+   return FullTimeAccess::chemistry(*impl_->scope);
+ }
++PreparedArena CollisionScope::prepare_chemistry_v3_host_targets(std::shared_ptr<FullTimeHostTargetProvider> provider) {
++  require(bool(impl_),"empty collision scope");
++  require(bool(provider),"missing host target provider");
++  auto token=FullTimeAccess::chemistry(*impl_->scope,std::move(provider));
++  token.impl_->target_scope=impl_->scope;
++  return token;
++}
+ bool CollisionScope::can_publish(const PreparedArena &t) const noexcept {
+   if (!impl_ || !impl_->scope)
+     return false;
+@@ -4106,6 +4126,8 @@
+   require(full_time_boundary_ && !active_scope_ && active_full_time_outer_.expired(),
+           "device lane attaches to a full-time arena between steps");
+   const auto scope_setup = std::static_pointer_cast<const chem8::Setup>(chemistry_);
++  if(scope_setup && scope_setup->config.host_target_feedback && mode!=FullTimeExecution::host)
++    throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::target_fields,"host target feedback has no device census");
+   if (scope_setup && scope_setup->water_scope && mode != FullTimeExecution::host)
+     throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::network_scope,
+                                   "water_scope: native device census is not qualified");
+@@ -4262,6 +4284,9 @@
+   // v8: chemistry v3 requires the v8 identity schema.
+   if (c.identity != FullTimeIdentitySchema::v5 && c.identity != FullTimeIdentitySchema::v8)
+     throw refusal(RK::configuration, "full-time identity schema");
++  if (!c.chemistry.enabled && (c.chemistry.host_target_feedback || !c.chemistry.host_target_contract_sha256.empty()))
++    throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::configuration,
++                                  "host target feedback requires enabled chemistry");
+   if (!c.chemistry.enabled && (c.chemistry.water_scope_mode != FullTimeWaterScopeMode::legacy ||
+       !c.chemistry.water_scope_contract.empty() || !c.chemistry.water_scope_contract_sha256.empty()))
+     throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::configuration,
+--- a/source/src/mfem_pic_full_time_chemistry.inc
++++ b/source/src/mfem_pic_full_time_chemistry.inc
+@@ -3,6 +3,7 @@
+ // and the accepted chemistry status. Included in mfem_pic_full_time.inc after
+ // the FullTimeAccess class (same TU as the arena).
+ #include "mfem_pic_admitted_export.inc"
++#include "mfem_pic_target_feedback.inc"
+ namespace full_time_detail {
+ // v8 restart state of the published sinks (source v7 B1/D8): bit-exact JSON.
+ std::string bits_hex(double x) {
+@@ -77,7 +78,7 @@
+   return l;
+ }
+ ArenaJson chemistry_configuration_json(const FullTimeConfiguration &c) {
+-  ArenaJson j = {{"identity", "v8.4-minimum-water-scope-v1"}};
++  ArenaJson j = {{"identity", "v8.5-host-target-feedback-v1"}};
+   if (c.merge_split.enabled) {
+     const auto &P = *c.merge_split.params;
+     j["merge_split"] = {{"cadence_steps", c.merge_split.cadence_steps},
+@@ -91,6 +92,8 @@
+     return j;
+   }
+   j["chemistry"] = {{"diagnostic_field_target_approximation", k.diagnostic_field_target_approximation},
++                    {"host_target_feedback",k.host_target_feedback},
++                    {"host_target_contract_sha256",k.host_target_contract_sha256},
+                     {"water_scope_mode", std::uint32_t(k.water_scope_mode)},
+                     {"water_scope_contract", k.water_scope_contract},
+                     {"water_scope_contract_sha256", k.water_scope_contract_sha256},
+@@ -113,7 +116,7 @@
+ }
+ void read_chemistry_configuration_json(const ArenaJson &j, FullTimeConfiguration &c) {
+   const bool ms = j.is_object() && j.contains("merge_split");
+-  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8.4-minimum-water-scope-v1", "v8 configuration schema");
++  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8.5-host-target-feedback-v1", "v8 configuration schema");
+   c.identity = FullTimeIdentitySchema::v8;
+   if (ms) {
+     const auto &m = j.at("merge_split");
+@@ -132,9 +135,12 @@
+   const auto &k = j.at("chemistry");
+   if (k.is_null())
+     return;
+-  require(k.is_object() && k.size() == 14, "chemistry configuration schema");
++  require(k.is_object() && k.size() == 16, "chemistry configuration schema");
+   auto &x = c.chemistry;
+   x.enabled = true;
++  require(k.at("host_target_feedback").is_boolean(),"host target feedback boolean");
++  x.host_target_feedback=k.at("host_target_feedback").get<bool>();
++  x.host_target_contract_sha256=json_text_any(k.at("host_target_contract_sha256"));
+   require(k.at("diagnostic_field_target_approximation").is_boolean(), "target energy mode boolean");
+   x.diagnostic_field_target_approximation = k.at("diagnostic_field_target_approximation").get<bool>();
+   const auto sm = json_u64(k.at("water_scope_mode"));
+@@ -169,7 +175,7 @@
+   if (c.identity != FullTimeIdentitySchema::v8)
+     return "";
+   Writer w;
+-  w.tag("native-v8.4-minimum-water-scope-v1/identity-schema-v8");
++  w.tag("native-v8.5-host-target-feedback-v1/identity-schema-v8");
+   if (c.chemistry.enabled)
+     w.text(chem8::make_setup(c.chemistry, o)->configuration_sha256);
+   else
+@@ -193,10 +199,13 @@
+     auto it = states.find(r.states[i]);
+     if (it == states.end() || it->second.charge_e != r.charge[i] ||
+         std::bit_cast<std::uint64_t>(it->second.mass_kg) != std::bit_cast<std::uint64_t>(r.mass_kg[i]) ||
+-        it->second.hydrogen != r.nuclei[i][0] || it->second.oxygen != r.nuclei[i][1])
++        it->second.hydrogen != r.nuclei[i][0] || it->second.oxygen != r.nuclei[i][1] ||
++        std::bit_cast<std::uint64_t>(it->second.internal_J) != std::bit_cast<std::uint64_t>(0.0) ||
++        std::bit_cast<std::uint64_t>(it->second.reference_J) !=
++          std::bit_cast<std::uint64_t>(r.blob->view.species[i].ref_eV * pic_e))
+       throw FullTimeChemistryRefusal(CK::configuration,
+                                      "chemistry_v3/configuration: species " + r.states[i] +
+-                                         " not registered with the blob mass/charge/nuclei");
++                                         " not registered with the blob mass/charge/nuclei/internal/reference energy");
+   }
+   auto ch = channels.find(chem8::channel_id);
+   const auto &w = s.channel;
+@@ -247,7 +256,8 @@
+ struct ChemDeviceFallback {};
+ } // namespace full_time_detail
+ std::shared_ptr<FullTimeAccess::ChemOutcome>
+-FullTimeAccess::chemistry_host(FullCollision &s, const chem8::Setup &setup_ref, const chem8::StageRequest &req) {
++FullTimeAccess::chemistry_host(FullCollision &s, const chem8::Setup &setup_ref, const chem8::StageRequest &req,
++                             const std::shared_ptr<FullTimeHostTargetProvider> &target_provider) {
+   auto &o = *s.outer;
+   const chem8::Setup *setup = &setup_ref;
+   const auto &base = o.frame;
+@@ -286,7 +296,8 @@
+   }
+   chem8::RowView view{rows.data(), n, species.data(), single.data()};
+   water_scope::Admission scope_admission;
+-  if (setup->water_scope) {
++  std::string all_species_census;
++  if (setup->water_scope || setup->config.host_target_feedback) {
+     std::vector<water_scope::InventoryRow> census; census.reserve(n);
+     for (std::size_t i = 0; i < n; ++i) {
+       if (!owner_of[i] || species[i] == chem8::none)
+@@ -298,6 +309,8 @@
+                                       "water_scope: native carrier outside vacuum atlas");
+       census.push_back({rows[i].id, cell, species[i], rows[i].weight});
+     }
++    all_species_census=water_scope::census_digest(census);
++    if (setup->water_scope) {
+     Writer input; input.tag("native-v8.4/authentic-water-census-input-v1");
+     input.text(snapshot_digest(snap)); input.text(snap.chain);
+     input.text(cn::carrier_rows_digest(base.native.particles)->root);
+@@ -317,9 +330,12 @@
+     if (!scope_admission.admitted)
+       throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::network_scope,
+           "water_scope: required encounter absent or wholly unsupported in " +
+-          std::to_string(scope_admission.gaps.size()) + " cell/pair entries");
++          std::to_string(scope_admission.gaps.size()) + " cell/pair entries");    }
+   }
+   auto in = chem8::build_inputs(*setup, view, req);
++  std::shared_ptr<const FullTimeHostTargetReceipt> host_targets;
++  if (target_provider)
++    host_targets=apply_target_provider(s,*setup,in,all_species_census,scope_admission.stage_binding_sha256,target_provider);
+   auto rec = chem8::run_host(*setup, in, setup->config.host_partitions);
+   const auto active = chem8::active_of(*setup, in, rec, view);
+   auto count_of = [&](std::uint32_t r) {
+@@ -341,6 +357,7 @@
+     return out;
+   };
+   auto res = chem8::resolve(*setup, active, req, before, da);
++  if(host_targets)validate_target_provider(s,*setup,target_provider,*host_targets);
+   if (setup->water_scope) {
+     res.state->water_scope_census_sha256 = scope_admission.census_sha256;
+     res.state->water_scope_binding_sha256 = scope_admission.stage_binding_sha256;
+@@ -349,6 +366,13 @@
+     history.text(scope_admission.scope_sha256); history.text(scope_admission.census_sha256);
+     history.text(scope_admission.stage_binding_sha256);
+     res.state->water_scope_history_sha256 = cn::sha256_hex(history.bytes);
++    res.state->digest.clear();
++  }
++  if(host_targets) {
++    res.state->host_target_feedback_sha256=host_targets->sha256;
++    Writer history;history.tag("native-v8.5/host-target-history-v1");
++    history.text(before.host_target_history_sha256);history.u64(req.step);history.u64(req.stage);
++    history.text(host_targets->sha256);res.state->host_target_history_sha256=cn::sha256_hex(history.bytes);
+     res.state->digest.clear();
+   }
+   auto stage_export = export_begin(res);
+@@ -503,6 +527,7 @@
+   receipt->records_root = chem8::records_root(rec);
+   receipt->records_sha256 = chem8::records_stream_sha256(rec);
+   receipt->state_before_sha256 = chem8::state_digest(before);
++  receipt->host_target_feedback=std::move(host_targets);
+   receipt->water_scope_contract_sha256 = scope_admission.scope_sha256;
+   receipt->water_scope_census_sha256 = scope_admission.census_sha256;
+   receipt->water_scope_binding_sha256 = scope_admission.stage_binding_sha256;
+@@ -831,12 +856,17 @@
+   oc->purpose = cfg.purpose;
+   return oc;
+ }
+-PreparedArena FullTimeAccess::chemistry(FullCollision &s) {
++PreparedArena FullTimeAccess::chemistry(FullCollision &s, std::shared_ptr<FullTimeHostTargetProvider> target_provider) {
+   live(s);
+   auto &o = *s.outer;
+   auto &owner = *o.owner;
+   const auto setup = std::static_pointer_cast<const chem8::Setup>(owner.chemistry_);
+   require(bool(setup), "chemistry v3 is not configured for this arena");
++  if (setup->config.host_target_feedback != bool(target_provider))
++    throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::target_fields,"host target provider/configuration mismatch");
++  if (target_provider && (setup->config.execution != FullTimeChemistryExecution::host ||
++                         owner.full_time_execution() != FullTimeExecution::host))
++    throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::target_fields,"host target feedback has no qualified device lane");
+   if (setup->water_scope && (setup->config.execution != FullTimeChemistryExecution::host ||
+                             owner.full_time_execution() != FullTimeExecution::host))
+     throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::network_scope,
+@@ -888,7 +918,7 @@
+     }
+   }
+   if (!oc)
+-    oc = chemistry_host(s, *setup, req);
++    oc = chemistry_host(s, *setup, req, target_provider);
+   ChemProfile prof;
+   auto next = oc->next;
+   auto &native = oc->native;
+@@ -947,6 +977,9 @@
+   k.state_after_sha256 = receipt->state_after_sha256;
+   k.births_root = receipt->births_root;
+   k.admitted_export_sha256 = receipt->admitted_export->sha256;
++  Writer target_row;target_row.tag("native-v8.5/host-target-row-v1");
++  target_row.text(receipt->admitted_export->host_target_feedback_sha256);
++  k.host_target_sha256=cn::sha256_hex(target_row.bytes);
+   Writer scope_row; scope_row.tag("native-v8.4/water-scope-row-v1");
+   scope_row.text(receipt->water_scope_contract_sha256); scope_row.text(receipt->water_scope_census_sha256);
+   scope_row.text(receipt->water_scope_binding_sha256); k.water_scope_sha256 = cn::sha256_hex(scope_row.bytes);
+@@ -977,6 +1010,7 @@
+   t->full_time_exposure = true;
+   t->completion = c;
+   t->chemistry = receipt;
++  t->target_provider = std::move(target_provider);
+   t->audit = {{"kind", "full_time_exposure"},
+               {"exposure", exposure_json(s.exposure)},
+               {"completion", completion_json(c)},
+@@ -1013,6 +1047,16 @@
+   validate_full_time_chemistry_stage_export(*x, require_unambiguous_targets);
+   return x;
+ }
++void FullTimeAccess::validate_host_targets(const PreparedArena &t) {
++  require(bool(t.impl_) && t.impl_->target_provider && t.impl_->chemistry &&
++          t.impl_->chemistry->host_target_feedback,"token has no host target provider");
++  auto s=std::static_pointer_cast<FullCollision>(t.impl_->target_scope.lock());
++  require(bool(s) && publishable(*s,t),"stale host target candidate");
++  const auto setup=std::static_pointer_cast<const chem8::Setup>(s->outer->owner->chemistry_);
++  validate_target_provider(*s,*setup,t.impl_->target_provider,*t.impl_->chemistry->host_target_feedback);
++  require(publishable(*s,t),"host target candidate changed during validation");
++}
++void PreparedArena::validate_candidate_host_targets() const { FullTimeAccess::validate_host_targets(*this); }
+ std::vector<ArenaStateSpec> full_time_metal_vapour_states(bool with_fe_cr_ni) {
+   constexpr double u = 1.66053906660e-27; // kg (CODATA 2018)
+   std::vector<ArenaStateSpec> out;
+@@ -1081,6 +1125,7 @@
+   out.water_scope_census_sha256 = st.water_scope_census_sha256;
+   out.water_scope_binding_sha256 = st.water_scope_binding_sha256;
+   out.water_scope_history_sha256 = st.water_scope_history_sha256;
++  out.host_target_feedback_sha256=st.host_target_feedback_sha256;out.host_target_history_sha256=st.host_target_history_sha256;
+   out.state_sha256 = chem8::state_digest(st);
+   out.configuration_sha256 = setup->configuration_sha256;
+   out.registry_sha256 = setup->reg->sha256;
+--- a/source/src/mfem_pic_full_time_rows.inc
++++ b/source/src/mfem_pic_full_time_rows.inc
+@@ -612,7 +612,7 @@
+                 births = 0, consumed = 0, debited_packets = 0, removed_packets = 0,
+                 released_packets = 0, remainder_carriers = 0;
+   std::string configuration_sha256, inputs_sha256, records_root, ledger_sha256,
+-      state_before_sha256, state_after_sha256, births_root, admitted_export_sha256, water_scope_sha256;
++      state_before_sha256, state_after_sha256, births_root, admitted_export_sha256, water_scope_sha256, host_target_sha256;
+ };
+ template <class IO> void codec_chemistry(IO &io, ChemistryRow &r) {
+   for (auto *v : {&r.accepted_step, &r.stage, &r.purpose})
+@@ -625,7 +625,7 @@
+     io.u64(*v);
+   for (auto *d : {&r.configuration_sha256, &r.inputs_sha256, &r.records_root,
+                   &r.ledger_sha256, &r.state_before_sha256, &r.state_after_sha256,
+-                  &r.births_root, &r.admitted_export_sha256, &r.water_scope_sha256})
++                  &r.births_root, &r.admitted_export_sha256, &r.water_scope_sha256, &r.host_target_sha256})
+     codec_digest(io, *d);
+ }
+ struct FullRow {
+--- /dev/null
++++ b/source/src/mfem_pic_target_feedback.inc
+@@ -0,0 +1,101 @@
++// Host target overrides are facts from an external owner, never energy-closure
++// or publication authority. Native owns and seals every input/output byte here.
++std::string full_time_host_target_cells_sha256(std::span<const pfc::CellTargets> cells) {
++  return chem8::block_root("native-v8/chemistry-cells",cells.data(),sizeof(pfc::CellTargets),cells.size(),64);
++}
++namespace full_time_detail {
++std::string target_input_digest(const FullTimeHostTargetInputs &x) {
++  Writer w;w.tag("native-v8.5/host-target-input-v1");
++  const auto &e=x.exposure;const auto &b=e.common;
++  for(auto v:{b.accepted_step,b.accepted_arena_revision,x.stage,x.native_rows,e.owner_stage_sequence})w.u64(v);
++  for(double v:{b.begin_s,b.end_s,b.dt_s,e.frozen_physical_stage_s,e.collision_duration_s})w.f64(v);
++  w.u64(std::uint64_t(e.slot));
++  for(const auto *v:{&b.accepted_arena_sha256,&b.accepted_field_sha256,&b.mesh_sha256,&b.material_sha256,
++      &b.common_clock_sha256,&e.frozen_field_sha256,&x.contract_sha256,&x.configuration_sha256,&x.registry_sha256,
++      &x.blob_sha256,&x.grid_sha256,&x.native_rows_root,&x.census_sha256,&x.water_scope_binding_sha256,
++      &x.frame_snapshot_sha256,&x.frame_history_sha256,&x.carriers_root,&x.targets_root})w.text(*v);
++  w.u64(x.atlas.size());for(auto c:x.atlas)w.u64(c);
++  return cn::sha256_hex(w.bytes);
++}
++std::string target_receipt_digest(const FullTimeHostTargetInputs &in,const FullTimeHostTargetDraft &out) {
++  Writer w;w.tag("native-v8.5/host-target-receipt-v1");w.text(in.sha256);
++  for(const auto *p:{&out.input_sha256,&out.owner_configuration_sha256,&out.owner_accepted_sha256,
++      &out.owner_candidate_sha256,&out.owner_feedback_sha256,&out.before_targets_root,&out.after_targets_root})w.text(*p);
++  return cn::sha256_hex(w.bytes);
++}
++std::shared_ptr<const FullTimeHostTargetInputs> make_target_inputs(
++    const FullCollision &s,const chem8::Setup &setup,const chem8::StageInputs &in,
++    const std::string &census,const std::string &scope_binding) {
++  auto x=std::make_shared<FullTimeHostTargetInputs>();const auto &f=s.outer->frame;
++  x->exposure=s.exposure;x->stage=s.exposure.slot==FullTimeSlot::before_transport?1:2;
++  x->native_rows=f.native.particles.size();x->contract_sha256=setup.config.host_target_contract_sha256;
++  x->configuration_sha256=setup.configuration_sha256;x->registry_sha256=setup.reg->sha256;
++  x->blob_sha256=setup.reg->blob->sha256;x->grid_sha256=setup.grid.sha256;
++  x->native_rows_root=cn::carrier_rows_digest(f.native.particles)->root;x->census_sha256=census;
++  x->water_scope_binding_sha256=scope_binding;x->frame_snapshot_sha256=snapshot_digest(*f.snapshot);
++  x->frame_history_sha256=f.snapshot->chain;
++  x->carriers_root=chem8::block_root("native-v8/chemistry-carriers",in.carriers.data(),sizeof(pfc::CarrierIn),in.carriers.size(),1024);
++  x->atlas=in.cell_atlas;x->cells=in.cells;x->targets_root=full_time_host_target_cells_sha256(x->cells);
++  x->sha256=target_input_digest(*x);
++  return std::shared_ptr<const FullTimeHostTargetInputs>(std::move(x));
++}
++void validate_target_draft(const chem8::Setup &setup,const FullTimeHostTargetInputs &in,
++                           const FullTimeHostTargetDraft &out) {
++  using K=FullTimeChemistryRefusal::Kind;
++  auto check=[](bool yes,const char *why){if(!yes)throw FullTimeChemistryRefusal(K::target_fields,why);};
++  check(in.sha256==target_input_digest(in) && in.targets_root==full_time_host_target_cells_sha256(in.cells),
++        "host target input changed");
++  check(in.contract_sha256==setup.config.host_target_contract_sha256 &&
++        in.configuration_sha256==setup.configuration_sha256 && in.registry_sha256==setup.reg->sha256 &&
++        in.blob_sha256==setup.reg->blob->sha256 && in.grid_sha256==setup.grid.sha256,"host target native configuration");
++  for(const auto *p:{&out.input_sha256,&out.owner_configuration_sha256,&out.owner_accepted_sha256,
++      &out.owner_candidate_sha256,&out.owner_feedback_sha256,&out.before_targets_root,&out.after_targets_root})
++    check(digest(*p),"host target owner/receipt digest");
++  check(out.input_sha256==in.sha256 && out.before_targets_root==in.targets_root && out.cells.size()==in.cells.size() &&
++        out.after_targets_root==full_time_host_target_cells_sha256(out.cells),"host target byte binding");
++  for(std::size_t i=0;i<in.cells.size();++i) {
++    const auto &base=in.cells[i];auto restored=out.cells[i];
++    check(base.n_targets<=PFC_MAX_TARGETS,"host target slot count");
++    for(pfc_u32 k=0;k<base.n_targets;++k) {
++      const auto sp=base.species[k];check(sp<setup.reg->states.size(),"host target species");
++      if(setup.reg->charge[sp]==0 && setup.reg->target[sp] && base.n[k]>0) {
++        check(std::isfinite(restored.s[k]) && restored.s[k]>=0,"host target thermal width");
++        for(int a=0;a<3;++a){check(std::isfinite(restored.drift[k][a]),"host target drift");restored.drift[k][a]=base.drift[k][a];}
++        restored.s[k]=base.s[k];
++      }
++    }
++    check(std::memcmp(&restored,&base,sizeof base)==0,"host target changed density/species/layout/noneligible slot");
++  }
++}
++struct TargetCallbackGuard {
++  FullCollision &s;
++  explicit TargetCallbackGuard(FullCollision &x):s(x){
++    FullTimeAccess::enter_target_callback(s);
++  }
++  ~TargetCallbackGuard(){FullTimeAccess::leave_target_callback(s);}
++};
++std::shared_ptr<const FullTimeHostTargetReceipt> apply_target_provider(
++    FullCollision &s,const chem8::Setup &setup,chem8::StageInputs &in,
++    const std::string &census,const std::string &scope_binding,
++    const std::shared_ptr<FullTimeHostTargetProvider> &provider) {
++  const auto input=make_target_inputs(s,setup,in,census,scope_binding);
++  FullTimeHostTargetDraft draft;
++  {
++    TargetCallbackGuard guard(s);
++    draft=provider->apply(input);FullTimeAccess::live(s);
++    provider->validate_current(input,draft);FullTimeAccess::live(s);
++  }
++  validate_target_draft(setup,*input,draft);
++  auto receipt=std::make_shared<FullTimeHostTargetReceipt>();receipt->input=input;
++  receipt->output=draft; // deep copy; no returned mutable storage survives here
++  receipt->sha256=target_receipt_digest(*input,receipt->output);
++  in.cells=receipt->output.cells;chem8::rehash_inputs(in,receipt->sha256);
++  return std::shared_ptr<const FullTimeHostTargetReceipt>(std::move(receipt));
++}
++void validate_target_provider(FullCollision &s,const chem8::Setup &setup,
++    const std::shared_ptr<FullTimeHostTargetProvider> &provider,const FullTimeHostTargetReceipt &receipt) {
++  validate_target_draft(setup,*receipt.input,receipt.output);
++  require(receipt.sha256==target_receipt_digest(*receipt.input,receipt.output),"host target receipt changed");
++  TargetCallbackGuard guard(s);provider->validate_current(receipt.input,receipt.output);FullTimeAccess::live(s);
++}
++} // namespace full_time_detail
