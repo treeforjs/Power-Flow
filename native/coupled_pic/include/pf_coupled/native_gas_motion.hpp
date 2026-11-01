@@ -30,7 +30,8 @@ struct View {
 };
 struct Records {
   std::vector<g::FlowRecord> births, sinks;
-  std::vector<g::MoverRecord> movers;
+  std::vector<g::CensusRow> before_census, after_census;
+  std::vector<g::ExitRecord> exits;
   // Gas owner's historical wall/* aggregate combines all population exits.
   // Preserve the native kind/surface so the common ledger can distinguish
   // conductor heating from feed/exterior escape; never assign both as heat.
@@ -143,8 +144,8 @@ inline g::FlowRecord flow(const g::Configuration &cfg, const Species &sp, const 
 } // namespace detail
 
 inline Records prepare(const g::Configuration &cfg, const View &v, std::size_t cap) {
-  need(cap > 0 && cap <= 1000000 && cfg.transport == g::Transport::carrier_shares,
-       "bounded carrier-shares transport required");
+  need(cap > 0 && cap <= 1000000 && cfg.transport == g::Transport::census_conservative,
+       "bounded census-conservative transport required");
   need(!v.has_merge, "merge/split gas transport not yet qualified");
   const auto sp = detail::species(cfg);
   const auto before = detail::rows(cfg, sp, v.before, cap);
@@ -183,7 +184,6 @@ inline Records prepare(const g::Configuration &cfg, const View &v, std::size_t c
     need(same(detail::internal(e0, r->packet_id), detail::internal(e1, r->packet_id)),
          "pre-motion carried internal energy changed");
   }
-  std::vector<std::uint64_t> sunk;
   std::set<std::uint64_t> sinks;
   if (v.sinks) {
     need(v.sinks->accepted_step == v.accepted_step && v.sinks->records.size() <= cap &&
@@ -219,7 +219,8 @@ inline Records prepare(const g::Configuration &cfg, const View &v, std::size_t c
       // Sink K/P are evaluated at the actual incident velocity, not at the
       // beginning of the field push. Grid attribution uses the origin cell.
       for (int d = 0; d < 3; ++d) f.u[d] = k.incident_proper_velocity_m_s[d];
-      out.sinks.push_back(f); out.sink_destinations.push_back(k); sunk.push_back(k.native_id);
+      out.sinks.push_back(f); out.sink_destinations.push_back(k);
+      out.exits.push_back({k.native_id, conductor ? g::ExitDestination::conductor : g::ExitDestination::exterior});
     }
   }
   need(after.size() + sinks.size() == start.size(), "unreported transport birth/sink");
@@ -229,8 +230,8 @@ inline Records prepare(const g::Configuration &cfg, const View &v, std::size_t c
     need(same(detail::internal(e1, r->packet_id), detail::internal(e2, r->packet_id)),
          "transport changed carried internal energy");
   }
-  const auto from = detail::census_rows(start, sp), to = detail::census_rows(after, sp);
-  out.movers = g::movers(cfg, from, to, sunk);
+  out.before_census = detail::census_rows(start, sp);
+  out.after_census = detail::census_rows(after, sp);
   std::sort(out.births.begin(), out.births.end(), [](const auto &a, const auto &b) { return a.native_id < b.native_id; });
   // Native sink arrays are canonical. Refuse reordered arrays rather than
   // separating the one-to-one destination and flow correspondence.
