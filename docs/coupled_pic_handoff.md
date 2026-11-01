@@ -1,6 +1,6 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-10-31 21:15 MDT. Keep this file current at every milestone so
+Last updated 2026-10-31 21:50 MDT. Keep this file current at every milestone so
 the work can be picked up from it alone.
 
 ## What this is
@@ -106,4 +106,38 @@ production, the melt inertia model, sub-cycling K.
    receipts under its outputs directory; rebuild and rerun tests before trusting
    anything that was mid-edit.
 4. Commit sealed components here (filtered copies, no large checkpoints) and push
-   to `neutral-spectral-observation-wip-20261028`.
+   to `master`. Work is committed directly to `master`; no long-lived side branches.
+
+## Repository history
+
+On 2026-10-31 every branch was merged into `master` and then deleted. The
+superseded `research/flash-publication-foundation` docs were recorded as merged
+with the current text kept; merged files received the workspace-path
+normalization (`artifacts/path-normalization-20261031`). Last commit of each
+deleted branch, for restoring one (`git branch <name> <commit>`):
+
+| Branch | Last commit |
+|---|---|
+| `electrode-heat-feedback-20261029` | `373c91a83c9c` |
+| `electrode-heat-source-v3-20261029` | `51a867d96b78` |
+| `electrode-heat-source-v4-20261030` | `c65ac51874f0` |
+| `neutral-spectral-observation-wip-20261028` | `1da3b3a6653d` |
+| `research/flash-publication-foundation` | `18d155b919e7` |
+| `solid-material-feedback-pilot-20261029` | `19eee7e4d15e` |
+| `ss304-melt-ablation-proposal-v1-20261030` | `1c116564991e` |
+| `ss304-native-metal-transfer-20261029` | `ef5e28f47f67` |
+| `ss304-spatial-metal-transfer-20261029` | `f2d3f93e494d` |
+| `ss304-thermal-expansion-20261029` | `7ff9faad2ff3` |
+| `ss304-thermal-properties-20261029` | `1445d9cda4fd` |
+| `ss304-thermal-properties-v2-20261029` | `ca74b667f19a` |
+| `surface-emission-20261029` | `52be614fa3dc` |
+
+## Known issues
+
+- 14 tests in `tests/test_pilot_comparison_bridge.py` and
+  `tests/test_pilot_comparison_evidence.py` fail on Linux checkouts:
+  `data/dissertation/pilot_comparison_manifest.json` records the sha256 of
+  `data/dissertation/figure_4_20_profiles.csv` with CRLF line endings
+  (53a0ac56...), while the repository stores LF bytes (551a6cbb...). Fails
+  identically before and after the 2026-10-31 merge; the rest of the suite
+  passes (3636 passed, 39 skipped).
