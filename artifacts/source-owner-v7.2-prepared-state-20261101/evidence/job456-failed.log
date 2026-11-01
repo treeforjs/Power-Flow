@@ -1,0 +1,82 @@
+===== simq job 456: source-v72-prepared-state-c3-u1 =====
+submitted: 2026-11-01T07:27:10Z
+started:   2026-11-01T07:27:12Z
+cwd:       /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101
+partition: powerflow
+P-cores:   5
+GPUs:      none
+memory:    6G (swap 1G)
+time:      00:20:00
+borrowed:  CPU 5 from raikou-mfem (free); on preempt: freeze
+unit:      simq-job-456-3ffd8be8fa79.service
+command:   /usr/bin/python -I -c 'import subprocess,sys; r="run_source_v7.py"; subprocess.run([sys.executable,"-I",r,"build","c3"],check=True); subprocess.run([sys.executable,"-I",r,"build","u1","ubsan"],check=True); subprocess.run([sys.executable,"-I",r,"run","c3","u1"],check=True)'
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core5.lock (shared)
+compile-test_registry_mass 0 3.9
+compile-legacy_kernel_new 0 0.3
+compile-legacy_kernel_old 0 0.3
+compile-surface_emission_old 0 0.7
+compile-micro_layer_old 0 0.4
+compile-test_source_v7 0 19.7
+compile-test_source_v6_on_v7 0 18.6
+compile-test_surface_v7 0 5.2
+compile-fast_emission 0 1.2
+compile-emission_hot_v7 0 0.5
+compile-motion_provider_v3 0 5.6
+compile-kinetic_boundary 0 1.4
+compile-surface_emission 0 0.7
+compile-micro_layer 0 0.4
+link-test_registry_mass 0 0.2
+link-legacy_kernel_new 0 0.0
+link-legacy_kernel_old 0 0.0
+link-test_source_v7 0 0.2
+link-test_source_v6_on_v7 0 0.2
+link-test_surface_v7 0 0.1
+{"build": "/home/treefor/projects/.workspace/outputs/source-owner-v7.2-prepared-state-20261101/c3/build", "status": "passed", "error": ""}
+compile-test_registry_mass 0 5.2
+compile-legacy_kernel_new 0 0.3
+compile-legacy_kernel_old 0 0.3
+compile-surface_emission_old 0 0.8
+compile-micro_layer_old 0 0.4
+compile-test_source_v7 0 25.2
+compile-test_source_v6_on_v7 0 25.2
+compile-test_surface_v7 0 6.3
+compile-fast_emission 0 1.6
+compile-emission_hot_v7 0 0.6
+compile-motion_provider_v3 0 7.3
+compile-kinetic_boundary 0 2.1
+compile-surface_emission 0 0.8
+compile-micro_layer 0 0.4
+link-test_registry_mass 0 0.3
+link-legacy_kernel_new 0 0.0
+link-legacy_kernel_old 0 0.0
+link-test_source_v7 0 0.3
+link-test_source_v6_on_v7 0 0.3
+link-test_surface_v7 0 0.1
+{"build": "/home/treefor/projects/.workspace/outputs/source-owner-v7.2-prepared-state-20261101/u1/build", "status": "passed", "error": ""}
+normal-test_registry_mass 0 0.2
+normal-legacy_kernel_new 0 0.0
+normal-legacy_kernel_old 0 0.0
+normal-test_surface_v7 0 47.9
+normal-test_source_v7 2 0.4
+normal-test_source_v6_on_v7 0 2.2
+sanitizer-ubsan-test_registry_mass 0 0.2
+sanitizer-ubsan-legacy_kernel_new 0 0.1
+sanitizer-ubsan-legacy_kernel_old 0 0.1
+sanitizer-ubsan-test_surface_v7 0 55.5
+sanitizer-ubsan-test_source_v7 2 0.6
+sanitizer-ubsan-test_source_v6_on_v7 0 5.4
+{"run": "/home/treefor/projects/.workspace/outputs/source-owner-v7.2-prepared-state-20261101/c3/run-012930", "all_passed": false}
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import subprocess,sys; r="run_source_v7.py"; subprocess.run([sys.executable,"-I",r,"build","c3"],check=True); subprocess.run([sys.executable,"-I",r,"build","u1","ubsan"],check=True); subprocess.run([sys.executable,"-I",r,"run","c3","u1"],check=True)
+                                                                                                                                                                                           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/usr/bin/python', '-I', 'run_source_v7.py', 'run', 'c3', 'u1']' returned non-zero exit status 1.
+========================================
+finished:  2026-11-01T07:31:23Z
+exit code: 1
+state:     failed
+===== simq job 456 finished =====

@@ -1,0 +1,76 @@
+{
+  "schema": "source-v7.2-prepared-state-qualification-v1",
+  "status": "passed",
+  "runtime": "/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101",
+  "source_identity_sha256": "7c185e1d2838a6257b72810215a0fe1cf9b33215cd82db77409ac3250984dc25",
+  "job": 468,
+  "normal_cases": 128,
+  "ubsan_cases": 128,
+  "legacy_default_bytes": {
+    "equal": true,
+    "new_sha256": "f2bd3bf481198d201e8a255fcdd68f89019dcb7464d8417676d3b38f2100584c",
+    "old_sha256": "f2bd3bf481198d201e8a255fcdd68f89019dcb7464d8417676d3b38f2100584c"
+  },
+  "allocation_fault_checks": [
+    {
+      "evidence": {
+        "eventual_success": true,
+        "failure_sites": 22,
+        "scope": "operator new/new[]; external C-library allocation is not injected"
+      },
+      "group": "prepared-state",
+      "name": "ordinary C++ allocation failures in prepublication projection preserve accepted state and trial",
+      "passed": true
+    },
+    {
+      "evidence": {
+        "eventual_success": true,
+        "failure_sites": 47
+      },
+      "group": "prepared-state",
+      "name": "allocation faults in actual microscopic layer serialization refuse or return the exact full digest",
+      "passed": true
+    }
+  ],
+  "verified_after_completion": {
+    "both_build_sources": true,
+    "all_compiler_dependencies": true,
+    "both_build_binaries": true
+  },
+  "builds": {
+    "c4": {
+      "variant": "normal",
+      "binary_sha256": {
+        "test_registry_mass": "0282b9d1bd3a179df11b22d372149efed8f858d4578537a864309e831788f661",
+        "legacy_kernel_new": "a262bf30e68edf54968d59367a3f67dcebfd1a4818a0db729a54a550a44d8b10",
+        "legacy_kernel_old": "742e377c83b4658276b5fad2d092699cf544fb11c52273474b44e0f4171bfdbd",
+        "test_source_v7": "ba34b6489e6b0f56da8dabbd7e8c854a5e129a2f46e882a03d5e18e914f0a947",
+        "test_source_v6_on_v7": "ad6516eeeb568a94e3999349b6816388dddba21d93429924cb5245fea5eefcd1",
+        "test_surface_v7": "f678ce95802d9914304e1c8ccf49a6f8fa22ef9470909a2acd0ed022b6669370"
+      },
+      "dependency_count": 824
+    },
+    "u2": {
+      "variant": "ubsan",
+      "binary_sha256": {
+        "test_registry_mass": "8344c1384fe1212e72b78a8cde0a3baf7c0b10064d8d237815d4df939a38a64e",
+        "legacy_kernel_new": "c86ca6573b76cd4902a5962ea12ca027cfa58e19b98980386398d5259481b56d",
+        "legacy_kernel_old": "da3ba79dcf1302323be52589bf43cbe29e0650bc0c7962bfc9202dc3316479b2",
+        "test_source_v7": "90df7fdfc888427c98a8c23dfd21f4025454de5300cbfd3051f6a11ded37350d",
+        "test_source_v6_on_v7": "6823b6965326aef936b27733381b00513e2f58b20834729478546e6ace098bab",
+        "test_surface_v7": "fa68e7e886cedfd2b86cce70de00df97e9e26a36e9e9cec3dccad4a29251335e"
+      },
+      "dependency_count": 824
+    }
+  },
+  "limits": [
+    "Declared slice thermal clock is bound/preflighted by coordinator to actual Hall proposal; source API does not own Hall.",
+    "Tests use actual heat-only/source/native-registry components, not full Hall/PIC/gas coupled evolution.",
+    "New-mass scalar emission performance, chemical stock-reference adapter and unsupported wall/metal/microscopic bridge integration remain separate gates."
+  ],
+  "earlier_attempts": {
+    "453": "Duplicate same-namespace fast-header declarations in baseline parity fixture; exact baseline header copies now share one declaration.",
+    "454": "Copied unchanged Hall thermal/material headers depended on pragma-once timestamp coincidence; private wrappers now include exact pinned originals.",
+    "456": "New allocation sweep exposed inherited unchecked ostream SHA formatting returning truncated digest; fixed checked SHA + fixed-size hex. Fractional-stock fixture corrected from noncanonical 64+2^-45 to 64+2^-50."
+  }
+}

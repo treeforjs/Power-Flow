@@ -1,0 +1,42 @@
+===== simq job 454: source-v72-prepared-state-c2-u1 =====
+submitted: 2026-11-01T07:25:45Z
+started:   2026-11-01T07:25:46Z
+cwd:       /home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101
+partition: powerflow
+P-cores:   5
+GPUs:      none
+memory:    6G (swap 1G)
+time:      00:20:00
+borrowed:  CPU 5 from raikou-mfem (free); on preempt: freeze
+unit:      simq-job-454-d5bf8ce72e2b.service
+command:   /usr/bin/python -I -c 'import subprocess,sys; r="run_source_v7.py"; subprocess.run([sys.executable,"-I",r,"build","c2"],check=True); subprocess.run([sys.executable,"-I",r,"build","u1","ubsan"],check=True); subprocess.run([sys.executable,"-I",r,"run","c2","u1"],check=True)'
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core5.lock (shared)
+compile-test_registry_mass 0 4.1
+compile-legacy_kernel_new 0 0.3
+compile-legacy_kernel_old 0 0.3
+compile-surface_emission_old 0 0.7
+compile-micro_layer_old 0 0.4
+compile-test_source_v7 0 20.2
+compile-test_source_v6_on_v7 1 4.4
+compile-test_surface_v7 0 5.0
+compile-fast_emission 0 1.2
+compile-emission_hot_v7 0 0.5
+compile-motion_provider_v3 0 5.4
+compile-kinetic_boundary 0 1.4
+compile-surface_emission 0 0.7
+compile-micro_layer 0 0.4
+{"build": "/home/treefor/projects/.workspace/outputs/source-owner-v7.2-prepared-state-20261101/c2/build", "status": "failed", "error": "compile-test_source_v6_on_v7 failed:\nass Phase { solid = 0, mushy = 1, liquid = 2 };\n      |            ^~~~~\n/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-canonical-driver-20261029/bindings/heat-v2/material-v2/sealed1800.hpp:13:12: note: previous definition here\n   13 | enum class Phase { solid = 0, mushy = 1, liquid = 2 };\n      |            ^~~~~\n/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101/vendor/heat-v2/material-v2/sealed1800.hpp:14:8: error: redefinition of 'struct ss304::Values'\n   14 | struct Values {\n      |        ^~~~~~\n/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-canonical-driver-20261029/bindings/heat-v2/material-v2/sealed1800.hpp:14:8: note: previous definition of 'struct ss304::Values'\n   14 | struct Values {\n      |        ^~~~~~\n/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101/vendor/heat-v2/material-v2/sealed1800.hpp:21:8: error: redefinition of 'struct ss304::DepositResult'\n   21 | struct DepositResult { Values state; double signed_numerical_energy_residual_j; };\n      |        ^~~~~~~~~~~~~\n/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-canonical-driver-20261029/bindings/heat-v2/material-v2/sealed1800.hpp:21:8: note: previous definition of 'struct ss304::DepositResult'\n   21 | struct DepositResult { Values state; double signed_numerical_energy_residual_j; };\n      |        ^~~~~~~~~~~~~\n/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101/vendor/heat-v2/material-v2/sealed1800.hpp:23:7: error: redefinition of 'class ss304::Model'\n   23 | class Model {\n      |       ^~~~~\n/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-canonical-driver-20261029/bindings/heat-v2/material-v2/sealed1800.hpp:23:7: note: previous definition of 'class ss304::Model'\n   23 | class Model {\n      |       ^~~~~\n/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101/vendor/heat-v2/material-v2/ss304_thermal_v2.hpp:7:12: error: multiple definition of 'enum class ss304v2::Qualification'\n    7 | enum class Qualification { evaluated_solid_1500=0, nominal_1800=1, source_conditioned_liquid_3000=2 };\n      |            ^~~~~~~~~~~~~\n/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development/hall-canonical-driver-20261029/bindings/heat-v2/material-v2/ss304_thermal_v2.hpp:7:12: note: previous definition here\n    7 | enum class Qualification { evaluated_solid_1500=0, nominal_1800=1, source_conditioned_liquid_3000=2 };\n      |            ^~~~~~~~~~~~~\n/home/treefor/projects/runtimes/pic-electrode-heat-source-v7.2-prepared-state-20261101/vendor/heat-v2/material-v2/ss304_thermal_v2.hpp:8:8: error: redefinition of 'struct ss304v2::EnergySupport'\n    8 | struct EnergySupport { double minimum_j,maximum_j,cold_margin_j,hot_margin_j; int range_st"}
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import subprocess,sys; r="run_source_v7.py"; subprocess.run([sys.executable,"-I",r,"build","c2"],check=True); subprocess.run([sys.executable,"-I",r,"build","u1","ubsan"],check=True); subprocess.run([sys.executable,"-I",r,"run","c2","u1"],check=True)
+                                                 ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/usr/bin/python', '-I', 'run_source_v7.py', 'build', 'c2']' returned non-zero exit status 1.
+========================================
+finished:  2026-11-01T07:26:31Z
+exit code: 1
+state:     failed
+===== simq job 454 finished =====

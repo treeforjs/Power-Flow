@@ -1,0 +1,75 @@
+Source v7.2: precomputed publication-state identity
+
+Namespace remains electrode_heat_v7 for separate-version drop-in linkage. This
+successor is based on qualified source v7.1, whose model and serialized bytes are
+preserved. A single private encode_state implementation hashes both current and
+projected states. No state/checkpoint schema or physics parameter has changed.
+
+struct CandidateThermalClock {
+  std::string configuration_signature;
+  double time_s = 0;
+  std::uint64_t revision = 0;
+};
+std::string Owner::bound_thermal_configuration_signature() const;
+std::string Owner::candidate_state_sha256(
+  const Trial&, const FinalFieldView&, const CandidateThermalClock&) const;
+std::string Owner::unchanged_state_sha256_after_thermal_step(
+  const electrode_heat_v2::Epoch&, const CandidateThermalClock&) const;
+
+The signature accessor returns an independent value for the actual bound
+heat-only slice. Epoch has no configuration signature. The declared clock must
+use this slice signature, exact base+dt time and base+1 revision (overflow
+refused). Do not substitute the whole Hall configuration hash. The coordinator
+must bind the declared clock and slice association to its genuine Hall proposal,
+preflight all owners, then publish in one nonthrowing critical section.
+
+candidate_state_sha256 calls the actual source Trial preflight while Hall and
+source remain at the accepted base. It checks exact final field, trial lifetime,
+generation, content, stock/layers, configured interval cap, and retained-layer
+endpoint. It encodes the full candidate source state at the declared thermal
+clock. It may allocate or throw and must be called before ANY owner publication.
+The returned string does not authorize publication or independently validate Hall.
+
+unchanged_state_sha256_after_thermal_step validates the accepted epoch and the
+same declared clock, then encodes existing stock/cumulative ledgers at that clock.
+It refuses any retained active microscopic layer, which requires a genuine
+advanced source trial. It is NOT a license to omit emission, desorption, wall or
+phase evolution; the coordinator remains responsible for proving the slice has
+no source-state change and satisfying the common step/physics/energy policy.
+
+Store all resulting strings before publication, complete all-owner preflight,
+and publish Hall/source/arrival/native/gas using their qualified no-fail APIs.
+Swap the precomputed strings into the coordinator accepted record. Do not compute
+or allocate a source digest after the first owner publishes. The source API does
+not own or advance Hall. It leaves existing commit/publish APIs unchanged.
+
+Qualification covers empty/unchanged and populated neutral trials, genuine
+active microscopic-layer source trials with actual registry electron mass, a
+second retained-layer interval, restored actual thermal/source checkpoints,
+foreign/stale/moved trials, exact field/config/time/revision guards, and ordinary
+C++ allocation failures prior to publication. Tests use the existing heat-only
+Coupler fixture, not a claim of full Hall/PIC/gas integration. Shared frozen
+libraries are not rebuilt or modified. New-mass scalar emission runtime and the
+chemical-reference/wall/metal/bridge integration gates from v7.1 remain open.
+
+Additional observational APIs for source/native reference and bridge mapping:
+std::span<const Candidate> Trial::source_candidates() const noexcept;
+std::span<const Handoff> Trial::source_handoffs() const noexcept;
+These are the actual sealed Trial members. Views expire on Trial move,
+publication or destruction, and moved-from access returns empty spans. They
+permit no mutable alias. Candidate exposes the authentic birth sample, layer
+state, patch index, microscopic paths and heat exchange; Handoff exposes the
+actual particle, time, displacement, current and content identity. Existing
+Owner preflight must still validate lifetime/content/field before using them.
+
+Unmodified thermal/material types used by Hall are included through exact pinned
+original headers, with private wrappers and compiler-dependency hashes. This
+avoids relying on identical timestamps of #pragma-once copies. Modified emission
+kernel and bound-layer codec remain private; no frozen dependency was modified.
+
+Allocation regression found an inherited issue: unchecked ostream hexadecimal
+formatting could return a truncated digest after allocation failure. v7.2 uses
+checked SHA256 plus a fixed 64-character result buffer, preserving all successful
+bytes and refusing allocation failure. Both empty and actual microscopic-layer
+projections have bounded per-allocation fault sweeps. Bound-layer serialization
+already checks stream state; its failure is also exercised.
