@@ -1,0 +1,21 @@
+# Primary OH total-ionization BEB component
+
+This isolated diagnostic component implements the published Q=1 Binary Encounter Bethe formula using the exact ALeCS MP2 OH orbital inputs. It produces a **total single-ionization cross section**, not a rate coefficient or branch-resolved reaction. It does not modify any native runtime, chemistry registry, production binding or coverage policy.
+
+The primary source is Gaches et al., A&A 684, A41 (2024), DOI [10.1051/0004-6361/202348293](https://doi.org/10.1051/0004-6361/202348293), with [author data at commit 06695e72aea538e82b896c14e5dad01900d38a0d](https://github.com/alecs-db/ALeCS-db/tree/06695e72aea538e82b896c14e5dad01900d38a0d). The nine occupied spin orbitals retain the original five alpha/four beta identities. The source notebook's Rydberg constant (13.605 eV) and Bohr radius (5.29177211e-11 m) are preserved. The paper's declared 10–5000 eV domain is enforced although the raw table extends to 1 MeV. The source total is calculated, not measured, and is not validated here against OH measurements.
+
+`load()` requires the exact source SHA. Construction and each evaluation additionally authenticate the immutable orbital tuple against a canonical digest; direct construction, replacement or forced mutation cannot silently retain the source label. Only explicit `source-BEB-total-only` mode and typed finite target-rest incident energies in eV for OH(X2Pi) are accepted. A fixed Decimal context prevents ambient rounding, precision or exponent settings from changing results. Cross sections are returned in m².
+
+The calculated lowest orbital onset is 12.728 eV, whereas the current registry ground OH→OH+ energy cost is 13.018393286916416 eV and the finite-target laboratory threshold is 13.018813320400712 eV. No values are shifted or clipped to hide that difference. `require_event()` always refuses: orbital ionization totals do not determine OH+ versus fragment branches, ion electronic/vibrational state, secondary-energy partition or angular distribution. Ground dissociative channels become energetically possible near 18.0095 eV (O+H+) and 18.0291 eV (O++H), so a parent-only assignment throughout the keV range is unjustified. Multiple-ionization and high-energy tails remain outside this component.
+
+SimQueue job 484, one allocated CPU core, frozen userspace and 1 GiB reservation, passed eight test methods including ten provenance refusal cases and reproduction of the original v1 empty-model provenance defect. It compared 138 primary printed table rows with conservative intervals for printed energy/operand quantization, and 140 actual shared chemistry-kernel values against the independent 60-digit formula. Maximum shared-kernel relative error was 3.73e-15. The maximum difference at the printed table abscissa was 1.05e-4; all differences were enclosed by the documented printed-input intervals. These are numerical implementation checks, not scientific uncertainty estimates. Kernel replay was byte-identical. Original v1 job 470 remains unchanged on disk.
+
+Reproduce from `/home/treefor/projects/runtimes/oh-beb-primary-v1.1-20261101` with its exact INPUTS.json dependencies through SimQueue:
+
+```sh
+simq submit -p powerflow -c 1 --mem 1G -t 00:05:00 -n oh-beb-primary-v1.1 -e CUDA_VISIBLE_DEVICES= -- /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 -I /home/treefor/projects/runtimes/oh-beb-primary-v1.1-20261101/tools/check.py
+```
+
+Raw orbital tables, author cross-section arrays, PDFs, generated operand header, binaries and kernel value arrays remain outside git. No explicit redistribution license was found in the pinned author repository; this artifact contains original loader/formula/tests, source hashes and aggregate verification evidence only. NIST independently describes BEB as nonrelativistic and unsuitable above 10 keV; that general ceiling does not expand this source-specific 5 keV admission window ([NIST theory documentation](https://pml.nist.gov/PhysRefData/Ionization/intro.html)).
+
+`production_qualified=false`, `physical_model_validated=false`, `network_complete=false`, `native_adopted=false`. Strict missing-group, threshold and unknown-tail refusals remain unchanged.

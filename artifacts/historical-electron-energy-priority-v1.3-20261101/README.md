@@ -1,0 +1,15 @@
+# Historical electron-energy search priority
+
+Read-only analysis of the preserved paused electron-only checkpoint, SHA256 `0a5a91ed93821e2487167b69e463dc1d56ee33a8df03707c96bb7bfc69c0ced3`, at accepted physical time 26.47868472199812 ns, step 437462. No simulation advanced or resumed. This is provisional source-search guidance, **not a coupled-plasma EEDF or a chemistry reachability qualification**.
+
+SimQueue job 482 used one allocated CPU core and frozen userspace. The reader retains the original comparator's binary ABI, complete length, finite value, identity, geometry, positive mass/weight, reservoir and history checks; it explicitly recognizes the pinned pause-snapshot seed schema. Both the input checkpoint and pause receipt are hash-bound. The driver stores a relative native clock (25.72889666650612 ns) and reports heating start plus that clock (start 0.749788055492 ns); this relation is checked exactly against the pause receipt and initial history row. The human-readable seed ns field permits one binary64 display-rounding unit; the actual observed difference is zero. Six malformed seed controls refuse.
+
+There are 46,811 macroparticles representing 1466.4512 electrons. The represented-particle-weight energy median is 1.191 keV, 90th percentile 4.381 keV and maximum 8.122 keV. About 7.64% of represented electrons exceed 5 keV. Energies are relativistic laboratory kinetic energies reconstructed from stored proper velocities; they equal electron-target collision energies only for stationary targets. No cross sections, rates or EEDF from another model are inferred.
+
+This snapshot used the conditional recalled 220 kV feed/110 kV midpoint pulse, coarse regenerated magnetic fields, symmetry-reconstructed anode temperature and height-averaged 2D space charge. It omitted ions, gas/collision feedback and phase changes; sheath/grid/material convergence was unqualified. Its particles cannot establish present or future target reachability. The 220 keV single-transit field-work scale is retained as a conservative search envelope, not a rigorous trajectory-energy bound.
+
+The result prioritizes keV channels beyond the narrow OH excitation and 150 eV H2 dissociation tables. It cannot justify omitting cold channels, selecting a future EEDF or admitting unsupported tails. Current all-species and thermal-support guards remain mandatory.
+
+Earlier harness failures are preserved: job 471 rejected the additional seed scope field; 475/477 incorrectly compared the display's physical time directly with the native relative clock. The corrected v1.3 reader follows the pinned original driver's explicit `start + time_s` convention. The preserved source files and inputs were never changed.
+
+Reproduce by submitting the runtime `tools/check.py` with its exact INPUTS.json through one-core SimQueue and the frozen launcher. The checkpoint, comparator and original driver remain external pinned inputs. `production_qualified=false`, `physical_model_validated=false`, `network_complete=false`, `chemistry_reachability_qualified=false`.

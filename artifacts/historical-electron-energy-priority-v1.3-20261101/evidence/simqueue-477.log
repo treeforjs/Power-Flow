@@ -1,0 +1,31 @@
+===== simq job 477: historical-electron-priority-v1.2 =====
+submitted: 2026-11-01T07:37:02Z
+started:   2026-11-01T07:37:02Z
+cwd:       /home/treefor/projects/Power-Flow
+partition: powerflow
+P-cores:   7
+GPUs:      none
+memory:    1G (swap 1G)
+time:      00:05:00
+unit:      simq-job-477-8e4cec5908ab.service
+command:   /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 -I /home/treefor/projects/runtimes/historical-electron-energy-priority-v1.2-20261101/tools/check.py
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core7.lock (exclusive)
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/historical-electron-energy-priority-v1.2-20261101/tools/check.py", line 66, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/treefor/projects/runtimes/historical-electron-energy-priority-v1.2-20261101/tools/check.py", line 30, in main
+    state=reader.read_state(DIRECTORY,m.schema())
+  File "/home/treefor/projects/runtimes/historical-electron-energy-priority-v1.2-20261101/tools/snapshot_reader.py", line 94, in read_state
+    require(abs(seed_info['start_ns']-ledger['time_s']*1e9)<=math.ulp(seed_info['start_ns']),'seed/checkpoint display-time mismatch')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-profile/cpu-independent-review/checkpoint-validation/compare_saved_pic.py", line 26, in require
+    if not condition: raise Invalid(message)
+                      ^^^^^^^^^^^^^^^^^^^^^^
+historical_comparator.Invalid: seed/checkpoint display-time mismatch
+========================================
+finished:  2026-11-01T07:37:03Z
+exit code: 1
+state:     failed
+===== simq job 477 finished =====
