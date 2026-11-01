@@ -1,0 +1,116 @@
+Transient SimQueue timing shield v1 — reviewable canary procedure
+2026-11-01
+
+STATUS: implemented and tested against a simulated filesystem only. No root
+staging, controller write, live canary or numerical benchmark has been run.
+Root review is required before this procedure is exercised in this task.
+
+Purpose and limits
+------------------
+The normal SimQueue owner job keeps its exact unit/cgroup, CPU6 affinity,
+physical-core lease and 4 GiB MemoryMax. A separate root watchdog temporarily
+makes that exact job cgroup a remote isolated cpuset partition for CPU6/14.
+No task is moved, no foreign task is signaled, no IRQ affinity is changed.
+The first version accepts ONLY the exact waiting canary command below. It
+cannot attach to a numerical benchmark or the old paused PIC run.
+
+Linux documents remote partitions and their required exclusive ancestry at:
+https://docs.kernel.org/admin-guide/cgroup-v2.html#cpuset
+This design is supported by those interfaces; the installed kernel still
+requires the live canary. Simulated behavior is not kernel qualification.
+
+The bounded child watchdog holds the study shared timing-wanted lock and
+exclusive cpu14 lock until rollback completes, runs outside the job cgroup,
+and pins only itself away from CPU6/14. Parent pipe death or TERM/INT/HUP
+requests cleanup. There is NO independent protection from SIGKILL of the
+watchdog, killing the entire helper cgroup, kernel failure or power loss.
+A root-only write-ahead journal remains for inspection/recovery. Do not
+automatically replay it against a changed cgroup or inode.
+
+The isolated partition excludes other userspace and unbound workqueues.
+Bound IRQs and per-CPU kernel work can remain. This changes none of the
+existing timing guard thresholds: later timings still require the actual
+quiet-SMT/memory checks, including rejection above 1% sibling load. This
+canary measures no simulation speed and permits no speedup claim.
+
+Preparation (review first; commands here were NOT executed)
+--------------------------------------------------------
+1. Inspect host.py, shield.py, canary_wait.py, tests and SOURCE-SHA256.json.
+   Verify every source hash and the helper_source_identity in that manifest.
+   Run the metadata tests with the pinned interpreter if desired:
+
+   /home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen -I \
+     /home/treefor/projects/runtimes/transient-simq-timing-shield-v1-20261101/test_shield.py
+
+2. Stage ONLY the reviewed host.py and shield.py into a new root-owned mode0700
+   directory under /run, with root-owned mode0600 files. Do this before queueing
+   the canary. Do not overwrite an existing staging directory. Verify copied
+   bytes against the manifest again. Privileged execution refuses mutable
+   project-tree source and any writable/symlink ancestor in its staging path.
+   No installation, policy file, boot option or persistent service is needed.
+
+3. Inspect simq partitions and actual processes. Wait for the existing CPU6
+   job to finish through the normal scheduler. Do not cancel it, take its
+   lease, change priorities, or modify the CPU7/GPU/Spheral/raikou work.
+   Request CPU6 explicitly THROUGH SimQueue; this waits normally for CPU6.
+   Use one submission with an idempotency key:
+
+   simq submit -p powerflow -c 1 --cpus 6 --mem 4G --gpus 0 -t 00:02:00 \
+     --exclusive-timing -n timing-shield-canary \
+     --idempotency-key timing-shield-canary-v1-20261101 \
+     -C /home/treefor/projects/runtimes/transient-simq-timing-shield-v1-20261101 \
+     -- /usr/bin/python -I \
+     /home/treefor/projects/runtimes/transient-simq-timing-shield-v1-20261101/canary_wait.py \
+     --seconds 75
+
+4. Read the submitted job's actual running row/unit. The helper refuses queued,
+   starting, borrowed, wrong-core, changed-unit/token, changed command, GPU,
+   changed memory/lease, foreign restricted-affinity workers, existing
+   partitions/exclusive routing, populated ancestors and low physical memory.
+   Only read the needed scheduler columns; never export env_json. Full launch
+   tokens remain internal; helper stdout and plan output redact launch_token.
+
+5. Within 40 seconds of that job wrapper starting, run the STAGED helper as
+   root with the exact job ID and unit name, helper source identity and canary
+   SHA256 from the reviewed manifest. Example with placeholders:
+
+   /usr/bin/python -I /run/REVIEWED-NEW-STAGING/host.py canary \
+     --job JOB_ID --unit EXACT_SIMQUEUE_UNIT \
+     --source-sha256 REVIEWED_HELPER_SOURCE_IDENTITY \
+     --canary-sha256 REVIEWED_CANARY_SHA256
+
+   An earlier 'plan' invocation with the same arguments is read-only. It is
+   neither lock ownership nor authorization for a different live job. The
+   canary command repeats all admission checks while holding the locks.
+   The helper creates /run/powerflow-timing-canary-JOB_ID (mode0700) and its
+   mode0600 journal. An existing directory refuses a duplicate attempt.
+   It keeps isolation for at most 20 seconds after setup, checks live state
+   every 0.2 seconds, then restores only its own matching writes in reverse.
+   No helper automatically retries a refusal.
+
+Acceptance and cleanup
+----------------------
+Require BOTH the helper and the canary to finish successfully. The canary
+must observe isolated followed by member/controller_absent with unchanged
+affinity, cgroup and MemoryMax. Require the helper's verified isolated event,
+no admission/outsider/cleanup error and a clean final restoration receipt.
+Read back root cpuset.cpus.isolated, the ancestors' controller/exclusive
+values, actual other-job affinities/units and scheduler state. Compare them
+with the captured pre-write values; no other jobs should be interrupted.
+
+Persistent audit storage failure must not prevent safely owned restoration.
+It produces a failure receipt and disqualifies the canary, even if all
+controllers were restored. A changed inode/value or failed restoration
+stops ancestor cleanup rather than overwriting another owner's state. Keep
+the root journal and report the exact conflict for inspection; do not force
+the old values back. Never use cgroup.kill or signal a job for this cleanup.
+
+The internal root-only journal can contain the full scheduler launch token.
+Before any public artifact, parse each JSON line and recursively replace
+the launch_token field with '[redacted]' (host.redacted implements this).
+Do not copy raw internal journals into Git or user-readable evidence.
+
+After reviewed clean restoration, the temporary root staging and journal
+may be archived/redacted and removed. Do not delete evidence on refusal.
+Only after this canary is accepted should a separately reviewed successor
+allow an exact qualified numerical timing command. That work is not done here.
