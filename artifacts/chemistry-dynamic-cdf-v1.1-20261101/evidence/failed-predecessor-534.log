@@ -1,0 +1,28 @@
+===== simq job 534: chemistry-dynamic-cdf-v1 =====
+submitted: 2026-11-01T07:59:03Z
+started:   2026-11-01T07:59:04Z
+cwd:       /home/treefor/projects/Power-Flow
+partition: powerflow
+P-cores:   6
+GPUs:      none
+memory:    2G (swap 1G)
+time:      00:05:00
+unit:      simq-job-534-7df5d91ca962.service
+command:   /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 -I /home/treefor/projects/runtimes/chemistry-dynamic-cdf-v1-20261101/tools/check.py
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock (exclusive)
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/chemistry-dynamic-cdf-v1-20261101/tools/check.py", line 48, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/treefor/projects/runtimes/chemistry-dynamic-cdf-v1-20261101/tools/check.py", line 26, in main
+    first=run([str(fixture),str(blob),sha(blob)],'fixture');assert first==run([str(fixture),str(blob),sha(blob)],'fixture-repeat')
+  File "/home/treefor/projects/runtimes/chemistry-dynamic-cdf-v1-20261101/tools/check.py", line 20, in run
+    assert (p.returncode==0)==good,(label,p.stderr.decode()[-2000:]);return p.stdout
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('fixture', "terminate called after throwing an instance of 'pfc::Error'\n  what():  CDF process closure\n")
+========================================
+finished:  2026-11-01T07:59:10Z
+exit code: 1
+state:     failed
+===== simq job 534 finished =====
