@@ -1,11 +1,11 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-11-01 00:56 MDT. Keep this file current at every milestone so
+Last updated 2026-11-01 01:03 MDT. Keep this file current at every milestone so
 the work can be picked up from it alone. Snapshots of the in-progress workers'
 own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
 each update); the live versions are the `HANDOFF.txt` files named below.
 
-## Current takeover status (2026-11-01 00:56 MDT)
+## Current takeover status (2026-11-01 01:03 MDT)
 
 The original audit fixes are pushed. The exact coordinator fast paths and
 native birth-validation reuse passed functional comparisons against their
@@ -26,7 +26,8 @@ and GPU/verified execution with equal state, motion, and publication digests
 (`a885dcb`, `8b8ec0e`). Native v8.3 exports admitted events and exact target
 carrier operands; its CPU/sanitizer milestone and gas v1.4's private candidate
 lifetime/generation/revision/step binding are preserved in `e12b0bd`.
-Native GPU job 363 and gas GPU job 392 remain separate pending qualifications.
+Native GPU job 363 and gas GPU job 392 passed; the final component releases
+are preserved in `cd7dd29` and `5c681d9`. They do not qualify common-owner closure.
 
 The records adapter passed 6,522 CPU and sanitized checks: 1,686 first-stage
 events, a multicarrier exact remainder, and all operands of 1,036 second-stage
@@ -37,7 +38,7 @@ or GPU adapter qualification follows from those tests. Target feedback before
 sampling and common-owner publication remain unqualified.
 
 Native v8.4's opt-in all-species encounter guard has passed 55 actual native
-CPU controls; its final sanitizer check is pending. It refuses missing reaction
+CPU and sanitized controls (`cd7dd29`). It refuses missing reaction
 groups before target filtering and explicitly refuses device execution. The
 next isolated native v8.5 successor adds CPU target feedback and closes the
 species-energy-reference registration gap. Both remain development components.
@@ -58,9 +59,11 @@ Use `outputs/electron-mapping-resume.json` under the workspace for current jobs.
 The old electron-only run remains paused. The continuous early source audit
 is only 0.749788–0.769788 ns; its zero sampled water macros do not establish
 zero expected desorption or justify dropping the earlier plasma history.
-The temporary study handback flag must be removed and its saved native and
-coordinator batches resumed after the queued validation releases the cores.
-No external simulation has been signaled or duplicated.
+The task-created study handback flag was removed after the recorded checks
+passed. The saved native and coordinator ISA-study batches resumed under their
+unchanged per-test leases and completed-result skip logic; the one-shot receipt
+is `outputs/powerflow-cpu-study-handback-resume-20261101.json`. New integration
+tests remain in SimQueue. No external simulation was signaled or duplicated.
 
 The older dated sections below retain historical component and work-plan
 context; the current status above supersedes their pending-test statements.
