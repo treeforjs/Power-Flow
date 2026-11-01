@@ -5,6 +5,49 @@ the work can be picked up from it alone. Snapshots of the in-progress workers'
 own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
 each update); the live versions are the `HANDOFF.txt` files named below.
 
+## Takeover and performance qualification (2026-10-31 23:47 MDT)
+
+The original audit corrections are committed and pushed through `e168eb8`.
+Continuation now starts from those corrected components, with separately
+versioned successors. Existing external workers remain active; do not edit
+or stop their builds or numerical jobs. New numerical work goes through
+SimQueue with explicit CPU, memory and GPU claims. Functional checks can
+borrow a scheduler-lent idle core and freeze when its owner needs it.
+Performance claims require an uncontended physical core, including its SMT
+sibling; a core lease alone does not exclude the current external SMT builds.
+
+Working successors, all unqualified until their receipts pass:
+
+- `pic-water-common-commit-v8.0.2-cpu-20261031`: exact product-error fast path
+  with environment/range fallback, and immutable cross-section query caching.
+  Compare against the actual v8.0.1 c2 binary, including deterministic physical
+  histories and continuation. Study timings are not release timings.
+- `native-full-time-v8.2-birth-memo-20261101` under the native runtime:
+  reuse a validated host birth-scope proof. Preserve the audited identity and
+  chemistry guards. Compare exact physical records and ledgers from both real
+  archives; source-identity hashes necessarily differ.
+- `swarm-validation-audit-v1-20261101`: reject incomplete/duplicate/nonfinite
+  swarm output, account for the writer's exact serialized field labels,
+  bind outputs to their tested source and prevent incomplete seals.
+- `gas-target-owner-v1.1-guards-20261101`: refuse nonrealizable feedback instead
+  of clamping temperature, make caller updates atomic, and require two ordered
+  chemistry stages. This is a guarded successor of unfinished gas-owner work,
+  not a qualified coupled energy/momentum owner.
+
+Current live chemistry v3.2 has overlapping output writers and lacks immutable
+completion provenance. Its v3.2.1 adoption has not yet regenerated and qualified
+all tables. Existing live validation/seal scripts can pass incomplete evidence;
+no production promotion follows from those files. Changed swarm comparison
+criteria and model-derived cross-section extensions need separate scientific
+assessment. Technical completeness does not establish model validation.
+
+The next integration milestone is a conservative all-owner pilot after gas
+recoil/target feedback, current chemistry binding, thermal/field/source coupling
+and restart have passed their component and coupled conservation checks.
+A 20 ns field-only checkpoint cannot supply omitted early plasma history.
+The old electron-only production run remains paused. Full breakdown, a full
+continuous 60 ns history and physical convergence are not yet qualified.
+
 ## What this is
 
 A coupled particle-in-cell simulation of water-vapour breakdown at the foil
