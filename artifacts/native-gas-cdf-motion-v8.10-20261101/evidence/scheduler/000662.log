@@ -1,0 +1,68 @@
+===== simq job 662: native-cdf-motion-common-c1 =====
+submitted: 2026-11-01T08:55:16Z
+started:   2026-11-01T08:55:55Z
+cwd:       /home/treefor/projects/runtimes/native-gas-common-stage-v1.4-cdf-motion-20261101
+partition: powerflow
+P-cores:   7
+GPUs:      none
+memory:    3G (swap 1G)
+time:      00:15:00
+unit:      simq-job-662-f1af85e2640c.service
+command:   nice -n 15 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= PF_V8_CHEM=v3.1 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 -I tools/check.py normal cpu-c1
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core7.lock (exclusive)
+native-build 0
+compile-common 0
+compile-gas 0
+compile-common-cdf 0
+compile-allocation 0
+link-common 0
+link-common-cdf 0
+compile-immutable-kind32 1
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/native-gas-common-stage-v1.4-cdf-motion-20261101/tools/check.py", line 52, in <module>
+    run(cc+['-I'+str(A/'include'),'-I'+str(G/'include'),'-I'+str(N/'forms/include/pf_v7'),A/'tests/test_kind32.cpp','-o',D/'immutable-kind32'],'compile-immutable-kind32')
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/native-gas-common-stage-v1.4-cdf-motion-20261101/tools/check.py", line 34, in run
+    if p.returncode:raise RuntimeError((D/(name+'.log')).read_text()[-8000:])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: /usr/bin/ld: /tmp/ccQkOLHB.o: warning: relocation against `_ZN4mfem6Device16device_singletonE' in read-only section `.text._ZN4mfem6Vector13HostReadWriteEv[_ZN4mfem6Vector13HostReadWriteEv]'
+/usr/bin/ld: /tmp/ccQkOLHB.o: in function `mfem::Vector::ReadWrite(bool)':
+test_kind32.cpp:(.text._ZN4mfem6Vector9ReadWriteEb[_ZN4mfem6Vector9ReadWriteEb]+0x12): undefined reference to `mfem::Device::device_singleton'
+/usr/bin/ld: test_kind32.cpp:(.text._ZN4mfem6Vector9ReadWriteEb[_ZN4mfem6Vector9ReadWriteEb]+0x32): undefined reference to `mfem::Device::device_singleton'
+/usr/bin/ld: test_kind32.cpp:(.text._ZN4mfem6Vector9ReadWriteEb[_ZN4mfem6Vector9ReadWriteEb]+0x68): undefined reference to `mfem::MemoryManager::Register_(void*, void*, unsigned long, mfem::MemoryType, bool, bool, unsigned int&)'
+/usr/bin/ld: test_kind32.cpp:(.text._ZN4mfem6Vector9ReadWriteEb[_ZN4mfem6Vector9ReadWriteEb]+0x86): undefined reference to `mfem::MemoryManager::ReadWrite_(void*, mfem::MemoryType, mfem::MemoryClass, unsigned long, unsigned int&)'
+/usr/bin/ld: /tmp/ccQkOLHB.o: in function `mfem::Vector::Write(bool)':
+test_kind32.cpp:(.text._ZN4mfem6Vector5WriteEb[_ZN4mfem6Vector5WriteEb]+0x12): undefined reference to `mfem::Device::device_singleton'
+/usr/bin/ld: test_kind32.cpp:(.text._ZN4mfem6Vector5WriteEb[_ZN4mfem6Vector5WriteEb]+0x32): undefined reference to `mfem::Device::device_singleton'
+/usr/bin/ld: test_kind32.cpp:(.text._ZN4mfem6Vector5WriteEb[_ZN4mfem6Vector5WriteEb]+0x68): undefined reference to `mfem::MemoryManager::Register_(void*, void*, unsigned long, mfem::MemoryType, bool, bool, unsigned int&)'
+/usr/bin/ld: test_kind32.cpp:(.text._ZN4mfem6Vector5WriteEb[_ZN4mfem6Vector5WriteEb]+0x86): undefined reference to `mfem::MemoryManager::Write_(void*, mfem::MemoryType, mfem::MemoryClass, unsigned long, unsigned int&)'
+/usr/bin/ld: /tmp/ccQkOLHB.o: in function `mfem::Vector::Read(bool) const':
+test_kind32.cpp:(.text._ZNK4mfem6Vector4ReadEb[_ZNK4mfem6Vector4ReadEb]+0x12): undefined reference to `mfem::Device::device_singleton'
+/usr/bin/ld: test_kind32.cpp:(.text._ZNK4mfem6Vector4ReadEb[_ZNK4mfem6Vector4ReadEb]+0x32): undefined reference to `mfem::Device::device_singleton'
+/usr/bin/ld: test_kind32.cpp:(.text._ZNK4mfem6Vector4ReadEb[_ZNK4mfem6Vector4ReadEb]+0x68): undefined reference to `mfem::MemoryManager::Register_(void*, void*, unsigned long, mfem::MemoryType, bool, bool, unsigned int&)'
+/usr/bin/ld: test_kind32.cpp:(.text._ZNK4mfem6Vector4ReadEb[_ZNK4mfem6Vector4ReadEb]+0x86): undefined reference to `mfem::MemoryManager::Read_(void*, mfem::MemoryType, mfem::MemoryClass, unsigned long, unsigned int&)'
+/usr/bin/ld: /tmp/ccQkOLHB.o: in function `mfem::Vector::~Vector()':
+test_kind32.cpp:(.text._ZN4mfem6VectorD0Ev[_ZN4mfem6VectorD5Ev]+0x51): undefined reference to `mfem::MemoryManager::Delete_(void*, mfem::MemoryType, unsigned int)'
+/usr/bin/ld: /tmp/ccQkOLHB.o: in function `mfem::Vector::~Vector()':
+test_kind32.cpp:(.text._ZN4mfem6VectorD2Ev[_ZN4mfem6VectorD5Ev]+0x44): undefined reference to `mfem::MemoryManager::Delete_(void*, mfem::MemoryType, unsigned int)'
+/usr/bin/ld: /tmp/ccQkOLHB.o: in function `mfem::Vector::HostRead() const':
+test_kind32.cpp:(.text._ZNK4mfem6Vector8HostReadEv[_ZNK4mfem6Vector8HostReadEv]+0xd): undefined reference to `mfem::Device::device_singleton'
+/usr/bin/ld: test_kind32.cpp:(.text._ZNK4mfem6Vector8HostReadEv[_ZNK4mfem6Vector8HostReadEv]+0x56): undefined reference to `mfem::MemoryManager::Register_(void*, void*, unsigned long, mfem::MemoryType, bool, bool, unsigned int&)'
+/usr/bin/ld: test_kind32.cpp:(.text._ZNK4mfem6Vector8HostReadEv[_ZNK4mfem6Vector8HostReadEv]+0x74): undefined reference to `mfem::MemoryManager::Read_(void*, mfem::MemoryType, mfem::MemoryClass, unsigned long, unsigned int&)'
+/usr/bin/ld: /tmp/ccQkOLHB.o: in function `mfem::Vector::HostWrite()':
+test_kind32.cpp:(.text._ZN4mfem6Vector9HostWriteEv[_ZN4mfem6Vector9HostWriteEv]+0xd): undefined reference to `mfem::Device::device_singleton'
+/usr/bin/ld: test_kind32.cpp:(.text._ZN4mfem6Vector9HostWriteEv[_ZN4mfem6Vector9HostWriteEv]+0x56): undefined reference to `mfem::MemoryManager::Register_(void*, void*, unsigned long, mfem::MemoryType, bool, bool, unsigned int&)'
+/usr/bin/ld: test_kind32.cpp:(.text._ZN4mfem6Vector9HostWriteEv[_ZN4mfem6Vector9HostWriteEv]+0x74): undefined reference to `mfem::MemoryManager::Write_(void*, mfem::MemoryType, mfem::MemoryClass, unsigned long, unsigned int&)'
+/usr/bin/ld: /tmp/ccQkOLHB.o: in function `mfem::Vector::HostReadWrite()':
+test_kind32.cpp:(.text._ZN4mfem6Vector13HostReadWriteEv[_ZN4mfem6Vector13HostReadWriteEv]+0xd): undefined reference to `mfem::Device::device_singleton'
+/usr/bin/ld: test_kind32.cpp:(.text._ZN4mfem6Vector13HostReadWriteEv[_ZN4mfem6Vector13HostReadWriteEv]+0x56): undefined reference to `mfem::MemoryManager::Register_(void*, void*, unsigned long, mfem::MemoryType, bool, bool, unsigned int&)'
+/usr/bin/ld: test_kind32.cpp:(.text._ZN4mfem6Vector13HostReadWriteEv[_ZN4mfem6Vector13HostReadWriteEv]+0x74): undefined reference to `mfem::MemoryManager::ReadWrite_(void*, mfem::MemoryType, mfem::MemoryClass, unsigned long, unsigned int&)'
+/usr/bin/ld: warning: creating DT_TEXTREL in a PIE
+collect2: error: ld returned 1 exit status
+
+========================================
+finished:  2026-11-01T08:57:37Z
+exit code: 1
+state:     failed
+===== simq job 662 finished =====

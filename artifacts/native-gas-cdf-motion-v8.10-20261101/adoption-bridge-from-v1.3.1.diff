@@ -1,0 +1,277 @@
+--- a/include/coupled_trial.hpp
++++ b/include/coupled_trial.hpp
+@@ -13,11 +13,11 @@
+  auto base=configuration;base.host_target_feedback=false;base.host_target_contract_sha256.clear();
+  base.coupled_target_contract_sha256.clear();
+  const auto reg=n::full_time_chemistry_registry(base,options);
+- return native_gas_targets::sha(n::ArenaJson{{"schema","native-gas-motion-owner-cpu-v2"},
++ return native_gas_targets::sha(n::ArenaJson{{"schema","native-gas-cdf-motion-owner-cpu-v3"},
+   {"native_source",n::PicArena::source_identity()},{"base_configuration",reg.configuration_sha256},
+   {"gas_configuration",gas.configuration_sha256()},
+   {"accounting","actual-stocks;water-nuclei;explicit-numerical-defect-and-reference-conversion"},
+-  {"motion_scope","authentic-native-motion;births-first-hit-sinks;conservative-census;held-correction-exits"}}.dump());
++  {"motion_scope","authentic-native-motion;births-first-hit-sinks;conservative-census;immutable-per-exit-held-corrections;RNG2-CDF"}}.dump());
+ }
+ class CoupledTrial final {
+ public:
+@@ -50,8 +50,12 @@
+   std::string initial_gas,initial_native,contract,parent_receipt;
+   std::uint64_t step=0;std::size_t cap=0;unsigned completed=0;bool failed=false,published=false;
+   std::shared_ptr<const n::FullTimeCandidatePopulation> first_population;
++  std::array<std::shared_ptr<const n::FullTimeCandidatePopulation>,2> populations;
++  std::array<std::shared_ptr<const n::FullTimeCandidateStocks>,2> stocks;
++  std::array<std::shared_ptr<const n::FullTimeChemistryStageExport>,2> exports;
+   n::ArenaJson stages=n::ArenaJson::array(),receipt,motion=n::ArenaJson::object();
+   std::shared_ptr<const n::FullTimePreparedMotionSnapshot> moved;
++  std::shared_ptr<const g::TransportReceipt> transport_receipt;
+   std::shared_ptr<StageWitness> motion_witness;
+   std::map<std::string,double> motion_seconds;
+   std::unique_ptr<n::PreparedArena> final_native;std::shared_ptr<FinalWitness> final_gas;
+@@ -134,7 +138,9 @@
+    const auto conductor_before=exits(*s_->gas,true),exterior_before=exits(*s_->gas,false);
+    need(can_inspect_motion(token,*view) && StageWitness::valid(s_->last_witness.get()),"motion/gas changed before records application");
+    const auto after_births=s_->gas->apply_flows(s_->step,records.births);
+-   const auto transport=s_->gas->transport_census(s_->step,records.before_census,records.after_census,records.exits);
++   auto raw_transport=s_->gas->transport_census(s_->step,records.before_census,records.after_census,records.exits);
++   auto retained_transport=std::make_shared<const g::TransportReceipt>(std::move(raw_transport));
++   const auto&transport=*retained_transport;
+    const auto gas_after=s_->gas->apply_flows(s_->step,records.sinks);elapsed("gas_flows_transport");
+    need(transport.accepted_step==s_->step && transport.candidate_before_sha256==after_births,"gas transport sequence binding");
+    const auto conductor_after=exits(*s_->gas,true),exterior_after=exits(*s_->gas,false);
+@@ -142,7 +148,11 @@
+    for(const auto&e:transport.exits)for(std::uint32_t q=0;q<5;++q)
+     (e.destination==g::ExitDestination::conductor?conductor_delta:exterior_delta)[q].add_digits(e.digits[q].data());
+    GuardedProofJson proof_guard;auto&proof=proof_guard.get();
+-   proof["schema"]="native-gas-authentic-motion-v1";proof["accepted_step"]=s_->step;
++   pfc::Sha256 exit_hash;exit_hash.text("native-gas-exact-motion-exits-v1");exit_hash.pod(transport.accepted_step);
++   exit_hash.text(transport.inputs_sha256);exit_hash.text(transport.candidate_before_sha256);exit_hash.text(transport.candidate_after_sha256);
++   exit_hash.pod(std::uint64_t(transport.exits.size()));
++   for(const auto&exit:transport.exits){exit_hash.pod(exit.native_id);exit_hash.pod(exit.species);exit_hash.pod(std::uint32_t(exit.destination));for(const auto&q:exit.digits)for(const auto&digit:q)exit_hash.pod(digit);}
++   proof["schema"]="native-gas-authentic-motion-v2";proof["actual_exact_exit_sha256"]=exit_hash.hex();proof["accepted_step"]=s_->step;
+    proof["native_snapshot"]=view->sha256;proof["native_record"]=view->motion_record_sha256;
+    proof["gas_before"]=gas_before;proof["after_birth_flows"]=after_births;
+    proof["transport_inputs"]=transport.inputs_sha256;proof["after_transport"]=transport.candidate_after_sha256;proof["gas_after"]=gas_after;
+@@ -168,8 +178,18 @@
+    elapsed("proof");
+    need(can_inspect_motion(token,*view) && StageWitness::valid(witness.get()),"motion/gas stale before private native acceptance");
+    s_->outer.accept_transport_trial(std::move(token));
+-   s_->moved=view;s_->motion_witness=std::move(witness);s_->motion.swap(proof);elapsed("native_accept");
++   s_->moved=view;s_->transport_receipt=std::move(retained_transport);s_->motion_witness=std::move(witness);s_->motion.swap(proof);elapsed("native_accept");
+   }catch(...){fail();throw;}
++ }
++ // Authentic immutable historical records, not a publication capability.
++ // The root coordinator obtains this from its own retained CoupledTrial and
++ // preflights that exact trial again before any common accepted publication.
++ std::shared_ptr<const n::FullTimePreparedMotionSnapshot> accepted_motion_snapshot()const {
++  need(s_ && s_->moved,"no authenticated accepted private motion snapshot");return s_->moved;
++ }
++ std::shared_ptr<const g::TransportReceipt> motion_transport_receipt()const {
++  need(s_ && s_->moved && s_->transport_receipt,"no authenticated accepted private motion receipt");
++  return s_->transport_receipt;
+  }
+  const std::map<std::string,double>&motion_phase_seconds()const {need(bool(s_),"moved common trial");return s_->motion_seconds;}
+  std::shared_ptr<const n::FullTimeAcceptedBoundary> candidate_boundary()const {
+@@ -177,6 +197,17 @@
+  }
+  std::shared_ptr<const n::FullTimeCandidatePopulation> final_candidate_population()const {
+   need(can_publish(),"common final token is not live");return n::FullTimeCoupledAccess::final_population(s_->outer,*s_->final_native);
++ }
++ // Reuse the actual immutable, bounded native snapshots from the successful
++ // private stage. These retain evidence only; no getter authorizes publication.
++ std::shared_ptr<const n::FullTimeCandidateStocks> stage_stocks(unsigned stage)const {
++  need(s_ && stage>=1 && stage<=2 && stage<=s_->completed && s_->stocks[stage-1],"actual stage stocks unavailable");return s_->stocks[stage-1];
++ }
++ std::shared_ptr<const n::FullTimeChemistryStageExport> stage_export(unsigned stage)const {
++  need(s_ && stage>=1 && stage<=2 && stage<=s_->completed && s_->exports[stage-1],"actual admitted stage export unavailable");return s_->exports[stage-1];
++ }
++ std::shared_ptr<const n::FullTimeCandidatePopulation> stage_population(unsigned stage)const {
++  need(s_ && stage>=1 && stage<=2 && stage<=s_->completed && s_->populations[stage-1],"actual stage population unavailable");return s_->populations[stage-1];
+  }
+  const n::ArenaJson&stage_receipts()const {need(bool(s_),"moved coupled trial");return s_->stages;}
+  std::shared_ptr<const Continuation> continuation()const {need(s_ && s_->published && s_->continuation,"common pair not published");return s_->continuation;}
+@@ -220,7 +251,9 @@
+    GuardedProofJson next_guard;auto&next=next_guard.get();clone_proof_json(next,s_->stages);next.push_back(nullptr);clone_proof_json(next.back(),proof);
+    need(scope.can_publish(token) && StageWitness::valid(witness.get()),"dead common stage witness");
+    need(scope.try_publish(token),"private coupled stage publication failed");
+-   s_->stages.swap(next);s_->last_witness=std::move(witness);++s_->completed;if(expected==1)s_->first_population=std::move(population);
++   s_->stages.swap(next);s_->last_witness=std::move(witness);++s_->completed;
++   s_->stocks[expected-1]=std::move(stock);s_->exports[expected-1]=stage->admitted_export;s_->populations[expected-1]=population;
++   if(expected==1)s_->first_population=std::move(population);
+    return stage;
+   }catch(...){fail();throw;}
+  }
+--- a/include/native_gas_stage.hpp
++++ b/include/native_gas_stage.hpp
+@@ -35,6 +35,7 @@
+     case 5:need(count>=1,"capture product count");return 0;
+     case 6:return count>2?count-1:pfg::kNone;
+     case 7:need(count>=3,"ion-impact ionization product count");return 2;
++    case 32:need(count==3,"source-conditioned H2 dissociation product count");return pfg::kNone;
+     case 8:need(count>=2,"breakup product count");return count-2;
+     default:throw std::invalid_argument("native_gas_stage: unsupported process kind");
+   }
+--- a/tests/coupled_step_fixture.hpp
++++ b/tests/coupled_step_fixture.hpp
+@@ -29,6 +29,8 @@
+   auto s1 = outer.first_exposure(e1);
+   if(before_stage)before_stage(coupled,s1,1);
+   R.stage1=coupled.run_stage(s1);
++  if(coupled.stage_export(1)!=R.stage1->admitted_export || coupled.stage_stocks(1)->admitted_export_sha256!=R.stage1->admitted_export->sha256 ||
++     coupled.stage_population(1)->admitted_export_sha256!=R.stage1->admitted_export->sha256 || coupled.stage_stocks(1)!=coupled.stage_stocks(1))throw std::runtime_error("actual retained first-stage stock/export identities");
+   T.stop(R.phases["stage1"]);
+ 
+   T.start();
+@@ -171,6 +173,8 @@
+     coupled.accept_transport(std::move(moved));
+     if(motion_control=="allocation-motion-count"){measured_motion_allocations=std::numeric_limits<long>::max()-allocation_probe::fail_after;allocation_probe::fail_after=-1;}
+   }
++  const auto retained_exit=coupled.motion_transport_receipt();
++  if(!retained_exit || retained_exit!=coupled.motion_transport_receipt() || retained_exit->accepted_step!=b.accepted_step)throw std::runtime_error("authentic retained per-exit receipt");
+   for(const auto&[phase,seconds]:coupled.motion_phase_seconds())R.phases["motion_"+phase].wall=seconds;
+   T.stop(R.phases["admission_accept"]);
+   m::ExposureBinding e2 = e1;
+@@ -182,6 +186,9 @@
+   auto s2 = outer.second_exposure(e2);
+   if(before_stage)before_stage(coupled,s2,2);
+   R.stage2=coupled.run_stage(s2);
++  if(coupled.stage_export(2)!=R.stage2->admitted_export || coupled.stage_stocks(2)->admitted_export_sha256!=R.stage2->admitted_export->sha256 ||
++     coupled.stage_population(2)->admitted_export_sha256!=R.stage2->admitted_export->sha256 || coupled.stage_stocks(1)->after.chemistry_state_sha256!=coupled.stage_stocks(2)->before.chemistry_state_sha256)throw std::runtime_error("actual retained stage2 stock/export chain");
++  for(unsigned bad:{0u,3u}){bool refused=false;try{(void)coupled.stage_stocks(bad);}catch(const std::invalid_argument&){refused=true;}if(!refused)throw std::runtime_error("invalid stock stage admitted");}
+   T.stop(R.phases["stage2"]);
+   native_gas_common::clone_proof_json(receipt,coupled.stage_receipts());
+   if (!publish) return R; // deliberately abandoned common candidate
+@@ -192,7 +199,7 @@
+   native_gas_common::clone_proof_json(receipt,coupled.receipt());
+   const auto final=coupled.final_candidate_population();
+   const auto boundary=coupled.candidate_boundary();
+-  if(!final || !boundary || boundary->accepted_step!=b.accepted_step+1)throw std::runtime_error("genuine final candidate census/boundary absent");
++  if(!final || final!=coupled.stage_population(2) || !boundary || boundary->accepted_step!=b.accepted_step+1)throw std::runtime_error("genuine final candidate census/boundary absent");
+   if(before_publish)before_publish(coupled);
+   allocation_probe::fail_after=0;
+   const bool ok=coupled.can_publish() && coupled.try_publish();
+--- /dev/null
++++ b/tests/test_common_cdf.cpp
+@@ -0,0 +1,59 @@
++#include "coupled_step_fixture.hpp"
++#include <filesystem>
++#include <fstream>
++#include <iostream>
++namespace n=raikou::mfem_backend;namespace g=pf_gas_v1;namespace a=native_gas_stage;namespace t=native_gas_targets;namespace c=native_gas_common;
++using J=nlohmann::json;unsigned checks=0;
++void check(bool b,const char*s){++checks;if(!b)throw std::runtime_error(s);}
++const char*blob_path="/home/treefor/projects/runtimes/chemistry-dynamic-cdf-v1.1-20261101/data/chemistry-cdf.blob";
++const char*blob_sha="8435e873b7c68146fb4c429d96c3e8051334c22525fd508729299e8a2d65ea0f";
++g::Configuration gas_config(const n::GapPicOptions&o,const n::FullTimeChemistryRegistry&r,const pfc::Blob&b){
++ g::Configuration x;x.preset="diagnostic-CDF-coupled-bookkeeping";x.feedback=true;x.transport=g::Transport::census_conservative;
++ const auto grid=n::chem8::make_grid(o,{std::uint32_t(o.nx),std::uint32_t(o.ny),5});x.grid={grid.low,grid.high,grid.n,grid.volume};
++ x.chemistry_blob_sha256=b.sha256;x.chemistry_registry_sha256=r.registry_sha256;
++ for(const auto&s:r.species)x.species.push_back({s.state,s.mass_kg,s.charge_e,s.target});
++ for(std::uint32_t k=0;k<b.n_proc;++k){const auto&p=b.view.procs[k];x.processes.push_back({b.view.groups[p.group].projectile,p.n_out,a::internal_carrier(p.kind,p.n_out),p.kind});}return x;
++}
++std::vector<n::FullTimeAuthoredPacket> population(const pfc::Blob&b,double E,double W,unsigned count){
++ auto it=std::find(b.species_names.begin(),b.species_names.end(),"e");check(it!=b.species_names.end(),"electron registry");const double me=b.view.species[it-b.species_names.begin()].mass_eV;
++ std::vector<n::FullTimeAuthoredPacket> out;const double u=n::pic_c*std::sqrt(E*(E+2*me))/me;
++ for(unsigned i=0;i<count;++i)out.push_back({"cdf/e/"+std::to_string(i),"pfc-v3/e","diagnostic-CDF-bookkeeping",n::ArenaCount(1.,0),{.0041,.0041,.0001},{0,0,u}});
++ out.push_back({"cdf/H2","pfc-v3/H2","diagnostic-CDF-bookkeeping",n::ArenaCount(W,0),{.0041,.0041,.0001},{0,0,0}});return out;
++}
++struct Scenario {
++ n::GapPicOptions o=chemfix::options();n::FullTimeChemistryConfiguration cfg;std::shared_ptr<g::Owner>gas;chemfix::Arena arena;
++ Scenario(const pfc::Blob&b,const std::vector<n::FullTimeAuthoredPacket>&rows,bool strict_scope=false)
++ :cfg(chemfix::chemistry_configuration(o)),gas([&]{cfg.blob_path=blob_path;cfg.blob_sha256=blob_sha;cfg.diagnostic_field_target_approximation=false;cfg.release_weight=1;
++   cfg.policy.admitted_regions.clear();const auto r=n::full_time_chemistry_registry(cfg,o);
++   // Explicitly diagnostic encounter coverage, independent of the strict energy owner.
++   if(!strict_scope)for(unsigned i=0;i<r.region_names.size();++i)if(!r.region_bounded[i])cfg.policy.admitted_regions.push_back(r.region_names[i]);
++   if(strict_scope){cfg.water_scope_contract=n::full_time_minimum_water_scope_contract(cfg,o);cfg.water_scope_contract_sha256=t::sha(cfg.water_scope_contract);cfg.water_scope_mode=n::FullTimeWaterScopeMode::minimum_water;}
++   return std::make_shared<g::Owner>(gas_config(o,n::full_time_chemistry_registry(cfg,o),b));}()),
++ arena([&]{cfg.coupled_target_contract_sha256=c::coupled_contract(cfg,o,*gas);cfg.host_target_feedback=true;cfg.host_target_contract_sha256=t::contract(cfg,o,*gas);return chemfix::make_arena(o,cfg,rows,20000,2);}()){}
++};
++int main(int argc,char**argv){try {
++ check(argc==2,"output required");const std::filesystem::path out=argv[1];std::filesystem::create_directories(out);
++ auto blob=pfc::load_blob(blob_path,blob_sha);check(blob.view.blob_version==2 && PFC_RNG_LAYOUT_VERSION==2,"explicit blob/RNG schema");
++ Scenario s(blob,population(blob,100,1e18,128));J receipt;std::shared_ptr<const c::CoupledTrial::Continuation> next;
++ const auto report=chemfix::coupled_step(s.arena,1e-13,0,s.gas,{},{},{},receipt,next);
++ std::uint64_t events=0,releases=0;
++ for(const auto&stage:{report.stage1,report.stage2}) {
++  events+=stage->admitted_events;releases+=stage->released_packets;
++  for(const auto&item:stage->admitted_export->events){pfc::EventRec e{};check(item.event_bytes.size()==sizeof e,"event ABI");std::memcpy(&e,item.event_bytes.data(),sizeof e);
++    check(blob.view.procs[e.process].kind==32 && e.n_out==3 && e.e_internal==0 && item.consumes_tracked_target,"actual coupled CDF consumption/no internal sink");}
++ }
++ check(events>0 && releases>0 && next && next->next_step()==1,"actual populated CDF common publication and release");
++ for(const auto&stage:receipt.at("stages"))check(stage.at("energy_exact_zero") && stage.at("momentum_exact_zero"),"actual CDF combined stock accounting");
++ std::vector<std::string> refusals;
++ for(bool scope:{false,true}) {
++  Scenario bad(blob,population(blob,scope?100:7,scope?1e18:1e22,scope?1:3),scope);
++  const auto native=bad.arena.arena->state_prefix(),rng=bad.arena.arena->full_time_chemistry().state_sha256,gas=bad.gas->accepted_sha256();
++  auto snapshot=bad.arena.arena->snapshot();std::shared_ptr<const c::CoupledTrial::Continuation> none;std::string why;
++  try{J discarded;(void)chemfix::coupled_step(bad.arena,1e-13,0,bad.gas,{},{},{},discarded,none);}catch(const std::exception&e){why=e.what();}
++  check(!why.empty() && why.find(scope?"water":"CDF_SUPPORT")!=std::string::npos,"strict incomplete group/selected unsupported CDF refusal");
++  check(bad.arena.arena->state_prefix()==native && bad.arena.arena->snapshot()==snapshot && bad.arena.arena->full_time_chemistry().state_sha256==rng && bad.gas->accepted_sha256()==gas && !bad.gas->step_open(),"whole native/gas rollback on CDF refusal");
++  refusals.push_back(why);
++ }
++ J result={{"passed",true},{"checks",checks},{"native_source",n::PicArena::source_identity()},{"events",events},{"releases",releases},{"refusals",refusals},{"receipt",receipt},{"coverage_mode","explicit diagnostic missing-channel admission; strict water scope separately refuses"},{"production_qualified",false}};
++ std::ofstream(out/"result.json")<<result.dump(2)<<'\n';std::cout<<result.dump()<<'\n';return 0;
++ }catch(const std::exception&e){std::cerr<<e.what()<<'\n';return 1;}}
+--- a/tools/check.py
++++ b/tools/check.py
+@@ -2,11 +2,11 @@
+ import os,sys,json,hashlib,subprocess,time,importlib.util
+ if not __debug__:raise RuntimeError('optimized Python guards refused')
+ R=Path(__file__).resolve().parents[1];RT=R.parent
+-N=RT/'pic-reaction-transactions-20261029/native-full-time-v8.9-motion-inventory-20261101'
+-BASE=RT/'pic-reaction-transactions-20261029/native-full-time-v8.8-provisional-target-owner-20261101'
++N=RT/'pic-reaction-transactions-20261029/native-full-time-v8.10-cdf-motion-20261101'
++BASE=RT/'pic-reaction-transactions-20261029/native-full-time-v8.9-motion-inventory-20261101'
+ G=RT/'gas-target-owner-v1.7.1-census-transport-20261101';F=RT/'arch-base-20261028'
+ P=Path('/home/treefor/projects/Power-Flow/native/coupled_pic/include')
+-O=Path('/home/treefor/projects/.workspace/outputs/native-gas-common-stage-v1.3.1-motion-unwind-20261101')
++O=Path('/home/treefor/projects/.workspace/outputs/native-gas-common-stage-v1.4-cdf-motion-20261101')
+ mode,label=sys.argv[1:3];reuse=sys.argv[3:]==["--reuse-native"];assert not sys.argv[3:] or reuse;assert mode in ('normal','sanitized');D=O/label;D.mkdir(parents=True,exist_ok=False)
+ def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+ assert os.getenv('SIMQ_JOB_ID','').isdigit() and os.getenv('SIMQ_LAUNCH_TOKEN')
+@@ -22,7 +22,7 @@
+  result={}
+  for root,dirs in ((N,['source','forms','inputs','tests']),(R,['include','tests','tools']),(G,['include','src'])):
+   for d in dirs:result.update({str(p):sha(p) for p in (root/d).rglob('*') if p.is_file() and '__pycache__' not in p.parts})
+- for p in [R/'DEPENDENCIES.json',R/'NATIVE-BUILD.json',R/'NATIVE-BUILD-SANITIZED.json',*map(Path,dep),N/'tooling.py',N/'build-components.py']:result[str(p)]=sha(p)
++ for p in [R/'DEPENDENCIES.json',R/('NATIVE-BUILD-SANITIZED.json' if mode=='sanitized' else 'NATIVE-BUILD.json'),*map(Path,dep),N/'tooling.py',N/'build-components.py']:result[str(p)]=sha(p)
+  return result
+ before=pins();deps=native.sealed_inputs();receipt={'passed':False,'mode':mode,'job':os.environ['SIMQ_JOB_ID'],'affinity':aff,'source_inputs':before,'dependencies':deps,'frozen_root_identity':[rs.st_dev,rs.st_ino],'runs':[],'production_qualified':False}
+ env=dict(os.environ,PF_V8_CHEM='v3.1');
+@@ -36,17 +36,24 @@
+  if reuse:
+   build=json.loads((R/('NATIVE-BUILD-SANITIZED.json' if mode=='sanitized' else 'NATIVE-BUILD.json')).read_text());assert build['mode']==mode and all(sha(N/name)==h for name,h in build['source']['files'].items()) and all(sha(p)==h for p,h in build['binaries'].items())
+   receipt['reused_native_build']=build
+- else:run(['/usr/bin/python3',N/'build-components.py',mode,'core','hall','v84-scope','audit-target-guard','v85-registration','v87-stocks'],'native-build')
++ else:run(['/usr/bin/python3',N/'build-components.py',mode,'core','hall','v84-scope','audit-target-guard','v85-registration','v87-stocks','native-cdf'],'native-build')
+  manifest=json.loads((N/'SOURCE-SHA256.json').read_text());assert all(sha(N/n)==v for n,v in manifest['files'].items())
+  receipt['native_source']=manifest['source_identity'];tag='sanitized-' if mode=='sanitized' else ''
+  commands=json.loads((native.OUT/('build-'+mode)/'build-commands.json').read_text());original=next(x['command'] for x in commands if x['log']==tag+'v87-stocks-compile.log');cc=original[original.index('/usr/bin/mpic++'):original.index('-c')]
+  run(cc+['-I'+str(R/'include'),'-I'+str(R/'tests'),'-I'+str(G/'include'),'-I'+str(P),'-I'+str(N/'forms/include/pf_v7'),'-MMD','-MF',D/'common.d','-c',R/'tests/test_common_stage.cpp','-o',D/'common.o'],'compile-common')
+  san=['-fsanitize=address,undefined','-fno-omit-frame-pointer'] if mode=='sanitized' else []
+  run(['/usr/bin/c++','-std=c++20','-O1' if san else '-O2',*san,'-Wall','-Wextra','-Werror','-ffp-contract=off','-fno-fast-math','-I'+str(G/'include'),'-I'+str(N/'forms/include/pf_v7'),'-c',G/'src/gas_owner.cpp','-o',D/'gas.o'],'compile-gas')
++ run(cc+['-I'+str(R/'include'),'-I'+str(R/'tests'),'-I'+str(G/'include'),'-I'+str(P),'-I'+str(N/'forms/include/pf_v7'),'-c',R/'tests/test_common_cdf.cpp','-o',D/'common-cdf.o'],'compile-common-cdf')
+  run(['/usr/bin/c++','-std=c++20','-O1',*san,'-Wall','-Wextra','-Werror','-c',R/'tests/allocation_probe.cpp','-o',D/'allocation.o'],'compile-allocation')
+  headers={name:sha(name) for name in (D/'common.d').read_text().replace('\\\n',' ').split(':',1)[1].split()};receipt['compiler_headers']=headers
+  run(['/usr/bin/mpic++',*san,'-Wl,--gc-sections',D/'common.o',D/'gas.o',D/'allocation.o',N/'build'/(tag+'kinetic-boundary.o'),N/'build'/(tag+'libpic_native_v8.a'),*native.LIBS,'-o',D/'test_common'],'link-common')
+- controls=['normal','motion-empty-flows','allocation-motion-count','allocation-motion-0','allocation-motion-16','allocation-motion-64','allocation-motion-1163','snapshot-controls','empty-stream-caps','correction-exits','correction-exterior','motion-flows','same-digest-motion','empty','abandon','same-digest-stage1','same-digest-stage2','abandon-final','regular-refusal','move-final','cell-crossing','two-step','destroyed-native','allocation-seal-0','allocation-seal-16','allocation-seal-64','allocation-seal-173','allocation-seal-256','allocation-seal-312','allocation-count']
++ run(['/usr/bin/mpic++',*san,'-Wl,--gc-sections',D/'common-cdf.o',D/'gas.o',D/'allocation.o',N/'build'/(tag+'kinetic-boundary.o'),N/'build'/(tag+'libpic_native_v8.a'),*native.LIBS,'-o',D/'test_common_cdf'],'link-common-cdf')
++ A=RT/'native-gas-adapter-v1.3-cdf-20261101'
++ run(cc+['-I'+str(A/'include'),'-I'+str(G/'include'),'-I'+str(N/'forms/include/pf_v7'),A/'tests/test_kind32.cpp',*native.LIBS,'-o',D/'immutable-kind32'],'compile-immutable-kind32')
++ run([D/'immutable-kind32'],'immutable-kind32')
++ run([D/'test_common_cdf',D/'actual-cdf-common'],'actual-cdf-common')
++ run([N/'build'/(tag+'test_native_cdf'),D/'native-cdf-controls'],'native-cdf-controls')
++ controls=['normal','motion-empty-flows','allocation-motion-count','allocation-motion-0','allocation-motion-16','allocation-motion-64','snapshot-controls','empty-stream-caps','correction-exits','correction-exterior','motion-flows','same-digest-motion','empty','abandon','same-digest-stage1','same-digest-stage2','abandon-final','regular-refusal','move-final','cell-crossing','two-step','destroyed-native','allocation-seal-0','allocation-seal-16','allocation-seal-64','allocation-seal-173','allocation-seal-256','allocation-seal-312','allocation-count']
+  for control in controls:run([D/'test_common',D/control,control],control)
+  for name,args in [('test_v84_scope',[D/'inherited-scope']),('test_audit_target_guard',[D/'inherited-target-energy']),('test_v85_registration',[]),('test_v87_stocks',[D/'inherited-stocks'])]:run([N/'build'/(tag+name),*args],name)
+  assert pins()==before and native.sealed_inputs()==deps and all(sha(p)==v for p,v in headers.items())
+--- a/tools/sweep.py
++++ b/tools/sweep.py
+@@ -5,7 +5,7 @@
+ import os,sys,json,hashlib,subprocess,time
+ if not __debug__:raise RuntimeError('optimized Python guards refused')
+ R=Path(__file__).resolve().parents[1];F=R.parent/'arch-base-20261028'
+-O=Path('/home/treefor/projects/.workspace/outputs/native-gas-common-stage-v1.3.1-motion-unwind-20261101')
++O=Path('/home/treefor/projects/.workspace/outputs/native-gas-common-stage-v1.4-cdf-motion-20261101')
+ assert len(sys.argv) in (3,4)
+ kind=sys.argv[3] if len(sys.argv)==4 else "seal";assert kind in ("seal","motion")
+ base=O/sys.argv[1];out=O/sys.argv[2];out.mkdir(exist_ok=False)

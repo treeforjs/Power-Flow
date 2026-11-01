@@ -1,0 +1,223 @@
+--- a/source/src/chem_v3_kernels.cu
++++ b/source/src/chem_v3_kernels.cu
+@@ -303,8 +303,8 @@
+   unsigned begin, count;
+   const pfc::CarrierOut *outs;
+   pf7_u32 *nev, *active;       // per projectile: events; 1 if events
+-  ull *bad;                    // smallest projectile index with a refusing status
+-  ull *candidates, *status;    // status[8]
++  ull *bad;                    // minimum (uint32 projectile index << 32) | actual bounded status
++  ull *candidates, *status;    // status[9] (includes selected unsupported CDF)
+   ull *numax;                  // bits of max nu_dt_max
+   pf7_i64 *region;             // regions x 2 x acc_digits (exposure, bound)
+   ull *support;                // reachable carrier/region pairs; n_proj bounded by uint32
+@@ -325,9 +325,9 @@
+   a.nev[i] = o.n_events;
+   a.active[i] = o.n_events ? 1u : 0u;
+   if (o.status != PFC_ST_OK && o.status != PFC_ST_CONSUMED)
+-    atomicMin(a.bad, (ull)i);
++    atomicMin(a.bad, ((ull)i << 32) | (ull)(o.status <= PFC_ST_CDF_SUPPORT ? o.status : PFC_ST_BAD_INPUT));
+   atomicAdd(a.candidates, (ull)o.n_candidates);
+-  atomicAdd(&a.status[o.status & 7u], 1ull);
++  atomicAdd(&a.status[o.status <= PFC_ST_CDF_SUPPORT ? o.status : PFC_ST_BAD_INPUT], 1ull);
+   atomicMax(a.numax, (ull)bits_of(o.nu_dt_max));
+   for (pf7_u32 k = 0; k < o.n_cover && k < PFC_MAX_COVER_SLOTS; ++k) {
+     atomicAdd(&a.support[o.cover_region[k]], 1ull);
+--- a/source/src/chem_v3_native.cpp
++++ b/source/src/chem_v3_native.cpp
+@@ -260,7 +260,7 @@
+   }
+   {
+     H h;
+-    h.text("native-v8.2/chemistry-v3-configuration-v2");
++    h.text("native-v8.7-cdf-v1/chemistry-rng2-blob2-configuration");
+     h.u32(c.diagnostic_field_target_approximation ? 1 : 0);
+     h.text(b.sha256);
+     h.text(s->reg->sha256);
+@@ -271,7 +271,10 @@
+     h.f64(c.trunc_sigmas);
+     h.u32(c.max_candidates);
+     h.u32(c.max_events);
+-    h.text("pfc-chem-stream-v3;release=pfc-neutral-parcels-v1-no-rng");
++    h.text("pfc-chem-stream-v3-rng-layout2;release=pfc-neutral-parcels-v1-no-rng");
++    h.text("dynamic-cdf-shared-kernel-c9cff1970ff114cc372f3993bc190ebd92f16d4eedb0311820d1e7d6fdfa8019");
++    h.u32(PFC_RNG_LAYOUT_VERSION);
++    h.u32(b.view.blob_version);
+     for (std::uint32_t p : {PFC_PURPOSE_MCC, PFC_PURPOSE_MCC_SECOND, PFC_PURPOSE_RELEASE_COUNT, PFC_PURPOSE_RELEASE_PICK})
+       h.u32(p);
+     h.text("stage-split dt/2 x 2, step = accepted step of the base state");
+@@ -726,6 +729,7 @@
+   case PFC_ST_MAJORANT: return "MAJORANT";
+   case PFC_ST_COVER_CAP: return "COVER_CAP";
+   case PFC_ST_BAD_INPUT: return "BAD_INPUT";
++  case PFC_ST_CDF_SUPPORT: return "CDF_SUPPORT";
+   }
+   return "UNKNOWN";
+ }
+@@ -1434,7 +1438,7 @@
+ } // namespace
+ std::string encode_state(const FullTimeChemistryState &st) {
+   Out o;
+-  o.text("native-v8.5/chemistry-state-codec-v5-host-targets");
++  o.text("native-v8.7-cdf-v1/chemistry-state-codec-rng2-blob2");
+   o.text(st.configuration_sha256);
+   o.text(st.water_scope_census_sha256); o.text(st.water_scope_binding_sha256); o.text(st.water_scope_history_sha256);
+   o.text(st.host_target_feedback_sha256); o.text(st.host_target_history_sha256);
+@@ -1464,7 +1468,7 @@
+ }
+ std::shared_ptr<FullTimeChemistryState> decode_state(const Setup &s, const std::string &bytes) {
+   In in{bytes};
+-  need(in.text() == "native-v8.5/chemistry-state-codec-v5-host-targets", RK::configuration, "configuration: chemistry state codec tag");
++  need(in.text() == "native-v8.7-cdf-v1/chemistry-state-codec-rng2-blob2", RK::configuration, "configuration: chemistry state codec tag");
+   auto st = std::make_shared<FullTimeChemistryState>();
+   st->configuration_sha256 = in.text();
+   need(st->configuration_sha256 == s.configuration_sha256, RK::configuration,
+--- a/source/src/native_device.cpp
++++ b/source/src/native_device.cpp
+@@ -24,25 +24,25 @@
+ const char kCore[] = {
+ #embed "../../forms/include/pf_v7/forms_core.h"
+     , 0};
+-// v8 chemistry program and the sealed chemistry v3.1 headers (read in place; v3.1 is the drop-in successor of
+-// v3: same records, plus the constant-rate continuation below the grids).
++// Chemistry program and sealed RNG2/blob-v2 dynamic-CDF headers, read in place.
++// Legacy blob-v1 loading remains explicit; model/configuration identities change.
+ const char kChem[] = {
+ #embed "chem_v3_kernels.cu"
+     , 0};
+ const char kChemEvent[] = {
+-#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/include/pf_chem_v3/chem_event.h"
++#embed "/home/treefor/projects/runtimes/chemistry-dynamic-cdf-v1.1-20261101/include/pf_chem_v3/chem_event.h"
+     , 0};
+ const char kChemKin[] = {
+-#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/include/pf_chem_v3/chem_kinematics.h"
++#embed "/home/treefor/projects/runtimes/chemistry-dynamic-cdf-v1.1-20261101/include/pf_chem_v3/chem_kinematics.h"
+     , 0};
+ const char kChemRng[] = {
+-#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/include/pf_chem_v3/chem_rng.h"
++#embed "/home/treefor/projects/runtimes/chemistry-dynamic-cdf-v1.1-20261101/include/pf_chem_v3/chem_rng.h"
+     , 0};
+ const char kChemTables[] = {
+-#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/include/pf_chem_v3/chem_tables.h"
++#embed "/home/treefor/projects/runtimes/chemistry-dynamic-cdf-v1.1-20261101/include/pf_chem_v3/chem_tables.h"
+     , 0};
+ const char kChemMath[] = {
+-#embed "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/include/pf_chem_v3/det_math.h"
++#embed "/home/treefor/projects/runtimes/chemistry-dynamic-cdf-v1.1-20261101/include/pf_chem_v3/det_math.h"
+     , 0};
+ const char kPhilox[] = {
+ #embed "/home/treefor/projects/runtimes/pic-arrival-owner-v1-20261030/include/pf_arrival/philox_core.h"
+@@ -833,6 +833,8 @@
+       out.error_index = head[2 + c];
+       return out;
+     }
++  if (n_proj > 0xffffffffull)
++    throw std::length_error("native chemistry projectile index exceeds packed refusal domain");
+   out.projectiles = n_proj;
+   const u64 cell_atlas = blk(n_occ * 4);
+   {
+@@ -938,7 +940,8 @@
+     chunk = std::min<u64>(chunk, std::max<u64>(256, ((n_proj + rq.partitions - 1) / rq.partitions + 255) / 256 * 256));
+   const u64 ev_chunk = blk(chunk * maxe * sizeof(pfc::EventRec)), out_chunk = blk(chunk * sizeof(pfc::CarrierOut));
+   const u64 nev = blk(n_proj * 4), activef = blk(n_proj * 4), offs = blk(chunk * 8);
+-  const u64 counters = blk(16 * 8); // bad, candidates, status[8], numax, ev_total, overflow, chunk grand
++  const u64 counters = blk(16 * 8); // historical scalar offsets; status counters now separately allocated
++  const u64 statuses = blk(9 * 8); // explicit OK..CDF_SUPPORT, never mask status8 to OK
+   const u64 region = blk(u64(R) * 2 * pf7::acc_digits * 8);
+   const u64 support = blk(u64(R) * 8);
+   const u64 n_leaves = (n_proj + 255) / 256;
+@@ -948,10 +951,11 @@
+   K.blocks.push_back(rtag_dev);
+   u64 cap = std::max<u64>(1u << 16, n_proj / 4);
+   u64 compact = 0;
+-  u64 ctr[16];
++  u64 ctr[16], status_counts[9];
+   for (int attempt = 0; attempt < 2; ++attempt) {
+     compact = blk(cap * sizeof(pfc::EventRec));
+     zero(counters, 16 * 8);
++    zero(statuses, 9 * 8);
+     {
+       const u64 bad = ~u64(0);
+       auto up = I.upload(&bad, 8);
+@@ -972,7 +976,7 @@
+         I.s.launch(M.k["ch_mcc"], {(count + 127) / 128}, {128}, 0, args);
+       }
+       {
+-        SumArgs sa{begin, count, out_chunk, nev, activef, counters, counters + 8, counters + 16, counters + 80, region, support};
++        SumArgs sa{begin, count, out_chunk, nev, activef, counters, counters + 8, statuses, counters + 80, region, support};
+         void *args[] = {&sa};
+         I.s.launch(M.k["ch_summary"], {(count + 255) / 256}, {256}, 0, args);
+       }
+@@ -1030,6 +1034,7 @@
+       I.copy_words((bytes + 7) / 8, addr, b->address);
+       I.download(dst, *b, 0, bytes);
+     };
++    dl(status_counts, statuses, sizeof status_counts);
+     dl(ar.data(), act, n_act * sizeof(ActiveRec));
+     dl(out.active.events.data(), compact, n_ev * sizeof(pfc::EventRec));
+     dl(reg.data(), region, reg.size() * 8);
+@@ -1063,9 +1068,9 @@
+     auto &T2 = A.totals;
+     T2.carriers = n_proj;
+     T2.candidates = ctr[1];
+-    for (std::uint32_t k = 0; k < 8; ++k)
+-      if (ctr[2 + k])
+-        T2.status_counts[k] = ctr[2 + k];
++    for (std::uint32_t k = 0; k < 9; ++k)
++      if (status_counts[k])
++        T2.status_counts[k] = status_counts[k];
+     T2.nu_dt_max = std::bit_cast<double>(ctr[10]);
+     T2.exposure.resize(R);
+     T2.bound.resize(R);
+@@ -1088,16 +1093,15 @@
+     }
+     if (ctr[0] != ~u64(0)) {
+       pfc::CarrierIn c;
+-      dl(&c, carriers + ctr[0] * sizeof(pfc::CarrierIn), sizeof c);
++      // ch_summary atomically minimizes (uint32 projectile index, uint32 status).
++      // The status belongs to that exact first bad carrier, even with mixed errors.
++      const u64 index = ctr[0] >> 32;
++      const auto status = std::uint32_t(ctr[0]);
++      if (index >= n_proj || status < PFC_ST_CAND_CAP || status > PFC_ST_CDF_SUPPORT)
++        throw std::logic_error("native chemistry invalid packed refusal");
++      dl(&c, carriers + index * sizeof(pfc::CarrierIn), sizeof c);
+       T2.bad_carrier = c.id;
+-      pfc::CarrierOut o;
+-      // the status of that carrier: rerun is not needed; take the first refusing status from the counts
+-      for (std::uint32_t k = 2; k < 8; ++k)
+-        if (ctr[2 + k]) {
+-          T2.bad_status = k;
+-          break;
+-        }
+-      (void)o;
++      T2.bad_status = status;
+     }
+     auto roots = [&](const std::string &tag, u64 count, const std::vector<std::uint32_t> &w) {
+       std::vector<std::array<unsigned char, 32>> l(w.size() / 8);
+--- a/source/src/water_network_scope.cpp
++++ b/source/src/water_network_scope.cpp
+@@ -61,7 +61,8 @@
+ Catalogue::Catalogue(std::span<const unsigned char> bytes,const std::string& expected) {
+     digest_valid(expected);blob_sha_=sha256(bytes);need(blob_sha_==expected,"table identity differs");
+     need(bytes.size()>=16 && std::string(reinterpret_cast<const char*>(bytes.data()),8)=="PFCHEMV3","table magic");
+-    need(read_le(bytes,8,4)==1,"table schema");const auto ns=read_le(bytes,12,4);
++    const auto version=read_le(bytes,8,4);
++    need(version==1 || version==2,"table schema");const auto ns=read_le(bytes,12,4);
+     need(ns>0 && ns<64 && 16+40*ns<=bytes.size(),"table directory");
+     std::map<std::string,std::span<const unsigned char>> sections;
+     std::vector<std::pair<std::uint64_t,std::uint64_t>> intervals;
+@@ -76,6 +77,14 @@
+     std::sort(intervals.begin(),intervals.end());
+     for (std::size_t i=1;i<intervals.size();++i) need(intervals[i-1].second<=intervals[i].first,"overlapping sections");
+     auto section=[&](const char* name){const auto it=sections.find(name);need(it!=sections.end(),std::string("missing section ")+name);return it->second;};
++    // Scope reads encounter coverage only. Native's qualified C3 loader has
++    // already validated all v2 descriptor/source/model/event operands.
++    if (version==2) {
++        need(!section("cdf_desc").empty() && section("cdf_desc").size()%256==0 &&
++             !section("cdf_quantile").empty() && section("cdf_quantile").size()%8==0 &&
++             section("cdf_fragment_eV").size()==section("cdf_quantile").size(),"CDF sections");
++    } else need(!sections.count("cdf_desc") && !sections.count("cdf_quantile") &&
++                !sections.count("cdf_fragment_eV"),"legacy table contains CDF sections");
+     const auto meta=section("meta");need(meta.size()==16,"meta size");
+     const auto count=read_le(meta,0,4),groups=read_le(meta,4,4),procs=read_le(meta,8,4),regions=read_le(meta,12,4);
+     need(count>0 && count<=64 && groups<=count*count,"species/group count");
