@@ -1,0 +1,48 @@
+blob 4ebf093eaf5a7fed50504cf4410b04b6183463faa59d67736da16777f348cafc species 22 groups 20 processes 132 regions 162
+PASS math/log ulp  max ulp 1
+PASS math/log1p ulp  max ulp 2
+PASS math/sincos_2pi abs  max abs error 2.85633e-16
+PASS math/log special values
+PASS math/exp ulp  max ulp 1
+PASS math/exp special values
+PASS rng/philox known answer
+PASS rng/domain refusals
+PASS rng/no word collisions in 2e5 random keys
+PASS rng/arrival and chemistry streams differ
+PASS rng/u01 open range and mean  mean 0.500221
+PASS data/checks bind the blob  4ebf093eaf5a7fed
+PASS data/source breakpoints reproduced bit for bit  21681 points, 0 differ
+PASS data/majorant bounds sigma_tot v  4000000 probes, 0 violations
+PASS events/sampled count  15918 events from 20000 carriers in 0.34035 s
+PASS events/charge and nuclei conserved per event  0 violations
+PASS events/energy closure per event within 2^-40 of scale  0 violations, max relative defect 6.0563e-14
+PASS events/exact ledger identity (in = out + q + internal + defect)  defect total -17.7467 eV of input 7.01573e+17 eV
+PASS events/exact charge and nuclei totals balance
+INFO events/processes not sampled by the random population (covered by process/targeted): e + H2O -> e + OH + H via E + H2O(3A2) (10.7 eV); e + H2O -> e + OH + H via E + H2O[D~1A1(110) + C~1B1(200)] (10.77 eV); e + H2O -> e + OH + H via E + H2O(1A2) (10.84 eV); e + H2O -> e + OH + H via E + H2O(3A1 + 1A2 + 1A1 + 3A2 + 1B1 + 3B1) (11.23 eV); e + H2O -> e + OH + H via E + H2O(1B2 + 3B2 + 3B1 + 1B1) (11.5 eV); e + H2O -> e + OH + H via E + H2O(3A2 + 1A2) (11.61 eV); e + H2O -> e + OH + H via E + H2O(3B1) (11.68 eV); e + H2O -> e + OH + H via E + H2O(3A1 + 1A1) (11.8 eV); e + H2O -> e + OH + H via E + H2O(1A1) (12.06 eV); e + H2O -> e + OH + H via E + H2O(3A2) (8.9 eV); e + H2O -> 2e + H2+ + O; e + H2O -> 3e + O++ + H2; e + H2O -> e + H+ + OH- (ion pair); e + H2O -> OH- + H; e + H2O -> O- + H2; H+ + H2O -> H- + OH+ + H+ (double electron capture); e + H2O+ -> OH + H (DR); e + H2O+ -> O + H2 (DR); e + H2O+ -> O + H + H (DR); e + H3O+ -> H2O + H (DR); e + H3O+ -> OH + H2 (DR); e + H3O+ -> OH + H + H (DR); e + H3O+ -> O + H2 + H (DR); e + OH+ -> O + H (DR; Kalosi 2023 alpha(T) fit retained, cross section not obtained) (no data); H3O+ + OH- -> H2O + OH + H (mutual neutralization) (no data); 
+PASS events/no majorant, input or domain refusals  0:17024 1:2948 3:28 
+PASS process/every process with data: 2000 conserving events at its peak sigma*v energy  130 processes, 0 failing, 0 with kinematically closed draws, 2 no-data placeholders
+PASS lowrate/constant-rate continuation below the grid  13 groups: H2O++H2O ok; H3O++H2O ok; OH++H2O ok; H2++H2O ok; H++H2O ok; O++H2O ok; O+++H2O ok; H-+H2O ok; O-+H2O ok; OH-+H2O ok; H-+H ok; e+H2O+ ok; e+H3O+ ok; 0 bad events, 0 non-placeholder coverage entries
+PASS partition/records and exact ledger identical for 1,2,5,8 partitions  1:same 2:same 5:same 8:same digest ba931496c4e1205f
+PASS debit/tracked inventory never overdrawn; refusals recorded  151 refused
+PASS debit/admitted events form a per-carrier prefix
+PASS release/stock never negative 0:H2O
+PASS release/stock never negative 0:H
+PASS release/stock never negative 0:OH
+PASS release/stock never negative 0:O
+PASS release/stock never negative 0:H2
+PASS release/stock never negative 1:H2O
+PASS release/stock never negative 1:H
+PASS release/stock never negative 1:OH
+PASS release/stock never negative 1:O
+PASS release/stock never negative 1:H2
+PASS release/stock never negative 2:H2O
+PASS release/stock never negative 2:H
+PASS release/stock never negative 2:OH
+PASS release/stock never negative 2:O
+PASS release/stock never negative 2:H2
+PASS release/stock + released = deposited exactly  10675 packets
+PASS ion-kinds/Rudd reference binds the blob  4ebf093eaf5a7fed
+PASS ion-kinds/v3.2 kinds conserve at 1e3..1e7 eV  439 cases, 0 with violations
+PASS ion-kinds/no kinematically closed or exhausted draws  0 cases with closed draws
+PASS ion-kinds/Rudd ejected-energy distribution vs independent quadrature  200 cases of 20000 events, 0 failing the chi-square bound
+ALL PASS 0

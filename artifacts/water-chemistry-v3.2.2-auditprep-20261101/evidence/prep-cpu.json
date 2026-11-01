@@ -1,0 +1,64 @@
+{
+ "schema": "chemistry-audit-preparation-v1",
+ "stage": "cpu",
+ "binding_sha256": "9fbec980e32bf526b3ac6d9e4cd899cdb85bbbc3cf3cab6187974924d6f8d9e9",
+ "job_id": "335",
+ "cpus": [
+  4
+ ],
+ "production_qualified": false,
+ "physics_model_validated": false,
+ "build_isa_flags": "",
+ "passed": true,
+ "entries": [
+  {
+   "name": "build-audit_regressions",
+   "argv": [
+    "sh",
+    "tools/dev_build.sh",
+    "normal",
+    "tests/test_audit_regressions.cpp",
+    "build/bin/audit_regressions-cpu"
+   ],
+   "exit": 0,
+   "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "name": "audit_regressions",
+   "argv": [
+    "build/bin/audit_regressions-cpu",
+    "data/tables/chemistry-v3.2.blob"
+   ],
+   "exit": 0,
+   "log_sha256": "0ddf7076cbe9295ed934cfb2d7eb90c98778afc6d56e16eb873492cffd40a004"
+  },
+  {
+   "name": "build-test_core",
+   "argv": [
+    "sh",
+    "tools/dev_build.sh",
+    "normal",
+    "tests/test_core.cpp",
+    "build/bin/test_core-cpu"
+   ],
+   "exit": 0,
+   "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "name": "test_core",
+   "argv": [
+    "build/bin/test_core-cpu",
+    "data/tables/chemistry-v3.2.blob",
+    "data/tables/chemistry-v3.2-checks.json",
+    "evidence/core-cpu",
+    "10000"
+   ],
+   "exit": 0,
+   "log_sha256": "11abcbb9e440f55b22dc329496ad65dc1b8e22c99d4503c5f36cbedddbb3de81"
+  }
+ ],
+ "binaries": {
+  "build/bin/audit_regressions-cpu": "fb28bfcd154fadf72df82e0f4520693f231d55acd333745d9cec2c7551a6a91f",
+  "build/bin/test_core-cpu": "6ae986e6093feecad87cf1fd711c5801bc94dd5853fc204c3b7f9f36c564d0bf"
+ }
+}

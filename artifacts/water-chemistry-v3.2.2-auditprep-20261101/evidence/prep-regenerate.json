@@ -1,0 +1,81 @@
+{
+ "schema": "chemistry-audit-preparation-v1",
+ "stage": "regenerate",
+ "binding_sha256": "9fbec980e32bf526b3ac6d9e4cd899cdb85bbbc3cf3cab6187974924d6f8d9e9",
+ "job_id": "331",
+ "cpus": [
+  4
+ ],
+ "production_qualified": false,
+ "physics_model_validated": false,
+ "build_isa_flags": "",
+ "passed": true,
+ "entries": [
+  {
+   "name": "spec",
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "tools/make_production_spec.py",
+    "data/tables/chemistry-v3.2-spec.json"
+   ],
+   "exit": 0,
+   "log_sha256": "2a6186df724edf26ce68d37e611deb70d2aa0af2e8ad746381773d104273d254"
+  },
+  {
+   "name": "tables",
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "tools/build_tables.py",
+    "data/tables/chemistry-v3.2-spec.json",
+    "data/tables/chemistry-v3.2"
+   ],
+   "exit": 0,
+   "log_sha256": "8ebbc7a755b57ff42565dc1f706e87991a50950346712fab3d77091e0baacf13"
+  },
+  {
+   "name": "policy",
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "tools/make_coverage_policy.py",
+    "data/tables/chemistry-v3.2-manifest.json",
+    "data/tables/chemistry-v3.2-coverage-policy.json"
+   ],
+   "exit": 0,
+   "log_sha256": "604c853b1f832133d796535aac4609c7395248f6b09bba0eed0e46dbdc4ea994"
+  },
+  {
+   "name": "report",
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "tools/report_processes.py",
+    "data/tables/chemistry-v3.2-manifest.json",
+    "data/tables/PROCESSES.txt"
+   ],
+   "exit": 0,
+   "log_sha256": "9c1d01e2eedfad9424922eea3a3e26ec9e381b5b0ee89aeeae3735585698456d"
+  },
+  {
+   "name": "strict-policy",
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "tests/test_audit_policy.py"
+   ],
+   "exit": 0,
+   "log_sha256": "7c78669707a82b4e328fb7003f5ea68d669c16ae4e0a2c1546936aefa4fa9037"
+  }
+ ],
+ "generated_files": {
+  "data/tables/PROCESSES.txt": "dc0cd0a8c88d1aebfa2934c2c879766960bded7e6b0db6133b8a8bed2987afff",
+  "data/tables/chemistry-v3.2-checks.json": "ac103a9e4d89f091304d862de45803df414f6cd08a3780ddf1310efb6eb2d559",
+  "data/tables/chemistry-v3.2-coverage-policy.json": "d9fb6769f7a1fcc9bd6023bcbee2122ccc2f9eefc658e2da38ccd7495954bf09",
+  "data/tables/chemistry-v3.2-manifest.json": "decc4f78e3f6ebd8c51eda9e662bb72d36597124c0b7026bea46dbc31c9ad9bd",
+  "data/tables/chemistry-v3.2-rudd-reference.json": "c64a0d859be4e81343e9f8ce6ebb9a386fc0b8f45450b44b328e6b496613063a",
+  "data/tables/chemistry-v3.2-spec.json": "805a75e99fa4fb3f23a1c12c10c98cf8fd2f39f8ea2c552387230f7ed8867846",
+  "data/tables/chemistry-v3.2.blob": "4ebf093eaf5a7fed50504cf4410b04b6183463faa59d67736da16777f348cafc"
+ }
+}
