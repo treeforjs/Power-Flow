@@ -1,0 +1,50 @@
+CPU coordinator v8.0.2-cpu: functional qualification
+2026-11-01
+
+Reference: qualified coordinator v8.0.1 build c2
+  binary 3e5d52b2eb93d15fdfbaa79a7a3541911fa987905a9bbb55c14f9411d7e86072
+Final candidate: v8.0.2-cpu build c2
+  binary e9bccca0428cb3a3065141cd233dce2921a27423833837cb97d153124543a7ea
+
+SimQueue316: complete rebuild and final qualification passed; one borrowed CPU4,
+4GiB memory cap, frozen userspace. No build objects were reused.
+- 2,005,810 exact product-error cases: 1,420,934 shortcut / 584,876 fallback.
+- 100,957 cross-section queries across ten fixtures: 46,807 exact dynamic-type/
+  message refusals and 10,069 zero results. Finite values/signed zero are exact;
+  NaN classification is compared, not payloads. FE_INEXACT flag identity is not
+  claimed; see README.txt for the guarded arithmetic/environment contract.
+- 53/53 coupled checks, 12/12 continuation cases, six runner-integrity cases.
+  The sixth tampers a real .inc fragment using actual own_sources() capture;
+  the zero-exit executable's result is correctly refused.
+- All 23 owned compilation dependencies are in source pins, including all three
+  .inc driver fragments. Every vendored header is selected exactly; no original
+  scheduler/bridge/collision-data duplicate. All before/after pins match.
+
+SimQueue326: final-build deterministic parity passed against the qualified c2
+baseline: qual20; 80-step adaptive dense; 100k carriers/3 steps; 1M carriers/2
+steps; 2000-step pilot. Accepted/refused trajectories, deterministic ledgers,
+digests, step receipts, control records, probes and available frames match
+bit-for-bit. The 2000-step early-state pilot is empty (zero carriers); the
+particle-populated evidence comes from the manufactured load/dense fixtures.
+The original baseline's .inc files were also verified against their compiler
+receipt after the comparison. No physics/configuration identity was changed.
+
+1M-carrier ledger peak RSS: baseline 1.906GiB, candidate 1.908GiB. Every fixture
+passed the admission guard requiring 4GiB cap + 4GiB physical headroom; minimum
+pre-run MemAvailable was over 11GiB. These are ledger samples, not a claim about
+future particle growth. Borrowed CPU4 had a busy SMT sibling, so timing from
+this functional run is explicitly unqualified.
+
+Exclusive owner timing job327 is queued, not yet evidence. No speedup or full-run
+runtime claim is made. Any later timing needs its own parity, quiet-SMT and
+physical-memory receipts. The older study's speed figures are not qualification
+of this build.
+
+Prior c1 binary/evidence is retained. It was superseded by the general .inc pin
+fix and its negative regression. Prior queued c1 parity/timing jobs were canceled
+before execution. This source/evidence artifact contains final c2 only.
+
+The runtime retains native-v5 compatibility (direct genesis, verified nonempty
+replay), the existing conditional parent chemistry, and all original physics and
+convergence limits. This does not qualify plasma breakdown, a full 60ns run,
+thermal phase/circuit coupling or GPU performance.

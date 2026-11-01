@@ -1,0 +1,68 @@
+===== simq job 316: coord-cpu-p13-final =====
+submitted: 2026-11-01T06:02:47Z
+started:   2026-11-01T06:05:42Z
+cwd:       /home/treefor/projects/runtimes/pic-water-common-commit-v8.0.2-cpu-20261031
+partition: powerflow
+P-cores:   4
+GPUs:      none
+memory:    4G (swap 1G)
+time:      00:20:00
+borrowed:  CPU 4 from raikou-mfem (free); on preempt: freeze
+unit:      simq-job-316-dc098f2dedef.service
+command:   /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python -I tools/qualify_candidate.py c2
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core4.lock (shared)
+compile-hotpaths 0 4.0
+hotpaths 0 1.1
+{
+  "comparison": "exact finite/zero bits; exception dynamic type+text; NaN classification",
+  "passed": true,
+  "product_fallback": 584876,
+  "product_fast": 1420934,
+  "product_queries": 2005810,
+  "sigma_fixture_count": 10,
+  "sigma_queries": 100957,
+  "sigma_refusals": 46807,
+  "sigma_zero": 10069
+}
+
+compile-driver_v8 0 46.7
+compile-fast_emission 0 1.4
+compile-emission_hot_v7 0 0.6
+compile-resident_field_v3 0 5.7
+compile-alloc_hook 0 0.1
+compile-motion_provider_v3 0 6.7
+compile-kinetic_boundary 0 1.8
+compile-gpu_backends_v3 0 4.6
+compile-hall_gpu_push_v3 0 1.3
+compile-hall_gpu_common 0 1.9
+compile-hall_gpu_primitives 0 0.4
+compile-surface_emission 0 0.8
+compile-micro_layer 0 0.4
+link 0 0.3
+{"build": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v8.0.2-cpu-20261031/build-c2", "status": "passed", "error": ""}
+checks 0 6.6
+{"run": "/home/treefor/projects/.workspace/outputs/pic-water-common-commit-v8.0.2-cpu-20261031/c2-checks", "returncode": 0, "status": "passed", "inputs_unchanged": true}
+PASS initial time-limited run accepts four steps
+PASS direct genesis restore honors relative window
+PASS direct genesis restore honors absolute end
+PASS direct genesis restore retains saved endpoint without override
+PASS off-grid target stops at first accepted step crossing the threshold
+PASS completed window extends after verified restore
+PASS second restart honors absolute end after prior extension
+PASS omitted target retains saved endpoint
+PASS explicit steps replaces saved time limit
+PASS omitted target retains saved step limit
+PASS non-advancing explicit end is refused
+PASS ambiguous targets are refused
+{"run": "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.2-cpu-20261031/run-integrity-avt8e13l/none/outputs/result", "returncode": 0, "status": "passed", "inputs_unchanged": true}
+{"run": "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.2-cpu-20261031/run-integrity-avt8e13l/dependency/outputs/result", "returncode": 0, "status": "failed", "inputs_unchanged": false}
+{"run": "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.2-cpu-20261031/run-integrity-avt8e13l/source/outputs/result", "returncode": 0, "status": "failed", "inputs_unchanged": false}
+{"run": "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.2-cpu-20261031/run-integrity-avt8e13l/binary/outputs/result", "returncode": 0, "status": "failed", "inputs_unchanged": false}
+{"run": "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.2-cpu-20261031/run-integrity-avt8e13l/missing-dependency/outputs/result", "returncode": 0, "status": "failed", "inputs_unchanged": false}
+{"run": "/home/treefor/projects/runtimes/pic-water-common-commit-v8.0.2-cpu-20261031/run-integrity-avt8e13l/include-fragment/outputs/result", "returncode": 0, "status": "failed", "inputs_unchanged": false}
+========================================
+finished:  2026-11-01T06:07:22Z
+exit code: 0
+state:     succeeded
+===== simq job 316 finished =====
