@@ -1,11 +1,24 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-11-01 08:57 UTC. Keep this file current at every milestone so
+Last updated 2026-11-01 09:10 UTC. Keep this file current at every milestone so
 the work can be picked up from it alone. Snapshots of the in-progress workers'
 own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
 each update); the live versions are the `HANDOFF.txt` files named below.
 
 ## Current common integration milestone
+
+The latest root successor is `artifacts/common-conservation-integration-v9.2-20261101`.
+Job 681 passes 39 normal and 39 UBSan controls with identical accepted receipt
+roots. Independent actual field, thermal, particle, source and gas stocks now
+close before publication, including exact H/O/charge and the pending-reservoir
+mirror. An independently derived energy bound is enforced without changing any
+component allowance. Per-step accounted residuals are about 2.963e-15 J versus
+6.569e-12 J bounds. A canonical cumulative ledger preserves anchors and boundary
+accounts and must telescope exactly across accepted steps. Root configuration
+is versioned downstream of genesis, with no chemistry identity cycle. The v1.3.2
+bridge retains actual immutable stage and motion proofs; they confer no new
+publication authority. This retains the no-conductor-sink/held-layer-refused
+neutral subset. The checkpoint ledger codec is being qualified separately.
 
 `artifacts/common-neutral-integration-v9.1-20261101` now preserves the actual
 root source/Hall/native/gas transaction and phase profiling. Job658 passes 28
@@ -43,8 +56,7 @@ marker and a concrete validated loader; old unattested restores remain refused.
 The original native/gas bridge v1.3 has a reproduced allocation-unwind abort at
 motion allocation 1163. Corrected v1.3.1 binds JSON destination references before
 constructing populated temporaries: normal 653, sanitizer 656 and all 1,255 motion
-allocation failures 655 pass with identical retry receipts. Final-seal 657 is
-still running as of this update. Native v8.9 source/archive remain frozen at
+allocation failures 655 pass with identical retry receipts. Final-seal 657 passed all 1,463 allocation failures with identical retry receipts. Native v8.9 source/archive remain frozen at
 8e8d9553/bb3def23. Root 658 uses this corrected bridge; it does not replace its
 independent full fault qualification.
 
@@ -57,10 +69,11 @@ library function labels are approximate; the displayed RC4_options name must
 not be interpreted as evidence of RC4 use. The raw samples stay under outputs;
 committed reports and input pins are in the integration artifact.
 
-Immediate work: independent combined stock/energy closure (chemistry worker),
-source-held Lorentz/image lifecycle (source worker), corrected native/CDF motion
-and checkpoint capability (native worker), then root adoption and continuous
-populated/restart tests. Do not launch the old paused electron-only production
+Immediate work: source-held Lorentz/image lifecycle (source worker), actual
+magnetic-barrier applicability (chemistry worker), native/CDF checkpoint
+capability (native worker), then root adoption and populated common-restart
+tests. Independent combined closure now passes in the neutral integration
+subset; nonzero reaction and source-held stocks still need their actual tests. Do not launch the old paused electron-only production
 run or relabel this neutral fixture as physical breakdown.
 
 ## Sunday milestone (2026-11-01)
