@@ -1,0 +1,32 @@
+Gas owner v1.4 read-only candidate binding -- CPU, sanitizer and shared-GPU qualification
+
+Isolated coherent fork of gas-target-owner-v1.3-publication-20261101, recorded in
+BASELINE-v1.3.json. No v1.3 files were changed. Read BINDING-CONTRACT.txt.
+
+Source/API pins are stable:
+include/pf_gas_v1/gas_owner.hpp
+208f2ecead8c6b56318bcae6a7162b1592c3db14df45a3988f1ac42937c43e12
+src/gas_owner.cpp
+9e46282ff3578725d4f2e9454fa884ddaea1f69e63b2b8a7843b94ad3fe8d6d9
+
+Owner::candidate_binding() captures transient owner lifetime, generation,
+mutation revision and step. matches_candidate is noexcept and allocation-free;
+the expected-step overload verifies native/gas alignment. This is read-only
+identity, never publication authority. Content digests and live native scope/
+PreparedArena/export object remain independently necessary.
+
+Strict guards now poison failed device initialization and partial key preparation.
+Mutator entry invalidates old bindings even when the state digest is unchanged.
+No successful numerical path, configuration identity or checkpoint codec changes.
+Native production target-owner refusal remains closed.
+
+Preliminary host-environment jobs381/382 passed313 checks each, including25 key
+allocation failures (10 poisoned candidates). They omitted the outer frozen
+launcher and are retained as preliminary evidence only. An explicit capacity
+refusal control was then added. Final frozen jobs390/391 passed317 checks each, including the capacity refusal
+control and root filesystem device/inode verification. Shared-GPU392 passed317 host and172 each device/verified checks with exact state/motion/publication digest parity. GPU fixture
+injects errors before/after the real device begin copy through a test-only link
+wrapper. No wrapper or fault hook is part of gas owner library code.
+
+No gas/native closure, transport, whole coupled simulation or performance claim
+is established by these controls. No code was committed/pushed by this task.

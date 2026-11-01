@@ -1,0 +1,104 @@
+PROPOSAL ONLY -- minimum CPU gas-candidate target feedback interface
+=================================================================
+No implementation or production gate change is authorized by this document.
+The native core supplies authentic stage inputs; the external adapter owns gas
+feedback. The existing production eventful target-owner refusal stays closed.
+
+Suggested native API in a separate C3-ABI-pinned target-feedback header:
+
+  struct FullTimeHostTargetInputs {
+    // const view, valid only during the prepare callback
+    NativeStageBinding stage;
+    span<const uint32_t> atlas;
+    span<const pfc::CellTargets> cells;
+    string native_rows_root, all_species_census_root, water_scope_binding;
+    string frame_root, frame_history, clock, grid, registry, blob, configuration;
+    string base_carriers_root, base_targets_root;
+  };
+  struct FullTimeHostTargetResult {
+    vector<pfc::CellTargets> cells;
+    string native_input_binding, gas_base, gas_candidate, gas_configuration;
+    string before_targets, after_targets, canonical_receipt;
+  };
+  class FullTimeHostTargetProvider {
+    virtual FullTimeHostTargetResult apply(const FullTimeHostTargetInputs&) = 0;
+    virtual void validate_current(const FullTimeHostTargetResult&) const = 0;
+  };
+  PreparedArena CollisionScope::prepare_chemistry_v3_host_targets(
+      FullTimeHostTargetProvider&);
+
+These are interface names, not new trusted claims. The result contains no
+publication authority. The concrete adapter privately retains the actual gas
+Owner, opaque CandidateBinding, source/target digests and immutable native view
+binding. Native never accepts caller-authored native census/clock/frame data.
+Provider lifetime spans preparation. A later common adapter retains both actual
+owners and prepared capabilities. Arbitrary provider bytes cannot open the
+strict target-energy-owner guard.
+
+Ordering and invariants:
+1. Refuse unless both chemistry and actual native arena lane are host. This is
+   a CPU reference; no hidden full-particle device download or host fallback.
+2. Native validates the immutable frame and runs v8.4 all-species scope admission
+   BEFORE projectile/target filtering or feedback. Missing e+OH/O/H2 encounters
+   cannot disappear through a zeroed target density. Every existing unknown-
+   region, source/resource, target-energy and common-commit guard remains.
+3. Build native CellTargets from that same frame. Refactor build_inputs into
+   construction and final identity hashing, so no cached pre-feedback digest can
+   survive. Atlas and carrier input rows stay private/immutable. The authentic
+   stage binding includes accepted step, stage/exposure sequence, begin/end/dt,
+   frozen field/time, frame/history/rows, all-species census, grid/mapping and
+   blob/registry/configuration identities. Grid vacuum mask is bound as well.
+4. The external adapter checks exact native/gas species mass/charge/process/grid
+   mapping, captures CandidateBinding, checks its step against native, and saves
+   gas accepted/candidate content digests. It copies the base cells and calls
+   gas.feedback(step,stage,atlas,cells) on that candidate. The gas method itself
+   checks stage order and realizability. No target count/mass/species is invented.
+5. Require gas.matches_candidate before/after feedback; accepted/candidate digests
+   must be unchanged (feedback is a const owner query). Return actual changed
+   cells plus gas feedback before/after roots and native binding. The opaque gas
+   capability is retained privately, never serialized or replaced with a digest.
+6. Native checks exact atlas/layout/species/order/density/volume preservation;
+   only eligible gas drift and thermal-width fields may change. Require finite
+   drift and nonnegative finite width and unchanged noneligible slots. Recompute
+   the target block digest from actual bytes and compare returned roots. Require
+   provider.validate_current after return and after MCC preparation. The native
+   input identity must bind the final cells AND canonical feedback receipt.
+7. Execute existing MCC majorant, thermal-support coverage and target sampling
+   using only these final target cells. All coverage bounds apply to that same
+   corrected distribution. The current strict eventful target-owner refusal
+   still fires; explicitly diagnostic controls may prepare facts but continue to
+   report full_system_energy_closure=false.
+8. Add the canonical feedback receipt/root to the native stage receipt/export
+   and retained stage journal. Gas lifetime/generation/revision remain transient;
+   only content/stage roots enter deterministic numerical/checkpoint identities.
+   Add an explicit configuration policy/contract and successor schema; missing
+   provider, mismatched mode, or stale receipt refuses. No automatic adoption.
+
+Post-stage joint work remains a separate gate:
+The admitted-export adapter must consume exactly the same native stage, raw vs
+admitted roots and actual target-debit/release operands against the gas candidate
+used above. gas.take intentionally invalidates the feedback CandidateBinding;
+a fresh gas binding and verified post-stage exact ledgers then establish the
+next stage input. Failed native/gas work abandons the common candidate. Opening
+production requires independent joint count/P/K/internal-energy/field-work and
+moment realizability checks, plus prepared no-fail publication for ALL owners.
+The provider interface alone does not establish any of that physics.
+
+Minimal qualification before considering adoption:
+- Controlled nonzero correction changes actual CellTargets and final MCC input
+  digest; independent owner feedback gives identical values.
+- Empty correction and feedback-disabled explicit control; mismatch is never a
+  silent successful correction. Final same-target records reproduce the reference.
+- Wrong grid/species/mass/step/frame, moved/foreign/retried gas binding, same-digest
+  key mutation, late provider mutation, changed density/noneligible slot, and
+  stale pre-feedback digest all refuse without accepted/RNG/stock mutation.
+- Scope rejection happens before provider invocation; post-motion stage2 uses
+  its new frame, census and current gas candidate; device lanes refuse explicitly.
+- Strict eventful target-owner refusal still fires; checkpoint binds canonical
+  receipt and rejects old/missing/tampered feedback identity before/at anchors.
+
+Review note: retain immutable final target bytes and the actual provider/gas
+binding in the prepared candidate/common adapter through post-MCC validation;
+do not retain an expired view/span or substitute a serializable digest for the
+live binding. Gas feedback remains a Maxwellian moment approximation. Exact
+bookkeeping does not make that sampling distribution measured or validated.

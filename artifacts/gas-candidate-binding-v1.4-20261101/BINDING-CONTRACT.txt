@@ -1,0 +1,41 @@
+Gas candidate binding v1.4 -- transient ownership API
+===================================================
+Owner::candidate_binding() captures an opaque move-only CandidateBinding for an
+open, healthy, unsealed candidate. Owner::matches_candidate(token) is a noexcept,
+allocation-free lifetime/generation/mutation-revision/open-step check. The
+(token, expected_step) overload also binds the native accepted-step number.
+CandidateBinding::accepted_step() is only an observation; it is meaningful for
+admission only after successful live preflight. Default/moved/foreign/destroyed,
+abandoned/retried, failed, sealed and published candidates refuse.
+
+This token does not authorize mutation or publication. The consuming adapter
+must also bind the exact accepted/base and candidate content digests and native
+live scope/prepared-token/export object. Recheck both owner capabilities and
+content bindings at use. A records-only Batch cannot authorize later mutation
+using digests alone. PreparedCommit remains the separate publication capability.
+
+A private mutation revision invalidates captured bindings on mutating entry:
+take, apply_flows, transport, prepare_keys, merge and prepare_commit. This includes
+same-digest key preparation and rejected attempts after the live-open check.
+Overflow refuses before the mutation. Const feedback, census/ledger/digest reads
+and accumulate do not mutate the owner or invalidate its binding. A new begin
+increments lifetime generation and resets mutation revision. All these values
+are transient; configuration/numerical/checkpoint identities are unchanged from
+v1.3. Dependent C++ code must rebuild because the owner/header layout changes.
+
+Device begin_step exceptions now mark the open candidate failed. Key-table or
+partial-batch allocation/device exceptions during mutation also mark it failed.
+Both require abandon before a new capture or mutation; accepted state is never
+published by these paths. Successful numerical operations are unchanged.
+
+Tests explicitly include an allocation-fault sweep and nonallocating preflight.
+The device fixture wraps the real begin_step symbol, injecting exceptions before
+and after its actual copy; normal calls delegate to the actual device method.
+This qualifies exception handling, not actual driver-OOM recovery. No test hook
+is compiled into gas owner sources. Private revision overflow is source-guarded;
+the unreachable-in-practice 2^64-operation branch is not runtime exercised.
+
+This component adds no chemistry data, gas feedback coupling, target transport
+closure, common-owner commit or physical simulation. Native strict target-owner
+refusal remains closed. Publication still requires prepared native and gas owners
+with all allocation/hash/synchronization complete before serial no-fail publish.

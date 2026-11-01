@@ -1,0 +1,341 @@
+--- a/include/pf_gas_v1/gas_owner.hpp
++++ b/include/pf_gas_v1/gas_owner.hpp
+@@ -189,6 +189,25 @@
+ 
+ class Owner {
+ public:
++  // Read-only binding to one open candidate lifetime and mutation revision.
++  // This confers no mutation/publication authority; contents still need digest
++  // binding. It is transient and is never encoded in checkpoints.
++  class CandidateBinding {
++    friend class Owner;
++    std::shared_ptr<const void> lifetime_;
++    std::uint64_t generation_ = 0, revision_ = 0, step_ = 0;
++  public:
++    CandidateBinding() = default;
++    CandidateBinding(const CandidateBinding &) = delete;
++    CandidateBinding &operator=(const CandidateBinding &) = delete;
++    CandidateBinding(CandidateBinding &&) noexcept = default;
++    CandidateBinding &operator=(CandidateBinding &&) noexcept = default;
++    std::uint64_t accepted_step() const noexcept { return step_; }
++  };
++  CandidateBinding candidate_binding() const;
++  bool matches_candidate(const CandidateBinding &) const noexcept;
++  bool matches_candidate(const CandidateBinding &, std::uint64_t expected_step) const noexcept;
++
+   // A capability for this exact live candidate, never a transferable digest.
+   class PreparedCommit {
+     friend class Owner;
+@@ -272,7 +291,7 @@
+   std::unique_ptr<State> acc_, cand_;
+   bool open_ = false;
+   std::shared_ptr<const void> lifetime_ = std::make_shared<const int>(0);
+-  std::uint64_t generation_ = 0;
++  std::uint64_t generation_ = 0, candidate_revision_ = 0;
+   bool publication_ready_ = false;
+   bool failed_ = false;  // a failed mutating operation requires abandon
+   std::uint64_t next_stage_ = 1;
+@@ -282,6 +301,7 @@
+   std::unique_ptr<DeviceLane> dev_;
+   bool host() const noexcept;
+   void ensure_open(std::uint64_t step, const char *what) const;
++  void invalidate_candidate_bindings();
+   void insert_keys(State &, std::vector<std::uint64_t> keys);
+   void prepare_keys_impl(std::span<const RecoilRecord>, std::span<const FlowRecord>, std::span<const MoverRecord>, bool bind);
+   Partial accumulate_impl(std::span<const RecoilRecord>, std::span<const FlowRecord>, bool bind) const;
+--- a/src/gas_owner.cpp
++++ b/src/gas_owner.cpp
+@@ -411,6 +411,28 @@
+   need(step == open_step_, Refusal::Kind::transaction, std::string("transaction: ") + what + " for another step");
+ }
+ 
++void Owner::invalidate_candidate_bindings() {
++  need(candidate_revision_ != ~u64(0), Refusal::Kind::transaction,
++       "transaction: candidate mutation revision exhausted");
++  ++candidate_revision_;
++}
++Owner::CandidateBinding Owner::candidate_binding() const {
++  ensure_open(open_step_, "candidate binding");
++  need(bool(cand_), Refusal::Kind::transaction, "transaction: no candidate state");
++  CandidateBinding token;
++  token.lifetime_ = lifetime_; token.generation_ = generation_;
++  token.revision_ = candidate_revision_; token.step_ = open_step_;
++  return token;
++}
++bool Owner::matches_candidate(const CandidateBinding &token) const noexcept {
++  return open_ && bool(cand_) && !publication_ready_ && !failed_ &&
++         token.lifetime_ == lifetime_ && token.generation_ == generation_ &&
++         token.revision_ == candidate_revision_ && token.step_ == open_step_;
++}
++bool Owner::matches_candidate(const CandidateBinding &token, std::uint64_t expected_step) const noexcept {
++  return expected_step == open_step_ && matches_candidate(token);
++}
++
+ void Owner::begin_step(std::uint64_t accepted_step) {
+   need(!open_, Refusal::Kind::transaction, "transaction: step already open");
+   need(generation_ != ~u64(0), Refusal::Kind::transaction, "transaction: lifetime generation exhausted");
+@@ -419,6 +441,7 @@
+        Refusal::Kind::transaction, "transaction: step must follow the accepted step (genesis permits 0 or 1)");
+   cand_ = std::make_unique<State>(*acc_);
+   ++generation_;
++  candidate_revision_ = 0;
+   publication_ready_ = false;
+   cand_->step = accepted_step;
+   open_ = true;
+@@ -428,8 +451,10 @@
+   partial_batch_inputs_.clear();
+   failed_ = false;
+ #ifdef PF_GAS_WITH_DEVICE
+-  if (dev_)
+-    dev_->begin_step(accepted_step);
++  if (dev_) {
++    try { dev_->begin_step(accepted_step); }
++    catch (...) { failed_ = true; throw; }
++  }
+ #endif
+ }
+ 
+@@ -469,6 +494,8 @@
+ 
+ void Owner::prepare_keys(std::span<const RecoilRecord> recs, std::span<const FlowRecord> flows,
+                          std::span<const MoverRecord> movs) {
++  ensure_open(open_step_, "keys");
++  invalidate_candidate_bindings();
+   prepare_keys_impl(recs, flows, movs, true);
+ }
+ void Owner::prepare_keys_impl(std::span<const RecoilRecord> recs, std::span<const FlowRecord> flows,
+@@ -501,9 +528,11 @@
+         std::binary_search(cand_->keys.begin(), cand_->keys.end(), pfg::entry_key(m.from_cell, m.species)))
+       add.push_back(pfg::entry_key(m.to_cell, m.species));
+   }
++  failed_ = true; // Allocation/device failure may leave a partial key preparation.
+   insert_keys(*cand_, std::move(add));
+   partial_batch_ready_ = bind;
+   partial_batch_inputs_ = bind ? input_digests(recs, flows) : std::vector<std::string>{};
++  failed_ = false;
+ }
+ 
+ Partial Owner::accumulate(std::span<const RecoilRecord> recs, std::span<const FlowRecord> flows) const {
+@@ -591,6 +620,7 @@
+ 
+ std::string Owner::merge(std::uint64_t accepted_step, std::uint64_t stage, std::span<const Partial> parts) {
+   ensure_open(accepted_step, "merge");
++  invalidate_candidate_bindings();
+   need((stage == 1 || stage == 2) && stage == next_stage_, Refusal::Kind::transaction,
+        "transaction: chemistry stages must occur once in order");
+   need(host() && !dev_, Refusal::Kind::configuration, "configuration: partial merge is the host reference path");
+@@ -659,6 +689,7 @@
+ std::string Owner::take(std::uint64_t accepted_step, std::uint64_t stage, std::span<const RecoilRecord> recs,
+                         std::span<const FlowRecord> flows) {
+   ensure_open(accepted_step, "take");
++  invalidate_candidate_bindings();
+   need(stage == 1 || stage == 2, Refusal::Kind::input, "input: stage");
+   need(stage == next_stage_, Refusal::Kind::transaction, "transaction: chemistry stages must occur once in order");
+   for (const auto &r : recs)
+@@ -675,6 +706,7 @@
+ 
+ std::string Owner::apply_flows(std::uint64_t accepted_step, std::span<const FlowRecord> flows) {
+   ensure_open(accepted_step, "flows");
++  invalidate_candidate_bindings();
+   for (const auto &f : flows)
+     need(f.kind == pfg::kFlowBirth || f.kind == pfg::kFlowSink || f.kind == pfg::kFlowTransaction,
+          Refusal::Kind::input, "input: chemistry flows require take");
+@@ -684,6 +716,7 @@
+ 
+ std::string Owner::transport(std::uint64_t accepted_step, std::span<const MoverRecord> movs) {
+   ensure_open(accepted_step, "transport");
++  invalidate_candidate_bindings();
+   need(cfg_.transport == Transport::carrier_shares, Refusal::Kind::configuration,
+        "configuration: transport is none in this configuration");
+   prepare_keys_impl({}, {}, movs, false);
+@@ -806,6 +839,7 @@
+ Owner::PreparedCommit Owner::prepare_commit(const std::string &candidate_sha256) {
+   need(open_, Refusal::Kind::transaction, "transaction: commit without an open step");
+   need(!publication_ready_, Refusal::Kind::transaction, "transaction: publication already prepared");
++  invalidate_candidate_bindings();
+   need(!failed_ && next_stage_ == 3 && cand_->counter[pfg::C_STATUS] == 0,
+        Refusal::Kind::transaction, "transaction: commit requires two successful ordered stages");
+   const std::string d = digest(*cand_, true);
+--- /dev/null
++++ b/tests/candidate_binding.inc
+@@ -0,0 +1,104 @@
++// Lifetime capability controls; no physics or numerical-identity changes.
++#include <type_traits>
++static_assert(!std::is_copy_constructible_v<Owner::CandidateBinding>);
++static_assert(std::is_nothrow_move_constructible_v<Owner::CandidateBinding>);
++static_assert(noexcept(std::declval<const Owner&>().matches_candidate(std::declval<const Owner::CandidateBinding&>())));
++static_assert(noexcept(std::declval<const Owner&>().matches_candidate(std::declval<const Owner::CandidateBinding&>(),0)));
++#ifdef PF_GAS_BEGIN_FAULT_WRAPPER
++extern int device_begin_failure_mode;
++#endif
++void binding_tests(Execution execution) {
++  const auto cfg=config(execution);
++  Owner a(cfg),equal(cfg);
++  Owner::CandidateBinding empty;
++  check(!a.matches_candidate(empty),"default binding closed refusal");
++  refuses([&]{(void)a.candidate_binding();},"capture closed candidate");
++  a.begin_step(0);equal.begin_step(0);
++  auto token=a.candidate_binding();const auto base=a.accepted_sha256(),candidate=a.candidate_sha256();
++  check(token.accepted_step()==0 && a.matches_candidate(token,0) && !a.matches_candidate(token,1),"expected native step binding");
++  check(!a.matches_candidate(empty) && equal.candidate_sha256()==candidate && !equal.matches_candidate(token),"equal-content foreign owner refused");
++  auto moved=std::move(token);check(!a.matches_candidate(token) && a.matches_candidate(moved),"move invalidates original binding");
++  (void)a.entries(true);(void)a.ledgers(true);
++  std::array<CellTargetsAbi,1> one={cell()};std::array<unsigned,1> atlas={0};a.feedback(0,1,atlas,one);
++  check(a.matches_candidate(moved) && a.accepted_sha256()==base && a.candidate_sha256()==candidate,"read-only queries preserve binding and contents");
++  const auto allocations=allocation_probe::allocations;
++  allocation_probe::fail_after=0;
++  const bool match=a.matches_candidate(moved),correct=a.matches_candidate(moved,0),wrong=a.matches_candidate(moved,1),foreign=equal.matches_candidate(moved);
++  allocation_probe::fail_after=-1;
++  check(match && correct && !wrong && !foreign && allocations==allocation_probe::allocations,"preflight allocates nothing");
++  a.prepare_keys({},{},{});
++  check(a.candidate_sha256()==candidate && !a.matches_candidate(moved),"same-digest key preparation invalidates old binding");
++  auto keyed=a.candidate_binding();
++  if(execution==Execution::host) {
++    auto part=a.accumulate({},{});check(a.matches_candidate(keyed),"const accumulation preserves binding");
++    a.merge(0,1,{&part,1});check(!a.matches_candidate(keyed),"partial merge invalidates binding");
++  } else {
++    a.take(0,1,{},{});check(!a.matches_candidate(keyed),"take invalidates binding");
++  }
++  auto stage1=a.candidate_binding();
++  refuses([&]{a.take(0,1,{},{});},"wrong stage refused");
++  check(!a.matches_candidate(stage1),"failed attempted stage invalidates old binding");
++  auto beforeflows=a.candidate_binding();a.apply_flows(0,{});
++  check(!a.matches_candidate(beforeflows),"external flow call invalidates binding");
++  auto beforetransport=a.candidate_binding();refuses([&]{a.transport(0,{});},"disabled transport refuses");
++  check(!a.matches_candidate(beforetransport),"rejected transport invalidates old binding");
++  a.take(0,2,{},{});auto beforeprepare=a.candidate_binding();const auto done=a.candidate_sha256();
++  refuses([&]{a.prepare_commit(std::string(64,'0'));},"wrong digest prepare refuses");
++  check(!a.matches_candidate(beforeprepare) && a.candidate_sha256()==done,"failed prepare invalidates binding without changing contents");
++  auto beforeseal=a.candidate_binding();auto publication=a.prepare_commit(done);
++  check(!a.matches_candidate(beforeseal) && a.can_publish(publication),"prepared publication closes read-only binding");
++  refuses([&]{(void)a.candidate_binding();},"capture sealed candidate");
++  check(a.try_publish(publication) && !a.matches_candidate(beforeseal),"publication closes candidate binding");
++  refuses([&]{(void)a.candidate_binding();},"capture published candidate");
++  auto retry_old=equal.candidate_binding();equal.abandon();equal.begin_step(0);
++  check(equal.candidate_sha256()==candidate && !equal.matches_candidate(retry_old),"same-digest abandon/rebegin invalidates binding");
++  check(equal.matches_candidate(equal.candidate_binding()),"fresh retry binding accepted");
++  Owner::CandidateBinding orphan;
++  {Owner dead(cfg);dead.begin_step(0);orphan=dead.candidate_binding();}
++  check(!equal.matches_candidate(orphan),"destroyed equal-owner binding refused");
++  auto restored=Owner::restore(a.encode(),cfg,a.accepted_sha256());restored->begin_step(1);
++  check(!restored->matches_candidate(beforeseal) && restored->matches_candidate(restored->candidate_binding(),1),"restore creates new capability lifetime");
++  {
++    auto limited=cfg;limited.max_entries=1;Owner o(limited);o.begin_step(0);
++    auto old=o.candidate_binding();const auto accepted=o.accepted_sha256();
++    std::array<FlowRecord,2> batch={debit(0,2,true),debit(1,2,true)};
++    refuses([&]{o.prepare_keys({},batch,{});},"key capacity refusal");
++    check(!o.matches_candidate(old) && o.accepted_sha256()==accepted,"key capacity preserves accepted and invalidates binding");
++    refuses([&]{(void)o.candidate_binding();},"key capacity failure requires abandon");
++    o.abandon();o.begin_step(0);check(o.matches_candidate(o.candidate_binding()),"key capacity fresh retry binding");
++  }
++  if(execution==Execution::host) {
++    unsigned poisoned=0,failures=0;bool complete=false;
++    for(long fault=0;fault<128;++fault) {
++      Owner o(cfg);o.begin_step(0);auto old=o.candidate_binding();const auto accepted=o.accepted_sha256();
++      auto f=debit(0,2,true);bool bad=false;
++      allocation_probe::fail_after=fault;
++      try{o.prepare_keys({},{&f,1},{});}catch(const std::bad_alloc&){bad=true;}
++      allocation_probe::fail_after=-1;
++      check(o.accepted_sha256()==accepted,"key allocation failure preserves accepted state");
++      if(!bad){complete=true;check(!o.matches_candidate(old),"successful keys invalidate binding");break;}
++      ++failures;bool capture_refused=false;
++      try{(void)o.candidate_binding();}catch(const Refusal&){capture_refused=true;}
++      if(capture_refused){++poisoned;check(!o.matches_candidate(old),"poisoned setup refuses old binding");}
++      o.abandon();o.begin_step(0);check(o.matches_candidate(o.candidate_binding()),"failed key setup can retry only on fresh lifetime");
++    }
++    check(complete && failures>0 && poisoned>0,"allocation sweep exercises poisoned key preparation");
++    std::cout<<"binding_key_allocation_failures "<<failures<<" poisoned "<<poisoned<<"\n";
++  }
++#ifdef PF_GAS_BEGIN_FAULT_WRAPPER
++  if(execution!=Execution::host) {
++    Owner o(cfg);stage_nonempty(o,1);o.commit(o.candidate_sha256());const auto accepted=o.accepted_sha256();
++    for(int mode:{1,2}) {
++      bool rejected=false;device_begin_failure_mode=mode;
++      try{o.begin_step(2);}catch(const std::runtime_error&){rejected=true;}
++      device_begin_failure_mode=0;
++      check(rejected && o.accepted_sha256()==accepted,"device begin fault preserves accepted state");
++      check(!o.matches_candidate(empty),"failed device begin cannot preflight");
++      refuses([&]{(void)o.candidate_binding();},"failed device begin cannot capture");
++      refuses([&]{o.take(2,1,{},{});},"failed device begin must abandon");
++      o.abandon();o.begin_step(2);check(o.matches_candidate(o.candidate_binding(),2),"device begin fresh retry is live");o.abandon();
++    }
++  }
++#endif
++  std::cout<<"binding_state "<<a.accepted_sha256()<<"\n";
++}
+--- /dev/null
++++ b/tests/device_begin_fault.cpp
+@@ -0,0 +1,11 @@
++// Test-only linker wrapper: explicitly injected before/after the real device
++// initialization call. Normal operations always delegate to the actual method.
++#include <cstdint>
++#include <stdexcept>
++int device_begin_failure_mode=0;
++extern "C" void __real__ZN9pf_gas_v110DeviceLane10begin_stepEm(void*,std::uint64_t);
++extern "C" void __wrap__ZN9pf_gas_v110DeviceLane10begin_stepEm(void* self,std::uint64_t step) {
++  if(device_begin_failure_mode==1)throw std::runtime_error("manufactured device initialization failure before copy");
++  __real__ZN9pf_gas_v110DeviceLane10begin_stepEm(self,step);
++  if(device_begin_failure_mode==2)throw std::runtime_error("manufactured device initialization failure after copy");
++}
+--- a/tests/test_guards.cpp
++++ b/tests/test_guards.cpp
+@@ -141,9 +141,10 @@
+ }
+ #include "motion_inputs.inc"
+ #include "publication.inc"
++#include "candidate_binding.inc"
+ int main(int argc,char**argv) {
+   try {slot_tests();Execution e=Execution::host;
+     if(argc>1)e=std::string(argv[1])=="device"?Execution::device:Execution::device_verified;
+-    owner_tests(e);motion_inputs(e);publication_tests(e);std::cout<<"PASS "<<checks<<" checks\n";return 0;
++    owner_tests(e);motion_inputs(e);publication_tests(e);binding_tests(e);std::cout<<"PASS "<<checks<<" checks\n";return 0;
+   }catch(const std::exception&e){std::cerr<<"FAIL "<<e.what()<<" after "<<checks<<" checks\n";return 1;}
+ }
+--- a/tools/qualify.py
++++ b/tools/qualify.py
+@@ -2,7 +2,7 @@
+ import hashlib,json,os,pathlib,subprocess,sys,time
+ if not __debug__: raise RuntimeError('optimized Python guard execution refused')
+ R=pathlib.Path(__file__).resolve().parents[1]
+-OUT=pathlib.Path('/home/treefor/projects/.workspace/outputs/gas-target-owner-v1.3-publication-20261101')
++OUT=pathlib.Path('/home/treefor/projects/.workspace/outputs/gas-target-owner-v1.4-binding-20261101')
+ FORMS=R.parent/'pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix/forms/include/pf_v7'
+ GPU=R.parent/'hall-gpu-resident-v1-20261030'
+ NV=R.parent/'pic-cuda-gather-investigation-20261029/tools/nvrtc/nvidia/cuda_nvrtc'
+@@ -22,6 +22,9 @@
+     assert 'GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9' in os.getenv('SIMQ_GPUS','') and int(os.getenv('SIMQ_GPU_MEM','0'))>0,'scheduled shared GPU allocation required'
+ 
+ FROZEN=R.parent/'arch-base-20261028'
++root_stat=pathlib.Path('/').stat();frozen_root_stat=(FROZEN/'root').stat()
++root_identity=(root_stat.st_dev,root_stat.st_ino)
++assert root_identity==(frozen_root_stat.st_dev,frozen_root_stat.st_ino),'outer run-frozen filesystem required'
+ assert pathlib.Path('/proc/sys/kernel/osrelease').read_text().strip()==(FROZEN/'kernel.release').read_text().strip()
+ for executable in ('usr/bin/c++','usr/bin/python'):
+     assert hashlib.sha256(pathlib.Path('/'+executable).read_bytes()).digest()==hashlib.sha256((FROZEN/'root'/executable).read_bytes()).digest(),'frozen executable required'
+@@ -30,7 +33,7 @@
+     paths=[p for d in ('include','src','device','tests','tools','baseline','reference-v1.1') for p in (R/d).rglob('*') if p.is_file()]
+     paths += [FORMS/'forms_core.h',GPU/'common/hall_gpu_common.hpp',GPU/'common/hall_gpu_common.cpp']
+     return {str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}
+-before=hashes();receipt={'mode':MODE,'job':os.environ['SIMQ_JOB_ID'],'affinity':sorted(os.sched_getaffinity(0)),'input_hashes':before,'passed':False,'runs':[],'allocation':{k:v for k,v in os.environ.items() if k.startswith('SIMQ_') and k!='SIMQ_LAUNCH_TOKEN'},'physical_memory_before':meminfo,'frozen_launcher_sha256':hashlib.sha256((FROZEN/'run-frozen').read_bytes()).hexdigest()}
++before=hashes();receipt={'frozen_root_identity':root_identity,'frozen_root_verified':True,'mode':MODE,'job':os.environ['SIMQ_JOB_ID'],'affinity':sorted(os.sched_getaffinity(0)),'input_hashes':before,'passed':False,'runs':[],'allocation':{k:v for k,v in os.environ.items() if k.startswith('SIMQ_') and k!='SIMQ_LAUNCH_TOKEN'},'physical_memory_before':meminfo,'frozen_launcher_sha256':hashlib.sha256((FROZEN/'run-frozen').read_bytes()).hexdigest()}
+ def run(cmd,name,env=None):
+     t=time.monotonic()
+     with (D/(name+'.log')).open('w') as f:r=subprocess.run(list(map(str,cmd)),stdout=f,stderr=subprocess.STDOUT,env=env)
+@@ -43,7 +46,7 @@
+     else:cmd+=['-O2']
+     cmd += [R/'tests/test_guards.cpp',R/'tests/allocation_probe.cpp',R/'src/gas_owner.cpp']
+     if MODE=='device':
+-        cmd+=['-Wno-c++26-extensions','-DPF_GAS_WITH_DEVICE','-DPF_GAS_FORMS_CORE="'+str(FORMS/'forms_core.h')+'"','-I',GPU,'-isystem',CUDA,'-isystem',NV/'include',R/'src/gas_device.cpp',GPU/'common/hall_gpu_common.cpp','-ldl','-lcrypto']
++        cmd+=[R/'tests/device_begin_fault.cpp','-DPF_GAS_BEGIN_FAULT_WRAPPER','-Wl,--wrap=_ZN9pf_gas_v110DeviceLane10begin_stepEm','-Wno-c++26-extensions','-DPF_GAS_WITH_DEVICE','-DPF_GAS_FORMS_CORE="'+str(FORMS/'forms_core.h')+'"','-I',GPU,'-isystem',CUDA,'-isystem',NV/'include',R/'src/gas_device.cpp',GPU/'common/hall_gpu_common.cpp','-ldl','-lcrypto']
+     cmd+=['-o',D/'test_guards']
+     run(cmd,'build');receipt['binary_sha256']=hashlib.sha256((D/'test_guards').read_bytes()).hexdigest()
+     run([D/'test_guards'],'host')
+@@ -63,6 +66,8 @@
+         assert len(set(motion_states))==1,'transport state parity differs'
+         publication_states=[next(l for l in (D/(n+'.log')).read_text().splitlines() if l.startswith('publication_state ')) for n in ('host','device','verified')]
+         assert len(set(publication_states))==1,'publication state parity differs'
++        binding_states=[next(l for l in (D/(n+'.log')).read_text().splitlines() if l.startswith('binding_state ')) for n in ('host','device','verified')]
++        assert len(set(binding_states))==1,'binding-path state parity differs'
+         receipt['state_parity']=True
+     receipt['binary_unchanged']=hashlib.sha256((D/'test_guards').read_bytes()).hexdigest()==receipt['binary_sha256']
+     assert receipt['binary_unchanged']
