@@ -55,19 +55,22 @@ and then copied (filtered) into `artifacts/<component>-<version>-<date>/` here.
 
 The 20 ns field-only pre-run inside the coordinator model matched the Hall v3.3
 20 ns checkpoint word for word (194,026 steps, 631 s). Starting the coupled run
-from it is blocked only by the revision/accepted-step binding between Hall and
-native; Hall v3.5 `restore_as_genesis` resolves it without changing any check.
+from it also omits the earlier particle and source history. Hall v3.5
+`restore_as_genesis` addresses a revision/accepted-step binding problem; that
+software fix alone does not qualify a cold plasma start at 20 ns.
 
 ## Audit corrections (2026-10-31)
 
-Corrective versions are being qualified separately from the sealed builds:
-SS304 phase v1.3, water chemistry v3.1.1, native candidate008-auditfix,
-and coordinator v8.0.1. Do not bind these until their final source identities
+Corrective versions are being qualified separately from the sealed builds.
+SS304 phase v1.3 is qualified and pushed (d39e33d): 200204 CPU checks and
+73 GPU checks passed, with three historical defects separately reproduced.
+Water chemistry v3.1.1, native candidate008-auditfix and coordinator v8.0.1
+are still being qualified. Do not bind those until their final source identities
 and verification receipts are recorded. Existing active runtimes are unchanged.
 When they are final, their fixes are folded into the in-progress versions
 (native v8, chemistry v3.2, coordinator stage 2).
 
-## Open decisions (need the project owner)
+## Open model choices
 
 - Coordinator v8 stage 2 production presets: enabling source v7 surface physics
   in production, the melt inertia model, sub-cycling K.
@@ -206,9 +209,12 @@ deleted branch, for restoring one (`git branch <name> <commit>`):
 
 ## Known issues
 
-- Resolved the 14 dissertation-comparison failures: ten evidence files had
-  LF bytes where their manifests recorded CRLF. Restored the original
-  manifest-bound bytes and added `.gitattributes` preservation rules; no
-  scientific values or expected hashes changed. Frozen-runtime SimQueue job
-  232: 26 passed, 2 skipped for the two affected test modules. The complete
-  repository suite has not yet been rerun for this correction.
+- Dissertation evidence serialization: retained the manifest-bound CRLF
+  records and added `.gitattributes` preservation rules. The complete suite
+  then exposed three CSVs whose recovery generators and own metadata require
+  LF, while the aggregate pilot manifest recorded CRLF copies. Those three
+  now use the generators' exact LF bytes and original per-artifact hashes;
+  the aggregate manifest references were corrected. No scientific values,
+  per-artifact expected hashes or tests changed. The byte-level change record
+  is `artifacts/source-audit-20261031/eol-repair.json`. Full-suite SimQueue job
+  255: 3650 passed, 39 skipped; the existing tests and expected hashes are intact.

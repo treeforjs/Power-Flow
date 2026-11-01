@@ -1,0 +1,122 @@
+Source audit of the coupled Power-Flow work — 2026-10-31
+
+Assessment: do not treat the current components as ready for a production water-breakdown run. Several source-level correctness defects need regression tests and fixes before full integration. This assessment does not invalidate every component benchmark or earlier simulation.
+
+Scope and evidence
+
+Reviewed the sealed Power-Flow coordinator v8 stage 1, water chemistry v3.1, Hall v3.4, native v7.1, SS304 phase owner v1.2, circuit v1, their tests/reports, and selected in-progress native v8 and chemistry v3.2 code. Repository anchor: 78767d7c7cc8f83d30e68994c8b044f4e473d2a2. Runtime code is being edited by other sessions; findings against it apply to the hashes below. This is not an exhaustive review of the separate Raikou fluid or Spheral implementations.
+
+No source, build, dependency, job, or simulation was changed. No compilation, numerical test suite, or simulation was run. Findings below are based on source inspection and explicit failure sequences, not claimed executed reproductions. The dissertation CSV hash mismatch was independently recalculated. Saved test reports were reviewed separately from these new findings. This report is the only new artifact.
+
+Paths beginning artifacts/ are relative to /home/treefor/projects/Power-Flow. Native008 denotes /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008.
+
+1. P1 — Thermal trials can publish a different state from their energy records.
+
+Location: artifacts/ss304-phase-thermal-owner-v1.2-20261031/source/source/phase_owner.hpp:1017–1053; source/source/engine.hpp:238–253; GPU equivalent source/source/gpu_engine.cpp:431.
+
+prepare(A) and prepare(B) reuse the same scratch state slots without advancing the trial generation. Both trials pass preflight until a commit changes the generation. If A and B use the same substep count but different heat inputs, prepare(B) overwrites A's state slot. commit(A) then adopts B's cell state with A's ledger increments, cached sums, conductivity, and time increment. This can silently separate physical state from conservation records.
+
+Failure sequence: t1=prepare(A); t2=prepare(B); commit(t1), with different heating and equal dt/substep count. Existing test_owner.cpp:385 explicitly permits two outstanding preparations but uses identical inputs and commits the second, so it does not detect this.
+
+Required fix/check: invalidate previous trials before reusing scratch storage, or give each trial independent owned state. Test committing both older and newer trials after unequal preparations, on CPU and GPU. A refusal during the second preparation must also leave the older trial either valid with intact storage or explicitly invalidated.
+
+2. P1 — Chemistry coverage bounds ignore target thermal motion.
+
+Location: artifacts/water-chemistry-v3.1-20261031/source/include/pf_chem_v3/chem_event.h:463–480. Actual target sampling is at 505–527. Equivalent code remains in the inspected v3.2 header around 667–685.
+
+The missing-reaction exposure uses only projectile velocity relative to target drift. Actual collisions sample target velocities using cell.s. A stationary projectile and a zero-mean hot target distribution therefore produce vd=0 and zero reported missing-channel exposure, although collision-relative velocities are nonzero. Thermal tails can also cross a data-region boundary that the drift-only check never visits.
+
+Required fix/check: bound or integrate exposure over the supported target distribution, including threshold/region crossings. Add co-moving hot-target and threshold-straddling tests. Passing the current coverage guard does not establish that omitted reactions are small.
+
+3. P1 — Neutral release is not physically conservative despite exact bookkeeping.
+
+Location: artifacts/water-chemistry-v3.1-20261031/source/include/pf_chem_v3/chem_host.hpp:656–720; duplicated in Native008/source/src/chem_v3_native.cpp:971–1048.
+
+Release samples product entries with replacement, then subtracts the selected energy and momentum from a reservoir. The code explicitly allows signed remainders but does not enforce physical realizability. Consider two same-species entries, each weight w0: one stationary and one energetic. Both released packets can select the energetic entry. Remaining count is then zero, with negative kinetic energy and compensating momentum. Zero-count reservoirs are skipped on subsequent releases. Exact arithmetic preserves the signed accounting identity, not a realizable gas population or a physically conservative particle sample. The integration text's claim that equal-weight products each retain their own velocity is not generally true.
+
+Required fix/check: preserve equal-weight entries directly, or use conservative resampling with a realizable residual. Verify particle-plus-reservoir momentum and energy, nonnegative kinetic energy, the mass/momentum/energy feasibility constraint, and zero residual energy/momentum when count reaches zero. Current count-only tests miss this case.
+
+4. P2 — A refused thermal preparation changes subsequent surface physics.
+
+Location: artifacts/ss304-phase-thermal-owner-v1.2-20261031/source/source/phase_owner.hpp:808–821 and 636–648.
+
+prepare assigns patch_pb_ before later load/release/engine checks can throw. A refused trial can therefore change the pressure used by evaporation and recoil, despite no accepted step. state_sha256 omits this pressure, so comparing that hash before and after refusal misses the change; checkpoints do include it.
+
+Failure sequence: record quote(dt); prepare valid heating with a different valid back pressure and an invalid load producer; catch the refusal; query quote(dt) again. The new pressure remains active. The documented unchanged-on-refusal contract is violated.
+
+Required fix/check: keep pressure trial-local until commit and bind future-affecting accepted state consistently. Test refusal after changing pressure using both state and physical quote comparisons.
+
+5. P2 — Thermal accumulation can lose a newly added field contribution.
+
+Location: the same phase_owner.hpp:748–759, 1022, 1048.
+
+accumulate and accumulate_device do not invalidate outstanding trials. Sequence: accumulate window A; prepare accumulated trial A; accumulate contribution B; commit A. Preflight still passes and commit clears the entire accumulator, dropping B. No explicit interleaving prohibition or guard was found. The state hash also records only pending duration/count, not the accumulated per-cell energy/force values.
+
+Required fix/check: version the accumulated window and reject stale trials, or consume only the prepared snapshot. Test interleaved accumulation and checkpoint identity for distinct windows with equal durations/counts.
+
+6. P2 — Restart silently ignores a newly requested end time/window.
+
+Location: artifacts/coordinator-v8-stage1-20261031/source/tests/driver_v8_run.inc:16–17, 221, 592, 720–758.
+
+Fresh runs derive end_time from --window/--end-time. Restore instead copies the old end_time_s from coordinator.json and never applies those new launch options. finished() prioritizes that saved time over --steps. A checkpoint from a completed short time-window run can therefore immediately report end_time and exit successfully when asked to continue to 60 ns. Existing restart tests use step-limited runs and do not exercise this.
+
+Required fix/check: preserve the old target through replay verification, then apply an explicitly requested continuation target. Test both direct and replay restart with an extended end time, a relative window, and a request with no new target.
+
+7. P2 — Native v8 checkpoint identity does not cover all published wall-impact inputs.
+
+Location: Native008/source/src/mfem_pic_full_time.inc:170–209 and 5053–5138; source/src/mfem_pic_full_time_chemistry.inc:34–69.
+
+step_sinks is optional metadata omitted from the accepted snapshot digest. Exposure-to-journal validation occurs only when a matching sink row exists in the uncompressed window; there is no requirement to find it. Anchoring clears that window. Removing step_sinks, or changing an exposed weight at an anchor, can therefore preserve the accepted state identity if the outer file checksum is regenerated. start_position_m is read but not bound by the sink-record root or reconstructed ledger even between anchors.
+
+This is a logical integrity gap for resumed wall response, not a claim that an ordinary disk bit flip bypasses the outer checksum. Existing sink tests save after one step with an anchor interval of two, missing the anchor case.
+
+Required fix/check: bind the complete published sink exposure into accepted state, require its presence where appropriate, and preserve that binding through anchoring. Test missing metadata and modified positions/weights before and at anchors.
+
+8. P2 — Weak positive extraction fields suppress thermal electron emission.
+
+Location: artifacts/coordinator-v8-stage1-20261031/source/source/joint_step_v8.hpp:505–520.
+
+For 0 < F < 1 V/m, the coordinator records lower/upper emission expectations but creates no electron stream. F=0 follows the ordinary kernel path. No cumulative omission budget or refusal is enforced for these recorded bounds. This creates a discontinuous source rule and may matter at hot, shielded surfaces; the cold pilot does not qualify it.
+
+Required fix/check: use an explicitly qualified low-field limit/extension or refuse when omitted emission is non-negligible. Test hot surfaces at negative, zero, and small positive F, including accumulation over many steps. Do not silently treat a recorded nonzero lower bound as zero emission.
+
+9. P2 — The sealed chemistry reference debits non-consuming targets.
+
+Location: artifacts/water-chemistry-v3.1-20261031/source/include/pf_chem_v3/chem_host.hpp:598; INTEGRATION.txt:119–130.
+
+The generic resolve_debits helper consumes inventory for every event, including elastic/excitation events whose target returns through GAS. This can reject valid later collisions and makes the reference inconsistent with its integration contract. Native008 already filters with consumes_target(e), so this is not an unfixed native008 debit-path bug.
+
+Required fix/check: distinguish consuming from GAS-returning events in the reference and add a sequence of multiple elastic events followed by a consuming event.
+
+10. Known P1 in the sealed dependency; fix present but not finally qualified as a release.
+
+Location: artifacts/native-v7.1-20261031/source/source/src/mfem_pic_full_time.inc:2148.
+
+device_verified and a device refusal fallback bind a reference to data owned by a temporary shared_ptr, then read it after the owner is destroyed. The inspected candidate008 retains a named shared_ptr, fixing the lifetime. Saved newer regression evidence covers that path. This must not be described as an unfixed v8 defect, but the current sealed v7.1 dependency remains affected. Pin and qualify the corrected dependency before using the affected path in production.
+
+Additional qualification gates
+
+- The production chemistry policy explicitly admits no-data placeholders and above-table regions (water-chemistry-v3.1 source/tools/make_coverage_policy.py:25–28). Other missing reactions are bounded conditionally; some v3.2 extensions are model-derived. A passing policy is not evidence of a complete measured reaction network. Freeze and review these model choices separately from software parity.
+- Native v8 samples target velocities from cell moments but removes consuming target inventory by native-ID order. GAS-returning events record gas heating without changing tracked target velocities. This is documented as a field-target approximation. Event-level conservation does not prove before/after conservation of the actual tracked population plus a coupled gas-energy owner; require unequal-velocity target tests and whole-system closure.
+- Sealed coordinator v8 stage 1 still binds Hall v3.3/native v7.1, not all the newer components. Sealed Hall v3.4 still uses solid-only ThermalV3 over 298.2–1500 K and prescribed current. Phase owner/circuit/wall-response integration is pending.
+- SS304 integration instructions describe Lorentz-work bookkeeping while stating that moving-conductor u x B is absent. The field/current update must participate in the work exchange; changing ledger labels alone cannot establish physical energy conservation.
+- The documented 9 mm field box gives about 32% less port inductance than the wider-box result. Circuit fits using the supplied approximately 40 nH feed miss the rise by 31–56%; a better trace fit pushes the feed toward a 0.1 nH bound. Resolve geometry, waveform/circuit consistency, and comparison to dissertation fields before interpreting predicted breakdown timing.
+- The 20 ns pre-run is vacuum/field-only. Starting plasma there requires qualification of omitted earlier source/particle history. The only actual coupled pilot reported here covers about 0.081 ns and produced no electrons or ionization. Neither establishes shielding or full 60 ns breakdown.
+- The coordinator's rank-restart test changes --ranks metadata while running one process (tools/restart_tests.py:143–148; tools/pf-coupled-v8). It does not qualify distributed MPI restart/scaling. Do not equate its passing result with multi-rank execution.
+- The 14 documented dissertation-comparison failures have a verified CRLF/LF hash mismatch: stored LF CSV SHA256 551a6cbbe7410f996b57559cb29c4f6bc1e323fae257a0313aeb67226feac6bd; reconstructed CRLF SHA256 53a0ac56e11b1093b2adfed470645b59424bc84e6ed7831638c0054a26605fc9, matching the manifest. The suite was not rerun here.
+
+Evidence worth retaining
+
+Saved evidence includes CPU/GPU parity, keyed-random partition tests, event-level charge/nuclei/energy checks, restart/crash tests, Hall residual checks, phase-owner hydrodynamic reference cases, and circuit convergence tests. Frozen build/run input checks and source identities are useful controls. These tests support their stated component cases; they do not cover the failure sequences above or validate the full integrated physics.
+
+Recommended order: fix thermal transaction integrity and chemistry coverage/release; close the checkpoint and continuation defects; qualify the corrected native dependency; then run a short all-owner case with nonzero emission, dissociation/ionization, wall collection, gas/solid/field energy exchange, and a mid-run restart. Only then expand duration and perform mesh, timestep, particle-weight, and model-sensitivity checks.
+
+Inspected source SHA256 anchors
+
+coordinator driver_v8_run.inc: ee10fe922d781fbe19abfbb1d5d4be4652aae6fb32c45b8e3fce706c3cc23ee6
+coordinator joint_step_v8.hpp: 71915fa780ab9eba24186344386c1d03bd208f43e78b059c12c3eb7ec751a481
+SS304 phase_owner.hpp: 1ee6b5502af8e50fb48c403553c8d33caadd38edf7c231764c290df7a0fd67d5
+chemistry v3.1 chem_event.h: 203aee1baae595d6f778031b0dae9bc709594546a89048c3303afa52d128dd75
+chemistry v3.1 chem_host.hpp: 7f4c16670b2e2e04f56e23423ff0155053c3cfeb5b15e7c420aba2cdcf3e920c
+Native008 mfem_pic_full_time.inc: d2bad94f1c61e3e1376404e19dddaf7394cb692666ac5771c535e9d576b86111
+Native008 chem_v3_native.cpp: c5ce870c32728fabd0ee856ef5e595732f47c0c61d5a5ca70105d7183e6b3bd5

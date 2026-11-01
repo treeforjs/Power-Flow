@@ -1,0 +1,154 @@
+===== simq job 247: audit-repository-suite =====
+submitted: 2026-11-01T04:51:43Z
+started:   2026-11-01T04:52:07Z
+cwd:       /home/treefor/projects/Power-Flow
+partition: powerflow
+P-cores:   6
+GPUs:      none
+memory:    3G (swap 1G)
+time:      00:20:00
+unit:      simq-job-247-0f64c0a4a7bc.service
+command:   /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /home/treefor/projects/Power-Flow/.venv/bin/python -m pytest -q -p no:cacheprovider
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock (exclusive)
+........................................................................ [  1%]
+........................................................................ [  3%]
+........................................................................ [  5%]
+........................................................................ [  7%]
+........................................................................ [  9%]
+.......................................................................F [ 11%]
+F.......s................F.s............................................ [ 13%]
+........................................................................ [ 15%]
+........................................................................ [ 17%]
+............................s........................................... [ 19%]
+........................................................................ [ 21%]
+........................................................................ [ 23%]
+........................................................................ [ 25%]
+........................................................................ [ 27%]
+........................................................................ [ 29%]
+........................................................................ [ 31%]
+........................................................................ [ 33%]
+......................................s................................. [ 35%]
+........................................................................ [ 37%]
+.........................s..........................................ss.. [ 39%]
+........................................................................ [ 40%]
+........................................................................ [ 42%]
+........................................................................ [ 44%]
+........................................................................ [ 46%]
+........................................................................ [ 48%]
+........................................................................ [ 50%]
+....................................sssssssss.....s..................... [ 52%]
+..................................ssssssssss......................ssssss [ 54%]
+sssss................................................................... [ 56%]
+........................................................................ [ 58%]
+........................................................................ [ 60%]
+........................................................................ [ 62%]
+........................................................................ [ 64%]
+........................................................................ [ 66%]
+........................................................................ [ 68%]
+........................................................................ [ 70%]
+........................................................................ [ 72%]
+........................................................................ [ 74%]
+........................................................................ [ 76%]
+........................................................................ [ 78%]
+........................................................................ [ 80%]
+........................................................................ [ 81%]
+........................................................................ [ 83%]
+........................................................................ [ 85%]
+........................................................................ [ 87%]
+........................................................................ [ 89%]
+........................................................................ [ 91%]
+.................................s...................................... [ 93%]
+........................................................................ [ 95%]
+........................................................................ [ 97%]
+........................................................................ [ 99%]
+.................                                                        [100%]
+=================================== FAILURES ===================================
+_ test_lamp_curve_retains_original_vertices_literal_units_and_source_identity __
+
+    def test_lamp_curve_retains_original_vertices_literal_units_and_source_identity():
+        rows,meta,payload=artifact('figure_4_18_calibration')
+        assert len(rows)==243 and list(rows[0])==list(recovery.LAMP_FIELDS)
+>       assert meta['output']['csv_sha256']==recovery.sha256(payload)=='20482064aa5bf2c49cc15b230e46498da0fc66361e18d06fad15af026a77481b'
+E       AssertionError: assert '20482064aa5b...5af026a77481b' == '3f37daca2aa6...956dad7a95e08'
+E         
+E         - 3f37daca2aa6f6f023870005294281c33148f84ba4c5474889c956dad7a95e08
+E         + 20482064aa5bf2c49cc15b230e46498da0fc66361e18d06fad15af026a77481b
+
+tests/test_dissertation_calibration_recovery.py:31: AssertionError
+_ test_gain_series_keep_marker_and_polygon_roles_without_legend_contamination __
+
+    def test_gain_series_keep_marker_and_polygon_roles_without_legend_contamination():
+        rows,meta,payload=artifact('figure_4_19_gain')
+        assert list(rows[0])==list(recovery.GAIN_FIELDS)
+>       assert recovery.sha256(payload)==meta['output']['csv_sha256']=='b099c5558ec3e2d8a0c056e606e2c342b713de6f4c80f8b15840cc0f78fb3cc8'
+E       AssertionError: assert '623fb7ce54b3...8f663778311c1' == 'b099c5558ec3...0cc0f78fb3cc8'
+E         
+E         - b099c5558ec3e2d8a0c056e606e2c342b713de6f4c80f8b15840cc0f78fb3cc8
+E         + 623fb7ce54b39b3b474ba30baaab1e74282b95ba78b89cd28158f663778311c1
+
+tests/test_dissertation_calibration_recovery.py:55: AssertionError
+_ test_published_artifact_keeps_observed_visible_arbitrary_intensity_and_separate_timing _
+
+    def test_published_artifact_keeps_observed_visible_arbitrary_intensity_and_separate_timing():
+        rows, metadata = published_artifact()
+        assert metadata["schema"] == "mhdlab-published-observed-visible-spectrum-v1"
+        assert metadata["parameter_status"] == "reconstructed_published_observed_visible_trace"
+        source = metadata["source"]
+        assert source["pdf_sha256"] == "1d7b1f9c191a37e94f1cc3634587750f1af35b07eb13e0b94c60f3da47495ed7"
+        assert source["native_rgb_sha256"] == "27a9beba2c5aa9edb0de720ff0f50866157eb845b12c1318864279f1b16d5276"
+        assert (source["figure"], source["printed_page"], source["pdf_page_1based"], source["native_image_xref"]) == ("4.15", 75, 100, 2554)
+        assert source["native_image_size_px"] == [1040, 1320]
+        observable = metadata["observable"]
+        assert observable["diagnostic"] == "SVS visible streak spectroscopy"
+        assert observable["series_literal"] == "SVS Lineout 3: 330 ns"
+        assert observable["axis_label_literal"] == "Intensity [arb.]"
+        assert observable["intensity_unit"] == "arbitrary"
+        assert observable["wavelength_unit_literal"] == "nm"
+        for claim in ("raw_detector_counts", "absolute_radiance", "transition_density", "inferred_covariance"):
+            assert observable[claim] is False
+        context = metadata["experimental_context"]
+        assert (context["shot"], context["foil_material_literal"], context["foil_thickness_um_caption"]) == (15765, "SS304", 400)
+        assert context["visible_lineout_time_ns_literal"] == 330
+        assert context["visible_exposure_or_averaging_width_ns"] is None
+        assert context["source_emission_gate_inferred"] is False
+        vuv = context["same_shot_vuv_context_only"]
+        assert vuv == {"time_before_breakdown_ns_table_4_1": 29, "diagnostic_gate_ns": 3,
+                       "is_this_visible_acquisition": False}
+        assert context["collection_region"] == "SVS side-on gap view; distinct from VUV collection"
+        geometry = context["collection_geometry_reported"]
+        assert (geometry["source_printed_page"], geometry["source_pdf_page_1based"],
+                geometry["setup_figure"], geometry["setup_figure_printed_page"]) == (71, 96, "4.13", 72)
+        assert geometry["setup_figure_shot_range"] == [15750, 15802]
+        assert geometry["focal_point_distance_from_cathode_um"] == 450
+        assert geometry["focal_spot_radius_um"] == 175
+        assert geometry["nearest_reported_collection_distance_um"] == 275
+        assert geometry["primary_lens_focal_length_mm"] == 70.3
+        assert geometry["object_distance_from_primary_optic_mm"] == 70.3
+        assert geometry["reported_second_focusing_optic_distance_mm"] == 40.2
+        assert geometry["reported_demagnification"] == .57
+        assert geometry["spatial_kernel_or_etendue_inferred"] is False
+        assert "correlated display samples" in metadata["limitations"][0]
+        interpretation = metadata["recovery"]["readout_envelopes"]["interpretation"]
+        assert "not physical error bars, independent noise, confidence intervals or covariance" in interpretation
+        assert metadata["source_local_qa"]["contains_source_pixels"] is True
+        assert metadata["source_local_qa"]["redistribution_in_delivery"] is False
+        assert len(rows) == metadata["artifact"]["rows"] == 136
+        assert list(rows[0]) == metadata["artifact"]["columns"] == list(recovery.FIELDS)
+>       assert hashlib.sha256(CSV.read_bytes()).hexdigest() == metadata["artifact"]["csv_sha256"] == "53b59e6d0645b718eaa677440097be51469b421d710bcc01327ae9de3e4825c5"
+E       AssertionError: assert '98547aa24d36...35ab6032ac3ce' == '53b59e6d0645...ae9de3e4825c5'
+E         
+E         - 53b59e6d0645b718eaa677440097be51469b421d710bcc01327ae9de3e4825c5
+E         + 98547aa24d362d93cffc859ea49e4c82553081b3d0d578fab7e35ab6032ac3ce
+
+tests/test_dissertation_observed_spectrum.py:157: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_dissertation_calibration_recovery.py::test_lamp_curve_retains_original_vertices_literal_units_and_source_identity
+FAILED tests/test_dissertation_calibration_recovery.py::test_gain_series_keep_marker_and_polygon_roles_without_legend_contamination
+FAILED tests/test_dissertation_observed_spectrum.py::test_published_artifact_keeps_observed_visible_arbitrary_intensity_and_separate_timing
+3 failed, 3647 passed, 39 skipped in 121.00s (0:02:00)
+========================================
+finished:  2026-11-01T04:54:09Z
+exit code: 1
+state:     failed
+===== simq job 247 finished =====
