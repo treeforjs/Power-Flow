@@ -1,0 +1,333 @@
+--- a/include/pf_gas_v1/gas_owner.hpp
++++ b/include/pf_gas_v1/gas_owner.hpp
+@@ -110,7 +110,10 @@
+ class Exact {
+ public:
+   Exact() { d_.fill(0); }
+-  void add(const pfg::Chunks &c, int negate = 0) { pfg::add_chunks(d_.data(), c, negate); }
++  void add(const pfg::Chunks &c, int negate = 0) {
++    if (c.bad) throw Refusal(Refusal::Kind::exactness, "exactness: unrepresentable exact term");
++    pfg::add_chunks(d_.data(), c, negate);
++  }
+   void add_product(double a, double b, int negate = 0) { add(pfg::chunks_product(a, b), negate); }
+   void add_triple(double a, double b, double c, int negate = 0) { add(pfg::chunks_triple(a, b, c), negate); }
+   void add_digits(const std::int64_t *d, int negate = 0) {
+@@ -126,7 +129,9 @@
+   double value() const {
+     auto x = d_;
+     pf7_u32 st = 0;
+-    return pf7::round_sum(x.data(), &st);
++    const double result = pf7::round_sum(x.data(), &st);
++    if (st) throw Refusal(Refusal::Kind::exactness, "exactness: rounded exact value overflow");
++    return result;
+   }
+   bool zero() const {
+     auto x = normalised();
+@@ -155,7 +160,8 @@
+ 
+ // Census of a population (host utility): exact count, kinetic energy and
+ // momentum per (cell, gas species) and per species. Rows of non-gas species
+-// are ignored.
++// are ignored in the sums, but every row must have a unique ID, a known
++// species, positive finite weight, and finite phase space inside the grid.
+ struct CensusRow {
+   std::uint64_t native_id = 0;
+   std::uint32_t species = 0, pad = 0;
+@@ -173,7 +179,9 @@
+ Census census(const Configuration &, std::span<const CensusRow> rows);
+ // Movers of a motion phase: rows before and after (any order; joined by
+ // native ID), the IDs sunk at walls. Gas species only; cell_count from the
+-// before census. Output in ascending native ID.
++// before census. After and sunk must partition the before inventory exactly;
++// motion preserves species and binary weight. Birth/debit/release/merge/split
++// operators must be represented separately. Output in ascending native ID.
+ std::vector<MoverRecord> movers(const Configuration &, std::span<const CensusRow> before,
+                                 std::span<const CensusRow> after, std::span<const std::uint64_t> sunk);
+ 
+@@ -181,6 +189,20 @@
+ 
+ class Owner {
+ public:
++  // A capability for this exact live candidate, never a transferable digest.
++  class PreparedCommit {
++    friend class Owner;
++    std::shared_ptr<const void> lifetime_;
++    std::uint64_t generation_ = 0;
++    std::string digest_;
++  public:
++    PreparedCommit() = default;
++    PreparedCommit(const PreparedCommit &) = delete;
++    PreparedCommit &operator=(const PreparedCommit &) = delete;
++    PreparedCommit(PreparedCommit &&) noexcept = default;
++    PreparedCommit &operator=(PreparedCommit &&) noexcept = default;
++    const std::string &candidate_sha256() const noexcept { return digest_; }
++  };
+   explicit Owner(const Configuration &);
+   ~Owner();
+   Owner(const Owner &) = delete;
+@@ -207,6 +229,12 @@
+   FeedbackReceipt feedback(std::uint64_t accepted_step, std::uint64_t stage, std::span<const std::uint32_t> atlas,
+                            std::span<CellTargetsAbi> cells) const;
+   void commit(const std::string &candidate_sha256);
++  // All hashing, validation, compaction and allocation finish here. Success
++  // freezes the candidate until publication or abandon. The common coordinator
++  // must prepare and preflight every owner before publishing any owner.
++  PreparedCommit prepare_commit(const std::string &candidate_sha256);
++  bool can_publish(const PreparedCommit &) const noexcept;
++  bool try_publish(PreparedCommit &) noexcept;
+   void abandon();
+   bool step_open() const noexcept { return open_; }
+ 
+@@ -243,6 +271,9 @@
+   std::vector<pfg::ProcessInfo> procs_;
+   std::unique_ptr<State> acc_, cand_;
+   bool open_ = false;
++  std::shared_ptr<const void> lifetime_ = std::make_shared<const int>(0);
++  std::uint64_t generation_ = 0;
++  bool publication_ready_ = false;
+   bool failed_ = false;  // a failed mutating operation requires abandon
+   std::uint64_t next_stage_ = 1;
+   bool partial_batch_ready_ = false;
+--- a/include/pf_gas_v1/gas_device.hpp
++++ b/include/pf_gas_v1/gas_device.hpp
+@@ -35,7 +35,7 @@
+                                                    std::span<const MoverRecord>);
+   FeedbackReceipt feedback(std::span<const std::uint32_t> atlas, std::vector<CellTargetsAbi> &cells, double volume,
+                            bool candidate);
+-  void commit();
++  void commit() noexcept;
+   void abandon();
+   void leaves(bool candidate, std::vector<Leaf> &entry, std::vector<Leaf> &global);
+   // Normalised state download (nonzero entries only; all globals).
+--- a/src/gas_device.cpp
++++ b/src/gas_device.cpp
+@@ -338,8 +338,9 @@
+   return r;
+ }
+ 
+-void DeviceLane::commit() {
+-  auto &k = *p_;
++void DeviceLane::commit() noexcept {
++  auto &k = *p_;
++  static_assert(noexcept(std::swap(k.cand_e, k.acc_e)));
+   std::swap(k.cand_e, k.acc_e);
+   std::swap(k.cand_v, k.acc_v);
+   std::swap(k.cand_g, k.acc_g);
+--- a/src/gas_owner.cpp
++++ b/src/gas_owner.cpp
+@@ -32,6 +32,33 @@
+ void need(bool ok, Refusal::Kind k, const std::string &what) {
+   if (!ok)
+     refuse(k, what);
++}
++
++void validate_movers(const Configuration &cfg, std::span<const MoverRecord> movs) {
++  std::set<u64> ids;
++  struct Counts { double denominator = 0; Exact moved; };
++  std::map<std::pair<u32, u32>, Counts> counts;
++  const u64 nc = u64(cfg.grid.n[0]) * cfg.grid.n[1] * cfg.grid.n[2];
++  for (const auto &m : movs) {
++    need(ids.insert(m.native_id).second && m.species < cfg.species.size() &&
++             std::isfinite(m.weight) && m.weight > 0 && std::isfinite(m.cell_count) &&
++             m.cell_count >= m.weight && m.from_cell < nc &&
++             (m.to_cell == pfg::kNone || m.to_cell < nc),
++         Refusal::Kind::input, "input: duplicate or invalid mover");
++    if (cfg.species[m.species].charge != 0) continue;
++    auto &c = counts[{m.from_cell, m.species}];
++    need(c.denominator == 0 || c.denominator == m.cell_count, Refusal::Kind::input,
++         "input: inconsistent source-cell count");
++    c.denominator = m.cell_count;
++    c.moved.add_product(m.weight, 1.0);
++  }
++  for (const auto &[key, c] : counts) {
++    (void)key;
++    // Both the specified denominator and this sum are RN(exact count).
++    // This validates inventory bounds; it does not alter rounded share transport.
++    need(c.moved.value() <= c.denominator, Refusal::Kind::input,
++         "input: movers exceed source-cell count");
++  }
+ }
+ 
+ // Host SHA-256 on the forms core (same bytes as the device leaves).
+@@ -225,7 +252,7 @@
+ 
+ std::string configuration_sha256(const Configuration &c) {
+   Hash h;
+-  h.text("gas-target-owner-v1.1-guards/configuration");
++  h.text("gas-target-owner-v1.3-publication/configuration");
+   h.text(c.preset);
+   h.u64v(c.feedback ? 1 : 0);
+   h.u64v(u64(c.transport));
+@@ -379,16 +406,20 @@
+ 
+ void Owner::ensure_open(std::uint64_t step, const char *what) const {
+   need(open_, Refusal::Kind::transaction, std::string("transaction: ") + what + " without an open step");
++  need(!publication_ready_, Refusal::Kind::transaction, "transaction: candidate sealed for publication");
+   need(!failed_, Refusal::Kind::transaction, "transaction: failed candidate requires abandon");
+   need(step == open_step_, Refusal::Kind::transaction, std::string("transaction: ") + what + " for another step");
+ }
+ 
+ void Owner::begin_step(std::uint64_t accepted_step) {
+   need(!open_, Refusal::Kind::transaction, "transaction: step already open");
++  need(generation_ != ~u64(0), Refusal::Kind::transaction, "transaction: lifetime generation exhausted");
+   const bool genesis = acc_->counter[pfg::C_STAGES] == 0;
+   need(genesis ? accepted_step <= 1 : acc_->step != ~u64(0) && accepted_step == acc_->step + 1,
+        Refusal::Kind::transaction, "transaction: step must follow the accepted step (genesis permits 0 or 1)");
+   cand_ = std::make_unique<State>(*acc_);
++  ++generation_;
++  publication_ready_ = false;
+   cand_->step = accepted_step;
+   open_ = true;
+   open_step_ = accepted_step;
+@@ -443,6 +474,7 @@
+ void Owner::prepare_keys_impl(std::span<const RecoilRecord> recs, std::span<const FlowRecord> flows,
+                               std::span<const MoverRecord> movs, bool bind) {
+   ensure_open(open_step_, "keys");
++  validate_movers(cfg_, movs);
+   std::vector<u64> add;
+   const u32 S = L_.S;
+   const u64 cells = u64(cfg_.grid.n[0]) * cfg_.grid.n[1] * cfg_.grid.n[2];
+@@ -771,8 +803,9 @@
+   return r;
+ }
+ 
+-void Owner::commit(const std::string &candidate_sha256) {
++Owner::PreparedCommit Owner::prepare_commit(const std::string &candidate_sha256) {
+   need(open_, Refusal::Kind::transaction, "transaction: commit without an open step");
++  need(!publication_ready_, Refusal::Kind::transaction, "transaction: publication already prepared");
+   need(!failed_ && next_stage_ == 3 && cand_->counter[pfg::C_STATUS] == 0,
+        Refusal::Kind::transaction, "transaction: commit requires two successful ordered stages");
+   const std::string d = digest(*cand_, true);
+@@ -795,17 +828,44 @@
+     s.entry = std::move(entry);
+     s.value = std::move(value);
+   }
++  PreparedCommit token;
++  token.lifetime_ = lifetime_;
++  token.generation_ = generation_;
++  token.digest_ = d;
++  publication_ready_ = true;
++  return token;
++}
++
++bool Owner::can_publish(const PreparedCommit &token) const noexcept {
++  return open_ && publication_ready_ && !failed_ && token.lifetime_ == lifetime_ &&
++         token.generation_ == generation_;
++}
++
++bool Owner::try_publish(PreparedCommit &token) noexcept {
++  if (!can_publish(token)) return false;
++  // Publication performs only scalar/shared-token changes, buffer swaps and
++  // destruction of the old host state. It allocates nothing and launches no work.
++#ifdef PF_GAS_WITH_DEVICE
++  if (dev_)
++    dev_->commit();
++#endif
+   acc_ = std::move(cand_);
+   open_ = false;
+-#ifdef PF_GAS_WITH_DEVICE
+-  if (dev_)
+-    dev_->commit();
+-#endif
++  publication_ready_ = false;
++  token.lifetime_.reset();
++  return true;
++}
++
++void Owner::commit(const std::string &candidate_sha256) {
++  auto token = prepare_commit(candidate_sha256);
++  if (!try_publish(token))
++    refuse(Refusal::Kind::transaction, "transaction: prepared publication failed");
+ }
+ 
+ void Owner::abandon() {
+   cand_.reset();
+   open_ = false;
++  publication_ready_ = false;
+   failed_ = false;
+   next_stage_ = 1;
+   partial_batch_ready_ = false;
+@@ -1118,6 +1178,38 @@
+ }
+ 
+ // ------------------------------------------------------------------ census and movers
++namespace {
++void census_configuration(const Configuration &cfg) {
++  need(!cfg.species.empty(), Refusal::Kind::configuration, "configuration: census species");
++  u64 nc = 1;
++  for (int a = 0; a < 3; ++a) {
++    need(cfg.grid.n[a] && std::isfinite(cfg.grid.low[a]) && std::isfinite(cfg.grid.high[a]) &&
++             cfg.grid.high[a] > cfg.grid.low[a] && nc <= u64(pfg::kNone) / cfg.grid.n[a],
++         Refusal::Kind::configuration, "configuration: census grid");
++    nc *= cfg.grid.n[a];
++  }
++  const double volume = ((cfg.grid.high[0]-cfg.grid.low[0])/cfg.grid.n[0]) *
++                        ((cfg.grid.high[1]-cfg.grid.low[1])/cfg.grid.n[1]) *
++                        ((cfg.grid.high[2]-cfg.grid.low[2])/cfg.grid.n[2]);
++  need(std::isfinite(volume) && volume > 0 && cfg.grid.volume == volume,
++       Refusal::Kind::configuration, "configuration: census volume");
++  for (const auto &s : cfg.species)
++    need(std::isfinite(s.mass_kg) && s.mass_kg > 0,
++         Refusal::Kind::configuration, "configuration: census mass");
++}
++std::map<u64, const CensusRow *> census_inventory(const Configuration &cfg, std::span<const CensusRow> rows) {
++  std::map<u64, const CensusRow *> inventory;
++  for (const auto &r : rows) {
++    need(r.species < cfg.species.size() && inventory.emplace(r.native_id, &r).second &&
++             std::isfinite(r.weight) && r.weight > 0 && pfg::finite3(r.position_m) &&
++             pfg::finite3(r.proper_velocity_m_s),
++         Refusal::Kind::input, "input: invalid or duplicate census row");
++    need(cfg.grid.locate(r.position_m) != pfg::kNone,
++         Refusal::Kind::input, "input: census carrier outside the collision grid");
++  }
++  return inventory;
++}
++} // namespace
+ const CensusCell *Census::find(std::uint32_t cell, std::uint32_t species) const {
+   auto it = std::lower_bound(cells.begin(), cells.end(), std::make_pair(cell, species),
+                              [](const CensusCell &c, const std::pair<u32, u32> &k) {
+@@ -1127,6 +1219,8 @@
+ }
+ 
+ Census census(const Configuration &cfg, std::span<const CensusRow> rows) {
++  census_configuration(cfg);
++  census_inventory(cfg, rows);
+   Census c;
+   c.species_totals.assign(cfg.species.size(), {});
+   std::map<std::pair<u32, u32>, CensusCell> m;
+@@ -1141,6 +1235,7 @@
+     x.species = r.species;
+     const double mass = cfg.species[r.species].mass_kg;
+     const double K = pfg::kinetic(mass, r.proper_velocity_m_s);
++    need(std::isfinite(K), Refusal::Kind::exactness, "exactness: nonfinite census kinetic energy");
+     x.count.add_product(r.weight, 1.0);
+     x.kinetic.add_product(r.weight, K);
+     auto &t = c.species_totals[r.species];
+@@ -1159,12 +1254,26 @@
+ std::vector<MoverRecord> movers(const Configuration &cfg, std::span<const CensusRow> before,
+                                 std::span<const CensusRow> after, std::span<const std::uint64_t> sunk) {
+   const Census cb = census(cfg, before);
++  const auto before_inventory = census_inventory(cfg, before);
++  const auto after_inventory = census_inventory(cfg, after);
++  const std::set<u64> sunk_set(sunk.begin(), sunk.end());
++  need(sunk_set.size() == sunk.size(), Refusal::Kind::input, "input: duplicate sink ID");
++  for (u64 id : sunk_set)
++    need(before_inventory.count(id) && !after_inventory.count(id), Refusal::Kind::input,
++         "input: sink absent from before inventory or also survives");
++  for (const auto &[id, row] : after_inventory) {
++    const auto b = before_inventory.find(id);
++    need(b != before_inventory.end() && row->species == b->second->species &&
++             std::bit_cast<u64>(row->weight) == std::bit_cast<u64>(b->second->weight),
++         Refusal::Kind::input, "input: motion changes particle inventory, species or weight");
++  }
++  need(before_inventory.size() == after_inventory.size() + sunk_set.size(),
++       Refusal::Kind::input, "input: incomplete motion inventory");
+   std::unordered_map<u64, u32> after_cell;
+   after_cell.reserve(after.size());
+   for (const auto &r : after)
+     if (r.species < cfg.species.size() && cfg.species[r.species].charge == 0)
+       after_cell[r.native_id] = cfg.grid.locate(r.position_m);
+-  std::set<u64> sunk_set(sunk.begin(), sunk.end());
+   std::vector<MoverRecord> out;
+   std::vector<const CensusRow *> order;
+   for (const auto &r : before)

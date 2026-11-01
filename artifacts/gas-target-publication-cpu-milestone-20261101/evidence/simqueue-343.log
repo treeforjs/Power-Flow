@@ -1,0 +1,52 @@
+===== simq job 343: gas-prepared-publication-cpu =====
+submitted: 2026-11-01T06:24:51Z
+started:   2026-11-01T06:26:49Z
+cwd:       /home/treefor/projects/runtimes/gas-target-owner-v1.3-publication-20261101
+partition: powerflow
+P-cores:   4
+GPUs:      none
+memory:    3G (swap 1G)
+time:      00:05:00
+borrowed:  CPU 4 from raikou-mfem (free); on preempt: freeze
+unit:      simq-job-343-1adb2306c4af.service
+command:   /home/treefor/projects/runtimes/arch-base-20261028/run-frozen python -I tools/qualify.py normal h1
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core4.lock (shared)
+build 1
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/gas-target-owner-v1.3-publication-20261101/tools/qualify.py", line 48, in <module>
+    run(cmd,'build');receipt['binary_sha256']=hashlib.sha256((D/'test_guards').read_bytes()).hexdigest()
+    ~~~^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/gas-target-owner-v1.3-publication-20261101/tools/qualify.py", line 39, in run
+    if r.returncode:raise RuntimeError(name+' failed: '+(D/(name+'.log')).read_text()[-4000:])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: build failed: ze_t)’
+  162 |           return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+      |                                                                           ^
+In function ‘void operator delete(void*, std::size_t)’,
+    inlined from ‘constexpr void std::__new_allocator<_Tp>::deallocate(_Tp*, size_type) [with _Tp = pf_gas_v1::Species]’ at /usr/include/c++/16/bits/new_allocator.h:183:59,
+    inlined from ‘constexpr void std::allocator< <template-parameter-1-1> >::deallocate(_Tp*, std::size_t) [with _Tp = pf_gas_v1::Species]’ at /usr/include/c++/16/bits/allocator.h:218:35,
+    inlined from ‘static constexpr void std::allocator_traits<std::allocator<_Up> >::deallocate(allocator_type&, pointer, size_type) [with _Tp = pf_gas_v1::Species]’ at /usr/include/c++/16/bits/alloc_traits.h:689:23,
+    inlined from ‘constexpr void std::_Vector_base<_Tp, _Alloc>::_M_deallocate(pointer, std::size_t) [with _Tp = pf_gas_v1::Species; _Alloc = std::allocator<pf_gas_v1::Species>]’ at /usr/include/c++/16/bits/stl_vector.h:398:19,
+    inlined from ‘constexpr std::vector<_Tp, _Alloc>::_Guard_alloc::~_Guard_alloc() [with _Tp = pf_gas_v1::Species; _Alloc = std::allocator<pf_gas_v1::Species>]’ at /usr/include/c++/16/bits/stl_vector.h:1873:27,
+    inlined from ‘constexpr std::vector<_Tp, _Alloc>::pointer std::vector<_Tp, _Alloc>::_M_allocate_and_copy(size_type, _ForwardIterator, _ForwardIterator) [with _ForwardIterator = __gnu_cxx::__normal_iterator<const pf_gas_v1::Species*, std::vector<pf_gas_v1::Species> >; _Tp = pf_gas_v1::Species; _Alloc = std::allocator<pf_gas_v1::Species>]’ at /usr/include/c++/16/bits/stl_vector.h:1904:2,
+    inlined from ‘constexpr std::vector<_Tp, _Alloc>& std::vector<_Tp, _Alloc>::operator=(const std::vector<_Tp, _Alloc>&) [with _Tp = pf_gas_v1::Species; _Alloc = std::allocator<pf_gas_v1::Species>]’ at /usr/include/c++/16/bits/vector.tcc:242:44:
+/home/treefor/projects/runtimes/gas-target-owner-v1.3-publication-20261101/tests/allocation_probe.hpp:22:62: error: ‘void free(void*)’ called on pointer returned from a mismatched allocation function [-Werror=mismatched-new-delete]
+   22 | void operator delete(void *p,std::size_t) noexcept {std::free(p);}
+      |                                                     ~~~~~~~~~^~~
+In member function ‘constexpr _Tp* std::__new_allocator<_Tp>::allocate(size_type, const void*) [with _Tp = pf_gas_v1::Species]’,
+    inlined from ‘constexpr _Tp* std::allocator< <template-parameter-1-1> >::allocate(std::size_t) [with _Tp = pf_gas_v1::Species]’ at /usr/include/c++/16/bits/allocator.h:206:40,
+    inlined from ‘static constexpr _Tp* std::allocator_traits<std::allocator<_Up> >::allocate(allocator_type&, size_type) [with _Tp = pf_gas_v1::Species]’ at /usr/include/c++/16/bits/alloc_traits.h:638:28,
+    inlined from ‘constexpr std::_Vector_base<_Tp, _Alloc>::pointer std::_Vector_base<_Tp, _Alloc>::_M_allocate(std::size_t) [with _Tp = pf_gas_v1::Species; _Alloc = std::allocator<pf_gas_v1::Species>]’ at /usr/include/c++/16/bits/stl_vector.h:389:33,
+    inlined from ‘constexpr std::vector<_Tp, _Alloc>::pointer std::vector<_Tp, _Alloc>::_M_allocate_and_copy(size_type, _ForwardIterator, _ForwardIterator) [with _ForwardIterator = __gnu_cxx::__normal_iterator<const pf_gas_v1::Species*, std::vector<pf_gas_v1::Species> >; _Tp = pf_gas_v1::Species; _Alloc = std::allocator<pf_gas_v1::Species>]’ at /usr/include/c++/16/bits/stl_vector.h:1900:17,
+    inlined from ‘constexpr std::vector<_Tp, _Alloc>& std::vector<_Tp, _Alloc>::operator=(const std::vector<_Tp, _Alloc>&) [with _Tp = pf_gas_v1::Species; _Alloc = std::allocator<pf_gas_v1::Species>]’ at /usr/include/c++/16/bits/vector.tcc:242:44:
+/usr/include/c++/16/bits/new_allocator.h:162:75: note: returned from ‘void* operator new(std::size_t)’
+  162 |           return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+      |                                                                           ^
+cc1plus: all warnings being treated as errors
+
+========================================
+finished:  2026-11-01T06:26:54Z
+exit code: 1
+state:     failed
+===== simq job 343 finished =====
