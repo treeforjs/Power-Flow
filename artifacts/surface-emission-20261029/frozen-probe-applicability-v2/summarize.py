@@ -1,0 +1,41 @@
+from pathlib import Path
+import csv, json, math, hashlib, os
+assert os.sched_getaffinity(0)=={7} and os.getpriority(os.PRIO_PROCESS,0)>=15
+out=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-emission-applicability-v2-20261029')
+rows=[r for p in sorted(out.glob('rows-*-map.csv'),key=lambda p:int(p.name.split('-')[1])) for r in csv.DictReader(p.open())]
+assert len(rows)==1056 and sorted(int(r['legacy_row']) for r in rows)==list(range(1056))
+checks=[json.loads(p.read_text()) for p in out.glob('rows-*-checks.json')]
+assert len(checks)==17 and all(r['passed'] for r in checks)
+byid={int(r['legacy_row']):r for r in rows}
+phase_scale={}
+for p in out.glob('rows-*-phases.csv'):
+    for r in csv.DictReader(p.open()):
+        phase_scale.setdefault(int(r['legacy_row']),float(r['source_scale_eV']))
+se={'qe':1.602176634e-19,'me':9.1093837139e-31,'h':6.62607015e-34,'eps0':8.8541878188e-12}
+c=se['qe']/(16*math.pi*se['eps0']);hbar=se['h']/(2*math.pi)
+extracting=[r for r in rows if r['SN_guard_applies']=='1'];thermal=[r for r in rows if r['SN_guard_applies']=='0']
+floor_none=[]
+for r in extracting:
+    F=float(r['F_V_m']);Bn=float(r['B_normal_T']);Bt=float(r['B_tangent_T']);xs=math.sqrt(c/F)
+    floor=(se['qe']*Bt*Bt*xs*xs/(2*se['me'])+.5*hbar*abs(Bn)/se['me'])/phase_scale[int(r['legacy_row'])]
+    r['minimum_magnetic_fraction_over_all_phases']=floor
+    if floor>.2:floor_none.append(int(r['legacy_row']))
+    assert (float(r['maximum_cutoff_eV'])==0)==(floor>.2)
+faces={}
+for face in sorted({r['face'] for r in rows}):
+    rr=[r for r in rows if r['face']==face];s=lambda k:sum(float(r[k]) for r in rr)
+    faces[face]={'probes':len(rr),'T_range_K':[min(float(r['historical_T_K']) for r in rr),max(float(r['historical_T_K']) for r in rr)],'nominal_admitted_phase_fraction_range':[min(float(r['nominal_admitted_fraction']) for r in rr),max(float(r['nominal_admitted_fraction']) for r in rr)],'equal_probe_J_weighted_rejected_fraction':s('nominal_rejected_J_A_m2')/s('nominal_J_A_m2'),'whole_phase_excluded_probes':sum(int(r['legacy_row']) in floor_none for r in rr),'interpretation':'Diagnostic equal-probe weighting; no physical area or integrated electrode current'}
+refinement=[]
+for p in sorted(out.glob('refined-*-map.csv')):
+    r=next(csv.DictReader(p.open()));base=byid[int(r['legacy_row'])]
+    v={'legacy_row':int(r['legacy_row']),'admitted_fraction_absolute_difference':abs(float(r['nominal_admitted_fraction'])-float(base['nominal_admitted_fraction'])),'nominal_current_relative_difference':abs(float(r['nominal_J_A_m2'])/float(base['nominal_J_A_m2'])-1),'complete_heat_relative_difference':abs(float(r['nominal_Q_W_m2'])/float(base['nominal_Q_W_m2'])-1)}
+    assert v['admitted_fraction_absolute_difference']<2e-6 and v['nominal_current_relative_difference']<1e-8 and v['complete_heat_relative_difference']<1e-8
+    refinement.append(v)
+v3=Path('/home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029')
+seal=json.loads((v3/'source-seal-v3.json').read_text());snapshot=Path(seal['snapshot'])
+for f in seal['files']:assert hashlib.sha256((snapshot/f['path']).read_bytes()).hexdigest()==f['sha256']
+binding={'schema':'source-v1-phase-applicability-to-heat-source-v3-contract-v1','source_v3_seal_sha256':hashlib.sha256((v3/'source-seal-v3.json').read_bytes()).hexdigest(),'source_v3_snapshot':str(snapshot),'all_v3_manifest_files_verified':len(seal['files']),'v3_component_checks':seal['tests']['checks'],'source_kernel':'unchanged immutable usable-api-v1 evaluate/begin_layer/advance_layer','thermal':'real accepted heat begin-state/revision held at its actual time; historical reconstructed T in this diagnostic is not a replacement accepted state','field':'immutable nonlinear TOTAL midpoint E/B, validated role/revision/identity; frozen old accepted probes are not qualified midpoint data','counts':'use exact native expected binary64 and log expected count from same held flux and exposure; canonical staged count/RNG owner remains external','birth':'explicit uniform held exposure, explicit beginning-lumped first-order policy, or caller specified physical time; exposure duration never particle age','arrival':'at handoff tau advance native particle only through common_end minus tau; deposit all real paths plus zero-duration bridge with authoritative common dt','magnetic':'original 0.2 guard applies for any orientation in SN branch; v3 rechecks same guard at bridge endpoint B. This initial-probe map cannot qualify that endpoint','failure':'no phase dropping, retry-until-pass, resampling, current renormalization, guard widening or quadratic prefactor replacement; reject unresolved physical model/common trial','ownership':'one canonical arena inventory; one ID/count/RNG/accepted thermal base on retries; sampled wall heat only, mean Nottingham diagnostic not also debited','strict_tangent_extension':'unchanged scope Bn=0, Etangent=0, T<=1500 K plus its sealed explicit model bounds; all actual probes fail Bn=0','native_model_admitted':False,'production_resumed':False,'GPU_executed':False}
+(out/'source-v3-held-flux-arrival-handoff.json').write_text(json.dumps(binding,indent=2)+'\n')
+summary={'schema':'frozen-source-original-v1-phase-applicability-v2','status':'diagnostic_qualified_not_native_physical_source','probes':1056,'field_time_s':2.6478443519271536e-8,'temperature_binding':json.loads((out/'temperature-binding.json').read_text()),'source_work_function_eV':4.3,'work_function_scope':'clean surface numerical benchmark; no new SS304 surface/band calibration','SN_guard':{'threshold':.2,'image_energy_fraction':.03,'orientation':'arbitrary B orientation; nonzero Bn by itself is not exclusion','extracting_probes':len(extracting),'whole_phase_excluded_probes':len(floor_none),'whole_phase_excluded_ids':sorted(floor_none),'nonzero_admitted_subset_probes':len(extracting)-len(floor_none),'extracting_probes_with_nonzero_rejected_tail':sum(r['any_nonzero_rejected_tail']=='1' for r in extracting),'exact_exclusion_reason':'minimum over transverse energy and normal overlap occurs at Et=0, x=sqrt(c/F); magnetic fraction floor already exceeds 0.2','scope':'energy-scale applicability predicate, not a 20 percent emission-current error bound'},'thermal_step':{'retarding_probes':len(thermal),'SN_guard_applies':False,'retains_thermal_supply':True,'magnetic_source_error_qualified':False},'faces':faces,'qualification':{'checks':sum(r['checks'] for r in checks),'native_begin_pass':sum(r['native_predicate_pass'] for r in checks),'native_begin_reject':sum(r['native_predicate_reject'] for r in checks),'near_boundary_draw_pairs':sum(r['near_boundary_draw_pairs'] for r in checks),'maximum_supply_partition_error':max(r['maximum_supply_partition_error'] for r in checks),'maximum_magnetic_ratio_absolute_difference':max(r['maximum_magnetic_ratio_absolute_difference'] for r in checks),'refinement':refinement,'draw_scope':'deterministic diagnostic draws against immutable original begin_layer; no new actual native MG draw file exists; old half-Maxwellian replay is not relabeled'},'unresolved':{'oblique_extension_needed_for':'20 fully excluded extracting probes and rejected finite-T phase tails at all 528 extracting probes, if their source supply is to be represented','tangent_only_extension_applicable_to_actual_probes':False,'full_SN_oblique_reciprocal_sampler_qualified':False,'local_saddle_quadratic_prefactor_deployable':False,'screening_added':False,'finite_offset_fields_admitted_as_one_sided_surface':False,'new_material_phase_supply_admitted':False,'global_midpoint_current_work_inventory_qualified':False,'native_endpoint_B_qualified_by_this_map':False},'source_v3_contract':binding,'execution':{'CPU':7,'nice':15,'threads':1,'frozen_userspace':True,'exclusive_lock':'testing-core7.lock','GPU_executed':False,'production_resumed':False}}
+(out/'applicability-summary.json').write_text(json.dumps(summary,indent=2)+'\n')
+print(json.dumps({'whole_phase_excluded':len(floor_none),'partially_admitted':len(extracting)-len(floor_none),'thermal_step':len(thermal),'checks':summary['qualification']['checks'],'v3_seal_verified_files':len(seal['files']),'maximum_refinement_fraction_error':max(r['admitted_fraction_absolute_difference'] for r in refinement)}))

@@ -1,0 +1,189 @@
+Conditional thermal/field electron-emission component
+2026-10-29 — not an admitted physical SS304 foil model
+
+Scope
+This independent C++20 component has no GPU, PIC, thermal-solver, global RNG or
+dependency-install side effects. The parent owns coupled integration, electron
+inventory, field/current deposition, thermal commit/rollback, restart and launch.
+No existing application source or production state is changed. Beta=1. The
+mandatory work-function input4.3eV is a clean-surface benchmark, not a measured
+value for contaminated, oxidized, hot, wet or evolving SS304. No asperity factor,
+surface calibration, independent Child-Langmuir cap or artificial shielding is
+introduced. Water ionization augments this source; it does not replace it.
+
+Sources and approximation
+[1] Murphy and Good, Phys.Rev.102,1464(1956), DOI10.1103/PhysRev.102.1464:
+https://doi.org/10.1103/PhysRev.102.1464
+This establishes a single finite-temperature supply/transmission integral
+covering thermal, cold-field and intermediate emission.
+[2] Kyritsakis and Djurabekova, Comput.Mater.Sci.128,15(2017),
+DOI10.1016/j.commatsci.2016.11.010; author primary preprint:
+https://arxiv.org/pdf/1609.02364
+Its Eqs.4–8 state the image barrier, Kemble/JWKB transmission and current/energy
+integrals. This implementation specializes to planar geometry and integrates
+the barrier action numerically; it does not copy the authors' source code.
+[3] Popov et al., AIP Advances9,015129(2019), DOI10.1063/1.5080439:
+https://doi.org/10.1063/1.5080439
+The near-top linear action and associated thermal tunnelling correction justify
+the local inverted-parabola continuation used above the barrier saddle here.
+[4] Jensen, J.Appl.Phys.135,111101(2024), DOI10.1063/5.0196481:
+https://www.osti.gov/pages/servlets/purl/2582144
+This discusses emission distributions and self-consistent PIC space charge, and
+warns that a zero classical exit velocity is not a quantum launch prescription.
+Here the finite-energy overlap and conservative local matching treatment are
+explicit conditional numerical choices, not claimed exact quantum exit data.
+[5] Mofakhami et al., Scientific Reports11,15182(2021):
+https://pmc.ncbi.nlm.nih.gov/articles/PMC8313719/
+This motivates using the emitted energy distribution for Nottingham exchange,
+with replacement electrons referenced to the Fermi level. Our sign convention
+is positive wall heat INTO the electrode.
+[6] Wilson, J.Appl.Phys.37,2261(1966), DOI10.1063/1.1708797:
+https://ntrs.nasa.gov/citations/19660053343
+Only the primary bibliographic record and publisher-deposited abstract are
+available here; no full-paper calibration or present-foil measurement is claimed.
+No third-party article full text is redistributed in the source snapshot.
+
+Law and numerical domain
+Let n be the actual material-outward unit normal and E the signed ONE-SIDED
+vacuum total solved field on that actual patch at the declared stage. Define
+F=-E.dot(n), because electron force is -eE. F>0 extracts electrons; F<0 retards
+them. Electrode names and |E| do not choose the emission branch. Both electrodes
+retain thermal supply, including backs and side faces with their actual normals.
+
+All energies below are in eV relative to the metal Fermi level. With
+c=e/(16*pi*epsilon0), U(x)=phi-F*x-c/x is the planar Schottky-Nordheim barrier.
+Its saddle is at sqrt(c/F), lowered by2*sqrt(c*F). Below its maximum, numerical
+turning points and a Gauss-Legendre integral give G=2sqrt(2me*e)/hbar integral
+sqrt(U-epsilon)dx. A cosine coordinate removes endpoint singularities. D is
+1/(1+exp(G)). Above the saddle, the signed action continues with the local
+inverted-parabola slope. This is a stated above-barrier approximation, not an
+exact quantum transmission solution. Curvature, band structure, oxide layers,
+non-equilibrium electron temperatures and calibrated surface changes are absent.
+
+S(epsilon)=kT*ln(1+exp(-epsilon/kT)); atT=0 it is max(-epsilon,0).
+J=C integral D(epsilon)S(epsilon)d(epsilon), C=A0/(kB/e)^2 and
+A0=4*pi*me*e*kB^2/h^3. There is ONE integral, never an RLD+FN sum. For F<=0 the
+local material-to-vacuum step has D=theta(epsilon-phi): this is outgoing thermal
+boundary supply, not the net current crossing a globally retarding potential.
+PIC must transport and actually recollect returning electrons. This branch is
+not a claim that a retarding field has a downhill SN saddle at infinity.
+
+The current implementation's numerical domain is phi2..6eV, T=0 or1..3000K,
+|F|<=5GV/m, positiveF>=1V/m, and barrier lowering<0.98phi. Unsupported inputs
+raise errors; they are not clamped. These are numerical/model bounds, not SS304
+phase limits. Actual T/phase data admission is a separate mandatory stage flag.
+Current thermal data support773.15K is not silently extended by this law's3000K
+mathematical tests. The very hot inherited heating history remains unsupported.
+Near-zero positive F below1V/m is an explicit current numerical restriction;
+the parent must not silently delete thermal supply when it encounters it.
+
+Quadrature uses8-point energy cells,128 panels per resolved energy segment and
+64-point action quadrature by default. Breaks resolve the Fermi edge, saddle and
+decay widths. Tails extend48 thermal/field widths. Refinement is empirical
+numerical qualification, not a proven global quantum/material error bound.
+Log-sum-exp preserves tiny currents; true FP64 underflow is explicitly flagged
+with finite logarithmic magnitude. No overflow/NaN is admitted. The source
+ensemble is broad-band free-electron, not measured SS304 electronic structure.
+
+Phase space from the same flux
+Normal epsilon is sampled from the very quadrature weights defining J, i.e. a
+documented quadrature-discrete spectrum. Given epsilon, transverse energy has
+conditional density f_FD(epsilon+Et)/S(epsilon), Et>=0, and uniform azimuth. The
+inverse CDF is used; the cold limit is uniform Et in[0,-epsilon]. The same
+distribution yields the energy moment and each actual packet. Only the
+zero-field Boltzmann limit reduces to a flux half-Maxwellian/cosine law with
+mean outgoing kinetic energy2kT. FE packets never use the old thermal sampler.
+Caller-owned draws, packet weights and event IDs avoid a second RNG/inventory.
+
+Complete heat and reference ownership
+For a sampled electron define H=epsilon+Et (Fermi-relative reservoir energy).
+Complete Nottingham wall heat is -e*H per physical emitted electron, assuming
+replacement at the Fermi level. The work function is already present in that
+thermal energy cost; do not debit it again as wall heat. The emitted particle's
+kinetic energy depends on the matching location and is not e*H.
+At x in the image layer, K/e=H-phi+F*x+c/x. The explicit electron reference is
+e*phi; image reference is -e*c/x; field/circuit work from the material to that
+point is e*F*x. Therefore Qwall+K+reference+image=Wfield, exactly in this model.
+Multiply each term by physical packet weight once. Mean heat is diagnostic:
+never debit both mean heat and the sampled packet heat. The thermal adapter may
+consume COMPLETE wall heat; K/reference/work are then decomposition diagnostics.
+
+Usable strong-B matching
+The simple sample_conditional branch calculates a matching layer from barrier
+exit, image-force/energy tolerances and source variation, but REJECTS appreciable
+gyroangle using actual local B. It is not used to bypass magnetic insulation.
+The preferred strong-B API is begin_layer / advance_layer. It starts at a
+calculated finite-energy overlap just outside the barrier, using the same
+epsilon/Et. The overlap energy is a declared fraction of max(kT,Gamow decay
+width), so its placement is a convergence parameter tied to an energy criterion,
+not an invented spatial offset or measured quantum exit velocity. Initial
+quantum projection is a stationary source approximation; quantum formation time
+is not claimed to be solved.
+
+Actual local E/B then evolve the particle in physical time with a relativistic
+implicit midpoint/discrete-gradient step. Secant velocity
+w=(u_new+u_old)/(gamma_new+gamma_old) is used for displacement and magnetic force;
+the image gradient is c/(x_old*x_new). Thus magnetic work is zero and
+deltaK+deltaUimage=q*E.dot(delta_r), subject to the recorded numerical guard.
+Substeps bound gyroangle and relative normal displacement. Packets can remain
+Active across accepted intervals, hand off to ordinary PIC, or return. No jump
+across a resolved sheath/gap is permitted. The actual local constant-vector
+field validity region (a linear-potential overlap), patch/mesh and physical
+normal constrain the path, including lateral displacement.
+
+Handoff requires small image force and energy, outward motion and enough normal
+energy to restore the conservative remaining image tail. That tail decreases K
+and increases image reference by equal amounts; it is NOT electrode heat or an
+extra circuit energy source. Ordinary PIC then owns collective fields, with no
+second analytic microscopic image force. On own return the explicit conditional
+model is unit electronic accommodation at the emitter, not calibrated SS304
+sticking, reflection, secondary emission or Pauli-blocked return scattering.
+Collection restores electrode charge and the full reservoir/reference energy;
+a static conservative emit-return cycle closes without a second heat debit.
+
+The quantum SN supply itself is unmagnetized. A separate conditional guard
+checks transverse canonical magnetic-energy shift and normal-field Landau scale
+relative to the emission energy width. Its threshold is an applicability choice,
+not a rigorous current error bar. Tests declare0.3 and record the ratio; default
+is0.2. Refusal aborts the trial; no sample is dropped and resampled to obtain a
+pass. A fully quantum magnetized metal barrier is not implemented.
+
+Native-image overlap is a field-owner port
+E must be the self-consistent coarse collective field, not a field to which an
+analytic microscopic single-electron image force has already been added. If its
+particle gather includes that electron's discrete conductor-image self response,
+the owner must subtract it or bound the overlap below the chosen image-error
+budget. On a fixed operator this response is explicitly calculable from the
+single-physical-electron Green self energy
+U_h=(e^2/2)*s(x)^T*(G_D-G_free)*s(x), with compatible derivative. The correction
+would be U_SN-U_h; the library currently assumes self-excluded mean-field input
+and rejects an already applied microscopic image force. Before creation, the
+frozen field naturally excludes the trial electron. Active-packet continuation
+must retain the same declared self-field convention. This is not permission to
+remove collective space charge or impose shielding. The overlap subtraction or
+quantified coarse-grid residual remains a parent field-admission obligation.
+
+Atomic parent integration
+At one accepted stage bind actual evolved T, solved one-sided E/B, area, normal,
+mesh/material/hash and accepted-state revision. Prepare is pure. Use area in m2
+(depth/height already included exactly once), and do not create a second emitter
+or neutral/electron pool. Store Active LayerState in the ONE PIC inventory and
+restart it. Only its subgrid owner advances it until handoff; normal PIC must not
+advance it simultaneously or reapply its stored birth ledger.
+Consume LayerTrial.exchange once. Deposit every CurrentPath with the parent's
+compatible charge-conserving shape/edge path rule and boundary/circuit work
+owner. Zero-duration quantum bridges are integrated current impulses over the
+accepted interval: never divide by their zero path duration. All physical-time
+flight paths and lateral motion are retained. After handoff ordinary PIC owns
+the remaining accepted time; after collection the particle is removed once.
+No stage may commit source heat/charge without its matching current, reservoir,
+image/reference and field-work transactions. Roll back all on any refusal.
+
+Evidence and limitations
+The initial73-check build/evidence is frozen in milestones/initial-73. Current
+qualification adds explicit field-phase-space/angular and material-clock checks.
+Strong-B tests include actual handoffs, in-flight continuation/repeatability and
+magnetic recollection with full energy closure. Legacy1056 finite-offset probes
+only bound a sensitivity range; they are NOT admitted one-sided surface fields.
+No physical SS304 foil model, coupled water application, GPU result, long-run
+prediction, production resume or deployment is established by these tests.

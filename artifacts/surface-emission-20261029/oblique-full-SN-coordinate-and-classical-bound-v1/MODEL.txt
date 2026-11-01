@@ -1,0 +1,87 @@
+Oblique full-SN coordinate and reciprocal kinematics audit, v1
+
+This artifact contains an exact coordinate identity and a candidate reciprocal
+kinematic pairing. It does not contain a physical scattering operator, an
+emission rate or a product sampler. emit() always refuses. The previous
+quadratic rate remains diagnostic and is not used by this module.
+
+Model scope: nonrelativistic electron, planar SN U(x)=phi-Fx-c/x, uniform
+static B=(Bn,Bt,0), exactly normal E=(-F,0,0), x>0. Bn!=0; the strict tangent
+component retains its existing independent domain. An arbitrary actual field
+sample is not a proof of these uniform, stationary, one-sided boundary data.
+The captured probes have tangential E; tests use only their parameter magnitudes
+in a manufactured normal-E model and never admit their actual fields.
+
+Use gauge Az=Bn*y-Bt*(x-xs). Set xs=sqrt(c/F), Us=phi-2sqrt(cF), L=xs,
+P=m*omega0*L, E*=m*omega0^2*L^2/e, hbar*=hbar/(P*L).
+The sealed real symplectic matrix S maps canonical mode coordinates
+(Qu,Qs,Qg,Pu,Ps,Pg) to (xi/L,y/L,z/L,px/P,py/P,pz/P).
+Mechanical momentum is (px,py,pz+e*Bn*y-e*Bt*xi). Inverse uses -J S^T J.
+
+Crucially this is an exact coordinate change for the FULL SN Hamiltonian:
+ H/e = Us + E*/2*(Pu^2-lambda^2 Qu^2+Ps^2+s^2 Qs^2) + DeltaU(x),
+ x=xs+L*(S00 Qu+S01 Qs),
+ DeltaU=F*(x-xs)^3/[xs*x].
+No quadratic truncation is made in this identity. The transformed quantum
+problem is a coupled two-coordinate problem on x(Qu,Qs)>0, with tilted material
+boundary, not two independent mode transmissions. The former local quadratic
+factorization omits DeltaU and its scattering phases. A metaplectic coordinate
+map alone does not supply the physical reservoir or positive PIC product law.
+
+For |x-xs|<=a*xs, 0<a<1, the exact pointwise potential bound is
+ |DeltaU| <= F*xs*a^3/(1-a).
+This is NOT a transmission/current/heat error bound. The corresponding real
+turning-point interval for normal energy E below Us is inside this window only
+when Us-E <= F*xs*a^2/(1+a). Above-saddle continuation and phase tails outside
+the window remain unbounded. rejected_window_coverage.cpp partitions the
+immutable v1 nominal rejected current AND complete Nottingham moment into
+deep real-turning-point, local real-turning-point, and above-saddle groups.
+These are nominal supply diagnostics, not magnetized current corrections.
+
+The candidate map Pu -> -Pu is an involution preserving this exact full-SN
+energy: x/y remain fixed while z and correlated px/py generally change.
+The candidate q*D is explicit and cancels under the inverse; wall heat and
+electron-reference exchange are zero. An independent material-normal-only
+momentum flip generally changes the stable mode and is not this inverse.
+In the tested actual parameter magnitudes, candidate lateral shifts reach
+about 26 micrometers, so they cannot silently be treated as a local normal flip.
+
+This is a kinematic test, NOT a proof that Pu-flip at a chosen Qu is the physical
+quantum reflection map. Full-SN scattering phase, guiding-centre/time-delay
+shifts, microscopic return plane, stable-state positive classical projection,
+reservoir/solid band admission, coherent/incoherent choice and bounded channel
+and spatial truncation remain required. The unknown map cannot be patched by
+post-motion energy adjustment, nominal rate rescaling or deleting phases.
+
+The future solver must use one bounded channel/scattering measure for outgoing
+current, complete metal-relative energy and products. Return probabilities
+must use that same measure; forward/reverse magnetic reciprocity uses B -> -B.
+An accepted PIC reflection must own its actual zero-duration charge path once,
+plus any independently qualified real time delay, with one inventory/ID and
+no provisional collection heat. The kinematic path here is not admitted for
+native deposition. Inhomogeneous fields or tangential E need a new derivation.
+
+All tests use CPU7 nice15, one thread, frozen userspace, testing-core7.lock.
+No GPU, production action, source-v1/v3 mutation, new screening or deployed
+quadratic prefactor. Original source-v1 and strict tangent seals stay intact.
+
+Saved additional conditional classical bound (implemented before audit switch):
+At x=xs, the positive classical flux measure is
+ dJ=C f(Us+Kn+Kt) dKn dKt dtheta/(2*pi), Kn,Kt>=0.
+It uses the exact full-SN saddle height, not a quadratic magnetic prefactor.
+Writing t=kT/e, z=exp(-Us/t), Lp=-Li_p(-z),
+ Jgross=C*t^2*L2, mean metal-relative energy=Us+2*t*L3/L2.
+The product proposal draws K=Kn+Kt from density K*f(Us+K), partitions K
+uniformly between Kn/Kt, and chooses azimuth uniformly. An inverse FD CDF is
+used, with no rejection of magnetic-guard phases or rate renormalization.
+Same weights define current, Fermi-energy flux, and proposed physical momenta.
+Reciprocal signed crossing receipts cancel under (p,B)->(-p,-B).
+
+Within ONLY the declared classical continuum f(H) reservoir model, unknown
+material connectivity is a subset of gross positive crossing states, so
+0<=J_classical_connected<=Jgross and 0<=absolute Fermi-energy flux<=Jgross*mean.
+No material connection has been selected, no wall birth/current/heat committed,
+and quantum tunnelling/reflection, metal bands/spin and actual nonnormal or
+spatially varying fields are not bounded by this result. A dividing-surface
+crossing is not a source particle; emit() always refuses. This bound must never
+be added to existing MG current or used as an oblique quantum correction.

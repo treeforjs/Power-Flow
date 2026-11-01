@@ -1,0 +1,139 @@
+{
+  "schema": "ss304-conditional-thermal-scenario-v1",
+  "status": "implemented_nominal_literature_scenario_requires_explicit_selection_not_foil_calibration",
+  "material_label": "nominal AISI304 austenitic/quench-annealed literature scenario; transport source pools304/304L",
+  "modes": {
+    "evaluated_solid_1500": {
+      "id": 0,
+      "temperature_k": [
+        300,
+        1500
+      ],
+      "phase": "solid"
+    },
+    "nominal_synthesis_1800": {
+      "id": 1,
+      "temperature_k": [
+        300,
+        1800
+      ],
+      "explicitly_accepts": [
+        "source-extrapolated transport above1500K",
+        "estimated phase markers",
+        "assumed reversible mushy law",
+        "incompressible caloric approximation"
+      ]
+    }
+  },
+  "reference": {
+    "temperature_k": 300,
+    "h_j_kg": 0,
+    "u_model_j_kg": 0,
+    "reference_pressure_pa": 101325,
+    "enthalpy": "analytic integral of Mills Eq10 re-zeroed at300K; printed Eq11 constant not used"
+  },
+  "density_and_work": {
+    "convention": "fixed_reference_volume_cp_as_cv_approximation",
+    "density_input_required": true,
+    "example_density_kg_m3": 8000,
+    "density_example_source": "Sjostrom2023 nominal304L EOS reference density parameter; scenario approximation, not measured304 foil density",
+    "density_evolves": false,
+    "physical_Cv_or_compressible_EOS_supplied": false,
+    "u_model_equals_relative_h_under_declared_approximation": true,
+    "volumetric_energy": "rho_ref*u_model per reference m3",
+    "mass_energy": "accepted_mass_kg*u_model",
+    "pressure_work": "zero only within fixed-volume approximation; moving/deforming use requires separate admitted work closure"
+  },
+  "solid": {
+    "temperature_k": [
+      300,
+      1672
+    ],
+    "source": "Mills2004 Eq10/11 printed1663",
+    "cp_j_kg_k": "472+0.136*T-2820000/T^2",
+    "h_j_kg": "(T-300)*(472+0.068*(T+300)-2820000/(300*T))"
+  },
+  "mushy": {
+    "solidus_k": 1672,
+    "liquidus_k": 1727,
+    "endpoint_source": "HoChu1977 Table2 printed15/PDF22 estimated compilation markers; not measured foil phase boundaries",
+    "latent_fusion_j_kg": 276320,
+    "latent_source": "Mills2004 Eq13 fusion entropy160 J/kg/K multiplied by explicitly adopted liquidus1727K",
+    "liquid_fraction": "(T-1672)/55",
+    "cp_sensible": "Cp_s(1672)+(800-Cp_s(1672))*f",
+    "apparent_heat_capacity": "Cp_sensible+276320/55",
+    "h": "h_s(1672)+Cp_s(1672)*(T-1672)+(800-Cp_s(1672))*(T-1672)^2/110+276320*f",
+    "law_status": "explicit conditional model assumption; no measured mushy fraction/Cp/kinetics",
+    "derivative_at_endpoints": "right-sided; latent apparent capacity starts atTs and ends atTl"
+  },
+  "liquid": {
+    "temperature_k": [
+      1727,
+      1800
+    ],
+    "cp_j_kg_k": 800,
+    "h": "h_mushy(1727)+800*(T-1727)",
+    "source": "Mills2004 Eq12 nominal liquid recommendation,800+/-50 J/kg/K"
+  },
+  "transport": {
+    "source": "HoChu1977 CINDAS45 Table2 printed15/PDF22",
+    "table": "ho_chu_304_recovered.csv",
+    "table_sha256": "8585ffe86812b162b891ebe0f5931fe88f1c89254b98ed32b1593d55a3fa85a4",
+    "rows": 18,
+    "temperature_k": [
+      300,
+      1800
+    ],
+    "resistivity_source_scale_ohm_m": 1e-08,
+    "interpolation": "piecewise linear resistivity and thermal conductivity inT; sigma=reciprocal interpolated resistivity",
+    "above_1500K": "source explicitly extrapolated/synthesized; only explicit nominal synthesis mode admits this region",
+    "sample_condition": "quench-annealed; source pools304/304L, no independent304-only measurement claim",
+    "source_uncertainty": "order +/-5%, at/above melting order +/-15%; no confidence level or independent distribution established"
+  },
+  "sources": [
+    {
+      "id": "mills2004",
+      "doi": "10.2355/isijinternational.44.1661",
+      "url": "https://www.jstage.jst.go.jp/article/isijinternational1989/44/10/44_10_1661/_pdf",
+      "pdf_sha256": "bf120dcbdf20d5f9b00494efd5e05643793edc0838deee8ba2c52988f9074836",
+      "verified_pages_pdf_1based": [
+        3,
+        4,
+        5,
+        7
+      ],
+      "role": "evaluated thermal correlations; liquidCp and fusionentropy estimate; transport polynomial not used here"
+    },
+    {
+      "id": "ho_chu1977",
+      "accession": "ADA129160",
+      "url": "https://archive.org/download/DTIC_ADA129160/DTIC_ADA129160.pdf",
+      "pdf_sha256": "673829d489356e2b8f4891a08c0cce10c69ad1628954f5f08f918d52bfd6209a",
+      "verified_text_pages_pdf_1based": [
+        9,
+        20,
+        22
+      ],
+      "verified_visual_pages_pdf_1based": [
+        22
+      ],
+      "role": "pooled nominal304 transport recommendations and estimated phase markers"
+    },
+    {
+      "id": "sjostrom2023",
+      "doi": "10.1063/12.0020364",
+      "manifest": "provenance/ss304_eos_4273_published_parameters.json",
+      "role": "example reference-density parameter only; no EOS reconstructed;1124.3K liquid-model parameter not melting point"
+    }
+  ],
+  "range_policy": "inclusive source/model-qualified endpoints; throw on all nonfinite/out-of-mode-range temperature or energy; no clamp/no new extrapolation",
+  "integration_limits": [
+    "parent must preserve independent mechanical773.15K data guard",
+    "no mechanics/strain/density/remap implementation",
+    "no liquid flow or vaporization branch/latent heat/rates",
+    "no p(rho,T),EOS Cv,wide-range conductivity or plasma/two-temperature model",
+    "surface desorption inventory/internal energies remain external",
+    "not calibrated to actual foil condition or nanosecond melting kinetics",
+    "no production deployment/resume or coupled-breakdown validation"
+  ]
+}

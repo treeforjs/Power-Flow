@@ -1,0 +1,181 @@
+The full physical source remains unqualified. Keep production paused and do not
+start full integration testing under this audit request. The pushed frozen map
+is valid as a diagnostic of the original v1 applicability predicate. It does
+not authorize a new oblique source or a physical current correction.
+
+Severity: P1 means deployment blocker for the requested physical model; P2
+means additional numerical/model evidence required. These findings distinguish
+declared conditional assumptions from implementation defects. No P0 found.
+
+Domain roster (all numerical limits are separate from material admission):
+
+* Original v1: T=0 or 1..3000 K, phi=2..6 eV, |Fn|<=5 GV/m,
+  positive Fn>=1 V/m and Schottky lowering<0.98 phi. One finite-T FD supply
+  integral retains thermal, transition and strong-field emission. At Fn<=0
+  the local thermal vacuum step remains; its SN magnetic guard is bypassed.
+  At Fn>0 any B orientation is allowed only when each sampled phase passes the
+  nominal 0.2 energy-scale guard. Nonzero Bn alone is not an exclusion.
+* Tangent one-pass v1: T=298.2..1500 K, phi=2..6 eV, Fn=50..100 MV/m,
+  |B|<=40 T, Bn=0 and Etangent=0 to the sealed floating tolerances. Explicit
+  continuum-reservoir and incoherent one-pass assumptions, spatial extent and
+  unresolved-contribution budgets are mandatory. It admits none of the actual
+  captured probes; 192 historical probe temperatures also exceed 1500 K.
+* Oblique work: exact nonrelativistic full-SN coordinate identity for uniform B
+  and normal E; candidate inverse kinematics only. The classical gross-crossing
+  bound additionally requires Us/kT>=5. Neither supplies a qualified full quantum
+  scattering phase, material-connected product sampler or native wall source.
+
+1. [P1] The outgoing v1 guard leaves real unresolved phase space.
+   In the old captured data, 528 extracting probes include 20 upper_back points
+   whose minimum possible magnetic fraction already exceeds 0.2; the other 508
+   have nonzero admitted subsets and rejected finite-T tails. The 528 retarding
+   probes retain thermal supply, without a magnetic-current error estimate.
+   Equal-probe nominal J-weighted rejection is 11.54%,15.86%,10.93%,13.51% on
+   upper back/gap/left/right. These are not area integrals or physical errors.
+   Remediation: evaluate actual new boundary phases and endpoints; reject the
+   unsupported model, never redraw, delete failed phases, renormalize flux or
+   widen the guard. Bound the missing physical current AND energy or qualify a
+   common scattering/product measure. The 0.2 number is an energy criterion,
+   not a validated 20% current-error guarantee. Primary context: [S1].
+   Code: source-v1/src/micro_layer.cpp:68, :77; phase-guard/phase_guard.hpp:12.
+
+2. [P1] Unit return accommodation is not reciprocal quantum qualification.
+   v1 advance_layer absorbs its own return with probability one when the
+   explicit accommodation policy is selected. Surface-v3 calls that kernel
+   unchanged. This is declared behavior, but outgoing D(E) plus unconditional
+   return absorption does not establish the required bidirectional quantum
+   source model. The tangent resolver reconstructs canonical incoming phase,
+   uses the same channel transmission, and undoes only provisional collection
+   on reflection; native dispatch/restart of that resolver remains unqualified.
+   Remediation: retain originating source/model identity and return RNG counter;
+   intercept before publication, use the matching inverse channel, preserve
+   real q*dx/work, and close absorption/reflection/retained-inventory cycles.
+   Magnetic reciprocity requires field reversal in the time-reversed test,
+   rather than assuming identical arbitrary channels at fixed B. [S5].
+   Code: source-v1/src/micro_layer.cpp:127; surface-v3/trial_source_binding.hpp:98;
+   tangent/tangential_joint.cpp:176, :200, :203.
+
+3. [P1] Neither the tangent extension nor the oblique diagnostics close the gap.
+   Do not project away Bn or Etangent. All 1056 probes have both, with
+   |Etangent|/|Fn|=0.01167..2.14577. This excludes the strict extensions; it is
+   not a newly invented categorical rejection rule for original v1.
+   The oblique full-SN identity retains DeltaU=F*(x-xs)^3/(xs*x). Its bound
+   |DeltaU|<=F*xs*a^3/(1-a) for |x-xs|<=a*xs is a local potential bound only.
+   At a=0.25 it spans 0.0001825..0.0039076 eV in the captured extraction regimes.
+   About 94.10% of equal-probe nominal rejected J has En above the old SN saddle;
+   3.87% has deep turning points outside that local window. Neither portion is
+   certified by a near-saddle bound. Published quadratic saddle solutions [S3,S4]
+   do not validate a full SN emitter or its solid-state reservoir.
+   Remediation: bounded full-SN coupled-channel transmission, scattering phase,
+   positive quantum-to-PIC phase representation and inverse matching, including
+   spatial/timing errors. A simple material-normal momentum flip is insufficient.
+   Our candidate pairing reaches 25.90 um lateral shifts and is NOT a measured
+   quantum scattering displacement. Its energy/current identity is kinematic.
+   The saved [0,Jgross] classical bound uses one FD measure for crossings,
+   current and Fermi-energy flux, but bounds only the declared classical f(H)
+   connectivity model. It does not bound quantum tunnelling/reflection and must
+   not be added to MG current, committed as a wall birth, or used as a prefactor.
+   Code: tangent/tangential_joint.cpp:106, :113, :115, :151;
+   oblique/phase_map.py:55, :68, :74, :86;
+   oblique/dividing_surface_bound.py:68, :74, :78, :81.
+
+4. [P1] Captured probes do not supply the required actual coupled boundary data.
+   The map binds 26.478443519 ns finite-offset E/B (1..100 um offsets) to
+   historical, time-interpolated patch-average T=320.18..1753.27 K; lower T is
+   mirrored. It contains no actual new coupled one-sided midpoint state or new
+   MG event draws. Old thermionic replay draws are not MG draws. Field bit parity
+   proves captured-gather consistency, not boundary/microscopic applicability.
+   Remediation: actual material-outward normal and total one-sided converged
+   trial E/B, accepted material state, physical area/axial slice, endpoint B,
+   normal-field uniformity, geometric extent, curvature/tangential-field effects
+   and conductor-image overlap. Do not add a second space-charge/sheath/self-E
+   correction or invent shielding. The v3 one-sided Hall adapter is a component
+   contract; its cell/path checks must be exercised by the real common owner.
+   Primary basis for local barrier/shape sensitivity: [S1,S2].
+   Code: source-v1/src/surface_emission.cpp:163;
+   surface-v3/axial_trial_field.hpp:12, :17, :18;
+   surface-v3/trial_source_binding.hpp:58, :91;
+   phase-guard/extract_frozen_temperature.py:21, :28, :42.
+
+5. [P1] Numerical T/phi limits do not admit heated SS304 as a clean reservoir.
+   phi=4.3 eV, beta=1, free-electron equilibrium, planar classical image barrier
+   and electronic accommodation are explicit benchmark assumptions. No measured
+   evolving surface work function, oxide/adsorbate state, magnetic band/spin
+   error, electron-lattice equilibration or material phase admission accompanies
+   this captured map. Historical heat used constant-property provisional physics.
+   Passing T<=3000 K does not establish solid-state applicability; do not infer
+   a specific melt state without the actual accepted material/phase model.
+   Remediation: admit or bound those properties from the material owner; carry
+   work-function/geometry sensitivity explicitly, without an empirical cap.
+   The smooth planar metal approximation omits atomic/band detail [S6].
+   Code: source-v1/src/surface_emission.cpp:21, :106, :168, :169;
+   surface-v3/trial_source_binding.hpp:56.
+
+6. [P1] Source-v3 component closure does not establish full midpoint source order.
+   v3 truthfully holds accepted-begin T and uses immutable total midpoint fields;
+   it does not claim that held T is a solved thermal midpoint. Source count/RNG
+   accuracy and complete global atomic ownership remain external. The original
+   0.2 guard and endpoint-B recheck remain unchanged. Remediation: qualify the
+   chosen thermal-time approximation by refinement/source variation bounds, or
+   solve the intended coupled thermal stage. Use one canonical ID/inventory,
+   source-model tag and staged count/RNG across nonlinear retries and restart.
+   Use explicit physical birth tau, native flight only end-tau, authoritative
+   common dt for current, and real path q*dx work. No energy repair or use of
+   exposure duration as age. Do not start that full test under this audit request.
+   Code: surface-v3/trial_source_binding.hpp:53, :59, :63, :65, :88, :98;
+   surface-v3/axial_trial_field.hpp:19, :25, :27, :30.
+
+7. [P2] Preserve unified source and heat accounting through eventual integration.
+   The reviewed v1 structure uses one D(E)*FD supply integral, its own transverse
+   conditional distribution and the same complete Fermi-relative energy moment.
+   Thermal and field emission are limits of that integral [S1]; current and
+   Nottingham heat must be evaluated consistently [S2]. Retain the thermal
+   Fn<=0 branch. Do not add RD+FN or the classical bound to MG, or run old
+   thermionic and new MG birth owners on the same physical area/exposure.
+   Only sampled Qwall is debited; mean Nottingham power is diagnostic. Image
+   energy, electron reference, Lorentz/PIC work and collected heat each need one
+   owner. Remediation: stage-specific zero/weak-B, field-sign/thermal transition,
+   resolved quadrature/tail/matching refinement and complete source-return tests.
+   Existing unresolved-tail bounds are distinct from resolved quadrature and
+   physical model errors. Sub-1 V/m positive Fn is a refused numerical interval,
+   not an instruction to clamp the field or create a physical source jump.
+   Code: source-v1/src/surface_emission.cpp:105, :113, :132, :144, :153, :195;
+   tangent/tangential_joint.cpp:151, :157;
+   surface-v3/trial_source_binding.hpp:63, :86, :103.
+
+Exact path aliases (sealed sources, with verified file hashes in audit.json):
+source-v1 = /home/treefor/projects/runtimes/pic-thermal-field-emission-20261029/snapshots/usable-api-v1
+phase-guard = /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-emission-applicability-v2-20261029/source-backup-applicability-v2
+tangent = /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-magnetized-emission-20261029/source-backup-tangential-onepass-v1/tangential-onepass
+surface-v3 = /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-electrode-heat-source-v3-20261029/source-snapshot-v3
+oblique = /home/treefor/Documents/Codex/2026-10-28/we/outputs/pic-oblique-phase-map-20261029/source-backup-full-SN-coordinates-and-classical-bound-v1
+
+Primary sources and limits of review:
+[S1] Murphy & Good (1956), unified thermionic/field transition treatment.
+https://doi.org/10.1103/PhysRev.102.1464
+Publisher abstract and primary-paper excerpt inspected; not an oblique-B or SS304 calibration.
+[S2] Kyritsakis & Djurabekova (2017), general emission/Nottingham computation,
+equations (7)-(8) and local barrier/curvature discussion, author full text read.
+https://arxiv.org/html/1609.02364
+This does not establish a physical bound for the present magnetized foil.
+[S3] Fertig & Halperin (1987), quadratic saddle in magnetic field.
+https://doi.org/10.1103/PhysRevB.36.7969
+Publisher abstract inspected; exact quadratic result is not full SN scattering.
+[S4] Buttiker (1990), quantized saddle constriction transmission.
+https://doi.org/10.1103/PhysRevB.41.7906
+Publisher abstract inspected; no SS304/native phase projection inferred.
+[S5] Buttiker (1986), Onsager-Casimir scattering conductance symmetry.
+https://doi.org/10.1103/PhysRevLett.57.1761
+Publisher abstract inspected; used for magnetic reversal principle only.
+[S6] Forbes (1999), limitations of smooth planar MG metal approximation.
+https://doi.org/10.1016/S0304-3991(99)00097-2
+Publisher search excerpt inspected; full publisher page blocked. No numerical
+SS304 work function or melting/phase property is attributed to this paper.
+
+Evidence preserved before the audit switch: frozen phase map 88,816 assertions
+and 10 refinements; oblique coordinate/kinematic 236,545 checks; nominal rejected
+window current/energy partitions 3,168 checks; conditional classical crossing
+measure 24,826 checks. These certify the stated numerical/kinematic components,
+not an accepted physical oblique emitter. The audit added no full coupled test,
+no model change, no GPU work, and no production signal. Production was observed
+stopped (PID 278902) and cgroup frozen=1/populated=1.
