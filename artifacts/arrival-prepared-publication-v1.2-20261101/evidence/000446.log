@@ -1,0 +1,30 @@
+===== simq job 446: arrival-v12-prepared-cpu-c1 =====
+submitted: 2026-11-01T07:21:26Z
+started:   2026-11-01T07:21:27Z
+cwd:       /home/treefor/projects/runtimes/pic-arrival-owner-v1.2-publication-20261101
+partition: powerflow
+P-cores:   7
+GPUs:      none
+memory:    3G (swap 1G)
+time:      00:08:00
+borrowed:  CPU 7 from powerflow (free); on preempt: freeze
+unit:      simq-job-446-4ad45859492d.service
+command:   /usr/bin/nice -n 15 /home/treefor/projects/runtimes/arch-base-20261028/run-frozen python3 -I tools/qualify.py normal c1
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core7.lock (shared)
+build-baseline 0
+baseline 1
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/pic-arrival-owner-v1.2-publication-20261101/tools/qualify.py", line 51, in <module>
+    run([binary],name)
+    ~~~^^^^^^^^^^^^^^^
+  File "/home/treefor/projects/runtimes/pic-arrival-owner-v1.2-publication-20261101/tools/qualify.py", line 37, in run
+    if r.returncode:raise RuntimeError((D/(name+'.log')).read_text()[-5000:])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: FAIL arrival owner v1.1 refusal: kind=expected-count; quantity=electron expected exposure count; identity=step=0;stream=17; log count flagged but not finite; whole step proposal refused after 0
+
+========================================
+finished:  2026-11-01T07:21:30Z
+exit code: 1
+state:     failed
+===== simq job 446 finished =====

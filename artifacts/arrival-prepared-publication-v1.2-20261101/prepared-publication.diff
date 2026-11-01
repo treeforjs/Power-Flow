@@ -1,0 +1,172 @@
+--- v1.1/include/pf_arrival_v11/arrival_owner.hpp
++++ v1.2/include/pf_arrival_v11/arrival_owner.hpp
+@@ -37,6 +37,8 @@
+ #include <limits>
+ #include <map>
+ #include <memory>
++#include <optional>
++#include <type_traits>
+ #include <set>
+ #include <span>
+ #include <sstream>
+@@ -644,6 +646,30 @@
+ // ---------------------------------------------------------------- owner (accepted state)
+ class Owner {
+ public:
++    // Immutable prepared next state. Only this owner lifetime and accepted
++    // generation may publish it. Preparation consumes the staged input only
++    // after all fallible work succeeds; discarding this token changes no state.
++    class PreparedCommit {
++        friend class Owner;
++        std::shared_ptr<const void> lifetime_;
++        std::uint64_t generation_ = 0, next_step_ = 0, next_ordinal_ = 0;
++        bool has_anchor_ = false;
++        std::uint64_t anchor_step_ = 0, anchor_base_ = 0, anchor_count_ = 0, anchor_ordinal_ = 0;
++        std::string head_, state_sha_;
++        std::vector<StreamTotals> totals_;
++        LedgerRecord record_;
++        std::optional<Staged> staged_;
++    public:
++        PreparedCommit() = default;
++        PreparedCommit(const PreparedCommit&) = delete;
++        PreparedCommit& operator=(const PreparedCommit&) = delete;
++        PreparedCommit(PreparedCommit&&) noexcept = default;
++        PreparedCommit& operator=(PreparedCommit&&) noexcept = default;
++        const LedgerRecord& record() const noexcept { return record_; }
++        const std::string& candidate_state_sha256() const noexcept { return state_sha_; }
++        const Staged* staged() const noexcept { return staged_ ? &*staged_ : nullptr; }
++    };
++
+     Owner(std::shared_ptr<const Policy> p, std::uint64_t first_step) : p_(std::move(p)) {
+         if (!p_) throw Refusal(RefusalKind::configuration, "policy", "owner", "policy required");
+         if (first_step >= PFA_STEP_LIMIT) throw Refusal(RefusalKind::step_index, "first step", std::to_string(first_step), "must be < 2^40");
+@@ -716,9 +742,9 @@
+         return s;
+     }
+ 
+-    // Verifies the native receipt against the staged mapping, then publishes the
+-    // step: ledger record, chain head, totals, ordinal counter, anchor, next step.
+-    LedgerRecord commit(Staged&& s, const NativeBirthReceipt& r) {
++    // Verify the receipt and prepare all ledger/state allocations and hashes.
++    // Accepted state is unchanged. On failure, the staged input is also intact.
++    PreparedCommit prepare_commit(Staged&& s, const NativeBirthReceipt& r) const {
+         const auto& plan = s.plan_;
+         const auto id = "step=" + std::to_string(plan.step());
+         if (s.generation_ != generation_ || s.owner_sha_ != state_sha256() || plan.step() != next_step_)
+@@ -781,21 +807,56 @@
+                 it->variance_sum += f * (1 - f);
+             }
+         }
+-        // Publication (no failure after this point other than allocation inside swaps of
+-        // already built values).
+-        totals_.swap(totals);
+-        head_ = rec.chain_head;
+-        if (n) {
+-            has_anchor_ = true;
+-            anchor_step_ = plan.step();
+-            anchor_base_ = s.base_;
+-            anchor_count_ = n;
+-            anchor_ordinal_ = s.ordinal_;
+-        }
+-        next_ordinal_ += n;
+-        next_step_ += 1;
++        PreparedCommit prepared;
++        prepared.lifetime_ = lifetime_;
++        prepared.generation_ = generation_;
++        prepared.next_step_ = next_step_ + 1;
++        prepared.next_ordinal_ = next_ordinal_ + n;
++        prepared.has_anchor_ = has_anchor_ || n != 0;
++        prepared.anchor_step_ = n ? plan.step() : anchor_step_;
++        prepared.anchor_base_ = n ? s.base_ : anchor_base_;
++        prepared.anchor_count_ = n ? n : anchor_count_;
++        prepared.anchor_ordinal_ = n ? s.ordinal_ : anchor_ordinal_;
++        prepared.head_ = rec.chain_head;
++        prepared.totals_ = std::move(totals);
++        prepared.state_sha_ = sha256_hex(encode_values(
++            prepared.next_step_, prepared.next_ordinal_, prepared.has_anchor_,
++            prepared.anchor_step_, prepared.anchor_base_, prepared.anchor_count_,
++            prepared.anchor_ordinal_, prepared.head_, prepared.totals_));
++        prepared.record_ = std::move(rec);
++        static_assert(std::is_nothrow_move_constructible_v<Staged>);
++        prepared.staged_.emplace(std::move(s));
++        return prepared;
++    }
++
++    bool can_publish(const PreparedCommit& prepared) const noexcept {
++        return prepared.lifetime_ == lifetime_ && prepared.generation_ == generation_ &&
++               prepared.staged_.has_value();
++    }
++
++    bool try_publish(PreparedCommit& prepared) noexcept {
++        if (!can_publish(prepared)) return false;
++        totals_.swap(prepared.totals_);
++        head_.swap(prepared.head_);
++        next_step_ = prepared.next_step_;
++        next_ordinal_ = prepared.next_ordinal_;
++        has_anchor_ = prepared.has_anchor_;
++        anchor_step_ = prepared.anchor_step_;
++        anchor_base_ = prepared.anchor_base_;
++        anchor_count_ = prepared.anchor_count_;
++        anchor_ordinal_ = prepared.anchor_ordinal_;
+         ++generation_;
+-        return rec;
++        prepared.lifetime_.reset();
++        return true;
++    }
++
++    // Compatibility path retains the existing ledger/checkpoint bytes. Common
++    // coordinators must call prepare_commit before publishing any other owner.
++    LedgerRecord commit(Staged&& s, const NativeBirthReceipt& r) {
++        auto prepared = prepare_commit(std::move(s), r);
++        if (!try_publish(prepared))
++            throw Refusal(RefusalKind::stale, "prepared arrival publication", "owner");
++        return std::move(prepared.record_);
+     }
+ 
+     // Checkpoint: small canonical state with a SHA-256 trailer.
+@@ -867,19 +928,27 @@
+                           "the next accepted step is " + std::to_string(next_step_));
+     }
+     std::string encode_state() const {
++        return encode_values(next_step_, next_ordinal_, has_anchor_, anchor_step_,
++                             anchor_base_, anchor_count_, anchor_ordinal_, head_, totals_);
++    }
++    std::string encode_values(std::uint64_t next_step, std::uint64_t next_ordinal,
++                              bool has_anchor, std::uint64_t anchor_step,
++                              std::uint64_t anchor_base, std::uint64_t anchor_count,
++                              std::uint64_t anchor_ordinal, const std::string& head,
++                              const std::vector<StreamTotals>& totals) const {
+         Writer w;
+         w.tag("pf-arrival-owner-state-v1.1");
+         w.text(p_->configuration_sha256());
+-        w.u64(next_step_);
+-        w.u64(next_ordinal_);
+-        w.boolean(has_anchor_);
+-        w.u64(anchor_step_);
+-        w.u64(anchor_base_);
+-        w.u64(anchor_count_);
+-        w.u64(anchor_ordinal_);
+-        w.text(head_);
+-        w.u64(totals_.size());
+-        for (const auto& t : totals_) {
++        w.u64(next_step);
++        w.u64(next_ordinal);
++        w.boolean(has_anchor);
++        w.u64(anchor_step);
++        w.u64(anchor_base);
++        w.u64(anchor_count);
++        w.u64(anchor_ordinal);
++        w.text(head);
++        w.u64(totals.size());
++        for (const auto& t : totals) {
+             w.u64(t.stream_id);
+             detail::count(w, t.expected_sum);
+             detail::count(w, t.sampled_sum);
+@@ -892,6 +961,7 @@
+         return w.bytes;
+     }
+ 
++    std::shared_ptr<const void> lifetime_ = std::make_shared<const int>(0);
+     std::shared_ptr<const Policy> p_;
+     std::uint64_t next_step_ = 0, next_ordinal_ = 0, generation_ = 0;
+     bool has_anchor_ = false;
