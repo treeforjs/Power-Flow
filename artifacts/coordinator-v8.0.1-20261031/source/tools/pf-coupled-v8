@@ -1,0 +1,120 @@
+#!/usr/bin/python3 -I
+"""pf-coupled-v8: launch a coordinator v8 coupled run through pf-launch (site, cores, GPUs, ranks, leases, frozen root,
+execution envelope receipt) and run_v8.py (build pins, run receipt).
+
+  pf-coupled-v8 [launch options] [run options] [-- extra driver options]
+
+launch options (passed to pf-launch; tools/pf-launch/README.md):
+  --site SITE.json   --cores N|auto | --cpus LIST   --gpus none|auto|LIST|count:N   --ranks-per-gpu K
+  --cores-available  --wait  --dry-run  --receipt PATH
+  The coordinator is one process: pf-launch runs it with --launcher exec on the selected cores (affinity = all of them,
+  leases held for all); the rank count of the plan is recorded in every whole-run checkpoint (--ranks) and is not
+  required at restore. This is metadata only: one process executes, and no distributed restart/scaling is qualified.
+  Inside a SimQueue job pf-launch uses the job's allocation (no leases of its own).
+run options:
+  --label LABEL              required corrected run_v8.py build label
+  --out NAME                 output directory (absolute, or a name under the v8 output root)
+  --hall-checkpoint DIR      start: genesis at this Hall checkpoint (pre-run then genesis); the native genesis, the source
+                             owners, the arrival owner and the chemistry are bound to the restored Hall state
+  --resume ROOT | --restore-checkpoint DIR   restart from a whole-run checkpoint (newest committed below ROOT / this one)
+  --mesh FILE                resolution-series mesh file (default: the 200 um mesh)   --collision-grid mesh|fixed200
+  --dt-cap S                 controller step cap; the Hall cap, the source trial interval bound (<= 1e-12) and the
+                             resident-neutral bound are raised to it (default 1e-14: the coordinator v7.1 caps)
+  --particle-cap S           cap while carriers exist (default 1e-14)
+  --preset production|benchmark   source interval targets (production: emission and desorption 1e-3, safety 0.5,
+                             count floor 1e-3; benchmark: none, coordinator v7.1)   default production
+  --hall-owner auto|owner|resident   auto: resident when a GPU is selected, else the host owner
+  --field cpu|gpu  --push cpu|gpu   (defaults: gpu field with the resident owner, cpu push)
+  --fixture pilot|qual|dense|load (default pilot)   --window S | --steps N | --end-time T   --checkpoint-every K
+  --dt-mode adaptive|fixed (default adaptive)
+"""
+import json, os, shlex, subprocess, sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent.parent
+PF_LAUNCH = Path('/home/treefor/projects/Power-Flow/tools/pf-launch/pf_launch.py')
+LAUNCH_FLAGS = {'--site': 1, '--cores': 1, '--cpus': 1, '--gpus': 1, '--ranks-per-gpu': 1, '--cores-available': 0, '--wait': 0, '--dry-run': 0,
+                '--receipt': 1}
+RUN_FLAGS = {'--label', '--out', '--hall-checkpoint', '--resume', '--restore-checkpoint', '--mesh', '--collision-grid', '--dt-cap', '--particle-cap',
+             '--preset', '--hall-owner', '--field', '--push', '--fixture', '--window', '--steps', '--end-time', '--checkpoint-every', '--dt-mode'}
+
+
+def parse(argv):
+    launch, run, extra = [], {}, []
+    if '--' in argv:
+        i = argv.index('--')
+        argv, extra = argv[:i], argv[i + 1:]
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a in LAUNCH_FLAGS:
+            launch += argv[i:i + 1 + LAUNCH_FLAGS[a]]
+            i += 1 + LAUNCH_FLAGS[a]
+        elif a in RUN_FLAGS and i + 1 < len(argv):
+            run[a] = argv[i + 1]
+            i += 2
+        elif a in ('-h', '--help'):
+            raise SystemExit(__doc__)
+        else:
+            raise SystemExit('pf-coupled-v8: unknown option %s\n%s' % (a, __doc__))
+    return launch, run, extra
+
+
+def plan(launch):
+    """Resolve the pf-launch plan (cores, GPUs, ranks) without taking any lease."""
+    cmd = [sys.executable, '-I', str(PF_LAUNCH), *[x for x in launch if x not in ('--dry-run', '--wait')], '--launcher', 'exec', '--dry-run', '--json',
+           '--', '/bin/true']
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        return json.loads(r.stdout), r.returncode
+    except json.JSONDecodeError:
+        raise SystemExit('pf-coupled-v8: pf-launch plan not readable:\n' + r.stdout[-3000:] + r.stderr[-3000:])
+
+
+def driver_args(run, ranks, gpus):
+    owner = run.get('--hall-owner', 'auto')
+    if owner == 'auto':
+        owner = 'resident' if gpus else 'owner'
+    if owner == 'resident' and not gpus:
+        raise SystemExit('pf-coupled-v8: the resident Hall owner needs a GPU (--gpus)')
+    cap = run.get('--dt-cap', '1e-14')
+    capf = float(cap)
+    if not (0 < capf <= 1e-12):
+        raise SystemExit('pf-coupled-v8: --dt-cap must lie in (0, 1e-12] (source owner hard limit)')
+    a = ['--hall-owner', owner, '--field', run.get('--field', 'gpu' if owner == 'resident' else 'cpu'), '--push', run.get('--push', 'cpu'),
+         '--dt-mode', run.get('--dt-mode', 'adaptive'), '--dt-cap', cap, '--particle-cap', run.get('--particle-cap', '1e-14'),
+         '--source-interval-preset', run.get('--preset', 'production'), '--ranks', str(ranks)]
+    if capf != 1e-14:
+        a += ['--hall-dt-max', cap, '--source-dt-max', cap, '--neutral-dt-max', cap, '--charged-only-particle-cap']
+    for k in ('--hall-checkpoint', '--resume', '--restore-checkpoint', '--mesh', '--collision-grid', '--fixture', '--window', '--steps', '--end-time',
+              '--checkpoint-every'):
+        if k in run:
+            a += [k, run[k]]
+    return a
+
+
+def main():
+    launch, run, extra = parse(sys.argv[1:])
+    p, rc = plan(launch)
+    ranks = int(p.get('rank_count') or 1)
+    sg = p.get('selected_gpus') or {}
+    # GPUs of the plan: selected now, or requested and leased elsewhere (the launch with --wait queues for them)
+    gpus = list(sg.get('uuids') or []) + sorted((sg.get('leased_elsewhere') or {}).keys())
+    if sg.get('request') in (None, 'none'):
+        gpus = []
+    args = driver_args(run, ranks, bool(gpus))
+    label = run.get('--label')
+    if not label:
+        raise SystemExit('pf-coupled-v8: --label of a qualified corrected build required')
+    out = run.get('--out')
+    if not out and '--dry-run' not in launch:
+        raise SystemExit('pf-coupled-v8: --out required')
+    cmd = [sys.executable, '-I', str(PF_LAUNCH), *launch, '--launcher', 'exec', '--',
+           '/usr/bin/python', '-I', str(HERE / 'run_v8.py'), 'run', label, 'run', out or '<out>', *args, *extra]
+    print('pf-coupled-v8: plan ranks=%d gpus=%s (pf-launch dry-run rc=%d)' % (ranks, gpus, rc), flush=True)
+    print('pf-coupled-v8: ' + ' '.join(shlex.quote(x) for x in cmd), flush=True)
+    os.execv(sys.executable, cmd)
+
+
+if __name__ == '__main__':
+    main()

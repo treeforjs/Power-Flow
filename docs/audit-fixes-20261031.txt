@@ -1,0 +1,111 @@
+Audit correction record -- 2026-10-31
+
+Scope: implement the defects in artifacts/source-audit-20261031/report.txt.
+The original audited releases remain unchanged. New versioned runtimes and
+filtered source/evidence copies preserve the relationship between each build
+and its qualification. No long production simulation is started by this work.
+
+Finding / corrective component / behavior
+
+1. SS304 v1.3: each preparation invalidates earlier proposals before scratch
+   writes, including preparations that later refuse. A stale trial cannot
+   publish state overwritten by another trial.
+2. Chemistry v3.1.1: missing-channel exposure covers the supported target
+   thermal distribution and energy-region crossings. Co-moving hot targets
+   no longer report zero exposure just because the mean relative drift is zero.
+3. Chemistry v3.1.1 and native auditfix: neutral products remain positive
+   phase-space parcels, preserving velocity, position, count, momentum and
+   kinetic energy. A maximum release weight permits exact partial packets.
+   Signed legacy residuals are not silently migrated into the new schema.
+4. SS304 v1.3: proposed back pressure stays trial-local; refusal preserves
+   accepted pressure and physical quotes. Accepted pressure enters state identity.
+5. SS304 v1.3: additional accumulated field input invalidates a prepared
+   thermal window. Actual per-cell energy/force accumulator contents enter
+   identity; direct steps cannot discard a pending window.
+6. Coordinator v8.0.1: an explicit continuation target is applied after
+   checkpoint/replay validation. Saved step and time limits survive when no
+   new target is requested; chained continuations are tested separately.
+7. Native auditfix: complete published sink exposures enter accepted state
+   identity and remain bound across anchors, including start position, weight
+   and internal energy. Missing or modified metadata must refuse restoration.
+8. Coordinator v8.0.1: 0 < extraction field < 1 V/m refuses explicitly.
+   This removes silent omission of thermally emitted electrons; it does not
+   supply a newly qualified low-field magnetic/image-force launch model.
+9. Chemistry v3.1.1: GAS-returning events do not consume neutral inventory.
+10. Native auditfix: the corrected named shared_ptr retains device-verification
+    and fallback data through use. The coordinator pins the qualified
+    corrected archive instead of the affected sealed v7.1 dependency.
+
+Additional corrections
+
+* Repaired dissertation evidence serialization and added .gitattributes byte
+  preservation. Initial manifest restoration (commit 1a570f0, pushed) passed
+  26 targeted tests, with 2 skipped. Full-suite job247 exposed three CSVs with
+  contradictory CRLF aggregate references and LF generator/metadata identities.
+  Those three now retain their original generator-defined LF hashes; only the
+  aggregate references changed. Scientific values and existing tests did not
+  change. Exact before/after hashes: artifacts/source-audit-20261031/eol-repair.json.
+  Final full repository suite, frozen SimQueue job255: 3650 passed, 39 skipped.
+* Strict chemistry policy no longer silently admits no-data or above-grid
+  regions. Diagnostic approximations require an explicit, identity-bound choice.
+* Native chemistry refuses full-energy-closure use without coupled target
+  energy ownership. The existing field-target approximation is diagnostic.
+* Lorentz-work accounting requires corresponding field/current/back-EMF
+  coupling; changing an energy-ledger label is not physical coupling.
+* Coordinator receipts distinguish executed one-process work from rank metadata.
+  Metadata changes do not qualify distributed MPI restart or scaling.
+* Run integrity now affects launcher success: modified or missing frozen inputs,
+  sources or executables produce a failed receipt and a nonzero exit, even when
+  the executable itself returned zero. Five fault-injection cases passed.
+* Native checkpoint restore now accepts valid long coverage-region labels using
+  the bounded payload parser, then checks them against the pinned chemistry
+  table. Previously a valid 2043-byte label exceeded the generic identity parser.
+  Unknown labels remain invalid. This follow-up defect was exposed by the final
+  CPU and GPU chemistry restore tests rather than bypassed in their fixtures.
+* Native restore initializes its version identity from the validated
+  configuration before validating motion/birth/merge journal rows. The
+  inherited order rejected valid v8.1 records; all schema guards are retained.
+  This second follow-up defect was exposed by the Stage B restore control.
+
+Completed component evidence
+
+* SS304 phase owner v1.3 (d39e33d): 200204 CPU checks including 27 transaction
+  regressions, 73 GPU checks, and matching CPU/GPU transaction fingerprints.
+* Water chemistry v3.1.1 (ea2b9ee): 11 targeted regressions, CPU event/process
+  controls, ASan/UBSan, two-process CPU/GPU bit identity, and 623 unchanged
+  frozen data bindings. Strict policy admits zero unbounded regions. A checked
+  adoption patch is supplied for v3.2; its active runtime was not overwritten.
+
+* Native auditfix (f09bda2): final frozen build/CPU job 286 and GPU jobs
+  290-292 passed. Evidence includes sink tampering before/at anchors, actual
+  device verification/refusal fallback, chemistry and parcel controls,
+  v5-compatible flows, work accounting, all 19 Stage B controls and fresh-process
+  continuations. Seven tampered checkpoints refused. Source 5f7d171c...,
+  archive 098c1aaa...; all 184 sealed files independently verified.
+* Coordinator v8.0.1: frozen SimQueue job 293 passed the linked build,
+  53 checks, 12 continuation cases and 5 wrapper-integrity fault cases.
+  All 14 numerical run receipts retained matching source, dependency and binary
+  hashes. Direct genesis and nonempty replay paths were explicitly checked,
+  including repeated continuation and unchanged input checkpoints on refusal.
+
+The audited software corrections are implemented and qualified for the recorded
+component cases. Final source/evidence packages:
+  artifacts/ss304-phase-thermal-owner-v1.3-20261031/RESULTS.txt
+  artifacts/water-chemistry-v3.1.1-20261031/source/RESULTS.txt
+  artifacts/native-v8-auditfix-20261031/QUALIFICATION.json
+  artifacts/coordinator-v8.0.1-20261031/RESULTS.txt
+
+Adoption into independently edited native v8 and chemistry v3.2 runtimes must
+use the supplied exact-base patches and fresh qualification. Those live trees
+were not overwritten. Original checkpoints remain preserved; incompatible
+chemistry/sink schemas require explicit migration rather than silent admission.
+
+Remaining physical qualification
+
+These software corrections do not establish full water-plasma breakdown.
+The currently integrated coordinator still uses parent ionization and a
+solid-only Hall thermal binding. Full phase/circuit/wall/gas-energy coupling,
+low-field emission matching, calibrated domain/drive fields, convergence and
+the physical validity of omitting plasma before a 20 ns start remain separate
+requirements. Explicit refusals retain those limits instead of accepting an
+unsupported production result.

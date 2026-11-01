@@ -1,0 +1,45 @@
+Coordinator v8.0.1 audit correction -- qualified corrective build
+
+Final frozen SimQueue job 293, build c2, one allocated CPU core:
+ - Build and dependency/source/executable integrity checks passed.
+ - 53 coupled and component checks passed, including actual weak-field
+   preparation at three timesteps with unchanged owners, RNG and inventories.
+ - 12 continuation cases passed across direct genesis restore and verified
+   replay, including a second restart after extending a completed time window.
+   Explicit absolute/relative targets, saved targets, step-target replacement,
+   off-grid threshold crossing and invalid targets were exercised.
+ - 5 wrapper-integrity fault cases passed. Dependency/source/binary changes or
+   missing inputs caused a failed receipt and nonzero launcher status even
+   when the executable returned zero.
+ - All 14 numerical run receipts retained unchanged source, dependency and
+   executable hashes. Invalid continuation requests published no accepted
+   steps/checkpoints; restored input checkpoints remained byte-identical.
+
+Native source: 5f7d171c62708cf3e2e03f0fd843e7c906ed65a5db7d5955624773dee3516f2b
+Native archive: 098c1aaa14a533877ba4474f1ffae432994329db809b12b2f1391c6e2a65f9d7
+Coordinator executable: 3e5d52b2eb93d15fdfbaa79a7a3541911fa987905a9bbb55c14f9411d7e86072
+Bindings: Hall v3.3 plus the qualified native v8 audit correction.
+
+Behavior:
+ --window is relative to the restored accepted time; --end-time is absolute.
+ --steps selects an absolute accepted-step limit and clears a saved time limit.
+ An omitted target preserves the saved target. Changes apply only after
+ checkpoint/replay verification. Time targets stop on the first accepted step
+ crossing them; exact landing is not promised. Conflicting or non-advancing
+ explicit time targets refuse.
+
+The earlier weak-positive-field source omission now refuses explicitly.
+No qualified low-field launch model is supplied. Rank metadata is labeled as
+metadata; these checks execute one process and do not establish MPI scaling.
+
+This coordinator still uses v5 native configuration, parent ionization and a
+solid-only Hall thermal binding. Its nonempty restore path is verified replay;
+native v8's own nonempty direct restoration was qualified separately. These
+short fixtures do not establish full water breakdown, phase/circuit/wall/gas
+coupling, whole-system energy closure, field/domain calibration or convergence.
+No long production simulation was started or resumed.
+
+Old checkpoints retain their original identities. The corrected schemas do
+not silently migrate histories lacking parcel or sink/support information.
+Source and selected evidence are committed; libraries, large checkpoints and
+private chemistry data remain in their frozen local runtimes.

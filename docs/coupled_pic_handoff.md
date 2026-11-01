@@ -43,12 +43,12 @@ and then copied (filtered) into `artifacts/<component>-<version>-<date>/` here.
 
 | Component | Sealed / committed | In progress | Next |
 |---|---|---|---|
-| Hall | v3.4 (61b04a1): host work removed (device deposit support, preflight, census; exact-sum residual; block-form digests). Hall-only step 7-19x faster than v3.3 at 1e5-1e6 carriers; per-kernel FP64/bandwidth/latency split in RESULTS.txt sections 12-13 | v3.5 (`runtimes/hall-corrective-v3.5-20261101`, HANDOFF.txt): `restore_as_genesis` first, then GPU node-walk parallelization (up to ~70 % of the 200 um device step) and radix-sort passes | graded 35-45 mm transverse mesh, circuit port-current mode, SS304 v1.2 thermal owner, source v7 wall heat, merge/split relocation deposit, GMG option, open issues 10.1-10.6 (v3.5 or v3.6) |
-| Native | v7.1 (2c37382): device admission, copy-on-write state | v8 (`candidate008`, HANDOFF.txt): stage A (chemistry v3.1 binding, device chemistry, persistent packet table, nonempty restore) verified on source 519423268f; now moving birth/first-hit-sink steps onto the device (~300 ms host at 1e6), then stage B (wall births, metal species, merge/split). `PF_BUILD_ISA_FLAGS` hook added | swap chemistry binding to v3.2; Raikou kinetic-core adoption |
-| Water chemistry | v3.1 (848e3e9) | v3.2 (`runtimes/pic-water-chemistry-v3.2-20261031`, HANDOFF.txt): all v3.1 refusing regions closed; keV ions, the electron rotational tail and the 3 eV-1 keV ion gaps filled with sampled model estimates; final qualification running (swarm re-validated against measured data) | bind into native v8 |
-| Coordinator | v8 stage 1 (93e3936): source v7 wired, raised dt caps, restart, launch from checkpoint | - | stage 2 after Hall v3.5 + native v8: bind all owners, production presets, direct native restore, start from 20 ns |
+| Hall | v3.4 (61b04a1): host work removed (device deposit support, preflight, census; exact-sum residual; block-form digests). Hall-only step 7-19x faster than v3.3 at 1e5-1e6 carriers; per-kernel FP64/bandwidth/latency split in RESULTS.txt sections 12-13 | v3.5 (`runtimes/hall-corrective-v3.5-20261101`, HANDOFF.txt): `restore_as_genesis` first, then GPU node-walk parallelization (up to ~70 % of the 200 um device step) and radix-sort passes | graded 35-45 mm transverse mesh, circuit port-current mode, SS304 v1.3 thermal owner, source v7 wall heat, merge/split relocation deposit, GMG option, open issues 10.1-10.6 (v3.5 or v3.6) |
+| Native | v8 audit correction (f09bda2), source 5f7d171c: conservation, checkpoint identity, restore and device lifetime corrections qualified | v8 (`candidate008`, HANDOFF.txt): independent device-birth/sink and Stage B development; corrective adoption patch supplied | adopt audit corrections before promotion; swap chemistry binding to v3.2; Raikou kinetic-core adoption |
+| Water chemistry | v3.1.1 (ea2b9ee): thermal coverage, positive parcels, strict unknown-channel policy and debit corrections | v3.2 (`runtimes/pic-water-chemistry-v3.2-20261031`, HANDOFF.txt): model-derived extensions and swarm qualification | adopt the checked v3.2 correction patch, then qualify and bind into native v8 |
+| Coordinator | v8.0.1 audit release: 53 checks, 12 continuation cases and 5 integrity faults passed; corrected native dependency pinned | - | stage 2 after Hall v3.5 + native v8: bind all owners, direct native restore, qualify any omitted early plasma history |
 | Source owner | v7 (faa7274) component | - | integrate at coordinator v8 stage 2 |
-| SS304 phase owner | v1.2 (66fa599) | - | thermal owner in Hall v3.5/v3.6 |
+| SS304 phase owner | v1.3 (d39e33d): transactional trial, pressure and accumulator corrections | - | thermal owner in Hall v3.5/v3.6 |
 | C19 circuit | v1 (2feff69); Xyce 7.10 source verified, not built | - | port-current mode in Hall v3.5/v3.6 |
 | SimQueue | 0.6.2 live (78767d7): fair GPU hand-off, reservation line, published state `pic-profile/simq-gpu-line.json`, `gpu-lease` helper; rollback command in `tools/simqueue/release.json` | - | 0.6.3 at the CPU swap: zero-core borrow-only `mfem-pic` partition with lender list, 16-core node layout |
 | CPU performance | - | study (`runtimes/cpu-isa-study-20261031`, HANDOFF.txt): x86-64-v3/v4/znver5/-O3 builds must give bit-identical digests; host profiling; proven patches collected in PATCHES.md for the next versions; per-site ISA flavor via pf-launch site files | apply patches in Hall v3.6 / native v8.x / coordinator stage 2 |
@@ -61,14 +61,30 @@ software fix alone does not qualify a cold plasma start at 20 ns.
 
 ## Audit corrections (2026-10-31)
 
-Corrective versions are being qualified separately from the sealed builds.
+Corrective releases below supersede the audited baselines for their stated
+component cases. They do not qualify a full plasma-breakdown run.
 SS304 phase v1.3 is qualified and pushed (d39e33d): 200204 CPU checks and
 73 GPU checks passed, with three historical defects separately reproduced.
-Water chemistry v3.1.1, native candidate008-auditfix and coordinator v8.0.1
-are still being qualified. Do not bind those until their final source identities
-and verification receipts are recorded. Existing active runtimes are unchanged.
-When they are final, their fixes are folded into the in-progress versions
-(native v8, chemistry v3.2, coordinator stage 2).
+Water chemistry v3.1.1 is qualified and pushed (ea2b9ee): 11 regressions,
+CPU process/event controls, ASan/UBSan and two-process CPU/GPU bit identity
+passed; all 623 frozen data bindings are unchanged. Its exact-base v3.2 adoption
+patch is under `artifacts/water-chemistry-v3.1.1-20261031/adoption/v3.2/`.
+Native candidate008-auditfix is qualified and pushed (f09bda2), source
+`5f7d171c62708cf3e2e03f0fd843e7c906ed65a5db7d5955624773dee3516f2b`, archive
+`098c1aaa14a533877ba4474f1ffae432994329db809b12b2f1391c6e2a65f9d7`.
+Its full CPU suite and GPU lifetime/flow/chemistry controls passed, including
+long coverage labels and v8.1 journal restore. Coordinator v8.0.1 pins that
+archive and passed frozen job 293: 53 checks, 12 continuation cases and five
+integrity fault cases. Its default binding remains Hall v3.3, parent ionization
+and v5 native configuration; nonempty coordinator restore still uses replay.
+
+Use `artifacts/coordinator-v8.0.1-20261031/RESULTS.txt` and
+`docs/audit-fixes-20261031.txt` for the exact evidence and limitations. The
+historical sealed native v7.1 device-verification path remains affected by the
+audited lifetime defect. Independently edited active runtimes are unchanged:
+fold the checked adoption patches into native v8/chemistry v3.2 and requalify
+before promotion. Old chemistry checkpoints cannot silently acquire missing
+parcel, sink or reachable-support identity.
 
 ## Open model choices
 
@@ -147,7 +163,7 @@ All builds and runs use the frozen runtime and the core leases; outputs go to
 - Water chemistry (in its version directory): `taskset -c 6,7 nice -n 15 python3 -I run_checks.py LABEL
   [inputs tables build core sanitized gpu swarm]`; table rebuild: `tools/make_production_spec.py`,
   `tools/build_tables.py`, `tools/report_processes.py`, `tools/make_coverage_policy.py` (see its README).
-- Coordinator v8: `python3 run_v8.py build LABEL [--hall v3.3] [--native v7.1] | run | baseline`;
+- Corrected coordinator (`pic-water-common-commit-v8.0.1-20261031`): `python3 run_v8.py build LABEL [--hall v3.3] [--native v8-auditfix] | run | baseline`;
   launch `tools/pf-coupled-v8` with pf-launch options (`--site --cores/--cpus --gpus --dry-run --receipt`)
   plus `--hall-checkpoint DIR`, `--resume`, `--mesh`, `--dt-cap`, `--preset production`, `--hall-owner auto`,
   `--window/--steps/--end-time`, `--checkpoint-every` (README section 6).
@@ -164,7 +180,7 @@ All builds and runs use the frozen runtime and the core leases; outputs go to
 - Cores (development split): 0-3 Spheral, 4-5 raikou-mfem, 6-7 Power-Flow; after the 16-core swap Spheral gets one
   chiplet (8 cores), raikou-mfem and Power-Flow 4 each on the other, shared mfem-pic work borrows idle cores there.
   A properly optimized run that needs all ranks may use all cores; during a Spheral full-run window Power-Flow keeps
-  only logical CPU 15 (nice 19) for one GPU host thread. Lending Power-Flow cores needs the project owner's direct OK.
+  only logical CPU 15 (nice 19) for one GPU host thread. Lending Power-Flow cores needs your direct OK.
   The GPU is shared with raikou-mfem and the Raikou kinetic-core work.
 - Always pass `--mem`; never take the GPU lock files with raw flock (use the scheduler or `gpu-lease`).
 - Lock order: GPU locks first (`testing-gpu.lock`, then `testing-gpu-<UUID>.lock`),
