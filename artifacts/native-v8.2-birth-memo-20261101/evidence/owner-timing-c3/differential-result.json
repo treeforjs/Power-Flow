@@ -1,0 +1,530 @@
+{
+  "passed": true,
+  "differences": [],
+  "build": {
+    "baseline_identity": "5f7d171c62708cf3e2e03f0fd843e7c906ed65a5db7d5955624773dee3516f2b",
+    "baseline_library": "098c1aaa14a533877ba4474f1ffae432994329db809b12b2f1391c6e2a65f9d7",
+    "candidate_identity": "46f22788642ee6234d4f08c18018f8430a10ae9a2466fe9149dac7743915bf20",
+    "candidate_library": "d97a8ea00363ef0cb4eef8ca4b5abc005e2f77ec0030adcff23b4223832e21e9",
+    "fixture_sha256": "6533f57da1c04c635d80704a66a4cbb8d765b55616d966c4bd34ad143b42dee8",
+    "commands": [
+      {
+        "log": "baseline-compile.log",
+        "command": [
+          "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+          "prlimit",
+          "--as=3221225472",
+          "--",
+          "/usr/bin/mpic++",
+          "-std=c++20",
+          "-O2",
+          "-g0",
+          "-ffp-contract=off",
+          "-fno-fast-math",
+          "-ffunction-sections",
+          "-fdata-sections",
+          "-Wall",
+          "-Wextra",
+          "-Wpedantic",
+          "-Werror",
+          "-DPIC_REACTION_NATIVE_SOURCE_SHA256=\"5f7d171c62708cf3e2e03f0fd843e7c906ed65a5db7d5955624773dee3516f2b\"",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/source/include",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/forms/include",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/forms/gpu",
+          "-I/home/treefor/projects/runtimes/hall-gpu-resident-v1-20261030/common",
+          "-isystem",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/inputs",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/source/vendor",
+          "-isystem",
+          "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/include/pf_chem_v3",
+          "-isystem",
+          "/home/treefor/projects/runtimes/pic-arrival-owner-v1-20261030/include/pf_arrival",
+          "-isystem",
+          "/home/treefor/projects/runtimes/resolution-series-prep-20261031/merge-split/include",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/source/src",
+          "-isystem",
+          "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/tests",
+          "-I/home/treefor/projects/runtimes/hall-corrective-v2-20261030/source",
+          "-I/home/treefor/projects/runtimes/pic-arrival-owner-v1-20261030/include",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/source/adapters",
+          "-I/home/treefor/projects/runtimes/pic-water-common-commit-v3-20261030/source",
+          "-DPF_ARRIVAL_EXACT_COUNT_HEADER=\"raikou/exact_particle_count.h\"",
+          "-Wno-c++26-extensions",
+          "-isystem",
+          "/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/include",
+          "-isystem",
+          "/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/tools/nvrtc/nvidia/cuda_nvrtc/include",
+          "-isystem",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+          "-isystem",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+          "-isystem",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+          "-c",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/tests/test_birth_memo_diff.cpp",
+          "-o",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/build/baseline-birth-memo-diff.o"
+        ],
+        "returncode": 0,
+        "elapsed_s": 8.586,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cpus": [
+          4
+        ],
+        "nice": 15,
+        "rlimit_as": 3221225472,
+        "sanitizer_rss_limit_mb": null,
+        "utc": "2026-11-01T06:25:16.909893+00:00"
+      },
+      {
+        "log": "baseline-link.log",
+        "command": [
+          "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+          "prlimit",
+          "--as=3221225472",
+          "--",
+          "/usr/bin/mpic++",
+          "-Wl,--gc-sections",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/build/baseline-birth-memo-diff.o",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix/build/kinetic-boundary.o",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix/build/libpic_native_v8.a",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+          "-lcrypto",
+          "-ldl",
+          "-o",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/build/baseline-birth-memo-diff"
+        ],
+        "returncode": 0,
+        "elapsed_s": 0.321,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cpus": [
+          4
+        ],
+        "nice": 15,
+        "rlimit_as": 3221225472,
+        "sanitizer_rss_limit_mb": null,
+        "utc": "2026-11-01T06:25:17.231675+00:00"
+      },
+      {
+        "log": "candidate-compile.log",
+        "command": [
+          "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+          "prlimit",
+          "--as=3221225472",
+          "--",
+          "/usr/bin/mpic++",
+          "-std=c++20",
+          "-O2",
+          "-g0",
+          "-ffp-contract=off",
+          "-fno-fast-math",
+          "-ffunction-sections",
+          "-fdata-sections",
+          "-Wall",
+          "-Wextra",
+          "-Wpedantic",
+          "-Werror",
+          "-DPIC_REACTION_NATIVE_SOURCE_SHA256=\"46f22788642ee6234d4f08c18018f8430a10ae9a2466fe9149dac7743915bf20\"",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/source/include",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/forms/include",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/forms/gpu",
+          "-I/home/treefor/projects/runtimes/hall-gpu-resident-v1-20261030/common",
+          "-isystem",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/inputs",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/source/vendor",
+          "-isystem",
+          "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1.1-20261031/include/pf_chem_v3",
+          "-isystem",
+          "/home/treefor/projects/runtimes/pic-arrival-owner-v1-20261030/include/pf_arrival",
+          "-isystem",
+          "/home/treefor/projects/runtimes/resolution-series-prep-20261031/merge-split/include",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/source/src",
+          "-isystem",
+          "/home/treefor/projects/runtimes/hall-coupled-transport-20261029/source/development",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/tests",
+          "-I/home/treefor/projects/runtimes/hall-corrective-v2-20261030/source",
+          "-I/home/treefor/projects/runtimes/pic-arrival-owner-v1-20261030/include",
+          "-I/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/source/adapters",
+          "-I/home/treefor/projects/runtimes/pic-water-common-commit-v3-20261030/source",
+          "-DPF_ARRIVAL_EXACT_COUNT_HEADER=\"raikou/exact_particle_count.h\"",
+          "-Wno-c++26-extensions",
+          "-isystem",
+          "/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/include",
+          "-isystem",
+          "/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/tools/nvrtc/nvidia/cuda_nvrtc/include",
+          "-isystem",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/include",
+          "-isystem",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/include",
+          "-isystem",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/include",
+          "-c",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/tests/test_birth_memo_diff.cpp",
+          "-o",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/build/candidate-birth-memo-diff.o"
+        ],
+        "returncode": 0,
+        "elapsed_s": 8.425,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cpus": [
+          4
+        ],
+        "nice": 15,
+        "rlimit_as": 3221225472,
+        "sanitizer_rss_limit_mb": null,
+        "utc": "2026-11-01T06:25:25.657422+00:00"
+      },
+      {
+        "log": "candidate-link.log",
+        "command": [
+          "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+          "prlimit",
+          "--as=3221225472",
+          "--",
+          "/usr/bin/mpic++",
+          "-Wl,--gc-sections",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/build/candidate-birth-memo-diff.o",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-candidate008-auditfix/build/kinetic-boundary.o",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/build/libpic_native_v8.a",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/install-mpi/lib/libmfem.a",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/hypre/lib/libHYPRE.a",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/metis/lib/libmetis.a",
+          "/home/treefor/projects/runtimes/mfem-4.10-pic-20261029/tpl/GKlib/lib/libGKlib.a",
+          "-lcrypto",
+          "-ldl",
+          "-o",
+          "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/build/candidate-birth-memo-diff"
+        ],
+        "returncode": 0,
+        "elapsed_s": 0.321,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cpus": [
+          4
+        ],
+        "nice": 15,
+        "rlimit_as": 3221225472,
+        "sanitizer_rss_limit_mb": null,
+        "utc": "2026-11-01T06:25:25.979109+00:00"
+      }
+    ]
+  },
+  "runs": [
+    {
+      "run": "baseline-0",
+      "physical_sha256": "5686acc7cb9a1d5ca8981c44f671bbb7726336220c66ccc2f6b0dc4126e1b0bb",
+      "physical_bytes": 71231028,
+      "birth_prepare_seconds": 0.113995291,
+      "full_step_seconds": 0.32621552499999995
+    },
+    {
+      "run": "candidate-0",
+      "physical_sha256": "5686acc7cb9a1d5ca8981c44f671bbb7726336220c66ccc2f6b0dc4126e1b0bb",
+      "physical_bytes": 71231028,
+      "birth_prepare_seconds": 0.003962709,
+      "full_step_seconds": 0.25774274999999996
+    },
+    {
+      "run": "candidate-1",
+      "physical_sha256": "5686acc7cb9a1d5ca8981c44f671bbb7726336220c66ccc2f6b0dc4126e1b0bb",
+      "physical_bytes": 71231028,
+      "birth_prepare_seconds": 0.003931321999999999,
+      "full_step_seconds": 0.25800639500000005
+    },
+    {
+      "run": "baseline-1",
+      "physical_sha256": "5686acc7cb9a1d5ca8981c44f671bbb7726336220c66ccc2f6b0dc4126e1b0bb",
+      "physical_bytes": 71231028,
+      "birth_prepare_seconds": 0.096793545,
+      "full_step_seconds": 0.29517006300000004
+    }
+  ],
+  "refusal_controls": [
+    {
+      "kind": 1,
+      "name": "source binding",
+      "text": "birth source_before differs from the accepted source seal",
+      "type": "flow",
+      "unchanged": true
+    },
+    {
+      "kind": 1,
+      "name": "step binding",
+      "text": "arrival step differs from the outer accepted step",
+      "type": "flow",
+      "unchanged": true
+    },
+    {
+      "kind": 3,
+      "name": "native id",
+      "text": "birth native ID differs from B_s + canonical rank",
+      "type": "flow",
+      "unchanged": true
+    },
+    {
+      "kind": 3,
+      "name": "packet id",
+      "text": "birth packet ID is not the canonical arrival-v1 ID of its key",
+      "type": "flow",
+      "unchanged": true
+    },
+    {
+      "kind": 1,
+      "name": "state",
+      "text": "birth species differs from its stream",
+      "type": "flow",
+      "unchanged": true
+    },
+    {
+      "kind": 6,
+      "name": "zero weight",
+      "text": "birth weight must be one positive finite carrier",
+      "type": "flow",
+      "unchanged": true
+    },
+    {
+      "kind": 6,
+      "name": "source debit",
+      "text": "native credit differs from the exact source debit of a stream",
+      "type": "flow",
+      "unchanged": true
+    },
+    {
+      "kind": -1,
+      "name": "nonfinite velocity",
+      "text": "nonfinite native product velocity",
+      "type": "other",
+      "unchanged": true
+    },
+    {
+      "kind": 7,
+      "name": "conductor endpoint",
+      "text": "birth position/velocity: closed full-time conductor endpoint (and not a foil-face birth leaving into vacuum)",
+      "type": "flow",
+      "unchanged": true
+    },
+    {
+      "kind": 7,
+      "name": "birth time",
+      "text": "birth time outside the step or remaining flight != end - tau",
+      "type": "flow",
+      "unchanged": true
+    },
+    {
+      "kind": 7,
+      "name": "internal energy",
+      "text": "birth internal energy: finite, >= 0, neutral states only",
+      "type": "flow",
+      "unchanged": true
+    },
+    {
+      "kind": 2,
+      "name": "duplicate birth",
+      "text": "births not in canonical (stream id, index) order",
+      "type": "flow",
+      "unchanged": true
+    },
+    {
+      "kind": -1,
+      "name": "moved scope",
+      "text": "empty birth scope",
+      "type": "other",
+      "unchanged": true
+    },
+    {
+      "kind": -1,
+      "name": "retained scope blocks second outer",
+      "text": "full-time outer requires accepted full-time boundary",
+      "type": "other",
+      "unchanged": true
+    },
+    {
+      "kind": 0,
+      "name": "stale scope after transport phase",
+      "text": "birth scope is stale (outer frame changed or wrong phase)",
+      "type": "flow",
+      "unchanged": true
+    },
+    {
+      "kind": -1,
+      "name": "stale scope after owner destruction",
+      "text": "stale full-time outer owner",
+      "type": "other"
+    },
+    {
+      "kind": 0,
+      "name": "changed exact carrier cap",
+      "text": "births exceed the outer carrier budget before allocation",
+      "type": "resource",
+      "unchanged": true
+    }
+  ],
+  "source_identity": {
+    "baseline-0": "5f7d171c62708cf3e2e03f0fd843e7c906ed65a5db7d5955624773dee3516f2b",
+    "candidate-0": "46f22788642ee6234d4f08c18018f8430a10ae9a2466fe9149dac7743915bf20",
+    "candidate-1": "46f22788642ee6234d4f08c18018f8430a10ae9a2466fe9149dac7743915bf20",
+    "baseline-1": "5f7d171c62708cf3e2e03f0fd843e7c906ed65a5db7d5955624773dee3516f2b"
+  },
+  "source_identity_bound_seal_differences": {
+    "baseline-0": {
+      "accepted": 0,
+      "anchor_chain": 0,
+      "anchor_head": 0,
+      "anchor_root": 0,
+      "birth_root": 0,
+      "birth_row": 0,
+      "flows": 0,
+      "motion": 0,
+      "prefix": 0,
+      "sink_ledger": 0,
+      "sink_records": 0
+    },
+    "candidate-0": {
+      "accepted": 0,
+      "anchor_chain": 2,
+      "anchor_head": 17,
+      "anchor_root": 17,
+      "birth_root": 0,
+      "birth_row": 0,
+      "flows": 0,
+      "motion": 0,
+      "prefix": 0,
+      "sink_ledger": 0,
+      "sink_records": 0
+    },
+    "candidate-1": {
+      "accepted": 0,
+      "anchor_chain": 2,
+      "anchor_head": 17,
+      "anchor_root": 17,
+      "birth_root": 0,
+      "birth_row": 0,
+      "flows": 0,
+      "motion": 0,
+      "prefix": 0,
+      "sink_ledger": 0,
+      "sink_records": 0
+    },
+    "baseline-1": {
+      "accepted": 0,
+      "anchor_chain": 0,
+      "anchor_head": 0,
+      "anchor_root": 0,
+      "birth_root": 0,
+      "birth_row": 0,
+      "flows": 0,
+      "motion": 0,
+      "prefix": 0,
+      "sink_ledger": 0,
+      "sink_records": 0
+    }
+  },
+  "cpu": 7,
+  "thread_siblings_list": "7,15",
+  "cpu_busy_fraction": {
+    "cpu6": 1.0,
+    "cpu7": 0.9661016949152542,
+    "cpu14": 0.012711864406779662,
+    "cpu15": 1.0
+  },
+  "sibling_quiet": false,
+  "timing_uncontaminated": false,
+  "timing_note": "Timing is qualified only for an explicitly designated owner-core timing job when its SMT sibling stays at <=1% busy; physical parity remains valid regardless. Borrowed functional qualification is not timing evidence. This manufactured zero-field birth/sink fixture is not a production forecast.",
+  "commands": [
+    {
+      "log": "baseline-0.log",
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "prlimit",
+        "--as=3221225472",
+        "--",
+        "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/build/baseline-birth-memo-diff",
+        "/home/treefor/projects/.workspace/outputs/native-v8.2-birth-memo-20261101/owner-timing-c3/baseline-0",
+        "10000",
+        "17"
+      ],
+      "returncode": 0,
+      "elapsed_s": 1.217,
+      "log_sha256": "f6e9822b43d53531e29ea31408edd3abf337207767f4ce6a906b0ba35a920f7c",
+      "cpus": [
+        7
+      ],
+      "nice": 15,
+      "rlimit_as": 3221225472,
+      "sanitizer_rss_limit_mb": null,
+      "utc": "2026-11-01T06:30:49.537211+00:00"
+    },
+    {
+      "log": "candidate-0.log",
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "prlimit",
+        "--as=3221225472",
+        "--",
+        "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/build/candidate-birth-memo-diff",
+        "/home/treefor/projects/.workspace/outputs/native-v8.2-birth-memo-20261101/owner-timing-c3/candidate-0",
+        "10000",
+        "17"
+      ],
+      "returncode": 0,
+      "elapsed_s": 1.118,
+      "log_sha256": "f6e9822b43d53531e29ea31408edd3abf337207767f4ce6a906b0ba35a920f7c",
+      "cpus": [
+        7
+      ],
+      "nice": 15,
+      "rlimit_as": 3221225472,
+      "sanitizer_rss_limit_mb": null,
+      "utc": "2026-11-01T06:30:50.685963+00:00"
+    },
+    {
+      "log": "candidate-1.log",
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "prlimit",
+        "--as=3221225472",
+        "--",
+        "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/build/candidate-birth-memo-diff",
+        "/home/treefor/projects/.workspace/outputs/native-v8.2-birth-memo-20261101/owner-timing-c3/candidate-1",
+        "10000",
+        "17"
+      ],
+      "returncode": 0,
+      "elapsed_s": 1.117,
+      "log_sha256": "f6e9822b43d53531e29ea31408edd3abf337207767f4ce6a906b0ba35a920f7c",
+      "cpus": [
+        7
+      ],
+      "nice": 15,
+      "rlimit_as": 3221225472,
+      "sanitizer_rss_limit_mb": null,
+      "utc": "2026-11-01T06:30:51.832996+00:00"
+    },
+    {
+      "log": "baseline-1.log",
+      "command": [
+        "/home/treefor/projects/runtimes/arch-base-20261028/run-frozen",
+        "prlimit",
+        "--as=3221225472",
+        "--",
+        "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.2-birth-memo-20261101/build/baseline-birth-memo-diff",
+        "/home/treefor/projects/.workspace/outputs/native-v8.2-birth-memo-20261101/owner-timing-c3/baseline-1",
+        "10000",
+        "17"
+      ],
+      "returncode": 0,
+      "elapsed_s": 1.117,
+      "log_sha256": "f6e9822b43d53531e29ea31408edd3abf337207767f4ce6a906b0ba35a920f7c",
+      "cpus": [
+        7
+      ],
+      "nice": 15,
+      "rlimit_as": 3221225472,
+      "sanitizer_rss_limit_mb": null,
+      "utc": "2026-11-01T06:30:52.980090+00:00"
+    }
+  ]
+}

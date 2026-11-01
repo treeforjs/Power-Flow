@@ -1,0 +1,36 @@
+Gas owner declaration inventory; NOT APPLIED to the numerical successor
+
+Live candidate008 API-008 section 3.8 declares an owner and refuses non-null
+binding. The accompanying diff carries only those declarations and an explicit
+configuration refusal. It does not provide an integration implementation and
+must not be used to enable feedback. No source in this successor applies it.
+
+Current protocol gaps that must be resolved first:
+- feedback/take are mutable calls with no prepared transaction, accepted-state
+  binding, commit/abort, restart codec or exactly-once stage protocol.
+- Native receipt.records_root commits all raw stage records. Inventory refusal
+  truncates events per carrier; admitted-only events cannot reproduce that root.
+  Add an admitted-event commitment/mask while retaining the raw-stage commitment.
+- FlowRecord has no packet/native ID. Add stable debit identity and actual
+  before/remainder weights, velocities and carried internal energy. Check these
+  against the native debit plan; native alone performs the count debit.
+- Bind accepted native/gas digests, stage/order, trial field/target snapshot and
+  post-feedback target hash. The same snapshot must govern both MCC majorant and
+  sampled targets on CPU and device paths.
+- Own both chemistry stages in the same trial; publish native and gas states
+  atomically. Failed native validation, discarded transport trials, duplicate
+  take and restore must leave accepted gas state/RNG unchanged.
+- Preserve exact count/P/K accounting. Consuming reaction correction is actual
+  debited-target moments minus sampled-target moments; GAS return uses outgoing
+  minus sampled moments and has no count debit. Release transfers must close
+  with the conservative actual-parcel reservoir. No compensating count debit.
+- Owner realizability guards must reject negative thermal variance, and zero
+  count must retain/resolve or refuse nonzero momentum/energy; clamping is not
+  accepted as closure. Current owner is unfinished and requires its own tests.
+
+Recommended first slice: immutable prepared gas-state delta plus native admitted
+record/debit export and an independent exact closure validator, with feedback
+still disabled and strict production refusal retained. Exercise full/partial
+consumption, GAS return, actual parcel release, two stages, abort/retry, forged
+record/root, duplicate stage and checkpoint continuation. Only then connect
+feedback to canonical CellTargets and qualify CPU/GPU exact identity.
