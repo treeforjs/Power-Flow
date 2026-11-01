@@ -1,6 +1,6 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-11-01 01:09 MDT. Keep this file current at every milestone so
+Last updated 2026-11-01 01:17 MDT. Keep this file current at every milestone so
 the work can be picked up from it alone. Snapshots of the in-progress workers'
 own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
 each update); the live versions are the `HANDOFF.txt` files named below.
@@ -21,6 +21,36 @@ qualification fixture does not establish complete physical water breakdown.
 Continuous physical evolution through 60 ns follows only after the applicable
 gates pass; it is a stretch outcome for this deadline. No recurring automation
 is added, and the old electron-only production run stays paused.
+
+Implementation has progressed past the initial audit. Maintained common-step
+support now lives in [`native/coupled_pic`](../native/coupled_pic/README.txt).
+Its gas rollback scope passed 360 CPU and 360 sanitizer checks, plus 209 device
+and 209 verified-device checks (`1fc8e8a`). It abandons only its own candidate,
+survives mutations and failed preparation, and cannot discard a later retry.
+Existing gas state digests are unchanged; populated explicit/scoped publication
+and checkpoint continuation agree. This qualifies the rollback component, not
+the full common commit or physical model.
+
+Native v8.5/provider CPU and sanitizer tests passed 65 controls each, including
+actual target feedback, unchanged no-correction records, restored state and
+species-reference admission (`12559ad`, `1a139ee`). The strict gas-energy-owner
+gate remains closed. An isolated common-stage successor will use the gas
+rollback scope and preserve distinct pre-sampling and post-debit bindings.
+Source mass compatibility passed its initial CPU/UBSan checks; its final
+read-only configuration API and reference-transfer adapter are still underway.
+
+The pinned H2 primary-data reader is published (`2bba3ca`, `5f2ace9`), with
+explicit event refusal because the source onset and actual registry kinematic
+threshold differ. The publisher's numerical OH supplement has been obtained;
+its channel, product-state and range compatibility is under review. Neither
+increment establishes complete water chemistry.
+
+The next root integration fix is arrival publication: current coordinator
+`try_publish_v8` calls arrival commit and copies accepted-state strings after
+other owners have published. Move their allocations/hashing into preparation
+and qualify a no-fail common publication window. This is a source-inspection
+finding pending a fault-injection preimage. Source and evidence milestones are
+pushed and backed up outside projects. No full physical run has been started.
 
 ## Current takeover status (2026-11-01 01:03 MDT)
 
