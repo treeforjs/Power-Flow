@@ -1,0 +1,446 @@
+--- a/source/include/raikou/mfem_pic_full_time.h
++++ b/source/include/raikou/mfem_pic_full_time.h
+@@ -644,6 +644,69 @@
+ // Passing false permits diagnostic inspection only, never gas publication.
+ void validate_full_time_chemistry_stage_export(const FullTimeChemistryStageExport &,
+                                               bool require_unambiguous_targets = true);
++// Actual CPU post-scatter packet state, including unsplit packet-owned energy.
++// Per-carrier intrinsic/reference operands are in states, keyed by packet.state.
++// These immutable diagnostic facts are not a publication capability.
++struct FullTimeCandidatePacket {
++  FullTimeChemistryPacketSnapshot population;
++  std::string origin, last_event;
++  bool has_carried_internal_energy = false;
++  double internal_birth_weight = 0;
++};
++struct FullTimeCandidatePopulation {
++  std::string schema = "native-v8.6/chemistry-candidate-population-v1";
++  ExposureBinding exposure;
++  std::uint64_t carriers = 0, payload_bytes = 0;
++  std::string source_sha256, configuration_sha256, registry_sha256,
++      before_state_prefix, candidate_state_prefix, candidate_snapshot_sha256,
++      native_rows_root, admitted_export_sha256, sha256;
++  std::vector<ArenaStateSpec> states;
++  std::vector<FullTimeCandidatePacket> packets;
++};
++void validate_full_time_candidate_population(const FullTimeCandidatePopulation &);
++
++// Actual pending neutral phase-space stock. Count is particles, kinetic_eV
++// is eV, momentum_eV_c is eV/c. Stored exact digits are copied unchanged;
++// conversions to SI belong to a separately checked consuming adapter.
++struct FullTimeReservoirParcel { double weight=0; PicVector proper_velocity_m_s{},position_m{}; };
++struct FullTimeReservoirStock {
++  std::uint32_t atlas_cell=0,species=0;
++  std::string state;
++  double rest_energy_eV=0,reference_eV=0;
++  FullTimeExactValue count,kinetic_eV;
++  std::array<FullTimeExactValue,3> momentum_eV_c;
++  std::vector<FullTimeReservoirParcel> parcels;
++};
++struct FullTimeCumulativeGasTransfer {
++  std::uint32_t atlas_cell=0,species=0;
++  FullTimeExactValue energy_eV;
++};
++struct FullTimeStoredPacketEnergy {
++  std::string packet_id;
++  double original_birth_weight=0,energy_J=0;
++};
++struct FullTimeChemistryStockFrame {
++  std::string chemistry_state_sha256;
++  std::uint64_t stages=0;
++  bool pending=false;
++  std::vector<FullTimeReservoirStock> reservoirs;
++  // Cumulative sink/transfer ledgers, NOT additional currently stored energy.
++  // There is no internal-energy field on pfc-neutral-parcels-v1 parcels.
++  std::array<FullTimeExactValue,6> cumulative_internal_sink_eV;
++  std::vector<FullTimeCumulativeGasTransfer> cumulative_gas_transfer;
++  // Currently stored packet-owned energy and separate cumulative flow ledgers.
++  std::vector<FullTimeStoredPacketEnergy> packet_internal;
++  FullTimeExactValue cumulative_internal_born_J,cumulative_internal_sunk_J,cumulative_internal_released_J;
++};
++struct FullTimeCandidateStocks {
++  std::string schema="native-v8.7/actual-chemistry-stocks-v1";
++  ExposureBinding exposure;
++  std::uint64_t parcels=0,entries_and_parcels=0,payload_bound_bytes=0;
++  std::string source_sha256,configuration_sha256,registry_sha256,blob_sha256,
++      before_state_prefix,candidate_state_prefix,admitted_export_sha256,sha256;
++  FullTimeChemistryStockFrame before,after;
++};
++
+ // One chemistry stage (API-008.txt 3): counts, digests, exact ledgers.
+ struct FullTimeChemistryStageReceipt {
+   bool diagnostic_field_target_approximation = false;
+@@ -832,6 +895,16 @@
+   // Throws FullTimeChemistryRefusal (typed) or FullTimeResourceRefusal.
+   PreparedArena prepare_chemistry_v3();
+   PreparedArena prepare_chemistry_v3_host_targets(std::shared_ptr<FullTimeHostTargetProvider>);
++  // CPU only; cap counts and logical payload bytes before creating a cached
++  // deep snapshot. Every call preflights this live scope and exact token.
++  std::shared_ptr<const FullTimeCandidatePopulation>
++  candidate_population(const PreparedArena &, std::size_t maximum_carriers,
++                       std::size_t maximum_payload_bytes) const;
++  // CPU-only immutable actual before/after stock. Capacity bounds the combined
++  // entries and positive parcels; cached object is reused under live preflight.
++  std::shared_ptr<const FullTimeCandidateStocks>
++  candidate_stocks(const PreparedArena &, std::size_t maximum_entries_and_parcels,
++                   std::size_t maximum_payload_bytes) const;
+   bool can_publish(const PreparedArena &) const noexcept;
+   bool try_publish(PreparedArena &) noexcept;
+ 
+--- a/source/src/mfem_pic_arena.cpp
++++ b/source/src/mfem_pic_arena.cpp
+@@ -751,6 +751,8 @@
+   std::shared_ptr<const FullTimeChemistryStageReceipt> chemistry;
+   std::shared_ptr<FullTimeHostTargetProvider> target_provider;
+   std::weak_ptr<void> target_scope;
++  std::shared_ptr<const FullTimeCandidatePopulation> population_view;
++  std::shared_ptr<const FullTimeCandidateStocks> stock_view;
+   enum class Status { Staged, Published, RolledBack };
+   Status status = Status::Staged;
+ };
+--- /dev/null
++++ b/source/src/mfem_pic_candidate_population.inc
+@@ -0,0 +1,153 @@
++// CPU-only actual candidate census. It is computed once per prepared token;
++// all external uses must retain/preflight the live collision scope and token.
++namespace full_time_detail {
++std::uint64_t population_payload_bytes(const FullTimeCandidatePopulation &x) {
++  std::uint64_t n=sizeof x;
++  auto add=[&](std::uint64_t v){n=checked_add(n,v,"candidate population payload");};
++  add(x.states.size()*sizeof(ArenaStateSpec));
++  add(x.packets.size()*sizeof(FullTimeCandidatePacket));
++  add(x.carriers*sizeof(GapParticle));
++  for(const auto *s:{&x.schema,&x.source_sha256,&x.configuration_sha256,&x.registry_sha256,
++                    &x.before_state_prefix,&x.candidate_state_prefix,&x.candidate_snapshot_sha256,
++                    &x.native_rows_root,&x.admitted_export_sha256,&x.sha256})add(s->size());
++  const auto &e=x.exposure;const auto &b=e.common;
++  for(const auto *s:{&b.accepted_arena_sha256,&b.accepted_field_sha256,&b.mesh_sha256,&b.material_sha256,
++                    &b.common_clock_sha256,&e.frozen_field_sha256})add(s->size());
++  for(const auto &s:x.states)add(s.id.size());
++  for(const auto &p:x.packets)
++    for(const auto *s:{&p.population.packet_id,&p.population.state,&p.origin,&p.last_event})add(s->size());
++  return n;
++}
++std::string candidate_population_digest(const FullTimeCandidatePopulation &x) {
++  Writer w;w.tag(x.schema);auto exposure=x.exposure;codec_exposure(w,exposure);
++  w.u64(x.carriers);w.u64(x.payload_bytes);
++  for(const auto *s:{&x.source_sha256,&x.configuration_sha256,&x.registry_sha256,&x.before_state_prefix,
++                    &x.candidate_state_prefix,&x.candidate_snapshot_sha256,&x.native_rows_root,&x.admitted_export_sha256})w.text(*s);
++  w.u64(x.states.size());
++  for(const auto &s:x.states) {
++    w.text(s.id);w.u64(std::uint64_t(s.hydrogen));w.u64(std::uint64_t(s.oxygen));
++    w.u64(std::uint64_t(std::int64_t(s.charge_e)));w.f64(s.mass_kg);w.f64(s.internal_J);w.f64(s.reference_J);
++  }
++  w.u64(x.packets.size());
++  for(const auto &p:x.packets) {
++    export_packet(w,p.population);w.text(p.origin);w.text(p.last_event);
++    w.boolean(p.has_carried_internal_energy);w.f64(p.internal_birth_weight);
++  }
++  return cn::sha256_hex(w.bytes);
++}
++} // namespace full_time_detail
++void validate_full_time_candidate_population(const FullTimeCandidatePopulation &x) {
++  using namespace full_time_detail;
++  require(x.schema=="native-v8.6/chemistry-candidate-population-v1","candidate population schema");
++  for(const auto *s:{&x.source_sha256,&x.configuration_sha256,&x.registry_sha256,&x.before_state_prefix,
++                    &x.candidate_state_prefix,&x.candidate_snapshot_sha256,&x.native_rows_root,&x.admitted_export_sha256})
++    require(digest(*s),"candidate population binding digest");
++  require(x.carriers<=full_time_absolute_carrier_cap && x.packets.size()<=x.carriers,
++          "candidate bounded shape");
++  std::uint64_t actual=0;
++  for(const auto &p:x.packets) {
++    actual=checked_add(actual,p.population.carriers.size(),"candidate vector cardinality");
++    require(actual<=x.carriers,"candidate declared cardinality underflow");
++  }
++  require(actual==x.carriers,"candidate declared cardinality mismatch");
++  require(x.payload_bytes==population_payload_bytes(x),"candidate population payload count");
++  require(x.sha256==candidate_population_digest(x),"candidate population content digest");
++  std::map<std::string,const ArenaStateSpec *> states;
++  for(const auto &s:x.states) {
++    require(!s.id.empty() && (states.empty() || states.rbegin()->first<s.id) &&
++            s.hydrogen>=0 && s.oxygen>=0 && s.charge_e>=-8 && s.charge_e<=8 &&
++            std::isfinite(s.mass_kg) && s.mass_kg>0 && std::isfinite(s.internal_J) && s.internal_J>=0 &&
++            std::isfinite(s.reference_J),"candidate state catalogue");
++    states.emplace(s.id,&s);
++  }
++  std::set<std::uint64_t> seen;std::string previous;
++  std::vector<GapParticle> ordered;ordered.reserve(x.carriers);
++  for(const auto &entry:x.packets) {
++    const auto &p=entry.population;
++    require(!p.packet_id.empty() && (previous.empty() || previous<p.packet_id) && !p.count.zero() &&
++            !p.carriers.empty() && states.count(p.state),"candidate packet identity/count");
++    previous=p.packet_id;const auto &state=*states.at(p.state);ArenaCount count;std::uint64_t id=0;
++    for(const auto &r:p.carriers) {
++      native_particle_guard(r);
++      require(r.id>id && seen.insert(r.id).second && r.mass_kg==state.mass_kg &&
++              r.charge_C==state.charge_e*pic_e,"candidate carrier identity/catalogue");
++      id=r.id;count=count.credited(r.weight);ordered.push_back(r);
++    }
++    require(count==p.count,"candidate exact packet count differs from positive carriers");
++    require(std::isfinite(p.carried_internal_energy_J) && p.carried_internal_energy_J>=0 &&
++            std::isfinite(entry.internal_birth_weight),"candidate packet-owned energy");
++    if(entry.has_carried_internal_energy)require(entry.internal_birth_weight>0,"candidate internal birth weight");
++    else require(entry.internal_birth_weight==0 && p.carried_internal_energy_J==0,"unexpected candidate internal owner");
++  }
++  require(seen.size()==x.carriers,"candidate carrier cardinality");
++  std::sort(ordered.begin(),ordered.end(),[](const auto&a,const auto&b){return a.id<b.id;});
++  require(cn::carrier_rows_digest(ordered)->root==x.native_rows_root,"candidate actual row commitment");
++}
++std::shared_ptr<const FullTimeCandidatePopulation> FullTimeAccess::candidate_population(
++    const FullCollision &s,const PreparedArena &t,std::size_t cap,std::size_t bytes) {
++  require(publishable(s,t) && t.impl_->chemistry && t.impl_->full_time_exposure,
++          "candidate population requires this live chemistry token");
++  require(!s.building && !s.outer->builder_active,"candidate population callback reentry");
++  auto &owner=*s.outer->owner;
++  if(owner.full_time_execution()!=FullTimeExecution::host || t.impl_->chemistry->device ||
++     !t.impl_->native_after.particles.host_present())
++    throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::target_fields,
++                                  "candidate population has no qualified device view");
++  const auto &snap=*t.impl_->after;const auto &rows=t.impl_->native_after.particles.host();
++  if(cap==0 || cap>owner.carrier_cap_ || rows.size()>cap || snap.packets.size()>cap)
++    throw refusal(RK::carrier_cap,"candidate population carrier/packet capacity");
++  if(t.impl_->population_view) {
++    if(t.impl_->population_view->payload_bytes>bytes)
++      throw refusal(RK::memory_budget,"candidate population payload capacity");
++    return t.impl_->population_view;
++  }
++  // Count every resident carrier and owned string before allocating the view.
++  // payload_bytes is logical owned data, not an assertion of allocator/RSS cost.
++  FullTimeCandidatePopulation header;
++  header.exposure=s.exposure;header.carriers=rows.size();header.source_sha256=PicArena::source_identity();
++  const auto setup=std::static_pointer_cast<const chem8::Setup>(owner.chemistry_);
++  header.configuration_sha256=setup->configuration_sha256;header.registry_sha256=setup->reg->sha256;
++  header.before_state_prefix=prefix(*s.outer,s.outer->frame);header.candidate_state_prefix=t.impl_->candidate_prefix;
++  header.candidate_snapshot_sha256=snapshot_digest(snap);header.native_rows_root=t.impl_->native_after_digest->root;
++  header.admitted_export_sha256=t.impl_->chemistry->admitted_export->sha256;header.sha256=std::string(64,'0');
++  std::uint64_t required=population_payload_bytes(header),carriers=0;
++  auto add=[&](std::uint64_t n){required=checked_add(required,n,"candidate population preallocation");};
++  add(owner.states_.size()*sizeof(ArenaStateSpec));add(snap.packets.size()*sizeof(FullTimeCandidatePacket));
++  for(const auto &[id,state]:owner.states_){(void)state;add(id.size());}
++  for(const auto &[id,p]:snap.packets) {
++    carriers=checked_add(carriers,p.native_ids.size(),"candidate population carrier inventory");
++    require(carriers<=rows.size(),"candidate population duplicated inventory");
++    for(const auto *v:{&id,&p.state,&p.origin,&p.last_event})add(v->size());
++  }
++  require(carriers==rows.size(),"candidate population missing inventory");
++  if(required>bytes)throw refusal(RK::memory_budget,"candidate population payload capacity");
++  auto view=std::make_shared<FullTimeCandidatePopulation>(std::move(header));
++  view->payload_bytes=required;view->states.reserve(owner.states_.size());view->packets.reserve(snap.packets.size());
++  for(const auto &[id,state]:owner.states_){(void)id;view->states.push_back(state);}
++  std::vector<unsigned char> seen(rows.size(),0);
++  for(const auto &[id,p]:snap.packets) {
++    FullTimeCandidatePacket out;out.population.packet_id=id;out.population.state=p.state;
++    out.population.count=p.count;out.origin=p.origin;out.last_event=p.last_event;
++    out.population.carriers.reserve(p.native_ids.size());
++    for(auto nid:p.native_ids) {
++      const auto it=std::lower_bound(rows.begin(),rows.end(),nid,[](const auto&r,auto v){return r.id<v;});
++      require(it!=rows.end() && it->id==nid,"candidate native ID missing");
++      const auto index=std::size_t(it-rows.begin());require(!seen[index],"candidate native ID reused");seen[index]=1;
++      out.population.carriers.push_back(*it);
++    }
++    std::sort(out.population.carriers.begin(),out.population.carriers.end(),[](const auto&a,const auto&b){return a.id<b.id;});
++    if(snap.full_time_v81) {
++      const auto it=snap.full_time_v81->internal.find(id);
++      if(it!=snap.full_time_v81->internal.end()) {
++        out.has_carried_internal_energy=true;out.internal_birth_weight=it->second.weight;
++        out.population.carried_internal_energy_J=it->second.energy_J;
++      }
++    }
++    view->packets.push_back(std::move(out));
++  }
++  view->sha256=candidate_population_digest(*view);
++  validate_full_time_candidate_population(*view);
++  require(publishable(s,t),"candidate population changed during construction");
++  t.impl_->population_view=std::shared_ptr<const FullTimeCandidatePopulation>(std::move(view));
++  return t.impl_->population_view;
++}
+--- /dev/null
++++ b/source/src/mfem_pic_candidate_stocks.inc
+@@ -0,0 +1,102 @@
++namespace full_time_detail {
++void stock_exact(Writer&w,const FullTimeExactValue&v){w.f64(v.value);w.text(v.digits);}
++void stock_frame(Writer&w,const FullTimeChemistryStockFrame&f) {
++  w.text(f.chemistry_state_sha256);w.u64(f.stages);w.boolean(f.pending);w.u64(f.reservoirs.size());
++  for(const auto&r:f.reservoirs){w.u64(r.atlas_cell);w.u64(r.species);w.text(r.state);w.f64(r.rest_energy_eV);w.f64(r.reference_eV);
++    stock_exact(w,r.count);stock_exact(w,r.kinetic_eV);for(const auto&p:r.momentum_eV_c)stock_exact(w,p);
++    w.u64(r.parcels.size());for(const auto&p:r.parcels){w.f64(p.weight);for(double v:p.proper_velocity_m_s)w.f64(v);for(double v:p.position_m)w.f64(v);}}
++  for(const auto&v:f.cumulative_internal_sink_eV)stock_exact(w,v);
++  w.u64(f.cumulative_gas_transfer.size());for(const auto&v:f.cumulative_gas_transfer){w.u64(v.atlas_cell);w.u64(v.species);stock_exact(w,v.energy_eV);}
++  w.u64(f.packet_internal.size());for(const auto&p:f.packet_internal){w.text(p.packet_id);w.f64(p.original_birth_weight);w.f64(p.energy_J);}
++  for(const auto*v:{&f.cumulative_internal_born_J,&f.cumulative_internal_sunk_J,&f.cumulative_internal_released_J})stock_exact(w,*v);
++}
++std::string candidate_stocks_digest(const FullTimeCandidateStocks&v) {
++  Writer w;w.tag(v.schema);auto e=v.exposure;codec_exposure(w,e);w.u64(v.parcels);w.u64(v.entries_and_parcels);w.u64(v.payload_bound_bytes);
++  for(const auto*s:{&v.source_sha256,&v.configuration_sha256,&v.registry_sha256,&v.blob_sha256,
++                    &v.before_state_prefix,&v.candidate_state_prefix,&v.admitted_export_sha256})w.text(*s);
++  stock_frame(w,v.before);stock_frame(w,v.after);return cn::sha256_hex(w.bytes);
++}
++FullTimeExactValue stored_exact(const chem8::ESum&s) {
++  auto v=chem8::exact_value(s);
++  require(v.digits.size()<=4096,"stock exact digit bound");return v;
++}
++FullTimeChemistryStockFrame actual_stock_frame(const ArenaSnapshot&snap,const chem8::Setup&setup) {
++  require(bool(snap.full_time_chemistry),"chemistry stock missing");const auto&st=*snap.full_time_chemistry;
++  const auto&blob=*setup.reg->blob;FullTimeChemistryStockFrame f;
++  f.chemistry_state_sha256=chem8::state_digest(st);f.stages=st.stages;f.pending=st.pending;
++  f.reservoirs.reserve(st.reservoirs.size());
++  for(const auto&[key,r]:st.reservoirs) {
++    require(key.cell<setup.grid.cells() && setup.grid.vacuum[key.cell] && key.species<blob.n_species &&
++            blob.view.species[key.species].charge==0,"reservoir stock key");
++    // Validate once from actual persistent positive parcels, not event records.
++    pfc::validate_reservoir(blob,{key.cell,key.species},r);
++    FullTimeReservoirStock x;x.atlas_cell=key.cell;x.species=key.species;x.state=setup.reg->states[key.species];
++    x.rest_energy_eV=blob.view.species[key.species].mass_eV;x.reference_eV=blob.view.species[key.species].ref_eV;
++    x.count=stored_exact(r.count);x.kinetic_eV=stored_exact(r.kinetic);
++    for(int a=0;a<3;++a)x.momentum_eV_c[a]=stored_exact(r.momentum[a]);
++    x.parcels.reserve(r.parcels.size());for(const auto&p:r.parcels) {
++      require(setup.grid.locate(p.x)==key.cell,"reservoir parcel cell differs from stored key");
++      FullTimeReservoirParcel q;q.weight=p.weight;std::copy(p.u,p.u+3,q.proper_velocity_m_s.begin());
++      std::copy(p.x,p.x+3,q.position_m.begin());x.parcels.push_back(q);
++    }
++    f.reservoirs.push_back(std::move(x));
++  }
++  static_assert(PFC_SINK_COUNT==6);
++  for(std::size_t k=0;k<6;++k)f.cumulative_internal_sink_eV[k]=stored_exact(st.cumulative.c3.internal[k]);
++  f.cumulative_gas_transfer.reserve(st.cumulative.gas_heating.size());
++  for(const auto&[key,e]:st.cumulative.gas_heating)f.cumulative_gas_transfer.push_back({key.cell,key.species,stored_exact(e)});
++  if(snap.full_time_v81) {
++    const auto&flow=*snap.full_time_v81;f.packet_internal.reserve(flow.internal.size());
++    for(const auto&[id,p]:flow.internal) {
++      require(snap.packets.count(id) && std::isfinite(p.weight) && p.weight>0 && std::isfinite(p.energy_J) && p.energy_J>=0,"stored packet energy owner");
++      f.packet_internal.push_back({id,p.weight,p.energy_J});
++    }
++    f.cumulative_internal_born_J=stored_exact(flow.internal_born_J);f.cumulative_internal_sunk_J=stored_exact(flow.internal_sunk_J);
++    f.cumulative_internal_released_J=stored_exact(flow.internal_released_J);
++  }else{
++    const auto zero=stored_exact(chem8::ESum{});f.cumulative_internal_born_J=zero;f.cumulative_internal_sunk_J=zero;f.cumulative_internal_released_J=zero;
++  }
++  return f;
++}
++} // namespace full_time_detail
++std::shared_ptr<const FullTimeCandidateStocks> FullTimeAccess::candidate_stocks(
++    const FullCollision&s,const PreparedArena&t,std::size_t cap,std::size_t bytes) {
++  require(publishable(s,t) && t.impl_->chemistry && t.impl_->full_time_exposure,"candidate stocks require live chemistry token");
++  require(!s.building && !s.outer->builder_active,"candidate stocks callback reentry");
++  auto&owner=*s.outer->owner;
++  if(owner.full_time_execution()!=FullTimeExecution::host || t.impl_->chemistry->device || !t.impl_->native_after.particles.host_present())
++    throw FullTimeChemistryRefusal(FullTimeChemistryRefusal::Kind::target_fields,"actual stock export has no qualified device path");
++  if(cap==0 || cap>full_time_absolute_carrier_cap)throw refusal(RK::carrier_cap,"candidate stock capacity range");
++  if(t.impl_->stock_view) {
++    if(t.impl_->stock_view->entries_and_parcels>cap)throw refusal(RK::carrier_cap,"candidate stock cached capacity");
++    if(t.impl_->stock_view->payload_bound_bytes>bytes)throw refusal(RK::memory_budget,"candidate stock cached payload capacity");
++    return t.impl_->stock_view;
++  }
++  const auto setup=std::static_pointer_cast<const chem8::Setup>(owner.chemistry_);
++  std::uint64_t entries=0,parcels=0,bound=262144; // fixed fields and bounded 134-limb exact operands
++  auto add=[&](std::uint64_t n){bound=checked_add(bound,n,"stock payload bound");};
++  for(const auto*snap:{t.impl_->before.get(),t.impl_->after.get()}) {
++    require(snap && snap->full_time_chemistry,"candidate stock state missing");const auto&st=*snap->full_time_chemistry;
++    entries=checked_add(entries,st.reservoirs.size(),"stock entries");entries=checked_add(entries,st.cumulative.gas_heating.size(),"stock transfers");
++    add(st.cumulative.gas_heating.size()*(sizeof(FullTimeCumulativeGasTransfer)+4096));
++    for(const auto&[key,r]:st.reservoirs) {
++      require(key.species<setup->reg->states.size(),"stock species bounds");parcels=checked_add(parcels,r.parcels.size(),"stock parcels");
++      add(sizeof(FullTimeReservoirStock)+5*4096+setup->reg->states[key.species].size());add(r.parcels.size()*sizeof(FullTimeReservoirParcel));
++    }
++    if(snap->full_time_v81) {
++      entries=checked_add(entries,snap->full_time_v81->internal.size(),"stock packet energy entries");
++      for(const auto&[id,p]:snap->full_time_v81->internal){(void)p;add(sizeof(FullTimeStoredPacketEnergy)+id.size());}
++    }
++  }
++  if(checked_add(entries,parcels,"stock combined capacity")>cap)throw refusal(RK::carrier_cap,"candidate stock entry/parcel capacity");
++  if(bound>bytes)throw refusal(RK::memory_budget,"candidate stock payload capacity");
++  auto v=std::make_shared<FullTimeCandidateStocks>();v->exposure=s.exposure;v->parcels=parcels;v->entries_and_parcels=entries+parcels;v->payload_bound_bytes=bound;
++  v->source_sha256=PicArena::source_identity();v->configuration_sha256=setup->configuration_sha256;v->registry_sha256=setup->reg->sha256;
++  v->blob_sha256=setup->reg->blob->sha256;v->before_state_prefix=prefix(*s.outer,s.outer->frame);v->candidate_state_prefix=t.impl_->candidate_prefix;
++  v->admitted_export_sha256=t.impl_->chemistry->admitted_export->sha256;
++  v->before=actual_stock_frame(*t.impl_->before,*setup);v->after=actual_stock_frame(*t.impl_->after,*setup);
++  require(v->before.chemistry_state_sha256==t.impl_->chemistry->state_before_sha256 &&
++          v->after.chemistry_state_sha256==t.impl_->chemistry->state_after_sha256,"actual stock/receipt chemistry roots");
++  v->sha256=candidate_stocks_digest(*v);require(publishable(s,t),"candidate stock changed during construction");
++  t.impl_->stock_view=std::shared_ptr<const FullTimeCandidateStocks>(std::move(v));return t.impl_->stock_view;
++}
+--- a/source/src/mfem_pic_full_time.inc
++++ b/source/src/mfem_pic_full_time.inc
+@@ -1147,6 +1147,10 @@
+     s.building=false;s.outer->builder_active=false;
+     if(!s.outer->lifetime.expired())s.outer->owner->full_time_builder_active_=false;
+   }
++  static std::shared_ptr<const FullTimeCandidatePopulation> candidate_population(
++      const FullCollision &, const PreparedArena &, std::size_t, std::size_t);
++  static std::shared_ptr<const FullTimeCandidateStocks> candidate_stocks(
++      const FullCollision &, const PreparedArena &, std::size_t, std::size_t);
+   static void validate_host_targets(const PreparedArena &);
+   static PreparedArena chemistry(FullCollision &s, std::shared_ptr<FullTimeHostTargetProvider> = {});
+   static std::shared_ptr<ChemOutcome> chemistry_host(FullCollision &s, const chem8::Setup &, const chem8::StageRequest &,
+@@ -1226,6 +1230,8 @@
+     t.impl_->before.reset();
+     t.impl_->after.reset();
+     t.impl_->private_memory_lease.reset();
++    t.impl_->population_view.reset();
++    t.impl_->stock_view.reset();
+     return true;
+   }
+   static PreparedArena compound(
+@@ -3246,6 +3252,8 @@
+   }
+ };
+ #include "mfem_pic_full_time_chemistry.inc"
++#include "mfem_pic_candidate_population.inc"
++#include "mfem_pic_candidate_stocks.inc"
+ FullTimeMotionAdmission::~FullTimeMotionAdmission() noexcept = default;
+ FullTimeMotionAdmission &
+ FullTimeMotionAdmission::operator=(FullTimeMotionAdmission &&other) noexcept {
+@@ -3259,6 +3267,12 @@
+ CollisionScope::CollisionScope(CollisionScope &&) noexcept = default;
+ CollisionScope &CollisionScope::operator=(CollisionScope &&) noexcept = default;
+ CollisionScope::~CollisionScope() = default;
++std::shared_ptr<const FullTimeCandidateStocks> CollisionScope::candidate_stocks(
++    const PreparedArena &t,std::size_t cap,std::size_t bytes) const {
++  require(bool(impl_),"moved collision scope");
++  return FullTimeAccess::candidate_stocks(*impl_->scope,t,cap,bytes);
++}
++
+ const ExposureBinding &CollisionScope::exposure() const {
+   FullTimeAccess::live(*impl_->scope);
+   return impl_->scope->exposure;
+@@ -3320,6 +3334,11 @@
+   auto token=FullTimeAccess::chemistry(*impl_->scope,std::move(provider));
+   token.impl_->target_scope=impl_->scope;
+   return token;
++}
++std::shared_ptr<const FullTimeCandidatePopulation> CollisionScope::candidate_population(
++    const PreparedArena &token, std::size_t cap, std::size_t bytes) const {
++  require(bool(impl_) && bool(impl_->scope), "empty collision scope");
++  return FullTimeAccess::candidate_population(*impl_->scope,token,cap,bytes);
+ }
+ bool CollisionScope::can_publish(const PreparedArena &t) const noexcept {
+   if (!impl_ || !impl_->scope)
+--- a/source/src/mfem_pic_full_time_chemistry.inc
++++ b/source/src/mfem_pic_full_time_chemistry.inc
+@@ -78,7 +78,7 @@
+   return l;
+ }
+ ArenaJson chemistry_configuration_json(const FullTimeConfiguration &c) {
+-  ArenaJson j = {{"identity", "v8.5-host-target-feedback-v1"}};
++  ArenaJson j = {{"identity", "v8.7-actual-reservoir-stock-v1"}};
+   if (c.merge_split.enabled) {
+     const auto &P = *c.merge_split.params;
+     j["merge_split"] = {{"cadence_steps", c.merge_split.cadence_steps},
+@@ -116,7 +116,7 @@
+ }
+ void read_chemistry_configuration_json(const ArenaJson &j, FullTimeConfiguration &c) {
+   const bool ms = j.is_object() && j.contains("merge_split");
+-  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8.5-host-target-feedback-v1", "v8 configuration schema");
++  require(j.is_object() && j.size() == (ms ? 3u : 2u) && j.at("identity") == "v8.7-actual-reservoir-stock-v1", "v8 configuration schema");
+   c.identity = FullTimeIdentitySchema::v8;
+   if (ms) {
+     const auto &m = j.at("merge_split");
+@@ -175,7 +175,7 @@
+   if (c.identity != FullTimeIdentitySchema::v8)
+     return "";
+   Writer w;
+-  w.tag("native-v8.5-host-target-feedback-v1/identity-schema-v8");
++  w.tag("native-v8.7-actual-reservoir-stock-v1/identity-schema-v8");
+   if (c.chemistry.enabled)
+     w.text(chem8::make_setup(c.chemistry, o)->configuration_sha256);
+   else

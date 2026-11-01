@@ -1,0 +1,31 @@
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.6-candidate-population-20261101/tests/test_v86_population.cpp: In function ‘int main(int, char**)’:
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.6-candidate-population-20261101/tests/test_v86_population.cpp:36:2: error: this ‘if’ clause does not guard... [-Werror=misleading-indentation]
+   36 |  if(argc!=2)throw std::runtime_error("output path required");std::filesystem::path out=argv[1];std::filesystem::create_directories(out);
+      |  ^~
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.6-candidate-population-20261101/tests/test_v86_population.cpp:36:62: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+   36 |  if(argc!=2)throw std::runtime_error("output path required");std::filesystem::path out=argv[1];std::filesystem::create_directories(out);
+      |                                                              ^~~
+cc1plus: all warnings being treated as errors
+
+Traceback (most recent call last):
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.6-candidate-population-20261101/build-components.py", line 226, in <module>
+    build(False)
+    ~~~~~^^^^^^^
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.6-candidate-population-20261101/build-components.py", line 170, in build
+    run_all(r, jobs)
+    ~~~~~~~^^^^^^^^^
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.6-candidate-population-20261101/build-components.py", line 77, in run_all
+    f.result()
+    ~~~~~~~~^^
+  File "/usr/lib/python3.14/concurrent/futures/_base.py", line 454, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.14/concurrent/futures/_base.py", line 396, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.6-candidate-population-20261101/tooling.py", line 231, in run
+    raise RuntimeError(f'failed {log} exit {p.returncode}')
+RuntimeError: failed v86-population-compile.log exit 1
