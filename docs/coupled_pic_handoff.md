@@ -1,6 +1,6 @@
 # Coupled PIC water-breakdown: handoff
 
-Last updated 2026-11-01 01:17 MDT. Keep this file current at every milestone so
+Last updated 2026-11-01 01:45 MDT. Keep this file current at every milestone so
 the work can be picked up from it alone. Snapshots of the in-progress workers'
 own notes are in [`docs/coupled_pic_handoff/`](coupled_pic_handoff/) (copied at
 each update); the live versions are the `HANDOFF.txt` files named below.
@@ -31,26 +31,48 @@ Existing gas state digests are unchanged; populated explicit/scoped publication
 and checkpoint continuation agree. This qualifies the rollback component, not
 the full common commit or physical model.
 
-Native v8.5/provider CPU and sanitizer tests passed 65 controls each, including
-actual target feedback, unchanged no-correction records, restored state and
-species-reference admission (`12559ad`, `1a139ee`). The strict gas-energy-owner
-gate remains closed. An isolated common-stage successor will use the gas
-rollback scope and preserve distinct pre-sampling and post-debit bindings.
-Source mass compatibility passed its initial CPU/UBSan checks; its final
-read-only configuration API and reference-transfer adapter are still underway.
+Native v8.7 now exports actual candidate carriers, pending reservoir parcels,
+packet internal energy and clearly separate cumulative ledgers. CPU and rebuilt
+ASan/UBSan controls pass; `595abcd` preserves the source and receipts. The strict
+eventful gas-energy-owner gate remains closed pending a concrete coupled proof
+and common publication capability.
 
-The pinned H2 primary-data reader is published (`2bba3ca`, `5f2ace9`), with
-explicit event refusal because the source onset and actual registry kinematic
-threshold differ. The publisher's numerical OH supplement has been obtained;
-its channel, product-state and range compatibility is under review. Neither
-increment establishes complete water chemistry.
+Actual native stage-2 release exposed a gas ledger defect: pending-reservoir
+kinetic energy and momentum were never subtracted when products became carriers.
+Gas v1.6 fixes the shared host/device core. CPU and sanitizer each pass 415
+checks; device and verified-device each pass 264 checks with identical states.
+An actual v1.5 executable reproduces the defect. The changed configuration
+identity refuses old checkpoints; no migration is implemented. Commit `8c12fe9`
+and `artifacts/gas-reservoir-release-v1.6-20261101` are pushed and backed up.
+The real two-stage native/gas probe now closes actual carrier and stored-parcel
+inventories, including 1,036 releases. Accounted energy/momentum residuals include
+explicit numerical-defect and independently derived reference-conversion
+ledgers; this does not claim exact raw physical sums or a full breakdown model.
 
-The next root integration fix is arrival publication: current coordinator
-`try_publish_v8` calls arrival commit and copies accepted-state strings after
-other owners have published. Move their allocations/hashing into preparation
-and qualify a no-fail common publication window. This is a source-inspection
-finding pending a fault-injection preimage. Source and evidence milestones are
-pushed and backed up outside projects. No full physical run has been started.
+Source v7.2 prepares exact future state hashes before common publication and
+fixes an inherited allocation-failure case that could return a truncated hash.
+Its normal and UBSan suites pass 128 cases each, with unchanged default kernel
+bytes (`fa6b87a`). The source-reference adapter binds full multi-owner birth
+credits to authentic native prepared births and exact stock/reference changes;
+31 normal and 31 UBSan controls pass (`878f7a3`). Genuine strong-field surface
+birth and native bridge/current ownership are the next source increment. The
+old midpoint exposure/randomized birth relocation remains unqualified for that
+new route.
+
+Primary OH diagnostics and a provenance-bound BEB total-ionization evaluator are
+published, with incomplete branching and energy support explicit. The preserved
+paused electron-only snapshot is used only to prioritize missing keV data, not
+to qualify a coupled EEDF. H2 continuum integral data do not supply a fragment
+energy distribution. Partial rates and diagnostic channels cannot establish a
+complete water network.
+
+The common publication defect is now reproduced: allocation failure after Hall
+publication leaves arrival at the old accepted step (job 466). Arrival v1.2 is
+qualified and pushed (`25bdc3e`). The isolated coordinator successor prepares
+arrival and source hashes before any accepted swap. Its integration tests are
+underway, including a newly identified inactive-source object replacement case.
+Source and evidence milestones are pushed and backed up outside projects. No
+full physical run has been started.
 
 ## Current takeover status (2026-11-01 01:03 MDT)
 
