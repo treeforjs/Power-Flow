@@ -1,5 +1,9 @@
 # MITL dissertation publication handoff
 
+> The coupled PIC water-breakdown work (Hall, native, chemistry, source, SS304,
+> circuit and coordinator owners) has its own current handoff:
+> [docs/coupled_pic_handoff.md](docs/coupled_pic_handoff.md).
+
 Power-Flow contains the heating, desorption, boundary-source and experimental
 evidence work for testing whether foil-width heating changes H₂O release and
 fragment transport enough to distinguish VUV spectra from uniform desorption.
