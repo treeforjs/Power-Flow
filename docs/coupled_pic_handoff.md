@@ -41,6 +41,12 @@ no production promotion follows from those files. Changed swarm comparison
 criteria and model-derived cross-section extensions need separate scientific
 assessment. Technical completeness does not establish model validation.
 
+The isolated swarm integrity correction is now qualified for its technical
+scope: frozen SimQueue job 312 passed 31 synthetic regression tests. Publication
+is `artifacts/swarm-validation-audit-v1-20261101`; it includes the exact-base
+adoption patch and bound evidence. It has not been applied to active writers,
+and explicitly does not qualify any physics model or production run.
+
 The next integration milestone is a conservative all-owner pilot after gas
 recoil/target feedback, current chemistry binding, thermal/field/source coupling
 and restart have passed their component and coupled conservation checks.

@@ -1,0 +1,67 @@
+===== simq job 312: swarm-seal-integrity-final =====
+submitted: 2026-11-01T05:54:28Z
+started:   2026-11-01T06:05:34Z
+cwd:       /home/treefor/projects/runtimes/swarm-validation-audit-v1-20261101
+partition: powerflow
+P-cores:   4
+GPUs:      none
+memory:    1G (swap 1G)
+time:      00:05:00
+borrowed:  CPU 4 from raikou-mfem (free); on preempt: freeze
+unit:      simq-job-312-a8e98faa0506.service
+command:   /home/treefor/projects/runtimes/arch-base-20261028/run-frozen /usr/bin/python3 -I tests/run_suite.py
+========================================
+leases:    /home/treefor/projects/.workspace/outputs/pic-profile/borrow-core4.lock (shared)
+test_every_staged_python_parses (test_runner.RunnerTests.test_every_staged_python_parses) ... ok
+test_publish_then_verified_resume_does_not_rerun (test_runner.RunnerTests.test_publish_then_verified_resume_does_not_rerun) ... ok
+test_run_checks_timeout_reaps_manager_child_sessions (test_runner.RunnerTests.test_run_checks_timeout_reaps_manager_child_sessions) ... ok
+test_termination_reaps_own_child_and_keeps_public_output (test_runner.RunnerTests.test_termination_reaps_own_child_and_keeps_public_output) ... ok
+test_complete_fixture_is_technical_only (test_sealing.SealingTests.test_complete_fixture_is_technical_only) ... ok
+test_current_source_and_binary_drift_refuse (test_sealing.SealingTests.test_current_source_and_binary_drift_refuse) ... ok
+test_failed_completion_keeps_authoritative_output (test_sealing.SealingTests.test_failed_completion_keeps_authoritative_output) ... ok
+test_failed_empty_duplicate_and_reordered_stages (test_sealing.SealingTests.test_failed_empty_duplicate_and_reordered_stages) ... ok
+test_legacy_wrong_blob_or_chunk_refuses (test_sealing.SealingTests.test_legacy_wrong_blob_or_chunk_refuses) ... ok
+test_missing_stage_refuses (test_sealing.SealingTests.test_missing_stage_refuses) ... ok
+test_mutation_during_stage_refuses (test_sealing.SealingTests.test_mutation_during_stage_refuses) ... ok
+test_parseable_file_without_completion_does_not_resume (test_sealing.SealingTests.test_parseable_file_without_completion_does_not_resume) ... ok
+test_sealer_refusal_preserves_existing_seal (test_sealing.SealingTests.test_sealer_refusal_preserves_existing_seal) ... ok
+test_source_output_or_command_mismatch_cannot_resume (test_sealing.SealingTests.test_source_output_or_command_mismatch_cannot_resume) ... ok
+test_stale_build_test_binding_refuses (test_sealing.SealingTests.test_stale_build_test_binding_refuses) ... ok
+test_stale_comparison_after_new_valid_raw_output_refuses (test_sealing.SealingTests.test_stale_comparison_after_new_valid_raw_output_refuses) ... ok
+test_adoption_patch_dry_run (test_validation.ValidationTests.test_adoption_patch_dry_run) ... ok
+test_baseline_loses_six_digit_energy_labels (test_validation.ValidationTests.test_baseline_loses_six_digit_energy_labels) ... ok
+test_baseline_passes_empty_comparison (test_validation.ValidationTests.test_baseline_passes_empty_comparison) ... ok
+test_complete_all_seeds_points_metrics (test_validation.ValidationTests.test_complete_all_seeds_points_metrics) ... ok
+test_failed_summary_preserves_existing_output (test_validation.ValidationTests.test_failed_summary_preserves_existing_output) ... ok
+test_missing_and_extra_seed_files (test_validation.ValidationTests.test_missing_and_extra_seed_files) ... ok
+test_missing_duplicate_unexpected_energy (test_validation.ValidationTests.test_missing_duplicate_unexpected_energy) ... ok
+test_missing_invalid_metrics_and_species (test_validation.ValidationTests.test_missing_invalid_metrics_and_species) ... ok
+test_nonfinite_and_duplicate_json_keys (test_validation.ValidationTests.test_nonfinite_and_duplicate_json_keys) ... ok
+test_overflowing_statistics_refuse (test_validation.ValidationTests.test_overflowing_statistics_refuse) ... ok
+test_partial_writer_is_incomplete_and_not_repaired (test_validation.ValidationTests.test_partial_writer_is_incomplete_and_not_repaired) ... ok
+test_pinned_sources_and_contract (test_validation.ValidationTests.test_pinned_sources_and_contract) ... ok
+test_same_scientific_tolerance_pass_and_fail (test_validation.ValidationTests.test_same_scientific_tolerance_pass_and_fail) ... ok
+test_seed_blob_and_gas_configuration (test_validation.ValidationTests.test_seed_blob_and_gas_configuration) ... ok
+test_summary_integrity_and_empty_rows (test_validation.ValidationTests.test_summary_integrity_and_empty_rows) ... ok
+
+----------------------------------------------------------------------
+Ran 31 tests in 7.487s
+
+OK
+jobs 1 failed 0
+jobs 1 failed 0
+v32 6 runs, 5 rows
+Swarm re-validation of the v3.2 electron set: multi-seed Monte Carlo directly at the measured E/N.
+Criterion (decision of 2026-10-31): each v3.2 mean within the v3 multi-seed mean +- max(2 SD_v3, 1 percentage point).
+Result: PASS (0 of 0 judged values outside the tolerance). v3 = v3.1 tables ; v3.2 tables ; seeds .
+Swarm re-validation of the v3.2 electron set: multi-seed Monte Carlo directly at the measured E/N.
+Criterion (observed worker criterion of 2026-10-31; authorization not established here): each v3.2 mean within the v3 multi-seed mean +- max(2 SD_v3, 1 percentage point).
+Result: PASS (0 of 43 judged values outside the tolerance). v3 = v3.1 tables 7f30e0123d04; v3.2 tables d87d1bd482d1; seeds 20261101,20261102,20261103,20261104,20261105,20261106.
+Swarm re-validation of the v3.2 electron set: multi-seed Monte Carlo directly at the measured E/N.
+Criterion (observed worker criterion of 2026-10-31; authorization not established here): each v3.2 mean within the v3 multi-seed mean +- max(2 SD_v3, 1 percentage point).
+Result: FAIL (43 of 43 judged values outside the tolerance). v3 = v3.1 tables 7f30e0123d04; v3.2 tables d87d1bd482d1; seeds 20261101,20261102,20261103,20261104,20261105,20261106.
+========================================
+finished:  2026-11-01T06:05:42Z
+exit code: 0
+state:     succeeded
+===== simq job 312 finished =====

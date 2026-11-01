@@ -1,0 +1,1031 @@
+--- a/tools/swarm_multiseed.py
++++ b/tools/swarm_multiseed.py
+@@ -6,7 +6,7 @@
+        swarm_multiseed.py compare NEW.json REF.json OLD_SINGLE_SEED.json OUT_PREFIX
+ Measured data (data/extracted, LXCat LAPLACE): Hasegawa et al. mobility x N (W = muN E/N) and (alpha - eta)/N,
+ Crompton et al. 1965 D_T/mu. Monte Carlo: tests/swarm_mc.cpp, N = 3.22e22 m^-3, 300 K, 2000 electrons per seed.
+-Criterion (decision of 2026-10-31): each v3.2 mean within the v3 multi-seed mean +- max(2 SD_v3, 1 percentage point),
++Criterion (observed worker criterion of 2026-10-31; authorization not established here): each v3.2 mean within the v3 multi-seed mean +- max(2 SD_v3, 1 percentage point),
+ for the drift velocities (bulk and flux) at every measured E/N and (alpha - eta)/N from 198 Td up (as v3 banded them);
+ D_T/mu and (alpha - eta)/N at 152.5 Td (next to the zero crossing) are reported, not judged, as in v3.
+ """
+@@ -15,8 +15,17 @@
+ import math
+ import os
+ import sys
++import importlib.util
++from pathlib import Path
+ 
+ R = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
++_spec = importlib.util.spec_from_file_location('swarm_validation', Path(__file__).with_name('swarm_validation.py'))
++_validation = importlib.util.module_from_spec(_spec)
++_spec.loader.exec_module(_validation)
++
++
++def contract():
++    return _validation.Contract(Path(__file__).with_name('swarm-contract.json'), R)
+ 
+ 
+ def measured():
+@@ -40,8 +49,12 @@
+ 
+ 
+ def jobs(st, blob, outdir, seeds, jp):
+-    m = measured()
+-    ens = sorted(set(en for d in m.values() for en in d))
++    c = contract()
++    _validation.need(st in c.data['sets'], 'unknown set')
++    _validation.need([int(x) for x in seeds.split(',')] == c.data['seeds'], 'unexpected seed plan')
++    _validation.need(__import__('hashlib').sha256(Path(blob).read_bytes()).hexdigest() == c.data['sets'][st]['blob_sha256'], 'job blob mismatch')
++    m = c.measured
++    ens = c.energies
+     js = []
+     for seed in seeds.split(','):
+         out = os.path.join(outdir, '%s-%s.json' % (st, seed))
+@@ -52,29 +65,9 @@
+ 
+ 
+ def summary(d, st, out):
+-    m = measured()
+-    runs = []
+-    for f in sorted(glob.glob(os.path.join(d, '%s-*.json' % st))):
+-        try:
+-            runs.append(json.load(open(f)))
+-        except ValueError:
+-            continue
+-    rows = []
+-    for q, md in m.items():
+-        for en, meas in sorted(md.items()):
+-            v = []
+-            for r in runs:
+-                p = next((p for p in r['points'] if abs(p['E_over_N_Td'] - en) < 1e-9 * max(1.0, en)), None)
+-                if p is not None and p.get(q) is not None:
+-                    v.append(p[q] / meas - 1)
+-            if not v:
+-                continue
+-            mean = sum(v) / len(v)
+-            sd = math.sqrt(sum((x - mean) ** 2 for x in v) / (len(v) - 1)) if len(v) > 1 else 0.0
+-            rows.append({'quantity': q, 'E_over_N_Td': en, 'measured': meas, 'n': len(v), 'mean_rel': mean, 'sd_rel': sd, 'values_rel': v})
+-    res = {'set': st, 'blobs': sorted(set(r.get('blob_sha256', '') for r in runs)), 'seeds': sorted(r.get('seed') for r in runs), 'rows': rows}
+-    json.dump(res, open(out, 'w'), indent=1)
+-    print(st, len(runs), 'runs,', len(rows), 'rows')
++    result = _validation.summarize(d, st, contract())
++    _validation.atomic_json(out, result)
++    print(st, len(result['seeds']), 'complete runs,', len(result['rows']), 'rows')
+ 
+ 
+ LABEL = {'W_bulk_m_s': 'bulk drift', 'W_flux_m_s': 'flux drift', 'alpha_minus_eta_over_N_m2': '(alpha - eta)/N', 'DT_over_mu_eV': 'D_T/mu'}
+@@ -83,14 +76,19 @@
+ 
+ 
+ def compare(new_p, ref_p, old_p, outp):
+-    new, ref, old = json.load(open(new_p)), json.load(open(ref_p)), json.load(open(old_p))
++    c = contract()
++    new, _ = _validation.stable_json(new_p)
++    ref, _ = _validation.stable_json(ref_p)
++    old, old_hash = _validation.stable_json(old_p)
++    _validation.need(old_hash == c.data['old_reference_sha256'], 'historical reference source mismatch')
++    _validation.validate_summary(new, 'v32', c)
++    _validation.validate_summary(ref, 'v3', c)
+     rk = {(r['quantity'], r['E_over_N_Td']): r for r in ref['rows']}
+     rows, bad = [], 0
+     for r in new['rows']:
+         k = (r['quantity'], r['E_over_N_Td'])
+         f = rk.get(k)
+-        if f is None:
+-            continue
++        _validation.need(f is not None, 'missing reference row')
+         tol = max(2 * f['sd_rel'], 0.01)
+         diff = r['mean_rel'] - f['mean_rel']
+         j = judged(*k)
+@@ -103,12 +101,14 @@
+                      'v3_single_seed_interpolated_rel': o, 'v3_mean_rel': f['mean_rel'], 'v3_sd_rel': f['sd_rel'], 'v3_n': f['n'],
+                      'v32_mean_rel': r['mean_rel'], 'v32_sd_rel': r['sd_rel'], 'v32_n': r['n'], 'tolerance': tol, 'difference': diff,
+                      'pass': ok if j else None})
+-    res = {'criterion': 'each v3.2 mean within the v3 multi-seed mean +- max(2 SD_v3, 1 percentage point) (decision of 2026-10-31)',
++    _validation.need(len(rows) == len(c.rows) and sum(1 for r in rows if r['judged']) == c.judged and c.judged > 0, 'incomplete or zero judged rows')
++    res = {'raw_input_files': {'v3': ref['input_files'], 'v32': new['input_files']}, 'contract_sha256': c.sha256, 'complete': True, 'scientific_criterion_status': c.data['scientific_criterion_status'], 'criterion': 'each v3.2 mean within the v3 multi-seed mean +- max(2 SD_v3, 1 percentage point) (observed worker criterion of 2026-10-31; authorization not established here)',
+            'v3_reference': {'blobs': ref['blobs'], 'seeds': ref['seeds']}, 'v32': {'blobs': new['blobs'], 'seeds': new['seeds']},
+            'judged': sum(1 for r in rows if r['judged']), 'failing': bad, 'passed': bad == 0, 'rows': rows}
+-    json.dump(res, open(outp + '.json', 'w'), indent=1)
++    _validation.validate_comparison(res, new, ref, c)
++    _validation.atomic_json(outp + '.json', res)
+     L = ['Swarm re-validation of the v3.2 electron set: multi-seed Monte Carlo directly at the measured E/N.',
+-         'Criterion (decision of 2026-10-31): each v3.2 mean within the v3 multi-seed mean +- max(2 SD_v3, 1 percentage point).',
++         'Criterion (observed worker criterion of 2026-10-31; authorization not established here): each v3.2 mean within the v3 multi-seed mean +- max(2 SD_v3, 1 percentage point).',
+          'Result: %s (%d of %d judged values outside the tolerance). v3 = v3.1 tables %s; v3.2 tables %s; seeds %s.' % (
+              'PASS' if bad == 0 else 'FAIL', bad, res['judged'], ','.join(b[:12] for b in ref['blobs']), ','.join(b[:12] for b in new['blobs']),
+              ','.join(str(s) for s in new['seeds'])),
+@@ -121,7 +121,7 @@
+             ('%+.1f%%' % (100 * r['v3_single_seed_interpolated_rel'])) if r['v3_single_seed_interpolated_rel'] is not None else '-',
+             100 * r['v3_mean_rel'], 100 * r['v3_sd_rel'], 100 * r['v32_mean_rel'], 100 * r['v32_sd_rel'], 100 * r['difference'],
+             ('pass' if r['pass'] else 'FAIL') if r['judged'] else 'report'))
+-    open(outp + '.txt', 'w').write('\n'.join(L) + '\n')
++    Path(outp + '.txt').write_text('\n'.join(L) + '\n')
+     print('\n'.join(L[:3]))
+     return 0 if bad == 0 else 1
+ 
+--- /dev/null
++++ b/tools/swarm_validation.py
+@@ -0,0 +1,300 @@
++"""Strict input completeness for the observed v3.2 swarm comparison.
++
++This validates the existing scientific rule; it does not authorize that rule or
++qualify the underlying cross-section models. No input/output run files mutate.
++"""
++import argparse
++import hashlib
++import json
++import math
++import os
++from pathlib import Path
++import tempfile
++
++
++class Invalid(ValueError):
++    pass
++
++
++def need(condition, message):
++    if not condition:
++        raise Invalid(message)
++
++
++def pairs(items):
++    result = {}
++    for key, value in items:
++        need(key not in result, 'duplicate JSON key: ' + key)
++        result[key] = value
++    return result
++
++
++def reject_constant(value):
++    raise Invalid('nonfinite JSON constant: ' + value)
++
++
++def finite_tree(value):
++    if isinstance(value, float):
++        need(math.isfinite(value), 'nonfinite number')
++    elif isinstance(value, dict):
++        for x in value.values():
++            finite_tree(x)
++    elif isinstance(value, list):
++        for x in value:
++            finite_tree(x)
++
++
++def decode(raw):
++    result = json.loads(raw, object_pairs_hook=pairs, parse_constant=reject_constant)
++    finite_tree(result)
++    return result
++
++
++def stable_json(path):
++    """Detect concurrent replacement/truncation during the read; never accept a prefix."""
++    path = Path(path)
++    with path.open('rb') as stream:
++        before = os.fstat(stream.fileno())
++        raw = stream.read()
++        after = os.fstat(stream.fileno())
++    final = path.stat()
++    identity = lambda s: (s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
++    need(identity(before) == identity(after) == identity(final), str(path) + ': changed while reading')
++    return decode(raw), hashlib.sha256(raw).hexdigest()
++
++
++def number(x, name):
++    need(type(x) in (int, float) and math.isfinite(x), name + ': expected finite number')
++    return x
++
++
++def integer(x, name):
++    need(type(x) is int and x >= 0, name + ': expected nonnegative integer')
++    return x
++
++
++def statistics(values):
++    try:
++        for value in values:
++            number(value, 'relative sample')
++        mean = number(sum(values)/len(values), 'sample mean')
++        sd = number(math.sqrt(sum((v-mean)**2 for v in values)/(len(values)-1)), 'sample SD')
++        return mean, sd
++    except (OverflowError, ZeroDivisionError) as exc:
++        raise Invalid('unrepresentable sample statistics') from exc
++
++
++class Contract:
++    def __init__(self, path, root):
++        self.data, self.sha256 = stable_json(path)
++        self.root = Path(root)
++        c = self.data
++        need(c['schema'] == 'swarm-completeness-contract-v1', 'contract schema')
++        need(c['seeds'] == list(range(20261101, 20261107)), 'contract seed plan')
++        need(c['projectile'] == 'e' and c['target'] == 'H2O', 'contract species')
++        need(c['criterion'] == {'formula': 'abs(new_mean-ref_mean) <= max(2*ref_sample_SD,0.01)',
++                              'reference_sd_multiplier': 2.0, 'absolute_relative_floor': 0.01}, 'criterion changed')
++        need(c['raw_energy_format'] == '.6g', 'raw energy serialization changed')
++        self.measured = {}
++        for rel, expected in c['measured_files'].items():
++            data, actual = stable_json(self.root / rel)
++            need(actual == expected, 'measured-source hash differs: ' + rel)
++            need(len(data['x']) == len(data['y']) and len(data['x']) == len(set(data['x'])), 'measured rows')
++            if 'mobility-N' in rel:
++                for q in ('W_bulk_m_s', 'W_flux_m_s'):
++                    self.measured[q] = {x: y*x*1e-21 for x, y in zip(data['x'], data['y'])}
++            else:
++                q = 'alpha_minus_eta_over_N_m2' if 'alpha-minus-eta' in rel else 'DT_over_mu_eV'
++                self.measured[q] = dict(zip(data['x'], data['y']))
++        need(set(self.measured) == set(METRICS), 'metric source set')
++        self.energies = sorted({x for values in self.measured.values() for x in values})
++        self.serialized = {float(format(x, c['raw_energy_format'])): x for x in self.energies}
++        need(len(self.energies) == 36 and len(self.serialized) == 36, 'ambiguous/incomplete energy plan')
++        self.rows = {(q, x) for q, values in self.measured.items() for x in values}
++        self.judged = sum(judged(q, x) for q, x in self.rows)
++        need(self.judged > 0, 'zero judged rows')
++        self.processes = {}
++        for label, spec in c['sets'].items():
++            data, actual = stable_json(self.root / spec['spec_path'])
++            need(actual == spec['spec_sha256'], 'spec-source hash differs: ' + label)
++            groups = [g for g in data['groups'] if g['projectile'] == c['projectile'] and g['target'] == c['target']]
++            need(len(groups) == 1, 'species group missing or duplicated')
++            names = [p['id'] for p in groups[0]['processes']]
++            need(len(names) == len(set(names)), 'duplicate process identity')
++            self.processes[label] = set(names)
++        need(set(self.processes) == {'v3', 'v32'}, 'set identities')
++        for rel, expected in c['source_files'].items():
++            need(hashlib.sha256((self.root / rel).read_bytes()).hexdigest() == expected,
++                 'writer source differs: ' + rel)
++
++
++METRICS = ('W_bulk_m_s', 'W_flux_m_s', 'alpha_minus_eta_over_N_m2', 'DT_over_mu_eV')
++POINT_NUMBERS = (*METRICS, 'mean_energy_eV', 'nu_ion_s', 'nu_att_s', 'alpha_over_N_m2', 'eta_over_N_m2',
++                 'k_ion_m3_s', 'k_att_m3_s', 'mobility_N_1_m_V_s', 'Ecap_eV', 'nu_max_s', 't_relax_s', 't_measure_s')
++POINT_COUNTS = ('candidates', 'real_events', 'candidates_above_Ecap', 'candidates_below_grid')
++
++
++def judged(quantity, energy):
++    return quantity in ('W_bulk_m_s', 'W_flux_m_s') or (quantity == 'alpha_minus_eta_over_N_m2' and energy >= 198.0)
++
++
++def validate_run(run, label, seed, contract):
++    c = contract.data
++    need(type(run) is dict, 'run must be object')
++    need(run.get('blob_sha256') == c['sets'][label]['blob_sha256'], 'wrong blob identity')
++    need(integer(run.get('seed'), 'seed') == seed, 'wrong seed identity')
++    for key in ('N_m3', 'T_gas_K', 'electrons'):
++        value = integer(run.get(key), key) if key == 'electrons' else number(run.get(key), key)
++        need(value == c[key], 'wrong ' + key)
++    need(type(run.get('points')) is list and len(run['points']) == len(contract.energies), 'incomplete/extra energy rows')
++    points = {}
++    for row in run['points']:
++        energy = number(row.get('E_over_N_Td'), 'E/N')
++        need(energy in contract.serialized, 'unexpected serialized E/N: ' + str(energy))
++        need(energy not in points, 'duplicate E/N: ' + str(energy))
++        for q in POINT_NUMBERS:
++            number(row.get(q), q)
++        for q in POINT_COUNTS:
++            integer(row.get(q), q)
++        counts = row.get('process_events')
++        need(type(counts) is dict and set(counts) == contract.processes[label], 'species/process set mismatch')
++        for name, count in counts.items():
++            integer(count, name)
++        need(sum(counts.values()) == row['real_events'], 'process total mismatch')
++        need(row['real_events'] <= row['candidates'], 'event count exceeds candidates')
++        points[energy] = row
++    need(set(points) == set(contract.serialized), 'missing expected E/N')
++    return {contract.serialized[e]: row for e, row in points.items()}
++
++
++def summarize(directory, label, contract):
++    need(label in contract.data['sets'], 'unknown set')
++    directory = Path(directory)
++    expected = {f'{label}-{s}.json': s for s in contract.data['seeds']}
++    # Completion receipts are separate artifacts, not additional seed runs.
++    actual = {p.name for p in directory.glob(label + '-*.json') if not p.name.endswith('.json.complete.json')}
++    need(actual == set(expected), 'missing/extra seed files: ' + repr(sorted(actual ^ set(expected))))
++    runs, evidence = [], []
++    for name, seed in expected.items():
++        run, digest = stable_json(directory / name)
++        runs.append(validate_run(run, label, seed, contract))
++        evidence.append({'file': name, 'sha256': digest})
++    rows = []
++    for q, values in contract.measured.items():
++        for energy, measured in sorted(values.items()):
++            need(number(measured, 'measured') != 0, 'zero measured denominator')
++            vals = [r[energy][q]/measured-1 for r in runs]
++            mean, sd = statistics(vals)
++            rows.append({'quantity': q, 'E_over_N_Td': energy, 'measured': measured, 'n': len(vals),
++                         'mean_rel': mean, 'sd_rel': sd, 'values_rel': vals})
++    result = {'schema': 'swarm-complete-summary-v1', 'contract_sha256': contract.sha256, 'set': label,
++              'projectile': contract.data['projectile'], 'target': contract.data['target'],
++              'blobs': [contract.data['sets'][label]['blob_sha256']], 'seeds': contract.data['seeds'],
++              'input_files': evidence, 'rows': rows, 'complete': True,
++              'source_note': 'Raw files do not bind executable hash or successful process exit; separate run receipt required.'}
++    validate_summary(result, label, contract)
++    return result
++
++
++def validate_summary(summary, label, contract):
++    need(summary.get('schema') == 'swarm-complete-summary-v1' and summary.get('complete') is True, 'unqualified summary schema')
++    need(summary.get('contract_sha256') == contract.sha256 and summary.get('set') == label, 'summary contract/set mismatch')
++    need(summary.get('projectile') == 'e' and summary.get('target') == 'H2O', 'summary species mismatch')
++    need(summary.get('seeds') == contract.data['seeds'], 'summary seed set mismatch')
++    need(summary.get('blobs') == [contract.data['sets'][label]['blob_sha256']], 'summary blob mismatch')
++    inputs = summary.get('input_files', [])
++    need(len(inputs) == len(contract.data['seeds']), 'summary input-file count')
++    need({v['file'] for v in inputs} == {f'{label}-{s}.json' for s in contract.data['seeds']}, 'summary input files')
++    for entry in inputs:
++        need(len(entry['sha256']) == 64 and all(c in '0123456789abcdef' for c in entry['sha256']), 'summary input hash')
++    actual = set()
++    for row in summary['rows']:
++        key = row['quantity'], row['E_over_N_Td']
++        need(key in contract.rows and key not in actual, 'unexpected or duplicate summary row')
++        actual.add(key)
++        need(row['measured'] == contract.measured[key[0]][key[1]], 'summary measured data mismatch')
++        vals = row['values_rel']
++        need(type(vals) is list and len(vals) == len(contract.data['seeds']) and row['n'] == len(vals), 'summary sample completeness')
++        for value in vals:
++            number(value, 'summary sample')
++        mean, sd = statistics(vals)
++        need(number(row['mean_rel'], 'summary mean') == mean and number(row['sd_rel'], 'summary SD') == sd, 'summary statistics mismatch')
++    need(actual == contract.rows and sum(judged(*k) for k in actual) == contract.judged, 'incomplete/zero judged rows')
++
++
++def validate_comparison(result, new, ref, contract):
++    """Recompute the scientific-rule fields from current, complete raw summaries."""
++    validate_summary(new, 'v32', contract)
++    validate_summary(ref, 'v3', contract)
++    need(result.get('contract_sha256') == contract.sha256 and result.get('complete') is True, 'comparison contract')
++    need(result.get('raw_input_files') == {'v3':ref['input_files'],'v32':new['input_files']}, 'comparison raw-output identities differ')
++    labels = {'W_bulk_m_s':'bulk drift','W_flux_m_s':'flux drift',
++              'alpha_minus_eta_over_N_m2':'(alpha - eta)/N','DT_over_mu_eV':'D_T/mu'}
++    refs = {(r['quantity'],r['E_over_N_Td']):r for r in ref['rows']}
++    expected = {}
++    failing = 0
++    for row in new['rows']:
++        key = row['quantity'],row['E_over_N_Td']; other = refs[key]
++        tolerance = max(2*other['sd_rel'],0.01)
++        difference = row['mean_rel']-other['mean_rel']; judge = judged(*key)
++        ok = abs(difference) <= tolerance
++        failing += int(judge and not ok)
++        expected[(labels[key[0]],key[1])] = {'measured':row['measured'],'judged':judge,
++            'v3_mean_rel':other['mean_rel'],'v3_sd_rel':other['sd_rel'],'v3_n':other['n'],
++            'v32_mean_rel':row['mean_rel'],'v32_sd_rel':row['sd_rel'],'v32_n':row['n'],
++            'tolerance':tolerance,'difference':difference,'pass':ok if judge else None}
++    rows = result.get('rows',[])
++    need(len(rows) == len(expected), 'comparison row count')
++    seen = set()
++    for row in rows:
++        key = row['quantity'],row['E_over_N_Td']
++        need(key in expected and key not in seen, 'comparison duplicate/unknown row')
++        seen.add(key)
++        need(all(row.get(k) == v for k,v in expected[key].items()), 'comparison values differ from current raw outputs')
++    need(result.get('judged') == contract.judged and result.get('failing') == failing and
++         result.get('passed') is (failing == 0), 'comparison disposition differs')
++
++
++def atomic_json(path, value):
++    """Publish a complete validation artifact. Input simulation files are untouched."""
++    path = Path(path)
++    fd, temporary = tempfile.mkstemp(prefix='.'+path.name+'.', dir=path.parent)
++    try:
++        with os.fdopen(fd, 'w') as stream:
++            json.dump(value, stream, indent=1, allow_nan=False)
++            stream.write('\n')
++            stream.flush()
++            os.fsync(stream.fileno())
++        os.replace(temporary, path)
++        directory_fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
++        try:
++            os.fsync(directory_fd)
++        finally:
++            os.close(directory_fd)
++    finally:
++        if os.path.exists(temporary):
++            os.unlink(temporary)
++
++
++def inspect(directory, contract):
++    result = {'schema': 'swarm-completeness-inspection-v1', 'contract_sha256': contract.sha256,
++              'scientific_criterion_status': contract.data['scientific_criterion_status'], 'sets': {}}
++    for label in contract.data['sets']:
++        try:
++            summary = summarize(directory, label, contract)
++            result['sets'][label] = {'status': 'complete', 'runs': len(summary['seeds']), 'rows': len(summary['rows'])}
++        except (Invalid, OSError, ValueError, KeyError, TypeError) as exc:
++            result['sets'][label] = {'status': 'incomplete_or_invalid', 'reason': str(exc)}
++    result['complete'] = all(v['status'] == 'complete' for v in result['sets'].values())
++    return result
++
++
++if __name__ == '__main__':
++    parser = argparse.ArgumentParser()
++    parser.add_argument('directory')
++    parser.add_argument('--contract', required=True)
++    parser.add_argument('--source-root', required=True)
++    args = parser.parse_args()
++    answer = inspect(args.directory, Contract(args.contract, args.source_root))
++    print(json.dumps(answer, indent=2, allow_nan=False))
++    raise SystemExit(0 if answer['complete'] else 2)
+--- /dev/null
++++ b/tools/swarm-contract.json
+@@ -0,0 +1,45 @@
++{
++  "schema": "swarm-completeness-contract-v1",
++  "scientific_criterion_status": "observed worker criterion; authorization and independent physics validation not established by this tool",
++  "criterion": {
++    "formula": "abs(new_mean-ref_mean) <= max(2*ref_sample_SD,0.01)",
++    "reference_sd_multiplier": 2.0,
++    "absolute_relative_floor": 0.01
++  },
++  "seeds": [
++    20261101,
++    20261102,
++    20261103,
++    20261104,
++    20261105,
++    20261106
++  ],
++  "projectile": "e",
++  "target": "H2O",
++  "N_m3": 3.22e+22,
++  "T_gas_K": 300,
++  "electrons": 2000,
++  "raw_energy_serialization": "C++ defaultfloat precision 6",
++  "raw_energy_format": ".6g",
++  "measured_files": {
++    "data/extracted/swarm-laplace-mobility-N-hasegawa.json": "49232e42b4e56921dec57a7f7b911090ba553080e74b7c61f92520dcb6b4e319",
++    "data/extracted/swarm-laplace-alpha-minus-eta-over-N-hasegawa.json": "a4649802be315e818cda64c52c2b1f51edb08423fd523debbbd544a23abedf63",
++    "data/extracted/swarm-laplace-characteristic-energy-crompton1965.json": "743c8a164ce7cef15838450a15ebbc2741000bb211e22c9b276e99766c136a4b"
++  },
++  "sets": {
++    "v3": {
++      "blob_sha256": "7f30e0123d04424887a2f5154df3e09006c6c59f5759422abec9c8ceecd943a5",
++      "spec_path": "/home/treefor/projects/runtimes/pic-water-chemistry-v3.1-20261031/data/tables/chemistry-v3.1-spec.json",
++      "spec_sha256": "9fdfd7209dcb307d3b6c8e3874d4b1fa2bee01d6e684cc2047683cc8a92207b6"
++    },
++    "v32": {
++      "blob_sha256": "d87d1bd482d1084f50266828a3f5f45d4bb59176c2665cdd2f8a8c6c4b6e4a45",
++      "spec_path": "data/tables/chemistry-v3.2-spec.json",
++      "spec_sha256": "805a75e99fa4fb3f23a1c12c10c98cf8fd2f39f8ea2c552387230f7ed8867846"
++    }
++  },
++  "source_files": {
++    "tests/swarm_mc.cpp": "5af0abf0ce09c87b83a37ad00a37f4562fd0f34f517222dc67dbf16a22791b16"
++  },
++  "old_reference_sha256": "9b47e0374413061ff29e24fd14cb91ddbda502989fcfe1551556f8505daced7a"
++}
+--- /dev/null
++++ b/tools/qualification_integrity.py
+@@ -0,0 +1,175 @@
++"""Immutable stage provenance and fail-closed technical sealing.
++
++These receipts establish which code/inputs/binaries were exercised. They do
++not supply scientific approval for a changed criterion or model assumptions.
++"""
++import hashlib
++import importlib.util
++import json
++from pathlib import Path
++
++REQUIRED = ('inputs', 'tables', 'policy', 'build', 'core', 'sanitized', 'gpu', 'cost', 'bench', 'swarm')
++BINARIES = ('test_core', 'test_core_sanitized', 'gpu_parity', 'swarm_mc')
++SCHEMA = 'pfc-qualification-bound-stages-v1'
++
++
++def need(condition, message):
++    if not condition:
++        raise ValueError('qualification integrity: ' + message)
++
++
++def sha(path):
++    h = hashlib.sha256()
++    with open(path, 'rb') as stream:
++        for chunk in iter(lambda: stream.read(1 << 20), b''):
++            h.update(chunk)
++    return h.hexdigest()
++
++
++def digest(value):
++    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()).hexdigest()
++
++
++def capture(root, dependencies):
++    root = Path(root)
++    files = {}
++    for directory in ('include', 'device', 'tests', 'tools', 'data/extracted', 'data/tables'):
++        for p in sorted((root / directory).rglob('*')):
++            if p.is_file() and '__pycache__' not in p.parts:
++                files[str(p.relative_to(root))] = sha(p)
++    need(files, 'empty source tree')
++    files['run_checks.py'] = sha(root / 'run_checks.py')
++    manifest_path = root / 'data/tables/chemistry-v3.2-manifest.json'
++    manifest = json.loads(manifest_path.read_text())
++    inputs = {}
++    for name, expected in manifest['input_files_sha256'].items():
++        actual = sha(root / name)
++        need(actual == expected, 'manifest input changed: ' + name)
++        inputs[name] = actual
++    # The swarm stage also reads these source sets directly, outside its production manifest.
++    for p in sorted((root / 'data/sources').glob('lxcat-*/Cross section.txt')):
++        inputs[str(p.relative_to(root))] = sha(p)
++    dep = {str(p): sha(p) for p in sorted(dependencies)}
++    result = {'source_files': files, 'table_inputs': inputs, 'dependencies': dep}
++    result['sha256'] = digest(result)
++    return result
++
++
++def binaries(root):
++    return {name: sha(Path(root) / 'build/bin' / name) for name in BINARIES
++            if (Path(root) / 'build/bin' / name).is_file()}
++
++
++def begin_stage(root, dependencies, receipt, name):
++    need(receipt.get('schema') == SCHEMA, 'legacy or unbound receipt requires new qualification')
++    need(name in REQUIRED, 'unexpected stage ' + name)
++    old = receipt.get('stages', [])
++    need(name == 'inputs' or not any(s['stage'] == name for s in old), 'duplicate stage ' + name)
++    before = capture(root, dependencies)
++    if old:
++        need(old[0]['binding']['before'] == before, 'code/inputs/dependencies differ from prior stage')
++    return {'schema': 'pfc-stage-binding-v1', 'before': before, 'binaries_before': binaries(root)}
++
++
++def finish_stage(root, dependencies, before):
++    result = dict(before)
++    result['after'] = capture(root, dependencies)
++    need(result['before'] == result['after'], 'code/inputs changed during stage')
++    result['binaries_after'] = binaries(root)
++    return result
++
++
++def verify_receipt(root, receipt, output_dir):
++    """No writes. Legacy, incomplete, stale, or mixed qualification refuses."""
++    root, output_dir = Path(root), Path(output_dir)
++    need(receipt.get('schema') == SCHEMA, 'receipt lacks bound stage schema')
++    stages = receipt.get('stages', [])
++    names = [s.get('stage') for s in stages]
++    need(set(names) == set(REQUIRED), 'missing/extra stages: ' + repr(sorted(set(REQUIRED) ^ set(names))))
++    need(names and names[0] == 'inputs', 'inputs must precede qualification')
++    for name in REQUIRED[1:]:
++        need(names.count(name) == 1, 'duplicate stage ' + name)
++    order = [name for name in names if name != 'inputs']
++    need(order == list(REQUIRED[1:]), 'stage order differs from required qualification')
++    for stage in stages:
++        need(stage.get('passed') is True, 'failed stage: ' + str(stage.get('stage')))
++        entries = stage.get('entries', [])
++        need(entries and all(type(e.get('exit')) is int and e['exit'] == 0 for e in entries), 'missing/failed entry')
++    initial = stages[0]['binding']['before']
++    need(initial == capture(root, initial['dependencies']), 'current code/inputs differ from qualification')
++    current_binaries = binaries(root)
++    need(set(current_binaries) == set(BINARIES), 'missing required binaries')
++    build = next(s for s in stages if s['stage'] == 'build')
++    built = build['binding']['binaries_after']
++    need(built == current_binaries, 'built binaries differ from current binaries')
++    after_build = False
++    for stage in stages:
++        binding = stage.get('binding', {})
++        need(binding.get('schema') == 'pfc-stage-binding-v1', 'unbound stage ' + stage['stage'])
++        need(binding.get('before') == initial and binding.get('after') == initial, 'stale/mixed stage source identity')
++        if stage['stage'] == 'build':
++            after_build = True
++            need(binding.get('binaries_after') == built, 'build outputs mismatch')
++        elif after_build:
++            need(binding.get('binaries_before') == built and binding.get('binaries_after') == built,
++                 'tested binaries differ from build: ' + stage['stage'])
++    table = next(s for s in stages if s['stage'] == 'tables')
++    policy = next(s for s in stages if s['stage'] == 'policy')
++    need(table['blob_sha256'] == sha(root/'data/tables/chemistry-v3.2.blob'), 'table blob mismatch')
++    need(policy['policy_sha256'] == sha(root/'data/tables/chemistry-v3.2-coverage-policy.json'), 'policy mismatch')
++    swarm = next(s for s in stages if s['stage'] == 'swarm')
++    spec = importlib.util.spec_from_file_location('qualification_job_proof', root/'tools/swarm_job_integrity.py')
++    proof_module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(proof_module)
++    contract = proof_module.V.Contract(root/'tools/swarm-contract.json', root)
++    for directory in ('swarm', 'swarm-multiseed'):
++        need(swarm.get('job_plan_sha256', {}).get(directory) == sha(output_dir/directory/'jobs.json'), 'job plan changed')
++        jobs = json.loads((output_dir/directory/'jobs.json').read_text())
++        completed = json.loads((output_dir/directory/'jobs-receipt.json').read_text())['jobs']
++        need(jobs and len(jobs) == len(completed), 'incomplete job receipt: '+directory)
++        names = [j['name'] for j in jobs]
++        need(len(names) == len(set(names)) and set(names) == {j['name'] for j in completed}, 'duplicate/missing job identity')
++        need(all(type(j.get('exit')) is int and j['exit'] == 0 and j.get('completion_verified') is True
++                 for j in completed), 'job completion not verified')
++        if directory == 'swarm-multiseed':
++            expected = {f'{label}-{seed}' for label in ('v3','v32') for seed in range(20261101,20261107)}
++            need(set(names) == expected, 'multiseed job plan incomplete')
++        else:
++            expected = {f'{label}-{k}' for label in ('v3','v3-iso','lxcat-muroranit','lxcat-triniti',
++                                                   'lxcat-hayashi','lxcat-phelps','lxcat-morgan') for k in range(3)}
++            need(set(names) == expected, 'legacy comparison job plan incomplete')
++        for job in jobs:
++            need(Path(job['argv'][0]).resolve() == (root/'build/bin/swarm_mc').resolve(), 'swarm binary path differs')
++            need(Path(job['output']).resolve() == (output_dir/directory/(job['name']+'.json')).resolve(), 'job output ownership differs')
++            label, suffix = job['name'].rsplit('-',1)
++            if directory == 'swarm-multiseed':
++                expected_blob = contract.data['sets'][label]['blob_sha256']
++                expected_energies = contract.energies
++                expected_seed = int(suffix)
++            else:
++                expected_blob = swarm['sets'][label]
++                ens = [30,60,100,150,200,300,500,700,1000,1500,2000,3000]
++                expected_energies = ens[4*int(suffix):4*(int(suffix)+1)]
++                expected_seed = 20261031
++            args = job['argv']
++            need(sha(args[1]) == expected_blob and [float(e) for e in args[3].split(',')] == expected_energies and
++                 float(args[4]) == contract.data['N_m3'] and float(args[5]) == contract.data['T_gas_K'] and
++                 int(args[6]) == contract.data['electrons'] and int(args[7]) == expected_seed, 'job plan/configuration differs')
++            need(proof_module.completed(job, initial['sha256']), 'missing/stale per-job proof: '+job['name'])
++    artifact = output_dir / 'SWARM-REVALIDATION.json'
++    need(swarm.get('revalidation_sha256') == sha(artifact), 'swarm result missing/changed')
++    result, _ = proof_module.V.stable_json(artifact)
++    need(result.get('complete') is True and result.get('passed') is True and result.get('judged') == 43
++         and len(result.get('rows', [])) == 50, 'swarm result incomplete/failed')
++    contract_hash = sha(root/'tools/swarm-contract.json')
++    need(result.get('contract_sha256') == contract_hash, 'swarm contract identity differs')
++    current_ref = proof_module.V.summarize(output_dir/'swarm-multiseed','v3',contract)
++    current_new = proof_module.V.summarize(output_dir/'swarm-multiseed','v32',contract)
++    proof_module.V.validate_comparison(result, current_new, current_ref, contract)
++    need(swarm.get('scientific_criterion_status') == result.get('scientific_criterion_status') and
++         bool(result.get('scientific_criterion_status')), 'scientific criterion status missing')
++    return {'schema': 'pfc-technical-qualification-v1', 'binding_sha256': initial['sha256'],
++            'binaries': built, 'required_stages': list(REQUIRED), 'swarm_result_sha256': sha(artifact),
++            'production_qualified': False, 'physics_model_validated': False,
++            'scientific_criterion_status': result['scientific_criterion_status'],
++            'scope': 'complete execution and source integrity only; scientific criterion/model review remains separate'}
+--- /dev/null
++++ b/tools/swarm_job_integrity.py
+@@ -0,0 +1,69 @@
++"""Completion evidence for swarm jobs. No acceptance from filename existence."""
++import hashlib
++import importlib.util
++import json
++from pathlib import Path
++
++_spec = importlib.util.spec_from_file_location('swarm_job_validation', Path(__file__).with_name('swarm_validation.py'))
++V = importlib.util.module_from_spec(_spec)
++_spec.loader.exec_module(V)
++
++
++def sha(path):
++    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
++
++
++def identity(job, binding):
++    a = job['argv']
++    V.need(len(a) == 8 and a[2] == job['output'], 'unsupported swarm command/output shape')
++    return {'argv': a, 'binary_sha256': sha(a[0]), 'blob_sha256': sha(a[1]),
++            'qualification_binding_sha256': binding}
++
++
++def validate_output(path, job):
++    data, digest = V.stable_json(path)
++    a = job['argv']
++    V.need(data.get('blob_sha256') == sha(a[1]), 'job blob mismatch')
++    for key, expected in [('seed', int(a[7])), ('N_m3', float(a[4])),
++                          ('T_gas_K', float(a[5])), ('electrons', int(a[6]))]:
++        value = V.integer(data.get(key), key) if key in ('seed', 'electrons') else V.number(data.get(key), key)
++        V.need(value == expected, 'job configuration mismatch: '+key)
++    expected = [float(format(float(e), '.6g')) for e in a[3].split(',')]
++    actual = [r['E_over_N_Td'] for r in data.get('points', [])]
++    V.need(len(expected) == len(set(expected)) and actual == expected, 'job E/N coverage/order mismatch')
++    for row in data['points']:
++        for key in V.POINT_NUMBERS:
++            V.number(row.get(key), key)
++        for key in V.POINT_COUNTS:
++            V.integer(row.get(key), key)
++        counts = row.get('process_events')
++        V.need(type(counts) is dict and counts, 'missing process counts')
++        for value in counts.values(): V.integer(value, 'process count')
++        V.need(sum(counts.values()) == row['real_events'], 'process total mismatch')
++        V.need(row['real_events'] <= row['candidates'], 'event count exceeds candidates')
++    return digest
++
++
++def completed(job, binding):
++    """Missing/invalid proof is incomplete, never a successful resume."""
++    try:
++        proof, _ = V.stable_json(job['output'] + '.complete.json')
++        V.need(proof.get('schema') == 'swarm-job-completion-v1' and type(proof.get('exit')) is int and proof['exit'] == 0,
++               'missing successful completion')
++        V.need(proof.get('identity') == identity(job, binding), 'job provenance mismatch')
++        V.need(proof.get('output_sha256') == validate_output(job['output'], job), 'output changed')
++        return True
++    except (OSError, ValueError, KeyError, TypeError):
++        return False
++
++
++def publish(temp_path, job, before, binding):
++    """Called only after child exit 0 and under the output's exclusive claim."""
++    V.need(before == identity(job, binding), 'binary/blob/command changed while job ran')
++    digest = validate_output(temp_path, job)
++    # Atomic rename publishes only a complete, verified JSON document.
++    with open(temp_path, 'rb') as stream:
++        __import__('os').fsync(stream.fileno())
++    Path(temp_path).replace(job['output'])
++    V.atomic_json(job['output'] + '.complete.json', {'schema':'swarm-job-completion-v1',
++                  'identity':before, 'exit':0, 'output_sha256':digest})
+--- a/tools/run_jobs.py
++++ b/tools/run_jobs.py
+@@ -8,7 +8,12 @@
+ RETURN-CORES-0-3 exists. Cores 2-5 are never used.
+ """
+ import json
++import fcntl
++import importlib.util
++from pathlib import Path
++import tempfile
+ import os
++import signal
+ import subprocess
+ import sys
+ import time
+@@ -20,51 +25,96 @@
+ QUEUED = os.environ.get('PFC_LEASE') == 'none'   # inside a SimQueue job: the queue holds the job's CPUs; no lease files
+ CORES = sorted(os.sched_getaffinity(0)) if QUEUED else [int(c) for c in os.environ.get('PFC_LEASE', '6 7 0 1').split()]
+ RETURN = os.path.join(LOCKS, 'RETURN-CORES-0-3')
++_spec = importlib.util.spec_from_file_location('swarm_job_integrity', Path(__file__).with_name('swarm_job_integrity.py'))
++_proof = importlib.util.module_from_spec(_spec)
++_spec.loader.exec_module(_proof)
++BINDING = os.environ.get('PF_QUAL_BINDING_SHA256', 'unbound-diagnostic')
+ 
+ 
+ def main(jobs_path, receipt_path):
+     jobs = json.load(open(jobs_path))
+     pending = list(range(len(jobs)))
+     results = {}
+-    if QUEUED:
+-        # a preempted and requeued queue job resumes: jobs whose declared output already parses as JSON are not rerun
+-        for j in list(pending):
+-            outp = jobs[j].get('output')
+-            if outp and os.path.exists(outp):
++    running = {}   # core -> (job index, process, start, claim, temporary output, input identity)
++    def terminated(signum, frame):
++        raise InterruptedError('swarm manager received signal ' + str(signum))
++    previous = {sig: signal.signal(sig, terminated) for sig in (signal.SIGTERM, signal.SIGINT)}
++    try:
++        while pending or running:
++            for core, (j, p, t0, claim, temporary, before) in list(running.items()):
++                if p.poll() is not None:
++                    code = p.returncode
++                    if code == 0:
++                        try:
++                            _proof.publish(temporary, jobs[j], before, BINDING)
++                        except (OSError, ValueError, KeyError, TypeError) as exc:
++                            print(jobs[j]['name'], 'completion refused:', str(exc), flush=True)
++                            code = 1
++                    if code == 75:   # core lease busy: requeue
++                        pending.insert(0, j)
++                    else:
++                        results[j] = {'name': jobs[j]['name'], 'core': core, 'exit': code,
++                                      'seconds': time.time() - t0, 'completion_verified': code == 0}
++                    Path(temporary).unlink(missing_ok=True)
++                    claim.close()
++                    del running[core]
++            for core in CORES:
++                if not pending:
++                    break
++                if core in running:
++                    continue
++                if core < 4 and os.path.exists(RETURN) and not QUEUED:
++                    continue
++                j = pending.pop(0)
++                job = jobs[j]
++                _proof.V.need(job.get('output'), 'job lacks explicit output')
++                claim = open(job['output'] + '.claim', 'a')
+                 try:
+-                    json.load(open(outp))
+-                except ValueError:
++                    fcntl.flock(claim, fcntl.LOCK_EX | fcntl.LOCK_NB)
++                except BlockingIOError:
++                    claim.close()
++                    pending.append(j)
+                     continue
+-                results[j] = {'name': jobs[j]['name'], 'core': None, 'exit': 0, 'seconds': 0.0, 'resumed': True}
+-                pending.remove(j)
+-    running = {}   # core -> (job index, Popen, start)
+-    while pending or running:
+-        for core, (j, p, t0) in list(running.items()):
+-            if p.poll() is not None:
+-                if p.returncode == 75:   # lease busy: requeue
+-                    pending.insert(0, j)
+-                else:
+-                    results[j] = {'name': jobs[j]['name'], 'core': core, 'exit': p.returncode, 'seconds': time.time() - t0}
+-                del running[core]
+-        for core in CORES:
+-            if not pending:
+-                break
+-            if core in running:
+-                continue
+-            if core < 4 and os.path.exists(RETURN) and not QUEUED:
+-                continue
+-            j = pending.pop(0)
+-            job = jobs[j]
+-            cmd = ([] if QUEUED else ['flock', '-n', '-E', '75', os.path.join(LOCKS, LOCK_OF[core])]) + \
+-                ['taskset', '-c', str(core), 'nice', '-n', NICE_OF.get(core, '15'), 'env', 'OMP_NUM_THREADS=1', 'CUDA_VISIBLE_DEVICES=', FROZEN] + job['argv']
+-            log = open(job['log'], 'w')
+-            p = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT, cwd=job.get('cwd'))
+-            running[core] = (j, p, time.time())
+-        time.sleep(1.0)
+-    json.dump({'jobs': [results[i] for i in sorted(results)]}, open(receipt_path, 'w'), indent=1)
+-    bad = [r for r in results.values() if r['exit'] != 0]
+-    print('jobs', len(results), 'failed', len(bad))
+-    return 1 if bad else 0
++                # Recheck under the claim: another runner may have completed it.
++                if _proof.completed(job, BINDING):
++                    results[j] = {'name': job['name'], 'core': None, 'exit': 0, 'seconds': 0.0,
++                                  'resumed': True, 'completion_verified': True}
++                    claim.close()
++                    continue
++                before = _proof.identity(job, BINDING)
++                fd, temporary = tempfile.mkstemp(prefix='.' + Path(job['output']).name + '.',
++                                                 suffix='.partial', dir=Path(job['output']).parent)
++                os.close(fd)
++                argv = list(job['argv'])
++                argv[2] = temporary
++                cmd = ([] if QUEUED else ['flock', '-n', '-E', '75', os.path.join(LOCKS, LOCK_OF[core])]) + \
++                    ['taskset', '-c', str(core), 'nice', '-n', NICE_OF.get(core, '15'), 'env', 'OMP_NUM_THREADS=1', 'CUDA_VISIBLE_DEVICES=', FROZEN] + argv
++                log = open(job['log'], 'w')
++                p = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT, cwd=job.get('cwd'), start_new_session=True)
++                log.close()
++                running[core] = (j, p, time.time(), claim, temporary, before)
++            time.sleep(1.0)
++        _proof.V.atomic_json(receipt_path, {'jobs': [results[i] for i in sorted(results)]})
++        bad = [r for r in results.values() if r['exit'] != 0]
++        print('jobs', len(results), 'failed', len(bad))
++        return 1 if bad else 0
++    finally:
++        # Only process groups created by this manager are signaled.
++        for _, child, _, _, _, _ in running.values():
++            if child.poll() is None:
++                try: os.killpg(child.pid, signal.SIGTERM)
++                except ProcessLookupError: pass
++        for _, child, _, claim, temporary, _ in running.values():
++            try:
++                child.wait(timeout=5)
++            except subprocess.TimeoutExpired:
++                try: os.killpg(child.pid, signal.SIGKILL)
++                except ProcessLookupError: pass
++                child.wait(timeout=5)
++            Path(temporary).unlink(missing_ok=True)
++            claim.close()
++        for sig, handler in previous.items(): signal.signal(sig, handler)
++
+ 
+ 
+ if __name__ == '__main__':
+--- a/tools/make_seal.py
++++ b/tools/make_seal.py
+@@ -7,12 +7,16 @@
+ its blob and policy identities must equal the shipped files.
+ """
+ import hashlib
++import importlib.util
+ import json
+ import sys
+ import time
+ from pathlib import Path
+ 
+ R = Path(__file__).resolve().parent.parent
++_qspec = importlib.util.spec_from_file_location('qualification_integrity', R / 'tools/qualification_integrity.py')
++QI = importlib.util.module_from_spec(_qspec)
++_qspec.loader.exec_module(QI)
+ 
+ 
+ def sha(p):
+@@ -25,8 +29,7 @@
+ 
+ def main(receipt_path, cost_path=None):
+     rc = json.load(open(receipt_path))
+-    if not all(st['passed'] for st in rc['stages']):
+-        raise SystemExit('receipt has a failed stage')
++    qualified = QI.verify_receipt(R, rc, Path(receipt_path).resolve().parent)
+     blob = sha(R / 'data/tables/chemistry-v3.2.blob')
+     pol = sha(R / 'data/tables/chemistry-v3.2-coverage-policy.json')
+     st = {s['stage']: s for s in rc['stages']}
+@@ -42,6 +45,9 @@
+     seal = {
+         'schema': 'pfc-chem-v3-seal-1', 'version': '3.2', 'created_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+         'code_identity': code_id,
++        'technical_qualification': qualified,
++        'production_qualified': False,
++        'physics_model_validated': False,
+         'code_identity_rule': 'sha256 of the compact sorted JSON map {path: sha256} over include/, device/, tests/',
+         'table_blob_sha256': blob, 'coverage_policy_sha256': pol, 'qualification_receipt': str(Path(receipt_path).resolve()),
+         'predecessor': '/home/treefor/projects/runtimes/pic-water-chemistry-v3.1-20261031 (SEAL.json there)',
+@@ -50,7 +56,14 @@
+         'cost_per_collision': json.load(open(cost_path)) if cost_path else st.get('cost', {}).get('cost_per_collision'),
+         'files': files,
+     }
+-    json.dump(seal, open(R / 'SEAL.json', 'w'), indent=1)
++    QI.need(qualified == QI.verify_receipt(R, rc, Path(receipt_path).resolve().parent), 'inputs changed during sealing')
++    temporary = R / 'SEAL.json.partial'
++    with open(temporary, 'x') as stream:
++        json.dump(seal, stream, indent=1, allow_nan=False)
++        stream.write('\n')
++        stream.flush()
++        __import__('os').fsync(stream.fileno())
++    temporary.replace(R / 'SEAL.json')
+     print('SEAL.json: code', code_id, 'blob', blob, 'policy', pol, 'files', len(files))
+ 
+ 
+--- a/run_checks.py
++++ b/run_checks.py
+@@ -11,8 +11,10 @@
+ """
+ import hashlib
+ import json
++import importlib.util
+ import os
+ import platform
++import signal
+ import subprocess
+ import sys
+ import time
+@@ -45,12 +47,19 @@
+     return h.hexdigest()
+ 
+ 
++_qspec = importlib.util.spec_from_file_location('qualification_integrity', R / 'tools/qualification_integrity.py')
++QI = importlib.util.module_from_spec(_qspec)
++_qspec.loader.exec_module(QI)
++
++
+ class Run:
+     def __init__(self, label):
+         self.out = OUT_ROOT / label
+         self.out.mkdir(parents=True, exist_ok=True)
+         self.rp = self.out / 'receipt.json'
+-        self.receipt = json.loads(self.rp.read_text()) if self.rp.exists() else {'label': label, 'host': platform.node(), 'stages': []}
++        self.receipt = json.loads(self.rp.read_text()) if self.rp.exists() else {'schema': QI.SCHEMA, 'label': label, 'host': platform.node(), 'stages': []}
++        QI.need(self.receipt.get('schema') == QI.SCHEMA, 'legacy receipt requires a new qualification label')
++        self.binding = None
+ 
+     def step(self, name, argv, kind='cpu', timeout=7200):
+         log = self.out / ('%s.log' % name)
+@@ -63,14 +72,41 @@
+             cmd = list(argv)
+         t0 = time.time()
+         with open(log, 'w') as f:
+-            p = subprocess.run(cmd, stdout=f, stderr=subprocess.STDOUT, cwd=str(R), timeout=timeout)
++            p = subprocess.Popen(cmd, stdout=f, stderr=subprocess.STDOUT, cwd=str(R), start_new_session=True)
++            try:
++                p.wait(timeout=timeout)
++            except BaseException:
++                # Allow run_jobs to reap its own child sessions before a forced stop.
++                # This group belongs to this invocation; never signal a guessed PID.
++                try: os.killpg(p.pid, signal.SIGTERM)
++                except ProcessLookupError: pass
++                try:
++                    p.wait(timeout=20)
++                except subprocess.TimeoutExpired:
++                    try: os.killpg(p.pid, signal.SIGKILL)
++                    except ProcessLookupError: pass
++                    p.wait(timeout=5)
++                raise
+         e = {'name': name, 'argv': cmd, 'exit': p.returncode, 'seconds': round(time.time() - t0, 2), 'log': str(log)}
+         print('%-28s exit %d  %.1f s' % (name, p.returncode, e['seconds']), flush=True)
+         return e
+ 
++    def begin_stage(self, name):
++        dep_roots = [V31 / 'include',
++            Path('/home/treefor/projects/runtimes/pic-arrival-owner-v1-20261030/include'),
++            Path('/home/treefor/projects/runtimes/hall-gpu-resident-v1-20261030/common'),
++            Path('/home/treefor/projects/runtimes/pic-cuda-gather-investigation-20261029/tools/nvrtc/nvidia/cuda_nvrtc/include'),
++            Path('/home/treefor/projects/runtimes/mfem-cuda-benchmark-20261029/cuda-libs/nvidia/cuda_runtime/include')]
++        deps = sorted(set(PINNED) | {str(p) for d in dep_roots for p in d.rglob('*') if p.is_file()} |
++                      {str(V31 / 'build/bin/gpu_parity'), str(V31 / 'data/tables/chemistry-v3.1.blob')})
++        self.dependencies = deps
++        self.binding = QI.begin_stage(R, deps, self.receipt, name)
++        os.environ['PF_QUAL_BINDING_SHA256'] = self.binding['before']['sha256']
++
+     def stage(self, name, entries, extra=None):
++        binding = QI.finish_stage(R, self.dependencies, self.binding)
+         self.receipt['stages'].append({'stage': name, 'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'entries': entries,
+-                                       'passed': all(e.get('exit', 0) == 0 for e in entries), **(extra or {})})
++                                       'passed': bool(entries) and all(type(e.get('exit')) is int and e['exit'] == 0 for e in entries), 'binding': binding, **(extra or {})})
+         self.rp.write_text(json.dumps(self.receipt, indent=1))
+ 
+ 
+@@ -242,7 +278,11 @@
+     e5 = run.step('swarm-multiseed-summary-v32', ['python3', '-I', str(ms), 'summary', str(mdir), 'v32', str(mdir / 'summary-v32.json')], 'host')
+     e6 = run.step('swarm-revalidation', ['python3', '-I', str(ms), 'compare', str(mdir / 'summary-v32.json'), str(mdir / 'summary-v3.json'), str(V3_SWARM),
+                                          str(run.out / 'SWARM-REVALIDATION')], 'host')
+-    run.stage('swarm', [e0, e1, e2, e3, e4, e5, e6], {'sets': {k: sha(v) for k, v in sets.items()}})
++    proof = json.load(open(run.out / 'SWARM-REVALIDATION.json'))
++    run.stage('swarm', [e0, e1, e2, e3, e4, e5, e6], {'sets': {k: sha(v) for k, v in sets.items()},
++              'revalidation_sha256': sha(run.out / 'SWARM-REVALIDATION.json'),
++              'job_plan_sha256': {d: sha(run.out / d / 'jobs.json') for d in ('swarm','swarm-multiseed')},
++              'scientific_criterion_status': proof['scientific_criterion_status']})
+ 
+ 
+ def main():
+@@ -252,6 +292,7 @@
+     fns = {'inputs': stage_inputs, 'tables': stage_tables, 'policy': stage_policy, 'build': stage_build, 'core': stage_core, 'sanitized': stage_sanitized,
+            'gpu': stage_gpu, 'cost': stage_cost, 'bench': stage_bench, 'swarm': stage_swarm}
+     for s in stages:
++        run.begin_stage(s)
+         fns[s](run)
+     ok = all(st['passed'] for st in run.receipt['stages'])
+     print('RECEIPT', run.rp, 'passed' if ok else 'FAILED')

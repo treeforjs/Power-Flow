@@ -1,0 +1,114 @@
+Read-only takeover inventory, observed 2026-11-01 05:35--05:45 UTC
+================================================================
+Active work
+-----------
+SimQueue 294: chemistry v3.2 qual-003 swarm/inputs, borrowed CPU 5 after CPU 4
+preemption; 6 GB, six-hour request. It was still running legacy comparison
+batches before the new 12-file multiseed matrix. A separate lease-based worker
+on CPU 6 writes the same qual-003/swarm-multiseed paths in reverse seed order.
+CPU 7 is occupied intermittently by the ISA study. Do not duplicate these runs,
+edit their code, signal them, or overwrite their outputs during takeover.
+
+Both writers have overlapping future file names. tools/run_jobs.py:29--39
+accepts any parseable JSON as a completed job without verifying seed, blob,
+point coverage, run configuration or successful exit. It checks this only once
+before dispatch. At lines 56--62 it does not recheck per output or claim a
+per-output lock. tests/swarm_mc.cpp:65,270--285 streams directly to the final
+JSON path and flushes each point. Preemption produces a partial final file;
+the two pending lists can eventually write the same file concurrently.
+Safe boundary: current workers stop writing, then verify a complete matrix and
+job receipts. Future work needs distinct writer output directories or atomic
+per-task claiming plus temporary-output publication and completion receipts.
+
+Audit-patch adoption
+--------------------
+All nine captured v3.2 source-base hashes still matched our earlier adoption
+manifest. In v3.2.1 all five patched outputs match the proposed patch hashes
+exactly: cover_support/region_support, persistent realizable parcels, GAS-return
+nondebit, mixed-placeholder unbounded metadata, and strict default policy.
+Supporting kinematics/table/RNG headers remain the captured v3.2 versions.
+
+Remaining: regenerate blob/manifest/checks/strict policy from patched builder;
+adopt matching native support/parcel checkpoint schema and pinned identities;
+run transplanted audit tests plus full v3.2.1 CPU/sanitizer/GPU/partition/swarm
+qualification; update docs and issue a new seal. Both current copied SEAL.json
+files still identify version 3.1. Both generated policies currently have no
+model_mode/reachability_schema and contain 36 bounded, 126 admitted unbounded,
+zero refusing regions. They are not the corrected production policy.
+v3.2 qual-003 receipt has passed inputs/tables/policy/build/core/sanitized/GPU/
+cost/bench entries, but no completed swarm entry at the observation boundary.
+v3.2.1 has no completed qualification evidence. It is active staging work.
+
+Scientific decision evidence
+----------------------------
+Live HANDOFF.txt and swarm_multiseed.py say a later decision replaced the
+absolute v3-vs-measured bands with a v3.2-vs-v3 six-seed mean comparison bounded
+by max(2 reference SD, 1 percentage point). The repository's copied handoff
+still says the decision was pending. These are worker-authored accounts, not
+independently located approval. Existing numerical tolerances are preserved
+by the integrity fix; adoption of that changed scientific criterion is separate.
+
+The multiseed comparison tests similarity to the old model relative to measured
+values; it does not impose an absolute agreement bound against measurements.
+Primary-source PDFs and extracts are present for Rudd/Wedlund/Gobet and one
+O+ fragment-yield point. The model transfer from proton/helium to heavy ions,
+factor-5/10 extrapolations, free-collision estimates and attachment zeros remain
+declared model assumptions. SCOPE.md:315--341 labels them estimates; the findings
+file itself says no matching broad heavy-ion cross-section tables were found.
+A small B/A or no refusal is not a validation of those sampled estimates:
+documented bounds are metadata rather than propagated model-error limits.
+LXCat swarm extracts cite Hasegawa/Crompton; their notes do not supply measurement
+uncertainties, and the Crompton primary paper/conversion was not independently
+verified there. Do not convert these provenance limitations into invented data.
+
+Gas target owner and conservative native interface
+-------------------------------------------------
+gas-target-owner-v1-20261101 contains actively written CPU/device source,
+an object file and a new test harness, with no completed test/receipt/seal found.
+Its useful approach is a correction ledger on top of native neutral carriers:
+for consuming reactions, subtract sampled target K/P and add the actually
+removed native packet K/P back to that correction ledger. Native performs the
+count debit once. Combined native-plus-owner moments then lose the sampled
+target used by event kinematics. For GAS return, no count debit is permitted;
+the correction is outgoing minus sampled incoming target K/P.
+
+Concrete blockers in this in-progress implementation:
+* gas_core.h:552--574 silently clamps negative corrected thermal variance to
+  zero and ignores nonzero correction when population N<=0. Exact signed
+  bookkeeping does not make the resulting target distribution realizable.
+  Refuse unrealizable moments, handle zero-count residual ownership, and use
+  the same kinetic/momentum convention as the actual target sampler.
+* gas_owner.cpp:516--527 checks stage is 1 or 2 but not order/uniqueness;
+  repeated take(stage) double-books data. commit():635--662 does not require
+  completed ordered stages. feedback():567--572 ignores stage.
+* Header claims of CPU/device identity and production presets are not test
+  evidence. Keep native's current fail-closed target-energy guard.
+
+Recommended native/gas integration contract:
+1. Immutable target snapshot: accepted native/gas state digests, step+stage,
+   cell atlas, species/mass/grid identities, exact count/K/P/internal energy,
+   and hash of the actual feedback CellTargets used by both majorant and draws.
+2. Admitted-only event commitment (or raw root plus explicit admitted-prefix
+   mask). The existing raw records_root includes later debit-refused events.
+3. Canonical debit plan with stable native packet IDs, exact split weights,
+   pre-debit velocities/internal energy and unique event/debit identities.
+   Reconcile aggregate consumed target weight with the native debit plan;
+   GAS-return events must not debit target count. Never mutate native count
+   from both owners.
+4. Prepare both stages/motion transport in a candidate. Enforce one-shot stage
+   ordering, validate exact ledgers AND realizable combined moments, bind
+   candidate hash to native receipt, and publish both owners with no-fail swap.
+   Refusal/abort leaves accepted native/gas/RNG state unchanged.
+5. Checkpoint the gas state/config/digest and phase consistently with native.
+   Test partial targets, GAS then consume, depleted cells, unequal velocities,
+   repeat/reordered stages, refused events, restart and CPU/GPU parity.
+
+Suggested ownership
+-------------------
+Current chemistry worker: finish existing diagnostic writers to a stable handoff,
+without interpreting old comparator PASS as qualification. This audit task owns
+isolated validation hardening. Native reviewer owns a transactional admitted-
+record adapter in a new fork. Gas-owner implementation should remain a separate
+isolated component until its invariants and receipt are qualified. Root owns
+scientific-policy decisions, cross-component pins, publication and any resource
+handoff. No existing guard should be removed merely because a hook is declared.

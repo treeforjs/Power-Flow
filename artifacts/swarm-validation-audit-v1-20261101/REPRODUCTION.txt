@@ -1,0 +1,9 @@
+Publication is filtered: no source tables, extracted measurements, generated blobs, build binaries, or raw live swarm results are included.
+
+The complete local fixture environment is preserved at:
+  /home/treefor/projects/runtimes/swarm-validation-audit-v1-20261101
+Run tests there through SimQueue with the frozen launcher. baseline/base-sha256.json identifies the local snapshots required by tests/test_validation.py, including original tools/writer and licensed measured/spec sources. Recreate them from those exact local identities if relocating; do not silently substitute newer source. The historical comparison and sealed v3.1 inputs are pinned by source/swarm-contract.json.
+
+The adoption patch is not deployed. adoption/verify_base.py checks the unchanged live base and patch without writing it. Apply only to a new isolated runtime after a coordinated handoff, with new output ownership and qualification label. Original writers do not honor the new claims. Runtime/output paths and contract pins must be reviewed for the staged successor; no forced application or automatic hash refresh.
+
+31 synthetic regressions passed in SimQueue job 312. The evidence/original-* files deliberately record the faulty baseline behavior, not accepted scientific results. The technical sealer always leaves production_qualified=false and physics_model_validated=false. Primary-data/model/criterion review is separate.
