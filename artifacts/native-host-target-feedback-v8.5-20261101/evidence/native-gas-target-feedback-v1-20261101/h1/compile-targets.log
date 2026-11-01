@@ -1,0 +1,40 @@
+In file included from /home/treefor/projects/runtimes/native-gas-target-feedback-v1-20261101/tests/test_targets.cpp:2:
+/home/treefor/projects/runtimes/native-gas-target-feedback-v1-20261101/include/native_gas_targets.hpp: In function ‘std::string native_gas_targets::contract(const raikou::mfem_backend::FullTimeChemistryConfiguration&, const raikou::mfem_backend::GapPicOptions&, const pf_gas_v1::Owner&)’:
+/home/treefor/projects/runtimes/native-gas-target-feedback-v1-20261101/include/native_gas_targets.hpp:20:29: error: ‘static std::string raikou::mfem_backend::PicArena::sha256(const std::string&)’ is private within this context
+   20 |   return n::PicArena::sha256(n::ArenaJson{{"schema","native-gas-target-feedback-cpu-v1"},
+      |          ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   21 |     {"native_base_configuration",registry.configuration_sha256},{"registry",registry.registry_sha256},
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   22 |     {"gas_configuration",gas.configuration_sha256()},{"model","neutral-Maxwellian-moment-correction"}}.dump());
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.5-host-target-feedback-20261101/source/include/raikou/mfem_pic_full_time.h:2,
+                 from /home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.5-host-target-feedback-20261101/tests/chem_v8_fixture.hpp:8,
+                 from /home/treefor/projects/runtimes/native-gas-target-feedback-v1-20261101/tests/test_targets.cpp:1:
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.5-host-target-feedback-20261101/source/include/raikou/mfem_pic_arena.h:411:22: note: declared private here
+  411 |   static std::string sha256(const std::string &);
+      |                      ^~~~~~
+/home/treefor/projects/runtimes/native-gas-target-feedback-v1-20261101/include/native_gas_targets.hpp: In function ‘std::string native_gas_targets::feedback_digest(const pf_gas_v1::FeedbackReceipt&)’:
+/home/treefor/projects/runtimes/native-gas-target-feedback-v1-20261101/include/native_gas_targets.hpp:25:29: error: ‘static std::string raikou::mfem_backend::PicArena::sha256(const std::string&)’ is private within this context
+   25 |   return n::PicArena::sha256(n::ArenaJson{{"schema","native-gas-feedback-receipt-v1"},{"slots",r.slots},
+      |          ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   26 |     {"eligible",r.eligible},{"changed",r.changed},{"clamped",r.clamped},
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   27 |     {"before",r.cells_before_sha256},{"after",r.cells_after_sha256}}.dump());
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/treefor/projects/runtimes/pic-reaction-transactions-20261029/native-full-time-v8.5-host-target-feedback-20261101/source/include/raikou/mfem_pic_arena.h:411:22: note: declared private here
+  411 |   static std::string sha256(const std::string &);
+      |                      ^~~~~~
+/home/treefor/projects/runtimes/native-gas-target-feedback-v1-20261101/tests/test_targets.cpp: In function ‘int main(int, char**)’:
+/home/treefor/projects/runtimes/native-gas-target-feedback-v1-20261101/tests/test_targets.cpp:58:2: error: this ‘if’ clause does not guard... [-Werror=misleading-indentation]
+   58 |  if(argc!=2)throw std::runtime_error("output directory required");std::filesystem::path out=argv[1];std::filesystem::create_directories(out);
+      |  ^~
+/home/treefor/projects/runtimes/native-gas-target-feedback-v1-20261101/tests/test_targets.cpp:58:67: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+   58 |  if(argc!=2)throw std::runtime_error("output directory required");std::filesystem::path out=argv[1];std::filesystem::create_directories(out);
+      |                                                                   ^~~
+/home/treefor/projects/runtimes/native-gas-target-feedback-v1-20261101/tests/test_targets.cpp:83:39: error: ‘device’ is not a member of ‘raikou::mfem_backend::FullTimeExecution’
+   83 |  for(auto mode:{n::FullTimeExecution::device,n::FullTimeExecution::device_verified})typed([&]{S.A.arena->attach_full_time_device({},mode);},n::FullTimeChemistryRefusal::Kind::target_fields,"device target feedback silently fell back");
+      |                                       ^~~~~~
+/home/treefor/projects/runtimes/native-gas-target-feedback-v1-20261101/tests/test_targets.cpp:83:68: error: ‘device_verified’ is not a member of ‘raikou::mfem_backend::FullTimeExecution’
+   83 |  for(auto mode:{n::FullTimeExecution::device,n::FullTimeExecution::device_verified})typed([&]{S.A.arena->attach_full_time_device({},mode);},n::FullTimeChemistryRefusal::Kind::target_fields,"device target feedback silently fell back");
+      |                                                                    ^~~~~~~~~~~~~~~
+cc1plus: all warnings being treated as errors
