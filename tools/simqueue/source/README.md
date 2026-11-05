@@ -1,5 +1,19 @@
 # simqueue
 
+## 0.7.2: MPI containment
+
+`containment.py`: every job gets its own temporary and MPI rendezvous
+directory `/tmp/simq.<job>.<token12>` (made by `jobwrap.py`, removed at the
+job's end); `TMPDIR`, `PMIX_SYSTEM_TMPDIR`, `PMIX_SERVER_TMPDIR` and
+`PRTE_MCA_prte_tmpdir_base` point at it, so Open MPI 5's `prun`/`--dvm
+search` cannot attach to a PRRTE DVM outside the job. Inherited launcher
+identity variables (`PMIX_*`, `PRTE_*`, `PMI_*`, ...; not MCA parameters) are
+dropped. `EscapeScanner` reads `/proc` while jobs run and at each job's end:
+processes carrying a job's `SIMQ_LAUNCH_TOKEN` outside its cgroup go to the
+job's `escaped.json` and `simq show`; MPI daemons outside every job go to
+`containment.json`, `simq partitions` and `simq doctor`. `../upgrade.py`
+installs 0.7.2 over 0.7.1 (no schema change) and rolls back.
+
 ## 0.7.1: auto memory by default, robust tests
 
 `memory.auto_default`: a job without `--mem` gets `--mem auto` when its name

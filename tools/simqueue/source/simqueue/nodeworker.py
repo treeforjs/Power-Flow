@@ -76,7 +76,16 @@ from .nodeconfig import NodeConfig, format_size, format_time_limit
 from .scheduler import INFINITY, Allocation, Request, Running, build_pool, plan
 from .telemetry import NodeTelemetry
 from .github import FINAL, Poster, build_task, job_phase
+from .containment import (
+    EscapeScanner,
+    JobScope,
+    job_tmpdir,
+    remove_job_tmpdir,
+    write_daemons,
+    write_escaped,
+)
 from .memory import (
+    CGROUP_ROOT,
     NodeMemory,
     Series,
     SpikeState,
@@ -125,6 +134,7 @@ SPEC_SCHEMA = "simqueue-job-spec-v1"
 LOCK_BUSY_REFUSAL = "lock-busy"
 STOP_RESEND_SECONDS = 30.0
 WAKE_FIFO = "worker.wake"
+CONTAINMENT_FILE = "containment.json"  # 0.7.2: outside MPI daemons seen by the escape scan
 EXIT_WATCH_SECONDS = 5.0  # after a wake-up, look for ended job units this long ...
 EXIT_WATCH_STEP = 0.2  # ... this often (a stop-post hook wakes the worker just before its unit ends)
 IDLE_CHECK_SECONDS = 5.0  # with no job running: how often data_version is compared
@@ -404,13 +414,17 @@ def placement_environment(
     }
 
 
-def job_environment(job: dict[str, Any], placement: dict[str, str]) -> dict[str, str]:
+def job_environment(job: dict[str, Any], placement: dict[str, str], tmpdir: str | None = None) -> dict[str, str]:
     """The captured submission environment plus the placement variables.
 
     Inherited ``SLURM_*`` variables are removed (unless passed with ``-e``)
     because a stale ``SLURM_JOB_ID`` makes launchers such as pf-launch,
-    Open MPI and MPICH take their Slurm code paths.
+    Open MPI and MPICH take their Slurm code paths.  0.7.2: so are inherited
+    MPI launcher identity variables (``PMIX_*``, ``PRTE_*``, ``PMI_*``, ...),
+    and with ``tmpdir`` the job's own rendezvous directory is set
+    (containment.py).
     """
+    from .containment import environment_with_containment
     from .envpolicy import REDACTED, SESSION, read_secrets
 
     environment = {str(k): str(v) for k, v in dict(json.loads(str(job["env_json"]))).items()}
@@ -431,6 +445,7 @@ def job_environment(job: dict[str, Any], placement: dict[str, str]) -> dict[str,
     for key in SESSION:
         if key not in environment and os.environ.get(key):
             environment[key] = os.environ[key]
+    environment = environment_with_containment(environment, explicit, tmpdir)
     environment.update(placement)
     return environment
 
@@ -491,6 +506,13 @@ class NodeWorker:
         self._idle_seen: deque = deque()  # (unix, MemAvailable + the queue jobs' use), the last hour
         self._last_unit: dict[int, UnitState] = {}  # job id -> its unit's state when it ended
         self.shm_dir = SHM_DIR
+        # 0.7.2: containment (per-job rendezvous directory, escape scan)
+        self.containment = config.containment
+        self.scanner = EscapeScanner()
+        self._scopes: dict[int, JobScope] = {}  # running job -> token and cgroup for the scan
+        self._next_scan = 0.0
+        self._daemons_seen: set[tuple[int, str]] = set()
+        self._escapes_logged: set[tuple[int, int]] = set()
         self._admissible: int | None = None
         self.passes = 0
         self.unit_queries = 0
@@ -566,6 +588,9 @@ class NodeWorker:
         for job_id in list(self._verified):
             if job_id not in active_ids:
                 self._verified.pop(job_id, None)
+        for job_id in list(self._scopes):
+            if job_id not in active_ids:
+                self._scopes.pop(job_id, None)
         query = unit_jobs if (startup or full) else [j for j in unit_jobs if self._needs_query(j)]
         states = None
         if query:
@@ -584,6 +609,7 @@ class NodeWorker:
                         self._verified[int(job["id"])] = (
                             cgroup_from_control_group(unit.control_group) or self._computed_cgroup(job)
                         )
+                        self._scope_for(job)
                     self._reconcile_unit_job(job, unit, startup=startup)
                 except Exception as error:  # keep reconciling the others
                     self.log(f"reconcile error for job {job['id']}: {error!r}")
@@ -723,6 +749,87 @@ class NodeWorker:
             self._clean_shm(job)
         except Exception as error:  # noqa: BLE001 - never block a job's end
             self.log(f"job {job_id}: shared-memory cleanup failed: {error!r}")
+        try:
+            self._contain_at_end(job)
+        except Exception as error:  # noqa: BLE001 - never block a job's end
+            self.log(f"job {job_id}: containment check at its end failed: {error!r}")
+
+    # ----- 0.7.2: containment -------------------------------------------------
+
+    def _scope_for(self, job: dict[str, Any]) -> JobScope | None:
+        job_id = int(job["id"])
+        cgroup = self._verified.get(job_id)
+        if cgroup is None:
+            return self._scopes.get(job_id)
+        relative = "/" + str(cgroup).removeprefix(str(CGROUP_ROOT)).lstrip("/")
+        scope = JobScope(job_id=job_id, token=str(job["launch_token"]), cgroup=relative, name=str(job.get("name") or ""))
+        self._scopes[job_id] = scope
+        return scope
+
+    def _job_tmpdir_of(self, job: dict[str, Any]) -> str | None:
+        """The rendezvous directory a job was given (its spec), if any."""
+        if job.get("job_dir"):
+            spec = read_json(Path(str(job["job_dir"])) / "spec.json")
+            if isinstance(spec, dict) and spec.get("tmpdir"):
+                return str(spec["tmpdir"])
+        return None
+
+    def _contain_at_end(self, job: dict[str, Any]) -> None:
+        """A job ended: remove its rendezvous directory (the wrapper does so
+        itself unless it was killed) and report processes it left running
+        outside its cgroup."""
+        job_id = int(job["id"])
+        scope = self._scopes.pop(job_id, None) or JobScope(job_id=job_id, token=str(job["launch_token"]),
+                                                            cgroup="/nonexistent-ended-job", name=str(job.get("name") or ""))
+        tmpdir = self._job_tmpdir_of(job)
+        if tmpdir:
+            freed = remove_job_tmpdir(tmpdir)
+            if freed:
+                self.log(f"job {job_id}: removed its temporary directory {tmpdir} ({format_size(freed)})")
+        if self.containment.enabled:
+            result = self.scanner.scan(list(self._scopes.values()), ended=[scope])
+            self._report_scan(result)
+        self.scanner.forget_job(job_id)
+
+    def _scan_containment(self) -> None:
+        self._next_scan = time.monotonic() + self.containment.scan_seconds
+        result = self.scanner.scan(list(self._scopes.values()))
+        self._report_scan(result)
+
+    def _report_scan(self, result: Any) -> None:
+        for job_id, items in result.escaped.items():
+            job = self.store.get(job_id)
+            job_dir = (job or {}).get("job_dir")
+            if job_dir:
+                try:
+                    write_escaped(str(job_dir), items)
+                except OSError as error:
+                    self.log(f"job {job_id}: cannot write escaped.json: {error!r}")
+            for item in items:
+                key = (job_id, item.pid)
+                if key in self._escapes_logged:
+                    continue
+                self._escapes_logged.add(key)
+                where = "after the job ended" if item.after_end else "while the job runs"
+                self.log(f"job {job_id}: process {item.pid} ({item.comm}) carries the job's launch token but runs "
+                         f"outside its cgroup, in {item.cgroup} ({where}): {item.cmdline}")
+                try:
+                    self.store.add_event(job_id, "escaped-process", {
+                        "pid": item.pid, "comm": item.comm, "cgroup": item.cgroup, "after_end": item.after_end})
+                except Exception:  # noqa: BLE001 - reporting only
+                    pass
+        seen = {(int(d["pid"]), str(d["comm"])) for d in result.daemons}
+        if seen != self._daemons_seen:
+            for daemon in result.daemons:
+                if (int(daemon["pid"]), str(daemon["comm"])) not in self._daemons_seen:
+                    self.log(f"outside MPI daemon: {daemon['comm']} pid {daemon['pid']} in {daemon['cgroup']} "
+                             f"({len(daemon['children'])} child process(es)); jobs that attach to it run their "
+                             f"ranks outside the queue")
+            self._daemons_seen = seen
+            try:
+                write_daemons(state_dir() / CONTAINMENT_FILE, result.daemons)
+            except OSError as error:
+                self.log(f"cannot write {CONTAINMENT_FILE}: {error!r}")
 
     def _clean_shm(self, job: dict[str, Any]) -> None:
         """0.7.1: remove the shared-memory segments an MPI job left in /dev/shm
@@ -1309,7 +1416,9 @@ class NodeWorker:
                 summary = (json.loads(str(claimed["github_json"])) or {}).get("summary")
                 if summary:
                     placement["SIMQ_SUMMARY"] = str(summary)
-            environment = job_environment(claimed, placement)
+            tmpdir = (job_tmpdir(config.containment, job_id, str(claimed["launch_token"]))
+                      if config.containment.enabled else None)
+            environment = job_environment(claimed, placement, tmpdir)
             argv = json.loads(str(claimed["argv_json"]))
             if not isinstance(argv, list) or not argv or not all(isinstance(a, str) for a in argv):
                 raise ValueError("stored argv is not a nonempty string list")
@@ -1344,6 +1453,7 @@ class NodeWorker:
                 "scheduler_runtime": self.runtime_dir,
                 "require_unit": True,
                 "wake_path": str(self.wake_path),
+                "tmpdir": tmpdir,
             }
             if handoff is not None:
                 handoff_paths = set(config.locks.gpu_lock_order(config.gpus[handoff["gpu"]]))
@@ -1729,6 +1839,9 @@ class NodeWorker:
         self._check_exits()
         if self.memory.enabled and self._tracks:
             self._sample()
+        if (self.containment.enabled and self.containment.scan_seconds and self._scopes
+                and time.monotonic() >= self._next_scan):
+            self._scan_containment()
 
     def _check_clients(self) -> None:
         """A client wrote to the queue database (data_version changed)."""

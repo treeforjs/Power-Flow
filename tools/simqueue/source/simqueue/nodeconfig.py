@@ -35,6 +35,7 @@ from typing import Any
 
 from .config import format_cpu_list, parse_cpu_list, state_dir
 from .gpuline import LineConfig, parse_line_config
+from .containment import ContainmentConfig, parse_containment_config
 from .github import GitHubConfig, parse_github_config
 
 
@@ -410,6 +411,8 @@ class NodeConfig:
     memory: MemoryConfig = field(default_factory=MemoryConfig)
     # 0.7.0: GitHub reporting of job state (github.py)
     github: GitHubConfig = field(default_factory=GitHubConfig)
+    # 0.7.2: per-job MPI rendezvous directory and the escape scan (containment.py)
+    containment: ContainmentConfig = field(default_factory=ContainmentConfig)
 
     def canonical_partition(self, name: str | None) -> str:
         """The partition a requested or recorded name stands for: the name
@@ -563,6 +566,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             "gpu_line",
             "memory",
             "github",
+            "containment",
         },
         "node config",
     )
@@ -795,6 +799,10 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
     borrow = _parse_borrow(document.get("borrow", {}))
     memory = _parse_memory(document.get("memory", {}))
     try:
+        containment = parse_containment_config(document.get("containment"))
+    except ValueError as error:
+        raise ConfigError(str(error)) from error
+    try:
         github = parse_github_config(document.get("github"))
     except ValueError as error:
         raise ConfigError(str(error)) from error
@@ -840,6 +848,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         aliases=aliases,
         memory=memory,
         github=github,
+        containment=containment,
     )
 
 

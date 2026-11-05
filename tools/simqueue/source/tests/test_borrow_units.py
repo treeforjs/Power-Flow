@@ -338,7 +338,10 @@ class PreemptionUnitTests(BorrowFixture, unittest.TestCase):
         self.start_worker(launcher=self.make_launcher(relocated))
         self.wait_until(lambda: f"adopted job {borrow_id}" in self.worker_log(), message="adoption")
         self.assertIn("borrow job, frozen", self.worker_log())
-        self.assertEqual(self.state_of(owner_id), "running")
+        # the owner was launching when the worker was killed: the new worker
+        # finds it starting or running, never lost
+        self.wait_until(lambda: self.state_of(owner_id) in ("running", "succeeded"), timeout=30,
+                        message="owner running after the restart")
         self.assertEqual(self.freezer_state(unit), "frozen")
         self.wait_state(owner_id, "succeeded")
         self.wait_state(borrow_id, "succeeded", timeout=60)

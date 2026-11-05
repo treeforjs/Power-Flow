@@ -1,165 +1,25 @@
 {
   "schema": "simqueue-release-v1",
-  "version": "0.7.1",
-  "runtime": "/home/treefor/projects/runtimes/simqueue-0.7.1-20261105",
-  "derived_from": "/home/treefor/projects/runtimes/simqueue-0.7.0-20261105",
+  "version": "0.7.2",
+  "runtime": "/home/treefor/projects/runtimes/simqueue-0.7.2-20261105",
+  "derived_from": "/home/treefor/projects/runtimes/simqueue-0.7.1-20261105",
   "interpreter": "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen",
   "installed": false,
   "install_command": "./upgrade.py install --execute (dry run without --execute)",
-  "rollback_command": "./upgrade.py rollback --backup /home/treefor/.local/state/simqueue-backups/0.7.0-to-0.7.1-<UTC> --execute",
-  "versioning": "patch release: compatible defaults and fixes; no new scheduling input, no schema change, no new external side effect",
+  "rollback_command": "./upgrade.py rollback --backup /home/treefor/.local/state/simqueue-backups/0.7.1-to-0.7.2-<UTC> --execute",
+  "versioning": "patch release: MPI containment (per-job rendezvous directory, launcher identity filter, escape reporting); no new scheduling input, no schema change",
   "database_schema": {
     "from": 9,
     "to": 9,
     "change": "none"
   },
-  "node_config": "config/zenobia-node.json: the live 0.7.0 node.json plus memory.auto_default true and the spheral alias default_mem \"auto\"",
+  "node_config": "config/zenobia-node.json: the live 0.7.1 node.json plus the containment section (defaults: enabled, tmp_base /tmp, scan_seconds 60)",
   "features": [
-    "CRITICAL: job units never make the user manager spawn into their cgroup after start (no ExecStopPost/ExecStartPost/ExecStop; the worker records a killed job from the unit's Result/MemoryPeak/CPUUsageNSec, units not collected and reset-failed after recording), OOMPolicy=stop (memory.oom.group 0), leftover MPI /dev/shm segments removed after a job; real-OOM tests opt-in and refused on zenobia; the install removes the interim simq-job-.service.d OOMPolicy drop-in",
-    "head-of-line fix: the planner accounts actual memory (MemAvailable - margin - young jobs' unallocated requests; a running job's end frees what it uses), so reservations and backfill include memory; jobs above what the node can ever admit (best queue-idle MemAvailable over the last hour, or memory_schedulable, minus the margin) are parked with a reason and hold no reservation; submit warns",
-    "the job wrapper (a subreaper) reaps orphaned children as they exit instead of only after the leader, so they no longer stay zombies for the whole run",
-    "memory.auto_default: a job without --mem gets --mem auto when its name (family) has a recorded peak, else the default; explicit --mem wins",
-    "alias default_mem \"auto\" (spheral: was 18G)",
-    "robust load-sensitive tests (borrow placement, CPU priority best of three windows, ensemble launch-gate tails); run-tests.py isolates XDG_STATE_HOME and SIMQUEUE_STATE_DIR",
-    "secret values in the four older upgrade backups redacted in place (7, 60, 205, 705 job rows)",
-    "documented: replays of idempotency keys first submitted under 0.6.x are refused",
-    "upgrade.py 0.7.0 <-> 0.7.1",
-    "run-tests.py removes inherited SIMQUEUE_* variables (in-job runs pointed tests at the live node.json: 43 failures in the first official run, job 1057)",
-    "in-job test fit: exclusive-mode fixture splits a 2-CPU affinity into disjoint P/E sets; restart tests count a killed orphan's zombie as exited (second official run, job 1114)"
+    "per-job temporary and MPI rendezvous directory /tmp/simq.<job>.<token12> (mode 700; made by the job wrapper, removed at the job's end, by the worker if the wrapper was killed): TMPDIR, PMIX_SYSTEM_TMPDIR, PMIX_SERVER_TMPDIR, PRTE_MCA_prte_tmpdir_base and SIMQ_TMPDIR; prun / prterun --dvm search can no longer attach to a PRRTE DVM outside the job (they fail instead); -e wins",
+    "inherited MPI launcher identity variables (PMIX_* but PMIX_MCA_*, PRTE_* but PRTE_MCA_*, PMI_*, OMPI_COMM_WORLD_*, ...) dropped from job environments unless given with -e",
+    "escape scan (reads /proc, report only): processes carrying a job's SIMQ_LAUNCH_TOKEN outside its cgroup -> escaped.json, escaped-process event, worker log, simq show; MPI launcher daemons outside every job -> containment.json, simq partitions, simq doctor; every containment.scan_seconds while jobs run and at each job's end",
+    "two-rank reproduction on the live 0.7.1 queue (job 1175): prun ranks ran in an outside DVM's scope, mpiexec ranks in the job unit; test_containment.py reproduces and checks the fix",
+    "upgrade.py 0.7.1 <-> 0.7.2"
   ],
-  "from_0_7_0": {
-    "overhead": {
-      "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.7.0-20261105/bench/bench-overhead.json",
-      "method": "each worker in its own transient user unit with the properties it is installed with; cgroup cpu.stat usage over 10 minutes after a 30 s warm-up; all four at once; busy = 2-core pool, 2 running and 10 queued sleep jobs",
-      "results": [
-        {
-          "version": "0.6.3",
-          "scenario": "idle",
-          "cpu_s_per_hour": 7.075,
-          "percent_of_one_core": 0.1965,
-          "rss_bytes": 32575488,
-          "memory_current": 19623936,
-          "memory_peak": 20180992
-        },
-        {
-          "version": "0.6.3",
-          "scenario": "busy",
-          "cpu_s_per_hour": 19.457,
-          "percent_of_one_core": 0.5405,
-          "rss_bytes": 32608256,
-          "memory_current": 19800064,
-          "memory_peak": 21454848
-        },
-        {
-          "version": "0.7.0",
-          "scenario": "idle",
-          "cpu_s_per_hour": 0.179,
-          "percent_of_one_core": 0.005,
-          "rss_bytes": 32833536,
-          "memory_current": 20377600,
-          "memory_peak": 21282816
-        },
-        {
-          "version": "0.7.0",
-          "scenario": "busy",
-          "cpu_s_per_hour": 0.693,
-          "percent_of_one_core": 0.0192,
-          "rss_bytes": 33050624,
-          "memory_current": 20791296,
-          "memory_peak": 22077440
-        }
-      ],
-      "live_063_reference": "11.9 CPU-s over 77 min (9.3 CPU-s/h), MemoryCurrent 21 MB, RSS 28 MB"
-    },
-    "github_end_to_end": {
-      "repository": "treeforjs/plasma-solid-shocks",
-      "branch": "simqueue-status-check-20261105 (throwaway; orphan commit with an empty tree, so no workflow can run)",
-      "commit": "f2062282afe3fa3bb00b29b7711af95e968bd7e0",
-      "worker": "separate sandbox worker (not the live service), token from gh auth token",
-      "statuses": [
-        "2026-11-05T05:20:56Z simqueue/e2e-check pending 'SimQueue job 1 running on CPUs 14'",
-        "2026-11-05T05:21:00Z simqueue/e2e-check success 'SimQueue job 1 succeeded in 5s, peak 8M; exit 0'"
-      ],
-      "token_in_sandbox_files": 0
-    }
-  },
-  "tests": {
-    "full_suite_in_live_queue_job": {
-      "queue_job": 1123,
-      "cores": [
-        0,
-        1
-      ],
-      "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.7.1-20261105/receipts/full-suite-in-job.json",
-      "tests_run": 379,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 12,
-      "duration_s": 594.039,
-      "failed_detail": [],
-      "skipped_detail": [
-        "test_memory.Schema9MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
-        "test_memory_units.MemoryTrackingTests.test_out_of_memory_job_records_its_peak_at_the_limit: real cgroup OOM: only with SIMQ_TEST_REAL_OOM=1, never on zenobia (test_oom_safety.py covers the OOM path with a mocked unit)",
-        "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
-        "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
-        "test_node_worker.ConcurrencyTests.test_whole_partition_job_waits_for_all_cores: needs a two-core partition",
-        "test_node_worker.LeaseTests.test_outside_lease_holder_is_respected_and_job_units_hold_leases: needs a two-core partition",
-        "test_node_worker.LimitTests.test_out_of_memory_kills_the_whole_job: real cgroup OOM: only with SIMQ_TEST_REAL_OOM=1, never on zenobia (test_oom_safety.py covers the OOM path with a mocked unit)",
-        "test_node_worker.PfLaunchInsideAllocationTests.test_pf_launch_10_refuses_on_its_own_jobs_leases: /home/treefor/projects/Power-Flow/tools/pf-launch is no longer pf-launch 1.0",
-        "test_pool_aliases.LiveCopyTests.test_copy_of_live_database_under_the_pool: SIMQ_LIVE_DB_COPY not set",
-        "test_switchover.SwitchoverTests.test_dry_run_changes_nothing: runtime not sealed yet",
-        "test_switchover.SwitchoverTests.test_install_canary_and_rollback_restore_everything: runtime not sealed yet",
-        "test_switchover.SwitchoverTests.test_install_refuses_while_a_05_job_is_active: runtime not sealed yet"
-      ]
-    },
-    "pure_with_live_database_copy": {
-      "tests_run": 363,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 61,
-      "duration_s": 109.986,
-      "failed_detail": []
-    },
-    "pure_historical_migrations": {
-      "tests_run": 7,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 2,
-      "duration_s": 0.804,
-      "failed_detail": [],
-      "skipped_detail": [
-        "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
-        "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set"
-      ]
-    },
-    "observations": {
-      "sampling-cost.json": {
-        "per_sample_s_8_jobs": 0.00014458966666666573,
-        "per_hour_at_3s_s": 0.17350759999999887
-      },
-      "sampling-loop-cost.json": {
-        "jobs_sampled": 2,
-        "sample_seconds": 1,
-        "window_s": 20.0,
-        "cpu_s": 0.01,
-        "cpu_s_per_hour": 1.8,
-        "percent_of_one_core": 0.05,
-        "rss_bytes": 38252544
-      },
-      "cpu-priority.json": {
-        "cpu": 1,
-        "alone_share": 0.986979,
-        "core_busy_alone": 1.0,
-        "borrower_share_under_contention": 0.11677841506968292,
-        "window_shares": [
-          0.1179767492535054,
-          0.11677841506968292,
-          0.117988022014696
-        ],
-        "competitor_cpu_s": 6.171231,
-        "competitor_wall_s": 7.0
-      }
-    },
-    "not_run": "test_shield_helper.py cannot be imported (needs source/privileged/simqueue-shield), as for 0.6.0 and later"
-  }
+  "tests": "pending"
 }

@@ -1,8 +1,15 @@
-# SimQueue 0.7.1 on zenobia: operations
+# SimQueue 0.7.2 on zenobia: operations
 
 SimQueue is a single-node, Slurm-shaped scheduler. One worker
 (`simqueue.service`) schedules the whole node; every job runs in its own
 transient systemd user service, independent of the worker.
+
+0.7.2 (a patch release: no schema change, no new scheduling input) contains
+MPI jobs, see "0.7.2" below: every job gets its own temporary and MPI
+rendezvous directory, so Open MPI's `prun`/`--dvm` can no longer attach to a
+PRRTE DVM outside the job and run the ranks outside the job's cgroup; the
+worker reports processes carrying a job's launch token outside its cgroup
+and MPI launcher daemons outside every job.
 
 0.7.1 (a patch release: no new scheduling input, no schema change, no new
 side effect) changes defaults and fixes, see "0.7.1" below: a job submitted
@@ -86,8 +93,8 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 
 | Item | Path |
 |---|---|
-| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.7.1-20261105` |
-| Previous runtime (kept: job units started by 0.7.0 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.7.0-20261105` |
+| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.7.2-20261105` |
+| Previous runtime (kept: job units started by 0.7.1 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.7.1-20261105` |
 | Interpreter (unchanged from 0.5) | `/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen` |
 | Code | `source/simqueue/` (`nodeworker.py`, `memory.py` and `github.py` (0.7.0), `scheduler.py`, `borrow.py`, `telemetry.py`, `gpuqueue.py`, `gpuline.py`, `units.py`, `jobwrap.py`, `locks.py`, `nodeconfig.py`, plus the 0.5 modules) |
 | Worker wake FIFO (0.7.0) | `~/.local/state/simqueue/worker.wake` (clients and job units write a byte; the worker wakes) |
@@ -98,12 +105,122 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 | Node configuration (live) | `~/.local/state/simqueue/node.json` (`SIMQUEUE_CONFIG`) |
 | Database | `~/.local/state/simqueue/queue.sqlite3` (schema 9 from 0.7.0: memory, CPU time and GitHub columns; schema 8 for 0.6.1 to 0.6.3; 0.6.0 used schema 7) |
 | Borrow slice | `~/.config/systemd/user/simqborrow.slice` (`CPUWeight=idle`) |
-| Per-job files | `~/.local/state/simqueue/jobs/NNNNNN-<token>/{spec,status,stop-post}.json` |
+| Per-job files | `~/.local/state/simqueue/jobs/NNNNNN-<token>/{spec,status,stop-post,escaped}.json` (`escaped.json`: 0.7.2, processes seen outside the job's cgroup) |
+| Per-job temporary and MPI rendezvous directory (0.7.2) | `/tmp/simq.<job>.<token12>` (`TMPDIR`, `PMIX_SYSTEM_TMPDIR`, `PMIX_SERVER_TMPDIR`, `PRTE_MCA_prte_tmpdir_base`; removed at the job's end) |
+| Outside MPI daemons (0.7.2) | `~/.local/state/simqueue/containment.json` (written by the worker's escape scan) |
 | Logs | `~/.local/state/simqueue/logs/NNNNNN.log`, `~/.local/state/simqueue/worker.log` |
-| Upgrade 0.7.0 to 0.7.1 / rollback | `upgrade.py` (dry run unless `--execute`); 0.6.3 to 0.7.0: `../simqueue-0.7.0-20261105/upgrade.py` |
+| Upgrade 0.7.1 to 0.7.2 / rollback | `upgrade.py` (dry run unless `--execute`); 0.7.0 to 0.7.1: `../simqueue-0.7.1-20261105/upgrade.py`; 0.6.3 to 0.7.0: `../simqueue-0.7.0-20261105/upgrade.py` |
 | Overhead benchmark (0.7.0) | `source/tools/bench-overhead.py` (0.6.3 against 0.7.0, each worker in its own unit) |
 | Switchover from 0.5 (historical) | `switchover.py` |
 | Tests | `source/run-tests.py`: `--in-job` inside a queue job (`simq run -c 2 ... -- run-tests.py --in-job`, 0.7.0), `--pure` without units; or holding the cores' lease files as before (`--shared` on cores 6-7) |
+
+## 0.7.2: MPI containment
+
+**What happened.** The live Raikou work reported that job 993's MPI ranks
+appeared in the user slice instead of the job's cgroup. Escaped ranks bypass
+the job's MemoryMax, its CPU set, the OOM handling and the kill at its end.
+Reproduced on 2026-11-05 with a two-rank job on the live 0.7.1 queue (job
+1175): with a PRRTE DVM running outside the queue (Open MPI 5.0.10, `prte
+--daemonize` in its own scope), `prun -n 2` inside the job found the DVM
+through its PMIx rendezvous files in `/tmp` and the DVM forked both ranks in
+*its* scope (`app.slice/mpi-repro-outside-dvm.scope`); `mpiexec -n 2` in the
+same job started its own runtime and kept both ranks in the job unit.
+`prterun --dvm search|system|pid:N` behaves like `prun`. A job's own
+`mpiexec` (prterun) is a PMIx server too, and before 0.7.2 its rendezvous
+files sat in `/tmp`, where an outside tool could find it. (Job 993's own
+scripts call plain `mpiexec`; which launcher or tool reached an outside
+runtime there is not recorded, so 0.7.2 closes the discovery path for every
+case and reports what it cannot prevent.)
+
+**Per-job rendezvous.** Every job started by 0.7.2 gets its own directory
+`<containment.tmp_base>/simq.<job>.<token12>` (default `/tmp`, the same
+tmpfs jobs used for temporary files before; mode 700; made by the job
+wrapper before the command starts, removed when every process of the job has
+exited, and by the worker if the wrapper was killed). `TMPDIR`,
+`PMIX_SYSTEM_TMPDIR`, `PMIX_SERVER_TMPDIR` and `PRTE_MCA_prte_tmpdir_base`
+point at it, and `SIMQ_TMPDIR` names it. A DVM search from the job now finds
+only runtimes of the same job: `prun` with an outside DVM fails with "prun
+failed to initialize, likely due to no DVM being available" instead of
+escaping, and `mpiexec` works as before with its session directory inside the
+job's directory. A variable given with `-e` wins (`-e TMPDIR=/scratch/x`).
+Only an explicit address (`--dvm file:PATH` or `uri:...`) still reaches an
+outside DVM. `mktemp`, Python's `tempfile`, compilers and MPI now put their
+temporary files in the job's directory, which goes with the job (files a
+job leaves in its `TMPDIR` no longer pile up in `/tmp`; a job that must leave
+files behind writes them elsewhere).
+
+**Launcher identity variables.** Variables an MPI launcher sets for the
+processes it starts (`PMIX_*` but not `PMIX_MCA_*`, `PRTE_*` but not
+`PRTE_MCA_*`, `PMI_*`, `OMPI_COMM_WORLD_*`, `OMPI_UNIVERSE_SIZE`,
+`OMPI_MCA_orte_hnp_uri`, ...) are dropped from a job's captured environment,
+as `SLURM_*` are: inherited (for example with `--export ALL` from a shell
+started by `mpiexec`), they make the job's launcher a client of a server
+outside the job. A variable given with `-e` is kept; MCA parameters
+(`OMPI_MCA_pml`, `PMIX_MCA_*`, `PRTE_MCA_*`) are kept.
+
+**Detection (report only; nothing is killed).** Every
+`containment.scan_seconds` (60) while job units run, and at each job's end,
+the worker reads `/proc` (no process is spawned; a process's environment is
+read once, since it cannot change):
+
+- a process of this user whose environment carries a running job's
+  `SIMQ_LAUNCH_TOKEN` but whose cgroup is not inside the job's unit (moved
+  out with `systemd-run --scope` or a cgroup write) is recorded in the job's
+  `escaped.json`, as an `escaped-process` event, in the worker log ("job N:
+  process P (comm) carries the job's launch token but runs outside its
+  cgroup ...") and in `simq show` (`ESCAPED`); one still alive after the job
+  ended is marked "after the job ended";
+- an MPI launcher daemon (`prte`, `prted`, `prterun`, `prun`, `orted`,
+  `hydra_pmi_proxy`, `mpiexec.hydra`, ...) of this user outside every job's
+  cgroup is recorded in `containment.json` of the state directory, in the
+  worker log, in `simq partitions` ("OUTSIDE MPI DAEMON: prte pid N in ...")
+  and in `simq doctor` ("Containment").
+
+Ranks that an outside DVM forks do **not** carry the job's environment (PRRTE
+forwards none of it, checked with `SIMQ_LAUNCH_TOKEN`, `OMPI_MCA_*`,
+`PMIX_MCA_*` and `PRTE_MCA_*`), so they cannot be attributed to a job by its
+token; they show up as children of the outside daemon. The scan costs about
+{SCAN_COST} (`containment-scan-cost.json` in the test receipts).
+
+**Configuration** (`containment` in node.json, all optional):
+`enabled` (true), `tmp_base` ("/tmp"), `scan_seconds` (60; 0 = only at each
+job's end). Running jobs started by 0.7.1 keep their environment (`/tmp`)
+until they end.
+
+**Tests** (`test_containment.py`): the identity filter and the rendezvous
+variables, the private directory (mode, reuse, refusal of a foreign or
+symlinked one, removal that never follows symlinks), the scan against real
+processes (token outside and inside its cgroup, left behind, an outside
+`prte` with its children, cost), a job unit's environment and directory
+(removed at the end), a process moved out of a job with `systemd-run --scope`
+(reported while it runs and after the job ended), and the two-rank
+reproduction: with an outside DVM whose rendezvous is in `/tmp`, a job
+without its rendezvous variables (as 0.7.1 ran jobs) runs both `prun` ranks
+in the DVM's cgroup; with them `prun` finds no DVM and nothing runs outside;
+`mpiexec -n 2` keeps both ranks in the job's unit; the worker lists the DVM
+in `containment.json` and `simq partitions`. The reproduction needs an Open
+MPI 5 prefix with `prte`, `prun` and `mpiexec` (`SIMQ_TEST_OMPI_PREFIX`, else
+the MOOSE conda environment) and is skipped without one.
+
+### Upgrading 0.7.1 to 0.7.2: `upgrade.py`
+
+```sh
+cd /home/treefor/projects/runtimes/simqueue-0.7.2-20261105
+./upgrade.py install                 # dry run
+./upgrade.py install --execute
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.7.1-to-0.7.2-<UTC> --execute
+```
+
+No schema change: the preflight checks the seal, that the new
+`config/zenobia-node.json` equals the live `node.json` apart from the new
+`containment` section and the notes, that the wrapper runs 0.7.1, and that a
+copy of the database opened by 0.7.2 keeps every row; it lists MPI launcher
+daemons running outside the queue. The install stops the worker (job and
+claim units keep running), backs up, switches the wrapper, link, unit and
+`node.json`, starts 0.7.2 and verifies that every running job unit and GPU
+claim unit is adopted; rollback restores the files byte for byte and 0.7.1
+adopts everything back. Job units started by 0.7.2 run its `jobwrap.py`:
+after a rollback keep the 0.7.2 runtime until they have ended.
 
 ## 0.7.1
 
@@ -655,12 +772,16 @@ mode cannot start (the job stays queued).
 | `SIMQ_TIME_LIMIT` | time limit in seconds (empty when unlimited) |
 | `SIMQ_LOG`, `SIMQ_UNIT` | job log, systemd unit name |
 | `SIMQ_SUMMARY` (0.7.0) | with `--github-summary`: the markdown file the job may write for its PR comment |
+| `SIMQ_TMPDIR` (0.7.2) | the job's own temporary and MPI rendezvous directory `/tmp/simq.<job>.<token12>` (mode 700, removed at the job's end) |
+| `TMPDIR`, `PMIX_SYSTEM_TMPDIR`, `PMIX_SERVER_TMPDIR`, `PRTE_MCA_prte_tmpdir_base` (0.7.2) | `SIMQ_TMPDIR` (a value given with `-e` wins); see "0.7.2: MPI containment" |
 | (0.7.0) everything else | only HOME, USER, LOGNAME, LANG, PATH, TZ, `SIMQUEUE_*`, `--export` names and `-e` values from the submitter, plus XDG_RUNTIME_DIR and DBUS_SESSION_BUS_ADDRESS; see "Job environment" |
 | `CUDA_VISIBLE_DEVICES` | the allocated GPU UUIDs (empty when none); `CUDA_DEVICE_ORDER=PCI_BUS_ID` |
 
 The rest of the environment is the submitting shell's, captured at submit time
 (as in 0.5), except that inherited `SLURM_*` variables are removed unless given
-with `-e`.
+with `-e`, and (0.7.2) so are inherited MPI launcher identity variables
+(`PMIX_*` but `PMIX_MCA_*`, `PRTE_*` but `PRTE_MCA_*`, `PMI_*`,
+`OMPI_COMM_WORLD_*`, ...).
 
 **No `SLURM_*` variables are exported.** `SLURM_JOB_ID`/`SLURM_JOBID` switch
 pf-launch, Open MPI/PRRTE and MPICH Hydra to their Slurm code paths (srun,

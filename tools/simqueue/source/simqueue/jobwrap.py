@@ -31,6 +31,11 @@ set here before the command starts, so every process of the job inherits it).
     $EXIT_STATUS so that the final result is recoverable even if the wrapper
     itself was killed (out-of-memory kill, time limit, SIGKILL).
 
+SimQueue 0.7.2: the job's own temporary and MPI rendezvous directory (spec
+``tmpdir``; ``TMPDIR``, ``PMIX_SYSTEM_TMPDIR``, ... point at it) is made
+here, mode 700, before the command starts and removed once every process of
+the job has exited (see ``simqueue/containment.py``).
+
 SimQueue 0.7.0: both records carry the unit's measured use (``usage``: the
 cgroup's ``memory.peak``, ``memory.current``, ``cpu.stat`` usage_usec and
 the ``memory.events`` oom_kill count), read from the unit's own cgroup while
@@ -174,6 +179,34 @@ def _wake_worker(path: str | None) -> None:
         pass
     finally:
         os.close(descriptor)
+
+
+def _make_tmpdir(path: str) -> None:
+    """0.7.2: the job's private temporary/rendezvous directory (an existing
+    one is reused only if it is this user's, mode 700, not a symlink)."""
+    import stat as _stat
+
+    try:
+        os.mkdir(path, 0o700)
+        os.chmod(path, 0o700)
+        return
+    except FileExistsError:
+        pass
+    info = os.lstat(path)
+    if not _stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid() or _stat.S_IMODE(info.st_mode) != 0o700:
+        raise PermissionError(f"{path} exists and is not this user's private directory")
+
+
+def _remove_tmpdir(path: str) -> None:
+    import shutil
+    import stat as _stat
+
+    try:
+        info = os.lstat(path)
+    except OSError:
+        return
+    if _stat.S_ISDIR(info.st_mode) and info.st_uid == os.getuid() and Path(path).name.startswith("simq."):
+        shutil.rmtree(path, ignore_errors=True)
 
 
 def _reap() -> None:
@@ -452,6 +485,13 @@ class Wrapper:
             pass
         environment = {str(k): str(v) for k, v in spec["env"].items()}
         environment["PWD"] = str(resolved)
+        tmpdir = spec.get("tmpdir")
+        if tmpdir:
+            try:
+                _make_tmpdir(str(tmpdir))
+            except OSError as error:
+                return self.refuse(f"cannot make the job's temporary directory {tmpdir}: {error}",
+                                   kind="tmpdir-error")
         try:
             child = subprocess.Popen(
                 argv,
@@ -533,6 +573,8 @@ class Wrapper:
             }
         )
         self.save()
+        if tmpdir:
+            _remove_tmpdir(str(tmpdir))
         _log("========================================\n")
         _log(f"finished:  {_now()}\n")
         _log(f"exit code: {returncode}\n")
