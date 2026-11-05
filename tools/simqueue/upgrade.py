@@ -640,7 +640,13 @@ class Upgrade:
             return {}
         summary = database_summary(self.database)
         print(f"database: schema {summary['user_version']}, {summary['jobs']} jobs, states {summary['states']}")
-        if summary["user_version"] != SCHEMA_OLD:
+        if summary["user_version"] == SCHEMA_NEW and "github_json" in summary["columns"]:
+            # opened by 0.7.0 code before the install (2026-11-05 06:16 UTC): the
+            # migration is already done; the install's migration step is a no-op
+            print(f"NOTE: database already at schema {SCHEMA_NEW} with the {TO_VERSION} columns; 0.6.3 clients "
+                  "refuse it until the install (or until the schema is set back to 8)")
+            self.rehearse_migration(summary)
+        elif summary["user_version"] != SCHEMA_OLD:
             self.problem(f"database schema is {summary['user_version']}, expected {SCHEMA_OLD} ({FROM_VERSION})")
         else:
             self.rehearse_migration(summary)

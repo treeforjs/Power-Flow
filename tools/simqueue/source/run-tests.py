@@ -345,9 +345,20 @@ def run_suites(args: argparse.Namespace, held: list[int] | None, lease_files: li
     return 0 if result.wasSuccessful() else 1
 
 
+def isolate_state(tmpdir: Path) -> None:
+    """No test process may reach the live queue: a path that lacks
+    SIMQUEUE_STATE_DIR (a child given a reduced environment) falls back to
+    XDG_STATE_HOME, which points into the test directory as well."""
+    sandbox = tmpdir / f"default-state-{os.getpid()}"
+    sandbox.mkdir(parents=True, exist_ok=True)
+    os.environ["XDG_STATE_HOME"] = str(sandbox)
+    os.environ.setdefault("SIMQUEUE_STATE_DIR", str(sandbox / "simqueue"))
+
+
 def run_without_leases(args: argparse.Namespace) -> int:
     tmpdir = Path(os.environ.get("SIMQ_TEST_TMPDIR") or DEFAULT_TMPDIR).resolve()
     tmpdir.mkdir(parents=True, exist_ok=True)
+    isolate_state(tmpdir)
     os.environ["TMPDIR"] = str(tmpdir)
     import tempfile
 
@@ -404,6 +415,7 @@ def main() -> int:
         parser.error("cores 2-5 are never used by these tests (Spheral's own cores and raikou-mfem's)")
     tmpdir = Path(os.environ.get("SIMQ_TEST_TMPDIR") or DEFAULT_TMPDIR).resolve()
     tmpdir.mkdir(parents=True, exist_ok=True)
+    isolate_state(tmpdir)
     os.environ["TMPDIR"] = str(tmpdir)
     import tempfile
 
