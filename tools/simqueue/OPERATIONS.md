@@ -116,9 +116,13 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 
 ## 0.8.0 (in development, not released): topology-aware placement on the 16-core node
 
-Branch `simqueue-0.8.0` (built on 0.7.0). Not sealed, not installable yet:
-`upgrade.py` for 0.7.0 -> 0.8.0 (schema 10: `l3_domains`, `split_domains`,
-`cpu_utilization`) is still to be written.
+Branch `simqueue-0.8.0` (built on 0.7.1). Not sealed and not installed: it
+lands with the 16-core node after the CPU swap. `upgrade.py` installs it over
+the installed 0.7.x (0.7.1 or 0.7.0, read from the wrapper) with
+`config/zenobia-16core-node.json`, migrates the database to schema 10
+(`l3_domains`, `split_domains`, `cpu_utilization`; every existing row kept)
+and rolls back by setting the schema back to 9 in place; tested in a sandbox
+(install, adoption, GPU claim, rollback, refusals).
 
 - **Topology from sysfs** (`topology.py`), no hard-coded counts: L3 domains
   from `cpu*/cache/index*/shared_cpu_list` (level 3), SMT siblings from
