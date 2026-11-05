@@ -151,6 +151,17 @@ Branch `simqueue-0.8.0` (built on 0.7.0). Not sealed, not installable yet:
   partitions` measures every core and its sibling over 0.5 s and prints the
   node's used against idle cores; the worker keeps a per-CPU snapshot in
   `queue_meta.cpu_utilization` while jobs run.
+- **Backfill starvation** (seen live: an 8-core job held the queue head for
+  77 minutes while 6 cores idled, because every other job's time limit was
+  too generous to backfill): `-t auto` takes 1.5 x the 95th-percentile
+  runtime of the last 20 succeeded jobs of the same name (else name family),
+  rounded up to 5 minutes, at least 10, at most the partition's limit, so
+  limits are accurate enough to backfill; submit warns when an owner job
+  below priority 10 asks for 75% or more of the pool's cores; with
+  `borrow.lend_reserved` (on in the 16-core config) borrow jobs use the free
+  cores held for the waiting head job whatever their time limit, and are
+  preempted by their policy when it starts; the head job's reason reads
+  "reserved to start by ...; head of the queue for N min" (`simq queue`).
 - **Memory limit by priority** (prepared, not set): a partition may carry
   `priority_max_mem: {"min_priority": 10, "max_mem": "26G"}` so owner jobs
   of that priority may ask for more than `max_mem`. It stays unset until the

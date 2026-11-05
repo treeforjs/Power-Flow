@@ -577,7 +577,16 @@ def _node_request(
             args.mem_warning = over_request_warning(mem, history, name=name, cores=requested,
                                                     config=config.memory)
     time_limit = partition.default_time
-    if getattr(args, "time", None) is not None:
+    args.time_basis = None
+    if getattr(args, "time", None) is not None and str(args.time).strip().lower() == "auto":
+        # 0.8.0: from the runtimes of earlier jobs of this name (family)
+        from .memory import auto_time_limit
+
+        history = store.runtime_history() if store is not None else []
+        time_limit, args.time_basis = auto_time_limit(history, name=name or "", default=partition.default_time,
+                                                      maximum=partition.max_time)
+        explicit["time_limit_s"] = "auto"
+    elif getattr(args, "time", None) is not None:
         time_limit = parse_time_limit(args.time, field_name="--time")
         explicit["time_limit_s"] = time_limit
         if partition.max_time is not None and (time_limit is None or time_limit > partition.max_time):
@@ -587,6 +596,12 @@ def _node_request(
     priority = getattr(args, "priority", None)
     if priority is not None:
         explicit["priority"] = priority
+    if (borrow is None and requested >= 0.75 * len(partition.cpus) and len(partition.cpus) > 1
+            and (priority or 0) < 10):
+        # 0.8.0: a near-whole-pool job at default priority holds the queue head
+        print(f"simq: warning: {requested} of {len(partition.cpus)} cores at priority {priority or 0}: while it "
+              "waits for them, the reservation keeps every longer job behind it waiting; ask for fewer cores, give "
+              "an accurate -t (or -t auto), or use --priority 10 for a pilot", file=sys.stderr)
     if args.partition is not None:
         explicit["partition"] = recorded
     scheduling = {
@@ -2642,7 +2657,11 @@ def _add_node_request_options(parser: argparse.ArgumentParser, *, cpus: bool, gp
         help="node mode: memory limit, e.g. 4G (bare number = MiB); 'auto': 1.25 x the largest recent peak "
         "of earlier jobs with this name (or name family), bounded by the partition's min_mem and max_mem",
     )
-    parser.add_argument("-t", "--time", metavar="TIME", help="node mode: time limit, e.g. 30, 2:00:00, 1-12:00:00")
+    parser.add_argument(
+        "-t", "--time", metavar="TIME",
+        help="node mode: time limit, e.g. 30, 2:00:00, 1-12:00:00; 'auto' (0.8): 1.5 x the 95th percentile runtime "
+        "of earlier jobs with this name (or name family)",
+    )
     parser.add_argument(
         "--l3-domains", type=int, metavar="N",
         help="node mode (0.8): spread the cores evenly over N L3 cache domains (default: one domain when it fits)",

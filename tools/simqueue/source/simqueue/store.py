@@ -2302,6 +2302,22 @@ class QueueStore:
             ).fetchall()
         return [dict(row) for row in rows]
 
+    def runtime_history(self, *, limit: int = 2000) -> list[dict[str, Any]]:
+        """0.8.0: succeeded jobs with their runtimes, newest first."""
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, name, requested_cores,
+                       (julianday(finished_at) - julianday(started_at)) * 86400.0 AS runtime_s
+                FROM jobs
+                WHERE state = 'succeeded' AND started_at IS NOT NULL AND finished_at IS NOT NULL
+                ORDER BY finished_at DESC, id DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
     def set_memory_basis(self, job_id: int, basis: dict[str, Any] | None) -> None:
         with self.connect() as connection:
             connection.execute(

@@ -535,6 +535,7 @@ class NodeWorker:
         self._lock_file: Any = None
         self._stop_sent: dict[int, float] = {}
         self._reasons: dict[int, str] = {}
+        self._reserved_since: dict[int, float] = {}
         self._reason_written: dict[int, float] = {}
         self._noted: set[tuple[int, str]] = set()
         self.job_root = state_dir() / "jobs"
@@ -1249,6 +1250,10 @@ class NodeWorker:
                 shadow = reservation[1]
                 if shadow != INFINITY:
                     reason += f"; reserved to start by {_iso(shadow)}"
+                # 0.8.0: how long the head of the queue has held its reservation
+                since = self._reserved_since.setdefault(job_id, time.time())
+                minutes = int((time.time() - since) // 60)
+                reason += f"; head of the queue for {minutes} min"
             previous = self._reasons.get(job_id)
             if previous != reason:
                 # a memory reason carries live numbers: rewrite it at most every 30 s

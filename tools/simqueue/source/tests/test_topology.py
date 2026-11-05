@@ -313,6 +313,51 @@ class UtilizationAndLimitTests(TopologyTestCase):
             parse_node_config(document, path=Path("n"), check_topology=False)
 
 
+class BackfillStarvationTests(TopologyTestCase):
+    """0.8.0: -t auto, borrow jobs on reserved idle cores, the head's wait."""
+
+    def test_auto_time_limit(self) -> None:
+        from simqueue.memory import auto_time_limit
+
+        history = [{"name": "build", "runtime_s": 100.0 + i} for i in range(20)]
+        limit, basis = auto_time_limit(history, name="build", default=7200, maximum=86400)
+        self.assertEqual((limit, basis["runs"], basis["p95_s"]), (600, 20, 118))  # 177 s -> at least 10 min
+        long = [{"name": "sim-n4", "runtime_s": 3600.0 * h} for h in (1, 2, 3)]
+        limit, basis = auto_time_limit(long, name="sim-n8", default=7200, maximum=4 * 3600)
+        self.assertEqual((limit, basis["matched_by"]), (4 * 3600, "family"))  # 4.5 h capped at the limit
+        self.assertEqual(auto_time_limit([], name="x", default=7200, maximum=None), (7200, {"source": "default"}))
+
+    def test_borrow_jobs_use_cores_reserved_for_a_waiting_owner(self) -> None:
+        from simqueue.borrow import CoreState, plan_node
+
+        def config(lend: bool):
+            document = {"schema": "simqueue-node-config-v1", "node": "t", "default_partition": "pool",
+                        "memory_schedulable": "64G", "borrow": {"lend_reserved": lend},
+                        "partitions": [{"name": "pool", "cpus": "0-7", "default_mem": "1G", "max_mem": "8G",
+                                        "default_time": "1:00:00", "max_time": "2:00:00"}]}
+            return parse_node_config(document, path=Path("n"), check_topology=False)
+
+        running = [Running(1, Allocation(cpus=(0, 1), mem=1 << 30), 3600.0)]
+        queue = [req(2, 8), Request(job_id=3, partition="pool", ncpus=2, mem=1 << 30, time_limit=7200, borrow=True)]
+        cores = {cpu: CoreState(cpu) for cpu in range(8)}
+        for lend, expected in ((False, []), (True, [3])):
+            cfg = config(lend)
+            decision = plan_node(cfg, build_pool(cfg, running), running, queue, 0.0, cores=cores,
+                                 owner_of={0: 1, 1: 1})
+            self.assertEqual([r.job_id for r, a in decision.starts if a.borrow], expected, lend)
+
+    def test_head_reason_counts_its_wait(self) -> None:
+        from simqueue.nodeworker import NodeWorker
+
+        worker = NodeWorker.__new__(NodeWorker)
+        worker._reasons, worker._reason_written, worker._reserved_since = {}, {}, {5: 0.0}
+        worker.gpu = type("G", (), {"reasons": {}})()
+        written = {}
+        worker.store = type("S", (), {"set_message": lambda self, job, text: written.__setitem__(job, text)})()
+        worker._record_reasons({5: "resources busy"}, (5, 4102444800.0), {})
+        self.assertIn("head of the queue for", written[5])
+
+
 class CliTopologyTests(NodeFixture, unittest.TestCase):
     needs_units = False
 

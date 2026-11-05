@@ -472,6 +472,30 @@ def auto_request(
     return request, basis
 
 
+def auto_time_limit(history: list[dict[str, Any]], *, name: str, default: int | None,
+                    maximum: int | None, factor: float = 1.5, count: int = 20, floor: int = 600,
+                    step: int = 300) -> tuple[int | None, dict[str, Any]]:
+    """0.8.0 ``-t auto``: the 95th percentile of the last *count* runtimes of
+    succeeded jobs with the same name (else name family) times *factor*,
+    rounded up to *step*, at least *floor*, at most the partition's limit;
+    without history the default.  Accurate limits let backfill fill gaps."""
+    pool = [job for job in history if job.get("name") == name]
+    matched = "name"
+    if not pool:
+        family = name_family(name)
+        pool = [job for job in history if name_family(str(job.get("name") or "")) == family]
+        matched = "family"
+    runtimes = sorted(float(job["runtime_s"]) for job in pool[:count] if job.get("runtime_s"))
+    if not runtimes:
+        return default, {"source": "default"}
+    p95 = runtimes[min(len(runtimes) - 1, int(math.ceil(0.95 * len(runtimes))) - 1)]
+    limit = max(floor, round_up(int(p95 * factor), step))
+    if maximum is not None:
+        limit = min(limit, maximum)
+    return limit, {"source": "history", "matched_by": matched, "runs": len(runtimes), "p95_s": round(p95),
+                   "factor": factor, "limit_s": limit}
+
+
 def describe_basis(basis: dict[str, Any] | None) -> str:
     if not basis:
         return ""

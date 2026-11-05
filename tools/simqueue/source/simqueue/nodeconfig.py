@@ -338,6 +338,10 @@ class BorrowConfig:
     # owner jobs) are lent to borrow jobs, unless the owner job runs with
     # --exclusive-timing
     lend_siblings: bool = False
+    # 0.8.0: free cores held for a waiting owner job (its reservation) are
+    # lent to borrow jobs whatever their time limit; they are preempted when
+    # the owner job starts
+    lend_reserved: bool = False
 
 
 @dataclass(frozen=True)
@@ -1154,7 +1158,7 @@ def _parse_borrow(value: Any) -> BorrowConfig:
         raw,
         {"enabled", "slice", "slice_cpu_weight", "unit_cpu_weight", "idle_window_s", "busy_window_s",
          "idle_threshold", "cpu_idle_threshold", "busy_threshold", "freeze_max_s", "default_on_preempt",
-         "backfill_waiting_owners", "lend_siblings", "notes"},
+         "backfill_waiting_owners", "lend_siblings", "lend_reserved", "notes"},
         "borrow",
     )
     defaults = BorrowConfig()
@@ -1192,6 +1196,9 @@ def _parse_borrow(value: Any) -> BorrowConfig:
     backfill = raw.get("backfill_waiting_owners", defaults.backfill_waiting_owners)
     if not isinstance(backfill, bool):
         raise ConfigError("borrow.backfill_waiting_owners must be true or false")
+    reserved = raw.get("lend_reserved", defaults.lend_reserved)
+    if not isinstance(reserved, bool):
+        raise ConfigError("borrow.lend_reserved must be true or false")
     siblings = raw.get("lend_siblings", defaults.lend_siblings)
     if not isinstance(siblings, bool):
         raise ConfigError("borrow.lend_siblings must be true or false")
@@ -1209,6 +1216,7 @@ def _parse_borrow(value: Any) -> BorrowConfig:
         default_on_preempt=mode,
         backfill_waiting_owners=backfill,
         lend_siblings=siblings,
+        lend_reserved=reserved,
     )
 
 

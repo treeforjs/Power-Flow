@@ -311,6 +311,8 @@ def plan_node(
             else:
                 # held for the reservation: not before the reserved job starts
                 bound = base.reservation[1] if base.reservation is not None else now
+        if config.borrow.lend_reserved:
+            continue  # 0.8.0: lend them anyway; the owner preempts the borrower when it starts
         for cpu in (request.cpu_list if request.cpu_list is not None else part.cpus):
             waiting[cpu] = min(waiting.get(cpu, INFINITY), bound)
 
