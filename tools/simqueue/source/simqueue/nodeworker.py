@@ -817,6 +817,12 @@ class NodeWorker:
         job_id = int(job["id"])
         cancel = bool(job.get("cancel_requested_at"))
         service_result = (stop_post or {}).get("service_result") or (unit.result if unit.found else None)
+        if service_result is None and status is not None and status.get("phase") == "finished":
+            # 0.7.1: no stop-post hook; a unit that ended normally is unloaded at
+            # once, so systemd's result follows from the wrapper's exit status
+            code = status.get("returncode")
+            service_result = "success" if code == 0 else ("signal" if isinstance(code, int) and code < 0
+                                                          else "exit-code")
         pending = job.get("preempt_pending")
         if pending and not cancel:
             done = (
