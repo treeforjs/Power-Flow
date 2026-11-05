@@ -477,8 +477,9 @@ def describe_basis(basis: dict[str, Any] | None) -> str:
         return ""
     if basis.get("source") != "history":
         return "auto: " + str(basis.get("note") or "partition default")
+    prefix = "auto (default without --mem)" if basis.get("implicit") else "auto"
     jobs = basis.get("jobs") or []
-    text = (f"auto: {basis['factor']:g} x largest peak {format_gib(basis['largest_peak'])} of "
+    text = (f"{prefix}: {basis['factor']:g} x largest peak {format_gib(basis['largest_peak'])} of "
             f"{len(jobs)} earlier job(s) with the same {basis.get('matched_by')}"
             + (" and core count" if basis.get("same_cores") else "")
             + f" ({', '.join(str(j) for j in jobs[:6])}{', ...' if len(jobs) > 6 else ''})")

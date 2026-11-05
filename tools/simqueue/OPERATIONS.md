@@ -1,8 +1,15 @@
-# SimQueue 0.7.0 on zenobia: operations
+# SimQueue 0.7.1 on zenobia: operations
 
 SimQueue is a single-node, Slurm-shaped scheduler. One worker
 (`simqueue.service`) schedules the whole node; every job runs in its own
 transient systemd user service, independent of the worker.
+
+0.7.1 (a patch release: no new scheduling input, no schema change, no new
+side effect) changes defaults and fixes, see "0.7.1" below: a job submitted
+without `--mem` gets `--mem auto` when its name has a recorded peak; the
+`spheral` alias's default memory is auto instead of 18G; the load-sensitive
+tests are robust; the secret values in the older upgrade backups are
+redacted.
 
 0.7.0 changes four things (see "0.7.0: event-driven worker, memory,
 GitHub reporting" below):
@@ -79,8 +86,8 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 
 | Item | Path |
 |---|---|
-| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.7.0-20261105` |
-| Previous runtime (kept: job units started by 0.6.3 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.6.3-20261105` |
+| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.7.1-20261105` |
+| Previous runtime (kept: job units started by 0.7.0 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.7.0-20261105` |
 | Interpreter (unchanged from 0.5) | `/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen` |
 | Code | `source/simqueue/` (`nodeworker.py`, `memory.py` and `github.py` (0.7.0), `scheduler.py`, `borrow.py`, `telemetry.py`, `gpuqueue.py`, `gpuline.py`, `units.py`, `jobwrap.py`, `locks.py`, `nodeconfig.py`, plus the 0.5 modules) |
 | Worker wake FIFO (0.7.0) | `~/.local/state/simqueue/worker.wake` (clients and job units write a byte; the worker wakes) |
@@ -93,10 +100,64 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 | Borrow slice | `~/.config/systemd/user/simqborrow.slice` (`CPUWeight=idle`) |
 | Per-job files | `~/.local/state/simqueue/jobs/NNNNNN-<token>/{spec,status,stop-post}.json` |
 | Logs | `~/.local/state/simqueue/logs/NNNNNN.log`, `~/.local/state/simqueue/worker.log` |
-| Upgrade 0.6.3 to 0.7.0 / rollback | `upgrade.py` (dry run unless `--execute`) |
+| Upgrade 0.7.0 to 0.7.1 / rollback | `upgrade.py` (dry run unless `--execute`); 0.6.3 to 0.7.0: `../simqueue-0.7.0-20261105/upgrade.py` |
 | Overhead benchmark (0.7.0) | `source/tools/bench-overhead.py` (0.6.3 against 0.7.0, each worker in its own unit) |
 | Switchover from 0.5 (historical) | `switchover.py` |
 | Tests | `source/run-tests.py`: `--in-job` inside a queue job (`simq run -c 2 ... -- run-tests.py --in-job`, 0.7.0), `--pure` without units; or holding the cores' lease files as before (`--shared` on cores 6-7) |
+
+## 0.7.1
+
+- **Memory without `--mem`.** With `memory.auto_default` (on for zenobia) a
+  job submitted without `--mem` gets `--mem auto` when its name (or name
+  family) has a recorded peak, else the partition's or alias's default (4G).
+  `simq show` says "Memory request auto (default without --mem): ...". An
+  explicit `--mem` always wins, and `--mem auto` works as in 0.7.0. The
+  idempotency fingerprint of a submission without `--mem` does not depend on
+  the history.
+- **`spheral` alias:** `default_mem: "auto"` (it was 18G): auto from the
+  history even without `memory.auto_default`, else the pool's 4G. `simq
+  partitions` shows "auto (else 4G)". Any alias may say so.
+- **Tests:** the borrow placement check accepts any free test core; the CPU
+  priority check takes the best of three 2 s windows; the ensemble launch-gate
+  members have tails long enough for a loaded node. `run-tests.py` always
+  points `XDG_STATE_HOME` and a default `SIMQUEUE_STATE_DIR` into the test
+  directory.
+- **Older backups:** the secret-pattern environment values in the database
+  copies of the four older upgrade backups were redacted in place on
+  2026-11-05 with the migration's redaction (7, 60, 205 and 705 job rows; 0
+  left); their schemas and every other column are unchanged, so they stay
+  usable for the rollbacks they belong to.
+- **Idempotency:** as documented for 0.7.0, a key first submitted under 0.6.x
+  is refused on replay ("already bound to a different submission request")
+  instead of running twice.
+
+### Upgrading 0.7.0 to 0.7.1: `upgrade.py`
+
+```sh
+cd /home/treefor/projects/runtimes/simqueue-0.7.1-20261105
+./upgrade.py install                 # dry run
+./upgrade.py install --execute
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.7.0-to-0.7.1-<UTC> --execute
+```
+
+No schema change: the preflight checks the seal, that the new
+`config/zenobia-node.json` equals the live `node.json` apart from
+`memory.auto_default`, the aliases' `default_mem` and the notes, that the
+wrapper runs 0.7.0, and that a copy of the database opened by 0.7.1 keeps
+every row. The install stops the worker (job and claim units keep running),
+backs up, switches the wrapper, link, unit and `node.json`, starts 0.7.1 and
+verifies that every running job unit and GPU claim unit is adopted; rollback
+restores the files byte for byte and 0.7.0 adopts everything back (it also
+makes GitHub posts that are still due).
+
+### 0.7.0 install history (2026-11-05)
+
+At 06:16:55 UTC a 0.7.0 test run migrated the live database to schema 9 (the
+ensemble tests' supervisors briefly ran without `SIMQUEUE_STATE_DIR` and
+fell back to the live state directory): new 0.6.3 clients were refused
+until 0.7.0 was installed at 06:34 UTC (`--allow-unsealed`; backup
+`0.6.3-to-0.7.0-20261105T063438Z`). The cause is fixed (`SIMQUEUE_*` is
+allowlisted; the test runner isolates the state directory).
 
 ## 0.7.0: event-driven worker, memory, GitHub reporting
 

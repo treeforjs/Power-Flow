@@ -276,6 +276,8 @@ class Partition:
     prefer_cpus: tuple[int, ...] = ()
     # 0.7.0: the smallest request --mem auto gives
     min_mem: int = 256 * 1024**2
+    # 0.7.1: a job without --mem gets --mem auto (an alias with default_mem "auto")
+    mem_auto: bool = False
 
     def resolve_default_cpus(self) -> int:
         return len(self.cpus) if self.default_cpus is None else self.default_cpus
@@ -370,6 +372,9 @@ class MemoryConfig:
     pressure_escalate_seconds: float = 120.0
     # a job using at least this fraction of its request is warned about once
     near_limit_fraction: float = 0.9
+    # 0.7.1: a job submitted without --mem gets --mem auto when its name (or
+    # family) has a recorded peak, else the partition's or alias's default
+    auto_default: bool = False
     # --mem auto: auto_factor x the largest of the last auto_history peaks,
     # rounded up to auto_round
     auto_factor: float = 1.25
@@ -863,7 +868,11 @@ def _parse_aliases(value: Any, partition: Partition) -> list[PartitionAlias]:
             else:
                 raise ConfigError(f"{label}: default_cpus must be 'all' or 1..{len(partition.cpus)}")
         try:
-            if "default_mem" in item:
+            if "default_mem" in item and str(item["default_mem"]).strip().lower() == "auto":
+                # 0.7.1: --mem auto when -p names this alias and --mem is not given
+                # (the partition's default_mem without history)
+                defaults.append(("mem_auto", True))
+            elif "default_mem" in item:
                 mem = parse_size(item["default_mem"], field_name=f"{label} default_mem")
                 if mem <= 0 or mem > partition.max_mem:
                     raise ConfigError(f"{label}: need 0 < default_mem <= the partition's max_mem")
@@ -918,12 +927,16 @@ def _parse_memory(value: Any) -> MemoryConfig:
         "warn_factor": (1.0, 100.0),
     }
     integers = {"series_buckets": (16, 10000), "auto_history": (1, 100)}
-    _unknown(raw, {"enabled", "notes", *sizes, *numbers, *integers}, "memory")
+    _unknown(raw, {"enabled", "auto_default", "notes", *sizes, *numbers, *integers}, "memory")
     values: dict[str, Any] = {}
     enabled = raw.get("enabled", True)
     if not isinstance(enabled, bool):
         raise ConfigError("memory.enabled must be true or false")
     values["enabled"] = enabled
+    auto_default = raw.get("auto_default", False)
+    if not isinstance(auto_default, bool):
+        raise ConfigError("memory.auto_default must be true or false")
+    values["auto_default"] = auto_default
     for key in sizes:
         if key not in raw:
             continue
@@ -972,6 +985,7 @@ def describe_memory(config: MemoryConfig) -> dict[str, Any]:
         "low_water_percent": config.low_water_percent,
         "pressure_escalate_seconds": config.pressure_escalate_seconds,
         "near_limit_fraction": config.near_limit_fraction,
+        "auto_default": config.auto_default,
         "auto_factor": config.auto_factor,
         "auto_history": config.auto_history,
         "auto_round": config.auto_round,
@@ -1091,6 +1105,7 @@ def describe_alias(config: NodeConfig, name: str) -> dict[str, Any]:
         "description": alias.description,
         "default_cpus": view.resolve_default_cpus(),
         "default_mem": view.default_mem,
+        "default_mem_auto": view.mem_auto,
         "default_time_s": view.default_time,
         "prefer_cpus": list(alias.prefer_cpus),
     }

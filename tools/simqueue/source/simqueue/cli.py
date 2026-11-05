@@ -509,6 +509,16 @@ def _node_request(
             min_mem=partition.min_mem, max_mem=partition.max_mem, default_mem=partition.default_mem,
         )
         explicit["mem_bytes"] = "auto"  # a replay keeps its fingerprint while the history grows
+    elif mem_arg is None and (config.memory.auto_default or partition.mem_auto):
+        # 0.7.1: no --mem: the history when there is one, else the default
+        history = store.memory_history() if store is not None else []
+        derived, basis = auto_request(
+            history, name=name or "", cores=requested, config=config.memory,
+            min_mem=partition.min_mem, max_mem=partition.max_mem, default_mem=partition.default_mem,
+        )
+        if basis.get("source") == "history":
+            mem = derived
+            args.mem_basis = dict(basis, implicit=True)
     elif mem_arg is not None:
         mem = parse_size(args.mem, field_name="--mem")
         if mem <= 0 or mem > partition.max_mem:
@@ -2096,9 +2106,11 @@ def _partitions(args: argparse.Namespace, store: QueueStore) -> int:
         )
         for alias in part.get("aliases") or []:
             prefer = f", prefers CPUs {format_cpu_list(alias['prefer_cpus'])}" if alias["prefer_cpus"] else ""
+            mem_text = (f"auto (else {format_size(alias['default_mem'])})" if alias.get("default_mem_auto")
+                        else format_size(alias["default_mem"]))
             print(
                 f"  alias {alias['name']}: defaults {alias['default_cpus']} core(s), "
-                f"{format_size(alias['default_mem'])}, {format_time_limit(alias['default_time_s'])}{prefer}"
+                f"{mem_text}, {format_time_limit(alias['default_time_s'])}{prefer}"
             )
         for cpu in part["cpus"]:
             print(f"    CPU {cpu['cpu']}: {_core_text(cpu)}")

@@ -1,121 +1,82 @@
 {
   "schema": "simqueue-release-v1",
-  "version": "0.7.0",
-  "runtime": "/home/treefor/projects/runtimes/simqueue-0.7.0-20261105",
-  "derived_from": "/home/treefor/projects/runtimes/simqueue-0.6.3-20261105",
+  "version": "0.7.1",
+  "runtime": "/home/treefor/projects/runtimes/simqueue-0.7.1-20261105",
+  "derived_from": "/home/treefor/projects/runtimes/simqueue-0.7.0-20261105",
   "interpreter": "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen",
   "installed": false,
   "install_command": "./upgrade.py install --execute (dry run without --execute)",
-  "rollback_command": "./upgrade.py rollback --backup /home/treefor/.local/state/simqueue-backups/0.6.3-to-0.7.0-<UTC> --execute",
-  "versioning": "minor versions for scheduling-model, state/schema or external-side-effect changes; patch versions for compatible additions. 0.7.0: measured memory as a scheduling input (admission guard, memory pressure, --mem auto), schema 9, GitHub posts, event-driven low-priority worker.",
-  "node_config": "config/zenobia-node.json: the live 0.6.3 node.json (one pool 0-7 + GPU, aliases, default_mem 4G) plus memory, github, launch.idle_seconds 30 and partitions[0].min_mem 256M; config/zenobia-16core-node.json the same on 0-15 (its default_mem lowered to 4G as on the 8-core node)",
+  "rollback_command": "./upgrade.py rollback --backup /home/treefor/.local/state/simqueue-backups/0.7.0-to-0.7.1-<UTC> --execute",
+  "versioning": "patch release: compatible defaults and fixes; no new scheduling input, no schema change, no new external side effect",
   "database_schema": {
-    "from": 8,
+    "from": 9,
     "to": 9,
-    "change": "columns added to jobs: mem_current_bytes, mem_peak_bytes, mem_peak_source, mem_sampled_at, mem_series_json, cpu_usage_usec, mem_auto_json, github_json, github_phase, github_attempts, github_next_unix, github_error, github_done, github_posted_at, github_comment_id; index jobs_github_pending_idx; no existing column changes. Rollback sets user_version back to 8 in place. The migration also redacts secret-pattern values in stored job environments (queue_meta env_scrubbed_through); install redacts finished jobs' spec.json and its backup copy."
+    "change": "none"
   },
-  "systemd_unit": "simqueue.service: Nice=10, CPUWeight=20, IOSchedulingClass=idle, MemoryHigh=96M, MemoryMax=128M (0.6.3: Nice=5)",
+  "node_config": "config/zenobia-node.json: the live 0.7.0 node.json plus memory.auto_default true and the spheral alias default_mem \"auto\"",
   "features": [
-    "security: the job environment is an allowlist (HOME, USER, LOGNAME, LANG, PATH, TZ, SIMQUEUE_*, --export NAMES|ALL, -e); names matching *TOKEN*, *SECRET*, *PASSWORD*, *KEY*, GITHUB_*, ACTIONS_*, RUNNER_* are never taken from the environment; given with -e they reach the job but are stored <redacted> (value in a mode-600 secrets file until the job ends; spec.json redacted then); the schema-9 migration scrubs older rows",
-    "event-driven worker: select() on <state>/worker.wake (clients after submit/cancel/..., the job wrapper's stop-post hook), data_version of its own persistent SQLite connection for other writers; passes every poll_seconds only while something must be watched, else at most every launch.idle_seconds (30 s); between passes only file reads (job cgroups, /proc/meminfo); systemd queried only for units that need it, all units every 5 minutes",
-    "memory tracking: memory.current/memory.peak of every running job unit every memory.sample_seconds (3 s), bounded min/max-per-minute series, peak and CPU time recorded by the unit at its end (jobwrap status/stop-post usage), shown in simq show (now, peak, CPU time, history), simq list (MEM column) and simq partitions (node available memory, water marks, per-job request against actual, outside-queue use)",
-    "--mem auto: 1.25 x the largest of the last 5 peaks of jobs with the same name (else name family, same core count preferred), OOM kills counted at their limit, rounded up to 256M, within min_mem..max_mem; default without history; idempotent replays keep their job",
-    "over-request warning on submit (>= 2x and >= 2G above the recent peak)",
-    "admission guard: a start needs request <= MemAvailable - margin (default: the high-water mark) - unallocated requests of jobs started < 60 s ago; reservations stay primary",
-    "memory pressure: MemAvailable below max(2G, 7%) stops dispatch, preempts borrow jobs by --on-preempt (frozen ones requeued after 120 s), records the job that grew against its request; owner jobs never stopped; resumes at max(4G, 12%)",
-    "GitHub reporting: --github-status OWNER/REPO@SHA:CONTEXT (repeatable), --github-comment OWNER/REPO#PR, --github-summary PATH (SIMQ_SUMMARY) on submit and run; statuses per transition (pending/success/failure/error with runtime, peak memory, exit code or reason, <= 140 chars); one PR comment edited in place (<!-- simq-job:N -->); job text sanitized against mentions and issue references; one posting thread in the worker with backoff retries; token from token_file or gh auth token, memory only",
-    "run-tests.py --in-job (inside a queue job) and --pure; tools/bench-overhead.py"
+    "memory.auto_default: a job without --mem gets --mem auto when its name (family) has a recorded peak, else the default; explicit --mem wins",
+    "alias default_mem \"auto\" (spheral: was 18G)",
+    "robust load-sensitive tests (borrow placement, CPU priority best of three windows, ensemble launch-gate tails); run-tests.py isolates XDG_STATE_HOME and SIMQUEUE_STATE_DIR",
+    "secret values in the four older upgrade backups redacted in place (7, 60, 205, 705 job rows)",
+    "documented: replays of idempotency keys first submitted under 0.6.x are refused",
+    "upgrade.py 0.7.0 <-> 0.7.1"
   ],
-  "overhead": {
-    "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.7.0-20261105/bench/bench-overhead.json",
-    "method": "each worker in its own transient user unit with the properties it is installed with; cgroup cpu.stat usage over 10 minutes after a 30 s warm-up; all four at once; busy = 2-core pool, 2 running and 10 queued sleep jobs",
-    "results": [
-      {
-        "version": "0.6.3",
-        "scenario": "idle",
-        "cpu_s_per_hour": 7.075,
-        "percent_of_one_core": 0.1965,
-        "rss_bytes": 32575488,
-        "memory_current": 19623936,
-        "memory_peak": 20180992
-      },
-      {
-        "version": "0.6.3",
-        "scenario": "busy",
-        "cpu_s_per_hour": 19.457,
-        "percent_of_one_core": 0.5405,
-        "rss_bytes": 32608256,
-        "memory_current": 19800064,
-        "memory_peak": 21454848
-      },
-      {
-        "version": "0.7.0",
-        "scenario": "idle",
-        "cpu_s_per_hour": 0.179,
-        "percent_of_one_core": 0.005,
-        "rss_bytes": 32833536,
-        "memory_current": 20377600,
-        "memory_peak": 21282816
-      },
-      {
-        "version": "0.7.0",
-        "scenario": "busy",
-        "cpu_s_per_hour": 0.693,
-        "percent_of_one_core": 0.0192,
-        "rss_bytes": 33050624,
-        "memory_current": 20791296,
-        "memory_peak": 22077440
-      }
-    ],
-    "live_063_reference": "11.9 CPU-s over 77 min (9.3 CPU-s/h), MemoryCurrent 21 MB, RSS 28 MB"
-  },
-  "github_end_to_end": {
-    "repository": "treeforjs/plasma-solid-shocks",
-    "branch": "simqueue-status-check-20261105 (throwaway; orphan commit with an empty tree, so no workflow can run)",
-    "commit": "f2062282afe3fa3bb00b29b7711af95e968bd7e0",
-    "worker": "separate sandbox worker (not the live service), token from gh auth token",
-    "statuses": [
-      "2026-11-05T05:20:56Z simqueue/e2e-check pending 'SimQueue job 1 running on CPUs 14'",
-      "2026-11-05T05:21:00Z simqueue/e2e-check success 'SimQueue job 1 succeeded in 5s, peak 8M; exit 0'"
-    ],
-    "token_in_sandbox_files": 0
-  },
-  "tests": "pending",
-  "env_scrub_dry_run": {
-    "jobs_scanned": 1013,
-    "jobs_with_secrets": 0,
-    "by_state": {},
-    "values_by_pattern": {},
-    "explicit_secrets_of_unfinished_jobs": 0,
-    "ensemble_members_with_secrets": 0,
-    "spec_files_scanned": 864,
-    "spec_files_with_secrets": 859,
-    "spec_values_by_pattern": {
-      "TOKEN": 857,
-      "ACTIONS_": 4,
-      "GITHUB_": 156,
-      "RUNNER_": 32
+  "from_0_7_0": {
+    "overhead": {
+      "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.7.0-20261105/bench/bench-overhead.json",
+      "method": "each worker in its own transient user unit with the properties it is installed with; cgroup cpu.stat usage over 10 minutes after a 30 s warm-up; all four at once; busy = 2-core pool, 2 running and 10 queued sleep jobs",
+      "results": [
+        {
+          "version": "0.6.3",
+          "scenario": "idle",
+          "cpu_s_per_hour": 7.075,
+          "percent_of_one_core": 0.1965,
+          "rss_bytes": 32575488,
+          "memory_current": 19623936,
+          "memory_peak": 20180992
+        },
+        {
+          "version": "0.6.3",
+          "scenario": "busy",
+          "cpu_s_per_hour": 19.457,
+          "percent_of_one_core": 0.5405,
+          "rss_bytes": 32608256,
+          "memory_current": 19800064,
+          "memory_peak": 21454848
+        },
+        {
+          "version": "0.7.0",
+          "scenario": "idle",
+          "cpu_s_per_hour": 0.179,
+          "percent_of_one_core": 0.005,
+          "rss_bytes": 32833536,
+          "memory_current": 20377600,
+          "memory_peak": 21282816
+        },
+        {
+          "version": "0.7.0",
+          "scenario": "busy",
+          "cpu_s_per_hour": 0.693,
+          "percent_of_one_core": 0.0192,
+          "rss_bytes": 33050624,
+          "memory_current": 20791296,
+          "memory_peak": 22077440
+        }
+      ],
+      "live_063_reference": "11.9 CPU-s over 77 min (9.3 CPU-s/h), MemoryCurrent 21 MB, RSS 28 MB"
     },
-    "database": "/home/treefor/.local/state/simqueue/queue.sqlite3 (read-only)",
-    "note": "counts only; values never read into this report",
-    "older_backups": {
-      "/home/treefor/.local/state/simqueue-backups/0.5-to-0.6-20261031T000048Z/queue.sqlite3": {
-        "jobs": 17,
-        "jobs_with_secret_values": 7
-      },
-      "/home/treefor/.local/state/simqueue-backups/0.6.0-to-0.6.1-20261031T151739Z/queue.sqlite3": {
-        "jobs": 70,
-        "jobs_with_secret_values": 60
-      },
-      "/home/treefor/.local/state/simqueue-backups/0.6.1-to-0.6.2-20261101T034917Z/queue.sqlite3": {
-        "jobs": 215,
-        "jobs_with_secret_values": 205
-      },
-      "/home/treefor/.local/state/simqueue-backups/0.6.2-to-0.6.3-20261105T031224Z/queue.sqlite3": {
-        "jobs": 715,
-        "jobs_with_secret_values": 705
-      }
-    },
-    "report": "/home/treefor/projects/.workspace/outputs/simqueue-0.7.0-20261105/env-scrub-dry-run.json"
-  }
+    "github_end_to_end": {
+      "repository": "treeforjs/plasma-solid-shocks",
+      "branch": "simqueue-status-check-20261105 (throwaway; orphan commit with an empty tree, so no workflow can run)",
+      "commit": "f2062282afe3fa3bb00b29b7711af95e968bd7e0",
+      "worker": "separate sandbox worker (not the live service), token from gh auth token",
+      "statuses": [
+        "2026-11-05T05:20:56Z simqueue/e2e-check pending 'SimQueue job 1 running on CPUs 14'",
+        "2026-11-05T05:21:00Z simqueue/e2e-check success 'SimQueue job 1 succeeded in 5s, peak 8M; exit 0'"
+      ],
+      "token_in_sandbox_files": 0
+    }
+  },
+  "tests": "pending"
 }

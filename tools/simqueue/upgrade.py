@@ -1,73 +1,47 @@
 #!/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen
-"""Upgrade the node from SimQueue 0.6.3 to 0.7.0, or roll back.  Dry run by default.
+"""Upgrade the node from SimQueue 0.7.0 to 0.7.1, or roll back.  Dry run by default.
 
     upgrade.py install  [--execute] [--config FILE] [--keep-node-config] [--adoption-timeout S]
                         [--starting-timeout S] [--no-auto-rollback] [--require-doctor]
     upgrade.py rollback --backup DIR [--execute]
     upgrade.py status
 
-0.7.0 makes the worker event-driven and low-priority, tracks every job's
-memory and CPU time from its unit's cgroup, adds the memory admission guard,
-memory-pressure handling and --mem auto, and reports job state to GitHub
-(--github-status, --github-comment).  The database moves from schema 8 to 9:
-columns are added (memory, CPU time, GitHub targets and posting state) and an
-index; no existing column of any row changes.  The partition layout stays.
-Job units are independent of the worker, so running jobs are never touched:
-the worker is stopped, its wrapper, unit and node.json are switched, the
-database is migrated, and the restarted worker re-adopts every running job
-unit by unit name and launch token, and every GPU claim unit.
+0.7.1 is a patch release: compatible defaults and fixes, no schema change
+(the database stays at schema 9 and no row changes).  A job submitted
+without --mem gets --mem auto when its name (or family) has a recorded peak
+(memory.auto_default), the spheral alias's default memory is auto instead of
+18G, the load-sensitive tests are robust, and the documentation records the
+backup redaction and the idempotency rule.  Job units are independent of the
+worker, so running jobs are never touched: the worker is stopped, its
+wrapper, unit and node.json are switched, and the restarted worker re-adopts
+every running job unit and GPU claim unit.
 
 install (with --execute):
-  1. preflight: 0.7.0 runtime sealed; the new node config valid for 0.7.0 on
-     this machine and equal to the live node.json apart from the 0.7.0 keys
-     (memory, github, launch.idle_seconds, partitions[].min_mem) and the
-     notes; every partition name of the live configuration and of every
-     queued or active job resolves; wrapper points at 0.6.3; database schema
-     8, and a copy of it migrates to 9 with every schema-8 column of every
-     row unchanged; records the active jobs, their units and the GPU claim
-     units
-  2. waits until no job is in state "starting" (--starting-timeout), stops
-     simqueue.service (job and claim units keep running) and checks again: a
-     job that became "starting" meanwhile makes the install start the 0.6.3
-     worker again and stop without changing anything
-  3. backs up the database (sqlite3 backup API, source opened read-only),
-     the wrapper, the simqueue link, the unit files and node.json and
-     worker.log, with sha256 sums in manifest.json
-  4. installs the 0.7.0 wrapper, link, simqueue.service (Nice=10,
-     CPUWeight=20, IOSchedulingClass=idle, MemoryHigh=96M, MemoryMax=128M)
-     and node.json -- from here on every `simq` call runs 0.7.0
-  5. migrates the database to schema 9 with the 0.7.0 code and verifies that
-     every schema-8 column of every row is unchanged
+  1. preflight: 0.7.1 runtime sealed; the new node config valid and equal to
+     the live node.json apart from the 0.7.1 keys (memory.auto_default, alias
+     default_mem, notes); wrapper points at 0.7.0; database schema 9, and a
+     copy of it opened by 0.7.1 keeps every column of every row
+  2. waits until no job is starting, stops simqueue.service (job and claim
+     units keep running) and checks again
+  3. backs up the database, wrapper, link, unit files, node.json, worker.log
+  4. installs the 0.7.1 wrapper, link, simqueue.service and node.json
+  5. opens the database with 0.7.1 and checks that no row changed
   6. daemon-reload, enable, start simqueue.service
-  7. verifies: the 0.7.0 worker started, every job unit that was active
-     before is adopted (worker.log "adopted job N") or has been recorded as
-     finished, every GPU claim unit that was active is adopted or has ended,
-     the GPU line state file is published by 0.7.0, the wake FIFO exists,
-     `simq doctor` and `simq partitions` run
+  7. verifies adoption of every job unit and GPU claim unit that was active,
+     the GPU line state, the wake FIFO, `simq doctor` and `simq partitions`
   On a failed verification the install rolls itself back (unless
   --no-auto-rollback).  Receipt: <backup>/install-receipt.json
 
-rollback --backup DIR (with --execute):
-  1. checks the backup against its manifest
-  2. stops simqueue.service (job units and GPU claim units keep running; the
-     0.6.3 worker adopts both)
-  3. keeps a copy of the schema-9 database in the backup directory
-  4. restores the wrapper, link, unit files and node.json byte for byte
-  5. sets the database schema back to 8 in place: rows, including jobs that
-     0.7.0 queued or ran, stay; the 0.7.0 columns stay and are ignored by
-     0.6.3; checks that the 0.6.3 code opens it
-  6. daemon-reload, start simqueue.service (0.6.3) and verifies that it
-     adopted every active job unit
-  Jobs with GitHub targets whose final post is still due are listed: 0.6.3
-  does not post them.  Receipt: <backup>/rollback-receipt.json
+rollback --backup DIR (with --execute): restores the wrapper, link, unit
+files and node.json byte for byte, starts 0.7.0 and verifies that it
+adopted every active job unit and GPU claim unit (no schema change).
 
-Job units started by 0.7.0 run the 0.7.0 jobwrap.py: keep the 0.7.0 runtime
-directory after a rollback until they have ended (and the 0.6.3 directory
-after the install, for the same reason).
+Job units started by 0.7.1 run the 0.7.1 jobwrap.py: keep the 0.7.1 runtime
+after a rollback until they have ended (and the 0.7.0 runtime after the
+install).
 
 --home, --project-root, --systemctl, --service, --runtime and --old-runtime
-exist so that the procedure can be tested in a sandbox; the defaults are the
-real paths.
+exist so that the procedure can be tested in a sandbox.
 """
 
 from __future__ import annotations
@@ -88,23 +62,25 @@ from pathlib import Path
 
 
 RUNTIME = Path(__file__).resolve().parent
-OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.6.3-20261105")
-FROM_VERSION, TO_VERSION = "0.6.3", "0.7.0"
+OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.7.0-20261105")
+FROM_VERSION, TO_VERSION = "0.7.0", "0.7.1"
 PYTHON = "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen"
 REAL_HOME = "/home/treefor"
 UNIT_FILES = ("simqueue.service", "simqueue-spheral-dispatch.path", "simqueue-spheral-dispatch.service",
               "simqborrow.slice")
-# What 0.7.0 may change in the node configuration; everything else must match.
-NEW_TOP_KEYS = {"memory", "github", "notes"}
-NEW_LAUNCH_KEYS = {"idle_seconds"}
-NEW_PARTITION_KEYS = {"min_mem"}
+# What 0.7.1 may change in the node configuration; everything else must match.
+NEW_TOP_KEYS = {"notes"}
+NEW_LAUNCH_KEYS: set = set()
+NEW_PARTITION_KEYS: set = set()
+NEW_ALIAS_KEYS = {"default_mem", "description"}
+NEW_MEMORY_KEYS = {"auto_default", "notes"}
 NEW_BORROW_KEYS = {"notes"}
 NEW_LOCK_KEYS = {"notes"}
 NEW_LINE_KEYS = {"notes"}
-SCHEMA_OLD, SCHEMA_NEW = 8, 9
+SCHEMA_OLD, SCHEMA_NEW = 9, 9  # unchanged by 0.7.1
 SCHEMA = SCHEMA_OLD
 ACTIVE_STATES = ("starting", "running", "cancelling")
-# Run with the 0.6.3 code (python_in): both layouts as the scheduler reads them.
+# Run with the new code (python_in): both layouts as the scheduler reads them.
 LAYOUT_PROBE = r"""
 import json
 from pathlib import Path
@@ -141,16 +117,19 @@ def sha256(path: Path) -> str | None:
 
 
 def comparable_config(document: dict) -> dict:
-    """The node configuration without what 0.7.0 may change: the memory and
-    github sections, launch.idle_seconds, partition min_mem and the notes."""
+    """The node configuration without what 0.7.1 may change: the notes,
+    memory.auto_default and the aliases' default memory."""
     result = {k: v for k, v in document.items() if k not in NEW_TOP_KEYS}
     for key, drop in (("lock_files", NEW_LOCK_KEYS), ("borrow", NEW_BORROW_KEYS), ("launch", NEW_LAUNCH_KEYS),
-                      ("gpu_line", NEW_LINE_KEYS)):
+                      ("gpu_line", NEW_LINE_KEYS), ("memory", NEW_MEMORY_KEYS), ("github", {"notes"})):
         if isinstance(result.get(key), dict):
             result[key] = {k: v for k, v in result[key].items() if k not in drop}
     if isinstance(result.get("partitions"), list):
-        result["partitions"] = [{k: v for k, v in part.items() if k not in NEW_PARTITION_KEYS}
-                                if isinstance(part, dict) else part for part in result["partitions"]]
+        result["partitions"] = [
+            {k: ([{a: b for a, b in alias.items() if a not in NEW_ALIAS_KEYS} if isinstance(alias, dict) else alias
+                  for alias in v] if k == "aliases" else v)
+             for k, v in part.items() if k not in NEW_PARTITION_KEYS}
+            if isinstance(part, dict) else part for part in result["partitions"]]
     return result
 
 
@@ -634,19 +613,13 @@ class Upgrade:
                              f"({', '.join(differences[:8])}); reconcile them or use --keep-node-config")
             else:
                 print(f"node config: equal to the live one apart from the {TO_VERSION} keys "
-                      "(memory, github, launch.idle_seconds, partitions[].min_mem, notes)")
+                      "(memory.auto_default, aliases' default_mem, notes)")
         if not self.database.exists():
             self.problem(f"database missing: {self.database}")
             return {}
         summary = database_summary(self.database)
         print(f"database: schema {summary['user_version']}, {summary['jobs']} jobs, states {summary['states']}")
-        if summary["user_version"] == SCHEMA_NEW and "github_json" in summary["columns"]:
-            # opened by 0.7.0 code before the install (2026-11-05 06:16 UTC): the
-            # migration is already done; the install's migration step is a no-op
-            print(f"NOTE: database already at schema {SCHEMA_NEW} with the {TO_VERSION} columns; 0.6.3 clients "
-                  "refuse it until the install (or until the schema is set back to 8)")
-            self.rehearse_migration(summary)
-        elif summary["user_version"] != SCHEMA_OLD:
+        if summary["user_version"] != SCHEMA_OLD:
             self.problem(f"database schema is {summary['user_version']}, expected {SCHEMA_OLD} ({FROM_VERSION})")
         else:
             self.rehearse_migration(summary)
@@ -654,8 +627,8 @@ class Upgrade:
             print(f"active job {job['id']} ({job['name']}): {job['state']}, unit {job['unit_name']}")
         ensembles = self.active_ensembles()
         if ensembles:
-            print(f"NOTE: active ensemble job(s) {ensembles}: their {FROM_VERSION} supervisors opened the database "
-                  "before the migration and keep working; a new 0.6.3 process could not open schema 9")
+            print(f"NOTE: active ensemble job(s) {ensembles}: their {FROM_VERSION} supervisors keep working "
+                  "(no schema change)")
         unfinished = summary["unfinished_by_partition"]
         names: dict[str, list[int]] = {}
         for name, jobs in unfinished.items():
@@ -1085,8 +1058,7 @@ class Upgrade:
             return 1
         github_due = self.github_due()
         if github_due:
-            print(f"NOTE: job(s) {github_due} still have GitHub posts due; {FROM_VERSION} does not post them "
-                  f"(their statuses stay as last posted until {TO_VERSION} runs again)")
+            print(f"NOTE: job(s) {github_due} still have GitHub posts due; {FROM_VERSION} posts them")
         receipt: dict = {"schema": "simqueue-upgrade-receipt-v1", "action": "rollback", "from": TO_VERSION,
                          "to": FROM_VERSION, "executed": self.execute, "automatic": automatic,
                          "backup": str(backup), "at": now_tag(), "github_due": github_due}

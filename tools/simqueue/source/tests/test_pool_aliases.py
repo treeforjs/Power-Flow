@@ -85,7 +85,10 @@ class AliasConfigTests(unittest.TestCase):
             before = old.partitions[name]
             self.assertEqual((view.name, view.alias), ("zenobia", name))
             self.assertEqual(view.resolve_default_cpus(), before.resolve_default_cpus(), name)
-            self.assertEqual(view.default_mem, before.default_mem, name)
+            if name == "spheral":  # 0.7.1: auto from the history, else the pool's 4G (it was 18G)
+                self.assertEqual((view.mem_auto, view.default_mem), (True, 4 * G))
+            else:
+                self.assertEqual(view.default_mem, before.default_mem, name)
             self.assertEqual(view.default_time, before.default_time, name)
             self.assertEqual(view.prefer_cpus, before.cpus, name)
             self.assertEqual((view.max_mem, view.max_time), (20 * G, 14 * 86400))

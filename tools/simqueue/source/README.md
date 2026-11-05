@@ -1,5 +1,14 @@
 # simqueue
 
+## 0.7.1: auto memory by default, robust tests
+
+`memory.auto_default`: a job without `--mem` gets `--mem auto` when its name
+(or family) has a recorded peak, else the default; an alias may set
+`default_mem: "auto"` (zenobia's `spheral`, which was 18G). The
+load-sensitive tests are robust under load; `run-tests.py` isolates the
+state directory. `../upgrade.py` installs 0.7.1 over 0.7.0 (no schema change)
+and rolls back.
+
 ## 0.7.0: event-driven worker, job memory, `--mem auto`, GitHub reporting
 
 The worker (`nodeworker.py`) sleeps in `select()` on the FIFO

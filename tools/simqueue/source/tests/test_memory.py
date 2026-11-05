@@ -480,6 +480,31 @@ class CliMemoryTests(NodeFixture, unittest.TestCase):
         text = self.cli("submit", "-p", "pa", "-c", "1", "--mem", "auto", "-n", "sweep-n9", "--", "/bin/true")
         self.assertIn("(auto)", text.stdout)  # the family sweep-n has history
 
+    def test_no_mem_uses_the_history_else_the_default(self) -> None:
+        """0.7.1: memory.auto_default and an alias default_mem "auto"."""
+        document = self.config_document()
+        document["memory"] = {"auto_default": True}
+        document["partitions"][0]["aliases"] = [{"name": "sph", "default_mem": "auto"}]
+        self.write_config(document)
+        self.seed("known", 300 * MiB)
+        known = json.loads(self.cli("submit", "--json", "-p", "pa", "-n", "known", "--", "/bin/true").stdout)
+        self.assertEqual(known["mem_bytes"], 512 * MiB)
+        self.assertTrue(known["mem_auto"]["implicit"])
+        self.assertIn("auto (default without --mem)", self.cli("show", str(known["job_id"])).stdout)
+        unknown = json.loads(self.cli("submit", "--json", "-p", "pa", "-n", "fresh", "--", "/bin/true").stdout)
+        self.assertEqual(unknown["mem_bytes"], 256 * MiB)  # the partition default, no basis recorded
+        self.assertNotIn("mem_auto", unknown)
+        explicit = json.loads(self.cli("submit", "--json", "-p", "pa", "-n", "known", "--mem", "1G", "--",
+                                       "/bin/true").stdout)
+        self.assertEqual(explicit["mem_bytes"], 1 << 30)  # an explicit --mem always wins
+        document["memory"] = {"auto_default": False}
+        self.write_config(document)
+        plain = json.loads(self.cli("submit", "--json", "-p", "pa", "-n", "known", "--", "/bin/true").stdout)
+        self.assertEqual(plain["mem_bytes"], 256 * MiB)
+        alias = json.loads(self.cli("submit", "--json", "-p", "sph", "-n", "known", "--", "/bin/true").stdout)
+        self.assertEqual(alias["mem_bytes"], 512 * MiB)  # the alias asks for auto by itself
+        self.assertIn("auto (else 256M)", self.cli("partitions", "--sample", "0").stdout)
+
     def test_over_request_warning_on_submit(self) -> None:
         self.seed("big-ask", 200 * MiB)
         # pa allows 2G at most in the fixture: write a config with room

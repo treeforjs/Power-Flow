@@ -74,7 +74,7 @@
           "name": "spheral",
           "description": "the spheral partition before 0.6.3 (cores 0-3)",
           "default_cpus": 4,
-          "default_mem": "18G",
+          "default_mem": "auto",
           "default_time": "2-00:00:00",
           "prefer_cpus": [
             0,
@@ -204,7 +204,8 @@
     "auto_round": "256M",
     "warn_factor": 2.0,
     "warn_min_excess": "2G",
-    "notes": "0.7.0. Every sample_seconds the worker reads each running job unit's cgroup (memory.current, memory.peak) and /proc/meminfo, with no process spawned; min/max per minute are written to the database every record_seconds; at a job's end its unit records memory.peak and CPU time. Admission guard: a start needs its request <= MemAvailable - margin (null: the high-water mark) - the unallocated requests of jobs started less than ramp_seconds ago; reservations (memory_schedulable) stay the primary limit and are never exceeded on the basis of current use. Memory pressure: MemAvailable below max(high_water_available, high_water_percent of MemTotal) stops dispatch and preempts borrow jobs by their --on-preempt policy (a frozen one is requeued after pressure_escalate_seconds); the jobs that grew are recorded; owner jobs are never stopped for it (their own MemoryMax bounds them); dispatch resumes at max(low_water_available, low_water_percent). --mem auto: auto_factor x the largest of the last auto_history recorded peaks of jobs with the same name (else name family, preferring the same core count), rounded up to auto_round, within the partition's min_mem..max_mem; without history the default. Submit warns when --mem is at least warn_factor x that peak and warn_min_excess above it."
+    "notes": "0.7.0. Every sample_seconds the worker reads each running job unit's cgroup (memory.current, memory.peak) and /proc/meminfo, with no process spawned; min/max per minute are written to the database every record_seconds; at a job's end its unit records memory.peak and CPU time. Admission guard: a start needs its request <= MemAvailable - margin (null: the high-water mark) - the unallocated requests of jobs started less than ramp_seconds ago; reservations (memory_schedulable) stay the primary limit and are never exceeded on the basis of current use. Memory pressure: MemAvailable below max(high_water_available, high_water_percent of MemTotal) stops dispatch and preempts borrow jobs by their --on-preempt policy (a frozen one is requeued after pressure_escalate_seconds); the jobs that grew are recorded; owner jobs are never stopped for it (their own MemoryMax bounds them); dispatch resumes at max(low_water_available, low_water_percent). --mem auto: auto_factor x the largest of the last auto_history recorded peaks of jobs with the same name (else name family, preferring the same core count), rounded up to auto_round, within the partition's min_mem..max_mem; without history the default. Submit warns when --mem is at least warn_factor x that peak and warn_min_excess above it. 0.7.1: auto_default -- a job submitted without --mem gets --mem auto when its name (or family) has a recorded peak, else the default (4G); the spheral alias's default memory is auto (it was 18G). An explicit --mem always wins.",
+    "auto_default": true
   },
   "github": {
     "enabled": true,

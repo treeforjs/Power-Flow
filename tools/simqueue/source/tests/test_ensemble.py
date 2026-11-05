@@ -1370,7 +1370,7 @@ print("TEST_STARTUP_", end="", flush=True)
 time.sleep(0.05)
 record["ready"] = time.time()
 print("READY_MARKER", flush=True)
-time.sleep(0.35)
+time.sleep(1.5)  # long enough for the follower to launch on a loaded node
 record["finished"] = time.time()
 Path("member-result.json").write_text(json.dumps(record), encoding="utf-8")
 """
@@ -1525,7 +1525,9 @@ Path("member-result.json").write_text(json.dumps(record), encoding="utf-8")
         members: list[dict[str, Any]] = []
         # The first member deliberately releases a lane well before the
         # second finishes, making third-vs-second overlap deterministic.
-        for index, tail_delay in enumerate((0.25, 0.8, 0.05)):
+        # tails long enough that the follower's launch latency on a loaded node
+        # cannot race the leader's end (the overlap is what is tested)
+        for index, tail_delay in enumerate((1.5, 2.4, 0.05)):
             directory = self.projects / f"rolling-gate-{index}"
             directory.mkdir()
             members.append(
