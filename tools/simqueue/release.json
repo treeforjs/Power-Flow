@@ -21,5 +21,94 @@
     "two-rank reproduction on the live 0.7.1 queue (job 1175): prun ranks ran in an outside DVM's scope, mpiexec ranks in the job unit; test_containment.py reproduces and checks the fix",
     "upgrade.py 0.7.1 <-> 0.7.2"
   ],
-  "tests": "pending"
+  "tests": {
+    "full_suite_in_live_queue_job": {
+      "queue_job": 1254,
+      "cores": [
+        0,
+        7
+      ],
+      "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.7.2-20261105/receipts/full-suite-in-job.json",
+      "tests_run": 391,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 12,
+      "duration_s": 540.742,
+      "failed_detail": [],
+      "skipped_detail": [
+        "test_memory.Schema9MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_memory_units.MemoryTrackingTests.test_out_of_memory_job_records_its_peak_at_the_limit: real cgroup OOM: only with SIMQ_TEST_REAL_OOM=1, never on zenobia (test_oom_safety.py covers the OOM path with a mocked unit)",
+        "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_node_worker.ConcurrencyTests.test_whole_partition_job_waits_for_all_cores: needs a two-core partition",
+        "test_node_worker.LeaseTests.test_outside_lease_holder_is_respected_and_job_units_hold_leases: needs a two-core partition",
+        "test_node_worker.LimitTests.test_out_of_memory_kills_the_whole_job: real cgroup OOM: only with SIMQ_TEST_REAL_OOM=1, never on zenobia (test_oom_safety.py covers the OOM path with a mocked unit)",
+        "test_node_worker.PfLaunchInsideAllocationTests.test_pf_launch_10_refuses_on_its_own_jobs_leases: /home/treefor/projects/Power-Flow/tools/pf-launch is no longer pf-launch 1.0",
+        "test_pool_aliases.LiveCopyTests.test_copy_of_live_database_under_the_pool: SIMQ_LIVE_DB_COPY not set",
+        "test_switchover.SwitchoverTests.test_dry_run_changes_nothing: runtime not sealed yet",
+        "test_switchover.SwitchoverTests.test_install_canary_and_rollback_restore_everything: runtime not sealed yet",
+        "test_switchover.SwitchoverTests.test_install_refuses_while_a_05_job_is_active: runtime not sealed yet"
+      ]
+    },
+    "pure_with_live_database_copy": {
+      "tests_run": 375,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 64,
+      "duration_s": 101.379,
+      "failed_detail": []
+    },
+    "pure_historical_migrations": {
+      "tests_run": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "duration_s": 0.497,
+      "failed_detail": [],
+      "skipped_detail": [
+        "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set"
+      ]
+    },
+    "observations": {
+      "sampling-cost.json": {
+        "per_sample_s_8_jobs": 8.851736666666721e-05,
+        "per_hour_at_3s_s": 0.10622084000000065
+      },
+      "sampling-loop-cost.json": {
+        "jobs_sampled": 2,
+        "sample_seconds": 1,
+        "window_s": 20.0,
+        "cpu_s": 0.02,
+        "cpu_s_per_hour": 3.6,
+        "percent_of_one_core": 0.1,
+        "rss_bytes": 38572032
+      },
+      "cpu-priority.json": {
+        "cpu": 0,
+        "alone_share": 0.993676,
+        "core_busy_alone": 1.0,
+        "borrower_share_under_contention": 0.07773934788254602,
+        "window_shares": [
+          0.07773934788254602,
+          0.07814236119953473,
+          0.07864425399262283
+        ],
+        "competitor_cpu_s": 6.453851,
+        "competitor_wall_s": 7.0
+      },
+      "containment-scan-cost.json": {
+        "processes": 556,
+        "first_scan_cpu_s": 0.003439389999999931,
+        "cached_scan_cpu_s": [
+          0.0004535300000000353,
+          0.00041720000000000645,
+          0.00040866000000006064,
+          0.00040477000000005425,
+          0.00048683000000004917
+        ]
+      }
+    },
+    "not_run": "test_shield_helper.py cannot be imported (needs source/privileged/simqueue-shield), as for 0.6.0 and later"
+  }
 }

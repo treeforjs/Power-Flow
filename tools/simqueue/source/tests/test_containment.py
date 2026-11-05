@@ -315,34 +315,39 @@ class MpiReproductionTests(NodeFixture, unittest.TestCase):
         self.prefix_dir = ompi_prefix()
         if self.prefix_dir is None:
             self.skipTest("no Open MPI 5 prefix with prte, prun and mpiexec (SIMQ_TEST_OMPI_PREFIX)")
-        self.dvm_pid: int | None = None
+        self.dvm_pids: list[int] = []
 
     def tearDown(self) -> None:
-        if self.dvm_pid:
+        for pid in getattr(self, "dvm_pids", []):
             try:
-                os.kill(self.dvm_pid, signal.SIGTERM)
+                os.kill(pid, signal.SIGTERM)
             except ProcessLookupError:
-                pass
+                continue
             deadline = time.monotonic() + 10
-            while time.monotonic() < deadline and Path(f"/proc/{self.dvm_pid}").exists():
+            while time.monotonic() < deadline and Path(f"/proc/{pid}").exists():
                 time.sleep(0.1)
-            if Path(f"/proc/{self.dvm_pid}").exists():
-                os.kill(self.dvm_pid, signal.SIGKILL)
+            if Path(f"/proc/{pid}").exists():
+                os.kill(pid, signal.SIGKILL)
         super().tearDown()
 
-    def start_outside_dvm(self) -> str:
-        """A DVM where a stray one would be: rendezvous under /tmp."""
+    def start_outside_dvm(self, rendezvous: Path | None) -> tuple[int, str]:
+        """A DVM outside the jobs; its rendezvous files go to *rendezvous*
+        (None: /tmp, where a stray one would put them)."""
         env = {k: v for k, v in os.environ.items()
                if k not in ("TMPDIR", "PMIX_SYSTEM_TMPDIR", "PMIX_SERVER_TMPDIR", "PRTE_MCA_prte_tmpdir_base")}
         env["PATH"] = f"{self.prefix_dir}/bin:/usr/bin:/bin"
-        pid_file = self.base / "dvm.pid"
-        subprocess.run([str(self.prefix_dir / "bin" / "prte"), "--daemonize", "--report-pid", str(pid_file),
-                        "--report-uri", str(self.base / "dvm.uri")], env=env, cwd=self.base,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30, check=False)
+        if rendezvous is not None:
+            rendezvous.mkdir(mode=0o700, exist_ok=True)
+            env["TMPDIR"] = env["PMIX_SYSTEM_TMPDIR"] = str(rendezvous)
+        pid_file = self.base / f"dvm-{len(self.dvm_pids)}.pid"
+        subprocess.run([str(self.prefix_dir / "bin" / "prte"), "--daemonize", "--report-pid", str(pid_file)],
+                       env=env, cwd=self.base, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30,
+                       check=False)
         self.wait_until(lambda: pid_file.exists() and pid_file.read_text().strip(), timeout=20, message="DVM pid")
-        self.dvm_pid = int("".join(ch for ch in pid_file.read_text() if ch.isdigit()))
-        self.wait_until(lambda: Path(f"/proc/{self.dvm_pid}").exists(), timeout=10, message="DVM running")
-        return own_cgroup(self.dvm_pid)
+        pid = int("".join(ch for ch in pid_file.read_text() if ch.isdigit()))
+        self.dvm_pids.append(pid)
+        self.wait_until(lambda: Path(f"/proc/{pid}").exists(), timeout=10, message="DVM running")
+        return pid, own_cgroup(pid)
 
     def ranks(self, job_id: int) -> list[str]:
         return [line.split("rank cgroup: ", 1)[1] for line in self.log_text(job_id).splitlines()
@@ -358,40 +363,47 @@ class MpiReproductionTests(NodeFixture, unittest.TestCase):
         return job_id
 
     def test_two_rank_escape_reproduced_and_contained(self) -> None:
-        dvm_cgroup = self.start_outside_dvm()
+        shared = self.base / "shared-tmp"  # stands for the /tmp that 0.7.1 jobs and a stray DVM shared
+        shared_dvm, shared_cgroup = self.start_outside_dvm(shared)
+        tmp_dvm, _ = self.start_outside_dvm(None)  # a stray DVM in the real /tmp
         self.start_worker()
         rank_script = self.projects / "rank.sh"  # prun re-splits a quoted sh -c command; a script is safe
         rank_script.write_text("#!/bin/sh\necho \"rank cgroup: $(cut -d: -f3 /proc/self/cgroup)\"\n")
         rank_script.chmod(0o755)
         rank = str(rank_script)
-        unprotected = ("env -u TMPDIR -u PMIX_SYSTEM_TMPDIR -u PMIX_SERVER_TMPDIR -u PRTE_MCA_prte_tmpdir_base "
-                       f"timeout 60 prun --map-by :OVERSUBSCRIBE -n 2 {rank} 2>&1")
-        # 1. as 0.7.1 ran jobs (no rendezvous directory): the ranks run in the DVM's cgroup
+        # 1. as under 0.7.1 (the job's rendezvous directory shared with the DVM's):
+        #    the DVM forks both ranks in its own cgroup.  (Not the real /tmp:
+        #    there a live job's mpiexec may be a second server, and prun then
+        #    refuses to choose.)
+        unprotected = (f"env -u PMIX_SERVER_TMPDIR -u PRTE_MCA_prte_tmpdir_base TMPDIR={shared} "
+                       f"PMIX_SYSTEM_TMPDIR={shared} timeout 60 prun --map-by :OVERSUBSCRIBE -n 2 {rank} 2>&1")
         escaped = self.run_job(unprotected)
         unit = str(self.job(escaped)["unit_name"])
         ranks = self.ranks(escaped)
         self.assertEqual(len(ranks), 2, self.log_text(escaped))
         for cgroup in ranks:
             self.assertNotIn(unit, cgroup)
-            self.assertEqual(cgroup, dvm_cgroup)
-        # the worker saw the DVM outside every job
-        document = self.wait_until(
-            lambda: (json.loads((self.state / "containment.json").read_text())
-                     if (self.state / "containment.json").exists() else None), timeout=30, message="containment.json")
-        self.assertIn(self.dvm_pid, [d["pid"] for d in document["outside_mpi_daemons"]])
+            self.assertEqual(cgroup, shared_cgroup)
+        # the worker saw both DVMs outside every job
+        def listed() -> set[int]:
+            path = self.state / "containment.json"
+            if not path.exists():
+                return set()
+            return {d["pid"] for d in json.loads(path.read_text())["outside_mpi_daemons"]}
+
+        self.wait_until(lambda: {shared_dvm, tmp_dvm} <= listed(), timeout=30, message="containment.json")
         self.assertIn("OUTSIDE MPI DAEMON", self.cli("partitions").stdout)
-        # 2. 0.7.2: prun finds no DVM; nothing runs outside
+        # 2. 0.7.2: the job's own rendezvous directory; neither DVM is found, nothing runs outside
         contained = self.run_job(f"timeout 60 prun --map-by :OVERSUBSCRIBE -n 2 {rank} 2>&1")
         self.assertEqual(self.ranks(contained), [])
         self.assertIn("no DVM", self.log_text(contained))
-        # 3. mpiexec: both ranks in the job's unit, with the job's TMPDIR
+        # 3. mpiexec: both ranks in the job's unit
         own = self.run_job(f"timeout 60 mpiexec --map-by :OVERSUBSCRIBE --bind-to none -n 2 {rank} 2>&1")
         unit = str(self.job(own)["unit_name"])
         ranks = self.ranks(own)
         self.assertEqual(len(ranks), 2, self.log_text(own))
         for cgroup in ranks:
             self.assertTrue(cgroup.endswith(f"/{unit}"), cgroup)
-
 
 if __name__ == "__main__":
     unittest.main()

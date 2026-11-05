@@ -93,6 +93,17 @@ for child in children:
 '''
 
 
+# The per-CPU idle guard (a free core is lent only while its CPU measures
+# idle: cpu_idle_threshold, 15%) protects processes pinned without a lease.
+# Tests of preemption, reruns and owner/lease-holder idleness turn it off:
+# inside a queue job (run-tests.py --in-job) the test cores also carry the
+# harness and whatever unpinned work the busy node schedules there, so a core
+# is often above 15% for long stretches and a borrower waited past the
+# timeouts (jobs 1230 and 1248).  Their idleness still comes from the owner's
+# or holder's own cgroup usage.
+NO_CPU_GUARD = {"cpu_idle_threshold": 1.0}
+
+
 class BorrowFixture(NodeFixture):
     min_cpus = 2
     policies: dict = {}
@@ -195,7 +206,8 @@ class BorrowUnitTests(BorrowFixture, unittest.TestCase):
         self.assertTrue(held and all(h.mode == "READ" for h in held), held)
         self.assertTrue(flock_free(self.locks / f"core{cpu}.lock"), "a borrow job must not hold the core lease")
         placement = json.loads(job["placement_json"])
-        self.assertEqual(placement["cpus"], [{"class": "free", "cpu": cpu, "partition": "pa"}])
+        home = "pa" if cpu in self.part_a else "pb"  # the free core it took belongs to this partition
+        self.assertEqual(placement["cpus"], [{"class": "free", "cpu": cpu, "partition": home}])
         self.wait_state(job_id, "succeeded")
         self.assertEqual(self.kinds(job_id), ["started", "finished"])
 
@@ -253,6 +265,8 @@ class BorrowUnitTests(BorrowFixture, unittest.TestCase):
 
 
 class PreemptionUnitTests(BorrowFixture, unittest.TestCase):
+    borrow_settings = NO_CPU_GUARD
+
     def test_requeue_preemption_owner_starts_at_once_and_borrower_reruns(self) -> None:
         self.start_worker()
         borrow_id = self.submit("--borrow", "-p", "pa", "-c", str(len(self.part_a)), "--borrow-from", "pa", "-n", "build",
@@ -272,7 +286,7 @@ class PreemptionUnitTests(BorrowFixture, unittest.TestCase):
         self.assertEqual(preempted["detail"]["mode"], "requeue")
         self.assertEqual(preempted["detail"]["by_job"], owner_id)
         self.wait_state(owner_id, "succeeded")
-        job = self.wait_state(borrow_id, "succeeded", timeout=60)
+        job = self.wait_state(borrow_id, "succeeded", timeout=90)
         self.assertEqual(job["preempt_count"], 1)
         self.assertEqual(self.kinds(borrow_id), ["started", "preempted", "requeued", "started", "finished"])
         self.assertIn("reclaimed", [e["kind"] for e in self.store.job_events(owner_id)])
@@ -361,7 +375,7 @@ class PreemptionUnitTests(BorrowFixture, unittest.TestCase):
         self.assertIn("taken outside the queue", event["detail"]["reason"])
         self.assertLess(latency, 5.0)
         # requeued, then restarted on another core
-        self.wait_until(lambda: self.kinds(borrow_id).count("started") == 2, timeout=30, message="restart")
+        self.wait_until(lambda: self.kinds(borrow_id).count("started") == 2, timeout=60, message="restart")
         job = self.wait_state(borrow_id, "running", timeout=30)
         self.assertNotEqual(int(job["cpu_list"]), cpu)
         self.assertIn("requeued", self.kinds(borrow_id))
@@ -370,6 +384,7 @@ class PreemptionUnitTests(BorrowFixture, unittest.TestCase):
 
 
 class LeasedIdleUnitTests(BorrowFixture, unittest.TestCase):
+    borrow_settings = NO_CPU_GUARD
     policies = {"pb": {"lend_leased_idle": True}, "pa": {"lend": False}}
 
     def test_idle_lease_holder_lends_its_core_and_busy_holder_preempts(self) -> None:
@@ -423,6 +438,8 @@ class OwnerIdleUnitTests(BorrowFixture, unittest.TestCase):
     """One partition with every test CPU: an owner job takes all of them but
     keeps only the first busy; a borrow job of the same partition may use the
     unused ones (owner-idle) until the owner needs them."""
+
+    borrow_settings = NO_CPU_GUARD
 
     def config_document(self):
         document = super().config_document()

@@ -179,8 +179,10 @@ read once, since it cannot change):
 Ranks that an outside DVM forks do **not** carry the job's environment (PRRTE
 forwards none of it, checked with `SIMQ_LAUNCH_TOKEN`, `OMPI_MCA_*`,
 `PMIX_MCA_*` and `PRTE_MCA_*`), so they cannot be attributed to a job by its
-token; they show up as children of the outside daemon. The scan costs about
-{SCAN_COST} (`containment-scan-cost.json` in the test receipts).
+token; they show up as children of the outside daemon. A scan of about 550 processes
+takes 0.4 to 2 ms of CPU (3 to 5 ms the first time, when every environment is
+read once), so at most about 0.13 CPU-s per hour at the default 60 s
+(`containment-scan-cost.json` in the test receipts).
 
 **Configuration** (`containment` in node.json, all optional):
 `enabled` (true), `tmp_base` ("/tmp"), `scan_seconds` (60; 0 = only at each
@@ -194,13 +196,27 @@ processes (token outside and inside its cgroup, left behind, an outside
 `prte` with its children, cost), a job unit's environment and directory
 (removed at the end), a process moved out of a job with `systemd-run --scope`
 (reported while it runs and after the job ended), and the two-rank
-reproduction: with an outside DVM whose rendezvous is in `/tmp`, a job
-without its rendezvous variables (as 0.7.1 ran jobs) runs both `prun` ranks
-in the DVM's cgroup; with them `prun` finds no DVM and nothing runs outside;
-`mpiexec -n 2` keeps both ranks in the job's unit; the worker lists the DVM
-in `containment.json` and `simq partitions`. The reproduction needs an Open
-MPI 5 prefix with `prte`, `prun` and `mpiexec` (`SIMQ_TEST_OMPI_PREFIX`, else
-the MOOSE conda environment) and is skipped without one.
+reproduction: an outside DVM whose rendezvous directory the job shares (as
+0.7.1 jobs shared `/tmp`) gets both `prun` ranks of a job without its own
+rendezvous variables, in the DVM's cgroup; with them (and a second stray
+DVM in the real `/tmp`) `prun` finds no DVM and nothing runs outside;
+`mpiexec -n 2` keeps both ranks in the job's unit; the worker lists both DVMs
+in `containment.json` and `simq partitions`. The shared directory is not the
+real `/tmp` because there other jobs' servers may be found too: in the first
+official 0.7.2 run (job 1198) `prun` from the test refused with "PMIx has
+found multiple possible servers" -- the test's DVM and another server in
+`/tmp`, most likely the two-rank `pore_plasma` run of live job 1063
+(17:11-17:17 UTC): a 0.7.1 job's `mpiexec` puts its rendezvous files in
+`/tmp`, where any `prun` on the node can find it. The reproduction needs an Open MPI 5 prefix with `prte`, `prun`
+and `mpiexec` (`SIMQ_TEST_OMPI_PREFIX`, else the MOOSE conda environment) and
+is skipped without one. Two older borrow tests were made independent of
+where they run: the placement check names the partition of the free core the
+borrower got, and the preemption, owner-idle and leased-idle tests turn off
+the per-CPU idle guard (`cpu_idle_threshold` 1.0; their idleness still comes
+from the owner's or holder's own cgroup): inside a queue job the two test
+cores also carry the harness and unpinned work the busy node schedules
+there, so they were often above 15% for long stretches and a borrower waited
+past the timeouts (jobs 1230 and 1248).
 
 ### Upgrading 0.7.1 to 0.7.2: `upgrade.py`
 
@@ -1508,6 +1524,18 @@ PartitionName=powerflow   Nodes=zenobia MaxTime=14-00:00:00 DefaultTime=12:00:00
 After the CPU change: `CoresPerSocket=16`. Default memory per name maps to
 `DefMemPerNode` per partition; borrow jobs map to a preemptible partition
 (`PreemptType=preempt/partition_prio`, `PreemptMode=REQUEUE`).
+
+## Validation of 0.7.2 (2026-11-05)
+
+- Full suite inside live queue job 1254 (`simq run -c 2 --mem 1G -t 0:40:00 --priority 20 -- run-tests.py --in-job`, the test units on the job's cores [0, 7]): 391 tests, 0 failure(s), 0 error(s), 12 skipped, 541 s.
+- Real-OOM tests not run (2 skipped: `SIMQ_TEST_REAL_OOM` unset, and refused on zenobia); the OOM path ran against mocked unit states (`test_oom_safety.py`), and the unit-property test checked live-started test units (OOMPolicy=stop, no Exec*Post/Stop, `memory.oom.group` 0).
+- Every suite without units, with the live-database copy: 375 tests, 0 failures (64 skipped: the unit-level tests).
+- Historical migration suites: 7 tests, 0 failures.
+- Borrower CPU share under contention (three windows): [0.07773934788254602, 0.07814236119953473, 0.07864425399262283].
+- Escape scan: 556 processes, 3.4 ms CPU the first time, 0.4 ms after.
+- Two-rank MPI reproduction (`test_containment.py`): ran (Open MPI 5.0.10 prefix of the MOOSE environment).
+- `test_shield_helper.py` cannot be imported, as before.
+- Receipts: `/home/treefor/projects/.workspace/outputs/simqueue-0.7.2-20261105/receipts/`.
 
 ## Validation of 0.7.1 (2026-11-05)
 
