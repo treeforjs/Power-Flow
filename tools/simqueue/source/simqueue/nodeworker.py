@@ -371,6 +371,8 @@ def job_environment(job: dict[str, Any], placement: dict[str, str]) -> dict[str,
     because a stale ``SLURM_JOB_ID`` makes launchers such as pf-launch,
     Open MPI and MPICH take their Slurm code paths.
     """
+    from .envpolicy import REDACTED, SESSION, read_secrets
+
     environment = {str(k): str(v) for k, v in dict(json.loads(str(job["env_json"]))).items()}
     try:
         explicit = set(json.loads(str(job.get("env_override_keys") or "[]")))
@@ -381,6 +383,14 @@ def job_environment(job: dict[str, Any], placement: dict[str, str]) -> dict[str,
             del environment[key]
         elif key.startswith("SIMQ_"):
             del environment[key]
+        elif environment[key] == REDACTED:
+            del environment[key]  # 0.7.0: a redacted value never reaches the job
+    # 0.7.0: secrets given with -e, from their private file (not the database)
+    environment.update(read_secrets(state_dir(), int(job["id"]), str(job["launch_token"])))
+    # session plumbing of the user manager, so that `systemctl --user` works in a job
+    for key in SESSION:
+        if key not in environment and os.environ.get(key):
+            environment[key] = os.environ[key]
     environment.update(placement)
     return environment
 
@@ -657,6 +667,18 @@ class NodeWorker:
         self._stop_sent.pop(job_id, None)
         self._tracks.pop(job_id, None)
         self._verified.pop(job_id, None)
+        self._forget_secrets(job)
+
+    def _forget_secrets(self, job: dict[str, Any]) -> None:
+        """0.7.0: a finished job's secrets file goes, its spec.json is redacted."""
+        from .envpolicy import delete_secrets, scrub_spec
+
+        try:
+            delete_secrets(state_dir(), int(job["id"]), str(job["launch_token"]))
+            if job.get("job_dir"):
+                scrub_spec(Path(str(job["job_dir"])) / "spec.json")
+        except Exception as error:  # noqa: BLE001 - never block a job's end
+            self.log(f"job {job['id']}: could not remove its secrets: {error!r}")
 
     def _final_usage(self, job: dict[str, Any]) -> dict[str, Any] | None:
         """What the job used: the unit's own record at its end (0.7.0 jobwrap:
@@ -1688,6 +1710,8 @@ class NodeWorker:
         if safety:
             self._next_safety = now + self.config.launch.idle_seconds * SAFETY_RECONCILE_IDLE
         self.reconcile(startup=startup, full=safety)
+        if self._pressure.active:
+            self._refresh_pressure()  # also when no job runs any more (no samples then)
         started = self.dispatch()
         self._sync_tracks()
         try:

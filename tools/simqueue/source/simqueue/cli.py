@@ -237,18 +237,25 @@ def _print_queued_jobs(store: QueueStore) -> None:
     _print_job_rows(store.queued_jobs(), empty_message="No queued jobs.")
 
 
-def _parse_environment(items: Sequence[str]) -> tuple[dict[str, str], list[str]]:
-    environment = dict(os.environ)
-    override_keys: list[str] = []
+def _parse_environment(items: Sequence[str], export: str | None = None) -> tuple[dict[str, str], list[str]]:
+    """The job's environment (0.7.0: an allowlist, see envpolicy.py); the
+    secrets given with -e are kept aside (``_parse_environment.secrets``)."""
+    environment, _secrets, override_keys, _withheld = _capture_environment(items, export)
+    return environment, override_keys
+
+
+def _capture_environment(items: Sequence[str], export: str | None = None):
+    from .envpolicy import capture, parse_export
+
+    overrides: list[tuple[str, str]] = []
     for item in items:
         if "=" not in item:
             raise ValueError(f"environment override must be KEY=VALUE, got {item!r}")
         key, value = item.split("=", 1)
         if not key or "\x00" in key or "=" in key:
             raise ValueError(f"invalid environment variable name {key!r}")
-        environment[key] = value
-        override_keys.append(key)
-    return environment, override_keys
+        overrides.append((key, value))
+    return capture(os.environ, overrides, parse_export(export))
 
 
 def _resolve_cwd(value: str | None) -> Path:
@@ -768,7 +775,10 @@ def _enqueue(args: argparse.Namespace, store: QueueStore) -> int | tuple[dict[st
     if not name.strip():
         raise ValueError("job name cannot be empty")
     cwd = _resolve_cwd(args.cwd)
-    environment, override_keys = _parse_environment(args.env)
+    environment, secret_env, override_keys, withheld = _capture_environment(args.env, getattr(args, "export", None))
+    if withheld:
+        print(f"simq: not passed to the job (secret-looking names; use -e NAME=VALUE): {', '.join(withheld)}",
+              file=sys.stderr)
     # 0.7.0: GitHub reporting targets (posted by the worker on transitions)
     github = targets_from_args(getattr(args, "github_status", None), getattr(args, "github_comment", None),
                                getattr(args, "github_summary", None), cwd)
@@ -789,6 +799,7 @@ def _enqueue(args: argparse.Namespace, store: QueueStore) -> int | tuple[dict[st
         idempotency_key=args.idempotency_key,
         scheduling=scheduling,
         explicit_scheduling=explicit,
+        secret_env=secret_env,
         extra_columns={
             "github_json": None if github is None else json.dumps(github, sort_keys=True),
             "mem_auto_json": None if basis is None else json.dumps(basis, sort_keys=True, default=str),
@@ -1122,7 +1133,7 @@ def _ensemble_submit(args: argparse.Namespace, store: QueueStore) -> int:
     job = store.submit_ensemble(
         name=str(canonical["name"]),
         cwd=project_root(),
-        environment=dict(os.environ),
+        environment=_capture_environment([])[0],
         env_override_keys=[],
         requested_cores=int(canonical["max_parallel"]),
         runner_prefix=[sys.executable, str(launcher), "_run-ensemble"],
@@ -2256,6 +2267,7 @@ def _node_doctor(config: NodeConfig, store: QueueStore) -> int:
         ("Borrow jobs", borrow_detail),
         ("GPU line", line_detail),
         ("Memory", _memory_doctor_text(config, store)),
+        ("GitHub reporting", _github_doctor_text(config, store)),
         ("Worker wake FIFO", _wake_fifo_text()),
         ("Queue", "paused" if store.is_paused() else "accepting jobs"),
         ("Worker unit", "simqueue.service"),
@@ -2292,6 +2304,23 @@ def _memory_doctor_text(config: NodeConfig, store: QueueStore) -> str:
     return (f"cgroups sampled every {memory.sample_seconds:g} s, recorded every {memory.record_seconds:g} s; "
             f"admission guard margin {margin}{marks}; --mem auto {memory.auto_factor:g} x the largest of the "
             f"last {memory.auto_history} peaks" + ("; MEMORY PRESSURE now" if pressure else ""))
+
+
+def _github_doctor_text(config: NodeConfig, store: QueueStore) -> str:
+    github = config.github
+    if not github.enabled:
+        return "disabled (github.enabled false)"
+    import shutil as _shutil
+
+    if github.token_file:
+        source = f"token file {github.token_file}" + ("" if os.path.exists(github.token_file) else " (MISSING)")
+    else:
+        found = _shutil.which(github.gh)
+        source = f"`{github.gh} auth token`" + (f" ({found})" if found else " (gh NOT found)")
+    due = store.github_pending()
+    failing = [int(job["id"]) for job in due if job.get("github_error")]
+    return (f"{github.api_base}; token from {source}; {len(due)} job(s) with posts due"
+            + (f", failing: {failing[:10]}" if failing else ""))
 
 
 def _wake_fifo_text() -> str:
@@ -2404,7 +2433,14 @@ def _add_submit_arguments(parser: argparse.ArgumentParser) -> None:
         action="append",
         default=[],
         metavar="KEY=VALUE",
-        help="set a job environment variable (repeatable)",
+        help="set a job environment variable (repeatable); a secret-looking name (*TOKEN*, *SECRET*, *PASSWORD*, "
+        "*KEY*, GITHUB_*, ACTIONS_*, RUNNER_*) reaches the job but is stored redacted",
+    )
+    parser.add_argument(
+        "--export",
+        metavar="NAMES|ALL|NONE",
+        help="pass these variables of your environment to the job besides HOME, USER, LOGNAME, LANG, PATH and TZ "
+        "(ALL: every one); secret-looking names are never taken from the environment (0.7.0)",
     )
     parser.add_argument(
         "--shell",

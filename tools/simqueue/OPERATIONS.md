@@ -28,8 +28,18 @@ GitHub reporting" below):
   `--github-status` (commit statuses on every transition) or
   `--github-comment` (one pull-request comment at the end, edited in place).
 
-The database moves to schema 9 (columns added; `upgrade.py` migrates it and
-its rollback sets it back in place).
+- **Security: the job environment is an allowlist.** Up to 0.6.3 the whole
+  environment of `simq submit` was stored in the database and given to the
+  job (a workflow's `GH_TOKEN` ended up in `queue.sqlite3`; jobs that
+  inherited `RUNNER_TRACKING_ID` were killed by the Actions runner). 0.7.0
+  passes only HOME, USER, LOGNAME, LANG, PATH, TZ and SimQueue's own
+  `SIMQUEUE_*` settings, plus `-e NAME=VALUE` and `--export NAME,...`
+  (`--export ALL`: everything); secret-looking names are never taken from
+  the environment and are stored redacted when given with `-e` (see "Job
+  environment" below). The migration redacts what older builds stored.
+
+The database moves to schema 9 (columns added, stored secrets redacted;
+`upgrade.py` migrates it and its rollback sets the schema back in place).
 
 **Versioning rule.** A minor version (0.6 -> 0.7) is for a change of the
 scheduling model, of state or schema, or of side effects outside the
@@ -230,6 +240,42 @@ on zenobia). Below it:
 
 Owner jobs are never stopped for memory pressure: their own `MemoryMax`
 bounds each of them; they are recorded and warned about.
+
+### Job environment (security fix)
+
+What a job sees from its submitter: HOME, USER, LOGNAME, LANG, PATH, TZ and
+the `SIMQUEUE_*` settings (so a job running `simq` stays on the same queue),
+the names given with `--export NAME,...` (`--export ALL`: the whole
+environment), and `-e NAME=VALUE`. The worker adds the user manager's
+`XDG_RUNTIME_DIR` and `DBUS_SESSION_BUS_ADDRESS` (so `systemctl --user` works
+in a job) and the `SIMQ_*` placement variables.
+
+A name matching `*TOKEN*`, `*SECRET*`, `*PASSWORD*`, `*KEY*`, `GITHUB_*`,
+`ACTIONS_*` or `RUNNER_*` (case-insensitive; SimQueue's own `SIMQ_*`
+excepted) is never taken from the environment, whatever `--export` says;
+`simq submit` lists such names it left out (names only). Given with `-e`, it
+reaches the job, but the database stores `<redacted>`: the value waits in
+`~/.local/state/simqueue/secrets/<job>.json` (mode 600) until the job ends,
+when the worker deletes that file and redacts the job's `spec.json`. A
+`simq retry` of such a job runs without it (pass it again with a new
+submission). `simq show` and `simq list` print names, never values.
+
+The schema-9 migration (`upgrade.py install`) redacts secret-pattern values
+in every stored job environment and in finished ensemble members; a queued
+job's secret that had been given with `-e` moves to its secrets file. The
+install also redacts the `spec.json` of every finished job and its own
+backup copy of the database. Dry-run counts on 2026-11-05 (never values;
+`<outputs>/simqueue-0.7.0-20261105/env-scrub-dry-run.json`): the live
+database had no secret-pattern values left; 859 of 864 job spec files had
+some (857 `*TOKEN*`, 156 `GITHUB_*`, 32 `RUNNER_*`, 4 `ACTIONS_*` values);
+the database copies in the four older upgrade backups hold 7, 60, 205 and
+705 such rows (not touched by the install).
+
+CI scripts that submit through `env -i` keep working unchanged.
+Idempotency fingerprints cover the passed environment only, so a replay of
+a key that was submitted under 0.6.x is refused ("already bound to a
+different submission request") rather than run twice: 0.6.x fingerprinted
+the whole environment, including `PWD`, `SHLVL` and `LC_CTYPE`.
 
 ### Configuration (`memory` in node.json)
 
@@ -477,6 +523,7 @@ mode cannot start (the job stays queued).
 | `SIMQ_TIME_LIMIT` | time limit in seconds (empty when unlimited) |
 | `SIMQ_LOG`, `SIMQ_UNIT` | job log, systemd unit name |
 | `SIMQ_SUMMARY` (0.7.0) | with `--github-summary`: the markdown file the job may write for its PR comment |
+| (0.7.0) everything else | only HOME, USER, LOGNAME, LANG, PATH, TZ, `SIMQUEUE_*`, `--export` names and `-e` values from the submitter, plus XDG_RUNTIME_DIR and DBUS_SESSION_BUS_ADDRESS; see "Job environment" |
 | `CUDA_VISIBLE_DEVICES` | the allocated GPU UUIDs (empty when none); `CUDA_DEVICE_ORDER=PCI_BUS_ID` |
 
 The rest of the environment is the submitting shell's, captured at submit time

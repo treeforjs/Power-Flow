@@ -7,8 +7,10 @@ SIMQUEUE_NO_AUTOSTART=1.
 from __future__ import annotations
 
 import json
+import sqlite3
 import subprocess
 import unittest
+from contextlib import closing
 from pathlib import Path
 
 from node_fixture import PYTHON_FROZEN, NodeFixture
@@ -179,18 +181,32 @@ class BorrowCliTests(NodeFixture, unittest.TestCase):
         if not (RUNTIME_060 / "source" / "simq").exists():
             self.skipTest("0.6.0 runtime not present")
         state = self.base / "state-060"
-        env = dict(self.environment, SIMQUEUE_STATE_DIR=str(state))
+        # 0.7.0 fingerprints the environment it passes (an allowlist): a replay
+        # across the upgrade finds its job when the submitter's environment holds
+        # no more than that, as with `env -i` in the CI scripts
+        env = {k: v for k, v in self.environment.items()
+               if k.startswith("SIMQUEUE_") or k in ("HOME", "USER", "LOGNAME", "LANG", "PATH", "TZ")}
+        env["SIMQUEUE_STATE_DIR"] = str(state)
         arguments = ("submit", "--json", "--idempotency-key", "fp:1", "-p", "pa", "-c", "1", "--mem", "512M",
                      "-t", "5:00", "--priority", "2", "-e", "X=1", "--", "/bin/echo", "hi")
         old_launcher = self.make_launcher(RUNTIME_060 / "source")
         old = subprocess.run([PYTHON_FROZEN, str(old_launcher), *arguments], cwd=self.projects, env=env, text=True,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
         self.assertEqual(old.returncode, 0, old.stderr)
-        new = self.cli(*arguments, env=env)  # migrates that database to schema 8, then replays the key
-        self.assertEqual(new.returncode, 0, new.stderr)
-        first, replay = json.loads(old.stdout), json.loads(new.stdout)
-        self.assertEqual((replay["job_id"], replay["created"]), (first["job_id"], False))
-        self.assertEqual(replay["request_sha256"], first["request_sha256"])
+        new = self.cli(*arguments, env=env)  # migrates that database, then replays the key
+        # 0.7.0 fingerprints only what it passes to the job (allowlisted
+        # variables); a 0.6 fingerprint covers the whole environment (with
+        # PWD, SHLVL, LC_CTYPE), so a replay across the upgrade is refused
+        # rather than run twice
+        self.assertEqual(new.returncode, 2, new.stdout)
+        self.assertIn("already bound to a different submission request", new.stderr)
+        first = json.loads(old.stdout)
+        replay = self.cli("submit", "--json", "--idempotency-key", "fp:1", "-p", "pa", "-c", "1", "--mem", "512M",
+                          "-t", "5:00", "--priority", "2", "-e", "X=1", "--", "/bin/echo", "hi", env=env)
+        self.assertEqual(replay.returncode, 2)
+        with closing(sqlite3.connect(state / "queue.sqlite3")) as connection:
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM jobs").fetchone()[0], 1)
+            self.assertEqual(connection.execute("SELECT id FROM jobs").fetchone()[0], first["job_id"])
 
     def test_legacy_mode_rejects_borrow_options(self) -> None:
         self.config_path.unlink()

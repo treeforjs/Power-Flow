@@ -241,6 +241,75 @@ def row_digests(path: Path, columns: list[str]) -> dict[int, str]:
     return {int(row[0]): hashlib.sha256(json.dumps(row[1:], default=str).encode()).hexdigest() for row in rows}
 
 
+def _envpolicy(runtime: Path):
+    """The 0.7.0 environment policy (secret patterns, scrubbing)."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simq_envpolicy", runtime / "source" / "simqueue" / "envpolicy.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+PATTERN_GROUPS = ("TOKEN", "SECRET", "PASSWORD", "KEY", "GITHUB_", "ACTIONS_", "RUNNER_")
+
+
+def _group_of(name: str) -> str:
+    upper = name.upper()
+    for group in PATTERN_GROUPS:
+        if (group.endswith("_") and upper.startswith(group)) or (not group.endswith("_") and group in upper):
+            return group
+    return "other"
+
+
+def secret_census(database: Path, state: Path, runtime: Path) -> dict:
+    """How many stored environments carry secret-pattern values: counts per
+    job state and per pattern, and of job spec files.  Never values."""
+    policy = _envpolicy(runtime)
+    census: dict = {"jobs_scanned": 0, "jobs_with_secrets": 0, "by_state": {}, "values_by_pattern": {},
+                    "explicit_secrets_of_unfinished_jobs": 0, "ensemble_members_with_secrets": 0,
+                    "spec_files_scanned": 0, "spec_files_with_secrets": 0}
+    with closing(sqlite3.connect(f"file:{database}?mode=ro", uri=True)) as connection:
+        for job_state, env_json, override_json in connection.execute(
+                "SELECT state, env_json, env_override_keys FROM jobs"):
+            census["jobs_scanned"] += 1
+            try:
+                env = json.loads(env_json or "{}")
+                explicit = set(json.loads(override_json or "[]"))
+            except ValueError:
+                continue
+            names = [k for k, v in env.items() if policy.is_secret(k) and v != policy.REDACTED]
+            if not names:
+                continue
+            census["jobs_with_secrets"] += 1
+            census["by_state"][job_state] = census["by_state"].get(job_state, 0) + 1
+            for name in names:
+                group = _group_of(name)
+                census["values_by_pattern"][group] = census["values_by_pattern"].get(group, 0) + 1
+                if name in explicit and job_state not in ("succeeded", "failed", "canceled", "interrupted"):
+                    census["explicit_secrets_of_unfinished_jobs"] += 1
+        for (env_json,) in connection.execute("SELECT env_json FROM ensemble_members"):
+            if policy.scrub_json(env_json)[1]:
+                census["ensemble_members_with_secrets"] += 1
+    for spec in (state / "jobs").glob("*/spec.json"):
+        census["spec_files_scanned"] += 1
+        try:
+            env = json.loads(spec.read_text()).get("env") or {}
+        except (OSError, ValueError, AttributeError):
+            continue
+        if any(policy.is_secret(k) and v != policy.REDACTED for k, v in env.items()):
+            census["spec_files_with_secrets"] += 1
+    return census
+
+
+def census_text(census: dict) -> str:
+    return (f"{census['jobs_with_secrets']} of {census['jobs_scanned']} stored job environments carry "
+            f"secret-pattern values (by state {census['by_state']}; values by pattern "
+            f"{census['values_by_pattern']}; {census['explicit_secrets_of_unfinished_jobs']} given with -e to "
+            f"unfinished jobs, kept in their secrets files); ensemble members {census['ensemble_members_with_secrets']}; "
+            f"job spec files {census['spec_files_with_secrets']} of {census['spec_files_scanned']}")
+
+
 def wrapper_runtime(text: str) -> Path | None:
     match = re.search(r"exec \S+ (\S+)/source/simq ", text)
     return Path(match.group(1)) if match else None
@@ -630,16 +699,68 @@ class Upgrade:
             self.problem(f"the {TO_VERSION} code cannot migrate a copy of the database: {last_line(result.stderr)}")
             return
         after = database_summary(copy)
-        old = row_digests(self.database, summary["columns"])
-        new = row_digests(copy, summary["columns"])
+        columns = [c for c in summary["columns"] if c != "env_json"]
+        old = row_digests(self.database, columns)
+        new = row_digests(copy, columns)
         changed = [job_id for job_id, digest in old.items() if new.get(job_id) != digest]
         added = [c for c in after["columns"] if c not in summary["columns"]]
-        if after["user_version"] != SCHEMA_NEW or changed or len(new) != len(old):
-            self.problem(f"migration rehearsal: schema {after['user_version']}, rows changed {changed[:10]}")
+        wrong_env = self.env_scrub_problems(self.database, copy)
+        census = secret_census(self.database, self.state, self.runtime)
+        self.census = census
+        if after["user_version"] != SCHEMA_NEW or changed or len(new) != len(old) or wrong_env:
+            self.problem(f"migration rehearsal: schema {after['user_version']}, rows changed {changed[:10]}, "
+                         f"environments not scrubbed as expected {wrong_env[:10]}")
         else:
             print(f"migration rehearsal on a copy: schema {SCHEMA_OLD} -> {SCHEMA_NEW}, {len(old)} rows, every "
-                  f"schema-{SCHEMA_OLD} column unchanged; {len(added)} column(s) added: {', '.join(added)}")
+                  f"schema-{SCHEMA_OLD} column unchanged but env_json, whose secret-pattern values are "
+                  f"redacted; {len(added)} column(s) added: {', '.join(added)}")
+            print("environment scrub (counts only): " + census_text(census))
         shutil.rmtree(scratch, ignore_errors=True)
+
+    def env_scrub_problems(self, before: Path, after: Path) -> list[int]:
+        """Jobs whose env_json after the migration is not the scrubbed
+        env_json of before (rows added meanwhile are not compared)."""
+        policy = _envpolicy(self.runtime)
+        with closing(sqlite3.connect(f"file:{before}?mode=ro", uri=True)) as a, \
+                closing(sqlite3.connect(f"file:{after}?mode=ro", uri=True)) as b:
+            old = dict(a.execute("SELECT id, env_json FROM jobs"))
+            new = dict(b.execute("SELECT id, env_json FROM jobs"))
+        return [job_id for job_id, text in old.items() if policy.scrub_json(text)[0] != new.get(job_id)]
+
+    def scrub_spec_files(self) -> int:
+        """Redact the spec.json of every job that is not active (active
+        jobs' specs are redacted by the worker when they end)."""
+        policy = _envpolicy(self.runtime)
+        with closing(sqlite3.connect(f"file:{self.database}?mode=ro", uri=True)) as connection:
+            active = {str(row[0]) for row in connection.execute(
+                "SELECT job_dir FROM jobs WHERE state IN ('starting', 'running', 'cancelling') AND job_dir IS NOT NULL")}
+        count = 0
+        for spec in (self.state / "jobs").glob("*/spec.json"):
+            if str(spec.parent) in active:
+                continue
+            if policy.scrub_spec(spec):
+                count += 1
+        return count
+
+    def scrub_backup(self, path: Path) -> int:
+        """Redact the backup copy's stored environments (its schema stays)."""
+        policy = _envpolicy(self.runtime)
+        count = 0
+        with closing(sqlite3.connect(path)) as connection:
+            for job_id, text in connection.execute("SELECT id, env_json FROM jobs").fetchall():
+                cleaned, names = policy.scrub_json(text)
+                if names:
+                    connection.execute("UPDATE jobs SET env_json = ? WHERE id = ?", (cleaned, job_id))
+                    count += 1
+            for job_id, index, text in connection.execute(
+                    "SELECT job_id, member_index, env_json FROM ensemble_members").fetchall():
+                cleaned, names = policy.scrub_json(text)
+                if names:
+                    connection.execute("UPDATE ensemble_members SET env_json = ? WHERE job_id = ? AND member_index = ?",
+                                       (cleaned, job_id, index))
+            connection.commit()
+            connection.execute("VACUUM")
+        return count
 
     def active_ensembles(self) -> list[int]:
         try:
@@ -774,16 +895,25 @@ class Upgrade:
                 missing = [c for c in manifest["columns"] if c not in after["columns"]]
                 if missing:
                     raise RuntimeError(f"database columns lost: {missing}")
-                old = row_digests(backup / "queue.sqlite3", manifest["columns"])
-                new = row_digests(self.database, manifest["columns"])
+                columns = [c for c in manifest["columns"] if c != "env_json"]
+                old = row_digests(backup / "queue.sqlite3", columns)
+                new = row_digests(self.database, columns)
                 # rows added meanwhile (a submission through the new wrapper) are not compared
                 changed = [job_id for job_id, digest in old.items() if new.get(job_id) != digest]
                 if changed:
                     raise RuntimeError(f"the migration changed schema-{SCHEMA_OLD} columns of jobs {changed}")
+                wrong_env = self.env_scrub_problems(backup / "queue.sqlite3", self.database)
+                if wrong_env:
+                    raise RuntimeError(f"environments of jobs {wrong_env[:10]} are not the scrubbed ones")
                 added = [c for c in after["columns"] if c not in manifest["columns"]]
+                specs = self.scrub_spec_files()
+                backup_scrubbed = self.scrub_backup(backup / "queue.sqlite3")
                 receipt["database"] = {"schema": after["user_version"], "jobs": len(old), "rows_unchanged": True,
-                                       "added_columns": added}
-                print(f"database migrated: schema {SCHEMA_NEW}, {len(old)} existing rows unchanged")
+                                       "added_columns": added, "env_scrubbed": True,
+                                       "spec_files_redacted": specs, "backup_rows_redacted": backup_scrubbed}
+                print(f"database migrated: schema {SCHEMA_NEW}, {len(old)} existing rows unchanged but their "
+                      f"secret-pattern environment values (redacted); {specs} finished jobs' spec.json redacted; "
+                      f"{backup_scrubbed} rows of the backup copy redacted")
             self.step("database-migrated")
             self.systemctl("daemon-reload")
             self.systemctl("enable", self.service)

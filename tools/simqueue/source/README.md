@@ -33,7 +33,13 @@ via `<!-- simq-job:N -->`), from one daemon thread, with retries and backoff
 from its event loop; job text is sanitized (no mentions, no issue
 references); the token (`token_file` or `gh auth token`) stays in memory.
 
-Tests: `test_memory.py`, `test_github.py` (pure, with `fake_github.py`),
+`envpolicy.py` (security fix): the job environment is an allowlist (HOME,
+USER, LOGNAME, LANG, PATH, TZ, `SIMQUEUE_*`, `--export`, `-e`); secret-looking
+names are never taken from the environment and are stored redacted when
+given with `-e` (the value waits in a mode-600 file until the job ends);
+the schema-9 migration redacts what older builds stored.
+
+Tests: `test_memory.py`, `test_github.py` (pure, with `fake_github.py`), `test_envpolicy.py`,
 `test_memory_units.py`, `test_github_units.py` (real units), the rewritten
 `test_upgrade.py` (0.6.3 -> 0.7.0 and back). `run-tests.py --in-job` runs the
 unit-level suites inside a queue job (`simq run -c 2 ...`).

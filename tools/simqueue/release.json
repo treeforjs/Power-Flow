@@ -12,10 +12,11 @@
   "database_schema": {
     "from": 8,
     "to": 9,
-    "change": "columns added to jobs: mem_current_bytes, mem_peak_bytes, mem_peak_source, mem_sampled_at, mem_series_json, cpu_usage_usec, mem_auto_json, github_json, github_phase, github_attempts, github_next_unix, github_error, github_done, github_posted_at, github_comment_id; index jobs_github_pending_idx; no existing column changes. Rollback sets user_version back to 8 in place."
+    "change": "columns added to jobs: mem_current_bytes, mem_peak_bytes, mem_peak_source, mem_sampled_at, mem_series_json, cpu_usage_usec, mem_auto_json, github_json, github_phase, github_attempts, github_next_unix, github_error, github_done, github_posted_at, github_comment_id; index jobs_github_pending_idx; no existing column changes. Rollback sets user_version back to 8 in place. The migration also redacts secret-pattern values in stored job environments (queue_meta env_scrubbed_through); install redacts finished jobs' spec.json and its backup copy."
   },
   "systemd_unit": "simqueue.service: Nice=10, CPUWeight=20, IOSchedulingClass=idle, MemoryHigh=96M, MemoryMax=128M (0.6.3: Nice=5)",
   "features": [
+    "security: the job environment is an allowlist (HOME, USER, LOGNAME, LANG, PATH, TZ, SIMQUEUE_*, --export NAMES|ALL, -e); names matching *TOKEN*, *SECRET*, *PASSWORD*, *KEY*, GITHUB_*, ACTIONS_*, RUNNER_* are never taken from the environment; given with -e they reach the job but are stored <redacted> (value in a mode-600 secrets file until the job ends; spec.json redacted then); the schema-9 migration scrubs older rows",
     "event-driven worker: select() on <state>/worker.wake (clients after submit/cancel/..., the job wrapper's stop-post hook), data_version of its own persistent SQLite connection for other writers; passes every poll_seconds only while something must be watched, else at most every launch.idle_seconds (30 s); between passes only file reads (job cgroups, /proc/meminfo); systemd queried only for units that need it, all units every 5 minutes",
     "memory tracking: memory.current/memory.peak of every running job unit every memory.sample_seconds (3 s), bounded min/max-per-minute series, peak and CPU time recorded by the unit at its end (jobwrap status/stop-post usage), shown in simq show (now, peak, CPU time, history), simq list (MEM column) and simq partitions (node available memory, water marks, per-job request against actual, outside-queue use)",
     "--mem auto: 1.25 x the largest of the last 5 peaks of jobs with the same name (else name family, same core count preferred), OOM kills counted at their limit, rounded up to 256M, within min_mem..max_mem; default without history; idempotent replays keep their job",
@@ -79,5 +80,42 @@
     ],
     "token_in_sandbox_files": 0
   },
-  "tests": "pending"
+  "tests": "pending",
+  "env_scrub_dry_run": {
+    "jobs_scanned": 1013,
+    "jobs_with_secrets": 0,
+    "by_state": {},
+    "values_by_pattern": {},
+    "explicit_secrets_of_unfinished_jobs": 0,
+    "ensemble_members_with_secrets": 0,
+    "spec_files_scanned": 864,
+    "spec_files_with_secrets": 859,
+    "spec_values_by_pattern": {
+      "TOKEN": 857,
+      "ACTIONS_": 4,
+      "GITHUB_": 156,
+      "RUNNER_": 32
+    },
+    "database": "/home/treefor/.local/state/simqueue/queue.sqlite3 (read-only)",
+    "note": "counts only; values never read into this report",
+    "older_backups": {
+      "/home/treefor/.local/state/simqueue-backups/0.5-to-0.6-20261031T000048Z/queue.sqlite3": {
+        "jobs": 17,
+        "jobs_with_secret_values": 7
+      },
+      "/home/treefor/.local/state/simqueue-backups/0.6.0-to-0.6.1-20261031T151739Z/queue.sqlite3": {
+        "jobs": 70,
+        "jobs_with_secret_values": 60
+      },
+      "/home/treefor/.local/state/simqueue-backups/0.6.1-to-0.6.2-20261101T034917Z/queue.sqlite3": {
+        "jobs": 215,
+        "jobs_with_secret_values": 205
+      },
+      "/home/treefor/.local/state/simqueue-backups/0.6.2-to-0.6.3-20261105T031224Z/queue.sqlite3": {
+        "jobs": 715,
+        "jobs_with_secret_values": 705
+      }
+    },
+    "report": "/home/treefor/projects/.workspace/outputs/simqueue-0.7.0-20261105/env-scrub-dry-run.json"
+  }
 }

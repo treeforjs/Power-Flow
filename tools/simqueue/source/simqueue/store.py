@@ -551,6 +551,7 @@ class QueueStore:
                     VALUES ('schema8_migrated_at', strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
                 """
             )
+            self._scrub_environments(connection)
             connection.execute(
                 """
                 CREATE INDEX IF NOT EXISTS jobs_github_pending_idx
@@ -565,6 +566,53 @@ class QueueStore:
             )
             connection.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
         self._make_files_private()
+
+    @staticmethod
+    def _scrub_environments(connection: sqlite3.Connection) -> None:
+        """0.7.0: redact secret-pattern values in the stored environments of
+        jobs written by older builds (once per row: queue_meta
+        ``env_scrubbed_through``).  A queued or active job's secret that was
+        given explicitly (-e) moves to its secrets file instead of being lost;
+        one merely inherited from the submitter's environment is dropped."""
+        from .envpolicy import REDACTED, is_secret, scrub_json, write_secrets
+
+        row = connection.execute("SELECT value FROM queue_meta WHERE key = 'env_scrubbed_through'").fetchone()
+        through = int(row[0]) if row is not None else 0
+        rows = connection.execute(
+            "SELECT id, state, launch_token, env_json, env_override_keys FROM jobs WHERE id > ? ORDER BY id",
+            (through,),
+        ).fetchall()
+        last = through
+        for job_id, state, token, env_json, override_json in rows:
+            last = max(last, int(job_id))
+            cleaned, names = scrub_json(env_json)
+            if not names:
+                continue
+            if state not in TERMINAL_STATES:
+                try:
+                    explicit = set(json.loads(override_json or "[]"))
+                    original = json.loads(env_json)
+                except ValueError:
+                    explicit, original = set(), {}
+                kept = {k: str(v) for k, v in original.items() if k in explicit and is_secret(k) and v != REDACTED}
+                if kept:
+                    write_secrets(state_dir(), int(job_id), str(token), kept)
+            connection.execute("UPDATE jobs SET env_json = ? WHERE id = ?", (cleaned, job_id))
+        members = connection.execute(
+            "SELECT m.job_id, m.member_index, m.env_json FROM ensemble_members m JOIN jobs j ON j.id = m.job_id "
+            "WHERE m.job_id > ? AND m.state IN ('succeeded', 'failed', 'canceled', 'interrupted')",
+            (through,),
+        ).fetchall()
+        for job_id, index, env_json in members:
+            cleaned, names = scrub_json(env_json)
+            if names:
+                connection.execute("UPDATE ensemble_members SET env_json = ? WHERE job_id = ? AND member_index = ?",
+                                   (cleaned, job_id, index))
+        connection.execute(
+            "INSERT INTO queue_meta(key, value) VALUES ('env_scrubbed_through', ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            (str(last),),
+        )
 
     def _make_files_private(self) -> None:
         for suffix in ("", "-wal", "-shm"):
@@ -626,6 +674,7 @@ class QueueStore:
         scheduling: dict[str, Any] | None = None,
         explicit_scheduling: dict[str, Any] | None = None,
         extra_columns: dict[str, Any] | None = None,
+        secret_env: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         idempotency_key = _validate_idempotency_key(idempotency_key)
         extra = {key: value for key, value in (extra_columns or {}).items() if value is not None}
@@ -695,6 +744,13 @@ class QueueStore:
                     job_id = int(cursor.lastrowid)
                     for key, value in extra.items():
                         connection.execute(f"UPDATE jobs SET {key} = ? WHERE id = ?", (value, job_id))
+                    if secret_env:
+                        # 0.7.0: the values of secrets given with -e wait outside the database
+                        from .envpolicy import write_secrets
+
+                        token = connection.execute("SELECT launch_token FROM jobs WHERE id = ?",
+                                                   (job_id,)).fetchone()[0]
+                        write_secrets(state_dir(), job_id, str(token), secret_env)
                     path = log_dir() / f"{job_id:06d}.log"
                     with path.open("xb"):
                         pass

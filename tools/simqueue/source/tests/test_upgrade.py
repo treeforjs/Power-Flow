@@ -339,8 +339,9 @@ class UpgradePreflightTests(UpgradeSandbox, unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("[dry-run]", result.stdout)
         self.assertIn("node config: equal to the live one apart from the 0.7.0 keys", result.stdout)
-        self.assertIn("migration rehearsal on a copy: schema 8 -> 9, 1 rows, every schema-8 column unchanged",
-                      result.stdout)
+        self.assertIn("migration rehearsal on a copy: schema 8 -> 9, 1 rows, every schema-8 column unchanged but "
+                      "env_json", result.stdout)
+        self.assertIn("environment scrub (counts only): ", result.stdout)
         self.assertIn("partition layout (unchanged by 0.7.0)", result.stdout)
         self.assertIn("migrating the database to schema 9", result.stdout)
         self.assertIn("no changes made; re-run with --execute", result.stdout)
