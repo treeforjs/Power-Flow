@@ -1472,6 +1472,7 @@ def _show(job_id: int, store: QueueStore) -> int:
                 ("Result", job.get("result") or "-"),
                 ("Adopted", job.get("adopted_at") or "-"),
                 ("Job files", job.get("job_dir") or "-"),
+                *_containment_fields(job),
             ]
         )
     if job.get("borrow") or job.get("exclusive_timing"):
@@ -1595,6 +1596,33 @@ def _memory_fields(job: dict[str, Any], config: NodeConfig | None) -> list[tuple
         fields.append(("Memory history",
                        f"{sparkline(series)}  {low}-{high} MiB over {len(series.buckets)} x {series.step} s"))
     return fields
+
+
+def _containment_fields(job: dict[str, Any]) -> list[tuple[str, Any]]:
+    """0.7.2: the job's rendezvous directory and processes seen outside its cgroup."""
+    from .containment import describe_escaped, read_escaped
+
+    fields: list[tuple[str, Any]] = []
+    job_dir = job.get("job_dir")
+    if not job_dir:
+        return fields
+    spec = _read_json_file(Path(str(job_dir)) / "spec.json")
+    if isinstance(spec, dict) and spec.get("tmpdir"):
+        live = job["state"] in ("starting", "running", "cancelling")
+        fields.append(("Temporary dir", f"{spec['tmpdir']} (TMPDIR and the MPI rendezvous; "
+                       + ("removed when the job ends)" if live else "removed at the job's end)")))
+    escaped = read_escaped(str(job_dir))
+    if escaped:
+        fields.append(("ESCAPED", f"{len(escaped)} process(es) carrying this job's launch token ran outside its "
+                       f"cgroup: {describe_escaped(escaped)} (escaped.json)"))
+    return fields
+
+
+def _read_json_file(path: Path) -> Any:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
 
 
 def _github_fields(job: dict[str, Any]) -> list[tuple[str, Any]]:
@@ -2126,6 +2154,8 @@ def _partitions(args: argparse.Namespace, store: QueueStore) -> int:
             f"{format_size(status['memory_schedulable'])} schedulable"
         )
     _print_node_memory(status)
+    for line in _outside_daemon_lines():
+        print(line)
     print(f"{'PARTITION':<13} {'CPUS':<8} {'FREE':<5} {'GPUS':<5} {'MEM(def/max)':<13} {'TIME(def/max)':<27} "
           f"{'QUEUED':<7} POLICY")
     for part in status["partitions"]:
@@ -2315,6 +2345,7 @@ def _node_doctor(config: NodeConfig, store: QueueStore) -> int:
         ("GPU line", line_detail),
         ("Memory", _memory_doctor_text(config, store)),
         ("GitHub reporting", _github_doctor_text(config, store)),
+        ("Containment", _containment_doctor_text(config)),
         ("Worker wake FIFO", _wake_fifo_text()),
         ("Queue", "paused" if store.is_paused() else "accepting jobs"),
         ("Worker unit", "simqueue.service"),
@@ -2334,6 +2365,33 @@ def _node_doctor(config: NodeConfig, store: QueueStore) -> int:
     for problem in problems:
         print(f"PROBLEM: {problem}")
     return 0 if not problems else 1
+
+
+def _outside_daemon_lines() -> list[str]:
+    """0.7.2: MPI launcher daemons the worker saw outside every job's cgroup."""
+    from .containment import read_daemons
+
+    document = read_daemons(state_dir() / "containment.json")
+    if not document:
+        return []
+    lines = []
+    for daemon in document.get("outside_mpi_daemons") or []:
+        children = daemon.get("children") or []
+        lines.append(f"OUTSIDE MPI DAEMON: {daemon.get('comm')} pid {daemon.get('pid')} in "
+                     f"{daemon.get('cgroup')} ({len(children)} child process(es)); jobs that attach to it "
+                     f"(prun, --dvm) run their ranks outside the queue [scan {document.get('scanned_at')}]")
+    return lines
+
+
+def _containment_doctor_text(config: NodeConfig) -> str:
+    containment = config.containment
+    if not containment.enabled:
+        return "off (jobs share /tmp; no escape scan)"
+    scan = (f"escape scan every {containment.scan_seconds:g} s while jobs run and at each job's end"
+            if containment.scan_seconds else "escape scan at each job's end")
+    outside = _outside_daemon_lines()
+    return (f"per-job TMPDIR/PMIx/PRRTE rendezvous under {containment.tmp_base}/simq.<job>.<token>; {scan}; "
+            + (f"{len(outside)} outside MPI daemon(s) seen" if outside else "no outside MPI daemon seen"))
 
 
 def _memory_doctor_text(config: NodeConfig, store: QueueStore) -> str:

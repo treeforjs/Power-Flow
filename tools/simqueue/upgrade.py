@@ -1,31 +1,33 @@
 #!/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen
-"""Upgrade the node from SimQueue 0.7.0 to 0.7.1, or roll back.  Dry run by default.
+"""Upgrade the node from SimQueue 0.7.1 to 0.7.2, or roll back.  Dry run by default.
 
     upgrade.py install  [--execute] [--config FILE] [--keep-node-config] [--adoption-timeout S]
                         [--starting-timeout S] [--no-auto-rollback] [--require-doctor]
     upgrade.py rollback --backup DIR [--execute]
     upgrade.py status
 
-0.7.1 is a patch release: compatible defaults and fixes, no schema change
-(the database stays at schema 9 and no row changes).  A job submitted
-without --mem gets --mem auto when its name (or family) has a recorded peak
-(memory.auto_default), the spheral alias's default memory is auto instead of
-18G, the load-sensitive tests are robust, and the documentation records the
-backup redaction and the idempotency rule.  Job units are independent of the
-worker, so running jobs are never touched: the worker is stopped, its
-wrapper, unit and node.json are switched, and the restarted worker re-adopts
-every running job unit and GPU claim unit.
+0.7.2 is a patch release: MPI containment, no schema change (the database
+stays at schema 9 and no row changes).  Jobs started by 0.7.2 get their own
+temporary and MPI rendezvous directory (TMPDIR, PMIX_SYSTEM_TMPDIR,
+PMIX_SERVER_TMPDIR, PRTE_MCA_prte_tmpdir_base -> /tmp/simq.<job>.<token>,
+removed at the job's end), so prun/--dvm cannot attach to a PRRTE DVM outside
+the job; inherited MPI launcher identity variables are dropped; the worker
+reports processes carrying a job's launch token outside its cgroup and MPI
+daemons outside every job.  Job units are independent of the worker, so
+running jobs are never touched (they keep the environment they started
+with): the worker is stopped, its wrapper, unit and node.json are switched,
+and the restarted worker re-adopts every running job unit and GPU claim unit.
 
 install (with --execute):
-  1. preflight: 0.7.1 runtime sealed; the new node config valid and equal to
-     the live node.json apart from the 0.7.1 keys (memory.auto_default, alias
-     default_mem, notes); wrapper points at 0.7.0; database schema 9, and a
-     copy of it opened by 0.7.1 keeps every column of every row
+  1. preflight: 0.7.2 runtime sealed; the new node config valid and equal to
+     the live node.json apart from the 0.7.2 keys (containment, notes);
+     wrapper points at 0.7.1; database schema 9, and a copy of it opened by
+     0.7.2 keeps every column of every row
   2. waits until no job is starting, stops simqueue.service (job and claim
      units keep running) and checks again
   3. backs up the database, wrapper, link, unit files, node.json, worker.log
-  4. installs the 0.7.1 wrapper, link, simqueue.service and node.json
-  5. opens the database with 0.7.1 and checks that no row changed
+  4. installs the 0.7.2 wrapper, link, simqueue.service and node.json
+  5. opens the database with 0.7.2 and checks that no row changed
   6. daemon-reload, enable, start simqueue.service
   7. verifies adoption of every job unit and GPU claim unit that was active,
      the GPU line state, the wake FIFO, `simq doctor` and `simq partitions`
@@ -33,11 +35,11 @@ install (with --execute):
   --no-auto-rollback).  Receipt: <backup>/install-receipt.json
 
 rollback --backup DIR (with --execute): restores the wrapper, link, unit
-files and node.json byte for byte, starts 0.7.0 and verifies that it
+files and node.json byte for byte, starts 0.7.1 and verifies that it
 adopted every active job unit and GPU claim unit (no schema change).
 
-Job units started by 0.7.1 run the 0.7.1 jobwrap.py: keep the 0.7.1 runtime
-after a rollback until they have ended (and the 0.7.0 runtime after the
+Job units started by 0.7.2 run the 0.7.2 jobwrap.py: keep the 0.7.2 runtime
+after a rollback until they have ended (and the 0.7.1 runtime after the
 install).
 
 --home, --project-root, --systemctl, --service, --runtime and --old-runtime
@@ -62,26 +64,27 @@ from pathlib import Path
 
 
 RUNTIME = Path(__file__).resolve().parent
-OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.7.0-20261105")
-FROM_VERSION, TO_VERSION = "0.7.0", "0.7.1"
+OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.7.1-20261105")
+FROM_VERSION, TO_VERSION = "0.7.1", "0.7.2"
 PYTHON = "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen"
 REAL_HOME = "/home/treefor"
 UNIT_FILES = ("simqueue.service", "simqueue-spheral-dispatch.path", "simqueue-spheral-dispatch.service",
               "simqborrow.slice")
-# Interim hardening installed by hand on 2026-11-05 after the OOM incident:
-# 0.7.1 sets OOMPolicy=stop on its job units itself, so the install removes
-# it (backed up; a rollback to 0.7.0 restores it)
+# Interim hardening installed by hand on 2026-11-05 after the OOM incident
+# (removed by the 0.7.1 install): 0.7.1 and later set OOMPolicy=stop on their
+# job units themselves, so if it is back the install removes it (backed up;
+# a rollback restores it)
 INTERIM_DROPINS = ("simq-job-.service.d/50-oom-policy-stop.conf",)
-# What 0.7.1 may change in the node configuration; everything else must match.
-NEW_TOP_KEYS = {"notes"}
+# What 0.7.2 may change in the node configuration; everything else must match.
+NEW_TOP_KEYS = {"notes", "containment"}
 NEW_LAUNCH_KEYS: set = set()
 NEW_PARTITION_KEYS: set = set()
-NEW_ALIAS_KEYS = {"default_mem", "description"}
-NEW_MEMORY_KEYS = {"auto_default", "notes"}
+NEW_ALIAS_KEYS = {"description"}
+NEW_MEMORY_KEYS = {"notes"}
 NEW_BORROW_KEYS = {"notes"}
 NEW_LOCK_KEYS = {"notes"}
 NEW_LINE_KEYS = {"notes"}
-SCHEMA_OLD, SCHEMA_NEW = 9, 9  # unchanged by 0.7.1
+SCHEMA_OLD, SCHEMA_NEW = 9, 9  # unchanged by 0.7.2
 SCHEMA = SCHEMA_OLD
 ACTIVE_STATES = ("starting", "running", "cancelling")
 # Run with the new code (python_in): both layouts as the scheduler reads them.
@@ -121,8 +124,8 @@ def sha256(path: Path) -> str | None:
 
 
 def comparable_config(document: dict) -> dict:
-    """The node configuration without what 0.7.1 may change: the notes,
-    memory.auto_default and the aliases' default memory."""
+    """The node configuration without what 0.7.2 may change: the notes and
+    the containment section."""
     result = {k: v for k, v in document.items() if k not in NEW_TOP_KEYS}
     for key, drop in (("lock_files", NEW_LOCK_KEYS), ("borrow", NEW_BORROW_KEYS), ("launch", NEW_LAUNCH_KEYS),
                       ("gpu_line", NEW_LINE_KEYS), ("memory", NEW_MEMORY_KEYS), ("github", {"notes"})):
@@ -617,7 +620,7 @@ class Upgrade:
                              f"({', '.join(differences[:8])}); reconcile them or use --keep-node-config")
             else:
                 print(f"node config: equal to the live one apart from the {TO_VERSION} keys "
-                      "(memory.auto_default, aliases' default_mem, notes)")
+                      "(containment, notes)")
         if not self.database.exists():
             self.problem(f"database missing: {self.database}")
             return {}
@@ -658,6 +661,11 @@ class Upgrade:
             if (self.units / name).exists():
                 print(f"interim drop-in {self.units / name}: the install backs it up and removes it ({TO_VERSION} "
                       "job units set OOMPolicy=stop themselves; a rollback restores it)")
+        print(f"containment: jobs started by {TO_VERSION} get /tmp/simq.<job>.<token> as TMPDIR and MPI rendezvous "
+              "(prun/--dvm search cannot reach a DVM outside the job); running jobs keep their environment")
+        outside = self.outside_mpi_daemons()
+        print("MPI launcher daemons outside the queue now: "
+              + (", ".join(f"{d['comm']} pid {d['pid']} in {d['cgroup']}" for d in outside) or "none"))
         gh = shutil.which("gh")
         print(f"GitHub reporting: gh {'found at ' + gh if gh else 'NOT found (only a token_file would work)'}; "
               "posts happen only for jobs submitted with --github-status/--github-comment")
@@ -666,6 +674,27 @@ class Upgrade:
         if str(self.bin / "simq") not in exec_start:
             self.problem(f"{self.service} does not run {self.bin / 'simq'}")
         return summary
+
+    def outside_mpi_daemons(self) -> list[dict]:
+        """MPI launcher daemons of this user outside every queue job unit
+        (read from /proc; informational)."""
+        names = {"prte", "prted", "prterun", "prun", "orted", "orterun", "hydra_pmi_proxy", "mpiexec.hydra"}
+        found = []
+        for entry in os.scandir("/proc"):
+            if not entry.name.isdigit():
+                continue
+            try:
+                if entry.stat().st_uid != os.getuid():
+                    continue
+                comm = Path(f"/proc/{entry.name}/comm").read_text().strip()
+                if comm not in names:
+                    continue
+                cgroup = Path(f"/proc/{entry.name}/cgroup").read_text().strip().split("::", 1)[-1]
+            except OSError:
+                continue
+            if "/simq-job-" not in cgroup:
+                found.append({"pid": int(entry.name), "comm": comm, "cgroup": cgroup})
+        return found
 
     def rehearse_migration(self, summary: dict) -> None:
         """Migrate a copy of the database with the 0.7.0 code and check that

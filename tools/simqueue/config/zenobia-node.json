@@ -169,5 +169,11 @@
     "log_lines": 20,
     "summary_max_bytes": 40000,
     "notes": "0.7.0. Jobs submitted with --github-status OWNER/REPO@SHA:CONTEXT get commit statuses from the worker on every transition (pending queued/running, success/failure from the exit code, error for cancel, time limit, OOM kill, preemption-cancel, lost unit); --github-comment OWNER/REPO#PR adds one PR comment at the end, edited in place (marker <!-- simq-job:N -->). Statuses never notify; only the first creation of a comment can. Job text is sanitized (no @mentions, no #N references). One posting thread in the worker; failures retried with backoff; scheduling never waits for GitHub. Token: token_file, else `gh auth token` at post time; kept in memory only."
+  },
+  "containment": {
+    "enabled": true,
+    "tmp_base": "/tmp",
+    "scan_seconds": 60,
+    "notes": "0.7.2. Every job started by 0.7.2 gets its own temporary and MPI rendezvous directory <tmp_base>/simq.<job>.<token12> (mode 700, made by the job wrapper, removed at the job's end): TMPDIR, PMIX_SYSTEM_TMPDIR, PMIX_SERVER_TMPDIR and PRTE_MCA_prte_tmpdir_base point at it (a -e value wins), so Open MPI 5's prun and prterun --dvm search/system cannot find a PRRTE DVM outside the job (they fail instead of spawning the ranks in the DVM's cgroup). Inherited launcher identity variables (PMIX_* but PMIX_MCA_*, PRTE_* but PRTE_MCA_*, PMI_*, OMPI_COMM_WORLD_*, ...) are dropped. Every scan_seconds while job units run, and at each job's end, the worker reads /proc: processes carrying a job's SIMQ_LAUNCH_TOKEN outside its cgroup go to the job's escaped.json, simq show and the worker log; MPI launcher daemons outside every job go to containment.json, simq partitions and simq doctor. Report only: nothing is killed."
   }
 }
