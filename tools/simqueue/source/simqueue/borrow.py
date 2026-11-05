@@ -17,6 +17,9 @@ lendable core
     ``free``         no queue job and no lease holder, and the CPU measured
                      idle (work pinned there without a lease stays alone);
                      never lent while an owner job of its partition is waiting
+                     (0.6.3, ``borrow.backfill_waiting_owners``: unless the
+                     borrow job's time limit ends before that owner job can
+                     start)
     ``leased-idle``  core lease held outside the queue and the holder's
                      process tree measured idle (partition ``lend_leased_idle``)
     ``owner-idle``   allocated to a running owner job that leaves it unused
@@ -36,7 +39,7 @@ from typing import Iterable, Mapping
 
 from .config import format_cpu_list
 from .nodeconfig import NodeConfig
-from .scheduler import Allocation, Decision, Pool, Request, Running, plan
+from .scheduler import INFINITY, Allocation, Decision, Pool, Request, Running, earliest_start, plan
 
 
 CLASS_RANK = {"free": 0, "leased-idle": 1, "owner-idle": 2}
@@ -116,11 +119,15 @@ def protected_cpus(config: NodeConfig, exclusive_owner_cpus: Iterable[int] = ())
 
 
 def eligible_partitions(config: NodeConfig, request: Request) -> list[str]:
-    """Partitions whose cores a borrow job may use, in preference order."""
-    home = request.partition
+    """Partitions whose cores a borrow job may use, in preference order.
+
+    Names are partition names: the job's own and ``--borrow-from`` names may
+    be aliases (0.6.3) and resolve to their partitions."""
+    home = config.canonical_partition(request.partition)
     names = [home]
     others = request.borrow_from if request.borrow_from is not None else tuple(config.partitions)
-    for name in others:
+    for other in others:
+        name = config.canonical_partition(other)
         part = config.partitions.get(name)
         if part is None or name in names or not part.lends():
             continue
@@ -128,12 +135,12 @@ def eligible_partitions(config: NodeConfig, request: Request) -> list[str]:
     home_part = config.partitions.get(home)
     if home_part is not None and home_part.timing_sensitive:
         names.remove(home)
-    return names
+    return [name for name in names if name in config.partitions]
 
 
 def borrow_feasibility(config: NodeConfig, request: Request) -> str | None:
     """Why a borrow request can never run on this node, else ``None``."""
-    if request.partition not in config.partitions:
+    if config.find_partition(request.partition) is None:
         return f"unknown partition {request.partition}"
     if request.gpus:
         return "borrow jobs cannot use GPUs"
@@ -273,23 +280,45 @@ def plan_node(
     # Cores of borrowers that stay (running or frozen) or are being stopped
     # remain occupied for other borrowers; owners may take them (above).
     owner_cpus = set(owner_of) | set(started_owner)
-    waiting: set[int] = set()
+    # Free cores a waiting owner job needs, with the earliest time that owner
+    # job may start.  0.6.1 never lends them (bound -inf); with
+    # borrow.backfill_waiting_owners (0.6.3) a borrow job whose time limit
+    # ends by then may use them, as EASY backfill lets an owner job do.
+    waiting: dict[int, float] = {}
     started_ids = {request.job_id for request, _ in base.starts}
+    after_pool: Pool | None = None
+    after_running: list[Running] = []
     for request in owner_queue:
         if request.job_id in started_ids:
             continue
         reason = base.skipped.get(request.job_id, "")
         if not reason.startswith(WAITING_REASONS):
             continue
-        part = config.partitions.get(request.partition)
-        if part is not None:
-            waiting |= set(request.cpu_list) if request.cpu_list is not None else set(part.cpus)
+        part = config.find_partition(request.partition)
+        if part is None:
+            continue
+        bound = -INFINITY
+        if config.borrow.backfill_waiting_owners:
+            if reason.startswith("resources busy"):
+                if after_pool is None:
+                    after_pool = owner_pool.copy()
+                    after_running = list(running)
+                    for started_request, allocation in base.starts:
+                        after_pool.take(allocation)
+                        end = INFINITY if started_request.time_limit is None else now + started_request.time_limit
+                        after_running.append(Running(started_request.job_id, allocation, end))
+                bound = earliest_start(request, part, after_pool, after_running, now)
+            else:
+                # held for the reservation: not before the reserved job starts
+                bound = base.reservation[1] if base.reservation is not None else now
+        for cpu in (request.cpu_list if request.cpu_list is not None else part.cpus):
+            waiting[cpu] = min(waiting.get(cpu, INFINITY), bound)
 
-    def lendable_class(cpu: int, home: str, *, occupant: int | None = None) -> str | None:
+    def lendable_class(cpu: int, home: str, *, occupant: int | None = None, end: float = INFINITY) -> str | None:
         part = config.partition_of(cpu)
         if part is None or cpu in protected or part.timing_sensitive:
             return None
-        if part.name != home and not part.lends():
+        if part.name != (config.canonical_partition(home) if home else "") and not part.lends():
             return None
         if occupied.get(cpu, occupant) != occupant:
             return None
@@ -308,12 +337,13 @@ def plan_node(
             if part.lend and part.lend_leased_idle:
                 return "leased-idle"
             return None
-        if cpu in waiting or cpu not in pool.free_cpus or state.cpu_busy:
+        if (cpu in waiting and end > waiting[cpu]) or cpu not in pool.free_cpus or state.cpu_busy:
             return None
         return "free"
 
-    def why_not(cpu: int, home: str) -> str:
+    def why_not(cpu: int, home: str, end: float = INFINITY) -> str:
         """Short reason a core is not lendable to a borrow job of *home*."""
+        home = config.canonical_partition(home) if home else ""
         part = config.partition_of(cpu)
         if part is None:
             return "not in a partition"
@@ -339,8 +369,10 @@ def plan_node(
             if not (part.lend and part.lend_leased_idle):
                 return "lease held"
             return "lease held, " + ("idle" if state.external_idle else "busy")
-        if cpu in waiting:
-            return "an owner job of the partition is waiting"
+        if cpu in waiting and end > waiting[cpu]:
+            if waiting[cpu] == -INFINITY:
+                return "an owner job of the partition is waiting"
+            return "an owner job waiting for it may start before this job's time limit ends"
         if state.cpu_busy:
             return "CPU busy outside the queue"
         return "unavailable"
@@ -352,12 +384,14 @@ def plan_node(
             if borrower.frozen_since is None or borrower.pending or borrower.job_id in preemptions:
                 continue
             placement = []
+            home = config.canonical_partition(borrower.home)
+            lenders = (None if borrower.borrow_from is None
+                       else {config.canonical_partition(name) for name in borrower.borrow_from})
             for cpu in borrower.cpus:
-                cls = lendable_class(cpu, borrower.home, occupant=borrower.job_id)
+                cls = lendable_class(cpu, home, occupant=borrower.job_id,
+                                     end=INFINITY if borrower.deadline is None else borrower.deadline)
                 part = config.partition_of(cpu)
-                allowed = part is not None and (
-                    part.name == borrower.home or borrower.borrow_from is None or part.name in borrower.borrow_from
-                )
+                allowed = part is not None and (part.name == home or lenders is None or part.name in lenders)
                 if cls is None or not allowed:
                     placement = []
                     break
@@ -388,12 +422,13 @@ def plan_node(
             skipped[request.job_id] = reason
             continue
         names = eligible_partitions(config, request)
+        end = INFINITY if request.time_limit is None else now + request.time_limit
         candidates: list[tuple[int, int, int, str, str]] = []  # (rank, partition index, -cpu, ...)
         for index, name in enumerate(names):
             for cpu in config.partitions[name].cpus:
                 if config.partition_of(cpu) is not config.partitions[name]:
                     continue  # a CPU listed in two partitions is lent by its first
-                cls = lendable_class(cpu, request.partition)
+                cls = lendable_class(cpu, request.partition, end=end)
                 if cls is not None:
                     candidates.append((CLASS_RANK[cls], index, -cpu, name, cls))
         candidates.sort()
@@ -404,8 +439,8 @@ def plan_node(
             for name in names:
                 reasons: dict[str, list[int]] = {}
                 for cpu in config.partitions[name].cpus:
-                    if lendable_class(cpu, request.partition) is None:
-                        reasons.setdefault(why_not(cpu, request.partition), []).append(cpu)
+                    if lendable_class(cpu, request.partition, end=end) is None:
+                        reasons.setdefault(why_not(cpu, request.partition, end), []).append(cpu)
                 if reasons:
                     details.append(name + ": " + "; ".join(
                         f"CPU {format_cpu_list(cpus)} {why}" for why, cpus in reasons.items()))
@@ -452,13 +487,14 @@ def _state_conflict(
     owner_of: Mapping[int, int],
     protected: set[int],
 ) -> str | None:
+    home = config.canonical_partition(borrower.home)
     for cpu in borrower.cpus:
         state = cores.get(cpu, CoreState(cpu))
         cls = borrower.placement.get(cpu, "free")
         part = config.partition_of(cpu)
         if cpu in protected or (part is not None and part.timing_sensitive):
             return f"CPU {cpu} is reserved for timing-sensitive work"
-        if part is not None and part.name != borrower.home and not part.lends():
+        if part is not None and part.name != home and not part.lends():
             return f"partition {part.name} no longer lends"
         if state.no_borrow:
             return f"borrow lease of CPU {cpu} is held exclusively outside the queue"

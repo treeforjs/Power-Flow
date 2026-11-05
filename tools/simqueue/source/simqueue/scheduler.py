@@ -37,7 +37,7 @@ INFINITY = math.inf
 @dataclass(frozen=True)
 class Request:
     job_id: int
-    partition: str
+    partition: str  # as submitted: a partition or an alias of one (0.6.3)
     ncpus: int
     cpu_list: tuple[int, ...] | None = None  # explicit cores
     gpus: int = 0
@@ -70,6 +70,9 @@ class Running:
     job_id: int | None
     allocation: Allocation
     end_time: float  # INFINITY when unknown or unlimited
+    # 0.7.1: what the job uses now; its end gives back this much actual memory
+    # (None: its whole request, as for a job the plan itself starts)
+    mem_actual: int | None = None
 
 
 @dataclass
@@ -84,6 +87,9 @@ class Pool:
     mem_free: int | None = None
     # 0.6.1: free for owners but occupied by a borrower; chosen last
     soft_cpus: set[int] = field(default_factory=set)
+    # 0.7.1: actual memory a start may take (MemAvailable - margin - what
+    # young jobs have not allocated); None: not accounted
+    actual_free: int | None = None
 
     def copy(self) -> "Pool":
         return Pool(
@@ -94,6 +100,7 @@ class Pool:
             gpu_blocked=set(self.gpu_blocked),
             mem_free=self.mem_free,
             soft_cpus=set(self.soft_cpus),
+            actual_free=self.actual_free,
         )
 
     def _gpu_available(self, uuid: str, claim: int | None) -> bool:
@@ -110,14 +117,20 @@ class Pool:
                 return None
             cpus = tuple(sorted(request.cpu_list))
         else:
+            # Truly free cores before cores a borrower occupies; then the
+            # cores the requested alias prefers (0.6.3), in its order; then
+            # the lowest-numbered.
+            rank = {cpu: index for index, cpu in enumerate(partition.prefer_cpus)}
             candidates = sorted(
                 (cpu for cpu in partition.cpus if cpu in self.free_cpus),
-                key=lambda cpu: (cpu in self.soft_cpus, cpu),
+                key=lambda cpu: (cpu in self.soft_cpus, rank.get(cpu, len(rank)), cpu),
             )
             if len(candidates) < request.ncpus:
                 return None
             cpus = tuple(sorted(candidates[: request.ncpus]))
         if self.mem_free is not None and request.mem > self.mem_free:
+            return None
+        if self.actual_free is not None and request.mem > self.actual_free:
             return None
         chosen: list[str] = []
         if request.gpus:
@@ -136,7 +149,7 @@ class Pool:
             )
         return Allocation(cpus=cpus, gpus=tuple(chosen), gpu_claim=claim, gpu_exclusive=exclusive, mem=request.mem)
 
-    def take(self, allocation: Allocation) -> None:
+    def take(self, allocation: Allocation, *, actual: bool = True) -> None:
         self.free_cpus -= set(allocation.cpus)
         for uuid in allocation.gpus:
             if allocation.gpu_exclusive:
@@ -144,8 +157,10 @@ class Pool:
             self.gpu_used[uuid] = self.gpu_used.get(uuid, 0) + allocation.gpu_claim
         if self.mem_free is not None:
             self.mem_free -= allocation.mem
+        if self.actual_free is not None and actual:
+            self.actual_free -= allocation.mem
 
-    def give(self, allocation: Allocation) -> None:
+    def give(self, allocation: Allocation, mem_actual: int | None = None) -> None:
         self.free_cpus |= set(allocation.cpus)
         for uuid in allocation.gpus:
             if allocation.gpu_exclusive:
@@ -153,6 +168,8 @@ class Pool:
             self.gpu_used[uuid] = max(0, self.gpu_used.get(uuid, 0) - allocation.gpu_claim)
         if self.mem_free is not None:
             self.mem_free += allocation.mem
+        if self.actual_free is not None:
+            self.actual_free += allocation.mem if mem_actual is None else mem_actual
 
 
 def build_pool(
@@ -161,8 +178,12 @@ def build_pool(
     *,
     external_cpus: Iterable[int] = (),
     external_gpus: Iterable[str] = (),
+    actual_free: int | None = None,
 ) -> Pool:
-    """Free resources after subtracting running allocations and outside holders."""
+    """Free resources after subtracting running allocations and outside holders.
+
+    *actual_free* (0.7.1): the actual memory starts may take now; running
+    jobs already use theirs, so it is not reduced by their requests."""
     pool = Pool(
         free_cpus=set(config.node_cpus()),
         gpu_budget={uuid: gpu.budget_bytes for uuid, gpu in config.gpus.items()},
@@ -171,7 +192,8 @@ def build_pool(
     pool.free_cpus -= set(external_cpus)
     pool.gpu_blocked |= set(external_gpus)
     for item in running:
-        pool.take(item.allocation)
+        pool.take(item.allocation, actual=False)
+    pool.actual_free = actual_free
     return pool
 
 
@@ -206,7 +228,7 @@ def earliest_start(
     for item in sorted(running, key=lambda r: r.end_time):
         if item.end_time == INFINITY:
             break
-        trial.give(item.allocation)
+        trial.give(item.allocation, item.mem_actual)
         if trial.try_allocate(request, partition) is not None:
             return max(now, item.end_time)
     return INFINITY
@@ -240,15 +262,17 @@ def plan(
     reservation: tuple[Request, Partition, float] | None = None
     held_partitions: set[str] = set()
     for request in queue:
-        partition = config.partitions.get(request.partition)
+        # The request names a partition or an alias (0.6.3); the alias view
+        # carries the alias's preferred cores, the hold is per partition.
+        partition = config.find_partition(request.partition)
         if partition is None:
             skipped[request.job_id] = f"unknown partition {request.partition}"
             continue
-        if request.partition in held_partitions:
+        if partition.name in held_partitions:
             skipped[request.job_id] = "held behind a paused ensemble"
             continue
         if request.blocked:
-            held_partitions.add(request.partition)
+            held_partitions.add(partition.name)
             skipped[request.job_id] = "paused ensemble"
             continue
         reason = request_is_feasible(request, partition, config)

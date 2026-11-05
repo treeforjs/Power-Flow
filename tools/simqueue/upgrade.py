@@ -1,60 +1,47 @@
 #!/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen
-"""Upgrade the node from SimQueue 0.6.1 to 0.6.2, or roll back.  Dry run by default.
+"""Upgrade the node from SimQueue 0.7.0 to 0.7.1, or roll back.  Dry run by default.
 
-    upgrade.py install  [--execute] [--keep-node-config] [--adoption-timeout S] [--starting-timeout S]
-                        [--no-auto-rollback] [--require-doctor]
+    upgrade.py install  [--execute] [--config FILE] [--keep-node-config] [--adoption-timeout S]
+                        [--starting-timeout S] [--no-auto-rollback] [--require-doctor]
     upgrade.py rollback --backup DIR [--execute]
     upgrade.py status
 
-Job units are independent of the worker, so running jobs are never touched:
-the worker is stopped, its wrapper and unit are switched to the other
-runtime, and the restarted worker re-adopts every running job unit.  0.6.2
-keeps the 0.6.1 database (schema 8) as it is; nothing is migrated.
+0.7.1 is a patch release: compatible defaults and fixes, no schema change
+(the database stays at schema 9 and no row changes).  A job submitted
+without --mem gets --mem auto when its name (or family) has a recorded peak
+(memory.auto_default), the spheral alias's default memory is auto instead of
+18G, the load-sensitive tests are robust, and the documentation records the
+backup redaction and the idempotency rule.  Job units are independent of the
+worker, so running jobs are never touched: the worker is stopped, its
+wrapper, unit and node.json are switched, and the restarted worker re-adopts
+every running job unit and GPU claim unit.
 
 install (with --execute):
-  1. preflight: 0.6.2 runtime sealed, its node config valid and equal to the
-     live node.json apart from the 0.6.2 key (gpu_line) and notes; wrapper
-     points at 0.6.1; database schema 8; records the active jobs and units
-  2. waits until no job is in state "starting" (--starting-timeout), stops
-     simqueue.service (job units keep running) and checks again: a job that
-     became "starting" meanwhile makes the install start the 0.6.1 worker
-     again and stop without changing anything
-  3. backs up the database (sqlite3 backup API, source opened read-only),
-     the wrapper, the simqueue link, the unit files (with simqborrow.slice),
-     node.json and worker.log, with sha256 sums in manifest.json
-  4. installs the 0.6.2 wrapper, link, simqueue.service and node.json --
-     from here on every `simq` call runs 0.6.2
-  5. opens the database with the 0.6.2 code and checks that its schema and
-     every column of every row are unchanged
+  1. preflight: 0.7.1 runtime sealed; the new node config valid and equal to
+     the live node.json apart from the 0.7.1 keys (memory.auto_default, alias
+     default_mem, notes); wrapper points at 0.7.0; database schema 9, and a
+     copy of it opened by 0.7.1 keeps every column of every row
+  2. waits until no job is starting, stops simqueue.service (job and claim
+     units keep running) and checks again
+  3. backs up the database, wrapper, link, unit files, node.json, worker.log
+  4. installs the 0.7.1 wrapper, link, simqueue.service and node.json
+  5. opens the database with 0.7.1 and checks that no row changed
   6. daemon-reload, enable, start simqueue.service
-  7. verifies: the 0.6.2 worker started, every job unit that was active
-     before is adopted (worker.log "adopted job N") or has been recorded as
-     finished, the GPU line state file is published by 0.6.2, `simq doctor`
-     and `simq partitions` run
+  7. verifies adoption of every job unit and GPU claim unit that was active,
+     the GPU line state, the wake FIFO, `simq doctor` and `simq partitions`
   On a failed verification the install rolls itself back (unless
   --no-auto-rollback).  Receipt: <backup>/install-receipt.json
 
-rollback --backup DIR (with --execute):
-  1. checks the backup against its manifest
-  2. stops simqueue.service (job units keep running; the 0.6.2 worker
-     withdraws the published GPU line state)
-  3. stops the GPU claim units of 0.6.2 (they wait for or hold the GPU lease
-     files for queued jobs, and 0.6.1 does not hand them over); job units
-     are never stopped
-  4. keeps a copy of the database in the backup directory
-  5. restores the wrapper, link, unit files and node.json byte for byte
-  6. checks that the 0.6.1 code opens the database (schema 8, unchanged)
-  7. daemon-reload, start simqueue.service (0.6.1) and verifies that it
-     adopted every active job unit
-  Receipt: <backup>/rollback-receipt.json
+rollback --backup DIR (with --execute): restores the wrapper, link, unit
+files and node.json byte for byte, starts 0.7.0 and verifies that it
+adopted every active job unit and GPU claim unit (no schema change).
 
-Job units started by 0.6.2 run the 0.6.2 jobwrap.py: keep the 0.6.2 runtime
-directory after a rollback until they have ended (and the 0.6.1 directory
-after the install, for the same reason).
+Job units started by 0.7.1 run the 0.7.1 jobwrap.py: keep the 0.7.1 runtime
+after a rollback until they have ended (and the 0.7.0 runtime after the
+install).
 
 --home, --project-root, --systemctl, --service, --runtime and --old-runtime
-exist so that the procedure can be tested in a sandbox; the defaults are the
-real paths.
+exist so that the procedure can be tested in a sandbox.
 """
 
 from __future__ import annotations
@@ -75,17 +62,51 @@ from pathlib import Path
 
 
 RUNTIME = Path(__file__).resolve().parent
-OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.6.1-20261031")
-FROM_VERSION, TO_VERSION = "0.6.1", "0.6.2"
+OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.7.0-20261105")
+FROM_VERSION, TO_VERSION = "0.7.0", "0.7.1"
 PYTHON = "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen"
 REAL_HOME = "/home/treefor"
 UNIT_FILES = ("simqueue.service", "simqueue-spheral-dispatch.path", "simqueue-spheral-dispatch.service",
               "simqborrow.slice")
-# Keys added by 0.6.2 to the node configuration; everything else must match.
-NEW_CONFIG_KEYS = {"gpu_line"}
+# Interim hardening installed by hand on 2026-11-05 after the OOM incident:
+# 0.7.1 sets OOMPolicy=stop on its job units itself, so the install removes
+# it (backed up; a rollback to 0.7.0 restores it)
+INTERIM_DROPINS = ("simq-job-.service.d/50-oom-policy-stop.conf",)
+# What 0.7.1 may change in the node configuration; everything else must match.
+NEW_TOP_KEYS = {"notes"}
+NEW_LAUNCH_KEYS: set = set()
+NEW_PARTITION_KEYS: set = set()
+NEW_ALIAS_KEYS = {"default_mem", "description"}
+NEW_MEMORY_KEYS = {"auto_default", "notes"}
+NEW_BORROW_KEYS = {"notes"}
 NEW_LOCK_KEYS = {"notes"}
-SCHEMA = 8  # unchanged by 0.6.2
+NEW_LINE_KEYS = {"notes"}
+SCHEMA_OLD, SCHEMA_NEW = 9, 9  # unchanged by 0.7.1
+SCHEMA = SCHEMA_OLD
 ACTIVE_STATES = ("starting", "running", "cancelling")
+# Run with the new code (python_in): both layouts as the scheduler reads them.
+LAYOUT_PROBE = r"""
+import json
+from pathlib import Path
+from simqueue.config import format_cpu_list
+from simqueue.nodeconfig import load_node_config, parse_node_config
+live = parse_node_config(json.loads(Path(sys.argv[2]).read_text()), path=Path(sys.argv[2]), check_topology=False)
+new = load_node_config(Path(sys.argv[3]))
+names = json.loads(sys.argv[4])
+def layout(config):
+    return [{"name": p.name, "cpus": format_cpu_list(p.cpus), "gpus": len(p.gpus), "aliases": list(p.aliases)}
+            for p in config.partitions.values()]
+print(json.dumps({
+    "live": layout(live), "new": layout(new),
+    "live_cpus": list(live.node_cpus()), "new_cpus": list(new.node_cpus()),
+    "live_gpus": sorted(live.gpus), "new_gpus": sorted(new.gpus),
+    "live_names": sorted(set(live.partitions) | set(live.aliases)),
+    "resolves": {name: (new.canonical_partition(name) if new.find_partition(name) is not None else None)
+                 for name in sorted(set(names) | set(live.partitions) | set(live.aliases))},
+    "default": new.default_partition,
+    "backfill_waiting_owners": new.borrow.backfill_waiting_owners,
+}))
+"""
 
 
 def now_tag() -> str:
@@ -100,11 +121,72 @@ def sha256(path: Path) -> str | None:
 
 
 def comparable_config(document: dict) -> dict:
-    """The node configuration without the key 0.6.2 adds (and notes)."""
-    result = {k: v for k, v in document.items() if k not in NEW_CONFIG_KEYS and k != "notes"}
-    if "lock_files" in result:
-        result["lock_files"] = {k: v for k, v in result["lock_files"].items() if k not in NEW_LOCK_KEYS}
+    """The node configuration without what 0.7.1 may change: the notes,
+    memory.auto_default and the aliases' default memory."""
+    result = {k: v for k, v in document.items() if k not in NEW_TOP_KEYS}
+    for key, drop in (("lock_files", NEW_LOCK_KEYS), ("borrow", NEW_BORROW_KEYS), ("launch", NEW_LAUNCH_KEYS),
+                      ("gpu_line", NEW_LINE_KEYS), ("memory", NEW_MEMORY_KEYS), ("github", {"notes"})):
+        if isinstance(result.get(key), dict):
+            result[key] = {k: v for k, v in result[key].items() if k not in drop}
+    if isinstance(result.get("partitions"), list):
+        result["partitions"] = [
+            {k: ([{a: b for a, b in alias.items() if a not in NEW_ALIAS_KEYS} if isinstance(alias, dict) else alias
+                  for alias in v] if k == "aliases" else v)
+             for k, v in part.items() if k not in NEW_PARTITION_KEYS}
+            if isinstance(part, dict) else part for part in result["partitions"]]
     return result
+
+
+def config_differences(live: dict, new: dict) -> list[str]:
+    """Keys (dotted) whose values differ between two comparable configs."""
+    found: list[str] = []
+
+    def walk(a, b, path: str) -> None:
+        if isinstance(a, dict) and isinstance(b, dict):
+            for key in sorted(set(a) | set(b)):
+                walk(a.get(key), b.get(key), f"{path}.{key}" if path else str(key))
+        elif isinstance(a, list) and isinstance(b, list) and len(a) == len(b):
+            for index, (x, y) in enumerate(zip(a, b)):
+                walk(x, y, f"{path}[{index}]")
+        elif a != b:
+            found.append(path or "(document)")
+
+    walk(live, new, "")
+    return found
+
+
+def last_line(text: str) -> str:
+    """The last line of a traceback: the error itself."""
+    lines = [line for line in text.strip().splitlines() if line.strip()]
+    return lines[-1][-400:] if lines else "(no message)"
+
+
+def layout_text(layout: list[dict]) -> str:
+    return ", ".join(
+        f"{p['name']}={p['cpus']}" + (f"+{p['gpus']}gpu" if p["gpus"] else "")
+        + (f" (aliases {', '.join(p['aliases'])})" if p["aliases"] else "")
+        for p in layout
+    )
+
+
+def layout_problems(probe: dict, job_names: dict[str, list[int]]) -> list[str]:
+    """Why the new partition layout cannot replace the live one."""
+    problems = []
+    lost = sorted(set(probe["live_cpus"]) - set(probe["new_cpus"]))
+    if lost:
+        problems.append(f"the new node config drops CPU(s) {lost} of the live one")
+    gone = sorted(set(probe["live_gpus"]) - set(probe["new_gpus"]))
+    if gone:
+        problems.append(f"the new node config drops GPU(s) {gone}")
+    for name in probe["live_names"]:
+        if probe["resolves"].get(name) is None:
+            problems.append(f"partition name {name!r} of the live node config is neither a partition nor an alias "
+                            "in the new one (scripts using -p " + name + " would fail)")
+    for name, jobs in sorted(job_names.items()):
+        if probe["resolves"].get(name) is None:
+            problems.append(f"job(s) {jobs} recorded under partition {name!r} could not be scheduled with the new "
+                            "node config")
+    return problems
 
 
 def database_summary(path: Path) -> dict:
@@ -122,8 +204,17 @@ def database_summary(path: Path) -> dict:
                 + ", launch_token FROM jobs WHERE state IN ('starting', 'running', 'cancelling') ORDER BY id"
             )
         ]
+        # queued and active jobs by recorded partition name (NULL: a 0.5 job, default partition)
+        partition = "partition" if "partition" in columns else "NULL"
+        unfinished: dict[str, list[int]] = {}
+        for job_id, name in connection.execute(
+            f"SELECT id, {partition} FROM jobs WHERE state IN ('queued', 'starting', 'running', 'cancelling') "
+            "ORDER BY id"
+        ):
+            unfinished.setdefault(name or "", []).append(int(job_id))
     return {"user_version": version, "jobs": count, "states": states, "columns": columns, "active": active,
-            "starting": [job["id"] for job in active if job["state"] == "starting"]}
+            "starting": [job["id"] for job in active if job["state"] == "starting"],
+            "unfinished_by_partition": unfinished}
 
 
 def row_digests(path: Path, columns: list[str]) -> dict[int, str]:
@@ -131,6 +222,75 @@ def row_digests(path: Path, columns: list[str]) -> dict[int, str]:
     with closing(sqlite3.connect(f"file:{path}?mode=ro", uri=True)) as connection:
         rows = connection.execute(f"SELECT id, {', '.join(columns)} FROM jobs ORDER BY id").fetchall()
     return {int(row[0]): hashlib.sha256(json.dumps(row[1:], default=str).encode()).hexdigest() for row in rows}
+
+
+def _envpolicy(runtime: Path):
+    """The 0.7.0 environment policy (secret patterns, scrubbing)."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simq_envpolicy", runtime / "source" / "simqueue" / "envpolicy.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+PATTERN_GROUPS = ("TOKEN", "SECRET", "PASSWORD", "KEY", "GITHUB_", "ACTIONS_", "RUNNER_")
+
+
+def _group_of(name: str) -> str:
+    upper = name.upper()
+    for group in PATTERN_GROUPS:
+        if (group.endswith("_") and upper.startswith(group)) or (not group.endswith("_") and group in upper):
+            return group
+    return "other"
+
+
+def secret_census(database: Path, state: Path, runtime: Path) -> dict:
+    """How many stored environments carry secret-pattern values: counts per
+    job state and per pattern, and of job spec files.  Never values."""
+    policy = _envpolicy(runtime)
+    census: dict = {"jobs_scanned": 0, "jobs_with_secrets": 0, "by_state": {}, "values_by_pattern": {},
+                    "explicit_secrets_of_unfinished_jobs": 0, "ensemble_members_with_secrets": 0,
+                    "spec_files_scanned": 0, "spec_files_with_secrets": 0}
+    with closing(sqlite3.connect(f"file:{database}?mode=ro", uri=True)) as connection:
+        for job_state, env_json, override_json in connection.execute(
+                "SELECT state, env_json, env_override_keys FROM jobs"):
+            census["jobs_scanned"] += 1
+            try:
+                env = json.loads(env_json or "{}")
+                explicit = set(json.loads(override_json or "[]"))
+            except ValueError:
+                continue
+            names = [k for k, v in env.items() if policy.is_secret(k) and v != policy.REDACTED]
+            if not names:
+                continue
+            census["jobs_with_secrets"] += 1
+            census["by_state"][job_state] = census["by_state"].get(job_state, 0) + 1
+            for name in names:
+                group = _group_of(name)
+                census["values_by_pattern"][group] = census["values_by_pattern"].get(group, 0) + 1
+                if name in explicit and job_state not in ("succeeded", "failed", "canceled", "interrupted"):
+                    census["explicit_secrets_of_unfinished_jobs"] += 1
+        for (env_json,) in connection.execute("SELECT env_json FROM ensemble_members"):
+            if policy.scrub_json(env_json)[1]:
+                census["ensemble_members_with_secrets"] += 1
+    for spec in (state / "jobs").glob("*/spec.json"):
+        census["spec_files_scanned"] += 1
+        try:
+            env = json.loads(spec.read_text()).get("env") or {}
+        except (OSError, ValueError, AttributeError):
+            continue
+        if any(policy.is_secret(k) and v != policy.REDACTED for k, v in env.items()):
+            census["spec_files_with_secrets"] += 1
+    return census
+
+
+def census_text(census: dict) -> str:
+    return (f"{census['jobs_with_secrets']} of {census['jobs_scanned']} stored job environments carry "
+            f"secret-pattern values (by state {census['by_state']}; values by pattern "
+            f"{census['values_by_pattern']}; {census['explicit_secrets_of_unfinished_jobs']} given with -e to "
+            f"unfinished jobs, kept in their secrets files); ensemble members {census['ensemble_members_with_secrets']}; "
+            f"job spec files {census['spec_files_with_secrets']} of {census['spec_files_scanned']}")
 
 
 def wrapper_runtime(text: str) -> Path | None:
@@ -205,10 +365,24 @@ class Upgrade:
         })
         return env
 
-    def python_in(self, runtime: Path, code: str, *arguments: str) -> subprocess.CompletedProcess[str]:
+    def probe_env(self) -> dict[str, str]:
+        """Environment of read-only probes: a throwaway state directory, so a
+        probe can never open (and migrate) the live database."""
+        env = self.env_for()
+        scratch = Path(os.environ.get("TMPDIR") or "/tmp") / f"simq-upgrade-probe-{os.getpid()}"
+        if not scratch.exists():
+            scratch.mkdir(mode=0o700)
+            import atexit
+            atexit.register(shutil.rmtree, scratch, True)
+        env["SIMQUEUE_STATE_DIR"] = str(scratch)
+        return env
+
+    def python_in(self, runtime: Path, code: str, *arguments: str, probe: bool = False,
+                  env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             [PYTHON, "-c", "import sys; sys.path.insert(0, sys.argv[1]);" + code, str(runtime / "source"), *arguments],
-            env=self.env_for(), text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False, timeout=120,
+            env=env or (self.probe_env() if probe else self.env_for()), text=True, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, check=False, timeout=300,
         )
 
     def simq(self, runtime: Path, *arguments: str, timeout: float = 120) -> subprocess.CompletedProcess[str]:
@@ -218,11 +392,16 @@ class Upgrade:
         )
 
     def wrapper_text(self, runtime: Path, version: str) -> str:
+        layout = ("# SimQueue {version} node scheduler: one pool of every physical core and the GPU\n"
+                  "# (node.json; the old partition names are aliases); each job runs in its own\n"
+                  "# systemd user unit; `simq run` waits for a job and returns its exit code;\n")
+        if version == TO_VERSION:
+            layout += ("# the worker is event-driven and tracks job memory from the units' cgroups;\n"
+                       "# --mem auto; --github-status/--github-comment report job state to GitHub;\n")
         return (
             "#!/bin/sh\n"
-            f"# SimQueue {version} node scheduler: partitions from node.json; each job runs in its own\n"
-            "# systemd user unit (spheral 0-3, raikou-mfem 4-5 + GPU, powerflow 6-7 + GPU);\n"
-            "# borrow jobs run in simqborrow.slice at idle CPU priority; queued GPU jobs\n"
+            + layout.format(version=version)
+            + "# borrow jobs run in simqborrow.slice at idle CPU priority; queued GPU jobs\n"
             "# win the GPU lease files through the GPU line (gpu-lease for direct use).\n"
             "set -eu\n"
             "unset SIMQUEUE_PCORES\n"
@@ -246,8 +425,15 @@ class Upgrade:
             f"Environment=SIMQUEUE_STATE_DIR={self.state}\n"
             f"Environment=SIMQUEUE_CONFIG={self.state / 'node.json'}\n"
             "# No CPUAffinity: the scheduler places each job unit itself; the worker\n"
-            "# only polls and must not be confined to one partition.\n"
-            "Nice=5\n"
+            "# must not be confined to one partition.\n"
+            "# 0.7.0: the worker is event-driven and runs at low priority; job units\n"
+            "# and GPU claim units are started by the user manager and inherit none\n"
+            "# of this.  MemoryMax bounds the worker (about 30 MB) only.\n"
+            "Nice=10\n"
+            "CPUWeight=20\n"
+            "IOSchedulingClass=idle\n"
+            "MemoryHigh=96M\n"
+            "MemoryMax=128M\n"
             "Restart=on-failure\n"
             "RestartSec=2\n"
             "# Job units and GPU claim units are separate units: stopping this\n"
@@ -310,13 +496,21 @@ class Upgrade:
         except OSError:
             return 0
 
+    def unit_active(self, unit: str) -> bool:
+        """Claim units are real units even in a sandbox (names from its state)."""
+        result = subprocess.run(["systemctl", "--user", "is-active", "--", unit], text=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False, timeout=60)
+        return result.stdout.strip() in ("active", "activating", "deactivating", "reloading")
+
     def verify_adoption(self, *, active_before: list[dict], log_offset: int, version: str,
-                        runtime: Path, timeout: float, state_path: str | None = None) -> dict:
+                        runtime: Path, timeout: float, state_path: str | None = None,
+                        claims_before: list[str] = ()) -> dict:
         """Wait until the new worker has started and adopted (or recorded)
-        every job that was active before the switch; with *state_path*, also
+        every job that was active before the switch, and adopted every GPU
+        claim unit that was active (or seen it end); with *state_path*, also
         until that worker has published the GPU line state."""
         deadline = time.monotonic() + timeout
-        result: dict = {"version": version, "jobs": {}}
+        result: dict = {"version": version, "jobs": {}, "claims": {}}
         started_at = time.time()
         while True:
             log = self.worker_log_since(log_offset)
@@ -332,6 +526,12 @@ class Upgrade:
                                           "unit": job.get("unit_name")}
                 if not adopted and not finished:
                     pending.append(job_id)
+            for unit in claims_before:
+                adopted = f"adopted GPU claim {unit} " in log
+                ended = not adopted and not self.unit_active(unit)
+                result["claims"][unit] = {"adopted": adopted, "ended_meanwhile": ended}
+                if not adopted and not ended:
+                    pending.append(unit)
             result["worker_started"] = started
             result["service_active"] = self.unit_property(self.service, "ActiveState") == "active"
             published = True
@@ -363,6 +563,7 @@ class Upgrade:
 
     def preflight_install(self) -> dict:
         print(f"SimQueue {TO_VERSION} runtime: {self.runtime}")
+        self.layout = None
         sealed = self.runtime / "sealed-files.json"
         if sealed.exists():
             manifest = json.loads(sealed.read_text())
@@ -396,34 +597,180 @@ class Upgrade:
         check = self.python_in(
             self.runtime,
             "from pathlib import Path; from simqueue.nodeconfig import load_node_config;"
-            "c = load_node_config(Path(sys.argv[2])); l = c.line;"
-            "print(c.node, ' '.join(f'{p.name}={p.cpus}' for p in c.partitions.values()),"
-            "f'gpu_line enabled={l.enabled} state={l.state_path} tickets={l.ticket_dir}"
-            " gpus={list(l.gpus)} requeue={l.requeue_raw_waiters}')",
-            str(new_config if not self.args.keep_node_config else live_config),
+            "c = load_node_config(Path(sys.argv[2])); l = c.line; m = c.memory; g = c.github;"
+            "print(c.node, ' '.join(f'{p.name}={p.cpus} default_mem={p.default_mem >> 20}M' for p in c.partitions.values()),"
+            "f'gpu_line enabled={l.enabled}; memory sample={m.sample_seconds}s guard margin={m.admission_margin}'"
+            "f' high={m.high_water_available >> 20}M/{m.high_water_percent}% low={m.low_water_available >> 20}M/'"
+            "f'{m.low_water_percent}%; github enabled={g.enabled} api={g.api_base}'"
+            "f' token={\"file\" if g.token_file else \"gh auth token\"}; launch poll={c.launch.poll_seconds}s'"
+            "f' idle={c.launch.idle_seconds}s')",
+            str(new_config if not self.args.keep_node_config else live_config), probe=True,
         )
         if check.returncode != 0:
-            self.problem(f"node config invalid for {TO_VERSION}: {check.stderr.strip()[-400:]}")
+            self.problem(f"node config invalid for {TO_VERSION}: {last_line(check.stderr)}")
         else:
             print(f"{TO_VERSION} node config ok: {check.stdout.strip()}")
         if not self.args.keep_node_config and live_doc and new_doc:
-            if comparable_config(live_doc) != comparable_config(new_doc):
-                self.problem(f"{new_config} differs from the live {live_config} beyond the {TO_VERSION} keys; "
-                             "reconcile them or use --keep-node-config")
+            differences = config_differences(comparable_config(live_doc), comparable_config(new_doc))
+            if differences:
+                self.problem(f"{new_config} differs from the live {live_config} beyond the {TO_VERSION} keys "
+                             f"({', '.join(differences[:8])}); reconcile them or use --keep-node-config")
+            else:
+                print(f"node config: equal to the live one apart from the {TO_VERSION} keys "
+                      "(memory.auto_default, aliases' default_mem, notes)")
         if not self.database.exists():
             self.problem(f"database missing: {self.database}")
             return {}
         summary = database_summary(self.database)
         print(f"database: schema {summary['user_version']}, {summary['jobs']} jobs, states {summary['states']}")
-        if summary["user_version"] != SCHEMA:
-            self.problem(f"database schema is {summary['user_version']}, expected {SCHEMA} ({FROM_VERSION})")
+        if summary["user_version"] != SCHEMA_OLD:
+            self.problem(f"database schema is {summary['user_version']}, expected {SCHEMA_OLD} ({FROM_VERSION})")
+        else:
+            self.rehearse_migration(summary)
         for job in summary["active"]:
             print(f"active job {job['id']} ({job['name']}): {job['state']}, unit {job['unit_name']}")
+        ensembles = self.active_ensembles()
+        if ensembles:
+            print(f"NOTE: active ensemble job(s) {ensembles}: their {FROM_VERSION} supervisors keep working "
+                  "(no schema change)")
+        unfinished = summary["unfinished_by_partition"]
+        names: dict[str, list[int]] = {}
+        for name, jobs in unfinished.items():
+            names.setdefault(name or str(live_doc.get("default_partition") or ""), []).extend(jobs)
+        print("queued and active jobs by recorded partition: "
+              + (", ".join(f"{name}: {jobs}" for name, jobs in sorted(names.items())) or "none"))
+        if live_doc:
+            probe = self.python_in(self.runtime, LAYOUT_PROBE, str(live_config),
+                                   str(new_config if not self.args.keep_node_config else live_config),
+                                   json.dumps(sorted(n for n in names if n)), probe=True)
+            if probe.returncode != 0:
+                self.problem(f"cannot compare the partition layouts: {last_line(probe.stderr)}")
+            else:
+                self.layout = json.loads(probe.stdout)
+                print(f"partition layout (unchanged by {TO_VERSION}): {layout_text(self.layout['new'])}")
+                if self.layout["live"] != self.layout["new"]:
+                    self.problem(f"the partition layout differs: live {layout_text(self.layout['live'])}")
+                for text in layout_problems(self.layout, {n: j for n, j in names.items() if n}):
+                    self.problem(text)
+        claims = self.claim_units()
+        print(f"GPU claim units active: {', '.join(claims) or 'none'} (the {TO_VERSION} worker adopts them)")
+        for name in INTERIM_DROPINS:
+            if (self.units / name).exists():
+                print(f"interim drop-in {self.units / name}: the install backs it up and removes it ({TO_VERSION} "
+                      "job units set OOMPolicy=stop themselves; a rollback restores it)")
+        gh = shutil.which("gh")
+        print(f"GitHub reporting: gh {'found at ' + gh if gh else 'NOT found (only a token_file would work)'}; "
+              "posts happen only for jobs submitted with --github-status/--github-comment")
         exec_start = self.unit_property(self.service, "ExecStart")
         print(f"{self.service} ExecStart: {exec_start[:160]}")
         if str(self.bin / "simq") not in exec_start:
             self.problem(f"{self.service} does not run {self.bin / 'simq'}")
         return summary
+
+    def rehearse_migration(self, summary: dict) -> None:
+        """Migrate a copy of the database with the 0.7.0 code and check that
+        no schema-8 column of any row changes (the live file is only read)."""
+        scratch = Path(self.probe_env()["SIMQUEUE_STATE_DIR"]) / "rehearsal"
+        if scratch.exists():
+            shutil.rmtree(scratch)
+        scratch.mkdir(mode=0o700)
+        copy = scratch / "queue.sqlite3"
+        with closing(sqlite3.connect(f"file:{self.database}?mode=ro", uri=True)) as source, \
+                closing(sqlite3.connect(copy)) as target:
+            source.backup(target)
+        env = self.env_for()
+        env["SIMQUEUE_STATE_DIR"] = str(scratch)
+        result = self.python_in(self.runtime, "from simqueue.store import QueueStore; QueueStore(); print('ok')",
+                                env=env)
+        if result.returncode != 0:
+            self.problem(f"the {TO_VERSION} code cannot migrate a copy of the database: {last_line(result.stderr)}")
+            return
+        after = database_summary(copy)
+        columns = [c for c in summary["columns"] if c != "env_json"]
+        old = row_digests(self.database, columns)
+        new = row_digests(copy, columns)
+        changed = [job_id for job_id, digest in old.items() if new.get(job_id) != digest]
+        added = [c for c in after["columns"] if c not in summary["columns"]]
+        wrong_env = self.env_scrub_problems(self.database, copy)
+        census = secret_census(self.database, self.state, self.runtime)
+        self.census = census
+        if after["user_version"] != SCHEMA_NEW or changed or len(new) != len(old) or wrong_env:
+            self.problem(f"migration rehearsal: schema {after['user_version']}, rows changed {changed[:10]}, "
+                         f"environments not scrubbed as expected {wrong_env[:10]}")
+        else:
+            print(f"migration rehearsal on a copy: schema {SCHEMA_OLD} -> {SCHEMA_NEW}, {len(old)} rows, every "
+                  f"schema-{SCHEMA_OLD} column unchanged but env_json, whose secret-pattern values are "
+                  f"redacted; {len(added)} column(s) added: {', '.join(added)}")
+            print("environment scrub (counts only): " + census_text(census))
+        shutil.rmtree(scratch, ignore_errors=True)
+
+    def env_scrub_problems(self, before: Path, after: Path) -> list[int]:
+        """Jobs whose env_json after the migration is not the scrubbed
+        env_json of before (rows added meanwhile are not compared)."""
+        policy = _envpolicy(self.runtime)
+        with closing(sqlite3.connect(f"file:{before}?mode=ro", uri=True)) as a, \
+                closing(sqlite3.connect(f"file:{after}?mode=ro", uri=True)) as b:
+            old = dict(a.execute("SELECT id, env_json FROM jobs"))
+            new = dict(b.execute("SELECT id, env_json FROM jobs"))
+        return [job_id for job_id, text in old.items() if policy.scrub_json(text)[0] != new.get(job_id)]
+
+    def scrub_spec_files(self) -> int:
+        """Redact the spec.json of every job that is not active (active
+        jobs' specs are redacted by the worker when they end)."""
+        policy = _envpolicy(self.runtime)
+        with closing(sqlite3.connect(f"file:{self.database}?mode=ro", uri=True)) as connection:
+            active = {str(row[0]) for row in connection.execute(
+                "SELECT job_dir FROM jobs WHERE state IN ('starting', 'running', 'cancelling') AND job_dir IS NOT NULL")}
+        count = 0
+        for spec in (self.state / "jobs").glob("*/spec.json"):
+            if str(spec.parent) in active:
+                continue
+            if policy.scrub_spec(spec):
+                count += 1
+        return count
+
+    def scrub_backup(self, path: Path) -> int:
+        """Redact the backup copy's stored environments (its schema stays)."""
+        policy = _envpolicy(self.runtime)
+        count = 0
+        with closing(sqlite3.connect(path)) as connection:
+            for job_id, text in connection.execute("SELECT id, env_json FROM jobs").fetchall():
+                cleaned, names = policy.scrub_json(text)
+                if names:
+                    connection.execute("UPDATE jobs SET env_json = ? WHERE id = ?", (cleaned, job_id))
+                    count += 1
+            for job_id, index, text in connection.execute(
+                    "SELECT job_id, member_index, env_json FROM ensemble_members").fetchall():
+                cleaned, names = policy.scrub_json(text)
+                if names:
+                    connection.execute("UPDATE ensemble_members SET env_json = ? WHERE job_id = ? AND member_index = ?",
+                                       (cleaned, job_id, index))
+            connection.commit()
+            connection.execute("VACUUM")
+        return count
+
+    def active_ensembles(self) -> list[int]:
+        try:
+            with closing(sqlite3.connect(f"file:{self.database}?mode=ro", uri=True)) as connection:
+                rows = connection.execute(
+                    "SELECT j.id FROM jobs j JOIN ensembles e ON e.job_id = j.id "
+                    "WHERE j.state IN ('starting', 'running', 'cancelling') ORDER BY j.id").fetchall()
+        except sqlite3.Error:
+            return []
+        return [int(row[0]) for row in rows]
+
+    def github_due(self) -> list[int]:
+        """Jobs whose GitHub posts 0.7.0 has not finished (rollback note)."""
+        try:
+            with closing(sqlite3.connect(f"file:{self.database}?mode=ro", uri=True)) as connection:
+                columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)")}
+                if "github_json" not in columns:
+                    return []
+                rows = connection.execute("SELECT id FROM jobs WHERE github_json IS NOT NULL AND github_done = 0 "
+                                          "ORDER BY id").fetchall()
+        except sqlite3.Error:
+            return []
+        return [int(row[0]) for row in rows]
 
     def wait_no_starting(self, timeout: float) -> list[int]:
         """Jobs still in state "starting" after waiting up to *timeout* s."""
@@ -476,6 +823,7 @@ class Upgrade:
                 ("node.json", self.state / "node.json"),
                 ("worker.log", self.state / "worker.log"),
                 *((f"units/{unit}", self.units / unit) for unit in UNIT_FILES),
+                *((f"units/{name}", self.units / name) for name in INTERIM_DROPINS),
             ):
                 if path.exists():
                     destination = backup / name
@@ -500,43 +848,69 @@ class Upgrade:
                 "simqueue_symlink": os.readlink(link) if link.is_symlink() else None,
                 "gpu_line_state_path": state_path,
                 "active_before": before["active"],
+                "claims_before": self.claim_units(),
+                "layout": self.layout,
             }
             (backup / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         else:
             self.say(f"would back up {self.database}, {self.bin / 'simq'}, {self.bin / 'simqueue'}, node.json, "
                      f"worker.log and units {UNIT_FILES}")
-            manifest = {"active_before": summary.get("active", []), "columns": summary.get("columns", [])}
+            manifest = {"active_before": summary.get("active", []), "columns": summary.get("columns", []),
+                        "claims_before": self.claim_units()}
         self.step("backup", directory=str(backup))
         log_offset = self.worker_log_size()
         receipt: dict = {"schema": "simqueue-upgrade-receipt-v1", "action": "install", "from": FROM_VERSION,
                          "to": TO_VERSION, "executed": self.execute, "backup": str(backup),
                          "active_before": manifest["active_before"]}
         try:
-            # files first: from here on every simq call runs 0.6.2
+            # files first: from here on every simq call runs the new version
             self.write_file(self.bin / "simq", self.wrapper_text(self.runtime, TO_VERSION), 0o755)
             self.point_link(str(self.runtime / "simq"))
             self.write_file(self.units / self.service, self.unit_text(self.runtime), 0o644)
+            for name in INTERIM_DROPINS:
+                path = self.units / name
+                if path.exists():
+                    if self.execute:
+                        path.unlink()
+                        print(f"removed the interim drop-in {path}")
+                    else:
+                        self.say(f"would remove the interim drop-in {path} (backed up)")
             if not self.args.keep_node_config:
+                if not self.execute and self.layout is not None:
+                    self.say(f"node.json from {self.args.config}: partitions {layout_text(self.layout['new'])}")
                 self.write_file(self.state / "node.json", Path(self.args.config).read_text(), 0o600)
             self.step("installed-wrapper-unit-and-node-config", kept_node_config=bool(self.args.keep_node_config))
-            self.say(f"opening the database with the {TO_VERSION} code (no migration: schema {SCHEMA} stays)")
+            self.say(f"migrating the database to schema {SCHEMA_NEW} with the {TO_VERSION} code")
             if self.execute:
                 result = self.python_in(self.runtime, "from simqueue.store import QueueStore; QueueStore(); print('ok')")
                 if result.returncode != 0:
-                    raise RuntimeError(f"{TO_VERSION} cannot open the database: {result.stderr.strip()[-400:]}")
+                    raise RuntimeError(f"{TO_VERSION} cannot migrate the database: {result.stderr.strip()[-400:]}")
                 after = database_summary(self.database)
-                if after["user_version"] != SCHEMA:
-                    raise RuntimeError(f"database schema is {after['user_version']} after opening it")
-                if after["columns"] != manifest["columns"]:
-                    raise RuntimeError(f"database columns changed: {after['columns']}")
-                old = row_digests(backup / "queue.sqlite3", manifest["columns"])
-                new = row_digests(self.database, manifest["columns"])
+                if after["user_version"] != SCHEMA_NEW:
+                    raise RuntimeError(f"database schema is {after['user_version']} after the migration")
+                missing = [c for c in manifest["columns"] if c not in after["columns"]]
+                if missing:
+                    raise RuntimeError(f"database columns lost: {missing}")
+                columns = [c for c in manifest["columns"] if c != "env_json"]
+                old = row_digests(backup / "queue.sqlite3", columns)
+                new = row_digests(self.database, columns)
+                # rows added meanwhile (a submission through the new wrapper) are not compared
                 changed = [job_id for job_id, digest in old.items() if new.get(job_id) != digest]
                 if changed:
-                    raise RuntimeError(f"opening the database changed jobs {changed}")
-                receipt["database"] = {"schema": after["user_version"], "jobs": len(old), "rows_unchanged": True}
-                print(f"database: schema {SCHEMA}, {len(old)} rows unchanged")
-            self.step("database-checked")
+                    raise RuntimeError(f"the migration changed schema-{SCHEMA_OLD} columns of jobs {changed}")
+                wrong_env = self.env_scrub_problems(backup / "queue.sqlite3", self.database)
+                if wrong_env:
+                    raise RuntimeError(f"environments of jobs {wrong_env[:10]} are not the scrubbed ones")
+                added = [c for c in after["columns"] if c not in manifest["columns"]]
+                specs = self.scrub_spec_files()
+                backup_scrubbed = self.scrub_backup(backup / "queue.sqlite3")
+                receipt["database"] = {"schema": after["user_version"], "jobs": len(old), "rows_unchanged": True,
+                                       "added_columns": added, "env_scrubbed": True,
+                                       "spec_files_redacted": specs, "backup_rows_redacted": backup_scrubbed}
+                print(f"database migrated: schema {SCHEMA_NEW}, {len(old)} existing rows unchanged but their "
+                      f"secret-pattern environment values (redacted); {specs} finished jobs' spec.json redacted; "
+                      f"{backup_scrubbed} rows of the backup copy redacted")
+            self.step("database-migrated")
             self.systemctl("daemon-reload")
             self.systemctl("enable", self.service)
             self.systemctl("start", self.service)
@@ -544,11 +918,20 @@ class Upgrade:
             if self.execute:
                 verification = self.verify_adoption(active_before=manifest["active_before"], log_offset=log_offset,
                                                     version=TO_VERSION, runtime=self.runtime,
-                                                    timeout=self.args.adoption_timeout, state_path=state_path)
+                                                    timeout=self.args.adoption_timeout, state_path=state_path,
+                                                    claims_before=manifest.get("claims_before", []))
                 doctor = self.simq(self.runtime, "doctor")
                 partitions = self.simq(self.runtime, "partitions", "--sample", "0")
                 verification.update({"doctor_rc": doctor.returncode, "doctor": doctor.stdout,
                                      "partitions_rc": partitions.returncode, "partitions": partitions.stdout})
+                import stat as _stat
+                try:
+                    fifo = _stat.S_ISFIFO(os.lstat(self.state / "worker.wake").st_mode)
+                except OSError:
+                    fifo = False
+                verification["wake_fifo"] = fifo
+                if not fifo:
+                    verification["ok"] = False
                 if partitions.returncode != 0:
                     verification["ok"] = False
                     verification["partitions_problem"] = partitions.stderr[-400:]
@@ -560,6 +943,8 @@ class Upgrade:
                 print(partitions.stdout)
                 for job_id, item in verification["jobs"].items():
                     print(f"job {job_id}: " + (f"adopted by {TO_VERSION}" if item["adopted"] else "finished meanwhile"))
+                for unit, item in verification["claims"].items():
+                    print(f"GPU claim {unit}: " + (f"adopted by {TO_VERSION}" if item["adopted"] else "ended meanwhile"))
                 if "gpu_line_state" in verification:
                     print(f"GPU line state: {verification['gpu_line_state']}")
                 if not verification["ok"]:
@@ -587,6 +972,23 @@ class Upgrade:
         return 0
 
     # ----- rollback -------------------------------------------------------
+
+    def stranded_jobs(self, backup: Path, summary: dict) -> list[int]:
+        """Queued jobs whose recorded partition the backed-up node.json lacks."""
+        try:
+            document = json.loads((backup / "node.json").read_text())
+        except (OSError, ValueError):
+            return []
+        known = {str(p.get("name")) for p in document.get("partitions") or []}
+        for part in document.get("partitions") or []:
+            for alias in part.get("aliases") or []:
+                known.add(str(alias if isinstance(alias, str) else alias.get("name")))
+        default = str(document.get("default_partition") or "")
+        stranded = []
+        for name, jobs in summary.get("unfinished_by_partition", {}).items():
+            if (name or default) not in known:
+                stranded.extend(jobs)
+        return sorted(stranded)
 
     def claim_units(self) -> list[str]:
         """GPU claim units recorded in the state directory (0.6.2) that have
@@ -666,14 +1068,17 @@ class Upgrade:
             self.problem(f"{FROM_VERSION} runtime missing: {old_runtime}")
         summary = database_summary(self.database)
         print(f"database: schema {summary['user_version']}, {summary['jobs']} jobs, states {summary['states']}")
-        if summary["user_version"] != SCHEMA:
-            self.problem(f"database schema is {summary['user_version']}, expected {SCHEMA}")
+        if summary["user_version"] not in (SCHEMA_OLD, SCHEMA_NEW):
+            self.problem(f"database schema is {summary['user_version']}, expected {SCHEMA_NEW} (or {SCHEMA_OLD})")
         if self.problems:
             print(f"rollback refused: {len(self.problems)} problem(s)")
             return 1
+        github_due = self.github_due()
+        if github_due:
+            print(f"NOTE: job(s) {github_due} still have GitHub posts due; {FROM_VERSION} posts them")
         receipt: dict = {"schema": "simqueue-upgrade-receipt-v1", "action": "rollback", "from": TO_VERSION,
                          "to": FROM_VERSION, "executed": self.execute, "automatic": automatic,
-                         "backup": str(backup), "at": now_tag()}
+                         "backup": str(backup), "at": now_tag(), "github_due": github_due}
         state_path = manifest.get("gpu_line_state_path")
         self.say(f"stopping {self.service} (job units keep running)")
         self.systemctl("stop", self.service)
@@ -681,7 +1086,9 @@ class Upgrade:
             self.wait_service(False)
         active_before = database_summary(self.database)["active"]
         receipt["active_before"] = active_before
-        receipt["stopped_claim_units"] = self.stop_claims()
+        claims_before = self.claim_units()
+        receipt["claims_before"] = claims_before
+        self.say(f"GPU claim units {', '.join(claims_before) or 'none'} keep running; {FROM_VERSION} adopts them")
         self.withdraw_line_state(state_path)
         log_offset = self.worker_log_size()
         if self.execute:
@@ -698,6 +1105,14 @@ class Upgrade:
         self.point_link(manifest.get("simqueue_symlink"))
         self.step("restored-files")
         if self.execute:
+            with closing(sqlite3.connect(self.database)) as connection:
+                version = connection.execute("PRAGMA user_version").fetchone()[0]
+                if version != SCHEMA_OLD:
+                    connection.execute(f"PRAGMA user_version = {SCHEMA_OLD}")
+                    connection.commit()
+            print(f"database schema set back to {SCHEMA_OLD} in place (was {version}); the {TO_VERSION} columns "
+                  f"stay and are ignored by {FROM_VERSION}")
+            receipt["schema_downgrade"] = {"from": version, "to": SCHEMA_OLD}
             check = self.python_in(
                 old_runtime,
                 "from simqueue.store import QueueStore, SCHEMA_VERSION; s = QueueStore();"
@@ -713,13 +1128,14 @@ class Upgrade:
                                        "opened_by": str(old_runtime)}
                 print(f"database schema {user_version}; opened by {old_runtime.name} ({jobs} jobs)")
         else:
-            self.say(f"would check that {old_runtime} opens the database (schema {SCHEMA})")
+            self.say(f"would set the database schema back to {SCHEMA_OLD} in place and check that {old_runtime} "
+                     "opens it")
         self.systemctl("daemon-reload")
         self.systemctl("start", self.service)
         if self.execute:
             verification = self.verify_adoption(active_before=active_before, log_offset=log_offset,
                                                 version=FROM_VERSION, runtime=old_runtime,
-                                                timeout=self.args.adoption_timeout)
+                                                timeout=self.args.adoption_timeout, claims_before=claims_before)
             if "database_error" in receipt:
                 verification["ok"] = False
             receipt["verification"] = verification

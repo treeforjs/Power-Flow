@@ -23,10 +23,13 @@ class ExclusiveFixture(unittest.TestCase):
         self.projects = self.base / "projects"
         self.projects.mkdir()
         allowed = tuple(sorted(os.sched_getaffinity(0)))
-        self.pcores = allowed[: min(2, len(allowed))]
-        self.ecores = allowed[min(2, len(allowed)) : min(4, len(allowed))]
-        if not self.ecores:
-            self.ecores = self.pcores
+        # disjoint P/E sets from the CPUs this process may use (2 inside a
+        # 2-core queue job: one each); a single CPU cannot give disjoint sets
+        if len(allowed) < 2:
+            self.skipTest("needs 2+ CPUs in the affinity mask for disjoint P/E sets")
+        split = min(2, len(allowed) // 2)
+        self.pcores = allowed[:split]
+        self.ecores = allowed[split : split + 2]
         self.environment = {
             "SIMQUEUE_STATE_DIR": str(self.base / "state"),
             "SIMQUEUE_PROJECT_ROOT": str(self.projects),

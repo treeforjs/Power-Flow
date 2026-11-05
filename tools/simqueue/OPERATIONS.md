@@ -1,8 +1,72 @@
-# SimQueue 0.6.2 on zenobia: operations
+# SimQueue 0.7.1 on zenobia: operations
 
-SimQueue 0.6 is a single-node, Slurm-shaped scheduler. One worker
+SimQueue is a single-node, Slurm-shaped scheduler. One worker
 (`simqueue.service`) schedules the whole node; every job runs in its own
 transient systemd user service, independent of the worker.
+
+0.7.1 (a patch release: no new scheduling input, no schema change, no new
+side effect) changes defaults and fixes, see "0.7.1" below: a job submitted
+without `--mem` gets `--mem auto` when its name has a recorded peak; the
+`spheral` alias's default memory is auto instead of 18G; the load-sensitive
+tests are robust; the secret values in the older upgrade backups are
+redacted.
+
+0.7.0 changes four things (see "0.7.0: event-driven worker, memory,
+GitHub reporting" below):
+
+- **The worker is event-driven and runs at low priority.** It sleeps until
+  a submission, a cancellation or a job's end wakes it (a FIFO in the state
+  directory), reads files between passes instead of starting `systemctl`,
+  and runs with `Nice=10`, `CPUWeight=20`, idle I/O class and
+  `MemoryMax=128M`. Measured: about 0.2 CPU-seconds per hour with an empty
+  queue and about 0.5 with two running and ten queued jobs, against about 7
+  and 20 for 0.6.3.
+- **It tracks every job's memory and CPU time** from the job unit's cgroup
+  (samples every 3 s while it runs; the unit's own `memory.peak` and CPU time
+  at its end), shown by `simq show`, `simq list` and `simq partitions`.
+- **It schedules with it, safely:** `--mem auto` derives a request from the
+  peaks of earlier jobs of the same name; an admission guard holds a start
+  that actual free memory (MemAvailable minus a margin) cannot take, even
+  when the reservations would; memory pressure (MemAvailable below a
+  high-water mark) stops dispatch and preempts borrow jobs, records which
+  job grew, and never stops an owner job. Reservations (`memory_schedulable`)
+  stay the primary limit and are never exceeded because of current use.
+- **It reports job state to GitHub** for jobs submitted with
+  `--github-status` (commit statuses on every transition) or
+  `--github-comment` (one pull-request comment at the end, edited in place).
+
+- **Security: the job environment is an allowlist.** Up to 0.6.3 the whole
+  environment of `simq submit` was stored in the database and given to the
+  job (a workflow's `GH_TOKEN` ended up in `queue.sqlite3`; jobs that
+  inherited `RUNNER_TRACKING_ID` were killed by the Actions runner). 0.7.0
+  passes only HOME, USER, LOGNAME, LANG, PATH, TZ and SimQueue's own
+  `SIMQUEUE_*` settings, plus `-e NAME=VALUE` and `--export NAME,...`
+  (`--export ALL`: everything); secret-looking names are never taken from
+  the environment and are stored redacted when given with `-e` (see "Job
+  environment" below). The migration redacts what older builds stored.
+
+The database moves to schema 9 (columns added, stored secrets redacted;
+`upgrade.py` migrates it and its rollback sets the schema back in place).
+
+**Versioning rule.** A minor version (0.6 -> 0.7) is for a change of the
+scheduling model, of state or schema, or of side effects outside the
+machine; 0.7.0 is all three (measured memory as a scheduling input, schema
+9, GitHub posts) and also changes the worker's architecture. A patch
+version (0.7.0 -> 0.7.1) is for compatible additions only: no new
+scheduling input, no schema change, no new external side effect.
+
+0.6.3 removes the **partitions** on zenobia: one pool, `zenobia`, of every
+physical core plus the GPU, from which every job requests. The GPU stays a
+scheduled resource (and the GPU line stays), idle-core borrowing stays for
+`--borrow` jobs, and the old partition names `spheral`, `raikou-mfem` and
+`powerflow` are **aliases** of the pool: `-p powerflow` keeps working, with
+the defaults that partition had and its old cores tried first, and jobs
+recorded under the old names are adopted and scheduled in the pool. 0.6.3
+also adds **`simq run`** (Slurm `srun`-shaped: submit, stream the job's log,
+wait, exit with the job's exit code; a signal cancels the job), for GitHub
+Actions runner jobs and terminals (see "The pool" and "`simq run`" below).
+A configuration for the 16-core Ryzen 9 9950X3D2 is included
+(`config/zenobia-16core-node.json`).
 
 0.6.1 adds **opportunistic borrowing**: restartable work submitted with
 `simq submit --borrow` (builds, tests) may run on idle cores of any partition
@@ -22,49 +86,488 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 
 | Item | Path |
 |---|---|
-| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.6.2-20261031` |
-| Previous runtime (kept: job units started by 0.6.1 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.6.1-20261031` |
+| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.7.1-20261105` |
+| Previous runtime (kept: job units started by 0.7.0 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.7.0-20261105` |
 | Interpreter (unchanged from 0.5) | `/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen` |
-| Code | `source/simqueue/` (`nodeworker.py`, `scheduler.py`, `borrow.py`, `telemetry.py`, `gpuqueue.py`, `gpuline.py`, `units.py`, `jobwrap.py`, `locks.py`, `nodeconfig.py`, plus the 0.5 modules) |
+| Code | `source/simqueue/` (`nodeworker.py`, `memory.py` and `github.py` (0.7.0), `scheduler.py`, `borrow.py`, `telemetry.py`, `gpuqueue.py`, `gpuline.py`, `units.py`, `jobwrap.py`, `locks.py`, `nodeconfig.py`, plus the 0.5 modules) |
+| Worker wake FIFO (0.7.0) | `~/.local/state/simqueue/worker.wake` (clients and job units write a byte; the worker wakes) |
 | Direct GPU use (0.6.2) | `bin/gpu-lease` (runs `source/simqueue/gpuline.py lease`) |
 | GPU line state, tickets, log (0.6.2) | `<pic-profile>/simq-gpu-line.json`, `<pic-profile>/gpu-line.d/`, `<pic-profile>/simq-gpu-line.log` |
 | GPU claims (0.6.2) | units `simq-job-gpuclaim-<token12>.service`; files `~/.local/state/simqueue/claims/<token>/{spec,control,status}.json`, `claim.log` |
-| Node configuration (template) | `config/zenobia-node.json` |
+| Node configuration (template) | `config/zenobia-node.json` (8 cores, the CPU until 2026-11-05); `config/zenobia-16core-node.json` (Ryzen 9 9950X3D2) |
 | Node configuration (live) | `~/.local/state/simqueue/node.json` (`SIMQUEUE_CONFIG`) |
-| Database | `~/.local/state/simqueue/queue.sqlite3` (schema 8, unchanged by 0.6.2; 0.6.0 used schema 7) |
+| Database | `~/.local/state/simqueue/queue.sqlite3` (schema 9 from 0.7.0: memory, CPU time and GitHub columns; schema 8 for 0.6.1 to 0.6.3; 0.6.0 used schema 7) |
 | Borrow slice | `~/.config/systemd/user/simqborrow.slice` (`CPUWeight=idle`) |
 | Per-job files | `~/.local/state/simqueue/jobs/NNNNNN-<token>/{spec,status,stop-post}.json` |
 | Logs | `~/.local/state/simqueue/logs/NNNNNN.log`, `~/.local/state/simqueue/worker.log` |
-| Upgrade 0.6.1 to 0.6.2 / rollback | `upgrade.py` (dry run unless `--execute`) |
+| Upgrade 0.7.0 to 0.7.1 / rollback | `upgrade.py` (dry run unless `--execute`); 0.6.3 to 0.7.0: `../simqueue-0.7.0-20261105/upgrade.py` |
+| Overhead benchmark (0.7.0) | `source/tools/bench-overhead.py` (0.6.3 against 0.7.0, each worker in its own unit) |
 | Switchover from 0.5 (historical) | `switchover.py` |
-| Tests | `source/run-tests.py` (takes the cores' lease files first; stops when other work needs those cores; `--shared` on cores 6-7) |
+| Tests | `source/run-tests.py`: `--in-job` inside a queue job (`simq run -c 2 ... -- run-tests.py --in-job`, 0.7.0), `--pure` without units; or holding the cores' lease files as before (`--shared` on cores 6-7) |
 
-## Partitions on zenobia
+## 0.7.1
 
-| Partition | Cores (logical CPU per core) | GPU | Default / max memory | Default / max time | Default cores | Lending (0.6.1) |
-|---|---|---|---|---|---|---|
-| `spheral` (default) | 0-3 | none | 18G / 20G | 2-00:00:00 / 14-00:00:00 | all 4 | lends free and idle-in-job cores |
-| `raikou-mfem` | 4-5 | RTX 3080 Ti | 4G / 12G | 12:00:00 / 7-00:00:00 | both | lends free and idle-in-job cores |
-| `powerflow` | 6-7 | RTX 3080 Ti | 4G / 12G | 12:00:00 / 7-00:00:00 | both | lends free and idle-in-job cores; `--exclusive-timing` jobs are never lent |
+- **CRITICAL: a job unit can no longer take down the user manager.** On
+  2026-11-05 at 09:24 UTC a test job unit (OOMPolicy=kill, so
+  `memory.oom.group` 1) hit its MemoryMax while the user manager had just
+  spawned a process into its cgroup with vfork semantics (posix_spawn,
+  CLONE_VM: until exec the child shares the manager's mm). The kernel's
+  group kill (`mm/oom_kill.c`: `oom_kill_memcg_member` ->
+  `__oom_kill_process`) SIGKILLs every process sharing the victim's mm, so
+  it killed `user@1000.service`'s manager, and with it the desktop, SimQueue,
+  the runners, docker and every agent. Live 0.7.0 job units had the same
+  exposure (OOMPolicy=kill and `ExecStopPost=jobwrap.py stop-post` running in
+  the job's cgroup after the job, possibly while MPI shared memory left in
+  `/dev/shm` still held the cgroup at its limit). 0.7.1:
+  - job units have **no ExecStopPost, ExecStartPost or ExecStop**: the
+    manager spawns into a job cgroup only for ExecStart, while it is new and
+    empty. The worker records a job's end from the wrapper's own
+    `status.json` and, for a killed job, from the unit's properties
+    (`Result`, `ExecMainStatus`, `MemoryPeak`, `CPUUsageNSec`): units are no
+    longer `--collect`ed, so a failed unit stays loaded until the worker has
+    read it and runs `systemctl --user reset-failed`. A unit that ended
+    normally is unloaded at once, so its result (`success`, `exit-code`,
+    `signal`) follows from the wrapper's exit status. The wrapper wakes the
+    worker itself when the command ends;
+  - **OOMPolicy=stop** (`memory.oom.group` 0): `oom_kill_process` kills the
+    one victim `oom_badness` picks -- which never picks an `in_vfork` task --
+    and only the processes sharing that victim's mm (job processes); systemd
+    then stops the rest of the unit and records `Result=oom-kill`;
+  - after a job ends the worker **removes its leftover MPI shared-memory
+    segments** from `/dev/shm` (this user's, MPI names such as
+    `sm_segment.*` and `vader_segment.*`, made after the job started, mapped
+    or open in no process), so their shmem no longer stays charged;
+  - tests never drive a unit into a real OOM: the OOM path is tested with a
+    mocked unit state (`test_oom_safety.py`); the real-OOM tests run only with
+    `SIMQ_TEST_REAL_OOM=1`, which `run-tests.py` refuses on zenobia; a test
+    checks the job units' properties (no Exec*Post/Stop, OOMPolicy=stop,
+    `memory.oom.group` 0, a failed unit recorded and unloaded);
+  - the install removes the interim drop-in
+    `~/.config/systemd/user/simq-job-.service.d/50-oom-policy-stop.conf`
+    (backed up; a rollback restores it). Job units started by 0.7.0 keep
+    their ExecStopPost until they end (the drop-in gives them
+    OOMPolicy=stop meanwhile).
+- **Orphans are reaped while the job runs.** The job wrapper is a
+  subreaper, so processes a job orphans (daemonized helpers, MPI launchers)
+  become its children; 0.7.0 and earlier waited only for the leader, so
+  those that exited stayed zombies until the leader ended. The 0.7.1 wrapper
+  reaps any child as it exits (`test_oom_safety.py` checks it with a
+  double-forked process).
+- **Memory without `--mem`.** With `memory.auto_default` (on for zenobia) a
+  job submitted without `--mem` gets `--mem auto` when its name (or name
+  family) has a recorded peak, else the partition's or alias's default (4G).
+  `simq show` says "Memory request auto (default without --mem): ...". An
+  explicit `--mem` always wins, and `--mem auto` works as in 0.7.0. The
+  idempotency fingerprint of a submission without `--mem` does not depend on
+  the history.
+- **`spheral` alias:** `default_mem: "auto"` (it was 18G): auto from the
+  history even without `memory.auto_default`, else the pool's 4G. `simq
+  partitions` shows "auto (else 4G)". Any alias may say so.
+- **Memory head-of-line fix** (seen live on 0.7.0: an 8-core 20G job held
+  the queue head for hours because the admission guard could never admit
+  it, while about 15.8G was admissible): the planner now accounts *actual*
+  memory as a resource next to the reservations -- the starts of a pass may
+  take MemAvailable minus the margin minus what young jobs have not
+  allocated, and a running job's end gives back what it uses now -- so a head
+  job that does not fit gets a reservation from the memory running jobs will
+  free, and backfill works against it ("memory busy: needs 12G, 9.8G actually
+  free now; reserved to start by ..."). A job whose request exceeds what the
+  node can ever admit (the best MemAvailable seen with the queue's jobs
+  taken away over the last hour, or `memory_schedulable`, minus the margin)
+  is **parked**: left out of planning, so it holds no reservation, with the
+  reason "parked: mem 20G exceeds admissible ~15.8G on zenobia (...)", and
+  looked at again on every pass. `simq submit` warns when the request
+  exceeds what the node can admit now; `simq list` shows the reason.
+- **Tests:** the borrow placement check accepts any free test core; the CPU
+  priority check takes the best of three 2 s windows; the ensemble launch-gate
+  members have tails long enough for a loaded node; owner-idle lending gets
+  60 s. `run-tests.py` removes every inherited `SIMQUEUE_*` variable (inside
+  a queue job they name the live installation) and points `XDG_STATE_HOME`
+  and `SIMQUEUE_STATE_DIR` into the test directory: the first official 0.7.1
+  run (job 1057) failed 43 tests because the 0.5-mode and ensemble tests ran
+  against the live `node.json`, saw every live lease held and never started
+  their jobs (nothing reached the live queue). The second (job 1114) failed
+  only where the tests met the job's own surroundings: the exclusive-mode
+  fixture built overlapping P/E sets from a 2-CPU affinity (now one CPU each),
+  two restart tests counted the killed orphan's zombie (its parent, the live
+  0.7.0 wrapper, reaps only at the end) as alive (a zombie now counts as
+  exited), and `test_shield_helper.py` cannot be imported (as before; the
+  official runs list the suites without it).
+- **Older backups:** the secret-pattern environment values in the database
+  copies of the four older upgrade backups were redacted in place on
+  2026-11-05 with the migration's redaction (7, 60, 205 and 705 job rows; 0
+  left); their schemas and every other column are unchanged, so they stay
+  usable for the rollbacks they belong to.
+- **Idempotency:** as documented for 0.7.0, a key first submitted under 0.6.x
+  is refused on replay ("already bound to a different submission request")
+  instead of running twice.
 
-SMT siblings 8-15 are never allocated. Swap per job: 1G. Memory is a counted
-resource: the sum of `--mem` over running jobs stays within 28G
-(`memory_schedulable`). The GPU has an 11G admission budget: a GPU job is
-exclusive unless it passes `--gpu-mem`, in which case jobs share the GPU while
-their claims fit the budget. Time limits are enforced by systemd
+### Upgrading 0.7.0 to 0.7.1: `upgrade.py`
+
+```sh
+cd /home/treefor/projects/runtimes/simqueue-0.7.1-20261105
+./upgrade.py install                 # dry run
+./upgrade.py install --execute
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.7.0-to-0.7.1-<UTC> --execute
+```
+
+No schema change: the preflight checks the seal, that the new
+`config/zenobia-node.json` equals the live `node.json` apart from
+`memory.auto_default`, the aliases' `default_mem` and the notes, that the
+wrapper runs 0.7.0, and that a copy of the database opened by 0.7.1 keeps
+every row. The install stops the worker (job and claim units keep running),
+backs up, switches the wrapper, link, unit and `node.json`, starts 0.7.1 and
+verifies that every running job unit and GPU claim unit is adopted; rollback
+restores the files byte for byte and 0.7.0 adopts everything back (it also
+makes GitHub posts that are still due).
+
+### 0.7.0 install history (2026-11-05)
+
+At 06:16:55 UTC a 0.7.0 test run migrated the live database to schema 9 (the
+ensemble tests' supervisors briefly ran without `SIMQUEUE_STATE_DIR` and
+fell back to the live state directory): new 0.6.3 clients were refused
+until 0.7.0 was installed at 06:34 UTC (`--allow-unsealed`; backup
+`0.6.3-to-0.7.0-20261105T063438Z`). The cause is fixed (`SIMQUEUE_*` is
+allowlisted; the test runner isolates the state directory).
+
+## 0.7.0: event-driven worker, memory, GitHub reporting
+
+### The event-driven worker
+
+Up to 0.6.3 the worker woke ten times a second and made a full pass every
+`poll_seconds` (1 s), each starting one `systemctl --user show` for the
+running jobs. 0.7.0 sleeps in `select()` on the FIFO
+`~/.local/state/simqueue/worker.wake` and wakes for:
+
+- **clients**: `simq submit`, `run`, `cancel`, `retry`, `promote`, `demote`,
+  `priority`, `pause`, `resume` and the ensemble commands write a byte to the
+  FIFO after their database change (never blocking; without a worker nothing
+  happens);
+- **job ends**: the 0.7.0 job wrapper's `ExecStopPost` hook writes a byte;
+  the worker then looks for the unit's cgroup to disappear every 0.2 s for
+  5 s and reconciles the job at once;
+- **other writers**: every 3 s while jobs run (5 s otherwise) it compares the
+  database's `PRAGMA data_version` on its own persistent connection, which
+  changes only when another connection committed (an ensemble controller, an
+  older client);
+- **timers**: a pass every `launch.poll_seconds` (1 s) only while something
+  must be watched -- a job starting or being stopped, borrow jobs (the idle
+  telemetry), the GPU line, queued jobs held by leases outside the queue or
+  by the memory guard, memory pressure -- else at most every
+  `launch.idle_seconds` (30 s); every 10 idle intervals (5 min) every job
+  unit is queried from systemd as a safety net.
+
+Between passes it only reads files: each running job's cgroup directory
+(`memory.current`, `memory.peak`; its disappearance is how the end of a job
+started by an older wrapper is noticed) and `/proc/meminfo`. A pass queries
+systemd only for the jobs that need it (starting, being stopped, cgroup
+gone, not verified yet, borrow job whose freezer state differs from the
+record). Dispatch latency: a submission is planned within milliseconds of
+the client's write; a job's end is reconciled about 0.2 s after its unit is
+gone (adopted 0.6.3 jobs: within 3 s).
+
+The worker log's last line on stop counts the passes and the systemd
+queries, for example `node worker stopped ...; 13 pass(es), 2 systemd unit
+quer(ies)`.
+
+Measured overhead (`source/tools/bench-overhead.py`: each worker in its own
+transient unit with the properties it is installed with, cgroup `cpu.stat`
+over 10 minutes after a 30 s warm-up, all four at once; busy = a two-core
+pool with two running and ten queued `sleep` jobs; sandbox config like
+zenobia's with lease files, a GPU with the GPU line and borrowing on):
+
+| Worker | Queue | CPU-s per hour | Share of one core | RSS | cgroup memory (peak) |
+|---|---|---|---|---|---|
+| 0.6.3 | idle | 7.08 | 0.197% | 31.1 MiB | 18.7 MiB (19.2) |
+| 0.6.3 | busy | 19.46 | 0.540% | 31.1 MiB | 18.9 MiB (20.5) |
+| 0.7.0 | idle | 0.18 | 0.005% | 31.3 MiB | 19.4 MiB (20.3) |
+| 0.7.0 | busy | 0.69 | 0.019% | 31.5 MiB | 19.8 MiB (21.1) |
+
+The live 0.6.3 worker measured 11.9 CPU-seconds over 77 minutes (9.3 per hour, MemoryCurrent 21 MB) with real jobs; its `systemctl show` calls also cost the user manager CPU, which these figures do not include. Receipt: `<outputs>/simqueue-0.7.0-20261105/bench/bench-overhead.json`. One sample of eight job cgroups and MemAvailable costs about 0.14 ms (`test_memory.py`), 0.16 CPU-s per hour at the 3 s interval.
+
+### Memory tracking
+
+| What | Where |
+|---|---|
+| current memory of a running job | read from its cgroup every `memory.sample_seconds` (3 s); written to the database every `memory.record_seconds` (60 s) as `mem_current_bytes`; `simq show` and `simq partitions` read the cgroup directly |
+| history | min/max per minute (`mem_series_json`), at most `series_buckets` (240) entries: older buckets merge in pairs when a job runs longer, so a job's whole history stays bounded |
+| peak | `mem_peak_bytes`: the unit's own `memory.peak` recorded by the 0.7.0 job wrapper when the job ends (source `unit`), else the highest `memory.peak` the worker sampled (`sampled`, for jobs adopted from 0.6.3); over all runs of a requeued job |
+| CPU time | `cpu_usage_usec`: the unit's `cpu.stat` usage at its end (all processes of the job) |
+| node | `/proc/meminfo` MemTotal and MemAvailable at every sample |
+
+`simq show ID` adds "Memory now" (running: live cgroup reading and its share
+of the limit), "Memory peak" (and its source), "CPU time" (and average
+cores), "Memory history" (a sparkline of the per-minute maxima) and, for
+`--mem auto`, how the request was derived. `simq list` has a MEM column:
+now/request while running, peak/request after. `simq partitions` prints the
+node's available memory, the high- and low-water marks, requested against
+actual memory of every running job and the memory used outside the queue,
+and MEMORY PRESSURE while it lasts (`--json`: `node_memory`).
+
+A job using at least `near_limit_fraction` (90%) of its limit is logged once
+and gets a `memory-near-limit` event (`simq show` History): an
+out-of-memory kill is likely.
+
+### `--mem auto`
+
+`simq submit|run --mem auto` (also `ensemble submit`) takes `auto_factor`
+(1.25) times the largest peak of the last `auto_history` (5) finished jobs
+with the same name -- else the same *name family*, the name without trailing
+index tokens (`fe-audit-a0-n4` -> `fe-audit`,
+`lv-interp_300K_xe1e-6` -> `lv-interp`, `pore1p5-cpu-a` -> `pore1p5-cpu`) --
+preferring jobs with the same core count, rounded up to `auto_round` (256M)
+and bounded by the partition's `min_mem` (256M) and `max_mem` (20G). A job
+killed at its memory limit counts with its limit (it needed more), so the
+next auto request grows. Without any history: the partition's (or alias's)
+default. The request is fixed at submission (`simq show`: "Memory request
+auto: 1.25 x largest peak 2.9G of 3 earlier job(s) with the same name");
+an idempotent replay with `--mem auto` finds the same job however the
+history has grown since.
+
+Over-request warning: `simq submit --mem SIZE` prints `simq: warning: --mem
+18G is 6.2x the largest recent peak ...` (and `warnings` in `--json`) when
+the request is at least `warn_factor` (2x) and `warn_min_excess` (2G) above
+the largest recent peak of the name (family). The job is queued as asked.
+
+### The admission guard
+
+Reservations stay the primary constraint: the planner never lets the sum of
+`--mem` of running jobs exceed `memory_schedulable`, whatever the jobs use
+now (usage grows). On top of that, a start the planner chose is held when
+
+    request > MemAvailable - margin - (unallocated requests of jobs started
+                                       less than ramp_seconds ago)
+
+`margin` is `memory.admission_margin`, by default the high-water mark (a job
+that then grows to its full request does not by itself cause memory
+pressure); jobs started within `ramp_seconds` (60 s) count their unallocated
+request as used, so a burst of starts cannot all see the same MemAvailable.
+Processes outside the queue (the desktop, other sessions, builds run
+directly) are thereby accounted. A held job keeps its place: smaller jobs
+behind it may still start, and since the reservations already include it,
+they cannot push it out; it starts when memory outside the queue is freed.
+Its reason reads `pending: memory: needs 18G but MemAvailable 12.0G - margin
+2.2G leaves 9.8G`. Starts are re-checked every `poll_seconds` while one is
+held.
+
+### Memory pressure
+
+Every sample compares MemAvailable with the high-water mark
+`max(high_water_available, high_water_percent of MemTotal)` (2G or 7%: 2.2G
+on zenobia). Below it:
+
+1. dispatch stops (queued jobs read `pending: memory pressure since ...`);
+2. every running borrow job is preempted by its `--on-preempt` policy
+   (freeze stops its growth at once; requeue and cancel free its memory); a
+   job frozen for pressure is requeued when the pressure lasts
+   `pressure_escalate_seconds` (120 s), because a frozen job keeps its
+   memory;
+3. the worker log, the jobs' History (`memory-pressure` event: current
+   memory, request, growth over the last 60 s, culprit) and `simq partitions`
+   record which job grew and by how much against its request, and how much
+   memory is used outside the queue;
+4. when MemAvailable is back at or above the low-water mark
+   `max(low_water_available, low_water_percent)` (4G or 12%: 4G), dispatch
+   resumes and frozen borrow jobs are thawed when their cores are lendable.
+
+Owner jobs are never stopped for memory pressure: their own `MemoryMax`
+bounds each of them; they are recorded and warned about.
+
+### Job environment (security fix)
+
+What a job sees from its submitter: HOME, USER, LOGNAME, LANG, PATH, TZ and
+the `SIMQUEUE_*` settings (so a job running `simq` stays on the same queue),
+the names given with `--export NAME,...` (`--export ALL`: the whole
+environment), and `-e NAME=VALUE`. The worker adds the user manager's
+`XDG_RUNTIME_DIR` and `DBUS_SESSION_BUS_ADDRESS` (so `systemctl --user` works
+in a job) and the `SIMQ_*` placement variables.
+
+A name matching `*TOKEN*`, `*SECRET*`, `*PASSWORD*`, `*KEY*`, `GITHUB_*`,
+`ACTIONS_*` or `RUNNER_*` (case-insensitive; SimQueue's own `SIMQ_*`
+excepted) is never taken from the environment, whatever `--export` says;
+`simq submit` lists such names it left out (names only). Given with `-e`, it
+reaches the job, but the database stores `<redacted>`: the value waits in
+`~/.local/state/simqueue/secrets/<job>.json` (mode 600) until the job ends,
+when the worker deletes that file and redacts the job's `spec.json`. A
+`simq retry` of such a job runs without it (pass it again with a new
+submission). `simq show` and `simq list` print names, never values.
+
+The schema-9 migration (`upgrade.py install`) redacts secret-pattern values
+in every stored job environment and in finished ensemble members; a queued
+job's secret that had been given with `-e` moves to its secrets file. The
+install also redacts the `spec.json` of every finished job and its own
+backup copy of the database. Dry-run counts on 2026-11-05 (never values;
+`<outputs>/simqueue-0.7.0-20261105/env-scrub-dry-run.json`): the live
+database had no secret-pattern values left; 859 of 864 job spec files had
+some (857 `*TOKEN*`, 156 `GITHUB_*`, 32 `RUNNER_*`, 4 `ACTIONS_*` values);
+the database copies in the four older upgrade backups hold 7, 60, 205 and
+705 such rows (not touched by the install).
+
+CI scripts that submit through `env -i` keep working unchanged.
+Idempotency fingerprints cover the passed environment only, so a replay of
+a key that was submitted under 0.6.x is refused ("already bound to a
+different submission request") rather than run twice: 0.6.x fingerprinted
+the whole environment, including `PWD`, `SHLVL` and `LC_CTYPE`.
+
+### Configuration (`memory` in node.json)
+
+| Key | Default | Meaning |
+|---|---|---|
+| `enabled` | true | false turns tracking, the guard and pressure handling off |
+| `sample_seconds` | 3 | cgroup and MemAvailable sampling while jobs run (0.5-60) |
+| `record_seconds` | 60 | database writes of the samples |
+| `series_buckets` | 240 | bound of each job's min/max history |
+| `admission_margin` | null | MemAvailable kept free by a start; null = the high-water mark |
+| `ramp_seconds` | 60 | young jobs count their unallocated request |
+| `high_water_available`, `high_water_percent` | 2G, 7 | pressure below the larger |
+| `low_water_available`, `low_water_percent` | 4G, 12 | pressure over at the larger |
+| `pressure_escalate_seconds` | 120 | frozen-for-pressure borrow job requeued after |
+| `near_limit_fraction` | 0.9 | near-limit warning |
+| `auto_factor`, `auto_history`, `auto_round` | 1.25, 5, 256M | `--mem auto` |
+| `warn_factor`, `warn_min_excess` | 2, 2G | over-request warning |
+| `test_node_total` | null | tests only: a simulated node of this size used only by queue jobs |
+
+Partitions take `min_mem` (default 256M); `launch` takes `idle_seconds`
+(default 30).
+
+### GitHub reporting
+
+The worker, not the job, posts:
+
+```sh
+simq run -c 2 --mem auto -t 1:00:00 -n rz-pr-tests \
+    --github-status treeforjs/plasma-solid-shocks@$SHA:simqueue/rz-pr-tests \
+    -- ./run-pr-tests.sh
+simq submit -c 8 -n pore-pilot --github-status treeforjs/plasma-solid-shocks@$SHA:simqueue/pilot \
+    --github-comment treeforjs/plasma-solid-shocks#123 --github-summary pilot-summary.md -- ./pilot.sh
+```
+
+- `--github-status OWNER/REPO@SHA:CONTEXT` (repeatable; full commit SHA):
+  a commit status for every transition -- `pending` "SimQueue job N queued
+  (C cores, M)", `pending` "SimQueue job N running on CPUs X", then
+  `success` (exit 0) / `failure` (non-zero exit) / `error` (canceled, time
+  limit exceeded, out of memory at its limit, preempted and canceled, lost
+  unit), with runtime and peak memory, at most 140 characters. A job that
+  starts before the worker's first post shows running directly; a borrow
+  job requeued after preemption is pending again.
+- `--github-comment OWNER/REPO#PR` (opt-in): one comment at the end with the
+  job ID, state, runtime, peak memory, cores, the last `log_lines` (20) log
+  lines and the job's summary.
+- `--github-summary PATH`: a markdown file the job may write; exported to
+  the job as `SIMQ_SUMMARY` (relative paths are resolved against the job's
+  working directory); appended to the comment (at most `summary_max_bytes`).
+
+**Notifications.** Commit statuses never notify anyone. A comment can only
+notify when it is first created; it carries the hidden marker
+`<!-- simq-job:N -->` and every later post for the job finds it and edits it
+(PATCH), which does not notify. Nothing SimQueue writes can mention anyone:
+in descriptions, comments and summaries every `@` and every `#` before a
+digit gets a zero-width space, so a log line or a summary cannot ping a
+person or team or cross-reference an issue (`#123`, `owner/repo#123`).
+GitHub does not email the token's owner about their own comments unless
+"Include your own updates" is enabled in that account's notification
+settings, so with the default settings the token's owner gets no email from
+SimQueue's reporting at all.
+
+**Token.** `github.token_file` (a file holding a token, mode 600) if set,
+else `gh auth token` run by the worker at post time; kept only in the
+posting thread's memory for `token_cache_seconds` (600) and sent only in the
+Authorization header. It is never written to the database, the logs, the
+job's environment or any unit file (tested). `gh` is found on the user
+manager's PATH (`/usr/bin/gh`; `gh auth status`: logged in as treeforjs,
+keyring).
+
+**Never blocking.** Submissions record the targets in the job row
+(`github_json`); the worker compares each job's phase (queued, running,
+final) with the last one posted after every pass and hands due posts to one
+daemon thread of the worker process (no extra process), which makes the
+HTTP requests with a `timeout_seconds` (10 s) timeout and hands results back
+through a queue. A failure (GitHub unreachable, HTTP 5xx, rate limit,
+missing token) is recorded (`simq show`: "GitHub error", History
+`github-failed`) and retried with exponential backoff from
+`backoff_seconds` (15 s) up to `backoff_max_seconds` (15 min), at most
+`max_attempts` (12) times per phase; a permanent error (HTTP 4xx such as a
+wrong SHA or repository) is recorded and not retried. Scheduling never waits
+for any of it. Posts still due when the worker stops are made by the next
+worker.
+
+Configuration (`github` in node.json): `enabled` (true), `api_base`
+(`https://api.github.com`), `token_file` (null), `gh` (`gh`),
+`timeout_seconds`, `token_cache_seconds`, `backoff_seconds`,
+`backoff_max_seconds`, `max_attempts`, `log_lines`, `summary_max_bytes`.
+`enabled: false` makes the submit options an error.
+
+## The pool on zenobia (0.6.3: no partitions)
+
+| Name | What it is | Default cores | Default memory | Default time | Cores tried first |
+|---|---|---|---|---|---|
+| `zenobia` (default) | the pool: physical cores 0-7 (one logical CPU each) and the RTX 3080 Ti | 4 | 18G | 2-00:00:00 | lowest free |
+| `spheral` | alias of `zenobia` (the spheral partition before 0.6.3) | 4 | 18G | 2-00:00:00 | 0-3 |
+| `raikou-mfem` | alias of `zenobia` (the raikou-mfem partition before 0.6.3) | 2 | 4G | 12:00:00 | 4, 5 |
+| `powerflow` | alias of `zenobia` (the powerflow partition before 0.6.3) | 2 | 4G | 12:00:00 | 6, 7 |
+
+Limits are the pool's for every name: up to all 8 cores, 20G memory and
+14-00:00:00 per job (the largest limits of the old partitions), 1G swap.
+Every name may request the GPU. The defaults without `-p` are those of the old
+default partition (`spheral`), so the 0.5 form `simq submit -c 4 -- ./run.sh`
+behaves as before apart from which cores it gets. SMT siblings 8-15 are never
+allocated. Memory is a counted resource: the sum of `--mem` over running jobs
+stays within 28G (`memory_schedulable`). The GPU has an 11G admission budget:
+a GPU job is exclusive unless it passes `--gpu-mem`, in which case jobs share
+the GPU while their claims fit the budget. Time limits are enforced by systemd
 (`RuntimeMaxSec`); an expired job ends `failed` with result `timeout`.
+
+Aliases (node configuration, per partition):
+
+```json
+"aliases": [
+  {"name": "powerflow", "default_cpus": 2, "default_mem": "4G", "default_time": "12:00:00",
+   "prefer_cpus": [6, 7]},
+  "plain-name"
+]
+```
+
+An alias is a plain name or an object that may set `default_cpus` (`all` or
+a number), `default_mem`, `default_time` and `prefer_cpus` (an ordered array,
+or a CPU list); the cores, GPUs, limits and lending policy are the
+partition's. Every lookup of a partition by name resolves aliases: `submit`,
+`run`, `--test-only`, `--borrow-from`, `ensemble submit`, the scheduler, job
+adoption, `simq partitions`, `simq doctor`. A job is recorded under the name it
+was submitted with: `simq` lists it under that name, `simq show` shows
+`powerflow (pool zenobia)`, and the job sees `SIMQ_PARTITION=powerflow`
+(sealed tools that check `SIMQ_PARTITION` keep working). Jobs recorded under
+the old names before 0.6.3 (queued, running, borrow jobs, GPU line members)
+are scheduled, adopted and lent under the pool. The scheduler tries the
+truly free cores first, then the alias's `prefer_cpus` in order, then the
+lowest-numbered free cores; a job without an alias takes the lowest free
+cores (borrow jobs take the highest free cores, as before). An alias is a
+name, not a reservation: a `-p powerflow` job runs on cores 0-3 when 6-7 are
+taken.
+
+After the CPU change (Ryzen 9 9950X3D2, 16 cores, 32 threads; logical CPUs
+0-15 are the first threads of cores 0-15, 16-31 their SMT siblings) install
+`config/zenobia-16core-node.json` (the same pool, aliases, limits and GPU on
+cores 0-15; core K's lease file is `testing-core<K>.lock`, core 6's
+`testing-core.lock`, the borrow leases `borrow-core<K>.lock`; its
+`smt_siblings` map is checked against sysfs). The topology check reads the
+running CPU: the 16-core file is refused on the 8-core CPU, and the 8-core
+file would leave cores 8-15 of the new CPU unused (still valid). See
+"Upgrading 0.6.2 to 0.6.3" for the commands. `memory_schedulable` (28G)
+assumes the same 31 GiB of RAM.
 
 ## Using the queue
 
 ```sh
-simq submit -c 4 -- ./run.sh                          # 0.5 syntax: default partition (spheral), 4 cores
-simq submit -p powerflow -c 1 -t 2:00:00 --mem 2G -- ./case.sh
-simq submit -p powerflow --cpus 7 -- ./pinned.sh      # explicit core (partition CPU number)
+simq submit -c 4 -- ./run.sh                          # 0.5 syntax: the pool, 4 cores (lowest free)
+simq submit -c 8 --mem 16G -t 1-00:00:00 -- ./pilot.sh   # every core of the pool
+simq submit -p powerflow -c 1 -t 2:00:00 --mem 2G -- ./case.sh   # old name: alias of the pool
+simq submit -p powerflow --cpus 7 -- ./pinned.sh      # explicit core (any core of the pool)
 simq submit -p raikou-mfem --gpus 1 -- ./gpu.sh       # exclusive GPU
 simq submit -p powerflow --gpus 1 --gpu-mem 3G -- ./x # shared GPU, 3G claim
 simq submit --test-only -p raikou-mfem --gpus 1 -- /bin/true   # where/when it would run; queues nothing
+simq run -c 2 --mem 4G -t 30 -- ./test.sh             # 0.6.3: submit, stream the log, wait, exit with its code
 simq                     # active and recent jobs (PARTITION, CPU, GPU, reason for waiting)
-simq partitions          # free cores, GPU claims, lease files held outside the queue (alias: sinfo)
+simq partitions          # free cores, aliases, GPU claims, lease files held outside the queue (alias: sinfo)
 simq show ID             # request, allocation, unit, result, job files
 simq log -f ID
 simq cancel ID           # works with or without a running worker
@@ -74,21 +577,66 @@ simq submit --borrow -p powerflow --max-borrow-cores 4 -- make -j"$(nproc)"   # 
 simq submit -p powerflow --exclusive-timing -- ./timing-run.sh               # 0.6.1: never lend its cores
 ```
 
-Options: `-p/--partition`, `-c/--cores/--cpus-per-task N`, `--cpus LIST`,
+Options: `-p/--partition` (a partition or an alias), `-c/--cores/--cpus-per-task N`, `--cpus LIST`,
 `--gpus N`, `--gpu-mem SIZE`, `--mem SIZE` (`4G`; bare number = MiB, as
 `sbatch --mem`), `-t/--time` (`MM`, `MM:SS`, `HH:MM:SS`, `D-HH[:MM[:SS]]`),
 `--priority N`, `-n/-J/--name`, plus every 0.5 option (`-C`, `-e`, `--shell`,
 `--idempotency-key`, `--json`). Without `-p` a job goes to the default
-partition; without `-c` it gets the partition's default (all of its cores, as
-in 0.5). The 0.5 options are accepted unchanged and an idempotency key
-replayed with 0.5 syntax keeps its 0.5 fingerprint.
+partition (the pool); without `-c` it gets the default of the name it used
+(see the table above). The 0.5 options are accepted unchanged and an
+idempotency key replayed with 0.5 syntax keeps its 0.5 fingerprint; a key
+replayed with the same `-p` name keeps its fingerprint across 0.6.2 and 0.6.3
+(the name given enters the fingerprint, not the pool it resolves to).
 
 Scheduling: waiting jobs are ordered by priority, then queue order. Each worker
 pass starts every job that fits, except that once a job is blocked, a later
 job starts only if (given all time limits) it cannot delay that blocked job
-(EASY backfill). A paused ensemble holds its position and blocks later jobs of
-its own partition only. Borrow jobs (0.6.1) always sort after every owner job,
-whatever their priority, and never take part in backfill reservations.
+(EASY backfill). With one pool, a job that needs all cores (an 8-core pilot)
+reserves the pool when it is first blocked: later jobs start only if they end
+before it can start, or fit beside it. A paused ensemble holds its position
+and blocks later jobs of its own partition, which on zenobia is now every
+later owner job (as in 0.5); `simq demote ID` moves it out of the way. Borrow
+jobs (0.6.1) always sort after every owner job, whatever their priority, and
+never take part in backfill reservations.
+
+### `simq run` (0.6.3)
+
+```sh
+simq run -c 2 --mem 4G -t 30 -n pr-tests --borrow -- ./ci/test.sh
+simq run -c 8 --mem 16G -t 1-00:00:00 -n pilot --idempotency-key "gh:$GITHUB_RUN_ID:$GITHUB_RUN_ATTEMPT:pilot" -- ./pilot.sh
+```
+
+`simq run` (alias `srun`) takes every option of `simq submit`, queues the job
+exactly as `submit` does, prints `simq: job N (NAME) queued in partition ...`
+on stderr, then copies the job's combined log (the header written by the job
+wrapper, the command's stdout and stderr, the final `state:` line) to its
+stdout as it grows, waits until the job has ended and exits with the job's own
+exit code when one was recorded (a command killed by signal N: 128+N), else 0
+for `succeeded` and 1 for any other end (`failed` by time limit or memory,
+`canceled`, `interrupted`); a job that did not succeed never exits 0. Its own
+messages go to stderr only (with `--json`, the submit result is one JSON line
+on stderr). SIGINT, SIGTERM or SIGHUP cancel the job (as `simq cancel`: a
+queued job ends at once, a running unit is stopped) and `simq run` exits with
+130, 143 or 129 after the job has ended (at most 20 s; a second signal exits
+at once; the cancellation is recorded either way). A borrow job that is
+preempted and requeued keeps the client waiting; the restart's output follows
+in the same log. Stdin is not forwarded: the command runs in its own job unit.
+
+With `--idempotency-key KEY`, running the same `simq run` again (same name,
+directory, command, options and environment, as for `submit`) reattaches to
+the existing job instead of queuing a second one: it prints
+`attached to existing job N`, streams the whole log from the beginning and
+returns that job's exit code (at once if it has already ended). A different
+request under the same key is refused, as for `submit`. Because the captured
+environment is part of the request, a GitHub Actions step reattaches when it
+is retried with the same environment (a retry loop inside the step); a re-run
+of the workflow has a new `GITHUB_RUN_ATTEMPT` and step file paths, so give it
+a key that includes `$GITHUB_RUN_ATTEMPT` and it submits a fresh job.
+
+Exit statuses of `simq run` itself: the job's as above; 2 for an invalid
+request (nothing queued); 1 when the protected runner of the 0.5 exclusive
+mode cannot start (the job stays queued).
+
 
 ### Environment of every job
 
@@ -99,13 +647,15 @@ whatever their priority, and never take part in backfill reservations.
 | `SIMQ_CPU_LIST` | allocated logical CPUs, one per physical core (as in 0.5), e.g. `0-3`, `6` |
 | `SIMQ_CPU_COUNT` | their number (as in 0.5) |
 | `SIMQ_NCPUS` | same as `SIMQ_CPU_COUNT` |
-| `SIMQ_PARTITION`, `SIMQ_NODE` | partition, node name |
+| `SIMQ_PARTITION`, `SIMQ_NODE` | the name the job was submitted under (a partition or an alias, 0.6.3: `zenobia`, `spheral`, `raikou-mfem`, `powerflow`), node name |
 | `SIMQ_GPUS` | allocated GPU UUIDs, comma separated; empty when none |
 | `SIMQ_GPU_MODE` | `none`, `exclusive` or `shared` |
 | `SIMQ_GPU_MEM` | GPU claim in bytes (the budget when exclusive; 0 when none) |
 | `SIMQ_MEM` | memory limit in bytes |
 | `SIMQ_TIME_LIMIT` | time limit in seconds (empty when unlimited) |
 | `SIMQ_LOG`, `SIMQ_UNIT` | job log, systemd unit name |
+| `SIMQ_SUMMARY` (0.7.0) | with `--github-summary`: the markdown file the job may write for its PR comment |
+| (0.7.0) everything else | only HOME, USER, LOGNAME, LANG, PATH, TZ, `SIMQUEUE_*`, `--export` names and `-e` values from the submitter, plus XDG_RUNTIME_DIR and DBUS_SESSION_BUS_ADDRESS; see "Job environment" |
 | `CUDA_VISIBLE_DEVICES` | the allocated GPU UUIDs (empty when none); `CUDA_DEVICE_ORDER=PCI_BUS_ID` |
 
 The rest of the environment is the submitting shell's, captured at submit time
@@ -310,19 +860,23 @@ simq submit --test-only --borrow -c 2 -- /bin/true                    # where it
 ```
 
 - A borrow job is restartable work. It may run on the cores of its own
-  partition (`-p`, default `spheral`) and on lendable cores of every partition
-  that lends (or of the partitions named by `--borrow-from`), in that order of
-  preference, as long as no owner job of that partition is waiting for those
-  cores. One job may span several partitions.
+  partition (`-p`) and on lendable cores of every partition that lends (or of
+  the partitions named by `--borrow-from`), in that order of preference, as
+  long as no owner job of that partition is waiting for those cores (0.6.3,
+  `backfill_waiting_owners`: unless the borrow job's time limit ends before
+  that owner job can start). One job may span several partitions. On zenobia
+  (0.6.3) there is one partition: every name, including `--borrow-from`
+  names, resolves to the pool, so a borrow job may use any lendable core.
 - `-c N` is the number of cores it needs (default: the partition default, as
   for owner jobs). `--max-borrow-cores M` lets it take up to `M` cores when that
   many are idle; with `--max-borrow-cores` and no `-c`, the minimum is 1. The
   job sees its cores in `SIMQ_CPU_LIST`/`SIMQ_NCPUS` and `nproc` (affinity),
   plus `SIMQ_BORROW=1` and `SIMQ_ON_PREEMPT`.
-- Memory and time defaults and limits are those of its own partition
-  (spheral's default memory is 18G: give builds and tests an explicit
+- Memory and time defaults and limits are those of the name it used (the
+  pool's and spheral's default memory is 18G: give builds and tests an explicit
   `--mem`, since a borrow job starts only when its memory fits the node's free
-  schedulable memory). Borrow jobs cannot request GPUs (no GPU borrowing) or
+  schedulable memory, and an explicit `-t`, since a short time limit lets it
+  use cores a waiting owner job needs later). Borrow jobs cannot request GPUs (no GPU borrowing) or
   name explicit CPUs.
 - Owners never wait: when an owner job is ready to start on cores a borrow job
   uses, the scheduler preempts the borrow job and starts the owner in the same
@@ -346,7 +900,7 @@ simq submit --test-only --borrow -c 2 -- /bin/true                    # where it
 
 | Class | Core | Lent when | Borrower preempted when |
 |---|---|---|---|
-| `free` | no queue job, no lease holder, and the CPU itself idle (work pinned there without a lease file keeps it) | partition `lend` (always for the job's own partition) and no owner job of that partition is waiting | an owner job needs it; anyone takes the core's lease file |
+| `free` | no queue job, no lease holder, and the CPU itself idle (work pinned there without a lease file keeps it) | partition `lend` (always for the job's own partition) and no owner job of that partition is waiting for it; with `backfill_waiting_owners` (0.6.3, on in zenobia's configuration) also while one waits, if the borrow job's time limit ends before that owner job's earliest start | an owner job needs it; anyone takes the core's lease file |
 | `owner-idle` | allocated to a running owner job of the partition that leaves it unused | partition `lend`, job not `--exclusive-timing` | the owner job's process tree uses more than the cores it kept |
 | `leased-idle` | lease file held outside the queue (any-core.sh, both-cores.sh, pf-launch), holder idle | partition `lend` and `lend_leased_idle` | the holder's process tree becomes busy, or another process takes the lease |
 
@@ -388,23 +942,38 @@ CPUs (`allow_smt_siblings`).
 Node-wide settings live in the `borrow` section (`enabled`, `slice`,
 `slice_cpu_weight`, `unit_cpu_weight`, `idle_window_s`, `busy_window_s`,
 `idle_threshold`, `cpu_idle_threshold`, `busy_threshold`, `freeze_max_s`,
-`default_on_preempt`) and `lock_files.borrow_path`.
+`default_on_preempt`, 0.6.3: `backfill_waiting_owners`) and
+`lock_files.borrow_path`.
+
+`backfill_waiting_owners` (0.6.3, default `false`, `true` on zenobia): EASY
+backfill for borrow jobs. Without it (the 0.6.1 rule) a free core is never
+lent while an owner job that needs it waits; in a single pool every waiting
+owner job needs every core, so one waiting 8-core pilot would keep every
+borrow job (PR tests) off all free cores for as long as it waits. With it, a
+borrow job may take such a core when its time limit ends no later than the
+owner job's earliest start (computed from the time limits of the running
+jobs, as the reservation is; a job held for the reservation counts from the
+reserved start). The owner still never waits: if it can start earlier than
+expected (a job ended early), the borrow job is preempted as always. A borrow
+job without a time limit, or with one past the owner's start, still waits;
+an owner job blocked by a job without a time limit or a lease held outside the
+queue has no start to protect, and its cores are lent.
 
 **zenobia choices** (`config/zenobia-node.json`):
 
-- `spheral`, `raikou-mfem`, `powerflow`: `lend: true`. A partition's free cores,
-  and the unused cores of a job that only uses part of its allocation (tests,
-  builds), go to borrow jobs; a full simulation uses its cores and lends
-  nothing.
+- The pool `zenobia`: `lend: true`. Free cores, and the unused cores of a job
+  that only uses part of its allocation (tests, builds), go to borrow jobs; a
+  full simulation uses its cores and lends nothing.
+- `backfill_waiting_owners: true` (see above): PR tests with short time limits
+  keep running while a pilot waits for every core.
 - `lend_leased_idle: false` everywhere. Work started with any-core.sh,
   both-cores.sh or pf-launch has no time limit and no way to mark a timing
   run, and an idle phase of such a tool (between two test runs) is not a
   promise that the core stays idle. Those cores are never lent.
-- `powerflow` is not `timing_sensitive` as a whole: Power-Flow timing and
-  benchmark runs submit with `--exclusive-timing`, which keeps their cores
-  (and siblings) unlent while they run, while the partition's other core stays
-  usable. Set `timing_sensitive: true` to keep borrowers off the whole
-  partition instead.
+- The pool is not `timing_sensitive`: timing and benchmark runs submit with
+  `--exclusive-timing`, which keeps their cores (and siblings) unlent while
+  they run, while the other cores stay usable. `timing_sensitive: true` on the
+  pool would keep borrowers off every core.
 - No GPU is lent.
 
 ### CPU priority
@@ -446,7 +1015,7 @@ adds `class`, `holders`, `usage_cores`, `borrowers` and `no_borrow`.
 
 ## Running the worker as the node scheduler
 
-`~/.config/systemd/user/simqueue.service` (installed by `switchover.py`):
+`~/.config/systemd/user/simqueue.service` (as `upgrade.py` installs it for 0.7.0):
 
 ```ini
 [Service]
@@ -454,15 +1023,22 @@ ExecStart=/home/treefor/.local/bin/simq worker --wait-for-lock
 Environment=SIMQUEUE_PROJECT_ROOT=/home/treefor/projects
 Environment=SIMQUEUE_STATE_DIR=/home/treefor/.local/state/simqueue
 Environment=SIMQUEUE_CONFIG=/home/treefor/.local/state/simqueue/node.json
-Nice=5
+Nice=10
+CPUWeight=20
+IOSchedulingClass=idle
+MemoryHigh=96M
+MemoryMax=128M
 Restart=on-failure
 KillMode=mixed
 UMask=0077
 ```
 
-There is no `CPUAffinity`: the worker only polls (about one `systemctl show`
-per second) and places each job unit explicitly. `~/.local/bin/simq` exports the
-same three variables and runs the 0.6 runtime with the pinned interpreter.
+There is no `CPUAffinity`: the worker places each job unit explicitly. Up to
+0.6.3 it polled (one `systemctl show` per second while jobs ran); 0.7.0 is
+event-driven (see below). Job units and GPU claim units are started by the
+user manager, not by the worker, so they inherit none of the worker's
+priority or memory limit. `~/.local/bin/simq` exports the same three
+variables and runs the runtime with the pinned interpreter.
 
 Each owner job is `simq-job-<id>-<token12>.service` in `simq.slice` (a borrow
 job: in `simqborrow.slice`, with the properties above) with
@@ -497,64 +1073,137 @@ systemctl --user start simqueue.service     # adopts running jobs, records jobs 
 simq; tail ~/.local/state/simqueue/worker.log   # look for "adopted job N"
 ```
 
-### Upgrading 0.6.1 to 0.6.2: `upgrade.py`
+### Upgrading 0.6.3 to 0.7.0: `upgrade.py`
 
 ```sh
-cd /home/treefor/projects/runtimes/simqueue-0.6.2-20261031
-./upgrade.py install                         # dry run: preflight and the exact actions
+cd /home/treefor/projects/runtimes/simqueue-0.7.0-20261105
+./upgrade.py install                 # dry run: preflight, migration rehearsed on a copy, nothing changed
+./upgrade.py install --execute       # stop worker, back up, switch files, migrate, start, verify
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.3-to-0.7.0-<UTC> --execute
+./upgrade.py status
+```
+
+Install (see the docstring of `upgrade.py` for every step): the preflight
+checks the seal, that `config/zenobia-node.json` equals the live
+`node.json` apart from the 0.7.0 keys (`memory`, `github`,
+`launch.idle_seconds`, `partitions[].min_mem`, notes; `default_mem` stays
+4G), that the layout and every recorded partition name resolve, that the
+wrapper runs 0.6.3 and the database is schema 8, and migrates a copy of the
+database with the 0.7.0 code to prove that every schema-8 column of every
+row stays as it is. Then it waits for no job to be starting, stops
+`simqueue.service` (job and claim units keep running), backs up the
+database (sqlite3 backup API), wrapper, link, unit files, `node.json` and
+`worker.log`, installs the 0.7.0 wrapper, link, unit (`Nice=10`,
+`CPUWeight=20`, `IOSchedulingClass=idle`, `MemoryHigh=96M`,
+`MemoryMax=128M`) and `node.json`, migrates the database to schema 9 and
+checks the rows again, starts the worker and verifies that it adopted every
+running job unit and GPU claim unit, published the GPU line state and
+created the wake FIFO, and that `simq doctor` and `simq partitions` run. A
+failed verification rolls back by itself.
+
+Rollback restores the files byte for byte, keeps a copy of the schema-9
+database in the backup directory, sets the schema back to 8 **in place**
+(rows, including jobs that 0.7.0 queued or ran, stay; the new columns stay
+and 0.6.3 ignores them), starts 0.6.3 and verifies that it adopted every
+running job unit and GPU claim unit. Jobs whose GitHub posts are still due
+are listed: 0.6.3 does not post; installing 0.7.0 again posts them.
+
+During the switch: a `simq` started before the wrapper changed that opens
+the database after the migration (a few seconds) fails with "schema 9 is
+newer"; retry it. Supervisors of running ensemble jobs (0.6.3 code) opened
+the database before and keep working. Job units started by 0.6.3 keep
+running its `jobwrap.py`: keep the 0.6.3 runtime until they have ended
+(their memory is sampled by the 0.7.0 worker; their peak is the highest
+sample, source `sampled`). The first 0.7.0 worker clears any stale memory
+pressure record.
+
+### Upgrading 0.6.2 to 0.6.3: `upgrade.py`
+
+```sh
+cd /home/treefor/projects/runtimes/simqueue-0.6.3-20261105
+./upgrade.py install                         # dry run: preflight, the layout change and the exact actions
 ./upgrade.py install --execute               # upgrade; running job units keep running
 ./upgrade.py status
+# after the CPU change to the 9950X3D2 (once 0.6.3 runs, or instead of the 8-core file):
+./upgrade.py install --config config/zenobia-16core-node.json            # dry run
 ```
 
 `install --execute`:
 
-1. Preflight: 0.6.2 runtime sealed; its `config/zenobia-node.json` valid and
-   identical to the live `node.json` apart from the 0.6.2 key `gpu_line` (and
-   notes); the wrapper runs 0.6.1; database schema 8; lists the active jobs.
+1. Preflight: 0.6.3 runtime sealed; the new node configuration
+   (`config/zenobia-node.json`, or `--config FILE`) valid for 0.6.3 on this
+   machine's CPU and identical to the live `node.json` apart from the
+   partition layout (`partitions`, `default_partition`, `smt_siblings`), the
+   0.6.3 key `borrow.backfill_waiting_owners` and the notes. The layout change
+   must keep every core and GPU of the live configuration, and every
+   partition name of the live configuration, and of every queued or active
+   job in the database, must resolve in the new one (as a partition or an
+   alias); the dry run prints both layouts, how each old name resolves, the
+   queued and active jobs by recorded partition and the GPU claim units. The
+   wrapper must run 0.6.2; database schema 8.
 2. Waits until no job is in state `starting` (`--starting-timeout`, 60 s),
-   stops `simqueue.service` (job units keep running) and checks again; a job
-   that became `starting` meanwhile makes it start the 0.6.1 worker again and
-   stop without changing anything.
+   stops `simqueue.service` (job and GPU claim units keep running) and checks
+   again; a job that became `starting` meanwhile makes it start the 0.6.2
+   worker again and stop without changing anything.
 3. Backs up the database (sqlite3 backup API, source opened read-only), the
    wrapper, the `simqueue` link, the unit files (`simqueue.service`, the two
    spheral dispatch units, `simqborrow.slice`), `node.json` and `worker.log` to
-   `~/.local/state/simqueue-backups/0.6.1-to-0.6.2-<UTC>/` with a manifest of
-   sha256 sums.
-4. Installs the 0.6.2 wrapper, link, `simqueue.service` and `node.json`. From
-   here on every `simq` call runs 0.6.2. `simqborrow.slice` stays as it is.
-5. Opens the database with the 0.6.2 code and checks that the schema (8),
-   the columns and every column of every row are unchanged (0.6.2 migrates
-   nothing).
+   `~/.local/state/simqueue-backups/0.6.2-to-0.6.3-<UTC>/` with a manifest of
+   sha256 sums (and the layout comparison and the active claim units).
+4. Installs the 0.6.3 wrapper, link, `simqueue.service` and the new
+   `node.json`. From here on every `simq` call runs 0.6.3. `simqborrow.slice`
+   stays as it is.
+5. Opens the database with the 0.6.3 code and checks that the schema (8),
+   the columns and every column of every row are unchanged: 0.6.3 migrates
+   nothing and does not rewrite the old partition names (the aliases resolve
+   them).
 6. daemon-reload, enable, start.
-7. Verifies that the 0.6.2 worker started, adopted every job unit that was
-   active before (or recorded its end) and published
-   `<pic-profile>/simq-gpu-line.json` within `--adoption-timeout` (60 s), and
-   that `simq partitions` runs; records `simq doctor` and `simq partitions` in
-   the receipt (`--require-doctor` also fails the install on a doctor
-   problem). If the verification fails, it rolls back by itself. Receipt:
-   `<backup>/install-receipt.json`.
+7. Verifies that the 0.6.3 worker started (its start line lists the pool and
+   its aliases), adopted every job unit that was active before (or recorded
+   its end), adopted every GPU claim unit that was active (or saw it end) and
+   published `<pic-profile>/simq-gpu-line.json` within `--adoption-timeout`
+   (60 s), and that `simq partitions` runs; records `simq doctor` and
+   `simq partitions` in the receipt (`--require-doctor` also fails the
+   install on a doctor problem). If the verification fails, it rolls back by
+   itself. Receipt: `<backup>/install-receipt.json`.
 
-Rollback (0.6.1 again; jobs keep running and are adopted by 0.6.1):
+Rollback (0.6.2 again; jobs keep running and are adopted by 0.6.2):
 
 ```sh
-./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.1-to-0.6.2-<UTC>             # dry run
-./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.1-to-0.6.2-<UTC> --execute
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.2-to-0.6.3-<UTC>             # dry run
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.6.2-to-0.6.3-<UTC> --execute
 ```
 
-It checks the backup against its manifest, stops the worker (the 0.6.2
+It checks the backup against its manifest, stops the worker (the 0.6.3
 worker withdraws the published GPU line state), stops the GPU claim units
-recorded in `~/.local/state/simqueue/claims/` that have not finished (0.6.1
-would never hand their locks over; job units are never stopped), keeps the
-database as `<backup>/queue-0.6.2-at-rollback.sqlite3`, restores the wrapper,
-link, unit files and `node.json` byte for byte, checks that the 0.6.1 code
-opens the database (schema 8, nothing to undo), starts the 0.6.1 worker and
-verifies that it adopted every active job. Queued GPU jobs stay queued and
-are started by 0.6.1 as before (without the line). `gpu-lease` keeps working
-after a rollback (it reads the live `node.json`; the line defaults apply).
-Job units started by 0.6.2 run the 0.6.2 `jobwrap.py`, so the 0.6.2 runtime
-directory must stay until they end (as the 0.6.1 one must stay after the
-upgrade). The 0.6.0 to 0.6.1 procedure is documented in the 0.6.1 runtime's
-`OPERATIONS.md` and `upgrade.py`.
+recorded in `~/.local/state/simqueue/claims/` that have not finished (the
+0.6.2 worker plans with the restored partitions and sets up its own; job
+units are never stopped), keeps the database as
+`<backup>/queue-0.6.3-at-rollback.sqlite3`, restores the wrapper, link, unit
+files and `node.json` byte for byte, checks that the 0.6.2 code opens the
+database (schema 8, nothing to undo), starts the 0.6.2 worker and verifies
+that it adopted every active job. A running job keeps its cores whatever
+name it has. Queued jobs recorded under an old name run under 0.6.2 in that
+partition. Queued jobs recorded under the pool's name (`zenobia`: submitted
+without `-p` or with `-p zenobia` under 0.6.3) are unknown to the 0.6.2
+configuration and stay queued ("unknown partition zenobia"); the rollback
+lists them (`NOTE: job(s) [...]`, `stranded_jobs` in the receipt): cancel and
+resubmit them with an old name, or install 0.6.3 again. Job units started by
+0.6.3 run the 0.6.3 `jobwrap.py`, so the 0.6.3 runtime directory must stay
+until they end (as the 0.6.2 one must stay after the upgrade). The 0.6.1 to
+0.6.2 procedure is documented in the 0.6.2 runtime's `OPERATIONS.md` and
+`upgrade.py`.
+
+Moving to the 16-core configuration after the CPU change: with 0.6.3
+installed, `node.json` is the only file to change. Stop the worker
+(`systemctl --user stop simqueue.service`; job units keep running), copy
+`config/zenobia-16core-node.json` to `~/.local/state/simqueue/node.json`
+(mode 600), start the worker and check `simq partitions` (16 cores) and
+`simq doctor`. If 0.6.2 is still installed at that point, pass
+`--config config/zenobia-16core-node.json` to `upgrade.py install` instead.
+The 0.6.2 configuration's partitions name cores 0-7 only, which remain valid
+physical cores on the new CPU; the 8-core pool file keeps working there too
+(cores 8-15 unused).
 
 - Keep the old runtime directory until its last job has finished: running units
   execute that runtime's `jobwrap.py`.
@@ -655,8 +1304,9 @@ Risks and how they are handled:
 
 ### Spheral resubmission
 
-The 0.5 form works unchanged under 0.6 (default partition `spheral`, `-c 4` =
-cores 0-3, memory 18G, time limit 2 days):
+The 0.5 form works unchanged under 0.6.3 (default partition: the pool, with
+the old spheral defaults: memory 18G, time limit 2 days; `-c 4` = the four
+lowest free cores, 0-3 on an idle node):
 
 ```sh
 simq submit -c 4 -C /home/treefor/projects/runs/rz-spheral-setup-20261029 -- \
@@ -675,7 +1325,8 @@ simq submit -p spheral -c 4 --mem 18G -t 1-01:00:00 -n zapdos-raikou-spheral \
 ```
 
 The interpreter path does not change (0.6 uses the same `python-frozen`).
-`bounded-job.py` sees `SIMQ_CPU_LIST=0-3`, `SIMQ_CPU_COUNT=4`, `SIMQ_JOB_ID`
+With `-p spheral` (an alias since 0.6.3) cores 0-3 are tried first.
+`bounded-job.py` sees `SIMQ_CPU_LIST=0-3` (or the cores it got), `SIMQ_CPU_COUNT=4`, `SIMQ_JOB_ID`
 and `SIMQ_LAUNCH_TOKEN` with their 0.5 meaning; the 0.6 suite runs the
 unmodified `bounded-job.py` and its `scope-entry.py` gate inside 0.6 job
 units. `bounded-job.py` creates its own 18G/1G scope; `--mem 18G` charges the
@@ -686,7 +1337,8 @@ same amount to the node's schedulable memory. `simq cancel` stops the job unit;
 
 | SimQueue 0.6 | Slurm |
 |---|---|
-| `simq submit -p P -c N -- cmd` | `sbatch -p P -c N --wrap 'cmd'` or `srun -p P -c N cmd` (one task with N CPUs) |
+| `simq submit -p P -c N -- cmd` | `sbatch -p P -c N --wrap 'cmd'` (one task with N CPUs) |
+| `simq run -p P -c N -- cmd` (0.6.3) | `srun -p P -c N cmd` (foreground; exit code of the job; Ctrl-C cancels) |
 | `--cpus LIST` | no direct equivalent; `srun --cpu-bind=map_cpu:LIST` inside an allocation |
 | `--gpus N` | `--gpus N` (`--gres=gpu:N`) |
 | `--gpu-mem SIZE` (shared GPU) | no admission budget in Slurm; use MPS/shard gres (`--gres=shard:N`) or exclusive GPUs |
@@ -694,7 +1346,7 @@ same amount to the node's schedulable memory. `simq cancel` stops the job unit;
 | `-t TIME` | `-t TIME` (same formats) |
 | `--priority N` | `--nice` (inverse) or `scontrol update jobid=ID priority=N` |
 | `-n/-J NAME`, `-C DIR`, `-e K=V` | `-J NAME`, `--chdir DIR`, `--export=ALL,K=V` |
-| `--idempotency-key` | none; keep the controller ledger |
+| `--idempotency-key` | none; keep the controller ledger (for `simq run`: reattach on retry) |
 | `simq`, `simq partitions`, `simq show`, `simq cancel`, `simq log` | `squeue`, `sinfo`, `scontrol show job`, `scancel`, the `--output` file |
 | `simq submit --test-only` | `sbatch --test-only` |
 | `simq ensemble submit` | job array (`--array`) or one allocation running `srun` steps |
@@ -717,21 +1369,80 @@ A script that runs under both can use
 `JOB=${SLURM_JOB_ID:-$SIMQ_JOB_ID}`, `NCPUS=${SLURM_CPUS_PER_TASK:-$SIMQ_NCPUS}`.
 pf-launch 1.1 already handles both allocations (Slurm first).
 
-Partition configuration as `slurm.conf` (zenobia as one node; with
+The pool as `slurm.conf` (zenobia as one node; with
 `SelectTypeParameters=CR_Core_Memory` and `--hint=nomultithread` each task gets
-one thread per core and the SMT siblings stay idle, as in SimQueue):
+one thread per core and the SMT siblings stay idle, as in SimQueue). Slurm
+partitions over the same node share its cores, which is what the 0.6.3
+aliases are: the old names keep their defaults over one pool (Slurm has no
+per-partition core preference; `prefer_cpus` has no equivalent):
 
 ```text
 NodeName=zenobia Sockets=1 CoresPerSocket=8 ThreadsPerCore=2 RealMemory=30000 Gres=gpu:1
-PartitionName=spheral     Nodes=zenobia Default=YES MaxTime=14-00:00:00 DefaultTime=2-00:00:00
-PartitionName=raikou-mfem Nodes=zenobia MaxTime=7-00:00:00 DefaultTime=12:00:00
-PartitionName=powerflow   Nodes=zenobia MaxTime=7-00:00:00 DefaultTime=12:00:00
+PartitionName=zenobia     Nodes=zenobia Default=YES MaxTime=14-00:00:00 DefaultTime=2-00:00:00
+PartitionName=spheral     Nodes=zenobia MaxTime=14-00:00:00 DefaultTime=2-00:00:00
+PartitionName=raikou-mfem Nodes=zenobia MaxTime=14-00:00:00 DefaultTime=12:00:00
+PartitionName=powerflow   Nodes=zenobia MaxTime=14-00:00:00 DefaultTime=12:00:00
 ```
 
-Slurm partitions on one node share its cores; reproducing the fixed core sets
-needs one node definition per core group (several `slurmd -N` instances or
-`NodeName` with `CPUSpecList`), or accepting shared cores with per-partition
-`MaxCPUsPerNode`.
+After the CPU change: `CoresPerSocket=16`. Default memory per name maps to
+`DefMemPerNode` per partition; borrow jobs map to a preemptible partition
+(`PreemptType=preempt/partition_prio`, `PreemptMode=REQUEUE`).
+
+## Validation of 0.7.1 (2026-11-05)
+
+- Full suite inside live queue job 1123 (`simq run -c 2 --mem 1G -t 0:40:00 --priority 20 -- run-tests.py --in-job`, the test units on the job's cores [0, 1]): 379 tests, 0 failure(s), 0 error(s), 12 skipped, 594 s.
+- Real-OOM tests not run (2 skipped: `SIMQ_TEST_REAL_OOM` unset, and refused on zenobia); the OOM path ran against mocked unit states (`test_oom_safety.py`), and the unit-property test checked live-started test units (OOMPolicy=stop, no Exec*Post/Stop, `memory.oom.group` 0).
+- Every suite without units, with the live-database copy: 363 tests, 0 failures (61 skipped: the unit-level tests).
+- Historical migration suites: 7 tests, 0 failures.
+- Borrower CPU share under contention (three windows): [0.1179767492535054, 0.11677841506968292, 0.117988022014696].
+- `test_shield_helper.py` cannot be imported, as before.
+- Receipts: `/home/treefor/projects/.workspace/outputs/simqueue-0.7.1-20261105/receipts/`.
+
+## Validation of 0.6.3 (2026-11-04)
+
+Built from 0.6.2 on the Power-Flow branch `simqueue-0.6.3`; not installed
+(`installed: false` in `release.json`). Receipts and logs in
+`/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/`.
+
+- Full suite through `run-tests.py` on cores 6-7 (`--wait-any --min-cores 2
+  --shared`; it waited while a Spheral run held all eight core leases):
+  299 run, 0 failures, 1 error, 6 skipped (`receipts/full-suite-1.json`).
+  The error was a test bug in `test_upgrade.py` (a helper shadowed by a
+  fixture attribute) after the install, the adoption of the running 0.6.2
+  job and the pool run of the job queued under the old name had passed.
+  After the fix `test_upgrade.py` ran 10/10 (`receipts/suite-upgrade-3.json`;
+  the rerun before it, `suite-upgrade-2.json`, showed that 0.6.2 sets up its
+  own GPU claim right after a rollback, which the test now expects).
+- Pure: `test_exclusive_mode.py` (9, needs four CPUs in the affinity mask)
+  and `test_pool_aliases.LiveCopyTests` on a read-only copy of the live
+  database (`live-queue-copy-20261104.sqlite3`, 715 jobs recorded as NULL,
+  spheral, raikou-mfem or powerflow: every one resolves to the pool, plans
+  without "unknown partition", and opening it with 0.6.3 changes no row):
+  10/10 (`receipts/pure-exclusive-and-live-copy.json`).
+- Per file: 308 tests, 303 ok, 5 skipped (the two historical live-copy
+  migration tests, which expect a schema 6/7 live database; three
+  `test_node_worker` tests that need two-core partitions or pf-launch 1.0),
+  0 failed; `test_shield_helper.py` (16) cannot be imported, as before.
+- New: `test_pool_aliases.py` (24: alias parsing and validation, the zenobia
+  pool and its 16-core variant, lease paths, planning in the pool with
+  preferred cores, an 8-core owner job reserving the pool, borrow jobs next to
+  an 8-core owner job (owner-idle lending, preemption, backfill against a
+  waiting owner with and without `backfill_waiting_owners`), `--borrow-from`
+  through aliases, jobs recorded under old names, CLI submissions under
+  aliases, `simq run` exit statuses) and `test_run_units.py` (6 with real
+  units: jobs recorded under the old partition names before the switch are
+  adopted and scheduled in the pool; a borrow job under an alias and an owner
+  job of every pool core that preempts it at once; `simq run` streaming and
+  exit codes, reattach by idempotency key, SIGINT/SIGTERM while running and
+  SIGTERM while queued). `test_upgrade.py` rewritten for 0.6.2 to 0.6.3.
+- `./upgrade.py install` (dry run) against the live state: no PROBLEM line;
+  layout `spheral=0-3, raikou-mfem=4-5+1gpu, powerflow=6-7+1gpu` to
+  `zenobia=0-7+1gpu (aliases spheral, raikou-mfem, powerflow)`. With
+  `--config config/zenobia-16core-node.json` it is refused on the 8-core CPU
+  ("CPU 8 is an SMT sibling of CPU 0"), as intended.
+- Not validated: the 16-core file on the real 9950X3D2 (parsed in the tests
+  without the topology check; `test_pool_aliases` loads it with the check
+  when the machine has 32 logical CPUs), and a live install.
 
 ## Validation of 0.6.2 (2026-10-31)
 
@@ -821,6 +1532,61 @@ a relocated copy of the code, a spheral job that finished while the worker was
 down, the GPU canary).
 
 ## Known limitations
+
+0.7.0 worker, memory, GitHub:
+
+- The admission guard sees MemAvailable, which counts reclaimable page cache
+  as available; a job whose request fits may still push other processes'
+  cache out. It does not count the unused part of running jobs' requests
+  (that would block almost every start on zenobia, where reservations far
+  exceed use); the reservations (`memory_schedulable`) bound that.
+- Memory pressure stops dispatch and preempts borrow jobs only. If an owner
+  job (or something outside the queue) keeps growing, the pressure lasts
+  until the kernel's OOM handling or the job's own `MemoryMax` ends it; the
+  record names the job that grew.
+- `--mem auto` learns only from jobs that ended under 0.7.0 (earlier jobs
+  have no measured peak) and only by name / name family; two different jobs
+  with the same name share a history. A request is fixed when the job is
+  queued.
+- A job adopted from 0.6.3 has no unit record of its peak: the highest
+  sampled `memory.peak` is kept (source `sampled`); it ends at most 3 s
+  before the worker notices (no stop-post wake-up from the old wrapper).
+- `IOSchedulingClass=idle` on the worker has no effect while the state
+  directory is on NVMe with the `none` I/O scheduler (as on zenobia); it
+  takes effect on a disk with BFQ or mq-deadline.
+- GitHub: only the latest phase is posted (a job that starts before the
+  first post shows running directly). Comments are edited in place but the
+  first creation can notify watchers of the pull request depending on their
+  settings; statuses never notify. A job submitted with GitHub options
+  under 0.7.0 is not reported by 0.6.3 after a rollback. The real API was
+  exercised once (statuses on a throwaway branch); the comment path was
+  tested against the local fake API only.
+
+0.6.3 pool and `simq run`:
+
+- An alias is a name, not a reservation: under load a `-p powerflow` job can
+  land on cores 0-3. Sealed Power-Flow tools that check
+  `<pic-profile>/RETURN-CORES-0-3` refuse to run on cores 0-3 while that file
+  exists (it does on 2026-11-04); remove the file once the pool is live, or
+  expect such jobs to fail when they spill there. Tools that check
+  `SIMQ_PARTITION == "powerflow"` keep working (the job keeps the name).
+- Placement is lowest-free-core first (or the alias's preferred cores); it
+  knows nothing about the 9950X3D2's two CCDs, so a job can be split across
+  them when the pool is fragmented. Use `--cpus 0-7` / `--cpus 8-15` for a
+  job that must stay on one CCD.
+- A paused ensemble now holds every later owner job of the pool (it held
+  only its partition's); demote or resume it.
+- `--borrow-from NAME` no longer narrows anything on zenobia: every name is
+  the pool.
+- `simq run` polls the database and the log (0.2 s); output appears in
+  chunks as the job writes its log. It does not forward stdin or
+  propagate signals other than SIGINT/SIGTERM/SIGHUP (which cancel the job).
+  If the client is killed with SIGKILL, the job keeps running; rerun with the
+  same `--idempotency-key` to reattach.
+- An idempotency key reattaches only for an identical request, captured
+  environment included (as for `submit`); see "`simq run`".
+- Rolling back to 0.6.2 leaves jobs queued under the pool's name waiting (see
+  the upgrade section).
 
 0.6.2 GPU line:
 

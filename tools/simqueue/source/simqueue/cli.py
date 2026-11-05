@@ -5,6 +5,7 @@ import json
 import os
 import pwd
 import shlex
+import signal
 import subprocess
 import sys
 import time
@@ -33,12 +34,26 @@ from .nodeconfig import (
     ConfigError,
     NodeConfig,
     config_path,
+    describe_alias,
     format_size,
     format_time_limit,
     load_node_config,
     parse_size,
     parse_time_limit,
 )
+from .memory import (
+    Series,
+    auto_request,
+    describe_basis,
+    format_gib,
+    over_request_warning,
+    read_node_memory,
+    read_usage,
+    sparkline,
+    unit_cgroup_path,
+    water_marks,
+)
+from .github import job_phase, targets_from_args
 from .store import ACTIVE_STATES, TERMINAL_STATES, QueueStore
 from .units import stop_unit
 from .worker import run_worker
@@ -102,11 +117,43 @@ def _abbreviate(value: str, width: int) -> str:
     return value[: width - 1] + "…"
 
 
+def _job_cgroup(job: dict[str, Any], config: NodeConfig | None) -> Path | None:
+    if config is None or not job.get("unit_name") or job.get("launch_backend") != "systemd-user":
+        return None
+    slice_name = config.borrow.slice if job.get("borrow") else config.launch.slice
+    return unit_cgroup_path(str(job["unit_name"]), slice_name)
+
+
+def _live_usage(job: dict[str, Any], config: NodeConfig | None) -> Any:
+    """The running job unit's cgroup reading now (0.7.0), else ``None``."""
+    if job.get("state") not in ACTIVE_STATES:
+        return None
+    cgroup = _job_cgroup(job, config)
+    return None if cgroup is None else read_usage(cgroup)
+
+
+def _mem_column(job: dict[str, Any], config: NodeConfig | None) -> str:
+    """MEM of ``simq list``: now/request while running, peak/request after."""
+    request = job.get("mem_bytes")
+    request_text = format_size(int(request)) if request is not None else "-"
+    if job["state"] in ACTIVE_STATES:
+        usage = _live_usage(job, config)
+        current = usage.current if usage is not None else job.get("mem_current_bytes")
+        return f"{format_gib(current)}/{request_text}" if current is not None else request_text
+    if job["state"] in TERMINAL_STATES and job.get("mem_peak_bytes") is not None:
+        return f"{format_gib(int(job['mem_peak_bytes']))}/{request_text}"
+    return request_text
+
+
 def _print_node_job_rows(jobs: Sequence[dict[str, Any]]) -> None:
     root = project_root()
     borrow_shown = False
+    try:
+        config = load_node_config()
+    except ConfigError:
+        config = None
     print(
-        f"{'ID':>5}  {'STATE':<11} {'PARTITION':<11} {'CPU':<7} {'GPU':<4} "
+        f"{'ID':>5}  {'STATE':<11} {'PARTITION':<11} {'CPU':<7} {'GPU':<4} {'MEM':<11} "
         f"{'TIME':>8}  {'NAME':<24} DIRECTORY / REASON"
     )
     for job in jobs:
@@ -133,7 +180,7 @@ def _print_node_job_rows(jobs: Sequence[dict[str, Any]]) -> None:
                 state = "frozen"
         print(
             f"{job['id']:>5}  {state:<11} {_abbreviate(partition, 11):<11} "
-            f"{_abbreviate(cpu, 7):<7} {gpu:<4} {_job_age(job):>8}  "
+            f"{_abbreviate(cpu, 7):<7} {gpu:<4} {_abbreviate(_mem_column(job, config), 11):<11} {_job_age(job):>8}  "
             f"{_abbreviate(str(job['name']), 24):<24} {_abbreviate(detail, 60)}"
         )
     if borrow_shown:
@@ -190,18 +237,25 @@ def _print_queued_jobs(store: QueueStore) -> None:
     _print_job_rows(store.queued_jobs(), empty_message="No queued jobs.")
 
 
-def _parse_environment(items: Sequence[str]) -> tuple[dict[str, str], list[str]]:
-    environment = dict(os.environ)
-    override_keys: list[str] = []
+def _parse_environment(items: Sequence[str], export: str | None = None) -> tuple[dict[str, str], list[str]]:
+    """The job's environment (0.7.0: an allowlist, see envpolicy.py); the
+    secrets given with -e are kept aside (``_parse_environment.secrets``)."""
+    environment, _secrets, override_keys, _withheld = _capture_environment(items, export)
+    return environment, override_keys
+
+
+def _capture_environment(items: Sequence[str], export: str | None = None):
+    from .envpolicy import capture, parse_export
+
+    overrides: list[tuple[str, str]] = []
     for item in items:
         if "=" not in item:
             raise ValueError(f"environment override must be KEY=VALUE, got {item!r}")
         key, value = item.split("=", 1)
         if not key or "\x00" in key or "=" in key:
             raise ValueError(f"invalid environment variable name {key!r}")
-        environment[key] = value
-        override_keys.append(key)
-    return environment, override_keys
+        overrides.append((key, value))
+    return capture(os.environ, overrides, parse_export(export))
 
 
 def _resolve_cwd(value: str | None) -> Path:
@@ -276,7 +330,27 @@ def _start_exclusive_runner(store: QueueStore, config: dict[str, Any]) -> str:
     )
 
 
+WAKE_FIFO = "worker.wake"
+MUTATING_ACTIONS = {"cancel", "retry", "promote", "demote", "pause", "resume", "priority", "ensemble"}
+
+
+def _wake_worker() -> None:
+    """Wake the 0.7.0 event-driven worker at once (a byte into its FIFO).
+    Never blocks; without a listening worker nothing happens."""
+    try:
+        descriptor = os.open(state_dir() / WAKE_FIFO, os.O_WRONLY | os.O_NONBLOCK)
+    except OSError:
+        return
+    try:
+        os.write(descriptor, b"c")
+    except OSError:
+        pass
+    finally:
+        os.close(descriptor)
+
+
 def _nudge_worker(store: QueueStore) -> str:
+    _wake_worker()
     config = load_config()
     blocker = store.dispatch_blocker()
     if blocker is not None and not store.active_jobs():
@@ -324,20 +398,45 @@ NODE_OPTIONS = (
 NODE_FLAGS = ("borrow", "exclusive_timing")
 
 
+def _submission_name(args: argparse.Namespace) -> str | None:
+    """The job name a command submission will get (as ``_enqueue`` sets it)."""
+    if getattr(args, "name", None):
+        return str(args.name)
+    if getattr(args, "shell", None):
+        try:
+            words = shlex.split(args.shell)
+        except ValueError:
+            words = []
+        return Path(words[0]).name if words else "shell-job"
+    command = [part for part in (getattr(args, "command", None) or [])]
+    if command and command[0] == "--":
+        command = command[1:]
+    if command:
+        return Path(command[0]).name or command[0]
+    return None
+
+
 def _node_request(
-    args: argparse.Namespace, config: NodeConfig, *, cores: int | None = None
+    args: argparse.Namespace, config: NodeConfig, *, cores: int | None = None,
+    store: QueueStore | None = None, name: str | None = None,
 ) -> tuple[int, dict[str, Any], dict[str, Any]]:
     """Resolve a submission's resource request against the node config.
 
     Returns (requested cores, stored scheduling fields, explicitly given
     fields).  Only the explicit fields enter the idempotency fingerprint, so
     a 0.5-style replay keeps its 0.5 fingerprint.
+
+    0.6.3: ``-p`` may name an alias of a partition.  The job is recorded
+    under the name given (so ``SIMQ_PARTITION`` and fingerprints keep it)
+    and gets the alias's defaults; limits are the partition's.
     """
     partition = config.partition(args.partition)
+    recorded = args.partition or config.default_partition
+    where = partition.display_name()
     explicit: dict[str, Any] = {}
     cpu_request = None
     cpu_list_arg = getattr(args, "cpus", None)
-    borrow = _borrow_options(args, config, partition.name)
+    borrow = _borrow_options(args, config, recorded)
     if cpu_list_arg is not None:
         cpus = parse_cpu_list(cpu_list_arg)
         if not cpus:
@@ -346,7 +445,7 @@ def _node_request(
         if outside:
             raise ValueError(
                 f"--cpus {cpu_list_arg}: CPU(s) {format_cpu_list(outside)} are not in partition "
-                f"{partition.name} ({format_cpu_list(partition.cpus)}); name each physical core by "
+                f"{where} ({format_cpu_list(partition.cpus)}); name each physical core by "
                 "its partition CPU"
             )
         cpu_request = format_cpu_list(cpus)
@@ -370,7 +469,7 @@ def _node_request(
             raise ValueError(f"--max-borrow-cores must be between {requested} (--cores) and {reachable}")
     elif requested < 1 or requested > len(partition.cpus):
         raise ValueError(
-            f"--cores must be between 1 and {len(partition.cpus)} in partition {partition.name}"
+            f"--cores must be between 1 and {len(partition.cpus)} in partition {where}"
         )
     gpus = getattr(args, "gpus", None)
     gpu_mem = None
@@ -387,7 +486,7 @@ def _node_request(
         explicit["gpus_requested"] = gpus
     gpus = gpus or 0
     if gpus > len(partition.gpus):
-        raise ValueError(f"partition {partition.name} has {len(partition.gpus)} GPU(s)")
+        raise ValueError(f"partition {where} has {len(partition.gpus)} GPU(s)")
     if gpus == 0 and gpu_mem is not None:
         raise ValueError("--gpu-mem needs --gpus 1 or more")
     if gpu_mem is not None:
@@ -398,28 +497,54 @@ def _node_request(
                 f"({', '.join(format_size(b) for b in budgets)})"
             )
     mem = partition.default_mem
-    if getattr(args, "mem", None) is not None:
+    args.mem_basis = None
+    args.mem_warning = None
+    mem_arg = getattr(args, "mem", None)
+    history: list[dict[str, Any]] | None = None
+    if mem_arg is not None and str(mem_arg).strip().lower() == "auto":
+        # 0.7.0: from the recorded peaks of earlier jobs of this name (family)
+        history = store.memory_history() if store is not None else []
+        mem, args.mem_basis = auto_request(
+            history, name=name or "", cores=requested, config=config.memory,
+            min_mem=partition.min_mem, max_mem=partition.max_mem, default_mem=partition.default_mem,
+        )
+        explicit["mem_bytes"] = "auto"  # a replay keeps its fingerprint while the history grows
+    elif mem_arg is None and (config.memory.auto_default or partition.mem_auto):
+        # 0.7.1: no --mem: the history when there is one, else the default
+        history = store.memory_history() if store is not None else []
+        derived, basis = auto_request(
+            history, name=name or "", cores=requested, config=config.memory,
+            min_mem=partition.min_mem, max_mem=partition.max_mem, default_mem=partition.default_mem,
+        )
+        if basis.get("source") == "history":
+            mem = derived
+            args.mem_basis = dict(basis, implicit=True)
+    elif mem_arg is not None:
         mem = parse_size(args.mem, field_name="--mem")
         if mem <= 0 or mem > partition.max_mem:
             raise ValueError(
-                f"--mem must be between 1M and {format_size(partition.max_mem)} in partition {partition.name}"
+                f"--mem must be between 1M and {format_size(partition.max_mem)} in partition {where}"
             )
         explicit["mem_bytes"] = mem
+        if store is not None and name:
+            history = store.memory_history()
+            args.mem_warning = over_request_warning(mem, history, name=name, cores=requested,
+                                                    config=config.memory)
     time_limit = partition.default_time
     if getattr(args, "time", None) is not None:
         time_limit = parse_time_limit(args.time, field_name="--time")
         explicit["time_limit_s"] = time_limit
         if partition.max_time is not None and (time_limit is None or time_limit > partition.max_time):
             raise ValueError(
-                f"--time exceeds partition {partition.name}'s limit {format_time_limit(partition.max_time)}"
+                f"--time exceeds partition {where}'s limit {format_time_limit(partition.max_time)}"
             )
     priority = getattr(args, "priority", None)
     if priority is not None:
         explicit["priority"] = priority
     if args.partition is not None:
-        explicit["partition"] = partition.name
+        explicit["partition"] = recorded
     scheduling = {
-        "partition": partition.name,
+        "partition": recorded,
         "cpu_request": cpu_request,
         "gpus_requested": gpus,
         "gpu_mem_bytes": gpu_mem,
@@ -451,7 +576,10 @@ def _node_request(
 
 
 def _borrow_options(args: argparse.Namespace, config: NodeConfig, home: str) -> dict[str, Any] | None:
-    """Validate the 0.6.1 borrow options; ``None`` for an owner job."""
+    """Validate the 0.6.1 borrow options; ``None`` for an owner job.
+
+    *home* and the ``--borrow-from`` names may be aliases (0.6.3); they are
+    recorded as given and resolve to their partitions."""
     from .borrow import eligible_partitions, protected_cpus
     from .scheduler import Request
 
@@ -478,7 +606,7 @@ def _borrow_options(args: argparse.Namespace, config: NodeConfig, home: str) -> 
             raise ValueError("--borrow-from needs at least one partition")
         for name in names:
             part = config.partition(name)
-            if name != home and not part.lends():
+            if part.name != config.canonical_partition(home) and not part.lends():
                 why = "is timing-sensitive" if part.timing_sensitive else "does not lend (lend: false)"
                 raise ValueError(f"--borrow-from: partition {name} {why}")
     if maximum is not None and maximum < 1:
@@ -519,7 +647,7 @@ def _describe_request(job: dict[str, Any]) -> str:
         claim = job.get("gpu_mem_bytes")
         parts.append(f"{gpus} GPU" + (f" (shared, {format_size(int(claim))})" if claim else " (exclusive)"))
     if job.get("mem_bytes") is not None:
-        parts.append(f"mem {format_size(int(job['mem_bytes']))}")
+        parts.append(f"mem {format_size(int(job['mem_bytes']))}" + (" (auto)" if job.get("mem_auto_json") else ""))
     parts.append(f"time {format_time_limit(job.get('time_limit_s'))}")
     if int(job.get("priority") or 0):
         parts.append(f"priority {job['priority']}")
@@ -611,12 +739,17 @@ def _test_only(config: NodeConfig, store: QueueStore, requested: int, scheduling
     return 0
 
 
-def _submit(args: argparse.Namespace, store: QueueStore) -> int:
+def _enqueue(args: argparse.Namespace, store: QueueStore) -> int | tuple[dict[str, Any], dict[str, Any], str]:
+    """Validate and queue a command submission (``submit`` and ``run``).
+
+    Returns the job, the submission payload and the placement text, or the
+    exit status of ``--test-only`` (which queues nothing)."""
     node_config = load_node_config()
     scheduling: dict[str, Any] | None = None
     explicit: dict[str, Any] | None = None
     if node_config is not None:
-        requested, scheduling, explicit = _node_request(args, node_config, cores=args.cores)
+        requested, scheduling, explicit = _node_request(args, node_config, cores=args.cores, store=store,
+                                                        name=_submission_name(args))
         pcores: tuple[int, ...] = ()
         if getattr(args, "test_only", False):
             _resolve_cwd(args.cwd)
@@ -652,7 +785,20 @@ def _submit(args: argparse.Namespace, store: QueueStore) -> int:
     if not name.strip():
         raise ValueError("job name cannot be empty")
     cwd = _resolve_cwd(args.cwd)
-    environment, override_keys = _parse_environment(args.env)
+    environment, secret_env, override_keys, withheld = _capture_environment(args.env, getattr(args, "export", None))
+    if withheld:
+        print(f"simq: not passed to the job (secret-looking names; use -e NAME=VALUE): {', '.join(withheld)}",
+              file=sys.stderr)
+    # 0.7.0: GitHub reporting targets (posted by the worker on transitions)
+    github = targets_from_args(getattr(args, "github_status", None), getattr(args, "github_comment", None),
+                               getattr(args, "github_summary", None), cwd)
+    if github is not None:
+        if node_config is None:
+            raise ValueError("--github-status, --github-comment and --github-summary need a node configuration")
+        if not node_config.github.enabled:
+            raise ValueError(f"GitHub reporting is disabled in the node configuration ({node_config.path})")
+        explicit = dict(explicit or {}, github=github)
+    basis = getattr(args, "mem_basis", None)
     job = store.submit(
         name=name,
         cwd=cwd,
@@ -663,12 +809,17 @@ def _submit(args: argparse.Namespace, store: QueueStore) -> int:
         idempotency_key=args.idempotency_key,
         scheduling=scheduling,
         explicit_scheduling=explicit,
+        secret_env=secret_env,
+        extra_columns={
+            "github_json": None if github is None else json.dumps(github, sort_keys=True),
+            "mem_auto_json": None if basis is None else json.dumps(basis, sort_keys=True, default=str),
+        },
     )
     created = bool(job.get("submission_created", True))
     cpu_list = format_cpu_list(pcores[:requested])
     placement_text = f"on P-cores {cpu_list}"
     if node_config is not None:
-        placement_text = f"in partition {job.get('partition')}: {_describe_request(job)}"
+        placement_text = f"in partition {_partition_text(node_config, job.get('partition'))}: {_describe_request(job)}"
     payload = {
         "schema_version": "simqueue-submit-result-v1",
         "kind": "command",
@@ -705,6 +856,65 @@ def _submit(args: argparse.Namespace, store: QueueStore) -> int:
             )
         if job.get("exclusive_timing"):
             payload["exclusive_timing"] = True
+        if basis is not None:
+            payload["mem_auto"] = basis
+        ceiling = _admissible_memory(node_config, store)
+        mem_now = job.get("mem_bytes")
+        if ceiling is not None and mem_now is not None and int(mem_now) > ceiling[0]:
+            note = (f"mem {format_size(int(mem_now))} exceeds what {node_config.node} can admit now "
+                    f"(~{format_gib(ceiling[0])}: {ceiling[1]}); the job is parked until that much is free and "
+                    "does not hold up other jobs")
+            payload.setdefault("warnings", []).append(note)
+            print(f"simq: warning: {note}", file=sys.stderr)
+        if github is not None:
+            payload["github"] = github
+        warning = getattr(args, "mem_warning", None)
+        if warning:
+            payload["warnings"] = [warning]
+            print(f"simq: warning: {warning}", file=sys.stderr)
+    return job, payload, placement_text
+
+
+def _admissible_memory(config: NodeConfig, store: QueueStore) -> tuple[int, str] | None:
+    """0.7.1: the largest request the memory guard can admit on this node
+    now: MemAvailable with the queue's running jobs taken away, minus the
+    margin, and memory_schedulable minus the margin.  (The worker also
+    remembers the best value over the last hour.)"""
+    from .memory import admission_margin
+
+    if not config.memory.enabled:
+        return None
+    currents = []
+    for job in store.active_jobs():
+        usage = _live_usage(job, config)
+        if usage is not None:
+            currents.append(usage.current)
+    node = read_node_memory(config.memory.test_node_total, currents)
+    if node is None:
+        return None
+    margin = admission_margin(config.memory, node.total)
+    idle = node.available + sum(currents)
+    ceiling = idle - margin
+    text = f"MemAvailable with the queue idle ~{format_gib(idle)} - margin {format_gib(margin)}"
+    if config.memory_schedulable is not None and config.memory_schedulable - margin < ceiling:
+        ceiling = config.memory_schedulable - margin
+        text = f"memory_schedulable {format_gib(config.memory_schedulable)} - margin {format_gib(margin)}"
+    return ceiling, text
+
+
+def _partition_text(config: NodeConfig, name: str | None) -> str:
+    """``name``, or ``alias (pool partition)`` for an alias (0.6.3)."""
+    recorded = name or config.default_partition
+    canonical = config.canonical_partition(recorded)
+    return recorded if canonical == recorded else f"{recorded} (pool {canonical})"
+
+
+def _submit(args: argparse.Namespace, store: QueueStore) -> int:
+    submitted = _enqueue(args, store)
+    if isinstance(submitted, int):
+        return submitted
+    job, payload, placement_text = submitted
+    created = bool(payload["created"])
     try:
         mode = _nudge_worker(store) if job["state"] not in TERMINAL_STATES else "terminal"
     except WorkerStartError as error:
@@ -750,6 +960,177 @@ def _submit(args: argparse.Namespace, store: QueueStore) -> int:
     return 0
 
 
+# ----- simq run (0.6.3) ---------------------------------------------------
+
+RUN_POLL_SECONDS = 0.2
+RUN_FINISH_GRACE_SECONDS = 2.0  # wait this long for the worker's last log lines
+RUN_CANCEL_WAIT_SECONDS = 20.0  # after a signal: wait this long for the job to end
+RUN_SIGNALS = (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)
+
+
+def _say(text: str) -> None:
+    print(f"simq: {text}", file=sys.stderr, flush=True)
+
+
+def _request_cancel(store: QueueStore, job_id: int) -> str:
+    """Cancel a job as ``simq cancel`` does; returns the state afterwards."""
+    state = store.cancel(job_id)
+    if state == "cancelling":
+        job = store.require(job_id)
+        node_config = load_node_config()
+        if node_config is not None and job.get("launch_backend") == "systemd-user" and job.get("unit_name"):
+            # the job unit is independent of the worker: stop it directly
+            stop_unit(node_config.launch, str(job["unit_name"]))
+        try:
+            _nudge_worker(store)
+        except WorkerStartError as error:
+            _say(f"cancellation is recorded, but the protected runner did not start: {error}")
+    return state
+
+
+def job_exit_status(job: dict[str, Any]) -> int:
+    """The exit status ``simq run`` returns for a finished job: the command's
+    own exit code when recorded (a signal N as 128+N, as a shell reports
+    it), else 0 for ``succeeded`` and 1 otherwise.  A job that did not
+    succeed never returns 0."""
+    code = job.get("exit_code")
+    succeeded = job.get("state") == "succeeded"
+    if code is None:
+        return 0 if succeeded else 1
+    code = int(code)
+    status = min(128 - code if code < 0 else code, 255)
+    if status == 0 and not succeeded:
+        return 1
+    return status
+
+
+class _LogFollower:
+    """Copies a job log to stdout as it grows (bytes, unchanged)."""
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+        self.offset = 0
+        self.tail = b""
+        self.stdout_open = True
+
+    def pump(self) -> None:
+        try:
+            with self.path.open("rb") as handle:
+                handle.seek(self.offset)
+                data = handle.read()
+        except OSError:
+            return
+        if not data:
+            return
+        self.offset += len(data)
+        self.tail = (self.tail + data)[-512:]
+        if not self.stdout_open:
+            return
+        try:
+            sys.stdout.buffer.write(data)
+            sys.stdout.buffer.flush()
+        except (BrokenPipeError, ValueError, OSError):
+            # nobody reads the output any more; keep waiting for the job
+            self.stdout_open = False
+
+
+def _follow_job(store: QueueStore, job_id: int, received: list[int]) -> int:
+    """Stream a job's log until it ends; cancel it once a signal is in
+    *received* (filled by the SIGINT/SIGTERM/SIGHUP handlers of ``_run``).
+
+    Returns the job's exit status (``job_exit_status``), or 128+signal when
+    a signal canceled it."""
+    follower = _LogFollower(Path(str(store.require(job_id)["log_path"])))
+    marker = f"===== simq job {job_id} finished =====".encode()
+    canceled_by: int | None = None
+    cancel_deadline = 0.0
+    terminal_since: float | None = None
+    last_state = None
+    while True:
+        follower.pump()
+        if received and canceled_by is None:
+            canceled_by = received[0]
+            name = signal.Signals(canceled_by).name
+            state = _request_cancel(store, job_id)
+            _say(f"{name}: canceling job {job_id} ({state})")
+            cancel_deadline = time.monotonic() + RUN_CANCEL_WAIT_SECONDS
+        elif canceled_by is not None and len(received) > 1:
+            _say(f"second signal: not waiting for job {job_id} to end (its cancellation is recorded)")
+            break
+        job = store.require(job_id)
+        state = str(job["state"])
+        if state != last_state and last_state is not None and state == "queued":
+            _say(f"job {job_id} was requeued (see `simq show {job_id}`)")
+        last_state = state
+        if state in TERMINAL_STATES:
+            if terminal_since is None:
+                terminal_since = time.monotonic()
+            if marker in follower.tail or time.monotonic() - terminal_since >= RUN_FINISH_GRACE_SECONDS:
+                follower.pump()
+                break
+        elif canceled_by is not None and time.monotonic() > cancel_deadline:
+            _say(f"job {job_id} is still {state}; its cancellation is recorded")
+            break
+        time.sleep(RUN_POLL_SECONDS)
+    job = store.require(job_id)
+    if canceled_by is not None:
+        return 128 + int(canceled_by)
+    status = job_exit_status(job)
+    detail = f"exit {job['exit_code']}" if job.get("exit_code") is not None else "no exit code"
+    _say(f"job {job_id} {job['state']} ({detail}); exit status {status}")
+    return status
+
+
+def _run(args: argparse.Namespace, store: QueueStore) -> int:
+    """``simq run``: submit, stream the job's output, wait, return its status
+    (Slurm ``srun``-shaped; the command runs in its own job unit as for
+    ``submit``, stdin is not forwarded).  The signal handlers are in place
+    before the job is queued, so a signal during the submission cancels the
+    job right after it."""
+    received: list[int] = []
+
+    def on_signal(signum: int, _frame: Any) -> None:
+        received.append(signum)
+
+    previous = {sig: signal.signal(sig, on_signal) for sig in RUN_SIGNALS}
+    try:
+        return _run_with_handlers(args, store, received)
+    finally:
+        for sig, handler in previous.items():
+            signal.signal(sig, handler)
+
+
+def _run_with_handlers(args: argparse.Namespace, store: QueueStore, received: list[int]) -> int:
+    submitted = _enqueue(args, store)
+    if isinstance(submitted, int):
+        return submitted  # --test-only
+    job, payload, placement_text = submitted
+    job_id = int(job["id"])
+    created = bool(payload["created"])
+    try:
+        mode = _nudge_worker(store) if job["state"] not in TERMINAL_STATES else "terminal"
+    except WorkerStartError as error:
+        payload["worker_mode"] = "error"
+        payload["worker_error"] = str(error)
+        _say(json.dumps(payload, ensure_ascii=False, sort_keys=True) if args.json
+             else f"job {job_id} ({job['name']}) remains queued, but the protected runner did not start: {error}")
+        return 1
+    payload["worker_mode"] = mode
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, sort_keys=True), file=sys.stderr, flush=True)
+    elif created:
+        _say(f"job {job_id} ({job['name']}) queued {placement_text}")
+    else:
+        _say(f"attached to existing job {job_id} ({job['name']}, {job['state']}) {placement_text}")
+    if mode == "disabled":
+        _say("worker autostart is disabled; waiting for a worker to run the job")
+    elif mode == "paused":
+        _say("the queue is paused; waiting until it is resumed")
+    elif mode == "ensemble-paused":
+        _say("an ensemble is paused at the dispatch head; waiting until it is resumed or reordered")
+    return _follow_job(store, job_id, received)
+
+
 def _ensemble_manifest(args: argparse.Namespace) -> dict[str, Any]:
     node_config = load_node_config()
     if node_config is not None:
@@ -788,7 +1169,7 @@ def _ensemble_submit(args: argparse.Namespace, store: QueueStore) -> int:
         args.gpus = None
         args.cpus = None
         _requested, scheduling, explicit = _node_request(
-            args, node_config, cores=int(canonical["max_parallel"])
+            args, node_config, cores=int(canonical["max_parallel"]), store=store, name=str(canonical["name"])
         )
         # The GPU request follows from the manifest, which is already part
         # of the ensemble fingerprint.
@@ -797,7 +1178,7 @@ def _ensemble_submit(args: argparse.Namespace, store: QueueStore) -> int:
     job = store.submit_ensemble(
         name=str(canonical["name"]),
         cwd=project_root(),
-        environment=dict(os.environ),
+        environment=_capture_environment([])[0],
         env_override_keys=[],
         requested_cores=int(canonical["max_parallel"]),
         runner_prefix=[sys.executable, str(launcher), "_run-ensemble"],
@@ -817,6 +1198,8 @@ def _ensemble_submit(args: argparse.Namespace, store: QueueStore) -> int:
         explicit_scheduling=explicit,
     )
     created = bool(job.get("submission_created", True))
+    if getattr(args, "mem_basis", None) is not None and created:
+        store.set_memory_basis(int(job["id"]), args.mem_basis)
     stored = store.require_ensemble(int(job["id"]))
     payload = {
         "schema_version": "simqueue-submit-result-v1",
@@ -1068,14 +1451,22 @@ def _show(job_id: int, store: QueueStore) -> int:
         ("Message", job["message"] or "-"),
     ]
     if job.get("partition") or job.get("launch_backend"):
+        partition_text = str(job.get("partition") or "-")
+        try:
+            show_config = load_node_config()
+        except ConfigError:
+            show_config = None
+        if show_config is not None and job.get("partition"):
+            partition_text = _partition_text(show_config, str(job["partition"]))
         fields.extend(
             [
-                ("Partition", job.get("partition") or "-"),
+                ("Partition", partition_text),
                 ("Priority", job.get("priority") or 0),
                 ("Request", _describe_request(job)),
                 ("GPUs", job.get("gpu_list") or "none"),
                 ("GPU claim", format_size(job["gpu_claim_bytes"]) if job.get("gpu_list") else "-"),
                 ("Memory limit", format_size(job.get("mem_bytes"))),
+                *_memory_fields(job, show_config),
                 ("Time limit", format_time_limit(job.get("time_limit_s"))),
                 ("Unit", job.get("unit_name") or "-"),
                 ("Result", job.get("result") or "-"),
@@ -1129,6 +1520,8 @@ def _show(job_id: int, store: QueueStore) -> int:
         if int(job.get("gpus_requested") or 0) > 0:
             fields.append(("GPU line", _gpu_line_text(job_id) or "not waiting for the GPU alone "
                                                                   "(other resources busy, or it starts directly)"))
+    if job.get("github_json"):
+        fields.extend(_github_fields(job))
     if ensemble is not None:
         members = store.list_ensemble_members(job_id)
         fields.extend(
@@ -1154,6 +1547,82 @@ def _show(job_id: int, store: QueueStore) -> int:
             text = ", ".join(f"{key}={value}" for key, value in sorted(detail.items()) if value not in (None, "", []))
             print(f"  {event['at']}  {event['kind']:<14} {text}")
     return 0
+
+
+def _memory_fields(job: dict[str, Any], config: NodeConfig | None) -> list[tuple[str, Any]]:
+    """Memory and CPU use of a job for ``simq show`` (0.7.0)."""
+    fields: list[tuple[str, Any]] = []
+    request = job.get("mem_bytes")
+    basis = None
+    if job.get("mem_auto_json"):
+        try:
+            basis = json.loads(str(job["mem_auto_json"]))
+        except ValueError:
+            basis = None
+    if basis is not None:
+        fields.append(("Memory request", describe_basis(basis)))
+    usage = _live_usage(job, config)
+    peak = job.get("mem_peak_bytes")
+    if usage is not None:
+        percent = f" ({100.0 * usage.current / int(request):.0f}% of the limit)" if request else ""
+        fields.append(("Memory now", f"{format_gib(usage.current)}{percent}, read from the unit's cgroup"))
+        if usage.peak is not None:
+            peak = max(int(peak or 0), int(usage.peak))
+    elif job["state"] in ACTIVE_STATES and job.get("mem_current_bytes") is not None:
+        fields.append(("Memory now", f"{format_gib(int(job['mem_current_bytes']))} "
+                                     f"(sampled {job.get('mem_sampled_at') or '?'})"))
+    if peak is not None:
+        source = {"unit": "memory.peak recorded by the unit at its end",
+                  "sampled": "highest memory.peak the worker sampled"}.get(str(job.get("mem_peak_source") or ""), "")
+        if usage is not None:
+            source = "memory.peak of the running unit"
+        percent = f", {100.0 * int(peak) / int(request):.0f}% of the limit" if request else ""
+        fields.append(("Memory peak", f"{format_gib(int(peak))}{percent}" + (f" ({source})" if source else "")))
+    elif job["state"] in TERMINAL_STATES and job.get("launch_backend") == "systemd-user":
+        fields.append(("Memory peak", "not measured (job ended before SimQueue 0.7.0)"))
+    cpu = usage.cpu_usec if usage is not None and usage.cpu_usec is not None else job.get("cpu_usage_usec")
+    if cpu is not None:
+        start = _parse_time(job.get("started_at"))
+        end = _parse_time(job.get("finished_at")) or datetime.now(UTC)
+        average = ""
+        if start is not None and (end - start).total_seconds() > 0:
+            average = f", {int(cpu) / 1e6 / (end - start).total_seconds():.2f} cores on average"
+        fields.append(("CPU time", f"{int(cpu) / 1e6:.1f} s{average}"))
+    series = Series.from_json(job.get("mem_series_json"))
+    if series.buckets:
+        low = min(b[1] for b in series.buckets)
+        high = max(b[2] for b in series.buckets)
+        fields.append(("Memory history",
+                       f"{sparkline(series)}  {low}-{high} MiB over {len(series.buckets)} x {series.step} s"))
+    return fields
+
+
+def _github_fields(job: dict[str, Any]) -> list[tuple[str, Any]]:
+    try:
+        targets = json.loads(str(job["github_json"]))
+    except ValueError:
+        return [("GitHub", "unreadable targets")]
+    fields: list[tuple[str, Any]] = []
+    for item in targets.get("statuses") or []:
+        fields.append(("GitHub status", f"{item['repo']}@{item['sha'][:12]} {item['context']}"))
+    if targets.get("comment"):
+        comment = targets["comment"]
+        fields.append(("GitHub comment", f"{comment['repo']} PR {comment['pr']}"
+                       + (f" (comment {job['github_comment_id']})" if job.get("github_comment_id") else "")))
+    if targets.get("summary"):
+        fields.append(("Summary file", targets["summary"]))
+    phase = str(job.get("github_phase") or "")
+    current = job_phase(job)
+    if phase == current:
+        posted = f"{current.split(':', 1)[0]} posted at {job.get('github_posted_at') or '-'}"
+    elif job.get("github_attempts"):
+        posted = f"{current.split(':', 1)[0]} not posted yet ({job['github_attempts']} failed attempt(s))"
+    else:
+        posted = f"{current.split(':', 1)[0]} due"
+    fields.append(("GitHub posted", posted))
+    if job.get("github_error"):
+        fields.append(("GitHub error", job["github_error"]))
+    return fields
 
 
 def _gpu_line_text(job_id: int) -> str | None:
@@ -1452,10 +1921,11 @@ def _node_status(config: NodeConfig, store: QueueStore, *, sample_s: float = 0.0
             else:
                 entry.update({"state": "free", "class": "free"})
             cpus.append(entry)
-        queued = [j for j in jobs if j["state"] == "queued" and (j.get("partition") or config.default_partition) == part.name]
+        queued = [j for j in jobs if j["state"] == "queued" and config.canonical_partition(j.get("partition")) == part.name]
         partitions.append(
             {
                 "name": part.name,
+                "aliases": [describe_alias(config, name) for name in part.aliases],
                 "default": part.name == config.default_partition,
                 "cpus": cpus,
                 "gpus": list(part.gpus),
@@ -1520,6 +1990,7 @@ def _node_status(config: NodeConfig, store: QueueStore, *, sample_s: float = 0.0
         "memory_schedulable": config.memory_schedulable,
         "memory_allocated": mem_used,
         "memory_borrowed": borrowed_mem,
+        "node_memory": _node_memory_status(config, store, jobs),
         "lock_files": config.locks.enabled,
         "sample_s": sample_s,
         "borrow": {
@@ -1537,6 +2008,65 @@ def _node_status(config: NodeConfig, store: QueueStore, *, sample_s: float = 0.0
             "starvation_warn_s": config.line.starvation_warn_s,
         },
     }
+
+
+def _node_memory_status(config: NodeConfig, store: QueueStore, jobs: list[dict[str, Any]]) -> dict[str, Any]:
+    """Requested against actual memory per running job, and the node's free
+    memory (0.7.0), read from the job units' cgroups and /proc/meminfo."""
+    rows = []
+    for job in jobs:
+        if job["state"] not in ACTIVE_STATES:
+            continue
+        usage = _live_usage(job, config)
+        rows.append({
+            "job_id": int(job["id"]),
+            "name": job.get("name"),
+            "borrow": bool(job.get("borrow")),
+            "frozen": bool(job.get("frozen_at")),
+            "request": job.get("mem_bytes"),
+            "current": None if usage is None else usage.current,
+            "peak": None if usage is None else usage.peak,
+        })
+    currents = [row["current"] or 0 for row in rows]
+    node = read_node_memory(config.memory.test_node_total, currents)
+    status: dict[str, Any] = {"jobs": rows, "queue_jobs_current": sum(currents),
+                              "queue_jobs_requested": sum(int(row["request"] or 0) for row in rows)}
+    if node is not None:
+        high, low = water_marks(config.memory, node.total)
+        status.update({"total": node.total, "available": node.available, "simulated": node.simulated,
+                       "high_water": high, "low_water": low,
+                       "outside_queue": max(0, node.used - sum(currents))})
+    pressure = store.get_meta("memory_pressure")
+    if pressure:
+        try:
+            status["pressure"] = json.loads(pressure)
+        except ValueError:
+            status["pressure"] = {"raw": pressure}
+    return status
+
+
+def _print_node_memory(status: dict[str, Any]) -> None:
+    memory = status.get("node_memory") or {}
+    if "available" in memory:
+        print(f"Node memory: {format_gib(memory['available'])} available of {format_gib(memory['total'])}"
+              + (" (simulated node)" if memory.get("simulated") else "")
+              + f"; high-water {format_gib(memory['high_water'])}, low-water {format_gib(memory['low_water'])}; "
+              f"queue jobs use {format_gib(memory['queue_jobs_current'])} of "
+              f"{format_gib(memory['queue_jobs_requested'])} requested, outside the queue "
+              f"{format_gib(memory['outside_queue'])}")
+    pressure = memory.get("pressure")
+    if pressure:
+        culprit = pressure.get("culprit") or {}
+        print(f"  MEMORY PRESSURE since {pressure.get('since')}: dispatch stopped, borrow jobs preempted"
+              + (f"; job {culprit.get('job_id')} grew {format_gib(culprit.get('grew'))}" if culprit else ""))
+    for row in memory.get("jobs") or []:
+        request = row.get("request")
+        current = row.get("current")
+        percent = f" ({100.0 * current / request:.0f}%)" if current is not None and request else ""
+        flags = (" borrow" if row.get("borrow") else "") + (" frozen" if row.get("frozen") else "")
+        print(f"  job {row['job_id']:>5} {_abbreviate(str(row.get('name') or ''), 24):<24} "
+              f"now {format_gib(current):>6}{percent:<7} peak {format_gib(row.get('peak')):>6} "
+              f"request {format_size(request) if request is not None else '-':>5}{flags}")
 
 
 def _policy_text(part: dict[str, Any]) -> str:
@@ -1595,6 +2125,7 @@ def _partitions(args: argparse.Namespace, store: QueueStore) -> int:
             f"Memory: {format_size(status['memory_allocated'])} allocated{borrowed} of "
             f"{format_size(status['memory_schedulable'])} schedulable"
         )
+    _print_node_memory(status)
     print(f"{'PARTITION':<13} {'CPUS':<8} {'FREE':<5} {'GPUS':<5} {'MEM(def/max)':<13} {'TIME(def/max)':<27} "
           f"{'QUEUED':<7} POLICY")
     for part in status["partitions"]:
@@ -1608,6 +2139,14 @@ def _partitions(args: argparse.Namespace, store: QueueStore) -> int:
             f"{name:<13} {format_cpu_list(cpus):<8} {free:<5} {len(part['gpus']):<5} {mems:<13} "
             f"{times:<27} {queued:<7} {_policy_text(part)}"
         )
+        for alias in part.get("aliases") or []:
+            prefer = f", prefers CPUs {format_cpu_list(alias['prefer_cpus'])}" if alias["prefer_cpus"] else ""
+            mem_text = (f"auto (else {format_size(alias['default_mem'])})" if alias.get("default_mem_auto")
+                        else format_size(alias["default_mem"]))
+            print(
+                f"  alias {alias['name']}: defaults {alias['default_cpus']} core(s), "
+                f"{mem_text}, {format_time_limit(alias['default_time_s'])}{prefer}"
+            )
         for cpu in part["cpus"]:
             print(f"    CPU {cpu['cpu']}: {_core_text(cpu)}")
     for gpu in status["gpus"]:
@@ -1767,12 +2306,16 @@ def _node_doctor(config: NodeConfig, store: QueueStore) -> int:
         ("Default partition", config.default_partition),
         ("Partitions", "; ".join(
             f"{p.name}={format_cpu_list(p.cpus)}" + (f"+{len(p.gpus)}GPU" if p.gpus else "")
+            + (f" (aliases {', '.join(p.aliases)})" if p.aliases else "")
             for p in config.partitions.values()
         )),
         ("Lease files", lock_detail),
         ("Lending", lending),
         ("Borrow jobs", borrow_detail),
         ("GPU line", line_detail),
+        ("Memory", _memory_doctor_text(config, store)),
+        ("GitHub reporting", _github_doctor_text(config, store)),
+        ("Worker wake FIFO", _wake_fifo_text()),
         ("Queue", "paused" if store.is_paused() else "accepting jobs"),
         ("Worker unit", "simqueue.service"),
         ("Service installed", load_state),
@@ -1791,6 +2334,51 @@ def _node_doctor(config: NodeConfig, store: QueueStore) -> int:
     for problem in problems:
         print(f"PROBLEM: {problem}")
     return 0 if not problems else 1
+
+
+def _memory_doctor_text(config: NodeConfig, store: QueueStore) -> str:
+    memory = config.memory
+    if not memory.enabled:
+        return "tracking off (memory.enabled false)"
+    node = read_node_memory(memory.test_node_total)
+    marks = ""
+    if node is not None:
+        high, low = water_marks(memory, node.total)
+        marks = (f"; MemAvailable {format_gib(node.available)} of {format_gib(node.total)}; pressure below "
+                 f"{format_gib(high)}, over at {format_gib(low)}")
+    margin = "the high-water mark" if memory.admission_margin is None else format_gib(memory.admission_margin)
+    pressure = store.get_meta("memory_pressure")
+    return (f"cgroups sampled every {memory.sample_seconds:g} s, recorded every {memory.record_seconds:g} s; "
+            f"admission guard margin {margin}{marks}; --mem auto {memory.auto_factor:g} x the largest of the "
+            f"last {memory.auto_history} peaks" + ("; MEMORY PRESSURE now" if pressure else ""))
+
+
+def _github_doctor_text(config: NodeConfig, store: QueueStore) -> str:
+    github = config.github
+    if not github.enabled:
+        return "disabled (github.enabled false)"
+    import shutil as _shutil
+
+    if github.token_file:
+        source = f"token file {github.token_file}" + ("" if os.path.exists(github.token_file) else " (MISSING)")
+    else:
+        found = _shutil.which(github.gh)
+        source = f"`{github.gh} auth token`" + (f" ({found})" if found else " (gh NOT found)")
+    due = store.github_pending()
+    failing = [int(job["id"]) for job in due if job.get("github_error")]
+    return (f"{github.api_base}; token from {source}; {len(due)} job(s) with posts due"
+            + (f", failing: {failing[:10]}" if failing else ""))
+
+
+def _wake_fifo_text() -> str:
+    import stat as _stat
+
+    path = state_dir() / WAKE_FIFO
+    try:
+        info = os.lstat(path)
+    except OSError:
+        return f"{path} missing (worker not started by 0.7.0)"
+    return f"{path}" + ("" if _stat.S_ISFIFO(info.st_mode) else " (NOT a FIFO)")
 
 
 def _add_ensemble_manifest_options(parser: argparse.ArgumentParser) -> None:
@@ -1822,7 +2410,7 @@ def _add_ensemble_manifest_options(parser: argparse.ArgumentParser) -> None:
 def _add_node_request_options(parser: argparse.ArgumentParser, *, cpus: bool, gpus: bool) -> None:
     parser.add_argument(
         "-p", "--partition", metavar="PARTITION",
-        help="node mode: partition (default: the configured default partition)",
+        help="node mode: partition or partition alias (default: the configured default partition)",
     )
     if cpus:
         parser.add_argument(
@@ -1838,7 +2426,11 @@ def _add_node_request_options(parser: argparse.ArgumentParser, *, cpus: bool, gp
         )
     else:
         parser.set_defaults(gpus=None, gpu_mem=None, cpus=None)
-    parser.add_argument("--mem", metavar="SIZE", help="node mode: memory limit, e.g. 4G (bare number = MiB)")
+    parser.add_argument(
+        "--mem", metavar="SIZE",
+        help="node mode: memory limit, e.g. 4G (bare number = MiB); 'auto': 1.25 x the largest recent peak "
+        "of earlier jobs with this name (or name family), bounded by the partition's min_mem and max_mem",
+    )
     parser.add_argument("-t", "--time", metavar="TIME", help="node mode: time limit, e.g. 30, 2:00:00, 1-12:00:00")
     parser.add_argument("--priority", type=int, metavar="N", help="node mode: priority (higher first; default 0)")
 
@@ -1868,6 +2460,72 @@ def _add_borrow_options(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def _add_submit_arguments(parser: argparse.ArgumentParser) -> None:
+    """Options of ``simq submit`` (and ``simq run``, which takes the same)."""
+    parser.add_argument("-n", "-J", "--name", "--job-name", dest="name", help="short job name")
+    parser.add_argument("-C", "--cwd", help="working directory (default: current directory)")
+    parser.add_argument(
+        "-c",
+        "--cores",
+        "--cpus-per-task",
+        dest="cores",
+        type=int,
+        help="physical cores (one logical CPU each; default: the default of the partition "
+        "or alias named by -p)",
+    )
+    _add_node_request_options(parser, cpus=True, gpus=True)
+    parser.add_argument(
+        "-e",
+        "--env",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="set a job environment variable (repeatable); a secret-looking name (*TOKEN*, *SECRET*, *PASSWORD*, "
+        "*KEY*, GITHUB_*, ACTIONS_*, RUNNER_*) reaches the job but is stored redacted",
+    )
+    parser.add_argument(
+        "--export",
+        metavar="NAMES|ALL|NONE",
+        help="pass these variables of your environment to the job besides HOME, USER, LOGNAME, LANG, PATH and TZ "
+        "(ALL: every one); secret-looking names are never taken from the environment (0.7.0)",
+    )
+    parser.add_argument(
+        "--shell",
+        metavar="COMMAND",
+        help="run COMMAND with /bin/bash -lc (explicit shell mode)",
+    )
+    parser.add_argument(
+        "--idempotency-key",
+        metavar="KEY",
+        help="return the existing job when KEY is replayed with the same request",
+    )
+    parser.add_argument(
+        "--json", action="store_true", help="print a structured submission result"
+    )
+    parser.add_argument(
+        "--test-only",
+        action="store_true",
+        help="node mode: validate the request and show where it would run now; queue nothing",
+    )
+    _add_borrow_options(parser)
+    group = parser.add_argument_group("GitHub reporting (0.7.0; posted by the worker, never by the job)")
+    group.add_argument(
+        "--github-status", action="append", metavar="OWNER/REPO@SHA:CONTEXT",
+        help="commit status CONTEXT on SHA: pending when queued and running, success/failure from the exit "
+        "code, error on cancel, time limit, out-of-memory kill or a lost unit (repeatable)",
+    )
+    group.add_argument(
+        "--github-comment", metavar="OWNER/REPO#PR",
+        help="one comment on the pull request at the job's end (state, runtime, peak memory, cores, last log "
+        "lines, summary), edited in place on later posts; opt-in",
+    )
+    group.add_argument(
+        "--github-summary", metavar="PATH",
+        help="markdown file the job may write (exported as SIMQ_SUMMARY); appended to the comment",
+    )
+    parser.add_argument("command", nargs=argparse.REMAINDER, help="command after --")
+
+
 def build_parser() -> argparse.ArgumentParser:
     invoked_as = Path(sys.argv[0]).name
     program = invoked_as if invoked_as in {"simq", "simqueue"} else "simq"
@@ -1889,46 +2547,20 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="action")
 
     submit = subparsers.add_parser("submit", aliases=["add"], help="enqueue a command")
-    submit.add_argument("-n", "-J", "--name", "--job-name", dest="name", help="short job name")
-    submit.add_argument("-C", "--cwd", help="working directory (default: current directory)")
-    submit.add_argument(
-        "-c",
-        "--cores",
-        "--cpus-per-task",
-        dest="cores",
-        type=int,
-        help="physical cores (one logical CPU each; default: the partition default, "
-        "normally all of its cores, as in 0.5)",
+    _add_submit_arguments(submit)
+    run = subparsers.add_parser(
+        "run", aliases=["srun"],
+        help="submit a command, stream its output and wait for it (srun-shaped)",
+        description=(
+            "Submit COMMAND with the options of `simq submit`, print the job ID, stream the job's "
+            "combined log while it grows, wait until the job ends and exit with its exit code "
+            "(0 for succeeded, 1 for other ends without one). SIGINT, SIGTERM or SIGHUP cancel the "
+            "job and exit with 128+signal. With --idempotency-key, a replay of the same request "
+            "reattaches to the existing job instead of submitting a second one. Messages go to "
+            "stderr; stdout carries only the job log."
+        ),
     )
-    _add_node_request_options(submit, cpus=True, gpus=True)
-    submit.add_argument(
-        "-e",
-        "--env",
-        action="append",
-        default=[],
-        metavar="KEY=VALUE",
-        help="set a job environment variable (repeatable)",
-    )
-    submit.add_argument(
-        "--shell",
-        metavar="COMMAND",
-        help="run COMMAND with /bin/bash -lc (explicit shell mode)",
-    )
-    submit.add_argument(
-        "--idempotency-key",
-        metavar="KEY",
-        help="return the existing job when KEY is replayed with the same request",
-    )
-    submit.add_argument(
-        "--json", action="store_true", help="print a structured submission result"
-    )
-    submit.add_argument(
-        "--test-only",
-        action="store_true",
-        help="node mode: validate the request and show where it would run now; queue nothing",
-    )
-    _add_borrow_options(submit)
-    submit.add_argument("command", nargs=argparse.REMAINDER, help="command after --")
+    _add_submit_arguments(run)
 
     listing = subparsers.add_parser("list", aliases=["ls", "status"], help="list jobs")
     listing.add_argument(
@@ -2073,6 +2705,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         # splitting retry, cancel, or resume operations into an orphaned DB.
         load_config()
         store = QueueStore()
+        if args.action in MUTATING_ACTIONS:
+            try:
+                return _dispatch_action(args, store, parser)
+            finally:
+                _wake_worker()
+        return _dispatch_action(args, store, parser)
+    except (KeyError, RuntimeError, ValueError, ConfigError) as error:
+        print(f"simq: {error}", file=sys.stderr)
+        return 2
+
+
+def _dispatch_action(args: argparse.Namespace, store: QueueStore, parser: argparse.ArgumentParser) -> int:
+    if True:
         if args.action == "_run-ensemble":
             return run_ensemble(args.job_id)
         if args.action is None:
@@ -2080,6 +2725,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
         if args.action in ("submit", "add"):
             return _submit(args, store)
+        if args.action in ("run", "srun"):
+            return _run(args, store)
         if args.action in ("list", "ls", "status"):
             if args.limit < 1:
                 raise ValueError("--limit must be positive")
@@ -2183,9 +2830,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                     lines=args.lines,
                     follow=args.follow,
                 )
-    except (KeyError, RuntimeError, ValueError, ConfigError) as error:
-        print(f"simq: {error}", file=sys.stderr)
-        return 2
     parser.error(f"unhandled action: {args.action}")
     return 2
 

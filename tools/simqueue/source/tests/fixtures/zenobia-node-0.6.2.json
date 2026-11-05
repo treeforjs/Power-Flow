@@ -1,0 +1,130 @@
+{
+  "schema": "simqueue-node-config-v1",
+  "node": "zenobia",
+  "default_partition": "spheral",
+  "memory_schedulable": "28G",
+  "gpus": [
+    {
+      "uuid": "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9",
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 3080 Ti",
+      "memory": "12288M",
+      "budget": "11G"
+    }
+  ],
+  "lock_files": {
+    "enabled": true,
+    "core_path": "/home/treefor/projects/.workspace/outputs/pic-profile/testing-core{core}.lock",
+    "core_overrides": {
+      "6": "/home/treefor/projects/.workspace/outputs/pic-profile/testing-core.lock"
+    },
+    "gpu_path": "/home/treefor/projects/.workspace/outputs/pic-profile/testing-gpu-{uuid}.lock",
+    "gpu_extra": {
+      "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9": [
+        "/home/treefor/projects/.workspace/outputs/pic-profile/testing-gpu.lock"
+      ]
+    },
+    "notes": "Same flock(2) lease files as any-core.sh, both-cores.sh and pf-launch. Lock order: GPU files first (testing-gpu.lock, then testing-gpu-<UUID>.lock), then core leases. Owner job units take them for their lifetime (GPU files handed over by the queue's GPU claim when the GPU was contended); the worker itself only observes /proc/locks. Borrow jobs hold borrow-core<K>.lock shared instead, never the core lease; holding borrow-core<K>.lock exclusively from outside the queue marks core K as not lendable.",
+    "borrow_path": "/home/treefor/projects/.workspace/outputs/pic-profile/borrow-core{core}.lock"
+  },
+  "launch": {
+    "backend": "systemd-user",
+    "unit_prefix": "simq-job",
+    "slice": "simq.slice",
+    "wrapper_python": "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen",
+    "kill_grace_seconds": 10,
+    "poll_seconds": 1
+  },
+  "borrow": {
+    "enabled": true,
+    "slice": "simqborrow.slice",
+    "slice_cpu_weight": "idle",
+    "unit_cpu_weight": 1,
+    "idle_window_s": 30,
+    "busy_window_s": 2,
+    "idle_threshold": 0.1,
+    "cpu_idle_threshold": 0.15,
+    "busy_threshold": 0.25,
+    "freeze_max_s": 1800,
+    "default_on_preempt": "requeue",
+    "notes": "Borrow jobs (simq submit --borrow) run in simqborrow.slice, a top-level slice of the user manager with cpu.idle=1, as units with CPUWeight=1, SCHED_IDLE and idle I/O class: every owner job unit and every process of the terminal sessions wins the CPU. A lease holder or owner job is idle when its process tree used at most idle_threshold cores above a whole number over idle_window_s and the core itself was at most cpu_idle_threshold busy; a borrower lent such a core is preempted when the tree uses more than the cores left to it plus busy_threshold over busy_window_s. A frozen borrower is requeued after freeze_max_s or shortly before its time limit."
+  },
+  "partitions": [
+    {
+      "name": "spheral",
+      "description": "Zapdos-Raikou-Spheral work",
+      "cpus": "0-3",
+      "gpus": [],
+      "default_cpus": "all",
+      "default_mem": "18G",
+      "max_mem": "20G",
+      "swap_max": "1G",
+      "default_time": "2-00:00:00",
+      "max_time": "14-00:00:00",
+      "lend": true,
+      "lend_leased_idle": false,
+      "timing_sensitive": false
+    },
+    {
+      "name": "raikou-mfem",
+      "description": "raikou-mfem port",
+      "cpus": "4-5",
+      "gpus": [
+        "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
+      ],
+      "default_cpus": "all",
+      "default_mem": "4G",
+      "max_mem": "12G",
+      "swap_max": "1G",
+      "default_time": "12:00:00",
+      "max_time": "7-00:00:00",
+      "lend": true,
+      "lend_leased_idle": false,
+      "timing_sensitive": false
+    },
+    {
+      "name": "powerflow",
+      "description": "Power-Flow",
+      "cpus": "6-7",
+      "gpus": [
+        "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
+      ],
+      "default_cpus": "all",
+      "default_mem": "4G",
+      "max_mem": "12G",
+      "swap_max": "1G",
+      "default_time": "12:00:00",
+      "max_time": "7-00:00:00",
+      "lend": true,
+      "lend_leased_idle": false,
+      "timing_sensitive": false
+    }
+  ],
+  "notes": [
+    "Each partition names physical cores by their lowest logical CPU (0-7); SMT siblings 8-15 are never allocated.",
+    "memory_schedulable is the sum of --mem over concurrent jobs (31 GiB RAM; about 3 GiB left for the system).",
+    "The GPU is shared by raikou-mfem and powerflow: exclusive per job unless --gpu-mem is given and the 11G budget allows sharing.",
+    "Lending (0.6.1): every partition lends its free cores and the idle cores of its running jobs to borrow jobs (lend: true). Cores leased by tools outside the queue (any-core.sh, both-cores.sh, pf-launch) are not lent (lend_leased_idle: false): such holders have no time limit and no way to mark timing runs.",
+    "powerflow is not timing_sensitive as a partition: timing-sensitive Power-Flow runs submit with --exclusive-timing, which keeps the job's cores and their SMT siblings unlent while it runs, and its other core stays usable by borrow jobs. Set timing_sensitive: true on a partition to keep borrow jobs off all of its cores and siblings, including its own borrow jobs.",
+    "No GPU is ever lent: borrow jobs cannot request GPUs."
+  ],
+  "gpu_line": {
+    "enabled": true,
+    "state_path": "/home/treefor/projects/.workspace/outputs/pic-profile/simq-gpu-line.json",
+    "ticket_dir": "/home/treefor/projects/.workspace/outputs/pic-profile/gpu-line.d",
+    "log_path": "/home/treefor/projects/.workspace/outputs/pic-profile/simq-gpu-line.log",
+    "starvation_warn_s": 600,
+    "claim_hold_max_s": 300,
+    "stale_after_s": 120,
+    "requeue_raw_waiters": true,
+    "requeue_commands": [
+      "flock"
+    ],
+    "poll_s": 0.1,
+    "helper_cores": [
+      6,
+      7
+    ],
+    "notes": "0.6.2 GPU line. Queued GPU jobs that are ready except for the GPU join the line through a claim unit (<prefix>-gpuclaim-<token>.service) that waits for testing-gpu.lock in the kernel queue, then takes testing-gpu-<UUID>.lock, and hands both open files to the job unit (SCM_RIGHTS), so the lock is never released in between and the job's time limit starts with its unit. gpu-lease users publish tickets in ticket_dir; members are served by since-time (a claim's is the submit time of its oldest ready job, a helper's its start time). Processes blocked in a raw flock on the GPU files (command in requeue_commands, not a job-control job of an interactive shell) are moved behind the line with SIGSTOP+SIGCONT; every move is logged in log_path. state_path lists the waiting queue jobs with their since-times, the claim, the holders and the raw waiters (heartbeat every 10 s; stale after stale_after_s, withdrawn when the worker stops). A held claim that no job takes within claim_hold_max_s releases the GPU."
+  }
+}

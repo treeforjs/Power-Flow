@@ -43,7 +43,14 @@ SHOW_PROPERTIES = (
     "InvocationID",
     "Environment",
     "FreezerState",
+    "ControlGroup",
+    "MemoryPeak",
+    "CPUUsageNSec",
 )
+# 0.7.1: never set on a job unit -- each would make the user manager spawn a
+# process into the job's cgroup after the job started (see build_run_command)
+FORBIDDEN_JOB_PROPERTIES = ("ExecStopPost", "ExecStartPost", "ExecStop", "ExecReload", "ExecCondition",
+                            "ExecStartPre")
 ACTIVE_STATES = {"active", "activating", "deactivating", "reloading", "refreshing"}
 
 
@@ -69,6 +76,9 @@ class UnitState:
     invocation_id: str
     environment: str
     freezer_state: str = ""
+    control_group: str = ""  # 0.7.0: the unit's cgroup (memory sampling)
+    memory_peak: int | None = None  # 0.7.1: systemd's MemoryPeak (kept after a failed unit stops)
+    cpu_usage_nsec: int | None = None
 
     @property
     def active(self) -> bool:
@@ -108,30 +118,41 @@ def build_run_command(
     borrow: BorrowConfig | None = None,
 ) -> list[str]:
     python = launch.wrapper_python
-    stop_post = _systemd_value(
-        " ".join(shlex.quote(part) for part in (python, str(wrapper), "stop-post", spec_path))
-    )
+    # 0.7.1 (critical): the user manager never spawns into a job's cgroup after
+    # the job started.  It spawns with vfork semantics (posix_spawn, CLONE_VM):
+    # until the exec, the child shares the manager's mm.  An OOM group kill
+    # (memory.oom.group, set by OOMPolicy=kill) of a cgroup holding such a
+    # child goes through oom_kill_memcg_member -> __oom_kill_process, which
+    # SIGKILLs every process sharing the victim's mm: the user manager itself
+    # (2026-11-05 09:24 UTC: the desktop, SimQueue and every agent went down).
+    # Hence: no ExecStopPost (the worker records a job's end from the unit's
+    # properties and the wrapper's own status file), no ExecStartPost/ExecStop;
+    # no --collect, so that a failed unit stays loaded until the worker has
+    # read Result, MemoryPeak and CPUUsageNSec and resets it; and
+    # OOMPolicy=stop: memory.oom.group stays 0, so oom_kill_process kills one
+    # victim chosen by oom_badness (which never picks an in_vfork task) and
+    # only processes sharing that victim's mm; systemd then stops the rest of
+    # the unit and records Result=oom-kill.  The one spawn into the cgroup,
+    # ExecStart, happens while the new cgroup is empty and far below its limit.
     command = [
         launch.systemd_run,
         "--user",
         f"--unit={unit}",
         f"--slice={launch.slice if borrow is None else borrow.slice}",
         "--service-type=exec",
-        "--collect",
         "--quiet",
         f"--description={_systemd_value(description)}",
         f"--working-directory={cwd}",
         "--property=CPUAffinity=" + " ".join(str(cpu) for cpu in sorted(cpus)),
         f"--property=MemoryMax={mem_bytes}",
         f"--property=MemorySwapMax={swap_bytes}",
-        "--property=OOMPolicy=kill",
+        "--property=OOMPolicy=stop",
         "--property=KillMode=control-group",
         f"--property=TimeoutStopSec={max(1, int(round(launch.kill_grace_seconds)))}s",
         "--property=SendSIGKILL=yes",
         "--property=UMask=0077",
         f"--property=StandardOutput=append:{log_path}",
         f"--property=StandardError=append:{log_path}",
-        f"--property=ExecStopPost={stop_post}",
     ]
     if runtime_max_s is not None:
         command.append(f"--property=RuntimeMaxSec={int(runtime_max_s)}s")
@@ -215,6 +236,15 @@ def start_unit(command: list[str], *, timeout: float = 60.0) -> None:
         raise UnitError("systemd-run failed: " + (detail[-1] if detail else f"exit {result.returncode}"))
 
 
+def _property_number(value: str | None) -> int | None:
+    """A numeric unit property; systemd shows "[not set]" or 2^64-1 when unknown."""
+    try:
+        number = int(value or "")
+    except ValueError:
+        return None
+    return None if number >= 2**64 - 1 or number < 0 else number
+
+
 def _parse_show(text: str, names: list[str]) -> dict[str, UnitState]:
     blocks: list[dict[str, str]] = []
     current: dict[str, str] = {}
@@ -248,6 +278,9 @@ def _parse_show(text: str, names: list[str]) -> dict[str, UnitState]:
             invocation_id=block.get("InvocationID", ""),
             environment=block.get("Environment", ""),
             freezer_state=block.get("FreezerState", ""),
+            control_group=block.get("ControlGroup", ""),
+            memory_peak=_property_number(block.get("MemoryPeak")),
+            cpu_usage_nsec=_property_number(block.get("CPUUsageNSec")),
         )
     return states
 
@@ -293,6 +326,13 @@ def _systemctl(launch: LaunchConfig, *arguments: str, timeout: float = 30) -> su
         )
     except (OSError, subprocess.TimeoutExpired):
         return None
+
+
+def reset_failed(launch: LaunchConfig, name: str) -> bool:
+    """Unload a failed job unit once its end is recorded (0.7.1: job units no
+    longer use --collect)."""
+    result = _systemctl(launch, "reset-failed", "--", name)
+    return result is not None and result.returncode == 0
 
 
 def stop_unit(launch: LaunchConfig, name: str) -> bool:

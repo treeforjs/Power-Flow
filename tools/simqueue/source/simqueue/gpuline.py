@@ -66,7 +66,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterable
 
 
-VERSION = "0.6.2"
+VERSION = "0.6.3"
 TICKET_SCHEMA = "simqueue-gpu-ticket-v1"
 STATE_SCHEMA = "simqueue-gpu-line-v1"
 CLAIM_SPEC_SCHEMA = "simqueue-gpu-claim-spec-v1"

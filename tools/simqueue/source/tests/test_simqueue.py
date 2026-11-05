@@ -897,9 +897,11 @@ class QueueTestCase(QueueFixture, unittest.TestCase):
         log = Path(str(finished["log_path"])).read_text(encoding="utf-8")
         self.assertIn("sent SIGKILL", log)
         deadline = time.monotonic() + 3
-        while time.monotonic() < deadline and Path(f"/proc/{child_pid}").exists():
+        # exited: gone, or a zombie its parent reaps (inside a queue job that
+        # is the job wrapper, a subreaper)
+        while time.monotonic() < deadline and process_is_live(child_pid):
             time.sleep(0.05)
-        self.assertFalse(Path(f"/proc/{child_pid}").exists())
+        self.assertFalse(process_is_live(child_pid))
 
     def test_cancel_kills_nested_sessions_without_touching_unrelated_process(self) -> None:
         child_pid_file = self.projects / "nested-child.pid"
@@ -1121,9 +1123,11 @@ class QueueTestCase(QueueFixture, unittest.TestCase):
         )
         self.assertEqual(self.store.require(int(following["id"]))["state"], "succeeded")
         deadline = time.monotonic() + 3
-        while time.monotonic() < deadline and Path(f"/proc/{child_pid}").exists():
+        # exited: gone, or a zombie its parent reaps (inside a queue job that
+        # is the job wrapper, a subreaper)
+        while time.monotonic() < deadline and process_is_live(child_pid):
             time.sleep(0.05)
-        self.assertFalse(Path(f"/proc/{child_pid}").exists())
+        self.assertFalse(process_is_live(child_pid))
 
     def test_waiting_worker_takes_over_existing_worker_lock(self) -> None:
         first = subprocess.Popen(

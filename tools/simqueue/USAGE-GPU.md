@@ -1,12 +1,14 @@
-# Using the GPU on zenobia (SimQueue 0.6.2)
+# Using the GPU on zenobia (SimQueue 0.6.3)
 
 For every session and worker that runs GPU commands on zenobia.
 
 **Stop taking the GPU lease files with raw `flock`.** Run GPU work either
-through the queue (`simq submit --gpus 1 ...`) or with `gpu-lease`:
+through the queue (`simq submit --gpus 1 ...`, or `simq run --gpus 1 ...` to
+wait for it in the foreground; since 0.6.3 every job requests from one pool,
+and any `-p` name may ask for the GPU) or with `gpu-lease`:
 
 ```sh
-G=/home/treefor/projects/runtimes/simqueue-0.6.2-20261031/bin/gpu-lease
+G=/home/treefor/projects/runtimes/simqueue-0.6.3-20261105/bin/gpu-lease
 ```
 
 | Before | Now |

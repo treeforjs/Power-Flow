@@ -559,9 +559,13 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual((part.lend, part.lend_leased_idle, part.timing_sensitive), (True, False, False))
         self.assertEqual(cfg.borrow.slice, "simqborrow.slice")
         zenobia = load_node_config(ZENOBIA_CONFIG)
-        for name in ("spheral", "raikou-mfem", "powerflow"):
-            item = zenobia.partitions[name]
-            self.assertEqual((item.lend, item.lend_leased_idle, item.timing_sensitive), (True, False, False), name)
+        # 0.6.3: one pool; the old partition names are aliases of it
+        self.assertEqual(list(zenobia.partitions), ["zenobia"])
+        for name in ("zenobia", "spheral", "raikou-mfem", "powerflow"):
+            item = zenobia.partition(name)
+            self.assertEqual((item.name, item.lend, item.lend_leased_idle, item.timing_sensitive),
+                             ("zenobia", True, False, False), name)
+        self.assertTrue(zenobia.borrow.backfill_waiting_owners)
         self.assertEqual(zenobia.borrow.slice_cpu_weight, "idle")
         self.assertEqual(zenobia.borrow.unit_cpu_weight, 1)
         self.assertEqual(zenobia.siblings(6), (14,))

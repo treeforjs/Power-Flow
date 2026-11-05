@@ -1,6 +1,10 @@
 """Pure scheduling decisions: partitions, concurrency, EASY backfill, GPU budget.
 
-All tests use an explicit (fake) clock value; nothing is launched.
+All tests use an explicit (fake) clock value; nothing is launched.  The
+partition tests use the three-partition zenobia layout of 0.6.2
+(``fixtures/zenobia-node-0.6.2.json``): partitions remain a feature of the
+scheduler although zenobia itself is one pool since 0.6.3
+(``test_pool_aliases.py``).
 """
 
 from __future__ import annotations
@@ -28,12 +32,14 @@ from simqueue.scheduler import (
 
 
 ZENOBIA_CONFIG = Path(__file__).resolve().parents[2] / "config" / "zenobia-node.json"
+ZENOBIA_062_CONFIG = Path(__file__).resolve().parent / "fixtures" / "zenobia-node-0.6.2.json"
 GPU = "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
 G = 1024**3
 
 
-def zenobia():
-    config = load_node_config(ZENOBIA_CONFIG)
+def zenobia_062():
+    """zenobia's three partitions as configured by 0.6.0 to 0.6.2."""
+    config = load_node_config(ZENOBIA_062_CONFIG)
     assert config is not None
     return config
 
@@ -92,8 +98,8 @@ class ParsingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_size("4X")
 
-    def test_zenobia_config_partitions(self):
-        config = zenobia()
+    def test_zenobia_062_partitions(self):
+        config = zenobia_062()
         self.assertEqual(config.default_partition, "spheral")
         self.assertEqual(config.partitions["spheral"].cpus, (0, 1, 2, 3))
         self.assertEqual(config.partitions["spheral"].gpus, ())
@@ -106,7 +112,7 @@ class ParsingTests(unittest.TestCase):
         self.assertTrue(config.locks.enabled)
 
     def test_zenobia_lease_paths_match_existing_lock_files(self):
-        config = zenobia()
+        config = load_node_config(ZENOBIA_CONFIG)
         base = "/home/treefor/projects/.workspace/outputs/pic-profile/"
         self.assertEqual(config.locks.core_lock_paths(6), (base + "testing-core.lock",))
         self.assertEqual(config.locks.core_lock_paths(7), (base + "testing-core7.lock",))
@@ -118,7 +124,7 @@ class ParsingTests(unittest.TestCase):
 
     def test_config_rejects_smt_siblings_and_bad_values(self):
         document = json.loads(ZENOBIA_CONFIG.read_text())
-        document["partitions"][2]["cpus"] = "6,14"
+        document["partitions"][0]["cpus"] = "0-6,14"
         with self.assertRaises(ConfigError):
             parse_node_config(document, path=ZENOBIA_CONFIG)
         document = json.loads(ZENOBIA_CONFIG.read_text())
@@ -130,7 +136,7 @@ class ParsingTests(unittest.TestCase):
         with self.assertRaises(ConfigError):
             parse_node_config(document, path=ZENOBIA_CONFIG)
         document = json.loads(ZENOBIA_CONFIG.read_text())
-        document["partitions"][1]["gpus"] = ["GPU-unknown"]
+        document["partitions"][0]["gpus"] = ["GPU-unknown"]
         with self.assertRaises(ConfigError):
             parse_node_config(document, path=ZENOBIA_CONFIG)
 
@@ -144,7 +150,7 @@ class PlanningTests(unittest.TestCase):
         return plan(config, pool, running, queue, self.now)
 
     def test_partitions_run_concurrently_and_fifo_within_partition(self):
-        config = zenobia()
+        config = zenobia_062()
         queue = [
             req(1, "spheral", 4, mem=18 * G),
             req(2, "powerflow", 1, mem=4 * G),
@@ -168,7 +174,7 @@ class PlanningTests(unittest.TestCase):
         self.assertEqual(decision.skipped[4], "resources busy")
 
     def test_running_allocations_and_outside_leases_are_never_reused(self):
-        config = zenobia()
+        config = zenobia_062()
         running = [Running(9, Allocation(cpus=(6,), mem=4 * G), self.now + 600)]
         decision = self.plan(config, [req(1, "powerflow", 1), req(2, "powerflow", 1)], running,
                              external_cpus={7})
@@ -291,7 +297,7 @@ class GpuBudgetTests(unittest.TestCase):
     now = 3_000_000.0
 
     def decide(self, queue, running=(), **pool_args):
-        config = zenobia()
+        config = zenobia_062()
         running = list(running)
         pool = build_pool(config, running, **pool_args)
         return plan(config, pool, running, queue, self.now)

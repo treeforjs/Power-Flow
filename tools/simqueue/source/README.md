@@ -1,5 +1,92 @@
 # simqueue
 
+## 0.7.1: auto memory by default, robust tests
+
+`memory.auto_default`: a job without `--mem` gets `--mem auto` when its name
+(or family) has a recorded peak, else the default; an alias may set
+`default_mem: "auto"` (zenobia's `spheral`, which was 18G). The
+load-sensitive tests are robust under load; `run-tests.py` isolates the
+state directory. `../upgrade.py` installs 0.7.1 over 0.7.0 (no schema change)
+and rolls back.
+
+## 0.7.0: event-driven worker, job memory, `--mem auto`, GitHub reporting
+
+The worker (`nodeworker.py`) sleeps in `select()` on the FIFO
+`<state>/worker.wake`: clients write a byte after a submission or
+cancellation, the job wrapper's stop-post hook after a job's end, and the
+database's `data_version` (on the worker's single persistent connection,
+which its own writes leave alone) catches any other writer. Between passes
+it reads only files: each running unit's cgroup (`memory.current`,
+`memory.peak`, existence) every `memory.sample_seconds` and
+`/proc/meminfo`. A pass asks systemd only about units that need it.
+Passes run every `poll_seconds` only while something must be watched, else
+at most every `launch.idle_seconds`. `simqueue.service` runs with `Nice=10`,
+`CPUWeight=20`, `IOSchedulingClass=idle`, `MemoryMax=128M`. Measured: ~0.2
+CPU-s/h idle and ~0.5 busy, against ~7 and ~20 for 0.6.3
+(`tools/bench-overhead.py`).
+
+`memory.py`: cgroup and meminfo readers, bounded min/max series, the
+admission guard (a start needs its request below MemAvailable minus a
+margin minus what young jobs have not allocated), memory-pressure
+hysteresis (high/low water on MemAvailable: dispatch stops, borrow jobs are
+preempted by their policy, owner jobs never), and `--mem auto` (1.25 x the
+largest recent peak of the same name, else name family). `jobwrap.py`
+records the unit's `memory.peak` and CPU time in `status.json` and
+`stop-post.json`. Schema 9 adds the `mem_*`, `cpu_usage_usec` and
+`github_*` columns (`store.py`).
+
+`github.py`: `--github-status OWNER/REPO@SHA:CONTEXT`, `--github-comment
+OWNER/REPO#PR`, `--github-summary PATH` (`SIMQ_SUMMARY`). The worker posts a
+commit status per transition and one PR comment at the end (edited in place
+via `<!-- simq-job:N -->`), from one daemon thread, with retries and backoff
+from its event loop; job text is sanitized (no mentions, no issue
+references); the token (`token_file` or `gh auth token`) stays in memory.
+
+`envpolicy.py` (security fix): the job environment is an allowlist (HOME,
+USER, LOGNAME, LANG, PATH, TZ, `SIMQUEUE_*`, `--export`, `-e`); secret-looking
+names are never taken from the environment and are stored redacted when
+given with `-e` (the value waits in a mode-600 file until the job ends);
+the schema-9 migration redacts what older builds stored.
+
+Tests: `test_memory.py`, `test_github.py` (pure, with `fake_github.py`), `test_envpolicy.py`,
+`test_memory_units.py`, `test_github_units.py` (real units), the rewritten
+`test_upgrade.py` (0.6.3 -> 0.7.0 and back). `run-tests.py --in-job` runs the
+unit-level suites inside a queue job (`simq run -c 2 ...`).
+`../upgrade.py` installs 0.7.0 over 0.6.3 (schema migration, hardened unit)
+and rolls back (schema set back to 8 in place).
+
+## 0.6.3: one pool, partition aliases, `simq run`
+
+zenobia has no partitions any more: one partition, `zenobia`, holds every
+physical core and the GPU, and every job requests from it
+(`../config/zenobia-node.json`; `../config/zenobia-16core-node.json` for the
+16-core Ryzen 9 9950X3D2, logical CPUs 0-15 as cores, 16-31 their SMT
+siblings). A partition in `node.json` may carry `aliases`: plain names, or
+objects that also set the defaults a job gets under that name
+(`default_cpus`, `default_mem`, `default_time`) and the cores tried first
+(`prefer_cpus`). `NodeConfig.partition()`, `find_partition()` and
+`canonical_partition()` resolve them, and every lookup by name uses these
+(submit, run, test-only, `--borrow-from`, ensembles, the scheduler, the
+borrow planner, the GPU line, adoption, `simq partitions`, `simq doctor`).
+The old names `spheral`, `raikou-mfem` and `powerflow` are aliases of the
+pool with their 0.6.2 defaults and cores, so existing scripts keep working
+and jobs recorded under those names are scheduled in the pool. A job keeps
+the name it was submitted with (database, listings, `SIMQ_PARTITION`,
+idempotency fingerprint).
+
+`borrow.backfill_waiting_owners` (on for zenobia) lets a borrow job use a
+free core that a waiting owner job needs when the borrow job's time limit
+ends before that owner job can start: in a single pool every waiting owner
+needs every core, and the 0.6.1 rule would hold all borrow jobs back.
+
+`simq run` (alias `srun`) takes the options of `simq submit`, queues the
+job, streams its log to stdout, waits and exits with the job's exit code
+(else 0 for succeeded, 1 otherwise); SIGINT/SIGTERM/SIGHUP cancel the job
+(exit 130/143/129). With `--idempotency-key` a replay reattaches to the
+existing job. No database change (schema 8). `../upgrade.py` installs 0.6.3
+over 0.6.2 (new `node.json`, layout checks) and rolls back;
+`../OPERATIONS.md` ("The pool", "`simq run`") documents both.
+
 ## 0.6.2: the GPU line
 
 A queued GPU job that is ready except for the GPU now wins the GPU lease
