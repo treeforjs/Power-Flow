@@ -77,6 +77,35 @@ class UnitPropertyTests(NodeFixture, unittest.TestCase):
                         message="failed unit reset")
 
 
+    def test_orphans_are_reaped_while_the_leader_runs(self) -> None:
+        """The wrapper is a subreaper: a process the job orphans is reaped when
+        it exits, not left a zombie until the leader ends."""
+        script = self.projects / "orphan.py"
+        script.write_text(
+            "import os, sys, time\n"
+            "if os.fork() == 0:\n"
+            "    if os.fork() == 0:\n"
+            "        time.sleep(0.3); os._exit(0)\n"
+            "    os._exit(0)\n"
+            "os.wait()\n"
+            "time.sleep(2.0)\n"
+            "zombies = []\n"
+            "for p in os.listdir('/proc'):\n"
+            "    try:\n"
+            "        stat = open(f'/proc/{p}/stat').read()\n"
+            "    except OSError:\n"
+            "        continue\n"
+            "    fields = stat.rsplit(')', 1)[1].split()\n"
+            "    if fields[0] == 'Z' and int(fields[1]) == os.getppid():\n"
+            "        zombies.append(p)\n"
+            "print('zombies', zombies, flush=True)\n"
+            "sys.exit(4 if zombies else 0)\n")
+        self.start_worker()
+        job_id = self.submit("-p", "pa", "-c", "1", "--", PYTHON_FROZEN, str(script))
+        self.wait_until(lambda: self.state_of(job_id) in ("succeeded", "failed"), timeout=60, message="finished")
+        self.assertEqual(self.job(job_id)["exit_code"], 0, "an orphan stayed a zombie under the wrapper")
+
+
 class MockedOomTests(NodeFixture, unittest.TestCase):
     """The OOM path from the unit's state to the database, with no real OOM."""
 

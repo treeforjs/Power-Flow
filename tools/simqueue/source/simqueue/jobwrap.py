@@ -489,10 +489,13 @@ class Wrapper:
         )
         self.save()
 
+        # 0.7.1: the wrapper is a subreaper, so processes the job orphans are
+        # its children; reap them as they exit (any child), not only after the
+        # leader, or they stay zombies for the whole run
         returncode: int | None = None
         while returncode is None:
             try:
-                pid, wait_status = os.waitpid(child.pid, 0)
+                pid, wait_status = os.waitpid(-1, 0)
             except InterruptedError:
                 continue
             except ChildProcessError:

@@ -125,7 +125,9 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
     `status.json` and, for a killed job, from the unit's properties
     (`Result`, `ExecMainStatus`, `MemoryPeak`, `CPUUsageNSec`): units are no
     longer `--collect`ed, so a failed unit stays loaded until the worker has
-    read it and runs `systemctl --user reset-failed`. The wrapper wakes the
+    read it and runs `systemctl --user reset-failed`. A unit that ended
+    normally is unloaded at once, so its result (`success`, `exit-code`,
+    `signal`) follows from the wrapper's exit status. The wrapper wakes the
     worker itself when the command ends;
   - **OOMPolicy=stop** (`memory.oom.group` 0): `oom_kill_process` kills the
     one victim `oom_badness` picks -- which never picks an `in_vfork` task --
@@ -145,6 +147,12 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
     (backed up; a rollback restores it). Job units started by 0.7.0 keep
     their ExecStopPost until they end (the drop-in gives them
     OOMPolicy=stop meanwhile).
+- **Orphans are reaped while the job runs.** The job wrapper is a
+  subreaper, so processes a job orphans (daemonized helpers, MPI launchers)
+  become its children; 0.7.0 and earlier waited only for the leader, so
+  those that exited stayed zombies until the leader ended. The 0.7.1 wrapper
+  reaps any child as it exits (`test_oom_safety.py` checks it with a
+  double-forked process).
 - **Memory without `--mem`.** With `memory.auto_default` (on for zenobia) a
   job submitted without `--mem` gets `--mem auto` when its name (or name
   family) has a recorded peak, else the partition's or alias's default (4G).
@@ -178,7 +186,13 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
   and `SIMQUEUE_STATE_DIR` into the test directory: the first official 0.7.1
   run (job 1057) failed 43 tests because the 0.5-mode and ensemble tests ran
   against the live `node.json`, saw every live lease held and never started
-  their jobs (nothing reached the live queue).
+  their jobs (nothing reached the live queue). The second (job 1114) failed
+  only where the tests met the job's own surroundings: the exclusive-mode
+  fixture built overlapping P/E sets from a 2-CPU affinity (now one CPU each),
+  two restart tests counted the killed orphan's zombie (its parent, the live
+  0.7.0 wrapper, reaps only at the end) as alive (a zombie now counts as
+  exited), and `test_shield_helper.py` cannot be imported (as before; the
+  official runs list the suites without it).
 - **Older backups:** the secret-pattern environment values in the database
   copies of the four older upgrade backups were redacted in place on
   2026-11-05 with the migration's redaction (7, 60, 205 and 705 job rows; 0
