@@ -1,5 +1,37 @@
 # simqueue
 
+## 0.6.3: one pool, partition aliases, `simq run`
+
+zenobia has no partitions any more: one partition, `zenobia`, holds every
+physical core and the GPU, and every job requests from it
+(`../config/zenobia-node.json`; `../config/zenobia-16core-node.json` for the
+16-core Ryzen 9 9950X3D2, logical CPUs 0-15 as cores, 16-31 their SMT
+siblings). A partition in `node.json` may carry `aliases`: plain names, or
+objects that also set the defaults a job gets under that name
+(`default_cpus`, `default_mem`, `default_time`) and the cores tried first
+(`prefer_cpus`). `NodeConfig.partition()`, `find_partition()` and
+`canonical_partition()` resolve them, and every lookup by name uses these
+(submit, run, test-only, `--borrow-from`, ensembles, the scheduler, the
+borrow planner, the GPU line, adoption, `simq partitions`, `simq doctor`).
+The old names `spheral`, `raikou-mfem` and `powerflow` are aliases of the
+pool with their 0.6.2 defaults and cores, so existing scripts keep working
+and jobs recorded under those names are scheduled in the pool. A job keeps
+the name it was submitted with (database, listings, `SIMQ_PARTITION`,
+idempotency fingerprint).
+
+`borrow.backfill_waiting_owners` (on for zenobia) lets a borrow job use a
+free core that a waiting owner job needs when the borrow job's time limit
+ends before that owner job can start: in a single pool every waiting owner
+needs every core, and the 0.6.1 rule would hold all borrow jobs back.
+
+`simq run` (alias `srun`) takes the options of `simq submit`, queues the
+job, streams its log to stdout, waits and exits with the job's exit code
+(else 0 for succeeded, 1 otherwise); SIGINT/SIGTERM/SIGHUP cancel the job
+(exit 130/143/129). With `--idempotency-key` a replay reattaches to the
+existing job. No database change (schema 8). `../upgrade.py` installs 0.6.3
+over 0.6.2 (new `node.json`, layout checks) and rolls back;
+`../OPERATIONS.md` ("The pool", "`simq run`") documents both.
+
 ## 0.6.2: the GPU line
 
 A queued GPU job that is ready except for the GPU now wins the GPU lease

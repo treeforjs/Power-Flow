@@ -3,10 +3,10 @@
 
 Usage: run-tests.py [--cores LIST] [--wait-any [--min-cores N]] [--shared] [--receipt PATH] [PATTERN ...]
 
-0.6.2: tests run on cores 0-1 (lent by Spheral; the run refuses to start
-and stops when <pic-profile>/RETURN-CORES-0-3 exists) or 6-7 (Power-Flow's,
-as any-core.sh); cores 2-5 are never used.  Temporary files go to
-$SIMQ_TEST_TMPDIR (default: the 0.6.2 outputs directory), never /tmp.  The
+Tests run on cores 0-1 (the run refuses to start and stops when
+<pic-profile>/RETURN-CORES-0-3 exists) or 6-7 (as any-core.sh); cores 2-5
+are never used.  Temporary files go to $SIMQ_TEST_TMPDIR (default:
+<outputs>/simq063-test-tmp), never /tmp.  The
 directory is used by its resolved path: the outputs directory lies behind a
 symbolic link, and the wrapper compares a job's resolved working directory
 with its project root, as do the submit fingerprints.  test_switchover.py
@@ -21,8 +21,10 @@ SIMQ_TEST_CPUS so the tests place their real jobs only there.  Tests that
 need lease files of their own use temporary ones.
 
 While the tests run, a guard checks every two seconds for work that needs
-the leased cores: a job of the live spheral partition (cores 0-3) queued or
-running in the live queue database (read-only), or a process outside the
+the leased cores: an owner job queued or running in the live queue database
+(read-only) under a name whose cores include a leased one (0.6.2 partitions:
+spheral 0-3, powerflow 6-7; 0.6.3: the pool zenobia, every core, and its
+aliases with their old cores), or a process outside the
 test run whose CPU affinity lies within the leased cores (work pinned there
 without a lease, as Spheral runs and builds are).  It then
 stops every test unit (``simqt*``), releases the leases and exits with
@@ -60,10 +62,11 @@ LEASE_OVERRIDES = {6: "testing-core.lock"}
 FORBIDDEN = {2, 3, 4, 5}  # Spheral's own cores and the raikou-mfem allocation: never used by these tests
 LIVE_DATABASE = Path("/home/treefor/.local/state/simqueue/queue.sqlite3")
 GUARDED_PARTITIONS = ("spheral",)
-GUARDED_CORES = {0, 1, 2, 3}  # the spheral partition
-CORE_GROUPS = {"spheral": {0, 1, 2, 3}, "powerflow": {6, 7}}
+GUARDED_CORES = {0, 1, 2, 3}  # the spheral partition (0.6.2) and alias (0.6.3)
+# 0.6.3: zenobia is one pool of every core; the old names are its aliases
+CORE_GROUPS = {"spheral": {0, 1, 2, 3}, "powerflow": {6, 7}, "zenobia": set(range(8))}
 RETURN_FLAG = LEASE_DIR / "RETURN-CORES-0-3"
-DEFAULT_TMPDIR = Path("/home/treefor/projects/.workspace/outputs/simqueue-0.6.2-20261031/tmp")
+DEFAULT_TMPDIR = Path("/home/treefor/projects/.workspace/outputs/simq063-test-tmp")
 TEST_UNIT_PATTERN = "simqt*"
 
 
@@ -72,9 +75,11 @@ def guarded_partitions(cores) -> tuple[str, ...]:
 
 
 def guarded_cores(cores) -> set[int]:
+    """Cores whose pinned work counts against the run: the old partition
+    groups of the leased cores (the pool's group would be every core)."""
     found: set[int] = set()
-    for group in CORE_GROUPS.values():
-        if group & set(cores):
+    for name, group in CORE_GROUPS.items():
+        if name != "zenobia" and group & set(cores):
             found |= group
     return found or set(GUARDED_CORES)
 

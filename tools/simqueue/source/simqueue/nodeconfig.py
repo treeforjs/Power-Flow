@@ -4,10 +4,21 @@ A node configuration file switches SimQueue from the 0.5 serial queue
 (``legacy`` mode, driven by ``SIMQUEUE_PCORES``) to the concurrent node
 scheduler.  The file is JSON with schema ``simqueue-node-config-v1``.  Its
 path is ``$SIMQUEUE_CONFIG`` when set, otherwise ``<state dir>/node.json``.
+
+0.6.3: a partition may carry ``aliases``, further names under which jobs
+request it.  An alias is a plain name or an object that also sets the
+defaults a job gets when it names the alias (``default_cpus``,
+``default_mem``, ``default_time``) and the cores tried first
+(``prefer_cpus``); limits, GPUs, lending and the cores themselves stay the
+partition's.  Every partition-by-name lookup resolves aliases, so a single
+pool can keep the names of the partitions it replaced.  A job keeps the name
+it was submitted with (``SIMQ_PARTITION``, ``simq`` listings) and is
+scheduled under the partition the name resolves to.
 """
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import os
 import re
@@ -250,6 +261,11 @@ class Partition:
     lend: bool = True
     lend_leased_idle: bool = False
     timing_sensitive: bool = False
+    # 0.6.3: further names of this partition, and (in the view of an alias,
+    # see NodeConfig.find_partition) the alias used and its preferred cores.
+    aliases: tuple[str, ...] = ()
+    alias: str | None = None
+    prefer_cpus: tuple[int, ...] = ()
 
     def resolve_default_cpus(self) -> int:
         return len(self.cpus) if self.default_cpus is None else self.default_cpus
@@ -257,6 +273,23 @@ class Partition:
     def lends(self) -> bool:
         """Whether jobs of other partitions may borrow this partition's cores."""
         return self.lend and not self.timing_sensitive
+
+    def display_name(self) -> str:
+        """``pool`` or ``pool (as alias)`` for messages."""
+        return self.name if self.alias is None else f"{self.name} (as {self.alias})"
+
+
+@dataclass(frozen=True)
+class PartitionAlias:
+    """Another name of a partition (0.6.3), with optional own defaults."""
+
+    name: str
+    partition: str
+    description: str = ""
+    # Only the keys given in the configuration: default_cpus (int, or None
+    # for every core), default_mem (bytes), default_time (seconds or None).
+    defaults: tuple[tuple[str, Any], ...] = ()
+    prefer_cpus: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -274,6 +307,11 @@ class BorrowConfig:
     busy_threshold: float = 0.25
     freeze_max_s: float | None = 1800.0
     default_on_preempt: str = "requeue"
+    # 0.6.3: a free core that a waiting owner job needs may still be lent to
+    # a borrow job whose time limit ends no later than that owner job's
+    # earliest possible start (EASY backfill for borrow jobs).  False keeps
+    # the 0.6.1 rule: such cores are never lent while the owner job waits.
+    backfill_waiting_owners: bool = False
 
 
 @dataclass(frozen=True)
@@ -304,14 +342,44 @@ class NodeConfig:
     smt_siblings: dict[int, tuple[int, ...]] = field(default_factory=dict)
     # 0.6.2: the GPU line (fair hand-off of the GPU lease files; gpuline.py)
     line: LineConfig = field(default_factory=lambda: LineConfig(enabled=False))
+    # 0.6.3: alias name -> alias (see PartitionAlias)
+    aliases: dict[str, PartitionAlias] = field(default_factory=dict)
+
+    def canonical_partition(self, name: str | None) -> str:
+        """The partition a requested or recorded name stands for: the name
+        itself, the partition of an alias, or the default partition for no
+        name.  An unknown name is returned unchanged."""
+        key = name or self.default_partition
+        alias = self.aliases.get(key)
+        return alias.partition if alias is not None else key
+
+    def find_partition(self, name: str | None) -> Partition | None:
+        """The partition for a name, as seen through an alias: the alias's
+        defaults and preferred cores replace the partition's own.  ``None``
+        when the name is unknown."""
+        key = name or self.default_partition
+        alias = self.aliases.get(key)
+        if alias is None:
+            return self.partitions.get(key)
+        base = self.partitions.get(alias.partition)
+        if base is None:
+            return None
+        return dataclasses.replace(base, alias=alias.name, prefer_cpus=alias.prefer_cpus, **dict(alias.defaults))
 
     def partition(self, name: str | None) -> Partition:
-        key = name or self.default_partition
-        try:
-            return self.partitions[key]
-        except KeyError:
+        found = self.find_partition(name)
+        if found is None:
+            key = name or self.default_partition
             known = ", ".join(sorted(self.partitions))
-            raise ValueError(f"unknown partition {key!r} (configured: {known})") from None
+            if self.aliases:
+                known += "; aliases: " + ", ".join(sorted(self.aliases))
+            raise ValueError(f"unknown partition {key!r} (configured: {known})")
+        return found
+
+    def partition_names(self, name: str) -> tuple[str, ...]:
+        """Every name that resolves to the same partition as *name*."""
+        canonical = self.canonical_partition(name)
+        return (canonical, *(a for a, alias in self.aliases.items() if alias.partition == canonical))
 
     def node_cpus(self) -> tuple[int, ...]:
         cpus: set[int] = set()
@@ -545,6 +613,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
     if not isinstance(raw_partitions, list) or not raw_partitions:
         raise ConfigError("partitions must be a nonempty array")
     partitions: dict[str, Partition] = {}
+    aliases: dict[str, PartitionAlias] = {}
     online = online_cpus() if check_topology else None
     for index, raw in enumerate(raw_partitions):
         item = _object(raw, f"partitions[{index}]")
@@ -552,7 +621,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             item,
             {"name", "cpus", "cores", "gpus", "default_mem", "max_mem", "default_time", "max_time",
              "default_cpus", "swap_max", "enforce_time_limit", "nice", "description",
-             "lend", "lend_leased_idle", "timing_sensitive"},
+             "lend", "lend_leased_idle", "timing_sensitive", "aliases"},
             f"partitions[{index}]",
         )
         name = item.get("name")
@@ -636,6 +705,16 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             lend_leased_idle=policy["lend_leased_idle"],
             timing_sensitive=policy["timing_sensitive"],
         )
+        for alias in _parse_aliases(item.get("aliases", []), partitions[name]):
+            if alias.name in aliases:
+                raise ConfigError(f"duplicate partition alias {alias.name}")
+            aliases[alias.name] = alias
+        partitions[name] = dataclasses.replace(
+            partitions[name], aliases=tuple(a.name for a in aliases.values() if a.partition == name)
+        )
+    clash = sorted(set(aliases) & set(partitions))
+    if clash:
+        raise ConfigError(f"partition alias(es) {', '.join(clash)} also name a partition")
     default_partition = document.get("default_partition")
     if default_partition not in partitions:
         raise ConfigError("default_partition must name a configured partition")
@@ -649,6 +728,14 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             if not str(key).isdigit():
                 raise ConfigError("smt_siblings maps a CPU number to a CPU list")
             siblings[int(key)] = tuple(c for c in _cpu_list(value, f"smt_siblings[{key}]") if c != int(key))
+        if check_topology:
+            # 0.6.3: a written sibling map must describe this machine's CPU
+            measured = sibling_map(siblings)
+            wrong = sorted(cpu for cpu, found in measured.items() if set(found) != set(siblings[cpu]))
+            if wrong:
+                raise ConfigError(
+                    f"smt_siblings disagrees with this machine's topology for CPU(s) {format_cpu_list(wrong)}"
+                )
     elif check_topology:
         siblings = sibling_map(node_cpus)
     else:
@@ -671,7 +758,70 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         borrow=borrow,
         smt_siblings=siblings,
         line=line,
+        aliases=aliases,
     )
+
+
+def _parse_aliases(value: Any, partition: Partition) -> list[PartitionAlias]:
+    """The ``aliases`` of one partition: names, or objects with defaults."""
+    where = f"partition {partition.name} aliases"
+    if not isinstance(value, list):
+        raise ConfigError(f"{where} must be an array of names or objects")
+    result: list[PartitionAlias] = []
+    for index, raw in enumerate(value):
+        item = {"name": raw} if isinstance(raw, str) else _object(raw, f"{where}[{index}]")
+        _unknown(item, {"name", "description", "default_cpus", "default_mem", "default_time", "prefer_cpus"},
+                 f"{where}[{index}]")
+        name = item.get("name")
+        if not isinstance(name, str) or PARTITION_NAME_PATTERN.fullmatch(name) is None:
+            raise ConfigError(f"{where}[{index}].name is invalid")
+        label = f"partition {partition.name} alias {name}"
+        defaults: list[tuple[str, Any]] = []
+        if "default_cpus" in item:
+            cpus_value = item["default_cpus"]
+            if cpus_value == "all":
+                defaults.append(("default_cpus", None))
+            elif (isinstance(cpus_value, int) and not isinstance(cpus_value, bool)
+                  and 1 <= cpus_value <= len(partition.cpus)):
+                defaults.append(("default_cpus", cpus_value))
+            else:
+                raise ConfigError(f"{label}: default_cpus must be 'all' or 1..{len(partition.cpus)}")
+        try:
+            if "default_mem" in item:
+                mem = parse_size(item["default_mem"], field_name=f"{label} default_mem")
+                if mem <= 0 or mem > partition.max_mem:
+                    raise ConfigError(f"{label}: need 0 < default_mem <= the partition's max_mem")
+                defaults.append(("default_mem", mem))
+            if "default_time" in item:
+                limit = parse_time_limit(item["default_time"], field_name=f"{label} default_time")
+                if partition.max_time is not None and (limit is None or limit > partition.max_time):
+                    raise ConfigError(f"{label}: default_time must be set and <= the partition's max_time")
+                defaults.append(("default_time", limit))
+        except ValueError as error:
+            if isinstance(error, ConfigError):
+                raise
+            raise ConfigError(str(error)) from error
+        prefer: tuple[int, ...] = ()
+        if "prefer_cpus" in item:
+            raw_prefer = item["prefer_cpus"]
+            if isinstance(raw_prefer, list):
+                # an array keeps its order: the first listed core is tried first
+                if not all(isinstance(c, int) and not isinstance(c, bool) and c >= 0 for c in raw_prefer):
+                    raise ConfigError(f"{label}: prefer_cpus must be a CPU list or an array of CPU numbers")
+                prefer = tuple(dict.fromkeys(raw_prefer))
+            else:
+                prefer = _cpu_list(raw_prefer, f"{label} prefer_cpus")
+            outside = sorted(set(prefer) - set(partition.cpus))
+            if outside:
+                raise ConfigError(f"{label}: prefer_cpus {format_cpu_list(outside)} are not in the partition")
+        result.append(PartitionAlias(
+            name=name,
+            partition=partition.name,
+            description=str(item.get("description", "")),
+            defaults=tuple(defaults),
+            prefer_cpus=prefer,
+        ))
+    return result
 
 
 def _parse_borrow(value: Any) -> BorrowConfig:
@@ -680,7 +830,7 @@ def _parse_borrow(value: Any) -> BorrowConfig:
         raw,
         {"enabled", "slice", "slice_cpu_weight", "unit_cpu_weight", "idle_window_s", "busy_window_s",
          "idle_threshold", "cpu_idle_threshold", "busy_threshold", "freeze_max_s", "default_on_preempt",
-         "notes"},
+         "backfill_waiting_owners", "notes"},
         "borrow",
     )
     defaults = BorrowConfig()
@@ -715,6 +865,9 @@ def _parse_borrow(value: Any) -> BorrowConfig:
     mode = raw.get("default_on_preempt", defaults.default_on_preempt)
     if mode not in ON_PREEMPT_MODES:
         raise ConfigError(f"borrow.default_on_preempt must be one of {', '.join(ON_PREEMPT_MODES)}")
+    backfill = raw.get("backfill_waiting_owners", defaults.backfill_waiting_owners)
+    if not isinstance(backfill, bool):
+        raise ConfigError("borrow.backfill_waiting_owners must be true or false")
     return BorrowConfig(
         enabled=enabled,
         slice=slice_name,
@@ -727,6 +880,7 @@ def _parse_borrow(value: Any) -> BorrowConfig:
         busy_threshold=number("busy_threshold", 0.0, 1.0),
         freeze_max_s=None if freeze_max is None else float(freeze_max),
         default_on_preempt=mode,
+        backfill_waiting_owners=backfill,
     )
 
 
@@ -765,4 +919,20 @@ def describe_partition(partition: Partition) -> dict[str, Any]:
         "lend": partition.lend,
         "lend_leased_idle": partition.lend_leased_idle,
         "timing_sensitive": partition.timing_sensitive,
+        "aliases": list(partition.aliases),
+    }
+
+
+def describe_alias(config: NodeConfig, name: str) -> dict[str, Any]:
+    """An alias as ``simq partitions --json`` shows it: its effective defaults."""
+    alias = config.aliases[name]
+    view = config.partition(name)
+    return {
+        "name": name,
+        "partition": alias.partition,
+        "description": alias.description,
+        "default_cpus": view.resolve_default_cpus(),
+        "default_mem": view.default_mem,
+        "default_time_s": view.default_time,
+        "prefer_cpus": list(alias.prefer_cpus),
     }

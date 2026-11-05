@@ -468,7 +468,7 @@ class GpuQueue:
                 continue
             parts = {p.name for p in self.config.partitions.values() if uuid in p.gpus}
             candidates = [created_unix(j) for j in queued_gpu
-                          if (j.get("partition") or self.config.default_partition) in parts]
+                          if self.config.canonical_partition(j.get("partition")) in parts]
             if not candidates:
                 continue
             oldest = min(candidates)

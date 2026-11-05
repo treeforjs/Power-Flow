@@ -17,6 +17,11 @@ behaves exactly as 0.6.0.
 that is ready except for the GPU joins the line through a claim unit that
 wins the GPU lease files in the kernel queue and hands them to the job unit,
 so raw ``flock`` users can no longer take the GPU from it at every release.
+
+0.6.3 adds partition aliases (``nodeconfig.py``): a job recorded under an
+alias (for example a partition name from before a node became one pool) is
+scheduled, adopted and lent under the partition the alias resolves to, and
+keeps its recorded name in the database and in ``SIMQ_PARTITION``.
 """
 
 from __future__ import annotations
@@ -126,8 +131,10 @@ def job_allocation(job: dict[str, Any], config: NodeConfig) -> Allocation:
 
 
 def job_request(job: dict[str, Any], config: NodeConfig) -> Request:
+    # The recorded name may be an alias (0.6.3); its defaults apply to a job
+    # that has no recorded memory or time limit.
     partition_name = job.get("partition") or config.default_partition
-    partition = config.partitions.get(partition_name)
+    partition = config.find_partition(partition_name)
     cpu_request = None
     if job.get("cpu_request"):
         try:
@@ -201,7 +208,7 @@ def borrower_entries(jobs: list[dict[str, Any]], config: NodeConfig) -> list[Bor
         entries.append(
             Borrower(
                 job_id=int(job["id"]),
-                home=str(job.get("partition") or config.default_partition),
+                home=config.canonical_partition(job.get("partition")),
                 cpus=_job_cpus(job),
                 mem=int(job.get("mem_bytes") or 0),
                 on_preempt=str(job.get("on_preempt") or config.borrow.default_on_preempt),
@@ -879,7 +886,7 @@ class NodeWorker:
         if not unit or not thaw_unit(self.config.launch, unit):
             self._note_once(job_id, f"thaw-failed-{job.get('frozen_at')}", f"job {job_id}: cannot thaw {unit}")
             return
-        home = str(job.get("partition") or self.config.default_partition)
+        home = self.config.canonical_partition(job.get("partition"))
         on_preempt = str(job.get("on_preempt") or self.config.borrow.default_on_preempt)
         document = self._placement_document(home, on_preempt, placement, owner_of, cores)
         self.store.mark_resumed(job_id, document)
@@ -899,7 +906,10 @@ class NodeWorker:
     ) -> bool:
         config = self.config
         handoff = None if view is None else view.handoffs.get(request.job_id)
-        partition = config.partitions[request.partition]
+        # request.partition is the job's recorded name (a partition or an
+        # alias, 0.6.3); the job keeps it, the view resolves the partition.
+        partition = config.partition(request.partition)
+        recorded = request.partition
         borrow = allocation.borrow
         placement_doc: dict[str, Any] | None = None
         owner_idle: set[int] = set()
@@ -922,7 +932,7 @@ class NodeWorker:
             mem_bytes=mem,
             swap_bytes=swap,
             time_limit_s=request.time_limit,
-            partition=partition.name,
+            partition=recorded,
             unit_prefix=config.launch.unit_prefix,
             job_root=self.job_root,
             lock_paths=[{"path": lock.path, "mode": lock.mode, "resource": lock.resource} for lock in locks],
@@ -942,7 +952,7 @@ class NodeWorker:
             placement = placement_environment(
                 job=claimed,
                 config=config,
-                partition=partition.name,
+                partition=recorded,
                 allocation=Allocation(allocation.cpus, allocation.gpus, allocation.gpu_claim,
                                       allocation.gpu_exclusive, mem),
                 time_limit=request.time_limit,
@@ -976,7 +986,7 @@ class NodeWorker:
                 "status_path": str(job_dir / "status.json"),
                 "stop_post_path": str(job_dir / "stop-post.json"),
                 "cpu_list": placement["SIMQ_CPU_LIST"],
-                "partition": partition.name,
+                "partition": recorded if recorded == partition.name else f"{recorded} (pool {partition.name})",
                 "gpu_text": gpu_text,
                 "mem_text": f"{format_size(mem)} (swap {format_size(swap)})",
                 "time_text": format_time_limit(request.time_limit),
@@ -1033,7 +1043,8 @@ class NodeWorker:
                          result=None)
             return False
         self.log(
-            f"started {'borrow ' if borrow else ''}job {job_id} ({claimed['name']}) on partition {partition.name}: "
+            f"started {'borrow ' if borrow else ''}job {job_id} ({claimed['name']}) on partition "
+            f"{partition.display_name()}: "
             f"CPUs {placement['SIMQ_CPU_LIST']}, GPUs {placement['SIMQ_GPUS'] or 'none'}, "
             f"mem {format_size(mem)}, time {format_time_limit(request.time_limit)}, unit {unit}"
             + (f"; {spec.get('borrow_text')}" if borrow else "")
@@ -1057,6 +1068,7 @@ class NodeWorker:
             f"config {self.config.path}; partitions "
             + ", ".join(
                 f"{p.name}={format_cpu_list(p.cpus)}" + (f"+{len(p.gpus)}gpu" if p.gpus else "")
+                + (f" (aliases {','.join(p.aliases)})" if p.aliases else "")
                 for p in self.config.partitions.values()
             )
             + f"; drain={self.drain}"

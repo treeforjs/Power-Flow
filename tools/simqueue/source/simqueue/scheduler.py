@@ -37,7 +37,7 @@ INFINITY = math.inf
 @dataclass(frozen=True)
 class Request:
     job_id: int
-    partition: str
+    partition: str  # as submitted: a partition or an alias of one (0.6.3)
     ncpus: int
     cpu_list: tuple[int, ...] | None = None  # explicit cores
     gpus: int = 0
@@ -110,9 +110,13 @@ class Pool:
                 return None
             cpus = tuple(sorted(request.cpu_list))
         else:
+            # Truly free cores before cores a borrower occupies; then the
+            # cores the requested alias prefers (0.6.3), in its order; then
+            # the lowest-numbered.
+            rank = {cpu: index for index, cpu in enumerate(partition.prefer_cpus)}
             candidates = sorted(
                 (cpu for cpu in partition.cpus if cpu in self.free_cpus),
-                key=lambda cpu: (cpu in self.soft_cpus, cpu),
+                key=lambda cpu: (cpu in self.soft_cpus, rank.get(cpu, len(rank)), cpu),
             )
             if len(candidates) < request.ncpus:
                 return None
@@ -240,15 +244,17 @@ def plan(
     reservation: tuple[Request, Partition, float] | None = None
     held_partitions: set[str] = set()
     for request in queue:
-        partition = config.partitions.get(request.partition)
+        # The request names a partition or an alias (0.6.3); the alias view
+        # carries the alias's preferred cores, the hold is per partition.
+        partition = config.find_partition(request.partition)
         if partition is None:
             skipped[request.job_id] = f"unknown partition {request.partition}"
             continue
-        if request.partition in held_partitions:
+        if partition.name in held_partitions:
             skipped[request.job_id] = "held behind a paused ensemble"
             continue
         if request.blocked:
-            held_partitions.add(request.partition)
+            held_partitions.add(partition.name)
             skipped[request.job_id] = "paused ensemble"
             continue
         reason = request_is_feasible(request, partition, config)

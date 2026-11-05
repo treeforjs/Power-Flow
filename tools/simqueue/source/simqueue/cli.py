@@ -5,6 +5,7 @@ import json
 import os
 import pwd
 import shlex
+import signal
 import subprocess
 import sys
 import time
@@ -33,6 +34,7 @@ from .nodeconfig import (
     ConfigError,
     NodeConfig,
     config_path,
+    describe_alias,
     format_size,
     format_time_limit,
     load_node_config,
@@ -332,12 +334,18 @@ def _node_request(
     Returns (requested cores, stored scheduling fields, explicitly given
     fields).  Only the explicit fields enter the idempotency fingerprint, so
     a 0.5-style replay keeps its 0.5 fingerprint.
+
+    0.6.3: ``-p`` may name an alias of a partition.  The job is recorded
+    under the name given (so ``SIMQ_PARTITION`` and fingerprints keep it)
+    and gets the alias's defaults; limits are the partition's.
     """
     partition = config.partition(args.partition)
+    recorded = args.partition or config.default_partition
+    where = partition.display_name()
     explicit: dict[str, Any] = {}
     cpu_request = None
     cpu_list_arg = getattr(args, "cpus", None)
-    borrow = _borrow_options(args, config, partition.name)
+    borrow = _borrow_options(args, config, recorded)
     if cpu_list_arg is not None:
         cpus = parse_cpu_list(cpu_list_arg)
         if not cpus:
@@ -346,7 +354,7 @@ def _node_request(
         if outside:
             raise ValueError(
                 f"--cpus {cpu_list_arg}: CPU(s) {format_cpu_list(outside)} are not in partition "
-                f"{partition.name} ({format_cpu_list(partition.cpus)}); name each physical core by "
+                f"{where} ({format_cpu_list(partition.cpus)}); name each physical core by "
                 "its partition CPU"
             )
         cpu_request = format_cpu_list(cpus)
@@ -370,7 +378,7 @@ def _node_request(
             raise ValueError(f"--max-borrow-cores must be between {requested} (--cores) and {reachable}")
     elif requested < 1 or requested > len(partition.cpus):
         raise ValueError(
-            f"--cores must be between 1 and {len(partition.cpus)} in partition {partition.name}"
+            f"--cores must be between 1 and {len(partition.cpus)} in partition {where}"
         )
     gpus = getattr(args, "gpus", None)
     gpu_mem = None
@@ -387,7 +395,7 @@ def _node_request(
         explicit["gpus_requested"] = gpus
     gpus = gpus or 0
     if gpus > len(partition.gpus):
-        raise ValueError(f"partition {partition.name} has {len(partition.gpus)} GPU(s)")
+        raise ValueError(f"partition {where} has {len(partition.gpus)} GPU(s)")
     if gpus == 0 and gpu_mem is not None:
         raise ValueError("--gpu-mem needs --gpus 1 or more")
     if gpu_mem is not None:
@@ -402,7 +410,7 @@ def _node_request(
         mem = parse_size(args.mem, field_name="--mem")
         if mem <= 0 or mem > partition.max_mem:
             raise ValueError(
-                f"--mem must be between 1M and {format_size(partition.max_mem)} in partition {partition.name}"
+                f"--mem must be between 1M and {format_size(partition.max_mem)} in partition {where}"
             )
         explicit["mem_bytes"] = mem
     time_limit = partition.default_time
@@ -411,15 +419,15 @@ def _node_request(
         explicit["time_limit_s"] = time_limit
         if partition.max_time is not None and (time_limit is None or time_limit > partition.max_time):
             raise ValueError(
-                f"--time exceeds partition {partition.name}'s limit {format_time_limit(partition.max_time)}"
+                f"--time exceeds partition {where}'s limit {format_time_limit(partition.max_time)}"
             )
     priority = getattr(args, "priority", None)
     if priority is not None:
         explicit["priority"] = priority
     if args.partition is not None:
-        explicit["partition"] = partition.name
+        explicit["partition"] = recorded
     scheduling = {
-        "partition": partition.name,
+        "partition": recorded,
         "cpu_request": cpu_request,
         "gpus_requested": gpus,
         "gpu_mem_bytes": gpu_mem,
@@ -451,7 +459,10 @@ def _node_request(
 
 
 def _borrow_options(args: argparse.Namespace, config: NodeConfig, home: str) -> dict[str, Any] | None:
-    """Validate the 0.6.1 borrow options; ``None`` for an owner job."""
+    """Validate the 0.6.1 borrow options; ``None`` for an owner job.
+
+    *home* and the ``--borrow-from`` names may be aliases (0.6.3); they are
+    recorded as given and resolve to their partitions."""
     from .borrow import eligible_partitions, protected_cpus
     from .scheduler import Request
 
@@ -478,7 +489,7 @@ def _borrow_options(args: argparse.Namespace, config: NodeConfig, home: str) -> 
             raise ValueError("--borrow-from needs at least one partition")
         for name in names:
             part = config.partition(name)
-            if name != home and not part.lends():
+            if part.name != config.canonical_partition(home) and not part.lends():
                 why = "is timing-sensitive" if part.timing_sensitive else "does not lend (lend: false)"
                 raise ValueError(f"--borrow-from: partition {name} {why}")
     if maximum is not None and maximum < 1:
@@ -611,7 +622,11 @@ def _test_only(config: NodeConfig, store: QueueStore, requested: int, scheduling
     return 0
 
 
-def _submit(args: argparse.Namespace, store: QueueStore) -> int:
+def _enqueue(args: argparse.Namespace, store: QueueStore) -> int | tuple[dict[str, Any], dict[str, Any], str]:
+    """Validate and queue a command submission (``submit`` and ``run``).
+
+    Returns the job, the submission payload and the placement text, or the
+    exit status of ``--test-only`` (which queues nothing)."""
     node_config = load_node_config()
     scheduling: dict[str, Any] | None = None
     explicit: dict[str, Any] | None = None
@@ -668,7 +683,7 @@ def _submit(args: argparse.Namespace, store: QueueStore) -> int:
     cpu_list = format_cpu_list(pcores[:requested])
     placement_text = f"on P-cores {cpu_list}"
     if node_config is not None:
-        placement_text = f"in partition {job.get('partition')}: {_describe_request(job)}"
+        placement_text = f"in partition {_partition_text(node_config, job.get('partition'))}: {_describe_request(job)}"
     payload = {
         "schema_version": "simqueue-submit-result-v1",
         "kind": "command",
@@ -705,6 +720,22 @@ def _submit(args: argparse.Namespace, store: QueueStore) -> int:
             )
         if job.get("exclusive_timing"):
             payload["exclusive_timing"] = True
+    return job, payload, placement_text
+
+
+def _partition_text(config: NodeConfig, name: str | None) -> str:
+    """``name``, or ``alias (pool partition)`` for an alias (0.6.3)."""
+    recorded = name or config.default_partition
+    canonical = config.canonical_partition(recorded)
+    return recorded if canonical == recorded else f"{recorded} (pool {canonical})"
+
+
+def _submit(args: argparse.Namespace, store: QueueStore) -> int:
+    submitted = _enqueue(args, store)
+    if isinstance(submitted, int):
+        return submitted
+    job, payload, placement_text = submitted
+    created = bool(payload["created"])
     try:
         mode = _nudge_worker(store) if job["state"] not in TERMINAL_STATES else "terminal"
     except WorkerStartError as error:
@@ -748,6 +779,177 @@ def _submit(args: argparse.Namespace, store: QueueStore) -> int:
                 "queued until that ensemble is resumed or reordered."
             )
     return 0
+
+
+# ----- simq run (0.6.3) ---------------------------------------------------
+
+RUN_POLL_SECONDS = 0.2
+RUN_FINISH_GRACE_SECONDS = 2.0  # wait this long for the worker's last log lines
+RUN_CANCEL_WAIT_SECONDS = 20.0  # after a signal: wait this long for the job to end
+RUN_SIGNALS = (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)
+
+
+def _say(text: str) -> None:
+    print(f"simq: {text}", file=sys.stderr, flush=True)
+
+
+def _request_cancel(store: QueueStore, job_id: int) -> str:
+    """Cancel a job as ``simq cancel`` does; returns the state afterwards."""
+    state = store.cancel(job_id)
+    if state == "cancelling":
+        job = store.require(job_id)
+        node_config = load_node_config()
+        if node_config is not None and job.get("launch_backend") == "systemd-user" and job.get("unit_name"):
+            # the job unit is independent of the worker: stop it directly
+            stop_unit(node_config.launch, str(job["unit_name"]))
+        try:
+            _nudge_worker(store)
+        except WorkerStartError as error:
+            _say(f"cancellation is recorded, but the protected runner did not start: {error}")
+    return state
+
+
+def job_exit_status(job: dict[str, Any]) -> int:
+    """The exit status ``simq run`` returns for a finished job: the command's
+    own exit code when recorded (a signal N as 128+N, as a shell reports
+    it), else 0 for ``succeeded`` and 1 otherwise.  A job that did not
+    succeed never returns 0."""
+    code = job.get("exit_code")
+    succeeded = job.get("state") == "succeeded"
+    if code is None:
+        return 0 if succeeded else 1
+    code = int(code)
+    status = min(128 - code if code < 0 else code, 255)
+    if status == 0 and not succeeded:
+        return 1
+    return status
+
+
+class _LogFollower:
+    """Copies a job log to stdout as it grows (bytes, unchanged)."""
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+        self.offset = 0
+        self.tail = b""
+        self.stdout_open = True
+
+    def pump(self) -> None:
+        try:
+            with self.path.open("rb") as handle:
+                handle.seek(self.offset)
+                data = handle.read()
+        except OSError:
+            return
+        if not data:
+            return
+        self.offset += len(data)
+        self.tail = (self.tail + data)[-512:]
+        if not self.stdout_open:
+            return
+        try:
+            sys.stdout.buffer.write(data)
+            sys.stdout.buffer.flush()
+        except (BrokenPipeError, ValueError, OSError):
+            # nobody reads the output any more; keep waiting for the job
+            self.stdout_open = False
+
+
+def _follow_job(store: QueueStore, job_id: int, received: list[int]) -> int:
+    """Stream a job's log until it ends; cancel it once a signal is in
+    *received* (filled by the SIGINT/SIGTERM/SIGHUP handlers of ``_run``).
+
+    Returns the job's exit status (``job_exit_status``), or 128+signal when
+    a signal canceled it."""
+    follower = _LogFollower(Path(str(store.require(job_id)["log_path"])))
+    marker = f"===== simq job {job_id} finished =====".encode()
+    canceled_by: int | None = None
+    cancel_deadline = 0.0
+    terminal_since: float | None = None
+    last_state = None
+    while True:
+        follower.pump()
+        if received and canceled_by is None:
+            canceled_by = received[0]
+            name = signal.Signals(canceled_by).name
+            state = _request_cancel(store, job_id)
+            _say(f"{name}: canceling job {job_id} ({state})")
+            cancel_deadline = time.monotonic() + RUN_CANCEL_WAIT_SECONDS
+        elif canceled_by is not None and len(received) > 1:
+            _say(f"second signal: not waiting for job {job_id} to end (its cancellation is recorded)")
+            break
+        job = store.require(job_id)
+        state = str(job["state"])
+        if state != last_state and last_state is not None and state == "queued":
+            _say(f"job {job_id} was requeued (see `simq show {job_id}`)")
+        last_state = state
+        if state in TERMINAL_STATES:
+            if terminal_since is None:
+                terminal_since = time.monotonic()
+            if marker in follower.tail or time.monotonic() - terminal_since >= RUN_FINISH_GRACE_SECONDS:
+                follower.pump()
+                break
+        elif canceled_by is not None and time.monotonic() > cancel_deadline:
+            _say(f"job {job_id} is still {state}; its cancellation is recorded")
+            break
+        time.sleep(RUN_POLL_SECONDS)
+    job = store.require(job_id)
+    if canceled_by is not None:
+        return 128 + int(canceled_by)
+    status = job_exit_status(job)
+    detail = f"exit {job['exit_code']}" if job.get("exit_code") is not None else "no exit code"
+    _say(f"job {job_id} {job['state']} ({detail}); exit status {status}")
+    return status
+
+
+def _run(args: argparse.Namespace, store: QueueStore) -> int:
+    """``simq run``: submit, stream the job's output, wait, return its status
+    (Slurm ``srun``-shaped; the command runs in its own job unit as for
+    ``submit``, stdin is not forwarded).  The signal handlers are in place
+    before the job is queued, so a signal during the submission cancels the
+    job right after it."""
+    received: list[int] = []
+
+    def on_signal(signum: int, _frame: Any) -> None:
+        received.append(signum)
+
+    previous = {sig: signal.signal(sig, on_signal) for sig in RUN_SIGNALS}
+    try:
+        return _run_with_handlers(args, store, received)
+    finally:
+        for sig, handler in previous.items():
+            signal.signal(sig, handler)
+
+
+def _run_with_handlers(args: argparse.Namespace, store: QueueStore, received: list[int]) -> int:
+    submitted = _enqueue(args, store)
+    if isinstance(submitted, int):
+        return submitted  # --test-only
+    job, payload, placement_text = submitted
+    job_id = int(job["id"])
+    created = bool(payload["created"])
+    try:
+        mode = _nudge_worker(store) if job["state"] not in TERMINAL_STATES else "terminal"
+    except WorkerStartError as error:
+        payload["worker_mode"] = "error"
+        payload["worker_error"] = str(error)
+        _say(json.dumps(payload, ensure_ascii=False, sort_keys=True) if args.json
+             else f"job {job_id} ({job['name']}) remains queued, but the protected runner did not start: {error}")
+        return 1
+    payload["worker_mode"] = mode
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, sort_keys=True), file=sys.stderr, flush=True)
+    elif created:
+        _say(f"job {job_id} ({job['name']}) queued {placement_text}")
+    else:
+        _say(f"attached to existing job {job_id} ({job['name']}, {job['state']}) {placement_text}")
+    if mode == "disabled":
+        _say("worker autostart is disabled; waiting for a worker to run the job")
+    elif mode == "paused":
+        _say("the queue is paused; waiting until it is resumed")
+    elif mode == "ensemble-paused":
+        _say("an ensemble is paused at the dispatch head; waiting until it is resumed or reordered")
+    return _follow_job(store, job_id, received)
 
 
 def _ensemble_manifest(args: argparse.Namespace) -> dict[str, Any]:
@@ -1068,9 +1270,16 @@ def _show(job_id: int, store: QueueStore) -> int:
         ("Message", job["message"] or "-"),
     ]
     if job.get("partition") or job.get("launch_backend"):
+        partition_text = str(job.get("partition") or "-")
+        try:
+            show_config = load_node_config()
+        except ConfigError:
+            show_config = None
+        if show_config is not None and job.get("partition"):
+            partition_text = _partition_text(show_config, str(job["partition"]))
         fields.extend(
             [
-                ("Partition", job.get("partition") or "-"),
+                ("Partition", partition_text),
                 ("Priority", job.get("priority") or 0),
                 ("Request", _describe_request(job)),
                 ("GPUs", job.get("gpu_list") or "none"),
@@ -1452,10 +1661,11 @@ def _node_status(config: NodeConfig, store: QueueStore, *, sample_s: float = 0.0
             else:
                 entry.update({"state": "free", "class": "free"})
             cpus.append(entry)
-        queued = [j for j in jobs if j["state"] == "queued" and (j.get("partition") or config.default_partition) == part.name]
+        queued = [j for j in jobs if j["state"] == "queued" and config.canonical_partition(j.get("partition")) == part.name]
         partitions.append(
             {
                 "name": part.name,
+                "aliases": [describe_alias(config, name) for name in part.aliases],
                 "default": part.name == config.default_partition,
                 "cpus": cpus,
                 "gpus": list(part.gpus),
@@ -1608,6 +1818,12 @@ def _partitions(args: argparse.Namespace, store: QueueStore) -> int:
             f"{name:<13} {format_cpu_list(cpus):<8} {free:<5} {len(part['gpus']):<5} {mems:<13} "
             f"{times:<27} {queued:<7} {_policy_text(part)}"
         )
+        for alias in part.get("aliases") or []:
+            prefer = f", prefers CPUs {format_cpu_list(alias['prefer_cpus'])}" if alias["prefer_cpus"] else ""
+            print(
+                f"  alias {alias['name']}: defaults {alias['default_cpus']} core(s), "
+                f"{format_size(alias['default_mem'])}, {format_time_limit(alias['default_time_s'])}{prefer}"
+            )
         for cpu in part["cpus"]:
             print(f"    CPU {cpu['cpu']}: {_core_text(cpu)}")
     for gpu in status["gpus"]:
@@ -1767,6 +1983,7 @@ def _node_doctor(config: NodeConfig, store: QueueStore) -> int:
         ("Default partition", config.default_partition),
         ("Partitions", "; ".join(
             f"{p.name}={format_cpu_list(p.cpus)}" + (f"+{len(p.gpus)}GPU" if p.gpus else "")
+            + (f" (aliases {', '.join(p.aliases)})" if p.aliases else "")
             for p in config.partitions.values()
         )),
         ("Lease files", lock_detail),
@@ -1822,7 +2039,7 @@ def _add_ensemble_manifest_options(parser: argparse.ArgumentParser) -> None:
 def _add_node_request_options(parser: argparse.ArgumentParser, *, cpus: bool, gpus: bool) -> None:
     parser.add_argument(
         "-p", "--partition", metavar="PARTITION",
-        help="node mode: partition (default: the configured default partition)",
+        help="node mode: partition or partition alias (default: the configured default partition)",
     )
     if cpus:
         parser.add_argument(
@@ -1868,6 +2085,50 @@ def _add_borrow_options(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def _add_submit_arguments(parser: argparse.ArgumentParser) -> None:
+    """Options of ``simq submit`` (and ``simq run``, which takes the same)."""
+    parser.add_argument("-n", "-J", "--name", "--job-name", dest="name", help="short job name")
+    parser.add_argument("-C", "--cwd", help="working directory (default: current directory)")
+    parser.add_argument(
+        "-c",
+        "--cores",
+        "--cpus-per-task",
+        dest="cores",
+        type=int,
+        help="physical cores (one logical CPU each; default: the default of the partition "
+        "or alias named by -p)",
+    )
+    _add_node_request_options(parser, cpus=True, gpus=True)
+    parser.add_argument(
+        "-e",
+        "--env",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="set a job environment variable (repeatable)",
+    )
+    parser.add_argument(
+        "--shell",
+        metavar="COMMAND",
+        help="run COMMAND with /bin/bash -lc (explicit shell mode)",
+    )
+    parser.add_argument(
+        "--idempotency-key",
+        metavar="KEY",
+        help="return the existing job when KEY is replayed with the same request",
+    )
+    parser.add_argument(
+        "--json", action="store_true", help="print a structured submission result"
+    )
+    parser.add_argument(
+        "--test-only",
+        action="store_true",
+        help="node mode: validate the request and show where it would run now; queue nothing",
+    )
+    _add_borrow_options(parser)
+    parser.add_argument("command", nargs=argparse.REMAINDER, help="command after --")
+
+
 def build_parser() -> argparse.ArgumentParser:
     invoked_as = Path(sys.argv[0]).name
     program = invoked_as if invoked_as in {"simq", "simqueue"} else "simq"
@@ -1889,46 +2150,20 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="action")
 
     submit = subparsers.add_parser("submit", aliases=["add"], help="enqueue a command")
-    submit.add_argument("-n", "-J", "--name", "--job-name", dest="name", help="short job name")
-    submit.add_argument("-C", "--cwd", help="working directory (default: current directory)")
-    submit.add_argument(
-        "-c",
-        "--cores",
-        "--cpus-per-task",
-        dest="cores",
-        type=int,
-        help="physical cores (one logical CPU each; default: the partition default, "
-        "normally all of its cores, as in 0.5)",
+    _add_submit_arguments(submit)
+    run = subparsers.add_parser(
+        "run", aliases=["srun"],
+        help="submit a command, stream its output and wait for it (srun-shaped)",
+        description=(
+            "Submit COMMAND with the options of `simq submit`, print the job ID, stream the job's "
+            "combined log while it grows, wait until the job ends and exit with its exit code "
+            "(0 for succeeded, 1 for other ends without one). SIGINT, SIGTERM or SIGHUP cancel the "
+            "job and exit with 128+signal. With --idempotency-key, a replay of the same request "
+            "reattaches to the existing job instead of submitting a second one. Messages go to "
+            "stderr; stdout carries only the job log."
+        ),
     )
-    _add_node_request_options(submit, cpus=True, gpus=True)
-    submit.add_argument(
-        "-e",
-        "--env",
-        action="append",
-        default=[],
-        metavar="KEY=VALUE",
-        help="set a job environment variable (repeatable)",
-    )
-    submit.add_argument(
-        "--shell",
-        metavar="COMMAND",
-        help="run COMMAND with /bin/bash -lc (explicit shell mode)",
-    )
-    submit.add_argument(
-        "--idempotency-key",
-        metavar="KEY",
-        help="return the existing job when KEY is replayed with the same request",
-    )
-    submit.add_argument(
-        "--json", action="store_true", help="print a structured submission result"
-    )
-    submit.add_argument(
-        "--test-only",
-        action="store_true",
-        help="node mode: validate the request and show where it would run now; queue nothing",
-    )
-    _add_borrow_options(submit)
-    submit.add_argument("command", nargs=argparse.REMAINDER, help="command after --")
+    _add_submit_arguments(run)
 
     listing = subparsers.add_parser("list", aliases=["ls", "status"], help="list jobs")
     listing.add_argument(
@@ -2080,6 +2315,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
         if args.action in ("submit", "add"):
             return _submit(args, store)
+        if args.action in ("run", "srun"):
+            return _run(args, store)
         if args.action in ("list", "ls", "status"):
             if args.limit < 1:
                 raise ValueError("--limit must be positive")

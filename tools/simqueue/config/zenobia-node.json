@@ -1,7 +1,7 @@
 {
   "schema": "simqueue-node-config-v1",
   "node": "zenobia",
-  "default_partition": "spheral",
+  "default_partition": "zenobia",
   "memory_schedulable": "28G",
   "gpus": [
     {
@@ -47,15 +47,18 @@
     "busy_threshold": 0.25,
     "freeze_max_s": 1800,
     "default_on_preempt": "requeue",
-    "notes": "Borrow jobs (simq submit --borrow) run in simqborrow.slice, a top-level slice of the user manager with cpu.idle=1, as units with CPUWeight=1, SCHED_IDLE and idle I/O class: every owner job unit and every process of the terminal sessions wins the CPU. A lease holder or owner job is idle when its process tree used at most idle_threshold cores above a whole number over idle_window_s and the core itself was at most cpu_idle_threshold busy; a borrower lent such a core is preempted when the tree uses more than the cores left to it plus busy_threshold over busy_window_s. A frozen borrower is requeued after freeze_max_s or shortly before its time limit."
+    "notes": "Borrow jobs (simq submit --borrow) run in simqborrow.slice, a top-level slice of the user manager with cpu.idle=1, as units with CPUWeight=1, SCHED_IDLE and idle I/O class: every owner job unit and every process of the terminal sessions wins the CPU. A lease holder or owner job is idle when its process tree used at most idle_threshold cores above a whole number over idle_window_s and the core itself was at most cpu_idle_threshold busy; a borrower lent such a core is preempted when the tree uses more than the cores left to it plus busy_threshold over busy_window_s. A frozen borrower is requeued after freeze_max_s or shortly before its time limit. backfill_waiting_owners (0.6.3): a free core that a waiting owner job needs is lent only to a borrow job whose time limit ends before that owner job can start (EASY backfill); without it such cores are not lent at all while the owner job waits, which in a single pool would hold every borrow job back whenever any owner job waits.",
+    "backfill_waiting_owners": true
   },
   "partitions": [
     {
-      "name": "spheral",
-      "description": "Zapdos-Raikou-Spheral work",
-      "cpus": "0-3",
-      "gpus": [],
-      "default_cpus": "all",
+      "name": "zenobia",
+      "description": "zenobia: one pool of every physical core and the GPU (0.6.3: no partitions)",
+      "cpus": "0-7",
+      "gpus": [
+        "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
+      ],
+      "default_cpus": 4,
       "default_mem": "18G",
       "max_mem": "20G",
       "swap_max": "1G",
@@ -63,49 +66,53 @@
       "max_time": "14-00:00:00",
       "lend": true,
       "lend_leased_idle": false,
-      "timing_sensitive": false
-    },
-    {
-      "name": "raikou-mfem",
-      "description": "raikou-mfem port",
-      "cpus": "4-5",
-      "gpus": [
-        "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
-      ],
-      "default_cpus": "all",
-      "default_mem": "4G",
-      "max_mem": "12G",
-      "swap_max": "1G",
-      "default_time": "12:00:00",
-      "max_time": "7-00:00:00",
-      "lend": true,
-      "lend_leased_idle": false,
-      "timing_sensitive": false
-    },
-    {
-      "name": "powerflow",
-      "description": "Power-Flow",
-      "cpus": "6-7",
-      "gpus": [
-        "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
-      ],
-      "default_cpus": "all",
-      "default_mem": "4G",
-      "max_mem": "12G",
-      "swap_max": "1G",
-      "default_time": "12:00:00",
-      "max_time": "7-00:00:00",
-      "lend": true,
-      "lend_leased_idle": false,
-      "timing_sensitive": false
+      "timing_sensitive": false,
+      "aliases": [
+        {
+          "name": "spheral",
+          "description": "the spheral partition before 0.6.3 (cores 0-3)",
+          "default_cpus": 4,
+          "default_mem": "18G",
+          "default_time": "2-00:00:00",
+          "prefer_cpus": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "name": "raikou-mfem",
+          "description": "the raikou-mfem partition before 0.6.3 (cores 4-5, GPU)",
+          "default_cpus": 2,
+          "default_mem": "4G",
+          "default_time": "12:00:00",
+          "prefer_cpus": [
+            4,
+            5
+          ]
+        },
+        {
+          "name": "powerflow",
+          "description": "the powerflow partition before 0.6.3 (cores 6-7, GPU)",
+          "default_cpus": 2,
+          "default_mem": "4G",
+          "default_time": "12:00:00",
+          "prefer_cpus": [
+            6,
+            7
+          ]
+        }
+      ]
     }
   ],
   "notes": [
-    "Each partition names physical cores by their lowest logical CPU (0-7); SMT siblings 8-15 are never allocated.",
+    "0.6.3: no partitions. One pool, zenobia, of the 8 physical cores (each named by its lowest logical CPU, 0-7) and the GPU; every job requests from it. SMT siblings 8-15 are never allocated.",
+    "The partition names used before 0.6.3 (spheral, raikou-mfem, powerflow) are aliases of zenobia: -p spheral|raikou-mfem|powerflow keeps working, with the defaults those partitions had (cores, memory, time) and their old cores tried first (prefer_cpus); limits are the pool's. A job keeps the name it was submitted with (SIMQ_PARTITION, simq listings). Jobs recorded under these names before 0.6.3 are adopted and scheduled under zenobia.",
+    "Without -p a job goes to zenobia with the defaults of the old default partition (spheral): 4 cores, 18G, 2 days, lowest free cores first. Limits: 20G memory, 14 days (the largest of the old partitions).",
     "memory_schedulable is the sum of --mem over concurrent jobs (31 GiB RAM; about 3 GiB left for the system).",
-    "The GPU is shared by raikou-mfem and powerflow: exclusive per job unless --gpu-mem is given and the 11G budget allows sharing.",
-    "Lending (0.6.1): every partition lends its free cores and the idle cores of its running jobs to borrow jobs (lend: true). Cores leased by tools outside the queue (any-core.sh, both-cores.sh, pf-launch) are not lent (lend_leased_idle: false): such holders have no time limit and no way to mark timing runs.",
-    "powerflow is not timing_sensitive as a partition: timing-sensitive Power-Flow runs submit with --exclusive-timing, which keeps the job's cores and their SMT siblings unlent while it runs, and its other core stays usable by borrow jobs. Set timing_sensitive: true on a partition to keep borrow jobs off all of its cores and siblings, including its own borrow jobs.",
+    "The GPU is a scheduled resource of the pool: exclusive per job unless --gpu-mem is given and the 11G budget allows sharing; queued GPU jobs win the GPU lease files through the GPU line.",
+    "Lending: free cores and the idle cores of running owner jobs go to borrow jobs (lend: true). Cores leased by tools outside the queue (any-core.sh, both-cores.sh, pf-launch) are not lent (lend_leased_idle: false). Timing-sensitive runs submit with --exclusive-timing, which keeps the job's cores and their SMT siblings unlent while it runs.",
     "No GPU is ever lent: borrow jobs cannot request GPUs."
   ],
   "gpu_line": {

@@ -142,9 +142,9 @@ class MigrationTests(unittest.TestCase):
         # The running 0.5 job keeps its CPUs for the node scheduler.
         from simqueue.nodeworker import job_allocation, job_request
         from simqueue.scheduler import Request
-        from test_scheduler import zenobia
+        from test_scheduler import zenobia_062
 
-        config = zenobia()
+        config = zenobia_062()
         running = store.require(ids[1])
         self.assertEqual(job_allocation(running, config).cpus, (0, 1, 2, 3))
         self.assertEqual(job_allocation(running, config).mem, 18 * 1024**3)

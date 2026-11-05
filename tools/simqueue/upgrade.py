@@ -1,55 +1,68 @@
 #!/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen
-"""Upgrade the node from SimQueue 0.6.1 to 0.6.2, or roll back.  Dry run by default.
+"""Upgrade the node from SimQueue 0.6.2 to 0.6.3, or roll back.  Dry run by default.
 
-    upgrade.py install  [--execute] [--keep-node-config] [--adoption-timeout S] [--starting-timeout S]
-                        [--no-auto-rollback] [--require-doctor]
+    upgrade.py install  [--execute] [--config FILE] [--keep-node-config] [--adoption-timeout S]
+                        [--starting-timeout S] [--no-auto-rollback] [--require-doctor]
     upgrade.py rollback --backup DIR [--execute]
     upgrade.py status
 
-Job units are independent of the worker, so running jobs are never touched:
-the worker is stopped, its wrapper and unit are switched to the other
-runtime, and the restarted worker re-adopts every running job unit.  0.6.2
-keeps the 0.6.1 database (schema 8) as it is; nothing is migrated.
+0.6.3 replaces zenobia's three partitions by one pool of every physical core
+(config/zenobia-node.json; config/zenobia-16core-node.json after the CPU
+change), with the old partition names as aliases.  Job units are independent
+of the worker, so running jobs are never touched: the worker is stopped, its
+wrapper, unit and node.json are switched, and the restarted worker re-adopts
+every running job unit by unit name and launch token, and every GPU claim
+unit.  0.6.3 keeps the 0.6.2 database (schema 8) as it is: nothing is
+migrated and no row changes; jobs recorded under the old partition names are
+scheduled under the pool through the aliases.
 
 install (with --execute):
-  1. preflight: 0.6.2 runtime sealed, its node config valid and equal to the
-     live node.json apart from the 0.6.2 key (gpu_line) and notes; wrapper
-     points at 0.6.1; database schema 8; records the active jobs and units
+  1. preflight: 0.6.3 runtime sealed; the new node config valid for 0.6.3 on
+     this machine; it equals the live node.json apart from the partition
+     layout (partitions, default_partition, smt_siblings), the 0.6.3 borrow
+     key backfill_waiting_owners and the notes; the layout change keeps every
+     core and GPU of the live configuration, and every partition name of the
+     live configuration and of every queued or active job resolves in the
+     new one (as a partition or an alias); wrapper points at 0.6.2; database
+     schema 8; records the active jobs, their units and the GPU claim units
   2. waits until no job is in state "starting" (--starting-timeout), stops
-     simqueue.service (job units keep running) and checks again: a job that
-     became "starting" meanwhile makes the install start the 0.6.1 worker
-     again and stop without changing anything
+     simqueue.service (job and claim units keep running) and checks again: a
+     job that became "starting" meanwhile makes the install start the 0.6.2
+     worker again and stop without changing anything
   3. backs up the database (sqlite3 backup API, source opened read-only),
      the wrapper, the simqueue link, the unit files (with simqborrow.slice),
      node.json and worker.log, with sha256 sums in manifest.json
-  4. installs the 0.6.2 wrapper, link, simqueue.service and node.json --
-     from here on every `simq` call runs 0.6.2
-  5. opens the database with the 0.6.2 code and checks that its schema and
+  4. installs the 0.6.3 wrapper, link, simqueue.service and node.json --
+     from here on every `simq` call runs 0.6.3
+  5. opens the database with the 0.6.3 code and checks that its schema and
      every column of every row are unchanged
   6. daemon-reload, enable, start simqueue.service
-  7. verifies: the 0.6.2 worker started, every job unit that was active
-     before is adopted (worker.log "adopted job N") or has been recorded as
-     finished, the GPU line state file is published by 0.6.2, `simq doctor`
-     and `simq partitions` run
+  7. verifies: the 0.6.3 worker started with the new layout, every job unit
+     that was active before is adopted (worker.log "adopted job N") or has
+     been recorded as finished, every GPU claim unit that was active is
+     adopted or has ended, the GPU line state file is published by 0.6.3,
+     `simq doctor` and `simq partitions` run
   On a failed verification the install rolls itself back (unless
   --no-auto-rollback).  Receipt: <backup>/install-receipt.json
 
 rollback --backup DIR (with --execute):
   1. checks the backup against its manifest
-  2. stops simqueue.service (job units keep running; the 0.6.2 worker
+  2. stops simqueue.service (job units keep running; the 0.6.3 worker
      withdraws the published GPU line state)
-  3. stops the GPU claim units of 0.6.2 (they wait for or hold the GPU lease
-     files for queued jobs, and 0.6.1 does not hand them over); job units
-     are never stopped
+  3. stops the GPU claim units of 0.6.3 (the 0.6.2 worker plans with the
+     restored partitions and sets up its own); job units are never stopped
   4. keeps a copy of the database in the backup directory
   5. restores the wrapper, link, unit files and node.json byte for byte
-  6. checks that the 0.6.1 code opens the database (schema 8, unchanged)
-  7. daemon-reload, start simqueue.service (0.6.1) and verifies that it
+  6. checks that the 0.6.2 code opens the database (schema 8, unchanged)
+  7. daemon-reload, start simqueue.service (0.6.2) and verifies that it
      adopted every active job unit
+  Jobs queued under a name the restored node.json does not know (the pool
+  name, zenobia) stay queued under 0.6.2 ("unknown partition"); rollback
+  lists them.  Jobs queued under the old names run under 0.6.2 as before.
   Receipt: <backup>/rollback-receipt.json
 
-Job units started by 0.6.2 run the 0.6.2 jobwrap.py: keep the 0.6.2 runtime
-directory after a rollback until they have ended (and the 0.6.1 directory
+Job units started by 0.6.3 run the 0.6.3 jobwrap.py: keep the 0.6.3 runtime
+directory after a rollback until they have ended (and the 0.6.2 directory
 after the install, for the same reason).
 
 --home, --project-root, --systemctl, --service, --runtime and --old-runtime
@@ -75,17 +88,42 @@ from pathlib import Path
 
 
 RUNTIME = Path(__file__).resolve().parent
-OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.6.1-20261031")
-FROM_VERSION, TO_VERSION = "0.6.1", "0.6.2"
+OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.6.2-20261031")
+FROM_VERSION, TO_VERSION = "0.6.2", "0.6.3"
 PYTHON = "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen"
 REAL_HOME = "/home/treefor"
 UNIT_FILES = ("simqueue.service", "simqueue-spheral-dispatch.path", "simqueue-spheral-dispatch.service",
               "simqborrow.slice")
-# Keys added by 0.6.2 to the node configuration; everything else must match.
-NEW_CONFIG_KEYS = {"gpu_line"}
+# What 0.6.3 may change in the node configuration; everything else must match.
+# The partition layout is checked separately (layout_problems).
+LAYOUT_KEYS = {"partitions", "default_partition", "smt_siblings"}
+NEW_BORROW_KEYS = {"backfill_waiting_owners", "notes"}
 NEW_LOCK_KEYS = {"notes"}
-SCHEMA = 8  # unchanged by 0.6.2
+SCHEMA = 8  # unchanged by 0.6.3
 ACTIVE_STATES = ("starting", "running", "cancelling")
+# Run with the 0.6.3 code (python_in): both layouts as the scheduler reads them.
+LAYOUT_PROBE = r"""
+import json
+from pathlib import Path
+from simqueue.config import format_cpu_list
+from simqueue.nodeconfig import load_node_config, parse_node_config
+live = parse_node_config(json.loads(Path(sys.argv[2]).read_text()), path=Path(sys.argv[2]), check_topology=False)
+new = load_node_config(Path(sys.argv[3]))
+names = json.loads(sys.argv[4])
+def layout(config):
+    return [{"name": p.name, "cpus": format_cpu_list(p.cpus), "gpus": len(p.gpus), "aliases": list(p.aliases)}
+            for p in config.partitions.values()]
+print(json.dumps({
+    "live": layout(live), "new": layout(new),
+    "live_cpus": list(live.node_cpus()), "new_cpus": list(new.node_cpus()),
+    "live_gpus": sorted(live.gpus), "new_gpus": sorted(new.gpus),
+    "live_names": sorted(set(live.partitions) | set(live.aliases)),
+    "resolves": {name: (new.canonical_partition(name) if new.find_partition(name) is not None else None)
+                 for name in sorted(set(names) | set(live.partitions) | set(live.aliases))},
+    "default": new.default_partition,
+    "backfill_waiting_owners": new.borrow.backfill_waiting_owners,
+}))
+"""
 
 
 def now_tag() -> str:
@@ -100,11 +138,42 @@ def sha256(path: Path) -> str | None:
 
 
 def comparable_config(document: dict) -> dict:
-    """The node configuration without the key 0.6.2 adds (and notes)."""
-    result = {k: v for k, v in document.items() if k not in NEW_CONFIG_KEYS and k != "notes"}
+    """The node configuration without what 0.6.3 may change: the partition
+    layout (checked by layout_problems), the new borrow key and the notes."""
+    result = {k: v for k, v in document.items() if k not in LAYOUT_KEYS and k != "notes"}
     if "lock_files" in result:
         result["lock_files"] = {k: v for k, v in result["lock_files"].items() if k not in NEW_LOCK_KEYS}
+    if "borrow" in result:
+        result["borrow"] = {k: v for k, v in result["borrow"].items() if k not in NEW_BORROW_KEYS}
     return result
+
+
+def layout_text(layout: list[dict]) -> str:
+    return ", ".join(
+        f"{p['name']}={p['cpus']}" + (f"+{p['gpus']}gpu" if p["gpus"] else "")
+        + (f" (aliases {', '.join(p['aliases'])})" if p["aliases"] else "")
+        for p in layout
+    )
+
+
+def layout_problems(probe: dict, job_names: dict[str, list[int]]) -> list[str]:
+    """Why the new partition layout cannot replace the live one."""
+    problems = []
+    lost = sorted(set(probe["live_cpus"]) - set(probe["new_cpus"]))
+    if lost:
+        problems.append(f"the new node config drops CPU(s) {lost} of the live one")
+    gone = sorted(set(probe["live_gpus"]) - set(probe["new_gpus"]))
+    if gone:
+        problems.append(f"the new node config drops GPU(s) {gone}")
+    for name in probe["live_names"]:
+        if probe["resolves"].get(name) is None:
+            problems.append(f"partition name {name!r} of the live node config is neither a partition nor an alias "
+                            "in the new one (scripts using -p " + name + " would fail)")
+    for name, jobs in sorted(job_names.items()):
+        if probe["resolves"].get(name) is None:
+            problems.append(f"job(s) {jobs} recorded under partition {name!r} could not be scheduled with the new "
+                            "node config")
+    return problems
 
 
 def database_summary(path: Path) -> dict:
@@ -122,8 +191,17 @@ def database_summary(path: Path) -> dict:
                 + ", launch_token FROM jobs WHERE state IN ('starting', 'running', 'cancelling') ORDER BY id"
             )
         ]
+        # queued and active jobs by recorded partition name (NULL: a 0.5 job, default partition)
+        partition = "partition" if "partition" in columns else "NULL"
+        unfinished: dict[str, list[int]] = {}
+        for job_id, name in connection.execute(
+            f"SELECT id, {partition} FROM jobs WHERE state IN ('queued', 'starting', 'running', 'cancelling') "
+            "ORDER BY id"
+        ):
+            unfinished.setdefault(name or "", []).append(int(job_id))
     return {"user_version": version, "jobs": count, "states": states, "columns": columns, "active": active,
-            "starting": [job["id"] for job in active if job["state"] == "starting"]}
+            "starting": [job["id"] for job in active if job["state"] == "starting"],
+            "unfinished_by_partition": unfinished}
 
 
 def row_digests(path: Path, columns: list[str]) -> dict[int, str]:
@@ -218,11 +296,17 @@ class Upgrade:
         )
 
     def wrapper_text(self, runtime: Path, version: str) -> str:
+        if version == FROM_VERSION:
+            layout = ("# SimQueue {version} node scheduler: partitions from node.json; each job runs in its own\n"
+                      "# systemd user unit (spheral 0-3, raikou-mfem 4-5 + GPU, powerflow 6-7 + GPU);\n")
+        else:
+            layout = ("# SimQueue {version} node scheduler: one pool of every physical core and the GPU\n"
+                      "# (node.json; the old partition names are aliases); each job runs in its own\n"
+                      "# systemd user unit; `simq run` waits for a job and returns its exit code;\n")
         return (
             "#!/bin/sh\n"
-            f"# SimQueue {version} node scheduler: partitions from node.json; each job runs in its own\n"
-            "# systemd user unit (spheral 0-3, raikou-mfem 4-5 + GPU, powerflow 6-7 + GPU);\n"
-            "# borrow jobs run in simqborrow.slice at idle CPU priority; queued GPU jobs\n"
+            + layout.format(version=version)
+            + "# borrow jobs run in simqborrow.slice at idle CPU priority; queued GPU jobs\n"
             "# win the GPU lease files through the GPU line (gpu-lease for direct use).\n"
             "set -eu\n"
             "unset SIMQUEUE_PCORES\n"
@@ -310,13 +394,21 @@ class Upgrade:
         except OSError:
             return 0
 
+    def unit_active(self, unit: str) -> bool:
+        """Claim units are real units even in a sandbox (names from its state)."""
+        result = subprocess.run(["systemctl", "--user", "is-active", "--", unit], text=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False, timeout=60)
+        return result.stdout.strip() in ("active", "activating", "deactivating", "reloading")
+
     def verify_adoption(self, *, active_before: list[dict], log_offset: int, version: str,
-                        runtime: Path, timeout: float, state_path: str | None = None) -> dict:
+                        runtime: Path, timeout: float, state_path: str | None = None,
+                        claims_before: list[str] = ()) -> dict:
         """Wait until the new worker has started and adopted (or recorded)
-        every job that was active before the switch; with *state_path*, also
+        every job that was active before the switch, and adopted every GPU
+        claim unit that was active (or seen it end); with *state_path*, also
         until that worker has published the GPU line state."""
         deadline = time.monotonic() + timeout
-        result: dict = {"version": version, "jobs": {}}
+        result: dict = {"version": version, "jobs": {}, "claims": {}}
         started_at = time.time()
         while True:
             log = self.worker_log_since(log_offset)
@@ -332,6 +424,12 @@ class Upgrade:
                                           "unit": job.get("unit_name")}
                 if not adopted and not finished:
                     pending.append(job_id)
+            for unit in claims_before:
+                adopted = f"adopted GPU claim {unit} " in log
+                ended = not adopted and not self.unit_active(unit)
+                result["claims"][unit] = {"adopted": adopted, "ended_meanwhile": ended}
+                if not adopted and not ended:
+                    pending.append(unit)
             result["worker_started"] = started
             result["service_active"] = self.unit_property(self.service, "ActiveState") == "active"
             published = True
@@ -363,6 +461,7 @@ class Upgrade:
 
     def preflight_install(self) -> dict:
         print(f"SimQueue {TO_VERSION} runtime: {self.runtime}")
+        self.layout = None
         sealed = self.runtime / "sealed-files.json"
         if sealed.exists():
             manifest = json.loads(sealed.read_text())
@@ -408,8 +507,8 @@ class Upgrade:
             print(f"{TO_VERSION} node config ok: {check.stdout.strip()}")
         if not self.args.keep_node_config and live_doc and new_doc:
             if comparable_config(live_doc) != comparable_config(new_doc):
-                self.problem(f"{new_config} differs from the live {live_config} beyond the {TO_VERSION} keys; "
-                             "reconcile them or use --keep-node-config")
+                self.problem(f"{new_config} differs from the live {live_config} beyond the partition layout and "
+                             f"the {TO_VERSION} keys; reconcile them or use --keep-node-config")
         if not self.database.exists():
             self.problem(f"database missing: {self.database}")
             return {}
@@ -419,6 +518,29 @@ class Upgrade:
             self.problem(f"database schema is {summary['user_version']}, expected {SCHEMA} ({FROM_VERSION})")
         for job in summary["active"]:
             print(f"active job {job['id']} ({job['name']}): {job['state']}, unit {job['unit_name']}")
+        unfinished = summary["unfinished_by_partition"]
+        names: dict[str, list[int]] = {}
+        for name, jobs in unfinished.items():
+            names.setdefault(name or str(live_doc.get("default_partition") or ""), []).extend(jobs)
+        print("queued and active jobs by recorded partition: "
+              + (", ".join(f"{name}: {jobs}" for name, jobs in sorted(names.items())) or "none"))
+        if live_doc:
+            probe = self.python_in(self.runtime, LAYOUT_PROBE, str(live_config),
+                                   str(new_config if not self.args.keep_node_config else live_config),
+                                   json.dumps(sorted(n for n in names if n)))
+            if probe.returncode != 0:
+                self.problem(f"cannot compare the partition layouts: {probe.stderr.strip()[-400:]}")
+            else:
+                self.layout = json.loads(probe.stdout)
+                print(f"partition layout: {layout_text(self.layout['live'])}")
+                print(f"             now: {layout_text(self.layout['new'])}")
+                for name, target in sorted(self.layout["resolves"].items()):
+                    print(f"  -p {name} -> {target}")
+                print(f"borrow.backfill_waiting_owners: {self.layout['backfill_waiting_owners']}")
+                for text in layout_problems(self.layout, {n: j for n, j in names.items() if n}):
+                    self.problem(text)
+        claims = self.claim_units()
+        print(f"GPU claim units active: {', '.join(claims) or 'none'} (the {TO_VERSION} worker adopts them)")
         exec_start = self.unit_property(self.service, "ExecStart")
         print(f"{self.service} ExecStart: {exec_start[:160]}")
         if str(self.bin / "simq") not in exec_start:
@@ -500,23 +622,28 @@ class Upgrade:
                 "simqueue_symlink": os.readlink(link) if link.is_symlink() else None,
                 "gpu_line_state_path": state_path,
                 "active_before": before["active"],
+                "claims_before": self.claim_units(),
+                "layout": self.layout,
             }
             (backup / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         else:
             self.say(f"would back up {self.database}, {self.bin / 'simq'}, {self.bin / 'simqueue'}, node.json, "
                      f"worker.log and units {UNIT_FILES}")
-            manifest = {"active_before": summary.get("active", []), "columns": summary.get("columns", [])}
+            manifest = {"active_before": summary.get("active", []), "columns": summary.get("columns", []),
+                        "claims_before": self.claim_units()}
         self.step("backup", directory=str(backup))
         log_offset = self.worker_log_size()
         receipt: dict = {"schema": "simqueue-upgrade-receipt-v1", "action": "install", "from": FROM_VERSION,
                          "to": TO_VERSION, "executed": self.execute, "backup": str(backup),
                          "active_before": manifest["active_before"]}
         try:
-            # files first: from here on every simq call runs 0.6.2
+            # files first: from here on every simq call runs the new version
             self.write_file(self.bin / "simq", self.wrapper_text(self.runtime, TO_VERSION), 0o755)
             self.point_link(str(self.runtime / "simq"))
             self.write_file(self.units / self.service, self.unit_text(self.runtime), 0o644)
             if not self.args.keep_node_config:
+                if not self.execute and self.layout is not None:
+                    self.say(f"node.json from {self.args.config}: partitions {layout_text(self.layout['new'])}")
                 self.write_file(self.state / "node.json", Path(self.args.config).read_text(), 0o600)
             self.step("installed-wrapper-unit-and-node-config", kept_node_config=bool(self.args.keep_node_config))
             self.say(f"opening the database with the {TO_VERSION} code (no migration: schema {SCHEMA} stays)")
@@ -544,7 +671,8 @@ class Upgrade:
             if self.execute:
                 verification = self.verify_adoption(active_before=manifest["active_before"], log_offset=log_offset,
                                                     version=TO_VERSION, runtime=self.runtime,
-                                                    timeout=self.args.adoption_timeout, state_path=state_path)
+                                                    timeout=self.args.adoption_timeout, state_path=state_path,
+                                                    claims_before=manifest.get("claims_before", []))
                 doctor = self.simq(self.runtime, "doctor")
                 partitions = self.simq(self.runtime, "partitions", "--sample", "0")
                 verification.update({"doctor_rc": doctor.returncode, "doctor": doctor.stdout,
@@ -560,6 +688,8 @@ class Upgrade:
                 print(partitions.stdout)
                 for job_id, item in verification["jobs"].items():
                     print(f"job {job_id}: " + (f"adopted by {TO_VERSION}" if item["adopted"] else "finished meanwhile"))
+                for unit, item in verification["claims"].items():
+                    print(f"GPU claim {unit}: " + (f"adopted by {TO_VERSION}" if item["adopted"] else "ended meanwhile"))
                 if "gpu_line_state" in verification:
                     print(f"GPU line state: {verification['gpu_line_state']}")
                 if not verification["ok"]:
@@ -587,6 +717,23 @@ class Upgrade:
         return 0
 
     # ----- rollback -------------------------------------------------------
+
+    def stranded_jobs(self, backup: Path, summary: dict) -> list[int]:
+        """Queued jobs whose recorded partition the backed-up node.json lacks."""
+        try:
+            document = json.loads((backup / "node.json").read_text())
+        except (OSError, ValueError):
+            return []
+        known = {str(p.get("name")) for p in document.get("partitions") or []}
+        for part in document.get("partitions") or []:
+            for alias in part.get("aliases") or []:
+                known.add(str(alias if isinstance(alias, str) else alias.get("name")))
+        default = str(document.get("default_partition") or "")
+        stranded = []
+        for name, jobs in summary.get("unfinished_by_partition", {}).items():
+            if (name or default) not in known:
+                stranded.extend(jobs)
+        return sorted(stranded)
 
     def claim_units(self) -> list[str]:
         """GPU claim units recorded in the state directory (0.6.2) that have
@@ -671,9 +818,14 @@ class Upgrade:
         if self.problems:
             print(f"rollback refused: {len(self.problems)} problem(s)")
             return 1
+        stranded = self.stranded_jobs(backup, summary)
+        if stranded:
+            print(f"NOTE: job(s) {stranded} are queued under a partition name the restored {FROM_VERSION} node.json "
+                  f"does not know; {FROM_VERSION} leaves them queued (cancel them, or resubmit them with -p "
+                  f"spheral|raikou-mfem|powerflow, or install {TO_VERSION} again)")
         receipt: dict = {"schema": "simqueue-upgrade-receipt-v1", "action": "rollback", "from": TO_VERSION,
                          "to": FROM_VERSION, "executed": self.execute, "automatic": automatic,
-                         "backup": str(backup), "at": now_tag()}
+                         "backup": str(backup), "at": now_tag(), "stranded_jobs": stranded}
         state_path = manifest.get("gpu_line_state_path")
         self.say(f"stopping {self.service} (job units keep running)")
         self.systemctl("stop", self.service)

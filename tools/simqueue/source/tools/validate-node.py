@@ -1,12 +1,12 @@
 #!/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen
 """Real-configuration validation of the 0.6 node scheduler on zenobia.
 
-Uses the production node config (real partitions and the real lease files)
-with a scratch state directory and a distinct unit prefix, so it never
-touches the live queue.  Jobs: powerflow probes on cores 6-7 (whichever are
-not leased elsewhere), one powerflow GPU canary that only runs
-`nvidia-smi -L` while holding the GPU leases, and a spheral affinity no-op on
-cores 0-3.  The worker is killed with SIGKILL while jobs run and restarted
+Uses the production node config (0.6.3: the pool and its aliases, the real
+lease files) with a scratch state directory and a distinct unit prefix, so
+it never touches the live queue.  Jobs: powerflow-alias probes (cores 6-7
+first, whichever are not leased elsewhere), one powerflow GPU canary that
+only runs `nvidia-smi -L` while holding the GPU leases, and a four-core
+spheral-alias affinity no-op.  The worker is killed with SIGKILL while jobs run and restarted
 from a relocated copy of the code; the receipt records adoption, results,
 lease holders and per-job CPU intervals.
 
@@ -158,8 +158,8 @@ def main() -> int:
     checks = {
         "pf_long_succeeded_and_adopted": rows[pf_long]["state"] == "succeeded" and bool(rows[pf_long]["adopted_at"]),
         "spheral_finished_while_down_reconciled": rows[spheral]["state"] == "succeeded",
-        "spheral_affinity_0_3": any(i["job"] == str(spheral) and i["affinity"] == [0, 1, 2, 3]
-                                    for i in receipt["intervals"]),
+        "spheral_affinity_4_cores": any(i["job"] == str(spheral) and len(i["affinity"]) == 4
+                                        and i["partition"] == "spheral" for i in receipt["intervals"]),
         "pf_exit3_failed_with_3": rows[pf_fail]["state"] == "failed" and rows[pf_fail]["exit_code"] == 3,
         "gpu_canary_succeeded": rows[gpu]["state"] == "succeeded" and "RTX 3080 Ti" in receipt["gpu_canary_log"],
         "relocated_code_adopted": "+relocated" in receipt["worker_log"] and f"adopted job {pf_long}" in receipt["worker_log"],
