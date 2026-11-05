@@ -43,6 +43,7 @@ SHOW_PROPERTIES = (
     "InvocationID",
     "Environment",
     "FreezerState",
+    "ControlGroup",
 )
 ACTIVE_STATES = {"active", "activating", "deactivating", "reloading", "refreshing"}
 
@@ -69,6 +70,7 @@ class UnitState:
     invocation_id: str
     environment: str
     freezer_state: str = ""
+    control_group: str = ""  # 0.7.0: the unit's cgroup (memory sampling)
 
     @property
     def active(self) -> bool:
@@ -248,6 +250,7 @@ def _parse_show(text: str, names: list[str]) -> dict[str, UnitState]:
             invocation_id=block.get("InvocationID", ""),
             environment=block.get("Environment", ""),
             freezer_state=block.get("FreezerState", ""),
+            control_group=block.get("ControlGroup", ""),
         )
     return states
 

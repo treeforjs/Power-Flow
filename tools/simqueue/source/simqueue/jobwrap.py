@@ -30,6 +30,12 @@ set here before the command starts, so every process of the job inherits it).
     ExecStopPost hook.  Records systemd's $SERVICE_RESULT, $EXIT_CODE and
     $EXIT_STATUS so that the final result is recoverable even if the wrapper
     itself was killed (out-of-memory kill, time limit, SIGKILL).
+
+SimQueue 0.7.0: both records carry the unit's measured use (``usage``: the
+cgroup's ``memory.peak``, ``memory.current``, ``cpu.stat`` usage_usec and
+the ``memory.events`` oom_kill count), read from the unit's own cgroup while
+it still exists, and the stop-post hook wakes the worker through its FIFO
+(spec ``wake_path``) so that the job's end is handled at once.
 """
 
 from __future__ import annotations
@@ -115,6 +121,59 @@ def _live_cgroup_pids(cgroup: str) -> set[int]:
         if state != "Z":
             pids.add(pid)
     return pids
+
+
+def _cgroup_usage() -> dict | None:
+    """The unit's use so far, read from its own cgroup (0.7.0)."""
+    cgroup = _own_cgroup()
+    if not cgroup:
+        return None
+    base = Path("/sys/fs/cgroup") / cgroup.lstrip("/")
+
+    def number(name: str) -> int | None:
+        try:
+            return int((base / name).read_text(encoding="ascii").split()[0])
+        except (OSError, ValueError, IndexError):
+            return None
+
+    def keyed(name: str, key: str) -> int | None:
+        try:
+            for line in (base / name).read_text(encoding="ascii").splitlines():
+                field, _, value = line.partition(" ")
+                if field == key:
+                    return int(value)
+        except (OSError, ValueError):
+            return None
+        return None
+
+    current = number("memory.current")
+    if current is None:
+        return None
+    return {
+        "memory_current": current,
+        "memory_peak": number("memory.peak"),
+        "cpu_usage_usec": keyed("cpu.stat", "usage_usec"),
+        "oom_kill": keyed("memory.events", "oom_kill"),
+        "cgroup": cgroup,
+        "recorded_unix": time.time(),
+    }
+
+
+def _wake_worker(path: str | None) -> None:
+    """Write a byte to the worker's wake FIFO (never blocks; ignored when no
+    worker listens)."""
+    if not path:
+        return
+    try:
+        descriptor = os.open(path, os.O_WRONLY | os.O_NONBLOCK)
+    except OSError:
+        return
+    try:
+        os.write(descriptor, b"j")
+    except OSError:
+        pass
+    finally:
+        os.close(descriptor)
 
 
 def _reap() -> None:
@@ -467,6 +526,7 @@ class Wrapper:
                 "stop_signal": self.stop_signal,
                 "finished_at": _now(),
                 "finished_unix": time.time(),
+                "usage": _cgroup_usage() if in_unit else None,
             }
         )
         self.save()
@@ -490,6 +550,7 @@ def stop_post(spec_path: Path) -> int:
         "boot_id": _boot_id(),
         "recorded_at": _now(),
         "recorded_unix": time.time(),
+        "usage": _cgroup_usage(),
     }
     _atomic_write(Path(spec["stop_post_path"]), record)
     status_path = Path(spec["status_path"])
@@ -503,6 +564,7 @@ def stop_post(spec_path: Path) -> int:
             f"result={record['service_result']} code={record['exit_code']} "
             f"status={record['exit_status']}\n"
         )
+    _wake_worker(spec.get("wake_path"))
     return 0
 
 

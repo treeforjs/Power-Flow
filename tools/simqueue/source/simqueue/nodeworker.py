@@ -22,6 +22,31 @@ so raw ``flock`` users can no longer take the GPU from it at every release.
 alias (for example a partition name from before a node became one pool) is
 scheduled, adopted and lent under the partition the alias resolves to, and
 keeps its recorded name in the database and in ``SIMQ_PARTITION``.
+
+0.7.0 makes the worker event-driven and memory-aware (``memory.py``):
+
+* It sleeps until something happens: a client writes a byte to the wake
+  FIFO ``<state>/worker.wake`` after a submission or cancellation, a job
+  unit's stop-post hook does the same when the job ends, and the queue
+  database's ``data_version`` changes (any other writer).  Between passes it
+  only reads files: each running job's cgroup (``memory.current``,
+  ``memory.peak``) every ``memory.sample_seconds`` and its existence, which
+  is how the end of a job started by an older wrapper is noticed.  A pass
+  queries systemd only for jobs that need it (starting, being stopped,
+  unit gone, freezer state differs); every ``SAFETY_RECONCILE_IDLE``
+  idle intervals it queries every unit.  Passes run every
+  ``launch.poll_seconds`` only while something must be watched (a job
+  starting or being stopped, borrow jobs, the GPU line, queued jobs held by
+  leases outside the queue or by the memory guard), else at most every
+  ``launch.idle_seconds``.
+* Memory: samples are kept per job as min/max buckets and written to the
+  database every ``memory.record_seconds``; at a job's end the unit's own
+  record (``memory.peak``, CPU time) is stored.  A start needs its request
+  below MemAvailable minus the margin (admission guard).  When MemAvailable
+  falls below the high-water mark, dispatch stops, borrow jobs are
+  preempted by their ``--on-preempt`` policy and the jobs that grew are
+  recorded; owner jobs are never stopped for it (their own MemoryMax bounds
+  them).  Dispatch resumes at the low-water mark.
 """
 
 from __future__ import annotations
@@ -29,9 +54,13 @@ from __future__ import annotations
 import fcntl
 import json
 import os
+import select
 import signal
+import stat
 import sys
 import time
+from collections import deque
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from types import FrameType
@@ -45,6 +74,21 @@ from .locks import borrow_lock_plan, busy_resources, lock_plan_for, process_desc
 from .nodeconfig import NodeConfig, format_size, format_time_limit
 from .scheduler import INFINITY, Allocation, Request, Running, build_pool, plan
 from .telemetry import NodeTelemetry
+from .github import FINAL, Poster, build_task, job_phase
+from .memory import (
+    NodeMemory,
+    Series,
+    SpikeState,
+    admission,
+    admission_margin,
+    cgroup_from_control_group,
+    format_gib,
+    read_node_memory,
+    read_usage,
+    unit_cgroup_path,
+    user_manager_cgroup,
+    water_marks,
+)
 from .store import (
     ACTIVE_STATES,
     ENSEMBLE_CONTROL_PROTOCOL,
@@ -71,6 +115,45 @@ from .units import (
 SPEC_SCHEMA = "simqueue-job-spec-v1"
 LOCK_BUSY_REFUSAL = "lock-busy"
 STOP_RESEND_SECONDS = 30.0
+WAKE_FIFO = "worker.wake"
+EXIT_WATCH_SECONDS = 5.0  # after a wake-up, look for ended job units this long ...
+EXIT_WATCH_STEP = 0.2  # ... this often (a stop-post hook wakes the worker just before its unit ends)
+IDLE_CHECK_SECONDS = 5.0  # with no job running: how often data_version is compared
+SAFETY_RECONCILE_IDLE = 10  # every N idle intervals every job unit is queried from systemd
+GROWTH_WINDOW_SECONDS = 60.0  # memory growth is measured over this window
+PRESSURE_META = "memory_pressure"
+
+
+@dataclass
+class JobTrack:
+    """Memory of one running job unit, sampled from its cgroup."""
+
+    job_id: int
+    name: str
+    unit: str
+    cgroup: Path
+    request: int
+    borrow: bool
+    series: Series
+    peak: int = 0
+    current: int = 0
+    cpu_usec: int | None = None
+    recent: deque = field(default_factory=lambda: deque(maxlen=64))  # (unix, current)
+    near_limit_noted: bool = False
+    dirty: bool = False
+    gone: bool = False
+
+    def observe(self, unix: float, current: int, peak: int | None) -> None:
+        self.current = current
+        self.peak = max(self.peak, current, peak or 0)
+        self.series.add(unix, current)
+        self.recent.append((unix, current))
+        self.dirty = True
+
+    def growth(self, unix: float, window: float = GROWTH_WINDOW_SECONDS) -> int:
+        """How much the job grew over the last *window* seconds."""
+        values = [value for at, value in self.recent if at >= unix - window]
+        return self.current - min(values) if values else 0
 
 
 def _boot_id() -> str | None:
@@ -313,7 +396,8 @@ class NodeWorker:
         clock: Callable[[], float] = time.time,
     ) -> None:
         self.config = config
-        self.store = QueueStore()
+        # one persistent connection: its own writes leave data_version alone
+        self.store = QueueStore(persistent=True)
         self.drain = drain
         self.wait_for_lock = wait_for_lock
         self.once = once
@@ -323,6 +407,7 @@ class NodeWorker:
         self._lock_file: Any = None
         self._stop_sent: dict[int, float] = {}
         self._reasons: dict[int, str] = {}
+        self._reason_written: dict[int, float] = {}
         self._noted: set[tuple[int, str]] = set()
         self.job_root = state_dir() / "jobs"
         self.runtime_dir = str(Path(__file__).resolve().parents[2])
@@ -332,6 +417,33 @@ class NodeWorker:
         self._slice_checked_at: float | None = None
         self._slice_error: str | None = None
         self.gpu = GpuQueue(config, self.store, self.log, runtime_dir=self.runtime_dir)
+        # 0.7.0: event loop and memory
+        self.memory = config.memory
+        self.wake_path = state_dir() / WAKE_FIFO
+        self._wake_fd: int | None = None
+        self._wake_full = True
+        self._next_full = 0.0
+        self._next_sample = 0.0
+        self._next_record = 0.0
+        self._next_check = 0.0
+        self._watch_until = 0.0
+        self._next_safety = 0.0
+        self._data_version: int | None = None
+        self._fast_reasons: list[str] = []
+        self._external_busy = False
+        self._memory_held: dict[int, str] = {}
+        self._verified: dict[int, Path] = {}  # job id -> cgroup of its unit (verified by systemd)
+        self._tracks: dict[int, JobTrack] = {}
+        self._pressure = SpikeState()
+        self._pressure_preempted: dict[int, float] = {}  # borrow job -> when it was frozen for pressure
+        self._node: NodeMemory | None = None
+        self._manager_cgroup = user_manager_cgroup()
+        self.passes = 0
+        self.unit_queries = 0
+        # 0.7.0: GitHub reporting (posting thread started on first use)
+        self.github = Poster(config.github, self._github_notify) if config.github.enabled else None
+        self._github_next: float | None = None  # wall clock of the earliest retry
+        self.github_posts = 0
 
     # ----- infrastructure ------------------------------------------------
 
@@ -372,6 +484,11 @@ class NodeWorker:
     def _handle_stop(self, signum: int, _frame: FrameType | None) -> None:
         self.stop_requested = True
         self.stop_signal = signum
+        if self._wake_fd is not None:
+            try:
+                os.write(self._wake_fd, b"s")
+            except OSError:
+                pass
 
     def _note_once(self, job_id: int, key: str, message: str) -> None:
         if (job_id, key) not in self._noted:
@@ -380,24 +497,60 @@ class NodeWorker:
 
     # ----- reconciliation ------------------------------------------------
 
-    def reconcile(self, *, startup: bool = False) -> None:
+    def reconcile(self, *, startup: bool = False, full: bool = True) -> None:
+        """Bring the database in line with the job units.
+
+        With *full* false (0.7.0 event loop) only the units that need it are
+        queried from systemd: jobs starting or being stopped, jobs whose
+        cgroup is gone or was never verified, borrow jobs whose freezer
+        state differs from the record.  A running job whose cgroup exists
+        needs nothing."""
         jobs = self.store.active_jobs()
         unit_jobs = [j for j in jobs if j.get("launch_backend") == "systemd-user" and j.get("unit_name")]
         other_jobs = [j for j in jobs if j not in unit_jobs]
-        try:
-            states = show_units(self.config.launch, [str(j["unit_name"]) for j in unit_jobs])
-        except UnitError as error:
-            # Never finalize anything while systemd cannot be queried.
-            self.log(f"cannot query job units: {error}")
-            states = None
+        active_ids = {int(j["id"]) for j in jobs}
+        for job_id in list(self._verified):
+            if job_id not in active_ids:
+                self._verified.pop(job_id, None)
+        query = unit_jobs if (startup or full) else [j for j in unit_jobs if self._needs_query(j)]
+        states = None
+        if query:
+            try:
+                self.unit_queries += 1
+                states = show_units(self.config.launch, [str(j["unit_name"]) for j in query])
+            except UnitError as error:
+                # Never finalize anything while systemd cannot be queried.
+                self.log(f"cannot query job units: {error}")
+                states = None
         if states is not None:
-            for job in unit_jobs:
+            for job in query:
+                unit = states[str(job["unit_name"])]
                 try:
-                    self._reconcile_unit_job(job, states[str(job["unit_name"])], startup=startup)
+                    if unit.found and unit.active and unit.has_token(str(job["launch_token"])):
+                        self._verified[int(job["id"])] = (
+                            cgroup_from_control_group(unit.control_group) or self._computed_cgroup(job)
+                        )
+                    self._reconcile_unit_job(job, unit, startup=startup)
                 except Exception as error:  # keep reconciling the others
                     self.log(f"reconcile error for job {job['id']}: {error!r}")
         for job in other_jobs:
             self._reconcile_legacy_job(job)
+
+    def _computed_cgroup(self, job: dict[str, Any]) -> Path:
+        slice_name = self.config.borrow.slice if job.get("borrow") else self.config.launch.slice
+        return unit_cgroup_path(str(job["unit_name"]), slice_name, root=self._manager_cgroup)
+
+    def _needs_query(self, job: dict[str, Any]) -> bool:
+        if job["state"] != "running" or job.get("cancel_requested_at") or job.get("preempt_pending"):
+            return True
+        cgroup = self._verified.get(int(job["id"]))
+        if cgroup is None or not os.path.isdir(cgroup):
+            return True
+        if job.get("borrow"):
+            usage = read_usage(cgroup)
+            if usage is None or usage.frozen is None or usage.frozen != bool(job.get("frozen_at")):
+                return True
+        return False
 
     def _job_files(self, job: dict[str, Any]) -> tuple[dict | None, dict | None]:
         job_dir = Path(str(job.get("job_dir") or ""))
@@ -485,6 +638,7 @@ class NodeWorker:
         finished_at: str | None = None,
     ) -> None:
         job_id = int(job["id"])
+        usage = self._final_usage(job)
         if self.store.finish(
             job_id,
             state=state,
@@ -492,6 +646,7 @@ class NodeWorker:
             message=message,
             result=result,
             finished_at=finished_at,
+            usage=usage,
         ):
             self._append_job_log(job, f"state:     {state}\n===== simq job {job_id} finished =====\n")
             self.log(
@@ -500,6 +655,35 @@ class NodeWorker:
                 + (f": {message}" if message else "")
             )
         self._stop_sent.pop(job_id, None)
+        self._tracks.pop(job_id, None)
+        self._verified.pop(job_id, None)
+
+    def _final_usage(self, job: dict[str, Any]) -> dict[str, Any] | None:
+        """What the job used: the unit's own record at its end (0.7.0 jobwrap:
+        stop-post, else the finished status), else the worker's samples."""
+        job_id = int(job["id"])
+        recorded: dict[str, Any] = {}
+        if job.get("job_dir"):
+            status, stop_post = self._job_files(job)
+            for record in (status, stop_post):  # stop-post is later: it wins
+                if record and isinstance(record.get("usage"), dict):
+                    recorded = record["usage"]
+        track = self._tracks.get(job_id)
+        peak = recorded.get("memory_peak")
+        source = "unit" if peak is not None else None
+        if track is not None and track.peak and (peak is None or track.peak > peak):
+            peak, source = track.peak, source or "sampled"
+        if peak is None and job.get("mem_peak_bytes") is not None:
+            peak, source = int(job["mem_peak_bytes"]), job.get("mem_peak_source") or "sampled"
+        cpu = recorded.get("cpu_usage_usec")
+        if cpu is None and track is not None:
+            cpu = track.cpu_usec
+        if peak is None and cpu is None:
+            return None
+        usage: dict[str, Any] = {"peak": peak, "source": source, "cpu_usec": cpu, "sampled_at": utc_now()}
+        if track is not None and track.series.buckets:
+            usage["series"] = track.series.to_json()
+        return usage
 
     def _finalize_unit_job(
         self,
@@ -697,6 +881,8 @@ class NodeWorker:
         now = self.clock()
         active = [j for j in jobs if j["state"] in ACTIVE_STATES]
         running = running_entries(active, self.config, now)
+        self._external_busy = False
+        self._memory_held = {}
         if paused or not queued:
             self.gpu.idle_pass(jobs=jobs, running=running, now=now, paused=paused)
             return 0
@@ -705,11 +891,14 @@ class NodeWorker:
         busy_cpus, busy_gpus = busy_resources(
             self.config, allocated_cpus=allocated_cpus, allocated_gpus=allocated_gpus
         )
+        self._external_busy = bool(busy_cpus or busy_gpus)
         view = self.gpu.prepare(jobs=jobs, running=running, busy_gpus=busy_gpus, now=now)
         pool = build_pool(self.config, running, external_cpus=busy_cpus, external_gpus=set(view.blocked))
         requests = [job_request(j, self.config) for j in queued]
         decision = plan(self.config, pool, running, requests, now)
         starts, deferred = self.gpu.filter_starts(decision.starts, view)
+        starts, held = self._admit(starts, active)
+        deferred.update(held)
         self.gpu.after_plan(view, jobs=jobs, running=running, busy_cpus=busy_cpus, requests=requests,
                             starts=starts, now=now, paused=False)
         by_id = {int(j["id"]): j for j in queued}
@@ -746,8 +935,15 @@ class NodeWorker:
                 shadow = reservation[1]
                 if shadow != INFINITY:
                     reason += f"; reserved to start by {_iso(shadow)}"
-            if self._reasons.get(job_id) != reason:
+            previous = self._reasons.get(job_id)
+            if previous != reason:
+                # a memory reason carries live numbers: rewrite it at most every 30 s
+                if (previous is not None and previous.split(":", 1)[0] == reason.split(":", 1)[0]
+                        and reason.startswith(("memory:", "memory pressure"))
+                        and time.monotonic() - self._reason_written.get(job_id, 0.0) < 30.0):
+                    continue
                 self._reasons[job_id] = reason
+                self._reason_written[job_id] = time.monotonic()
                 self.store.set_message(job_id, f"pending: {reason}")
 
     # ----- borrowing (0.6.1) ---------------------------------------------
@@ -765,6 +961,9 @@ class NodeWorker:
                     for cpu in item.allocation.cpus}
         allocated_gpus = {gpu for item in running for gpu in item.allocation.gpus}
         busy_cpus, busy_gpus = busy_resources(config, allocated_cpus=set(owner_of), allocated_gpus=allocated_gpus)
+        self._external_busy = bool(busy_cpus or busy_gpus)
+        self._memory_held = {}
+        pressure = self._refresh_pressure()
         view = self.gpu.prepare(jobs=jobs, running=running, busy_gpus=busy_gpus, now=now)
         pool = build_pool(config, running, external_cpus=busy_cpus, external_gpus=set(view.blocked))
         borrowers = borrower_entries(borrow_active, config)
@@ -775,16 +974,24 @@ class NodeWorker:
         decision = plan_node(
             config, pool, running, requests, now,
             borrowers=borrowers, cores=cores, owner_of=owner_of,
-            exclusive_owner_cpus=exclusive, starts_allowed=not paused,
+            exclusive_owner_cpus=exclusive, starts_allowed=not paused and not pressure,
         )
         starts, deferred = self.gpu.filter_starts(decision.starts, view)
+        starts, held = self._admit(starts, active)
+        deferred.update(held)
+        if pressure:
+            for job_id in [r.job_id for r in requests if r.job_id not in deferred]:
+                deferred[job_id] = self._pressure_reason()
         if paused or not queued:
             self.gpu.idle_pass(jobs=jobs, running=running, now=now, paused=paused)
         else:
             self.gpu.after_plan(view, jobs=jobs, running=running, busy_cpus=busy_cpus, requests=requests,
                                 starts=starts, now=now, paused=False)
         active_by_id = {int(j["id"]): j for j in borrow_active}
-        for item in decision.preemptions:
+        preemptions = list(decision.preemptions)
+        if pressure:
+            preemptions = self._pressure_preemptions(borrowers, preemptions)
+        for item in preemptions:
             if item.job_id in active_by_id:
                 self._preempt(active_by_id[item.job_id], item)
         for job_id, placement in decision.resumes:
@@ -961,6 +1168,11 @@ class NodeWorker:
             if borrow:
                 placement["SIMQ_BORROW"] = "1"
                 placement["SIMQ_ON_PREEMPT"] = request.on_preempt
+            if claimed.get("github_json"):
+                # 0.7.0: the summary markdown the job may write for its PR comment
+                summary = (json.loads(str(claimed["github_json"])) or {}).get("summary")
+                if summary:
+                    placement["SIMQ_SUMMARY"] = str(summary)
             environment = job_environment(claimed, placement)
             argv = json.loads(str(claimed["argv_json"]))
             if not isinstance(argv, list) or not argv or not all(isinstance(a, str) for a in argv):
@@ -995,6 +1207,7 @@ class NodeWorker:
                 "scheduler_version": __version__,
                 "scheduler_runtime": self.runtime_dir,
                 "require_unit": True,
+                "wake_path": str(self.wake_path),
             }
             if handoff is not None:
                 handoff_paths = set(config.locks.gpu_lock_order(config.gpus[handoff["gpu"]]))
@@ -1054,6 +1267,475 @@ class NodeWorker:
             self.gpu.launched(claimed, view, self.clock())
         return True
 
+    # ----- memory (0.7.0) ------------------------------------------------------
+
+    def _job_currents(self) -> list[int]:
+        return [track.current for track in self._tracks.values() if not track.gone]
+
+    def _read_node(self) -> NodeMemory | None:
+        node = read_node_memory(self.memory.test_node_total, self._job_currents())
+        if node is not None:
+            self._node = node
+        return node
+
+    def _refresh_pressure(self) -> bool:
+        """Read MemAvailable now and update the memory-pressure state."""
+        if not self.memory.enabled:
+            return False
+        node = self._read_node()
+        if node is None:
+            return self._pressure.active
+        high, low = water_marks(self.memory, node.total)
+        transition = self._pressure.update(node.available, high, low)
+        if transition == "enter":
+            self._enter_pressure(node, high, low)
+        elif transition == "leave":
+            self._leave_pressure(node, high, low)
+        return self._pressure.active
+
+    def _pressure_reason(self) -> str:
+        record = self._pressure.record
+        return (f"memory pressure since {record.get('since', '?')}: MemAvailable "
+                f"{format_gib(self._node.available if self._node else None)} below the high-water mark "
+                f"{format_gib(record.get('high_water'))}; dispatch resumes at {format_gib(record.get('low_water'))}")
+
+    def _job_rows(self, unix: float) -> list[dict[str, Any]]:
+        rows = []
+        for track in self._tracks.values():
+            if track.gone:
+                continue
+            rows.append({
+                "job_id": track.job_id, "name": track.name, "borrow": track.borrow,
+                "current": track.current, "request": track.request, "peak": track.peak,
+                "percent_of_request": round(100.0 * track.current / track.request, 1) if track.request else None,
+                "grew": track.growth(unix),
+            })
+        return rows
+
+    def _enter_pressure(self, node: NodeMemory, high: int, low: int) -> None:
+        unix = time.time()
+        self._pressure.since = unix
+        rows = self._job_rows(unix)
+        jobs_total = sum(row["current"] for row in rows)
+        grew = sorted((row for row in rows if row["grew"] > 0), key=lambda row: -row["grew"])
+        culprit = grew[0] if grew else (max(rows, key=lambda row: row["current"]) if rows else None)
+        record = {
+            "since": _iso(unix),
+            "since_unix": unix,
+            "available": node.available,
+            "total": node.total,
+            "simulated": node.simulated,
+            "high_water": high,
+            "low_water": low,
+            "queue_jobs_current": jobs_total,
+            "outside_queue": max(0, node.used - jobs_total),
+            "culprit": culprit,
+            "jobs": rows,
+        }
+        self._pressure.record = record
+        self.store.set_meta(PRESSURE_META, json.dumps(record, sort_keys=True, default=str))
+        culprit_text = "no queue job grew"
+        if culprit is not None:
+            culprit_text = (f"job {culprit['job_id']} ({culprit['name']}) uses {format_gib(culprit['current'])} of its "
+                            f"{format_gib(culprit['request'])} request (grew {format_gib(culprit['grew'])} in "
+                            f"{GROWTH_WINDOW_SECONDS:.0f} s)")
+        self.log(f"memory pressure: MemAvailable {format_gib(node.available)} below {format_gib(high)}; "
+                 f"stopping dispatch, preempting borrow jobs; {culprit_text}; queue jobs use {format_gib(jobs_total)}, "
+                 f"outside the queue {format_gib(record['outside_queue'])}")
+        for row in rows:
+            if row["grew"] > 0 or row is culprit:
+                self.store.add_event(row["job_id"], "memory-pressure", {
+                    "available": format_gib(node.available), "high_water": format_gib(high),
+                    "current": format_gib(row["current"]), "request": format_gib(row["request"]),
+                    "grew": format_gib(row["grew"]), "window_s": GROWTH_WINDOW_SECONDS,
+                    "culprit": row is culprit, "action": "preempted per --on-preempt" if row["borrow"]
+                    else "recorded (owner jobs are not stopped)",
+                })
+                if not row["borrow"]:
+                    self.log(f"job {row['job_id']}: {format_gib(row['current'])} of {format_gib(row['request'])} "
+                             f"requested (grew {format_gib(row['grew'])}); owner job left running")
+        self._record_samples(force=True)
+        self._wake_full = True
+
+    def _leave_pressure(self, node: NodeMemory, high: int, low: int) -> None:
+        since = self._pressure.record.get("since_unix")
+        lasted = "" if since is None else f" after {time.time() - float(since):.0f} s"
+        self.log(f"memory pressure over{lasted}: MemAvailable {format_gib(node.available)} at or above "
+                 f"{format_gib(low)}; dispatch resumes")
+        for job_id in list(self._pressure_preempted):
+            self.store.add_event(job_id, "memory-recovered", {"available": format_gib(node.available)})
+        self._pressure_preempted.clear()
+        self._pressure.record = {}
+        self.store.set_meta(PRESSURE_META, None)
+        self._wake_full = True
+
+    def _pressure_preemptions(self, borrowers: list[Borrower], planned: list[Preemption]) -> list[Preemption]:
+        """Memory pressure: preempt every running borrow job by its policy; a
+        frozen one is stopped when the pressure lasts longer than
+        ``pressure_escalate_seconds`` (a frozen job keeps its memory)."""
+        result = {item.job_id: item for item in planned}
+        reason = (f"memory pressure (MemAvailable {format_gib(self._node.available if self._node else None)} "
+                  f"below {format_gib(self._pressure.record.get('high_water'))})")
+        now = time.time()
+        for borrower in borrowers:
+            if borrower.pending:
+                continue
+            mode = borrower.on_preempt
+            if borrower.frozen_since is not None:
+                since = self._pressure_preempted.get(borrower.job_id, borrower.frozen_since)
+                if now - since < self.memory.pressure_escalate_seconds:
+                    continue
+                result[borrower.job_id] = Preemption(borrower.job_id, "requeue",
+                                                     reason + f"; frozen {now - since:.0f} s keeps its memory",
+                                                     None, True, borrower.cpus)
+                continue
+            if borrower.job_id in result and result[borrower.job_id].mode != "freeze":
+                continue
+            result[borrower.job_id] = Preemption(borrower.job_id, mode, reason, None, False, borrower.cpus)
+            self._pressure_preempted.setdefault(borrower.job_id, now)
+        return [result[key] for key in sorted(result)]
+
+    def _ramping(self, active: list[dict[str, Any]]) -> int:
+        """Requests of jobs started less than ramp_seconds ago that they have
+        not allocated yet (counted as used by the admission guard)."""
+        now = time.time()
+        total = 0
+        for job in active:
+            started = _parse_time(job.get("started_at"))
+            if job["state"] != "starting" and (started is None or now - started > self.memory.ramp_seconds):
+                continue
+            request = int(job.get("mem_bytes") or 0)
+            track = self._tracks.get(int(job["id"]))
+            current = track.current if track is not None else 0
+            if track is None and job["state"] != "starting":
+                cgroup = self._verified.get(int(job["id"])) or (
+                    self._computed_cgroup(job) if job.get("unit_name") else None)
+                usage = read_usage(cgroup, full=False) if cgroup is not None else None
+                current = usage.current if usage is not None else 0
+            total += max(0, request - current)
+        return total
+
+    def _admit(self, starts: list[tuple[Request, Allocation]],
+               active: list[dict[str, Any]]) -> tuple[list[tuple[Request, Allocation]], dict[int, str]]:
+        """The actual-memory admission guard (0.7.0).  Reservations stay the
+        primary constraint (the planner); this only holds starts back."""
+        if not starts or not self.memory.enabled:
+            return starts, {}
+        if self._refresh_pressure():
+            held = {request.job_id: self._pressure_reason() for request, _ in starts}
+            self._memory_held = held
+            return [], held
+        node = self._node
+        if node is None:
+            return starts, {}
+        needs = []
+        for request, allocation in starts:
+            mem = allocation.mem or self.config.partition(request.partition).default_mem
+            needs.append((request.job_id, int(mem)))
+        result = admission(needs, available=node.available, margin=admission_margin(self.memory, node.total),
+                           ramping=self._ramping(active))
+        if result.held:
+            for job_id, reason in result.held.items():
+                self._note_once(job_id, "memory-held", f"job {job_id}: held by the memory guard: {reason}")
+        self._memory_held = dict(result.held)
+        admitted = set(result.admitted)
+        return [(r, a) for r, a in starts if r.job_id in admitted], dict(result.held)
+
+    def _sync_tracks(self) -> None:
+        """Follow every running job unit whose cgroup is known."""
+        if not self.memory.enabled:
+            return
+        jobs = {int(j["id"]): j for j in self.store.active_jobs()
+                if j.get("unit_name") and j["state"] in ("running", "cancelling")}
+        for job_id in list(self._tracks):
+            if job_id not in jobs:
+                track = self._tracks.pop(job_id)
+                # requeued or recorded elsewhere: keep what it used
+                if track.peak:
+                    self.store.record_final_usage(job_id, {
+                        "peak": track.peak, "source": "sampled", "cpu_usec": track.cpu_usec,
+                        "sampled_at": utc_now(), "series": track.series.to_json()})
+        for job_id, job in jobs.items():
+            cgroup = self._verified.get(job_id)
+            if cgroup is None:
+                continue
+            track = self._tracks.get(job_id)
+            if track is not None and track.cgroup == cgroup:
+                continue
+            track = JobTrack(
+                job_id=job_id,
+                name=str(job.get("name") or ""),
+                unit=str(job["unit_name"]),
+                cgroup=cgroup,
+                request=int(job.get("mem_bytes") or 0),
+                borrow=bool(job.get("borrow")),
+                series=Series.from_json(job.get("mem_series_json"), self.memory.series_buckets),
+                peak=int(job.get("mem_peak_bytes") or 0),
+                cpu_usec=job.get("cpu_usage_usec"),
+            )
+            usage = read_usage(cgroup, full=False)
+            if usage is not None:
+                track.observe(time.time(), usage.current, usage.peak)
+            self._tracks[job_id] = track
+
+    def _sample(self) -> None:
+        """Read every running job's cgroup and MemAvailable (no process is
+        spawned); note ended units, near-limit jobs and memory pressure."""
+        self._next_sample = time.monotonic() + self.memory.sample_seconds
+        unix = time.time()
+        for track in self._tracks.values():
+            usage = read_usage(track.cgroup, full=False)
+            if usage is None:
+                if not track.gone:
+                    track.gone = True
+                    self._wake_full = True  # the unit ended: reconcile it
+                continue
+            track.observe(unix, usage.current, usage.peak)
+            if (not track.near_limit_noted and track.request
+                    and usage.current >= self.memory.near_limit_fraction * track.request):
+                track.near_limit_noted = True
+                self.log(f"job {track.job_id} ({track.name}) uses {format_gib(usage.current)} of its "
+                         f"{format_gib(track.request)} memory limit ({100.0 * usage.current / track.request:.0f}%)")
+                self.store.add_event(track.job_id, "memory-near-limit", {
+                    "current": format_gib(usage.current), "limit": format_gib(track.request),
+                    "percent": round(100.0 * usage.current / track.request, 1)})
+        self._refresh_pressure()
+        if time.monotonic() >= self._next_record:
+            self._record_samples()
+
+    def _record_samples(self, *, force: bool = False) -> None:
+        self._next_record = time.monotonic() + self.memory.record_seconds
+        updates: dict[int, dict[str, Any]] = {}
+        now = utc_now()
+        for track in self._tracks.values():
+            if track.gone or not (track.dirty or force):
+                continue
+            usage = read_usage(track.cgroup)
+            if usage is not None and usage.cpu_usec is not None:
+                track.cpu_usec = usage.cpu_usec
+            updates[track.job_id] = {
+                "current": track.current, "peak": track.peak, "source": "sampled", "sampled_at": now,
+                "series": track.series.to_json(), "cpu_usec": track.cpu_usec,
+            }
+            track.dirty = False
+        if updates:
+            self.store.record_memory(updates)
+
+    def _check_exits(self) -> None:
+        """A verified job unit whose cgroup is gone has ended: reconcile it."""
+        for job_id, cgroup in self._verified.items():
+            if not os.path.isdir(cgroup):
+                track = self._tracks.get(job_id)
+                if track is not None:
+                    track.gone = True
+                self._wake_full = True
+                return
+
+    def _tick(self) -> None:
+        """Between passes, every sample_seconds while job units run: unit ends
+        (cgroup existence) and, with memory tracking, the samples."""
+        self._next_sample = time.monotonic() + self.memory.sample_seconds
+        self._check_exits()
+        if self.memory.enabled and self._tracks:
+            self._sample()
+
+    def _check_clients(self) -> None:
+        """A client wrote to the queue database (data_version changed)."""
+        self._next_check = time.monotonic() + IDLE_CHECK_SECONDS
+        try:
+            version = self.store.data_version()
+        except Exception:  # noqa: BLE001 - the next pass reports database errors
+            self._wake_full = True
+            return
+        if self._data_version is not None and version != self._data_version:
+            self._wake_full = True
+
+    # ----- GitHub reporting (0.7.0) ---------------------------------------------
+
+    def _github_notify(self) -> None:
+        """Called by the posting thread: wake the loop to record results."""
+        if self._wake_fd is not None:
+            try:
+                os.write(self._wake_fd, b"g")
+            except OSError:
+                pass
+
+    def _github_check(self) -> None:
+        """Hand every job whose phase changed since its last post to the
+        posting thread; never waits for GitHub."""
+        if self.github is None:
+            return
+        self._github_results()
+        now = time.time()
+        self._github_next = None
+        for job in self.store.github_pending():
+            job_id = int(job["id"])
+            phase = job_phase(job)
+            if phase == job.get("github_phase") or job_id in self.github.in_flight:
+                continue
+            retry_at = job.get("github_next_unix")
+            if retry_at is not None and float(retry_at) > now and int(job.get("github_attempts") or 0) > 0:
+                self._github_next = min(self._github_next or float(retry_at), float(retry_at))
+                continue
+            try:
+                task = build_task(job, phase, self.config.node)
+            except ValueError as error:
+                self.store.record_github(job_id, phase=phase, ok=False, error=f"bad GitHub targets: {error}",
+                                         next_unix=None, give_up=True, final=phase == FINAL, comment_id=None)
+                continue
+            self.github.submit(task)
+
+    def _github_results(self) -> None:
+        if self.github is None:
+            return
+        for result in self.github.results():
+            job_id = int(result["job_id"])
+            phase = str(result["phase"])
+            final = phase == FINAL
+            if result.get("ok"):
+                self.github_posts += 1
+                self.store.record_github(job_id, phase=phase, ok=True, error=None, next_unix=None, give_up=False,
+                                         final=final, comment_id=result.get("comment_id"))
+                continue
+            job = self.store.get(job_id) or {}
+            attempts = int(job.get("github_attempts") or 0) + 1
+            error = str(result.get("error") or "unknown error")
+            give_up = not result.get("retry") or attempts >= self.config.github.max_attempts
+            delay = min(self.config.github.backoff_max_seconds,
+                        self.config.github.backoff_seconds * (2 ** (attempts - 1)))
+            self.store.record_github(job_id, phase=phase, ok=False, error=error,
+                                     next_unix=None if give_up else time.time() + delay, give_up=give_up,
+                                     final=final, comment_id=None)
+            self.store.add_event(job_id, "github-failed", {
+                "phase": phase.split(":", 1)[0], "attempt": attempts, "error": error,
+                "next": "given up" if give_up else f"retry in {delay:.0f} s"})
+            self._note_once(job_id, f"github-{phase}-{give_up}",
+                            f"job {job_id}: GitHub post ({phase.split(':', 1)[0]}) failed: {error}; "
+                            + ("given up" if give_up else f"retrying with backoff (attempt {attempts})"))
+            if not give_up:
+                retry_at = time.time() + delay
+                self._github_next = min(self._github_next or retry_at, retry_at)
+
+    # ----- event loop (0.7.0) -----------------------------------------------------
+
+    def _open_wake(self) -> None:
+        path = self.wake_path
+        try:
+            info = os.lstat(path)
+            if not stat.S_ISFIFO(info.st_mode):
+                path.unlink()
+                raise FileNotFoundError
+        except FileNotFoundError:
+            try:
+                os.mkfifo(path, 0o600)
+            except FileExistsError:
+                pass
+        except OSError as error:
+            self.log(f"wake FIFO {path} unusable ({error}); polling instead")
+            return
+        try:
+            # read and write: the FIFO never reports end-of-file, writers never block
+            self._wake_fd = os.open(path, os.O_RDWR | os.O_NONBLOCK)
+        except OSError as error:
+            self.log(f"cannot open the wake FIFO {path}: {error}; polling instead")
+            self._wake_fd = None
+
+    def _close_wake(self) -> None:
+        if self._wake_fd is not None:
+            os.close(self._wake_fd)
+            self._wake_fd = None
+
+    def _drain_wake(self) -> bytes:
+        received = b""
+        while self._wake_fd is not None:
+            try:
+                data = os.read(self._wake_fd, 4096)
+            except (BlockingIOError, InterruptedError):
+                break
+            except OSError:
+                break
+            if not data:
+                break
+            received += data
+        return received
+
+    def _wait(self, timeout: float) -> None:
+        if timeout <= 0:
+            return
+        if self._wake_fd is None:
+            time.sleep(min(timeout, 0.5))
+            return
+        try:
+            ready, _, _ = select.select([self._wake_fd], [], [], timeout)
+        except InterruptedError:
+            ready = []
+        if not ready:
+            return
+        received = self._drain_wake()
+        if received.strip(b"g"):  # anything but the posting thread's results
+            self._wake_full = True
+            self._watch_until = time.monotonic() + EXIT_WATCH_SECONDS
+
+    def _full_pass(self, startup: bool) -> int:
+        self._wake_full = False
+        self.passes += 1
+        try:
+            self._data_version = self.store.data_version()
+        except Exception:  # noqa: BLE001
+            self._data_version = None
+        now = time.monotonic()
+        safety = startup or now >= self._next_safety
+        if safety:
+            self._next_safety = now + self.config.launch.idle_seconds * SAFETY_RECONCILE_IDLE
+        self.reconcile(startup=startup, full=safety)
+        started = self.dispatch()
+        self._sync_tracks()
+        try:
+            self._github_check()
+        except Exception as error:  # noqa: BLE001 - reporting never stops scheduling
+            self.log(f"GitHub reporting pass failed: {error!r}")
+        self._fast_reasons = self._watch_reasons()
+        interval = self.config.launch.poll_seconds if self._fast_reasons else self.config.launch.idle_seconds
+        self._next_full = time.monotonic() + interval
+        return started
+
+    def _watch_reasons(self) -> list[str]:
+        """Why the next pass must come after poll_seconds rather than idle_seconds."""
+        reasons = []
+        jobs = self.store.node_jobs()
+        queued = [j for j in jobs if j["state"] == "queued"]
+        if self.drain:
+            reasons.append("drain")
+        if any(j["state"] in ("starting", "cancelling") or j.get("cancel_requested_at") or j.get("preempt_pending")
+               for j in jobs):
+            reasons.append("jobs starting or stopping")
+        if any(j.get("borrow") for j in jobs):
+            reasons.append("borrow jobs")
+        if self.gpu.claims or self.gpu.ready_since:
+            reasons.append("GPU line")
+        if queued and self._external_busy:
+            reasons.append("leases held outside the queue")
+        if queued and self._memory_held:
+            reasons.append("memory guard")
+        if self._pressure.active:
+            reasons.append("memory pressure")
+        if any(job["state"] in ACTIVE_STATES and job.get("unit_name") and int(job["id"]) not in self._verified
+               for job in jobs):
+            reasons.append("job units not yet verified")
+        return reasons
+
+    def _timeout(self) -> float:
+        now = time.monotonic()
+        deadlines = [self._next_full]
+        if self._verified:
+            deadlines.append(self._next_sample)
+        deadlines.append(self._next_check)
+        if self._watch_until > now:
+            deadlines.append(now + EXIT_WATCH_STEP)
+        if self._github_next is not None:
+            deadlines.append(now + max(0.0, self._github_next - time.time()))
+        return max(0.0, min(deadlines) - now)
+
     # ----- main loop -------------------------------------------------------
 
     def run(self) -> int:
@@ -1063,6 +1745,9 @@ class NodeWorker:
         signal.signal(signal.SIGTERM, self._handle_stop)
         signal.signal(signal.SIGINT, self._handle_stop)
         self.job_root.mkdir(mode=0o700, parents=True, exist_ok=True)
+        if not self.once:
+            self._open_wake()
+        mem = self.memory
         self.log(
             f"node worker started; simqueue {__version__} from {self.runtime_dir}; "
             f"config {self.config.path}; partitions "
@@ -1072,19 +1757,43 @@ class NodeWorker:
                 for p in self.config.partitions.values()
             )
             + f"; drain={self.drain}"
+            + f"; event-driven (wake FIFO {'on' if self._wake_fd is not None else 'off'}, poll "
+              f"{self.config.launch.poll_seconds:g} s while watching, else {self.config.launch.idle_seconds:g} s)"
+            + (f"; memory sampling every {mem.sample_seconds:g} s"
+               + (f" (simulated node of {format_gib(mem.test_node_total)})" if mem.test_node_total else "")
+               if mem.enabled else "; memory tracking off")
         )
         try:
             self.gpu.adopt()
         except Exception as error:  # noqa: BLE001 - the line is re-established on later passes
             self.log(f"GPU claim adoption failed: {error!r}")
+        if mem.enabled:
+            # a previous worker's pressure record ends with it; it is re-detected if it persists
+            try:
+                if self.store.get_meta(PRESSURE_META) is not None:
+                    self.store.set_meta(PRESSURE_META, None)
+            except Exception:  # noqa: BLE001
+                pass
         exit_code = 0
         failures = 0
         startup = True
+        started = 0
         while not self.stop_requested:
+            passed = False
             try:
-                self.reconcile(startup=startup)
-                startup = False
-                started = self.dispatch()
+                if self._wake_full or time.monotonic() >= self._next_full:
+                    started = self._full_pass(startup)
+                    startup = False
+                    passed = True
+                if self._verified and time.monotonic() >= self._next_sample:
+                    self._tick()
+                elif self._watch_until > time.monotonic():
+                    self._check_exits()
+                if time.monotonic() >= self._next_check or self._verified:
+                    self._check_clients()
+                if self.github is not None and (self.github.in_flight or (
+                        self._github_next is not None and time.time() >= self._github_next)):
+                    self._github_check()
                 failures = 0
             except Exception as error:  # one bad pass must not end the scheduler
                 failures += 1
@@ -1093,17 +1802,48 @@ class NodeWorker:
                     exit_code = 2
                     break
                 started = 0
+                passed = True
+                self._wake_full = False
+                self._next_full = time.monotonic() + self.config.launch.poll_seconds
             if self.once:
                 break
-            if self.drain and failures == 0 and started == 0 and not self.store.active_jobs():
+            if self.drain and passed and failures == 0 and started == 0 and not self.store.active_jobs():
                 break
-            deadline = time.monotonic() + self.config.launch.poll_seconds
-            while not self.stop_requested and time.monotonic() < deadline:
-                time.sleep(min(0.1, self.config.launch.poll_seconds))
+            if self._wake_full and failures == 0:
+                continue
+            self._wait(self._timeout())
         remaining = len(self.store.active_jobs())
         if not self.once:
             self.gpu.withdraw()
+            if self._pressure.active:
+                self.store.set_meta(PRESSURE_META, None)
+        if self._tracks:
+            try:
+                self._record_samples(force=True)
+            except Exception as error:  # noqa: BLE001
+                self.log(f"could not record the last memory samples: {error!r}")
         suffix = f" after signal {self.stop_signal}" if self.stop_signal else ""
-        self.log(f"node worker stopped{suffix}; {remaining} job unit(s) continue independently")
+        self.log(f"node worker stopped{suffix}; {remaining} job unit(s) continue independently; "
+                 f"{self.passes} pass(es), {self.unit_queries} systemd unit quer(ies)")
+        if self.github is not None:
+            self._github_flush(timeout=min(5.0, self.config.github.timeout_seconds))
+            self.github.stop()
+        self._close_wake()
         self._release_lock()
+        self.store.close()
         return exit_code
+
+    def _github_flush(self, timeout: float) -> None:
+        """At exit (and for --once/--drain): post what is due, waiting at most
+        *timeout* seconds; the rest is posted by the next worker."""
+        if self.github is None:
+            return
+        try:
+            self._github_check()
+            deadline = time.monotonic() + timeout
+            while self.github.in_flight and time.monotonic() < deadline:
+                time.sleep(0.05)
+                self._github_results()
+            self._github_results()
+        except Exception as error:  # noqa: BLE001
+            self.log(f"GitHub reporting at exit failed: {error!r}")

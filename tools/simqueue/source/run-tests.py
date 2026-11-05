@@ -38,6 +38,17 @@ starts it once the run releases the lease.  Work pinned to the leased cores
 without a lease, and the RETURN flag, still stop the run.
 ``--wait-any --min-cores N`` waits until at least N of the listed cores are
 free at the same moment (nothing is held while waiting).
+
+0.7.0 modes:
+
+``--in-job``  inside a live queue job (``simq run -c 2 ... -- run-tests.py
+              --in-job``): the job's cores (``SIMQ_CPU_LIST``) are the test
+              cores; the job unit already holds their lease files, so none
+              is taken and no live guard runs (the queue arbitrates).
+``--pure``    no test unit at all (``SIMQ_TEST_CPUS`` unset: unit-level
+              tests skip); no lease, no guard.
+``--sandbox-cpus LIST``  development only: test units on LIST (for example
+              idle SMT siblings) without leases or guard.
 """
 
 from __future__ import annotations
@@ -66,7 +77,7 @@ GUARDED_CORES = {0, 1, 2, 3}  # the spheral partition (0.6.2) and alias (0.6.3)
 # 0.6.3: zenobia is one pool of every core; the old names are its aliases
 CORE_GROUPS = {"spheral": {0, 1, 2, 3}, "powerflow": {6, 7}, "zenobia": set(range(8))}
 RETURN_FLAG = LEASE_DIR / "RETURN-CORES-0-3"
-DEFAULT_TMPDIR = Path("/home/treefor/projects/.workspace/outputs/simq063-test-tmp")
+DEFAULT_TMPDIR = Path("/home/treefor/projects/.workspace/outputs/simq070-test-tmp")
 TEST_UNIT_PATTERN = "simqt*"
 
 
@@ -301,6 +312,75 @@ def take_leases(cores: list[int], *, wait_any: bool, min_cores: int = 1) -> tupl
     return held, fds
 
 
+def run_suites(args: argparse.Namespace, held: list[int] | None, lease_files: list[str]) -> int:
+    sys.path.insert(0, str(HERE))
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite()
+    for pattern in args.patterns:
+        suite.addTests(loader.discover(str(HERE / "tests"), pattern=pattern))
+    started = time.time()
+    result = unittest.TextTestRunner(verbosity=2 if args.verbose else 1).run(suite)
+    receipt = {
+        "schema": "simqueue-test-receipt-v1",
+        "started_unix": started,
+        "duration_s": round(time.time() - started, 3),
+        "cores_leased": held,
+        "lease_files": lease_files,
+        "mode": "in-job" if args.in_job else ("pure" if args.pure else ("sandbox" if args.sandbox_cpus else "leases")),
+        "queue_job": os.environ.get("SIMQ_JOB_ID"),
+        "patterns": args.patterns,
+        "tests_run": result.testsRun,
+        "failures": len(result.failures),
+        "errors": len(result.errors),
+        "skipped": len(result.skipped),
+        "skipped_detail": [f"{test.id()}: {reason}" for test, reason in result.skipped],
+        "failed_detail": [test.id() for test, _ in result.failures + result.errors],
+        "successful": result.wasSuccessful(),
+        "python": sys.version,
+    }
+    if args.receipt:
+        Path(args.receipt).write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps({k: receipt[k] for k in ("tests_run", "failures", "errors", "skipped", "cores_leased",
+                                              "duration_s", "mode")}))
+    return 0 if result.wasSuccessful() else 1
+
+
+def run_without_leases(args: argparse.Namespace) -> int:
+    tmpdir = Path(os.environ.get("SIMQ_TEST_TMPDIR") or DEFAULT_TMPDIR).resolve()
+    tmpdir.mkdir(parents=True, exist_ok=True)
+    os.environ["TMPDIR"] = str(tmpdir)
+    import tempfile
+
+    tempfile.tempdir = str(tmpdir)
+    os.environ["SIMQ_TEST_RUN"] = str(os.getpid())
+    if args.receipts_dir:
+        os.environ["SIMQ_TEST_RECEIPTS"] = args.receipts_dir
+    held: list[int] | None = None
+    if args.in_job:
+        cpu_list = os.environ.get("SIMQ_CPU_LIST", "")
+        if not cpu_list or not os.environ.get("SIMQ_JOB_ID"):
+            print("--in-job needs to run inside a queue job (SIMQ_JOB_ID, SIMQ_CPU_LIST)", file=sys.stderr)
+            return 64
+        held = parse_cores(cpu_list)
+        os.environ["SIMQ_TEST_CPUS"] = ",".join(str(c) for c in held)
+    elif args.sandbox_cpus:
+        held = parse_cores(args.sandbox_cpus)
+        os.environ["SIMQ_TEST_CPUS"] = ",".join(str(c) for c in held)
+    else:
+        os.environ.pop("SIMQ_TEST_CPUS", None)
+    os.environ.pop("SIMQ_TEST_LEASES", None)
+    # the suites start their own sandbox workers and units: none of the
+    # job's own SIMQ_* placement may leak into them
+    keep = ("SIMQ_TEST", "SIMQ_LIVE_DB_COPY", "SIMQ_UPGRADE_UNSEALED")
+    for key in [k for k in os.environ if k.startswith("SIMQ_") and not k.startswith(keep)]:
+        os.environ.pop(key, None)
+    try:
+        os.nice(max(0, 10 - os.nice(0)))
+    except OSError:
+        pass
+    return run_suites(args, held, [])
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--cores", default="0-1")
@@ -311,9 +391,14 @@ def main() -> int:
     parser.add_argument("--shared", action="store_true",
                         help="cores shared under the lease protocol: queue jobs of their partition do not stop the run")
     parser.add_argument("--min-cores", type=int, default=1, help="with --wait-any: wait until this many are free")
+    parser.add_argument("--in-job", action="store_true", help="run inside a live queue job on its cores")
+    parser.add_argument("--pure", action="store_true", help="no test units, no leases")
+    parser.add_argument("--sandbox-cpus", help="development: test units on these CPUs, no leases")
     parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("patterns", nargs="*", default=["test_*.py"])
     args = parser.parse_args()
+    if args.in_job or args.pure or args.sandbox_cpus:
+        return run_without_leases(args)
     cores = parse_cores(args.cores)
     if FORBIDDEN & set(cores):
         parser.error("cores 2-5 are never used by these tests (Spheral's own cores and raikou-mfem's)")

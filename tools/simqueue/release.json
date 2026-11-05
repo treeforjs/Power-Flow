@@ -1,133 +1,83 @@
 {
   "schema": "simqueue-release-v1",
-  "version": "0.6.3",
-  "runtime": "/home/treefor/projects/runtimes/simqueue-0.6.3-20261105",
-  "derived_from": "/home/treefor/projects/runtimes/simqueue-0.6.2-20261031",
+  "version": "0.7.0",
+  "runtime": "/home/treefor/projects/runtimes/simqueue-0.7.0-20261105",
+  "derived_from": "/home/treefor/projects/runtimes/simqueue-0.6.3-20261105",
   "interpreter": "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen",
   "installed": false,
   "install_command": "./upgrade.py install --execute (dry run without --execute)",
-  "rollback_command": "./upgrade.py rollback --backup /home/treefor/.local/state/simqueue-backups/0.6.2-to-0.6.3-<UTC> --execute",
-  "node_config": "config/zenobia-node.json (8 cores 0-7: one partition, zenobia, with the GPU; aliases spheral, raikou-mfem, powerflow; borrow.backfill_waiting_owners true; everything else as 0.6.2); config/zenobia-16core-node.json (the same on cores 0-15 of the Ryzen 9 9950X3D2, SMT siblings 16-31, lease files testing-core<K>.lock for K = 8-15)",
+  "rollback_command": "./upgrade.py rollback --backup /home/treefor/.local/state/simqueue-backups/0.6.3-to-0.7.0-<UTC> --execute",
+  "versioning": "minor versions for scheduling-model, state/schema or external-side-effect changes; patch versions for compatible additions. 0.7.0: measured memory as a scheduling input (admission guard, memory pressure, --mem auto), schema 9, GitHub posts, event-driven low-priority worker.",
+  "node_config": "config/zenobia-node.json: the live 0.6.3 node.json (one pool 0-7 + GPU, aliases, default_mem 4G) plus memory, github, launch.idle_seconds 30 and partitions[0].min_mem 256M; config/zenobia-16core-node.json the same on 0-15 (its default_mem lowered to 4G as on the 8-core node)",
   "database_schema": {
     "from": 8,
-    "to": 8,
-    "change": "none (rows unchanged; old partition names resolved through aliases)"
+    "to": 9,
+    "change": "columns added to jobs: mem_current_bytes, mem_peak_bytes, mem_peak_source, mem_sampled_at, mem_series_json, cpu_usage_usec, mem_auto_json, github_json, github_phase, github_attempts, github_next_unix, github_error, github_done, github_posted_at, github_comment_id; index jobs_github_pending_idx; no existing column changes. Rollback sets user_version back to 8 in place."
   },
+  "systemd_unit": "simqueue.service: Nice=10, CPUWeight=20, IOSchedulingClass=idle, MemoryHigh=96M, MemoryMax=128M (0.6.3: Nice=5)",
   "features": [
-    "no partitions on zenobia: one pool, zenobia, of every physical core and the GPU; every job requests from it",
-    "partition aliases (node.json partitions[].aliases): plain names or objects with default_cpus, default_mem, default_time and prefer_cpus; every partition-by-name lookup resolves them (submit, run, --test-only, --borrow-from, ensemble submit, scheduler, borrow planner, GPU line, adoption, simq partitions, simq doctor, simq show)",
-    "jobs keep the name they were submitted with (database, listings, SIMQ_PARTITION, idempotency fingerprint); jobs recorded under spheral, raikou-mfem or powerflow before 0.6.3 are adopted and scheduled in the pool",
-    "the alias defaults are the 0.6.2 partitions' (spheral 4 cores 18G 2 days; raikou-mfem and powerflow 2 cores 4G 12 h) and their old cores are tried first; without -p the old default partition's defaults apply; limits are the pool's (20G, 14 days)",
-    "borrow.backfill_waiting_owners: a free core a waiting owner job needs is lent to a borrow job whose time limit ends before that owner job's earliest start (EASY backfill for borrow jobs); false keeps the 0.6.1 rule",
-    "simq run (alias srun): the options of simq submit; submits, prints the job ID on stderr, streams the job's combined log to stdout, waits, exits with the job's exit code (signal N: 128+N; else 0 succeeded, 1 otherwise; never 0 for a job that did not succeed); SIGINT/SIGTERM/SIGHUP cancel the job and exit 130/143/129; --idempotency-key reattaches a replay to the existing job",
-    "explicit smt_siblings in node.json are checked against sysfs when the topology is checked",
-    "upgrade.py install/rollback 0.6.2 <-> 0.6.3 (dry run by default): preflight allows the partition layout change and checks that no core, GPU or partition name (of the live config and of every queued or active job) is lost; backup, adoption of job and GPU claim units, GPU line state verification, automatic rollback; rollback lists jobs queued under the pool name"
+    "event-driven worker: select() on <state>/worker.wake (clients after submit/cancel/..., the job wrapper's stop-post hook), data_version of its own persistent SQLite connection for other writers; passes every poll_seconds only while something must be watched, else at most every launch.idle_seconds (30 s); between passes only file reads (job cgroups, /proc/meminfo); systemd queried only for units that need it, all units every 5 minutes",
+    "memory tracking: memory.current/memory.peak of every running job unit every memory.sample_seconds (3 s), bounded min/max-per-minute series, peak and CPU time recorded by the unit at its end (jobwrap status/stop-post usage), shown in simq show (now, peak, CPU time, history), simq list (MEM column) and simq partitions (node available memory, water marks, per-job request against actual, outside-queue use)",
+    "--mem auto: 1.25 x the largest of the last 5 peaks of jobs with the same name (else name family, same core count preferred), OOM kills counted at their limit, rounded up to 256M, within min_mem..max_mem; default without history; idempotent replays keep their job",
+    "over-request warning on submit (>= 2x and >= 2G above the recent peak)",
+    "admission guard: a start needs request <= MemAvailable - margin (default: the high-water mark) - unallocated requests of jobs started < 60 s ago; reservations stay primary",
+    "memory pressure: MemAvailable below max(2G, 7%) stops dispatch, preempts borrow jobs by --on-preempt (frozen ones requeued after 120 s), records the job that grew against its request; owner jobs never stopped; resumes at max(4G, 12%)",
+    "GitHub reporting: --github-status OWNER/REPO@SHA:CONTEXT (repeatable), --github-comment OWNER/REPO#PR, --github-summary PATH (SIMQ_SUMMARY) on submit and run; statuses per transition (pending/success/failure/error with runtime, peak memory, exit code or reason, <= 140 chars); one PR comment edited in place (<!-- simq-job:N -->); job text sanitized against mentions and issue references; one posting thread in the worker with backoff retries; token from token_file or gh auth token, memory only",
+    "run-tests.py --in-job (inside a queue job) and --pure; tools/bench-overhead.py"
   ],
-  "zenobia_policy": {
-    "zenobia": {
-      "lend": true,
-      "lend_leased_idle": false,
-      "timing_sensitive": false,
-      "note": "timing runs submit with --exclusive-timing"
-    },
-    "borrow": {
-      "backfill_waiting_owners": true
-    }
-  },
-  "tests": {
-    "runs": {
-      "full suite, cores 6-7 (--wait-any --min-cores 2 --shared), every file but test_shield_helper and test_exclusive_mode": {
-        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/receipts/full-suite-1.json",
-        "log": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/logs/full-suite-1.out",
-        "tests_run": 299,
-        "failures": 0,
-        "errors": 1,
-        "skipped": 6,
-        "failed_detail": [
-          "test_upgrade.UpgradeTests.test_install_adopts_062_jobs_runs_old_names_in_the_pool_and_rollback_adopts_063_jobs: test bug (a helper named intervals was shadowed by the fixture's intervals path) after the install, adoption and the pool run of the old-name job had passed; fixed, see the upgrade reruns"
-        ],
-        "skipped_detail": [
-          "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set (historical: expects a schema 6 live database)",
-          "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set (historical: expects a schema 7 live database)",
-          "test_node_worker.ConcurrencyTests.test_whole_partition_job_waits_for_all_cores: needs a two-core partition",
-          "test_node_worker.LeaseTests.test_outside_lease_holder_is_respected_and_job_units_hold_leases: needs a two-core partition",
-          "test_node_worker.PfLaunchInsideAllocationTests.test_pf_launch_10_refuses_on_its_own_jobs_leases: pf-launch is no longer 1.0",
-          "test_pool_aliases.LiveCopyTests.test_copy_of_live_database_under_the_pool: SIMQ_LIVE_DB_COPY not set (run separately, see below)"
-        ],
-        "duration_s": 413.831,
-        "cores_leased": [
-          6,
-          7
-        ],
-        "runner": "run-tests.py",
-        "counted": "every file but test_upgrade"
+  "overhead": {
+    "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.7.0-20261105/bench/bench-overhead.json",
+    "method": "each worker in its own transient user unit with the properties it is installed with; cgroup cpu.stat usage over 10 minutes after a 30 s warm-up; all four at once; busy = 2-core pool, 2 running and 10 queued sleep jobs",
+    "results": [
+      {
+        "version": "0.6.3",
+        "scenario": "idle",
+        "cpu_s_per_hour": 7.075,
+        "percent_of_one_core": 0.1965,
+        "rss_bytes": 32575488,
+        "memory_current": 19623936,
+        "memory_peak": 20180992
       },
-      "test_upgrade, cores 6-7 (after the test fix; the rollback check now expects 0.6.2 to set up its own GPU claim)": {
-        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/receipts/suite-upgrade-3.json",
-        "log": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/logs/suite-upgrade-3.out",
-        "tests_run": 10,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 0,
-        "duration_s": 64.293,
-        "cores_leased": [
-          6,
-          7
-        ],
-        "runner": "run-tests.py",
-        "earlier": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/receipts/suite-upgrade-2.json (9 ok, 1 failure: the test expected no claim unit after the rollback, as for 0.6.1; 0.6.2 has the GPU line and claimed the GPU for the waiting job)"
+      {
+        "version": "0.6.3",
+        "scenario": "busy",
+        "cpu_s_per_hour": 19.457,
+        "percent_of_one_core": 0.5405,
+        "rss_bytes": 32608256,
+        "memory_current": 19800064,
+        "memory_peak": 21454848
       },
-      "pure: test_exclusive_mode (needs four CPUs in the affinity mask) and test_pool_aliases.LiveCopyTests on a read-only copy of the live database (715 jobs)": {
-        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/receipts/pure-exclusive-and-live-copy.json",
-        "tests_run": 10,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 0,
-        "duration_s": 0.086,
-        "cores_leased": null,
-        "runner": "pure suites (no unit, no lease)"
+      {
+        "version": "0.7.0",
+        "scenario": "idle",
+        "cpu_s_per_hour": 0.179,
+        "percent_of_one_core": 0.005,
+        "rss_bytes": 32833536,
+        "memory_current": 20377600,
+        "memory_peak": 21282816
+      },
+      {
+        "version": "0.7.0",
+        "scenario": "busy",
+        "cpu_s_per_hour": 0.693,
+        "percent_of_one_core": 0.0192,
+        "rss_bytes": 33050624,
+        "memory_current": 20791296,
+        "memory_peak": 22077440
       }
-    },
-    "how": "unit-level suites through run-tests.py with the lease files of cores 6 and 7 held (--shared, waiting until both were free: a Spheral run held all eight leases from 18:31 to about 19:00), private state, lock and pic-profile directories, temporary directory /home/treefor/projects/.workspace/outputs/simq063-test-tmp; pure suites without leases",
-    "existing_not_run": "test_shield_helper.py (16 tests) cannot be imported: it needs source/privileged/simqueue-shield, as for 0.6.0 to 0.6.2",
-    "new_suites": {
-      "test_pool_aliases.py": 24,
-      "test_run_units.py": 6
-    },
-    "rewritten_suites": {
-      "test_upgrade.py": "0.6.2 -> 0.6.3 install, rollback, refusals and layout preflight (10 tests)"
-    },
-    "changed_suites": {
-      "test_scheduler.py": "partition tests use tests/fixtures/zenobia-node-0.6.2.json; zenobia config tests for the pool",
-      "test_borrow_scheduler.py": "zenobia policy test for the pool",
-      "test_migration.py": "uses the 0.6.2 layout fixture"
-    },
-    "final_by_file": {
-      "test_borrow_scheduler.py": "43 ok",
-      "test_borrow_store_cli.py": "11 ok",
-      "test_borrow_units.py": "12 ok",
-      "test_ensemble.py": "53 ok",
-      "test_exclusive_mode.py": "9 ok (pure)",
-      "test_gpuline.py": "24 ok",
-      "test_gpu_line_units.py": "8 ok",
-      "test_migration.py": "3 ok, 1 skipped (historical live copy)",
-      "test_migration_061.py": "2 ok, 1 skipped (historical live copy)",
-      "test_node_worker.py": "27 ok, 3 skipped (two-core partitions on two leased CPUs; pf-launch 1.0 gone)",
-      "test_pool_aliases.py": "24 ok (LiveCopyTests in the pure run)",
-      "test_run_units.py": "6 ok",
-      "test_scheduler.py": "26 ok",
-      "test_simqueue.py": "42 ok",
-      "test_switchover.py": "3 ok",
-      "test_upgrade.py": "10 ok",
-      "test_shield_helper.py": "not importable (16 tests)"
-    },
-    "final_totals": {
-      "tests": 308,
-      "ok": 303,
-      "skipped": 5,
-      "failed": 0,
-      "not_run": 16
-    }
+    ],
+    "live_063_reference": "11.9 CPU-s over 77 min (9.3 CPU-s/h), MemoryCurrent 21 MB, RSS 28 MB"
   },
-  "notes": "/home/treefor/projects/runtimes/simqueue-0.6.3-20261105/OPERATIONS.md (The pool on zenobia; simq run; Upgrading 0.6.2 to 0.6.3; Validation of 0.6.3; Known limitations)"
+  "github_end_to_end": {
+    "repository": "treeforjs/plasma-solid-shocks",
+    "branch": "simqueue-status-check-20261105 (throwaway; orphan commit with an empty tree, so no workflow can run)",
+    "commit": "f2062282afe3fa3bb00b29b7711af95e968bd7e0",
+    "worker": "separate sandbox worker (not the live service), token from gh auth token",
+    "statuses": [
+      "2026-11-05T05:20:56Z simqueue/e2e-check pending 'SimQueue job 1 running on CPUs 14'",
+      "2026-11-05T05:21:00Z simqueue/e2e-check success 'SimQueue job 1 succeeded in 5s, peak 8M; exit 0'"
+    ],
+    "token_in_sandbox_files": 0
+  },
+  "tests": "pending"
 }

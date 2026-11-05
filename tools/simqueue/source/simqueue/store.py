@@ -23,7 +23,7 @@ TERMINAL_STATES = ("succeeded", "failed", "canceled", "interrupted")
 MEMBER_TERMINAL_STATES = ("succeeded", "failed", "canceled", "interrupted")
 MIGRATION_SENTINEL = Path("/run/simqueue/exclusive-installing")
 IDEMPOTENCY_KEY_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,254}$")
-SCHEMA_VERSION = 8
+SCHEMA_VERSION = 9
 # Columns added by the 0.6 node scheduler (schema 7).  Existing rows keep NULL
 # or the default, which reads as "0.5 legacy job" everywhere.
 NODE_JOB_COLUMNS = (
@@ -60,6 +60,30 @@ BORROW_JOB_COLUMNS = (
     ("preempt_count", "INTEGER NOT NULL DEFAULT 0"),
     ("placement_json", "TEXT"),
 )
+# Columns added by 0.7.0 (schema 9): memory and CPU use of each job.  Rows of
+# earlier jobs keep NULL ("not measured").
+MEMORY_JOB_COLUMNS = (
+    ("mem_current_bytes", "INTEGER"),  # last sample of the unit's memory.current (running jobs)
+    ("mem_peak_bytes", "INTEGER"),  # high-water mark (memory.peak) over the job's runs
+    ("mem_peak_source", "TEXT"),  # unit: recorded by the unit at its end; sampled: the worker's samples
+    ("mem_sampled_at", "TEXT"),
+    ("mem_series_json", "TEXT"),  # min/max buckets (memory.Series), bounded
+    ("cpu_usage_usec", "INTEGER"),  # CPU time of the job unit (cpu.stat usage_usec), last run
+    ("mem_auto_json", "TEXT"),  # --mem auto: how the request was derived
+)
+# Columns added by 0.7.0 (schema 9) for GitHub reporting (github.py): the
+# targets of the submission and what the worker has posted.
+GITHUB_JOB_COLUMNS = (
+    ("github_json", "TEXT"),  # {"statuses": [...], "comment": {...}, "summary": path}
+    ("github_phase", "TEXT"),  # the last phase posted (or given up on)
+    ("github_attempts", "INTEGER NOT NULL DEFAULT 0"),  # failed attempts at the current phase
+    ("github_next_unix", "REAL"),  # earliest retry
+    ("github_error", "TEXT"),  # last failure (never the token)
+    ("github_done", "INTEGER NOT NULL DEFAULT 0"),  # the final phase is posted or given up
+    ("github_posted_at", "TEXT"),
+    ("github_comment_id", "INTEGER"),
+)
+EXTRA_SUBMIT_COLUMNS = ("github_json", "mem_auto_json")
 SCHEDULING_FIELDS = (
     "partition",
     "cpu_request",
@@ -256,19 +280,46 @@ def utc_now() -> str:
     return datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
+class _PersistentConnection(sqlite3.Connection):
+    """The worker's single connection (0.7.0): the context manager commits or
+    rolls back but keeps the handle open."""
+
+
 class QueueStore:
-    def __init__(self, path: Path | None = None) -> None:
+    def __init__(self, path: Path | None = None, *, persistent: bool = False) -> None:
         ensure_state_directories()
         self.path = path or database_path()
+        self.persistent = persistent
+        self._connection: sqlite3.Connection | None = None
         self._initialize()
 
     def connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(self.path, timeout=5.0, factory=_Connection)
+        if self.persistent:
+            if self._connection is None:
+                self._connection = self._open(_PersistentConnection)
+            return self._connection
+        return self._open(_Connection)
+
+    def _open(self, factory: type) -> sqlite3.Connection:
+        connection = sqlite3.connect(self.path, timeout=5.0, factory=factory)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA busy_timeout = 5000")
         connection.execute("PRAGMA foreign_keys = ON")
         connection.execute("PRAGMA synchronous = FULL")
         return connection
+
+    def close(self) -> None:
+        if self._connection is not None:
+            self._connection.close()
+            self._connection = None
+
+    def data_version(self) -> int:
+        """SQLite's data_version: changes when another connection commits.
+
+        With ``persistent=True`` the worker's own writes do not change it, so
+        a changed value means a client (submit, cancel, an ensemble
+        controller) wrote to the queue."""
+        return int(self.connect().execute("PRAGMA data_version").fetchone()[0])
 
     def _initialize(self) -> None:
         with self.connect() as connection:
@@ -432,7 +483,7 @@ class QueueStore:
                 # IDs are the historical FIFO order. Seed the new explicit
                 # ordering from them exactly once during the v6 migration.
                 connection.execute("UPDATE jobs SET queue_order = id")
-            for name, declaration in NODE_JOB_COLUMNS + BORROW_JOB_COLUMNS:
+            for name, declaration in NODE_JOB_COLUMNS + BORROW_JOB_COLUMNS + MEMORY_JOB_COLUMNS + GITHUB_JOB_COLUMNS:
                 if name not in columns:
                     connection.execute(f"ALTER TABLE jobs ADD COLUMN {name} {declaration}")
             ensemble_columns = {
@@ -500,6 +551,18 @@ class QueueStore:
                     VALUES ('schema8_migrated_at', strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
                 """
             )
+            connection.execute(
+                """
+                CREATE INDEX IF NOT EXISTS jobs_github_pending_idx
+                    ON jobs(id) WHERE github_json IS NOT NULL AND github_done = 0
+                """
+            )
+            connection.execute(
+                """
+                INSERT OR IGNORE INTO queue_meta(key, value)
+                    VALUES ('schema9_migrated_at', strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+                """
+            )
             connection.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
         self._make_files_private()
 
@@ -562,8 +625,13 @@ class QueueStore:
         idempotency_key: str | None = None,
         scheduling: dict[str, Any] | None = None,
         explicit_scheduling: dict[str, Any] | None = None,
+        extra_columns: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         idempotency_key = _validate_idempotency_key(idempotency_key)
+        extra = {key: value for key, value in (extra_columns or {}).items() if value is not None}
+        unknown = sorted(set(extra) - set(EXTRA_SUBMIT_COLUMNS))
+        if unknown:
+            raise ValueError(f"unknown submission column(s) {unknown}")
         override_keys = sorted(set(env_override_keys))
         scheduling = _scheduling_values(scheduling)
         request_sha256 = (
@@ -625,6 +693,8 @@ class QueueStore:
                         ),
                     )
                     job_id = int(cursor.lastrowid)
+                    for key, value in extra.items():
+                        connection.execute(f"UPDATE jobs SET {key} = ? WHERE id = ?", (value, job_id))
                     path = log_dir() / f"{job_id:06d}.log"
                     with path.open("xb"):
                         pass
@@ -1675,6 +1745,7 @@ class QueueStore:
         message: str | None = None,
         result: str | None = None,
         finished_at: str | None = None,
+        usage: dict[str, Any] | None = None,
     ) -> bool:
         if state not in TERMINAL_STATES:
             raise ValueError(f"invalid terminal state: {state}")
@@ -1689,6 +1760,8 @@ class QueueStore:
                 """,
                 (state, finished_at or utc_now(), exit_code, message, result, job_id),
             ).rowcount
+            if changed and usage:
+                self._write_usage(connection, job_id, usage, final=True)
             if changed:
                 borrow = connection.execute("SELECT borrow FROM jobs WHERE id = ?", (job_id,)).fetchone()
                 if borrow is not None and borrow["borrow"]:
@@ -2089,6 +2162,128 @@ class QueueStore:
             )
         return self.require(job_id)
 
+    # ----- memory (0.7.0) ------------------------------------------------
+
+    @staticmethod
+    def _write_usage(connection: sqlite3.Connection, job_id: int, usage: dict[str, Any], *, final: bool) -> None:
+        """Record a job's measured use.  The peak only ever grows (over the
+        job's runs); *final* clears the current-memory sample."""
+        connection.execute(
+            """
+            UPDATE jobs
+            SET mem_peak_bytes = CASE
+                    WHEN ? IS NULL THEN mem_peak_bytes
+                    WHEN mem_peak_bytes IS NULL OR mem_peak_bytes < ? THEN ?
+                    ELSE mem_peak_bytes END,
+                mem_peak_source = CASE
+                    WHEN ? IS NULL THEN mem_peak_source
+                    WHEN mem_peak_bytes IS NULL OR mem_peak_bytes <= ? OR ? = 'unit' THEN ?
+                    ELSE mem_peak_source END,
+                mem_current_bytes = ?,
+                mem_sampled_at = COALESCE(?, mem_sampled_at),
+                mem_series_json = COALESCE(?, mem_series_json),
+                cpu_usage_usec = COALESCE(?, cpu_usage_usec)
+            WHERE id = ?
+            """,
+            (
+                usage.get("peak"), usage.get("peak"), usage.get("peak"),
+                usage.get("peak"), usage.get("peak"), usage.get("source"), usage.get("source"),
+                None if final else usage.get("current"),
+                usage.get("sampled_at"),
+                usage.get("series"),
+                usage.get("cpu_usec"),
+                job_id,
+            ),
+        )
+
+    def record_memory(self, updates: dict[int, dict[str, Any]]) -> None:
+        """Write the worker's samples of running jobs in one transaction.
+
+        Each update may carry current, peak, source ('sampled'), sampled_at,
+        series (JSON) and cpu_usec."""
+        if not updates:
+            return
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            for job_id, usage in updates.items():
+                self._write_usage(connection, int(job_id), usage, final=False)
+
+    def record_final_usage(self, job_id: int, usage: dict[str, Any]) -> None:
+        with self.connect() as connection:
+            self._write_usage(connection, job_id, usage, final=True)
+
+    def memory_history(self, *, limit: int = 2000) -> list[dict[str, Any]]:
+        """Finished jobs with a recorded memory peak, newest first."""
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, name, state, result, requested_cores, mem_bytes, mem_peak_bytes,
+                       mem_peak_source, cpu_usage_usec, partition, finished_at
+                FROM jobs
+                WHERE state IN ('succeeded', 'failed', 'canceled', 'interrupted')
+                  AND mem_peak_bytes IS NOT NULL
+                ORDER BY COALESCE(finished_at, created_at) DESC, id DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def set_memory_basis(self, job_id: int, basis: dict[str, Any] | None) -> None:
+        with self.connect() as connection:
+            connection.execute(
+                "UPDATE jobs SET mem_auto_json = ? WHERE id = ?",
+                (None if basis is None else json.dumps(basis, sort_keys=True, default=str), job_id),
+            )
+
+    def github_pending(self) -> list[dict[str, Any]]:
+        """Jobs with GitHub targets whose final phase is not posted yet."""
+        with self.connect() as connection:
+            rows = connection.execute(
+                "SELECT * FROM jobs WHERE github_json IS NOT NULL AND github_done = 0 ORDER BY id"
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def record_github(self, job_id: int, *, phase: str, ok: bool, error: str | None, next_unix: float | None,
+                      give_up: bool, final: bool, comment_id: int | None) -> None:
+        with self.connect() as connection:
+            if ok or give_up:
+                connection.execute(
+                    """
+                    UPDATE jobs SET github_phase = ?, github_attempts = 0, github_next_unix = NULL,
+                        github_error = ?, github_done = ?, github_posted_at = ?,
+                        github_comment_id = COALESCE(?, github_comment_id)
+                    WHERE id = ?
+                    """,
+                    (phase, None if ok else error, 1 if final else 0, utc_now() if ok else None, comment_id, job_id),
+                )
+            else:
+                connection.execute(
+                    """
+                    UPDATE jobs SET github_attempts = github_attempts + 1, github_next_unix = ?, github_error = ?
+                    WHERE id = ?
+                    """,
+                    (next_unix, error, job_id),
+                )
+
+    def get_meta(self, key: str) -> str | None:
+        with self.connect() as connection:
+            row = connection.execute("SELECT value FROM queue_meta WHERE key = ?", (key,)).fetchone()
+        return None if row is None else str(row["value"])
+
+    def set_meta(self, key: str, value: str | None) -> None:
+        with self.connect() as connection:
+            if value is None:
+                connection.execute("DELETE FROM queue_meta WHERE key = ?", (key,))
+            else:
+                connection.execute(
+                    """
+                    INSERT INTO queue_meta(key, value) VALUES (?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+                    """,
+                    (key, value),
+                )
+
     def node_jobs(self) -> list[dict[str, Any]]:
         """Active and queued jobs with ensemble pause state, in dispatch order."""
         with self.connect() as connection:
@@ -2245,6 +2440,7 @@ class QueueStore:
             retry_of=job_id,
             attempt=int(original["attempt"]) + 1,
             scheduling=_scheduling_from_job(original),
+            extra_columns={"github_json": original.get("github_json")},
         )
 
     def set_paused(self, paused: bool) -> None:

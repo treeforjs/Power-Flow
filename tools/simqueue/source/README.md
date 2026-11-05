@@ -1,5 +1,45 @@
 # simqueue
 
+## 0.7.0: event-driven worker, job memory, `--mem auto`, GitHub reporting
+
+The worker (`nodeworker.py`) sleeps in `select()` on the FIFO
+`<state>/worker.wake`: clients write a byte after a submission or
+cancellation, the job wrapper's stop-post hook after a job's end, and the
+database's `data_version` (on the worker's single persistent connection,
+which its own writes leave alone) catches any other writer. Between passes
+it reads only files: each running unit's cgroup (`memory.current`,
+`memory.peak`, existence) every `memory.sample_seconds` and
+`/proc/meminfo`. A pass asks systemd only about units that need it.
+Passes run every `poll_seconds` only while something must be watched, else
+at most every `launch.idle_seconds`. `simqueue.service` runs with `Nice=10`,
+`CPUWeight=20`, `IOSchedulingClass=idle`, `MemoryMax=128M`. Measured: ~0.2
+CPU-s/h idle and ~0.5 busy, against ~7 and ~20 for 0.6.3
+(`tools/bench-overhead.py`).
+
+`memory.py`: cgroup and meminfo readers, bounded min/max series, the
+admission guard (a start needs its request below MemAvailable minus a
+margin minus what young jobs have not allocated), memory-pressure
+hysteresis (high/low water on MemAvailable: dispatch stops, borrow jobs are
+preempted by their policy, owner jobs never), and `--mem auto` (1.25 x the
+largest recent peak of the same name, else name family). `jobwrap.py`
+records the unit's `memory.peak` and CPU time in `status.json` and
+`stop-post.json`. Schema 9 adds the `mem_*`, `cpu_usage_usec` and
+`github_*` columns (`store.py`).
+
+`github.py`: `--github-status OWNER/REPO@SHA:CONTEXT`, `--github-comment
+OWNER/REPO#PR`, `--github-summary PATH` (`SIMQ_SUMMARY`). The worker posts a
+commit status per transition and one PR comment at the end (edited in place
+via `<!-- simq-job:N -->`), from one daemon thread, with retries and backoff
+from its event loop; job text is sanitized (no mentions, no issue
+references); the token (`token_file` or `gh auth token`) stays in memory.
+
+Tests: `test_memory.py`, `test_github.py` (pure, with `fake_github.py`),
+`test_memory_units.py`, `test_github_units.py` (real units), the rewritten
+`test_upgrade.py` (0.6.3 -> 0.7.0 and back). `run-tests.py --in-job` runs the
+unit-level suites inside a queue job (`simq run -c 2 ...`).
+`../upgrade.py` installs 0.7.0 over 0.6.3 (schema migration, hardened unit)
+and rolls back (schema set back to 8 in place).
+
 ## 0.6.3: one pool, partition aliases, `simq run`
 
 zenobia has no partitions any more: one partition, `zenobia`, holds every

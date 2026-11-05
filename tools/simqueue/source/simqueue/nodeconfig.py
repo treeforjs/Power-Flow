@@ -14,6 +14,13 @@ partition's.  Every partition-by-name lookup resolves aliases, so a single
 pool can keep the names of the partitions it replaced.  A job keeps the name
 it was submitted with (``SIMQ_PARTITION``, ``simq`` listings) and is
 scheduled under the partition the name resolves to.
+
+0.7.0: a ``memory`` section (``MemoryConfig``) sets how job memory is
+sampled and used: the sampling interval, the actual-memory admission guard,
+the high/low-water marks of memory pressure and ``--mem auto``.  A partition
+may set ``min_mem`` (the smallest request ``--mem auto`` gives).  ``launch``
+gains ``idle_seconds``: the longest the event-driven worker sleeps when
+nothing needs attention.
 """
 
 from __future__ import annotations
@@ -28,6 +35,7 @@ from typing import Any
 
 from .config import format_cpu_list, parse_cpu_list, state_dir
 from .gpuline import LineConfig, parse_line_config
+from .github import GitHubConfig, parse_github_config
 
 
 CONFIG_SCHEMA = "simqueue-node-config-v1"
@@ -266,6 +274,8 @@ class Partition:
     aliases: tuple[str, ...] = ()
     alias: str | None = None
     prefer_cpus: tuple[int, ...] = ()
+    # 0.7.0: the smallest request --mem auto gives
+    min_mem: int = 256 * 1024**2
 
     def resolve_default_cpus(self) -> int:
         return len(self.cpus) if self.default_cpus is None else self.default_cpus
@@ -323,7 +333,54 @@ class LaunchConfig:
     systemctl: str = "systemctl"
     wrapper_python: str = DEFAULT_WRAPPER_PYTHON
     kill_grace_seconds: float = 10.0
+    # 0.7.0: the worker is event-driven.  poll_seconds is its pass interval
+    # while something needs watching (a job starting or being stopped,
+    # borrow jobs, the GPU line, queued jobs held by leases outside the
+    # queue or by the memory guard); otherwise it sleeps up to idle_seconds
+    # between passes, woken at once by submissions, cancellations and job
+    # ends.
     poll_seconds: float = 1.0
+    idle_seconds: float = 30.0
+
+
+@dataclass(frozen=True)
+class MemoryConfig:
+    """Node-wide memory tracking and memory-aware dispatch (0.7.0)."""
+
+    enabled: bool = True
+    # running jobs' cgroups and MemAvailable are read this often (no process is spawned)
+    sample_seconds: float = 3.0
+    # samples are written to the database at most this often (min/max buckets)
+    record_seconds: float = 60.0
+    series_buckets: int = 240
+    # admission guard: a start needs MemAvailable - margin - (unallocated
+    # requests of jobs started less than ramp_seconds ago) >= its request;
+    # margin None = the high-water mark
+    admission_margin: int | None = None
+    ramp_seconds: float = 60.0
+    # memory pressure: MemAvailable below max(high_water_available,
+    # high_water_percent of MemTotal) stops dispatch and preempts borrow
+    # jobs; at or above max(low_water_*) it ends
+    high_water_available: int = 2 * 1024**3
+    high_water_percent: float = 7.0
+    low_water_available: int = 4 * 1024**3
+    low_water_percent: float = 12.0
+    # a freeze-policy borrow job frozen for memory pressure is stopped
+    # (requeued) when the pressure lasts this long: a frozen job keeps its memory
+    pressure_escalate_seconds: float = 120.0
+    # a job using at least this fraction of its request is warned about once
+    near_limit_fraction: float = 0.9
+    # --mem auto: auto_factor x the largest of the last auto_history peaks,
+    # rounded up to auto_round
+    auto_factor: float = 1.25
+    auto_history: int = 5
+    auto_round: int = 256 * 1024**2
+    # submit warns when --mem is at least warn_factor x the recent peak and
+    # at least warn_min_excess above it
+    warn_factor: float = 2.0
+    warn_min_excess: int = 2 * 1024**3
+    # tests only: simulate a node of this size used only by queue jobs
+    test_node_total: int | None = None
 
 
 @dataclass(frozen=True)
@@ -344,6 +401,10 @@ class NodeConfig:
     line: LineConfig = field(default_factory=lambda: LineConfig(enabled=False))
     # 0.6.3: alias name -> alias (see PartitionAlias)
     aliases: dict[str, PartitionAlias] = field(default_factory=dict)
+    # 0.7.0: memory tracking, admission guard, pressure, --mem auto
+    memory: MemoryConfig = field(default_factory=MemoryConfig)
+    # 0.7.0: GitHub reporting of job state (github.py)
+    github: GitHubConfig = field(default_factory=GitHubConfig)
 
     def canonical_partition(self, name: str | None) -> str:
         """The partition a requested or recorded name stands for: the name
@@ -495,6 +556,8 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             "borrow",
             "smt_siblings",
             "gpu_line",
+            "memory",
+            "github",
         },
         "node config",
     )
@@ -570,7 +633,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
     _unknown(
         launch_raw,
         {"backend", "unit_prefix", "slice", "systemd_run", "systemctl", "wrapper_python",
-         "kill_grace_seconds", "poll_seconds"},
+         "kill_grace_seconds", "poll_seconds", "idle_seconds"},
         "launch",
     )
     backend = launch_raw.get("backend", "systemd-user")
@@ -585,9 +648,10 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
     try:
         grace = float(launch_raw.get("kill_grace_seconds", 10.0))
         poll = float(launch_raw.get("poll_seconds", 1.0))
+        idle = float(launch_raw.get("idle_seconds", max(30.0, poll)))
     except (TypeError, ValueError) as error:
         raise ConfigError("launch timing values must be numbers") from error
-    if not 0.1 <= grace <= 3600 or not 0.05 <= poll <= 60:
+    if not 0.1 <= grace <= 3600 or not 0.05 <= poll <= 60 or not poll <= idle <= 300:
         raise ConfigError("launch timing values are out of range")
     launch = LaunchConfig(
         backend=backend,
@@ -598,6 +662,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         wrapper_python=str(launch_raw.get("wrapper_python", DEFAULT_WRAPPER_PYTHON)),
         kill_grace_seconds=grace,
         poll_seconds=poll,
+        idle_seconds=idle,
     )
 
     try:
@@ -621,7 +686,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             item,
             {"name", "cpus", "cores", "gpus", "default_mem", "max_mem", "default_time", "max_time",
              "default_cpus", "swap_max", "enforce_time_limit", "nice", "description",
-             "lend", "lend_leased_idle", "timing_sensitive", "aliases"},
+             "lend", "lend_leased_idle", "timing_sensitive", "aliases", "min_mem"},
             f"partitions[{index}]",
         )
         name = item.get("name")
@@ -659,12 +724,15 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             default_mem = parse_size(item.get("default_mem", "1G"), field_name=f"partition {name} default_mem")
             max_mem = parse_size(item.get("max_mem", item.get("default_mem", "1G")), field_name=f"partition {name} max_mem")
             swap_max = parse_size(item.get("swap_max", "0"), field_name=f"partition {name} swap_max", bare_unit=1024**2)
+            min_mem = parse_size(item.get("min_mem", "256M"), field_name=f"partition {name} min_mem")
             default_time = parse_time_limit(item.get("default_time"), field_name=f"partition {name} default_time")
             max_time = parse_time_limit(item.get("max_time"), field_name=f"partition {name} max_time")
         except ValueError as error:
             raise ConfigError(str(error)) from error
         if default_mem <= 0 or max_mem < default_mem:
             raise ConfigError(f"partition {name}: need 0 < default_mem <= max_mem")
+        if min_mem <= 0 or min_mem > max_mem:
+            raise ConfigError(f"partition {name}: need 0 < min_mem <= max_mem")
         if memory_schedulable is not None and max_mem > memory_schedulable:
             raise ConfigError(f"partition {name}: max_mem exceeds memory_schedulable")
         if max_time is not None and (default_time is None or default_time > max_time):
@@ -704,6 +772,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             lend=policy["lend"],
             lend_leased_idle=policy["lend_leased_idle"],
             timing_sensitive=policy["timing_sensitive"],
+            min_mem=min_mem,
         )
         for alias in _parse_aliases(item.get("aliases", []), partitions[name]):
             if alias.name in aliases:
@@ -719,6 +788,11 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
     if default_partition not in partitions:
         raise ConfigError("default_partition must name a configured partition")
     borrow = _parse_borrow(document.get("borrow", {}))
+    memory = _parse_memory(document.get("memory", {}))
+    try:
+        github = parse_github_config(document.get("github"))
+    except ValueError as error:
+        raise ConfigError(str(error)) from error
     node_cpus = sorted({cpu for part in partitions.values() for cpu in part.cpus})
     raw_siblings = document.get("smt_siblings")
     if raw_siblings is not None:
@@ -759,6 +833,8 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         smt_siblings=siblings,
         line=line,
         aliases=aliases,
+        memory=memory,
+        github=github,
     )
 
 
@@ -822,6 +898,87 @@ def _parse_aliases(value: Any, partition: Partition) -> list[PartitionAlias]:
             prefer_cpus=prefer,
         ))
     return result
+
+
+def _parse_memory(value: Any) -> MemoryConfig:
+    """The ``memory`` section (0.7.0); every key is optional."""
+    raw = _object(value, "memory")
+    defaults = MemoryConfig()
+    sizes = ("admission_margin", "high_water_available", "low_water_available", "auto_round", "warn_min_excess",
+             "test_node_total")
+    numbers = {
+        "sample_seconds": (0.5, 60.0),
+        "record_seconds": (1.0, 3600.0),
+        "ramp_seconds": (0.0, 3600.0),
+        "high_water_percent": (0.0, 50.0),
+        "low_water_percent": (0.0, 60.0),
+        "pressure_escalate_seconds": (0.0, 86400.0),
+        "near_limit_fraction": (0.1, 1.0),
+        "auto_factor": (1.0, 4.0),
+        "warn_factor": (1.0, 100.0),
+    }
+    integers = {"series_buckets": (16, 10000), "auto_history": (1, 100)}
+    _unknown(raw, {"enabled", "notes", *sizes, *numbers, *integers}, "memory")
+    values: dict[str, Any] = {}
+    enabled = raw.get("enabled", True)
+    if not isinstance(enabled, bool):
+        raise ConfigError("memory.enabled must be true or false")
+    values["enabled"] = enabled
+    for key in sizes:
+        if key not in raw:
+            continue
+        if raw[key] is None and key in ("admission_margin", "test_node_total"):
+            values[key] = None
+            continue
+        try:
+            values[key] = parse_size(raw[key], field_name=f"memory.{key}")
+        except ValueError as error:
+            raise ConfigError(str(error)) from error
+    for key, (low, high) in numbers.items():
+        if key not in raw:
+            continue
+        item = raw[key]
+        if isinstance(item, bool) or not isinstance(item, (int, float)) or not low <= float(item) <= high:
+            raise ConfigError(f"memory.{key} must be a number between {low:g} and {high:g}")
+        values[key] = float(item)
+    for key, (low, high) in integers.items():
+        if key not in raw:
+            continue
+        item = raw[key]
+        if isinstance(item, bool) or not isinstance(item, int) or not low <= item <= high:
+            raise ConfigError(f"memory.{key} must be an integer between {low} and {high}")
+        values[key] = item
+    config = dataclasses.replace(defaults, **values)
+    if config.auto_round <= 0:
+        raise ConfigError("memory.auto_round must be positive")
+    if config.record_seconds < config.sample_seconds:
+        raise ConfigError("memory.record_seconds must be at least memory.sample_seconds")
+    if (config.low_water_available < config.high_water_available
+            or config.low_water_percent < config.high_water_percent):
+        raise ConfigError("memory: the low-water mark must not be below the high-water mark")
+    return config
+
+
+def describe_memory(config: MemoryConfig) -> dict[str, Any]:
+    return {
+        "enabled": config.enabled,
+        "sample_seconds": config.sample_seconds,
+        "record_seconds": config.record_seconds,
+        "admission_margin": config.admission_margin,
+        "ramp_seconds": config.ramp_seconds,
+        "high_water_available": config.high_water_available,
+        "high_water_percent": config.high_water_percent,
+        "low_water_available": config.low_water_available,
+        "low_water_percent": config.low_water_percent,
+        "pressure_escalate_seconds": config.pressure_escalate_seconds,
+        "near_limit_fraction": config.near_limit_fraction,
+        "auto_factor": config.auto_factor,
+        "auto_history": config.auto_history,
+        "auto_round": config.auto_round,
+        "warn_factor": config.warn_factor,
+        "warn_min_excess": config.warn_min_excess,
+        "test_node_total": config.test_node_total,
+    }
 
 
 def _parse_borrow(value: Any) -> BorrowConfig:
@@ -910,6 +1067,7 @@ def describe_partition(partition: Partition) -> dict[str, Any]:
         "default_cpus": partition.resolve_default_cpus(),
         "default_mem": partition.default_mem,
         "max_mem": partition.max_mem,
+        "min_mem": partition.min_mem,
         "default_time_s": partition.default_time,
         "max_time_s": partition.max_time,
         "swap_max": partition.swap_max,

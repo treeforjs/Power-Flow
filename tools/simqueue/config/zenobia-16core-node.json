@@ -33,7 +33,8 @@
     "slice": "simq.slice",
     "wrapper_python": "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen",
     "kill_grace_seconds": 10,
-    "poll_seconds": 1
+    "poll_seconds": 1,
+    "idle_seconds": 30
   },
   "borrow": {
     "enabled": true,
@@ -59,8 +60,9 @@
         "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
       ],
       "default_cpus": 4,
-      "default_mem": "18G",
+      "default_mem": "4G",
       "max_mem": "20G",
+      "min_mem": "256M",
       "swap_max": "1G",
       "default_time": "2-00:00:00",
       "max_time": "14-00:00:00",
@@ -109,11 +111,12 @@
   "notes": [
     "0.6.3: no partitions. One pool, zenobia, of the 16 physical cores (each named by its lowest logical CPU, 0-15) and the GPU; every job requests from it. Logical CPU numbering of the Ryzen 9 9950X3D2: physical cores 0-15 (first threads), SMT siblings 16-31 (never allocated). Install only on that CPU: the topology check reads sysfs and refuses this file on the 8-core CPU.",
     "The partition names used before 0.6.3 (spheral, raikou-mfem, powerflow) are aliases of zenobia: -p spheral|raikou-mfem|powerflow keeps working, with the defaults those partitions had (cores, memory, time) and their old cores tried first (prefer_cpus); limits are the pool's. A job keeps the name it was submitted with (SIMQ_PARTITION, simq listings). Jobs recorded under these names before 0.6.3 are adopted and scheduled under zenobia.",
-    "Without -p a job goes to zenobia with the defaults of the old default partition (spheral): 4 cores, 18G, 2 days, lowest free cores first. Limits: 20G memory, 14 days (the largest of the old partitions).",
+    "Without -p a job goes to zenobia with 4 cores, 4G (lowered from the old spheral default 18G on 2026-11-05), 2 days, lowest free cores first. Limits: 20G memory, 14 days (the largest of the old partitions).",
     "memory_schedulable is the sum of --mem over concurrent jobs (31 GiB RAM; about 3 GiB left for the system).",
     "The GPU is a scheduled resource of the pool: exclusive per job unless --gpu-mem is given and the 11G budget allows sharing; queued GPU jobs win the GPU lease files through the GPU line.",
     "Lending: free cores and the idle cores of running owner jobs go to borrow jobs (lend: true). Cores leased by tools outside the queue (any-core.sh, both-cores.sh, pf-launch) are not lent (lend_leased_idle: false). Timing-sensitive runs submit with --exclusive-timing, which keeps the job's cores and their SMT siblings unlent while it runs.",
-    "No GPU is ever lent: borrow jobs cannot request GPUs."
+    "No GPU is ever lent: borrow jobs cannot request GPUs.",
+    "0.7.0: the worker is event-driven (woken by submissions, cancellations and job ends through <state>/worker.wake; passes every poll_seconds only while something must be watched, else at most every idle_seconds); job memory is tracked from the units' cgroups (memory section); --mem auto; job state can be reported to GitHub (github section)."
   ],
   "gpu_line": {
     "enabled": true,
@@ -183,5 +186,37 @@
     "15": [
       31
     ]
+  },
+  "memory": {
+    "enabled": true,
+    "sample_seconds": 3,
+    "record_seconds": 60,
+    "admission_margin": null,
+    "ramp_seconds": 60,
+    "high_water_available": "2G",
+    "high_water_percent": 7,
+    "low_water_available": "4G",
+    "low_water_percent": 12,
+    "pressure_escalate_seconds": 120,
+    "near_limit_fraction": 0.9,
+    "auto_factor": 1.25,
+    "auto_history": 5,
+    "auto_round": "256M",
+    "warn_factor": 2.0,
+    "warn_min_excess": "2G",
+    "notes": "0.7.0. Every sample_seconds the worker reads each running job unit's cgroup (memory.current, memory.peak) and /proc/meminfo, with no process spawned; min/max per minute are written to the database every record_seconds; at a job's end its unit records memory.peak and CPU time. Admission guard: a start needs its request <= MemAvailable - margin (null: the high-water mark) - the unallocated requests of jobs started less than ramp_seconds ago; reservations (memory_schedulable) stay the primary limit and are never exceeded on the basis of current use. Memory pressure: MemAvailable below max(high_water_available, high_water_percent of MemTotal) stops dispatch and preempts borrow jobs by their --on-preempt policy (a frozen one is requeued after pressure_escalate_seconds); the jobs that grew are recorded; owner jobs are never stopped for it (their own MemoryMax bounds them); dispatch resumes at max(low_water_available, low_water_percent). --mem auto: auto_factor x the largest of the last auto_history recorded peaks of jobs with the same name (else name family, preferring the same core count), rounded up to auto_round, within the partition's min_mem..max_mem; without history the default. Submit warns when --mem is at least warn_factor x that peak and warn_min_excess above it."
+  },
+  "github": {
+    "enabled": true,
+    "api_base": "https://api.github.com",
+    "token_file": null,
+    "gh": "gh",
+    "timeout_seconds": 10,
+    "backoff_seconds": 15,
+    "backoff_max_seconds": 900,
+    "max_attempts": 12,
+    "log_lines": 20,
+    "summary_max_bytes": 40000,
+    "notes": "0.7.0. Jobs submitted with --github-status OWNER/REPO@SHA:CONTEXT get commit statuses from the worker on every transition (pending queued/running, success/failure from the exit code, error for cancel, time limit, OOM kill, preemption-cancel, lost unit); --github-comment OWNER/REPO#PR adds one PR comment at the end, edited in place (marker <!-- simq-job:N -->). Statuses never notify; only the first creation of a comment can. Job text is sanitized (no @mentions, no #N references). One posting thread in the worker; failures retried with backoff; scheduling never waits for GitHub. Token: token_file, else `gh auth token` at post time; kept in memory only."
   }
 }

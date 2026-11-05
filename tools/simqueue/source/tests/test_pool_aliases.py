@@ -95,8 +95,9 @@ class AliasConfigTests(unittest.TestCase):
         default = config.partition(None)
         spheral = old.partitions["spheral"]
         self.assertEqual((default.name, default.alias, default.prefer_cpus), ("zenobia", None, ()))
+        # the pool's own default memory was lowered from spheral's 18G to 4G on 2026-11-05
         self.assertEqual((default.resolve_default_cpus(), default.default_mem, default.default_time),
-                         (spheral.resolve_default_cpus(), spheral.default_mem, spheral.default_time))
+                         (spheral.resolve_default_cpus(), 4 * G, spheral.default_time))
         self.assertEqual(config.canonical_partition(None), "zenobia")
         self.assertEqual(config.canonical_partition("nope"), "nope")
         self.assertIsNone(config.find_partition("nope"))
@@ -135,7 +136,8 @@ class AliasConfigTests(unittest.TestCase):
                               b.max_mem, b.max_time, b.gpus))
         # Everything but the cores and their notes is the 8-core file's.
         eight_doc = json.loads(ZENOBIA.read_text())
-        for key in ("gpus", "launch", "borrow", "gpu_line", "memory_schedulable", "default_partition"):
+        for key in ("gpus", "launch", "borrow", "gpu_line", "memory_schedulable", "default_partition", "memory",
+                    "github"):
             self.assertEqual(document[key], eight_doc[key], key)
         # The topology check reads this machine's CPU: the 16-core file is
         # refused on the 8-core CPU (CPU 8 is a sibling of CPU 0 there) and
@@ -404,9 +406,12 @@ class LiveCopyTests(unittest.TestCase):
                     closing(sqlite3.connect(database)) as target:
                 origin.backup(target)
 
+            with closing(sqlite3.connect(database)) as connection:
+                columns = [row[1] for row in connection.execute("PRAGMA table_info(jobs)")]
+
             def rows():
                 with closing(sqlite3.connect(database)) as connection:
-                    return connection.execute("SELECT * FROM jobs ORDER BY id").fetchall()
+                    return connection.execute(f"SELECT {', '.join(columns)} FROM jobs ORDER BY id").fetchall()
 
             before = rows()
             saved = dict(os.environ)
@@ -414,14 +419,15 @@ class LiveCopyTests(unittest.TestCase):
                                "SIMQUEUE_NO_AUTOSTART": "1"})
             try:
                 store = QueueStore()
-                self.assertEqual(SCHEMA_VERSION, 8)
+                self.assertEqual(SCHEMA_VERSION, 9)
                 with closing(sqlite3.connect(database)) as connection:
-                    self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 8)
-                self.assertEqual(rows(), before)  # 0.6.3 changes no row
+                    self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 9)
+                self.assertEqual(rows(), before)  # 0.7.0 adds columns and changes no schema-8 column
                 config = pool_config()
                 jobs = store.node_jobs() + store.list_jobs(include_all=True, limit=100000)
                 names = {job.get("partition") for job in jobs}
-                self.assertTrue(names <= {None, "spheral", "raikou-mfem", "powerflow"}, names)
+                # jobs recorded before 0.6.3 under the old names, since then under the pool's own
+                self.assertTrue(names <= {None, "spheral", "raikou-mfem", "powerflow", "zenobia"}, names)
                 for job in jobs:
                     request = job_request(job, config)
                     self.assertEqual(config.canonical_partition(request.partition), "zenobia")
