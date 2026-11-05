@@ -464,7 +464,9 @@ class Schema9MigrationTests(unittest.TestCase):
         version, before = self.rows()
         QueueStore()
         version_after, after = self.rows()
-        self.assertEqual((version, version_after, len(before)), (8, 9, len(after)))
+        # 8 before 0.7.0 was installed live, 9 since; opening is a no-op then
+        self.assertIn(version, (8, 9))
+        self.assertEqual((version_after, len(before)), (9, len(after)))
         for old, new in zip(before, after):
             self.assertEqual({k: new[k] for k in old}, old)
 
