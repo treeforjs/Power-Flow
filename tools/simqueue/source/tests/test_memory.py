@@ -194,6 +194,33 @@ class AdmissionTests(unittest.TestCase):
         self.assertFalse(state.active)
 
 
+class ActualMemoryPlanTests(unittest.TestCase):
+    """0.7.1: the planner accounts actual memory, so a head job that does not
+    fit now gets a reservation from the memory running jobs will free."""
+
+    def test_reservation_counts_actual_memory_and_backfill_respects_it(self) -> None:
+        from simqueue.scheduler import Allocation, Request, Running, build_pool, plan
+
+        config = parse_node_config({"schema": "simqueue-node-config-v1", "node": "t", "default_partition": "p",
+                                    "memory_schedulable": "64G",
+                                    "partitions": [{"name": "p", "cpus": "0-7", "default_mem": "1G",
+                                                    "max_mem": "32G", "default_time": "1:00:00",
+                                                    "max_time": "2:00:00"}]},
+                                   path=Path("n"), check_topology=False)
+        running = [Running(1, Allocation(cpus=(0, 1), mem=6 * GiB), 600.0, mem_actual=4 * GiB)]
+        queue = [Request(job_id=10, partition="p", ncpus=2, mem=12 * GiB, time_limit=3600),
+                 Request(job_id=11, partition="p", ncpus=2, mem=1 * GiB, time_limit=300),
+                 Request(job_id=12, partition="p", ncpus=2, mem=4 * GiB, time_limit=3600)]
+        pool = build_pool(config, running, actual_free=10 * GiB)
+        decision = plan(config, pool, running, queue, 0.0)
+        self.assertEqual([r.job_id for r, _ in decision.starts], [11])  # short and small: backfills
+        self.assertEqual(decision.reservation, (10, 600.0))  # 10G + the 4G job 1 uses >= 12G at its end
+        self.assertEqual(decision.skipped[12], "backfill would delay job 10")  # its 4G would still be in use
+        # reservations alone (no actual accounting) would have started job 10 at once
+        plain = plan(config, build_pool(config, running), running, queue, 0.0)
+        self.assertIn(10, [r.job_id for r, _ in plain.starts])
+
+
 class ReadingTests(unittest.TestCase):
     def setUp(self) -> None:
         self.base = Path(tempfile.mkdtemp(prefix="simq07-mem-"))

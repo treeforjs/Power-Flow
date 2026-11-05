@@ -346,13 +346,18 @@ def run_suites(args: argparse.Namespace, held: list[int] | None, lease_files: li
 
 
 def isolate_state(tmpdir: Path) -> None:
-    """No test process may reach the live queue: a path that lacks
-    SIMQUEUE_STATE_DIR (a child given a reduced environment) falls back to
-    XDG_STATE_HOME, which points into the test directory as well."""
+    """No test process may reach the live queue.  Inside a queue job the
+    environment carries the live installation's SIMQUEUE_STATE_DIR,
+    SIMQUEUE_CONFIG and SIMQUEUE_PROJECT_ROOT: every inherited SIMQUEUE_*
+    variable is removed (each test sets its own, as in a developer shell),
+    and a path that still lacks SIMQUEUE_STATE_DIR falls back to
+    XDG_STATE_HOME, which points into the test directory."""
+    for key in [k for k in os.environ if k.startswith("SIMQUEUE_")]:
+        os.environ.pop(key, None)
     sandbox = tmpdir / f"default-state-{os.getpid()}"
     sandbox.mkdir(parents=True, exist_ok=True)
     os.environ["XDG_STATE_HOME"] = str(sandbox)
-    os.environ.setdefault("SIMQUEUE_STATE_DIR", str(sandbox / "simqueue"))
+    os.environ["SIMQUEUE_STATE_DIR"] = str(sandbox / "simqueue")  # no node.json there: 0.5 mode by default
 
 
 def run_without_leases(args: argparse.Namespace) -> int:
@@ -408,6 +413,12 @@ def main() -> int:
     parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("patterns", nargs="*", default=["test_*.py"])
     args = parser.parse_args()
+    import socket
+
+    if os.environ.get("SIMQ_TEST_REAL_OOM") == "1" and socket.gethostname() == "zenobia":
+        print("SIMQ_TEST_REAL_OOM=1 is refused on zenobia: a real cgroup OOM under the live user manager can kill "
+              "the manager and the whole session (2026-11-05)", file=sys.stderr)
+        return 64
     if args.in_job or args.pure or args.sandbox_cpus:
         return run_without_leases(args)
     cores = parse_cores(args.cores)

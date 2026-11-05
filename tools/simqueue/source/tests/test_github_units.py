@@ -88,9 +88,13 @@ class TransitionTests(GitHubUnitFixture, unittest.TestCase):
         self.assertEqual(self.states("t/hold")[-1], "success")
         failed = self.submit("-p", "pa", "-n", "exit3", *self.status("t/exit3"), "--", "/bin/sh", "-c", "exit 3")
         self.assertTrue(self.wait_status("t/exit3", "failure")["description"].endswith("; exit 3"))
-        oom = self.submit("-p", "pa", "-n", "oom", "--mem", "64M", *self.status("t/oom"),
-                          "--", PYTHON_FROZEN, str(self.projects / "alloc.py"), "300")
-        self.assertIn("out of memory at its 64M limit", self.wait_status("t/oom", "error")["description"])
+        from node_fixture import real_oom_allowed
+
+        oom = None
+        if real_oom_allowed():  # never on zenobia; test_github.py covers the oom-kill status text
+            oom = self.submit("-p", "pa", "-n", "oom", "--mem", "64M", *self.status("t/oom"),
+                              "--", PYTHON_FROZEN, str(self.projects / "alloc.py"), "300")
+            self.assertIn("out of memory at its 64M limit", self.wait_status("t/oom", "error")["description"])
         timeout = self.submit("-p", "pa", "-n", "slow", "-t", "0:02", *self.status("t/time"), "--", "/bin/sleep", "60")
         self.assertIn("time limit exceeded", self.wait_status("t/time", "error")["description"])
         running = self.submit("-p", "pa", "-n", "cancel-me", *self.status("t/cancel"), "--", "/bin/sleep", "60")
@@ -103,7 +107,7 @@ class TransitionTests(GitHubUnitFixture, unittest.TestCase):
         self.cli("cancel", str(waiting))
         self.assertIn("canceled", self.wait_status("t/queued-cancel", "error")["description"])
         self.cli("resume")
-        for job_id in (hold, queued, failed, oom, timeout, running, waiting):
+        for job_id in (j for j in (hold, queued, failed, oom, timeout, running, waiting) if j is not None):
             done = self.wait_done(job_id)
             self.assertIsNone(done["github_error"], done)
         self.assertTrue(all(r["auth_ok"] for r in self.fake.requests))

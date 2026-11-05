@@ -68,6 +68,10 @@ PYTHON = "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen"
 REAL_HOME = "/home/treefor"
 UNIT_FILES = ("simqueue.service", "simqueue-spheral-dispatch.path", "simqueue-spheral-dispatch.service",
               "simqborrow.slice")
+# Interim hardening installed by hand on 2026-11-05 after the OOM incident:
+# 0.7.1 sets OOMPolicy=stop on its job units itself, so the install removes
+# it (backed up; a rollback to 0.7.0 restores it)
+INTERIM_DROPINS = ("simq-job-.service.d/50-oom-policy-stop.conf",)
 # What 0.7.1 may change in the node configuration; everything else must match.
 NEW_TOP_KEYS = {"notes"}
 NEW_LAUNCH_KEYS: set = set()
@@ -650,6 +654,10 @@ class Upgrade:
                     self.problem(text)
         claims = self.claim_units()
         print(f"GPU claim units active: {', '.join(claims) or 'none'} (the {TO_VERSION} worker adopts them)")
+        for name in INTERIM_DROPINS:
+            if (self.units / name).exists():
+                print(f"interim drop-in {self.units / name}: the install backs it up and removes it ({TO_VERSION} "
+                      "job units set OOMPolicy=stop themselves; a rollback restores it)")
         gh = shutil.which("gh")
         print(f"GitHub reporting: gh {'found at ' + gh if gh else 'NOT found (only a token_file would work)'}; "
               "posts happen only for jobs submitted with --github-status/--github-comment")
@@ -815,6 +823,7 @@ class Upgrade:
                 ("node.json", self.state / "node.json"),
                 ("worker.log", self.state / "worker.log"),
                 *((f"units/{unit}", self.units / unit) for unit in UNIT_FILES),
+                *((f"units/{name}", self.units / name) for name in INTERIM_DROPINS),
             ):
                 if path.exists():
                     destination = backup / name
@@ -858,6 +867,14 @@ class Upgrade:
             self.write_file(self.bin / "simq", self.wrapper_text(self.runtime, TO_VERSION), 0o755)
             self.point_link(str(self.runtime / "simq"))
             self.write_file(self.units / self.service, self.unit_text(self.runtime), 0o644)
+            for name in INTERIM_DROPINS:
+                path = self.units / name
+                if path.exists():
+                    if self.execute:
+                        path.unlink()
+                        print(f"removed the interim drop-in {path}")
+                    else:
+                        self.say(f"would remove the interim drop-in {path} (backed up)")
             if not self.args.keep_node_config:
                 if not self.execute and self.layout is not None:
                     self.say(f"node.json from {self.args.config}: partitions {layout_text(self.layout['new'])}")

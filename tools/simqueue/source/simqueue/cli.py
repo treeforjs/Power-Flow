@@ -858,6 +858,14 @@ def _enqueue(args: argparse.Namespace, store: QueueStore) -> int | tuple[dict[st
             payload["exclusive_timing"] = True
         if basis is not None:
             payload["mem_auto"] = basis
+        ceiling = _admissible_memory(node_config, store)
+        mem_now = job.get("mem_bytes")
+        if ceiling is not None and mem_now is not None and int(mem_now) > ceiling[0]:
+            note = (f"mem {format_size(int(mem_now))} exceeds what {node_config.node} can admit now "
+                    f"(~{format_gib(ceiling[0])}: {ceiling[1]}); the job is parked until that much is free and "
+                    "does not hold up other jobs")
+            payload.setdefault("warnings", []).append(note)
+            print(f"simq: warning: {note}", file=sys.stderr)
         if github is not None:
             payload["github"] = github
         warning = getattr(args, "mem_warning", None)
@@ -865,6 +873,33 @@ def _enqueue(args: argparse.Namespace, store: QueueStore) -> int | tuple[dict[st
             payload["warnings"] = [warning]
             print(f"simq: warning: {warning}", file=sys.stderr)
     return job, payload, placement_text
+
+
+def _admissible_memory(config: NodeConfig, store: QueueStore) -> tuple[int, str] | None:
+    """0.7.1: the largest request the memory guard can admit on this node
+    now: MemAvailable with the queue's running jobs taken away, minus the
+    margin, and memory_schedulable minus the margin.  (The worker also
+    remembers the best value over the last hour.)"""
+    from .memory import admission_margin
+
+    if not config.memory.enabled:
+        return None
+    currents = []
+    for job in store.active_jobs():
+        usage = _live_usage(job, config)
+        if usage is not None:
+            currents.append(usage.current)
+    node = read_node_memory(config.memory.test_node_total, currents)
+    if node is None:
+        return None
+    margin = admission_margin(config.memory, node.total)
+    idle = node.available + sum(currents)
+    ceiling = idle - margin
+    text = f"MemAvailable with the queue idle ~{format_gib(idle)} - margin {format_gib(margin)}"
+    if config.memory_schedulable is not None and config.memory_schedulable - margin < ceiling:
+        ceiling = config.memory_schedulable - margin
+        text = f"memory_schedulable {format_gib(config.memory_schedulable)} - margin {format_gib(margin)}"
+    return ceiling, text
 
 
 def _partition_text(config: NodeConfig, name: str | None) -> str:

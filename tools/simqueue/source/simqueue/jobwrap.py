@@ -533,6 +533,9 @@ class Wrapper:
         _log("========================================\n")
         _log(f"finished:  {_now()}\n")
         _log(f"exit code: {returncode}\n")
+        # 0.7.1: no ExecStopPost any more; the wrapper (the unit's main process,
+        # already inside the cgroup) wakes the worker itself
+        _wake_worker(self.spec.get("wake_path"))
         return exit_status
 
 

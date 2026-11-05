@@ -242,8 +242,11 @@ class UpgradeSandbox(NodeFixture):
         (self.bin / "simqueue").symlink_to(OLD_RUNTIME / "simq")
         (self.units / "simqueue.service").write_text(sandbox.unit_text(OLD_RUNTIME, "0.7.0"))
         (self.units / "simqborrow.slice").write_text(SLICE)
+        self.dropin = self.units / "simq-job-.service.d" / "50-oom-policy-stop.conf"
+        self.dropin.parent.mkdir()
+        self.dropin.write_text("[Service]\nOOMPolicy=stop\n")
         self.originals = {path: digest(path) for path in (self.bin / "simq", self.units / "simqueue.service",
-                                                           self.units / "simqborrow.slice",
+                                                           self.units / "simqborrow.slice", self.dropin,
                                                            self.sandbox_state / "node.json")}
         self.sandbox_env = {k: v for k, v in os.environ.items() if not k.startswith("SIMQUEUE_")}
         self.sandbox_env.update({"STUB_DIR": str(self.stub_dir), "STUB_HOME": str(self.home)})
@@ -333,6 +336,8 @@ class UpgradePreflightTests(UpgradeSandbox, unittest.TestCase):
         self.assertIn("node config: equal to the live one apart from the 0.7.1 keys", result.stdout)
         self.assertIn("migration rehearsal on a copy: schema 9 -> 9, 1 rows", result.stdout)
         self.assertIn("no changes made; re-run with --execute", result.stdout)
+        self.assertIn("interim drop-in", result.stdout)
+        self.assertIn("would remove the interim drop-in", result.stdout)
         self.assertNotIn("PROBLEM", result.stdout)
         for path, value in self.originals.items():
             self.assertEqual(digest(path), value)
@@ -384,6 +389,7 @@ class UpgradeTests(UpgradeSandbox, unittest.TestCase):
         log = self.worker_log()
         self.assertIn(f"simqueue 0.7.1 from {RUNTIME}", log)
         self.assertIn("SimQueue 0.7.1", (self.units / "simqueue.service").read_text())
+        self.assertFalse(self.dropin.exists(), "the interim OOMPolicy drop-in is removed by the install")
         self.assertTrue(json.loads((self.sandbox_state / "node.json").read_text())["memory"]["auto_default"])
         self.wait_until(lambda: self.sandbox_state_of(queued_b) == "succeeded", timeout=60, message="queued job")
         self.wait_until(lambda: self.sandbox_state_of(old_job) == "succeeded", timeout=60, message="old job done")

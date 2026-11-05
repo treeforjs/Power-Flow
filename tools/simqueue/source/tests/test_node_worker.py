@@ -273,6 +273,11 @@ class LimitTests(NodeFixture, unittest.TestCase):
         self.assertLess(time.monotonic() - started, 40)
 
     def test_out_of_memory_kills_the_whole_job(self) -> None:
+        from node_fixture import real_oom_allowed
+
+        if not real_oom_allowed():
+            self.skipTest("real cgroup OOM: only with SIMQ_TEST_REAL_OOM=1, never on zenobia (test_oom_safety.py "
+                          "covers the OOM path with a mocked unit)")
         job_id = self.submit(
             "-p", "pa", "-c", "1", "--mem", "96M", "--",
             PYTHON_FROZEN, "-c", "import time; x=bytearray(400*1024*1024); time.sleep(5)",

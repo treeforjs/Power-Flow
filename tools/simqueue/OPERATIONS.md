@@ -107,6 +107,44 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 
 ## 0.7.1
 
+- **CRITICAL: a job unit can no longer take down the user manager.** On
+  2026-11-05 at 09:24 UTC a test job unit (OOMPolicy=kill, so
+  `memory.oom.group` 1) hit its MemoryMax while the user manager had just
+  spawned a process into its cgroup with vfork semantics (posix_spawn,
+  CLONE_VM: until exec the child shares the manager's mm). The kernel's
+  group kill (`mm/oom_kill.c`: `oom_kill_memcg_member` ->
+  `__oom_kill_process`) SIGKILLs every process sharing the victim's mm, so
+  it killed `user@1000.service`'s manager, and with it the desktop, SimQueue,
+  the runners, docker and every agent. Live 0.7.0 job units had the same
+  exposure (OOMPolicy=kill and `ExecStopPost=jobwrap.py stop-post` running in
+  the job's cgroup after the job, possibly while MPI shared memory left in
+  `/dev/shm` still held the cgroup at its limit). 0.7.1:
+  - job units have **no ExecStopPost, ExecStartPost or ExecStop**: the
+    manager spawns into a job cgroup only for ExecStart, while it is new and
+    empty. The worker records a job's end from the wrapper's own
+    `status.json` and, for a killed job, from the unit's properties
+    (`Result`, `ExecMainStatus`, `MemoryPeak`, `CPUUsageNSec`): units are no
+    longer `--collect`ed, so a failed unit stays loaded until the worker has
+    read it and runs `systemctl --user reset-failed`. The wrapper wakes the
+    worker itself when the command ends;
+  - **OOMPolicy=stop** (`memory.oom.group` 0): `oom_kill_process` kills the
+    one victim `oom_badness` picks -- which never picks an `in_vfork` task --
+    and only the processes sharing that victim's mm (job processes); systemd
+    then stops the rest of the unit and records `Result=oom-kill`;
+  - after a job ends the worker **removes its leftover MPI shared-memory
+    segments** from `/dev/shm` (this user's, MPI names such as
+    `sm_segment.*` and `vader_segment.*`, made after the job started, mapped
+    or open in no process), so their shmem no longer stays charged;
+  - tests never drive a unit into a real OOM: the OOM path is tested with a
+    mocked unit state (`test_oom_safety.py`); the real-OOM tests run only with
+    `SIMQ_TEST_REAL_OOM=1`, which `run-tests.py` refuses on zenobia; a test
+    checks the job units' properties (no Exec*Post/Stop, OOMPolicy=stop,
+    `memory.oom.group` 0, a failed unit recorded and unloaded);
+  - the install removes the interim drop-in
+    `~/.config/systemd/user/simq-job-.service.d/50-oom-policy-stop.conf`
+    (backed up; a rollback restores it). Job units started by 0.7.0 keep
+    their ExecStopPost until they end (the drop-in gives them
+    OOMPolicy=stop meanwhile).
 - **Memory without `--mem`.** With `memory.auto_default` (on for zenobia) a
   job submitted without `--mem` gets `--mem auto` when its name (or name
   family) has a recorded peak, else the partition's or alias's default (4G).
@@ -117,11 +155,30 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 - **`spheral` alias:** `default_mem: "auto"` (it was 18G): auto from the
   history even without `memory.auto_default`, else the pool's 4G. `simq
   partitions` shows "auto (else 4G)". Any alias may say so.
+- **Memory head-of-line fix** (seen live on 0.7.0: an 8-core 20G job held
+  the queue head for hours because the admission guard could never admit
+  it, while about 15.8G was admissible): the planner now accounts *actual*
+  memory as a resource next to the reservations -- the starts of a pass may
+  take MemAvailable minus the margin minus what young jobs have not
+  allocated, and a running job's end gives back what it uses now -- so a head
+  job that does not fit gets a reservation from the memory running jobs will
+  free, and backfill works against it ("memory busy: needs 12G, 9.8G actually
+  free now; reserved to start by ..."). A job whose request exceeds what the
+  node can ever admit (the best MemAvailable seen with the queue's jobs
+  taken away over the last hour, or `memory_schedulable`, minus the margin)
+  is **parked**: left out of planning, so it holds no reservation, with the
+  reason "parked: mem 20G exceeds admissible ~15.8G on zenobia (...)", and
+  looked at again on every pass. `simq submit` warns when the request
+  exceeds what the node can admit now; `simq list` shows the reason.
 - **Tests:** the borrow placement check accepts any free test core; the CPU
   priority check takes the best of three 2 s windows; the ensemble launch-gate
-  members have tails long enough for a loaded node. `run-tests.py` always
-  points `XDG_STATE_HOME` and a default `SIMQUEUE_STATE_DIR` into the test
-  directory.
+  members have tails long enough for a loaded node; owner-idle lending gets
+  60 s. `run-tests.py` removes every inherited `SIMQUEUE_*` variable (inside
+  a queue job they name the live installation) and points `XDG_STATE_HOME`
+  and `SIMQUEUE_STATE_DIR` into the test directory: the first official 0.7.1
+  run (job 1057) failed 43 tests because the 0.5-mode and ensemble tests ran
+  against the live `node.json`, saw every live lease held and never started
+  their jobs (nothing reached the live queue).
 - **Older backups:** the secret-pattern environment values in the database
   copies of the four older upgrade backups were redacted in place on
   2026-11-05 with the migration's redaction (7, 60, 205 and 705 job rows; 0

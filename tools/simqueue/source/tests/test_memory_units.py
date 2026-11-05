@@ -131,6 +131,11 @@ class MemoryTrackingTests(MemoryUnitFixture, unittest.TestCase):
         self.assertEqual(job["mem_peak_source"], "unit")
 
     def test_out_of_memory_job_records_its_peak_at_the_limit(self) -> None:
+        from node_fixture import real_oom_allowed
+
+        if not real_oom_allowed():
+            self.skipTest("real cgroup OOM: only with SIMQ_TEST_REAL_OOM=1, never on zenobia (test_oom_safety.py "
+                          "covers the OOM path with a mocked unit)")
         self.start_worker()
         job_id = self.submit("-p", "pa", "-n", "oom", "--mem", "128M", *self.alloc(400, 2))
         job = self.wait_state(job_id, "failed")
@@ -154,15 +159,57 @@ class AdmissionGuardTests(MemoryUnitFixture, unittest.TestCase):
                         message="job a allocated")
         # reservations allow b (800M + 400M of 8G schedulable); actual memory does not
         b = self.submit("-p", "pa", "-n", "small", "--mem", "400M", "--", "/bin/sleep", "1")
-        self.wait_until(lambda: "memory: needs 400M" in str(self.job(b).get("message") or ""), timeout=20,
-                        message="b held by the memory guard")
+        # 0.7.1: the planner itself holds it (actual memory is a planned resource)
+        self.wait_until(lambda: "memory busy: needs 400M" in str(self.job(b).get("message") or ""), timeout=20,
+                        message="b held for memory")
         self.assertEqual(self.state_of(b), "queued")
-        self.assertIn("held by the memory guard", self.worker_log())
         listing = self.cli("list").stdout
-        self.assertIn("memory: needs 400M", listing)
+        self.assertIn("memory busy: needs 400M", listing)
         gate.write_text("go")
         self.wait_state(a, "succeeded")
         self.wait_state(b, "succeeded", timeout=30)
+
+
+class HeadOfLineTests(MemoryUnitFixture, unittest.TestCase):
+    """0.7.1 regression (seen live on 0.7.0): a head job the memory guard can
+    never admit must not hold the queue; small jobs behind it run."""
+
+    memory = {"sample_seconds": 1, "record_seconds": 2, "test_node_total": "1G", "admission_margin": "128M",
+              "ramp_seconds": 0, "high_water_available": "64M", "high_water_percent": 0,
+              "low_water_available": "64M", "low_water_percent": 0}
+
+    def test_unadmittable_head_job_is_parked_and_small_jobs_run(self) -> None:
+        cores = ",".join(str(c) for c in self.cpus)
+        result = self.cli("submit", "--json", "-p", "pa", "--cpus", cores, "--mem", "950M", "--priority", "10",
+                          "-n", "too-big", "--", "/bin/sleep", "1")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("exceeds what testnode can admit now (~896M", result.stderr)
+        head = int(json.loads(result.stdout)["job_id"])
+        smalls = [self.submit("-p", "pa", "-c", "1", "--mem", "64M", "-t", "5:00", "-n", f"small-{i}",
+                              "--", "/bin/sleep", "1") for i in range(3)]
+        self.start_worker()
+        for job_id in smalls:
+            self.wait_state(job_id, "succeeded", timeout=60)
+        self.assertEqual(self.state_of(head), "queued")
+        self.assertIn("parked: mem 950M exceeds admissible ~896M on testnode", self.job(head)["message"])
+        self.assertIn("parked: mem 950M", self.cli("list").stdout)
+
+    def test_head_job_waits_for_memory_running_jobs_free_while_others_backfill(self) -> None:
+        self.start_worker()
+        gate = self.projects / "release"
+        big = self.submit("-p", "pa", "-c", "1", "--mem", "700M", "-n", "holder", *self.alloc(540, 120, gate=gate))
+        self.wait_until(lambda: (self.job(big).get("mem_current_bytes") or 0) >= 540 * MiB, timeout=30,
+                        message="holder allocated")
+        head = self.submit("-p", "pa", "-c", "1", "--mem", "500M", "--priority", "10", "-n", "head",
+                           "--", "/bin/sleep", "1")
+        self.wait_until(lambda: "memory busy: needs 500M" in str(self.job(head).get("message") or ""),
+                        timeout=20, message="head waits for memory")
+        small = self.submit("-p", "pa", "-c", "1", "--mem", "64M", "-t", "1:00", "-n", "small",
+                            "--", "/bin/sleep", "1")
+        self.wait_state(small, "succeeded", timeout=60)  # backfills: it ends before the holder's limit
+        gate.write_text("go")
+        self.wait_state(big, "succeeded", timeout=60)
+        self.wait_state(head, "succeeded", timeout=60)
 
 
 class MemoryPressureTests(MemoryUnitFixture, unittest.TestCase):
@@ -177,7 +224,9 @@ class MemoryPressureTests(MemoryUnitFixture, unittest.TestCase):
         return job_id
 
     def spike(self, gate: Path) -> int:
-        owner = self.submit("-p", "pa", "-c", "1", "-n", "grower", "--mem", "900M", *self.alloc(800, 60, gate=gate))
+        # 750M of a 900M limit: far from an OOM (never drive a unit into one), and
+        # 1G - 750M - overhead is below the 300M high-water mark
+        owner = self.submit("-p", "pa", "-c", "1", "-n", "grower", "--mem", "900M", *self.alloc(750, 60, gate=gate))
         self.wait_until(lambda: "memory pressure: MemAvailable" in self.worker_log(), timeout=30,
                         message="memory pressure")
         return owner

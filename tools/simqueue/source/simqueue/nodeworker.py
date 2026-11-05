@@ -54,6 +54,7 @@ from __future__ import annotations
 import fcntl
 import json
 import os
+import re
 import select
 import signal
 import stat
@@ -105,11 +106,19 @@ from .units import (
     ensure_borrow_slice,
     freeze_unit,
     read_json,
+    reset_failed,
     show_units,
     start_unit,
     stop_unit,
     thaw_unit,
 )
+
+SHM_DIR = Path("/dev/shm")
+# Shared-memory segments that MPI libraries leave behind when a job is killed
+# (Open MPI sm/vader BTL, PSM2, MPICH/Hydra, UCX); charged to the dead job's
+# cgroup as shmem until deleted (job units have no swap).
+SHM_PATTERNS = re.compile(r"^(sm_segment\.|vader_segment\.|psm2_shm\.|psm_shm\.|ompi\.|open_mpi|openmpi|"
+                          r"mpich_shm|mpich2_shm|ucx_shm|ucx-|shm_mpi)")
 
 
 SPEC_SCHEMA = "simqueue-job-spec-v1"
@@ -187,6 +196,34 @@ def _atomic_json(path: Path, payload: dict[str, Any]) -> None:
     finally:
         os.close(descriptor)
     os.replace(temporary, path)
+
+
+def _shm_in_use(directory: str) -> set[str]:
+    """Paths under *directory* that some process maps or holds open."""
+    found: set[str] = set()
+    prefix = directory.rstrip("/") + "/"
+    for pid in os.listdir("/proc"):
+        if not pid.isdigit():
+            continue
+        try:
+            with open(f"/proc/{pid}/maps", "rb") as handle:
+                for line in handle.read().decode("utf-8", "replace").splitlines():
+                    at = line.find(prefix)
+                    if at >= 0:
+                        found.add(line[at:].split(" (deleted)")[0].strip())
+        except OSError:
+            pass
+        try:
+            for fd in os.listdir(f"/proc/{pid}/fd"):
+                try:
+                    target = os.readlink(f"/proc/{pid}/fd/{fd}")
+                except OSError:
+                    continue
+                if target.startswith(prefix):
+                    found.add(target)
+        except OSError:
+            pass
+    return found
 
 
 def job_allocation(job: dict[str, Any], config: NodeConfig) -> Allocation:
@@ -309,8 +346,10 @@ def borrower_entries(jobs: list[dict[str, Any]], config: NodeConfig) -> list[Bor
     return entries
 
 
-def running_entries(jobs: list[dict[str, Any]], config: NodeConfig, now: float) -> list[Running]:
-    """Owner jobs only: borrow jobs hold no reservation against owners."""
+def running_entries(jobs: list[dict[str, Any]], config: NodeConfig, now: float,
+                    currents: dict[int, int] | None = None) -> list[Running]:
+    """Owner jobs only: borrow jobs hold no reservation against owners.
+    *currents* (0.7.1): what each job uses now (its end frees that much)."""
     entries: list[Running] = []
     for job in jobs:
         if job["state"] not in ACTIVE_STATES or job.get("borrow"):
@@ -322,7 +361,8 @@ def running_entries(jobs: list[dict[str, Any]], config: NodeConfig, now: float) 
             end = INFINITY
         else:
             end = max(now, started + int(limit))
-        entries.append(Running(int(job["id"]), allocation, end))
+        entries.append(Running(int(job["id"]), allocation, end,
+                               None if currents is None else currents.get(int(job["id"]))))
     return entries
 
 
@@ -448,6 +488,10 @@ class NodeWorker:
         self._pressure_preempted: dict[int, float] = {}  # borrow job -> when it was frozen for pressure
         self._node: NodeMemory | None = None
         self._manager_cgroup = user_manager_cgroup()
+        self._idle_seen: deque = deque()  # (unix, MemAvailable + the queue jobs' use), the last hour
+        self._last_unit: dict[int, UnitState] = {}  # job id -> its unit's state when it ended
+        self.shm_dir = SHM_DIR
+        self._admissible: int | None = None
         self.passes = 0
         self.unit_queries = 0
         # 0.7.0: GitHub reporting (posting thread started on first use)
@@ -609,7 +653,14 @@ class NodeWorker:
             if job.get("borrow"):
                 self._reconcile_borrow_unit(job, unit)
             return
+        self._last_unit[job_id] = unit
         self._finalize_unit_job(job, unit, status, stop_post)
+        self._last_unit.pop(job_id, None)
+        if unit.found and not unit.active and self.store.get(job_id) and \
+                self.store.require(job_id)["state"] not in ACTIVE_STATES:
+            # 0.7.1: failed job units are no longer collected by systemd; the
+            # end is recorded, unload the unit
+            reset_failed(self.config.launch, unit.name)
 
     def _reconcile_borrow_unit(self, job: dict[str, Any], unit: UnitState) -> None:
         job_id = int(job["id"])
@@ -668,6 +719,49 @@ class NodeWorker:
         self._tracks.pop(job_id, None)
         self._verified.pop(job_id, None)
         self._forget_secrets(job)
+        try:
+            self._clean_shm(job)
+        except Exception as error:  # noqa: BLE001 - never block a job's end
+            self.log(f"job {job_id}: shared-memory cleanup failed: {error!r}")
+
+    def _clean_shm(self, job: dict[str, Any]) -> None:
+        """0.7.1: remove the shared-memory segments an MPI job left in /dev/shm
+        (killed ranks never unlink them; their shmem stays charged and cannot
+        be reclaimed).  Only files of this user, matching MPI's names, made
+        after the job started and mapped or held open by no process."""
+        started = _parse_time(job.get("started_at"))
+        if started is None:
+            return
+        try:
+            entries = [entry for entry in os.scandir(self.shm_dir)
+                       if SHM_PATTERNS.match(entry.name) and entry.is_file(follow_symlinks=False)]
+        except OSError:
+            return
+        candidates = []
+        uid = os.getuid()
+        for entry in entries:
+            try:
+                info = entry.stat(follow_symlinks=False)
+            except OSError:
+                continue
+            if info.st_uid == uid and info.st_mtime >= started - 5:
+                candidates.append((entry.path, info.st_size))
+        if not candidates:
+            return
+        in_use = _shm_in_use(str(self.shm_dir))
+        removed, freed = 0, 0
+        for path, size in candidates:
+            if path in in_use:
+                continue
+            try:
+                os.unlink(path)
+            except OSError:
+                continue
+            removed += 1
+            freed += size
+        if removed:
+            self.log(f"job {job['id']}: removed {removed} leftover shared-memory segment(s) from {self.shm_dir} "
+                     f"({format_size(freed) if freed else '0B'})")
 
     def _forget_secrets(self, job: dict[str, Any]) -> None:
         """0.7.0: a finished job's secrets file goes, its spec.json is redacted."""
@@ -691,6 +785,12 @@ class NodeWorker:
                 if record and isinstance(record.get("usage"), dict):
                     recorded = record["usage"]
         track = self._tracks.get(job_id)
+        unit = self._last_unit.get(job_id)
+        if unit is not None and not recorded.get("memory_peak") and unit.memory_peak:
+            # 0.7.1: a killed job (no wrapper record): systemd's own accounting
+            recorded = dict(recorded, memory_peak=unit.memory_peak)
+        if unit is not None and recorded.get("cpu_usage_usec") is None and unit.cpu_usage_nsec is not None:
+            recorded = dict(recorded, cpu_usage_usec=unit.cpu_usage_nsec // 1000)
         peak = recorded.get("memory_peak")
         source = "unit" if peak is not None else None
         if track is not None and track.peak and (peak is None or track.peak > peak):
@@ -902,7 +1002,7 @@ class NodeWorker:
         queued = [j for j in jobs if j["state"] == "queued"]
         now = self.clock()
         active = [j for j in jobs if j["state"] in ACTIVE_STATES]
-        running = running_entries(active, self.config, now)
+        running = running_entries(active, self.config, now, self._currents())
         self._external_busy = False
         self._memory_held = {}
         if paused or not queued:
@@ -915,12 +1015,16 @@ class NodeWorker:
         )
         self._external_busy = bool(busy_cpus or busy_gpus)
         view = self.gpu.prepare(jobs=jobs, running=running, busy_gpus=busy_gpus, now=now)
-        pool = build_pool(self.config, running, external_cpus=busy_cpus, external_gpus=set(view.blocked))
-        requests = [job_request(j, self.config) for j in queued]
+        actual_free, parked = self._memory_budget(active, queued)
+        pool = build_pool(self.config, running, external_cpus=busy_cpus, external_gpus=set(view.blocked),
+                          actual_free=actual_free)
+        requests = [job_request(j, self.config) for j in queued if int(j["id"]) not in parked]
         decision = plan(self.config, pool, running, requests, now)
         starts, deferred = self.gpu.filter_starts(decision.starts, view)
         starts, held = self._admit(starts, active)
         deferred.update(held)
+        deferred.update(parked)
+        deferred.update(self._memory_reasons(decision.skipped, requests, pool, actual_free))
         self.gpu.after_plan(view, jobs=jobs, running=running, busy_cpus=busy_cpus, requests=requests,
                             starts=starts, now=now, paused=False)
         by_id = {int(j["id"]): j for j in queued}
@@ -961,7 +1065,7 @@ class NodeWorker:
             if previous != reason:
                 # a memory reason carries live numbers: rewrite it at most every 30 s
                 if (previous is not None and previous.split(":", 1)[0] == reason.split(":", 1)[0]
-                        and reason.startswith(("memory:", "memory pressure"))
+                        and reason.startswith(("memory:", "memory pressure", "memory busy", "parked:"))
                         and time.monotonic() - self._reason_written.get(job_id, 0.0) < 30.0):
                     continue
                 self._reasons[job_id] = reason
@@ -978,7 +1082,7 @@ class NodeWorker:
         queued = [j for j in jobs if j["state"] == "queued"]
         owners = [j for j in active if not j.get("borrow")]
         borrow_active = [j for j in active if j.get("borrow")]
-        running = running_entries(owners, config, now)
+        running = running_entries(owners, config, now, self._currents())
         owner_of = {cpu: int(item.job_id) for item in running if item.job_id is not None
                     for cpu in item.allocation.cpus}
         allocated_gpus = {gpu for item in running for gpu in item.allocation.gpus}
@@ -987,12 +1091,14 @@ class NodeWorker:
         self._memory_held = {}
         pressure = self._refresh_pressure()
         view = self.gpu.prepare(jobs=jobs, running=running, busy_gpus=busy_gpus, now=now)
-        pool = build_pool(config, running, external_cpus=busy_cpus, external_gpus=set(view.blocked))
+        actual_free, parked = self._memory_budget(active, queued)
+        pool = build_pool(config, running, external_cpus=busy_cpus, external_gpus=set(view.blocked),
+                          actual_free=actual_free)
         borrowers = borrower_entries(borrow_active, config)
         self._telemetry_used = True
         cores = self.telemetry.sample(owners=owners, external=busy_cpus, borrowers=borrowers)
         exclusive = {cpu for job in owners if job.get("exclusive_timing") for cpu in _job_cpus(job)}
-        requests = [job_request(j, config) for j in queued]
+        requests = [job_request(j, config) for j in queued if int(j["id"]) not in parked]
         decision = plan_node(
             config, pool, running, requests, now,
             borrowers=borrowers, cores=cores, owner_of=owner_of,
@@ -1001,6 +1107,8 @@ class NodeWorker:
         starts, deferred = self.gpu.filter_starts(decision.starts, view)
         starts, held = self._admit(starts, active)
         deferred.update(held)
+        deferred.update(parked)
+        deferred.update(self._memory_reasons(decision.skipped, requests, pool, actual_free))
         if pressure:
             for job_id in [r.job_id for r in requests if r.job_id not in deferred]:
                 deferred[job_id] = self._pressure_reason()
@@ -1416,6 +1524,61 @@ class NodeWorker:
             result[borrower.job_id] = Preemption(borrower.job_id, mode, reason, None, False, borrower.cpus)
             self._pressure_preempted.setdefault(borrower.job_id, now)
         return [result[key] for key in sorted(result)]
+
+    def _memory_reasons(self, skipped: dict[int, str], requests: list[Request], pool: Any,
+                        actual_free: int | None) -> dict[int, str]:
+        """Jobs the planner held because actual memory is short (0.7.1)."""
+        if actual_free is None:
+            return {}
+        found: dict[int, str] = {}
+        for request in requests:
+            reason = skipped.get(request.job_id, "")
+            if reason.startswith("resources busy") and request.mem > actual_free:
+                found[request.job_id] = (f"memory busy: needs {format_size(request.mem)}, "
+                                         f"{format_gib(max(0, actual_free))} actually free now")
+        if found:
+            held = dict(self._memory_held)
+            held.update(found)
+            self._memory_held = held
+        return found
+
+    def _currents(self) -> dict[int, int]:
+        return {job_id: track.current for job_id, track in self._tracks.items() if not track.gone}
+
+    def _memory_budget(self, active: list[dict[str, Any]],
+                       queued: list[dict[str, Any]]) -> tuple[int | None, dict[int, str]]:
+        """0.7.1: the actual memory starts may take now (MemAvailable - margin -
+        what young jobs have not allocated), for the planner, and the queued
+        jobs to park: a request above what this node can ever admit -- the
+        best MemAvailable seen with the queue's jobs taken away, minus the
+        margin, or memory_schedulable minus the margin -- would hold the head
+        reservation forever; parked, it waits without blocking the queue and
+        is looked at again on every pass."""
+        if not self.memory.enabled:
+            return None, {}
+        node = self._read_node()
+        if node is None:
+            return None, {}
+        margin = admission_margin(self.memory, node.total)
+        idle = node.available + sum(self._currents().values())
+        now = time.time()
+        self._idle_seen.append((now, idle))
+        while self._idle_seen and self._idle_seen[0][0] < now - 3600:
+            self._idle_seen.popleft()
+        best = max(value for _, value in self._idle_seen)
+        ceiling = best - margin
+        if self.config.memory_schedulable is not None:
+            ceiling = min(ceiling, self.config.memory_schedulable - margin)
+        self._admissible = ceiling
+        parked: dict[int, str] = {}
+        for job in queued:
+            request = int(job.get("mem_bytes") or job_request(job, self.config).mem or 0)
+            if request > ceiling:
+                parked[int(job["id"])] = (
+                    f"parked: mem {format_size(request)} exceeds admissible ~{format_gib(ceiling)} on "
+                    f"{self.config.node} (MemAvailable with the queue idle ~{format_gib(best)} - margin "
+                    f"{format_gib(margin)}); it starts when that much is free, other jobs go ahead")
+        return node.available - margin - self._ramping(active), parked
 
     def _ramping(self, active: list[dict[str, Any]]) -> int:
         """Requests of jobs started less than ramp_seconds ago that they have

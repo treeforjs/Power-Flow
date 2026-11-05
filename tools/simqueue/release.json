@@ -15,12 +15,15 @@
   },
   "node_config": "config/zenobia-node.json: the live 0.7.0 node.json plus memory.auto_default true and the spheral alias default_mem \"auto\"",
   "features": [
+    "CRITICAL: job units never make the user manager spawn into their cgroup after start (no ExecStopPost/ExecStartPost/ExecStop; the worker records a killed job from the unit's Result/MemoryPeak/CPUUsageNSec, units not collected and reset-failed after recording), OOMPolicy=stop (memory.oom.group 0), leftover MPI /dev/shm segments removed after a job; real-OOM tests opt-in and refused on zenobia; the install removes the interim simq-job-.service.d OOMPolicy drop-in",
+    "head-of-line fix: the planner accounts actual memory (MemAvailable - margin - young jobs' unallocated requests; a running job's end frees what it uses), so reservations and backfill include memory; jobs above what the node can ever admit (best queue-idle MemAvailable over the last hour, or memory_schedulable, minus the margin) are parked with a reason and hold no reservation; submit warns",
     "memory.auto_default: a job without --mem gets --mem auto when its name (family) has a recorded peak, else the default; explicit --mem wins",
     "alias default_mem \"auto\" (spheral: was 18G)",
     "robust load-sensitive tests (borrow placement, CPU priority best of three windows, ensemble launch-gate tails); run-tests.py isolates XDG_STATE_HOME and SIMQUEUE_STATE_DIR",
     "secret values in the four older upgrade backups redacted in place (7, 60, 205, 705 job rows)",
     "documented: replays of idempotency keys first submitted under 0.6.x are refused",
-    "upgrade.py 0.7.0 <-> 0.7.1"
+    "upgrade.py 0.7.0 <-> 0.7.1",
+    "run-tests.py removes inherited SIMQUEUE_* variables (in-job runs pointed tests at the live node.json: 43 failures in the first official run, job 1057)"
   ],
   "from_0_7_0": {
     "overhead": {

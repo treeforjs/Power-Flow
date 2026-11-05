@@ -40,6 +40,17 @@ sys.exit(code)
 '''
 
 
+def real_oom_allowed() -> bool:
+    """A test that drives a job unit into a real cgroup OOM runs only with
+    SIMQ_TEST_REAL_OOM=1 and never on zenobia: on 2026-11-05 an OOM group
+    kill of a test unit killed the user manager (and the whole session) when
+    the manager had a vfork child in that cgroup.  Elsewhere, use a machine
+    whose user manager runs nothing else."""
+    import socket
+
+    return os.environ.get("SIMQ_TEST_REAL_OOM") == "1" and socket.gethostname() != "zenobia"
+
+
 def systemd_user_available() -> bool:
     try:
         result = subprocess.run(
