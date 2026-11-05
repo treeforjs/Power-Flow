@@ -1388,6 +1388,16 @@ After the CPU change: `CoresPerSocket=16`. Default memory per name maps to
 `DefMemPerNode` per partition; borrow jobs map to a preemptible partition
 (`PreemptType=preempt/partition_prio`, `PreemptMode=REQUEUE`).
 
+## Validation of 0.7.1 (2026-11-05)
+
+- Full suite inside live queue job 1123 (`simq run -c 2 --mem 1G -t 0:40:00 --priority 20 -- run-tests.py --in-job`, the test units on the job's cores [0, 1]): 379 tests, 0 failure(s), 0 error(s), 12 skipped, 594 s.
+- Real-OOM tests not run (2 skipped: `SIMQ_TEST_REAL_OOM` unset, and refused on zenobia); the OOM path ran against mocked unit states (`test_oom_safety.py`), and the unit-property test checked live-started test units (OOMPolicy=stop, no Exec*Post/Stop, `memory.oom.group` 0).
+- Every suite without units, with the live-database copy: 363 tests, 0 failures (61 skipped: the unit-level tests).
+- Historical migration suites: 7 tests, 0 failures.
+- Borrower CPU share under contention (three windows): [0.1179767492535054, 0.11677841506968292, 0.117988022014696].
+- `test_shield_helper.py` cannot be imported, as before.
+- Receipts: `/home/treefor/projects/.workspace/outputs/simqueue-0.7.1-20261105/receipts/`.
+
 ## Validation of 0.6.3 (2026-11-04)
 
 Built from 0.6.2 on the Power-Flow branch `simqueue-0.6.3`; not installed
