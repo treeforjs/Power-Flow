@@ -314,9 +314,6 @@ class UpgradeSandbox(NodeFixture):
         self.holders.append(proc)
         return proc
 
-    def intervals(self) -> dict[int, dict]:
-        return self.read_intervals()
-
 
 class UpgradePreflightTests(UpgradeSandbox, unittest.TestCase):
     """Dry runs only: nothing is started, no unit and no lease is needed."""
@@ -414,7 +411,7 @@ class UpgradeTests(UpgradeSandbox, unittest.TestCase):
         # the job queued for pb under 0.6.2 runs in the pool next to the adopted job
         self.wait_until(lambda: self.sandbox_state_of(queued_b) == "succeeded", timeout=60, message="old pb job")
         self.wait_until(lambda: self.sandbox_state_of(old_job) == "succeeded", timeout=60, message="old job done")
-        records = self.intervals()
+        records = self.read_intervals()
         self.assertLess(records[queued_b]["start"], records[old_job]["end"])
         self.assertTrue(set(records[queued_b]["affinity"]) <= set(self.part_a), records[queued_b])
         self.assertEqual(self.db("SELECT partition FROM jobs WHERE id = ?", queued_b)[0][0], "pb")
@@ -426,7 +423,8 @@ class UpgradeTests(UpgradeSandbox, unittest.TestCase):
         self.wait_until(lambda: self.sandbox_state_of(owner_job) == "running", message="0.6.3 owner job running")
         self.wait_until(lambda: any(s.get("phase") == "queued" for s in self.claim_statuses()), timeout=30,
                         message="GPU claim queued in the kernel")
-        self.assertTrue(self.active_claim_units())
+        claims_063 = set(self.active_claim_units())
+        self.assertTrue(claims_063)
         width = len(set(self.part_a) | set(self.part_b))
         pool_job = self.submit("-c", str(width), *self.probe_command(1))
         self.assertEqual(self.db("SELECT partition FROM jobs WHERE id = ?", pool_job)[0][0], "pool")
@@ -436,8 +434,10 @@ class UpgradeTests(UpgradeSandbox, unittest.TestCase):
         rollback_receipt = json.loads((backup / "rollback-receipt.json").read_text())
         self.assertTrue(rollback_receipt["verification"]["jobs"][str(owner_job)]["adopted"])
         self.assertEqual(rollback_receipt["stranded_jobs"], [pool_job])
-        self.assertEqual(len(rollback_receipt["stopped_claim_units"]), 1)
-        self.wait_until(lambda: not self.active_claim_units(), timeout=30, message="claim unit stopped")
+        self.assertEqual(set(rollback_receipt["stopped_claim_units"]), claims_063)
+        # the 0.6.3 claim is stopped; 0.6.2 (which has the GPU line too) sets up its own
+        self.wait_until(lambda: not set(self.active_claim_units()) & claims_063, timeout=30,
+                        message="0.6.3 claim unit stopped")
         self.assertEqual(self.db("PRAGMA user_version")[0][0], 8)
         for path, value in self.originals.items():
             self.assertEqual(digest(path), value, f"{path} not restored byte for byte")

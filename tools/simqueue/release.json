@@ -34,6 +34,100 @@
       "backfill_waiting_owners": true
     }
   },
-  "tests": {},
+  "tests": {
+    "runs": {
+      "full suite, cores 6-7 (--wait-any --min-cores 2 --shared), every file but test_shield_helper and test_exclusive_mode": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/receipts/full-suite-1.json",
+        "log": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/logs/full-suite-1.out",
+        "tests_run": 299,
+        "failures": 0,
+        "errors": 1,
+        "skipped": 6,
+        "failed_detail": [
+          "test_upgrade.UpgradeTests.test_install_adopts_062_jobs_runs_old_names_in_the_pool_and_rollback_adopts_063_jobs: test bug (a helper named intervals was shadowed by the fixture's intervals path) after the install, adoption and the pool run of the old-name job had passed; fixed, see the upgrade reruns"
+        ],
+        "skipped_detail": [
+          "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set (historical: expects a schema 6 live database)",
+          "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set (historical: expects a schema 7 live database)",
+          "test_node_worker.ConcurrencyTests.test_whole_partition_job_waits_for_all_cores: needs a two-core partition",
+          "test_node_worker.LeaseTests.test_outside_lease_holder_is_respected_and_job_units_hold_leases: needs a two-core partition",
+          "test_node_worker.PfLaunchInsideAllocationTests.test_pf_launch_10_refuses_on_its_own_jobs_leases: pf-launch is no longer 1.0",
+          "test_pool_aliases.LiveCopyTests.test_copy_of_live_database_under_the_pool: SIMQ_LIVE_DB_COPY not set (run separately, see below)"
+        ],
+        "duration_s": 413.831,
+        "cores_leased": [
+          6,
+          7
+        ],
+        "runner": "run-tests.py",
+        "counted": "every file but test_upgrade"
+      },
+      "test_upgrade, cores 6-7 (after the test fix; the rollback check now expects 0.6.2 to set up its own GPU claim)": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/receipts/suite-upgrade-3.json",
+        "log": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/logs/suite-upgrade-3.out",
+        "tests_run": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 64.293,
+        "cores_leased": [
+          6,
+          7
+        ],
+        "runner": "run-tests.py",
+        "earlier": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/receipts/suite-upgrade-2.json (9 ok, 1 failure: the test expected no claim unit after the rollback, as for 0.6.1; 0.6.2 has the GPU line and claimed the GPU for the waiting job)"
+      },
+      "pure: test_exclusive_mode (needs four CPUs in the affinity mask) and test_pool_aliases.LiveCopyTests on a read-only copy of the live database (715 jobs)": {
+        "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/receipts/pure-exclusive-and-live-copy.json",
+        "tests_run": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 0.086,
+        "cores_leased": null,
+        "runner": "pure suites (no unit, no lease)"
+      }
+    },
+    "how": "unit-level suites through run-tests.py with the lease files of cores 6 and 7 held (--shared, waiting until both were free: a Spheral run held all eight leases from 18:31 to about 19:00), private state, lock and pic-profile directories, temporary directory /home/treefor/projects/.workspace/outputs/simq063-test-tmp; pure suites without leases",
+    "existing_not_run": "test_shield_helper.py (16 tests) cannot be imported: it needs source/privileged/simqueue-shield, as for 0.6.0 to 0.6.2",
+    "new_suites": {
+      "test_pool_aliases.py": 24,
+      "test_run_units.py": 6
+    },
+    "rewritten_suites": {
+      "test_upgrade.py": "0.6.2 -> 0.6.3 install, rollback, refusals and layout preflight (10 tests)"
+    },
+    "changed_suites": {
+      "test_scheduler.py": "partition tests use tests/fixtures/zenobia-node-0.6.2.json; zenobia config tests for the pool",
+      "test_borrow_scheduler.py": "zenobia policy test for the pool",
+      "test_migration.py": "uses the 0.6.2 layout fixture"
+    },
+    "final_by_file": {
+      "test_borrow_scheduler.py": "43 ok",
+      "test_borrow_store_cli.py": "11 ok",
+      "test_borrow_units.py": "12 ok",
+      "test_ensemble.py": "53 ok",
+      "test_exclusive_mode.py": "9 ok (pure)",
+      "test_gpuline.py": "24 ok",
+      "test_gpu_line_units.py": "8 ok",
+      "test_migration.py": "3 ok, 1 skipped (historical live copy)",
+      "test_migration_061.py": "2 ok, 1 skipped (historical live copy)",
+      "test_node_worker.py": "27 ok, 3 skipped (two-core partitions on two leased CPUs; pf-launch 1.0 gone)",
+      "test_pool_aliases.py": "24 ok (LiveCopyTests in the pure run)",
+      "test_run_units.py": "6 ok",
+      "test_scheduler.py": "26 ok",
+      "test_simqueue.py": "42 ok",
+      "test_switchover.py": "3 ok",
+      "test_upgrade.py": "10 ok",
+      "test_shield_helper.py": "not importable (16 tests)"
+    },
+    "final_totals": {
+      "tests": 308,
+      "ok": 303,
+      "skipped": 5,
+      "failed": 0,
+      "not_run": 16
+    }
+  },
   "notes": "/home/treefor/projects/runtimes/simqueue-0.6.3-20261105/OPERATIONS.md (The pool on zenobia; simq run; Upgrading 0.6.2 to 0.6.3; Validation of 0.6.3; Known limitations)"
 }

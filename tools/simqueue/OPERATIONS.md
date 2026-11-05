@@ -890,6 +890,52 @@ After the CPU change: `CoresPerSocket=16`. Default memory per name maps to
 `DefMemPerNode` per partition; borrow jobs map to a preemptible partition
 (`PreemptType=preempt/partition_prio`, `PreemptMode=REQUEUE`).
 
+## Validation of 0.6.3 (2026-11-04)
+
+Built from 0.6.2 on the Power-Flow branch `simqueue-0.6.3`; not installed
+(`installed: false` in `release.json`). Receipts and logs in
+`/home/treefor/projects/.workspace/outputs/simqueue-0.6.3-20261105/`.
+
+- Full suite through `run-tests.py` on cores 6-7 (`--wait-any --min-cores 2
+  --shared`; it waited while a Spheral run held all eight core leases):
+  299 run, 0 failures, 1 error, 6 skipped (`receipts/full-suite-1.json`).
+  The error was a test bug in `test_upgrade.py` (a helper shadowed by a
+  fixture attribute) after the install, the adoption of the running 0.6.2
+  job and the pool run of the job queued under the old name had passed.
+  After the fix `test_upgrade.py` ran 10/10 (`receipts/suite-upgrade-3.json`;
+  the rerun before it, `suite-upgrade-2.json`, showed that 0.6.2 sets up its
+  own GPU claim right after a rollback, which the test now expects).
+- Pure: `test_exclusive_mode.py` (9, needs four CPUs in the affinity mask)
+  and `test_pool_aliases.LiveCopyTests` on a read-only copy of the live
+  database (`live-queue-copy-20261104.sqlite3`, 715 jobs recorded as NULL,
+  spheral, raikou-mfem or powerflow: every one resolves to the pool, plans
+  without "unknown partition", and opening it with 0.6.3 changes no row):
+  10/10 (`receipts/pure-exclusive-and-live-copy.json`).
+- Per file: 308 tests, 303 ok, 5 skipped (the two historical live-copy
+  migration tests, which expect a schema 6/7 live database; three
+  `test_node_worker` tests that need two-core partitions or pf-launch 1.0),
+  0 failed; `test_shield_helper.py` (16) cannot be imported, as before.
+- New: `test_pool_aliases.py` (24: alias parsing and validation, the zenobia
+  pool and its 16-core variant, lease paths, planning in the pool with
+  preferred cores, an 8-core owner job reserving the pool, borrow jobs next to
+  an 8-core owner job (owner-idle lending, preemption, backfill against a
+  waiting owner with and without `backfill_waiting_owners`), `--borrow-from`
+  through aliases, jobs recorded under old names, CLI submissions under
+  aliases, `simq run` exit statuses) and `test_run_units.py` (6 with real
+  units: jobs recorded under the old partition names before the switch are
+  adopted and scheduled in the pool; a borrow job under an alias and an owner
+  job of every pool core that preempts it at once; `simq run` streaming and
+  exit codes, reattach by idempotency key, SIGINT/SIGTERM while running and
+  SIGTERM while queued). `test_upgrade.py` rewritten for 0.6.2 to 0.6.3.
+- `./upgrade.py install` (dry run) against the live state: no PROBLEM line;
+  layout `spheral=0-3, raikou-mfem=4-5+1gpu, powerflow=6-7+1gpu` to
+  `zenobia=0-7+1gpu (aliases spheral, raikou-mfem, powerflow)`. With
+  `--config config/zenobia-16core-node.json` it is refused on the 8-core CPU
+  ("CPU 8 is an SMT sibling of CPU 0"), as intended.
+- Not validated: the 16-core file on the real 9950X3D2 (parsed in the tests
+  without the topology check; `test_pool_aliases` loads it with the check
+  when the machine has 32 logical CPUs), and a live install.
+
 ## Validation of 0.6.2 (2026-10-31)
 
 See `release.json` and

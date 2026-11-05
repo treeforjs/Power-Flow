@@ -148,6 +148,12 @@ def comparable_config(document: dict) -> dict:
     return result
 
 
+def last_line(text: str) -> str:
+    """The last line of a traceback: the error itself."""
+    lines = [line for line in text.strip().splitlines() if line.strip()]
+    return lines[-1][-400:] if lines else "(no message)"
+
+
 def layout_text(layout: list[dict]) -> str:
     return ", ".join(
         f"{p['name']}={p['cpus']}" + (f"+{p['gpus']}gpu" if p["gpus"] else "")
@@ -502,7 +508,7 @@ class Upgrade:
             str(new_config if not self.args.keep_node_config else live_config),
         )
         if check.returncode != 0:
-            self.problem(f"node config invalid for {TO_VERSION}: {check.stderr.strip()[-400:]}")
+            self.problem(f"node config invalid for {TO_VERSION}: {last_line(check.stderr)}")
         else:
             print(f"{TO_VERSION} node config ok: {check.stdout.strip()}")
         if not self.args.keep_node_config and live_doc and new_doc:
@@ -529,7 +535,7 @@ class Upgrade:
                                    str(new_config if not self.args.keep_node_config else live_config),
                                    json.dumps(sorted(n for n in names if n)))
             if probe.returncode != 0:
-                self.problem(f"cannot compare the partition layouts: {probe.stderr.strip()[-400:]}")
+                self.problem(f"cannot compare the partition layouts: {last_line(probe.stderr)}")
             else:
                 self.layout = json.loads(probe.stdout)
                 print(f"partition layout: {layout_text(self.layout['live'])}")
