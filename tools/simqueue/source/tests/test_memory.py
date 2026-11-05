@@ -433,7 +433,8 @@ class Schema9MigrationTests(unittest.TestCase):
         self.assertEqual(version, 8)
         store = QueueStore()
         version, after = self.rows()
-        self.assertEqual((version, SCHEMA_VERSION), (9, 9))
+        self.assertEqual(version, SCHEMA_VERSION)
+        self.assertGreaterEqual(SCHEMA_VERSION, 9)
         for old, new in zip(before, after):
             for column, value in old.items():
                 self.assertEqual(new[column], value, f"job {old['id']} column {column}")
@@ -449,7 +450,7 @@ class Schema9MigrationTests(unittest.TestCase):
         self.assertIn("OPENED 4", self.run_063(OPEN_063))
         QueueStore()  # install again
         version, again = self.rows()
-        self.assertEqual((version, len(again)), (9, 4))
+        self.assertEqual((version, len(again)), (SCHEMA_VERSION, 4))
 
     def test_copy_of_live_database(self) -> None:
         source = os.environ.get("SIMQ_LIVE_DB_COPY")
@@ -464,9 +465,9 @@ class Schema9MigrationTests(unittest.TestCase):
         version, before = self.rows()
         QueueStore()
         version_after, after = self.rows()
-        # 8 before 0.7.0 was installed live, 9 since; opening is a no-op then
+        # 8 before 0.7.0 was installed live, 9 since; the current schema after
         self.assertIn(version, (8, 9))
-        self.assertEqual((version_after, len(before)), (9, len(after)))
+        self.assertEqual((version_after, len(before)), (SCHEMA_VERSION, len(after)))
         for old, new in zip(before, after):
             self.assertEqual({k: new[k] for k in old}, old)
 

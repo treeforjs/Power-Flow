@@ -51,6 +51,10 @@ class Request:
     borrow_from: tuple[str, ...] | None = None  # borrow: lenders; None = every lending partition
     exclusive_timing: bool = False  # owner: its cores and SMT siblings are never lent
     on_preempt: str = "requeue"
+    # 0.8.0 L3 domains: spread the cores evenly over N domains, or give each
+    # listed part (core counts, in order) a domain of its own
+    l3_domains: int | None = None
+    split_domains: tuple[int, ...] | None = None
 
 
 @dataclass(frozen=True)
@@ -90,6 +94,10 @@ class Pool:
     # 0.7.1: actual memory a start may take (MemAvailable - margin - what
     # young jobs have not allocated); None: not accounted
     actual_free: int | None = None
+    # 0.8.0: cores grouped by L3 domain (one group: no domain placement)
+    domains: tuple[tuple[int, ...], ...] = ()
+    heavy: int = 2
+    domain_nodes: tuple[int, ...] = ()  # NUMA node of each domain group
 
     def copy(self) -> "Pool":
         return Pool(
@@ -101,7 +109,121 @@ class Pool:
             mem_free=self.mem_free,
             soft_cpus=set(self.soft_cpus),
             actual_free=self.actual_free,
+            domains=self.domains,
+            heavy=self.heavy,
+            domain_nodes=self.domain_nodes,
         )
+
+    def _choose_cpus(self, request: Request, partition: Partition) -> tuple[int, ...] | None:
+        """Free cores of the partition for *request* (0.8.0 placement by L3
+        domain and NUMA node).
+
+        Within a domain: truly free cores before cores a borrower occupies,
+        then the alias's preferred cores, then the lowest.  A job goes into
+        as few NUMA nodes and, within them, as few L3 domains as possible: one
+        domain when one has room -- a heavy job (at least ``heavy`` cores) the
+        domain with the most free cores (ties: the node with the most free
+        cores), so concurrent heavy jobs spread over caches and nodes; a light
+        one the fullest domain that still fits, so whole domains stay free for
+        heavy jobs.  Otherwise one NUMA node filled domain by domain (most
+        free first), else nodes in turn.  ``l3_domains`` / ``split_domains``
+        ask for several domains, kept in as few nodes as possible."""
+        rank = {cpu: index for index, cpu in enumerate(partition.prefer_cpus)}
+
+        def order(cpus) -> list[int]:
+            return sorted(cpus, key=lambda cpu: (cpu in self.soft_cpus, rank.get(cpu, len(rank)), cpu))
+
+        free = [cpu for cpu in partition.cpus if cpu in self.free_cpus]
+        indexed = [(i, group) for i, group in enumerate(self.domains or (tuple(partition.cpus),))
+                   if set(group) & set(partition.cpus)]
+        groups = [group for _, group in indexed]
+        nodes_of = [self.domain_nodes[i] if i < len(self.domain_nodes) else 0 for i, _ in indexed]
+        if len(groups) <= 1 and not request.l3_domains and not request.split_domains:
+            chosen = order(free)
+            return tuple(sorted(chosen[: request.ncpus])) if len(chosen) >= request.ncpus else None
+        by_domain = [order(cpu for cpu in free if cpu in group) for group in groups]
+        node_free: dict[int, int] = {}
+        for index, node in enumerate(nodes_of):
+            node_free[node] = node_free.get(node, 0) + len(by_domain[index])
+
+        def preference(index: int) -> tuple:
+            cpus = by_domain[index]
+            hard = sum(1 for cpu in cpus if cpu not in self.soft_cpus)
+            preferred = sum(1 for cpu in cpus if cpu in rank)
+            return hard, preferred, node_free[nodes_of[index]], len(cpus)
+
+        parts: list[int] | None = None
+        if request.split_domains:
+            parts = list(request.split_domains)
+        elif request.l3_domains:
+            count = request.l3_domains
+            base, extra = divmod(request.ncpus, count)
+            parts = [base + (1 if i < extra else 0) for i in range(count)]
+        if parts is not None:
+            if len(parts) > len(groups) or any(part < 1 for part in parts):
+                return None
+            # the node (or fewest nodes) that can hold every part, most free first
+            best_plan: list[int] | None = None
+            for home in sorted(node_free, key=lambda n: (-node_free[n], n)):
+                used: list[int] = []
+                for part in sorted(parts, reverse=True):
+                    fitting = [i for i in range(len(groups)) if i not in used and len(by_domain[i]) >= part]
+                    if not fitting:
+                        used = []
+                        break
+                    used.append(max(fitting, key=lambda i: (nodes_of[i] == home,
+                                                            any(nodes_of[i] == nodes_of[u] for u in used),
+                                                            preference(i), -i)))
+                if used and (best_plan is None or len({nodes_of[i] for i in used})
+                             < len({nodes_of[i] for i in best_plan})):
+                    best_plan = used
+            if best_plan is None:
+                return None
+            chosen = []
+            for part, index in zip(sorted(parts, reverse=True), best_plan):
+                chosen.extend(by_domain[index][:part])
+            return tuple(sorted(chosen))
+        fitting = [i for i in range(len(groups)) if len(by_domain[i]) >= request.ncpus]
+        if fitting:
+            if request.ncpus >= self.heavy:
+                best = max(fitting, key=lambda i: (preference(i), -i))
+            else:
+                best = min(fitting, key=lambda i: (len(by_domain[i]) - request.ncpus,
+                                                  -preference(i)[1], i))
+            return tuple(sorted(by_domain[best][: request.ncpus]))
+        if len(free) < request.ncpus:
+            return None
+
+        def fill(indices: list[int]) -> list[int]:
+            chosen: list[int] = []
+            for index in sorted(indices, key=lambda i: (-len(by_domain[i]), i)):
+                chosen.extend(by_domain[index][: request.ncpus - len(chosen)])
+                if len(chosen) == request.ncpus:
+                    break
+            return chosen
+
+        homes = [n for n in node_free if node_free[n] >= request.ncpus]
+        if homes:
+            # one NUMA node: the one needing the fewest domains, then the most free
+            def domains_needed(node: int) -> int:
+                sizes = sorted((len(by_domain[i]) for i in range(len(groups)) if nodes_of[i] == node), reverse=True)
+                total = 0
+                for count, size in enumerate(sizes, 1):
+                    total += size
+                    if total >= request.ncpus:
+                        return count
+                return len(sizes) + 1
+
+            home = min(homes, key=lambda n: (domains_needed(n), -node_free[n], n))
+            return tuple(sorted(fill([i for i in range(len(groups)) if nodes_of[i] == home])))
+        chosen = []
+        for node in sorted(node_free, key=lambda n: (-node_free[n], n)):
+            remaining = request.ncpus - len(chosen)
+            part = fill([i for i in range(len(groups)) if nodes_of[i] == node])[:remaining]
+            chosen.extend(part)
+            if len(chosen) == request.ncpus:
+                break
+        return tuple(sorted(chosen))
 
     def _gpu_available(self, uuid: str, claim: int | None) -> bool:
         if uuid in self.gpu_blocked or uuid in self.gpu_exclusive or uuid not in self.gpu_budget:
@@ -118,16 +240,12 @@ class Pool:
             cpus = tuple(sorted(request.cpu_list))
         else:
             # Truly free cores before cores a borrower occupies; then the
-            # cores the requested alias prefers (0.6.3), in its order; then
-            # the lowest-numbered.
-            rank = {cpu: index for index, cpu in enumerate(partition.prefer_cpus)}
-            candidates = sorted(
-                (cpu for cpu in partition.cpus if cpu in self.free_cpus),
-                key=lambda cpu: (cpu in self.soft_cpus, rank.get(cpu, len(rank)), cpu),
-            )
-            if len(candidates) < request.ncpus:
+            # cores the requested alias prefers (0.6.3); then the lowest --
+            # inside one L3 domain where possible (0.8.0, _choose_cpus).
+            found = self._choose_cpus(request, partition)
+            if found is None:
                 return None
-            cpus = tuple(sorted(candidates[: request.ncpus]))
+            cpus = found
         if self.mem_free is not None and request.mem > self.mem_free:
             return None
         if self.actual_free is not None and request.mem > self.actual_free:
@@ -184,10 +302,14 @@ def build_pool(
 
     *actual_free* (0.7.1): the actual memory starts may take now; running
     jobs already use theirs, so it is not reduced by their requests."""
+    topology = config.topology
     pool = Pool(
         free_cpus=set(config.node_cpus()),
         gpu_budget={uuid: gpu.budget_bytes for uuid, gpu in config.gpus.items()},
         mem_free=config.memory_schedulable,
+        domains=topology.domains if topology.l3_placement else (),
+        heavy=topology.heavy(),
+        domain_nodes=topology.domain_nodes() if topology.l3_placement else (),
     )
     pool.free_cpus -= set(external_cpus)
     pool.gpu_blocked |= set(external_gpus)
@@ -211,6 +333,17 @@ def request_is_feasible(request: Request, partition: Partition, config: NodeConf
             return "GPU memory claim exceeds the GPU budget"
     if config.memory_schedulable is not None and request.mem > config.memory_schedulable:
         return "memory request exceeds the node's schedulable memory"
+    if request.l3_domains or request.split_domains:
+        groups = [g for g in config.topology.domains if set(g) & set(partition.cpus)] or [partition.cpus]
+        sizes = sorted((len(set(g) & set(partition.cpus)) for g in groups), reverse=True)
+        parts = list(request.split_domains or ())
+        if request.l3_domains:
+            base, extra = divmod(request.ncpus, request.l3_domains)
+            parts = [base + (1 if i < extra else 0) for i in range(request.l3_domains)]
+        parts.sort(reverse=True)
+        if len(parts) > len(sizes) or any(part > size for part, size in zip(parts, sizes)) or min(parts) < 1:
+            return (f"partition {partition.name} has {len(groups)} L3 domain(s) of "
+                    f"{', '.join(str(s) for s in sizes)} core(s): cannot place {'+'.join(map(str, parts))}")
     return None
 
 

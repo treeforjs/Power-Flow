@@ -114,6 +114,55 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 | Switchover from 0.5 (historical) | `switchover.py` |
 | Tests | `source/run-tests.py`: `--in-job` inside a queue job (`simq run -c 2 ... -- run-tests.py --in-job`, 0.7.0), `--pure` without units; or holding the cores' lease files as before (`--shared` on cores 6-7) |
 
+## 0.8.0 (in development, not released): topology-aware placement on the 16-core node
+
+Branch `simqueue-0.8.0` (built on 0.7.0). Not sealed, not installable yet:
+`upgrade.py` for 0.7.0 -> 0.8.0 (schema 10: `l3_domains`, `split_domains`,
+`cpu_utilization`) is still to be written.
+
+- **Topology from sysfs** (`topology.py`), no hard-coded counts: L3 domains
+  from `cpu*/cache/index*/shared_cpu_list` (level 3), SMT siblings from
+  `thread_siblings_list`, NUMA nodes from `/sys/devices/system/node/node*/cpulist`.
+  The 9850X3D is one domain (96 MiB); the 9950X3D2 two 8-core domains, one
+  per chiplet. A partition's `cpus` may be `"auto"`: every physical core
+  (lowest logical CPU of each SMT group), so `config/zenobia-16core-node.json`
+  serves both CPUs (`memory_schedulable` stays 28G).
+- **Placement**: a job stays inside one L3 domain when one has room; a heavy
+  job (at least `topology.heavy_cores`, default half a domain) goes to the
+  domain with the most free cores, so concurrent heavy jobs spread over the
+  caches; a light job to the fullest domain that still fits, so whole
+  domains stay free; a job larger than any free domain takes the fewest
+  domains. `--l3-domains N` spreads a job evenly over N domains;
+  `--split-domains A,B` gives each part its own domain (the coupled pilot: FE
+  ranks on one chiplet, Spheral ranks on the other). The job finds its cores
+  per domain in `SIMQ_L3_DOMAINS` ("0-7;8-15", in the order of the parts),
+  the domains in `SIMQ_L3_DOMAIN_IDS` and its NUMA nodes in
+  `SIMQ_NUMA_NODES`. `simq partitions` shows each domain's cores, L3 size
+  and occupancy. `topology.l3_placement: false` restores lowest-core-first.
+- **Physical cores for sims, siblings for borrowers**: owner jobs get whole
+  physical cores (siblings are never allocated to owner jobs). With
+  `borrow.lend_siblings` (on in the 16-core config) the SMT siblings go to
+  borrow jobs under `cpu.idle`, after every free, leased-idle and owner-idle
+  core, unless the owner runs with `--exclusive-timing` (an exclusive start
+  preempts a borrower on its siblings).
+- **Utilization**: each finished job records `cpu_utilization` = CPU time /
+  (runtime x allocated cores); `simq show` flags a job below 50% over at
+  least a minute as UNDER-USED, `simq list` has a USE column. `simq
+  partitions` measures every core and its sibling over 0.5 s and prints the
+  node's used against idle cores; the worker keeps a per-CPU snapshot in
+  `queue_meta.cpu_utilization` while jobs run.
+- **Memory limit by priority** (prepared, not set): a partition may carry
+  `priority_max_mem: {"min_priority": 10, "max_mem": "26G"}` so owner jobs
+  of that priority may ask for more than `max_mem`. It stays unset until the
+  full-machine pilot's memory (16 FE + 16 Spheral ranks) is measured.
+
+Future work (kept in mind, not built): NUMA memory locality
+(`cpuset.mems` -- the user manager has no cpuset controller delegated -- or
+a memory policy set by `jobwrap.py`), per-NUMA-node memory accounting for
+admission, several sockets and EPYC-sized topologies (12-16 CCDs, NPS1/2/4).
+Discovery and placement already handle N domains and N nodes generically;
+they are tested on one-, two- and four-domain single-node topologies.
+
 ## 0.7.2: MPI containment
 
 **What happened.** The live Raikou work reported that job 993's MPI ranks

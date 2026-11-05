@@ -49,13 +49,14 @@
     "freeze_max_s": 1800,
     "default_on_preempt": "requeue",
     "notes": "Borrow jobs (simq submit --borrow) run in simqborrow.slice, a top-level slice of the user manager with cpu.idle=1, as units with CPUWeight=1, SCHED_IDLE and idle I/O class: every owner job unit and every process of the terminal sessions wins the CPU. A lease holder or owner job is idle when its process tree used at most idle_threshold cores above a whole number over idle_window_s and the core itself was at most cpu_idle_threshold busy; a borrower lent such a core is preempted when the tree uses more than the cores left to it plus busy_threshold over busy_window_s. A frozen borrower is requeued after freeze_max_s or shortly before its time limit. backfill_waiting_owners (0.6.3): a free core that a waiting owner job needs is lent only to a borrow job whose time limit ends before that owner job can start (EASY backfill); without it such cores are not lent at all while the owner job waits, which in a single pool would hold every borrow job back whenever any owner job waits.",
-    "backfill_waiting_owners": true
+    "backfill_waiting_owners": true,
+    "lend_siblings": true
   },
   "partitions": [
     {
       "name": "zenobia",
-      "description": "zenobia: one pool of every physical core and the GPU (0.6.3: no partitions)",
-      "cpus": "0-15",
+      "description": "zenobia: one pool of every physical core (from sysfs) and the GPU",
+      "cpus": "auto",
       "gpus": [
         "GPU-a7b9b458-167f-cd57-fec9-3dea0995b6e9"
       ],
@@ -109,14 +110,15 @@
     }
   ],
   "notes": [
-    "0.6.3: no partitions. One pool, zenobia, of the 16 physical cores (each named by its lowest logical CPU, 0-15) and the GPU; every job requests from it. Logical CPU numbering of the Ryzen 9 9950X3D2: physical cores 0-15 (first threads), SMT siblings 16-31 (never allocated). Install only on that CPU: the topology check reads sysfs and refuses this file on the 8-core CPU.",
     "The partition names used before 0.6.3 (spheral, raikou-mfem, powerflow) are aliases of zenobia: -p spheral|raikou-mfem|powerflow keeps working, with the defaults those partitions had (cores, memory, time) and their old cores tried first (prefer_cpus); limits are the pool's. A job keeps the name it was submitted with (SIMQ_PARTITION, simq listings). Jobs recorded under these names before 0.6.3 are adopted and scheduled under zenobia.",
     "Without -p a job goes to zenobia with 4 cores, 4G (lowered from the old spheral default 18G on 2026-11-05), 2 days, lowest free cores first. Limits: 20G memory, 14 days (the largest of the old partitions).",
     "memory_schedulable is the sum of --mem over concurrent jobs (31 GiB RAM; about 3 GiB left for the system).",
     "The GPU is a scheduled resource of the pool: exclusive per job unless --gpu-mem is given and the 11G budget allows sharing; queued GPU jobs win the GPU lease files through the GPU line.",
     "Lending: free cores and the idle cores of running owner jobs go to borrow jobs (lend: true). Cores leased by tools outside the queue (any-core.sh, both-cores.sh, pf-launch) are not lent (lend_leased_idle: false). Timing-sensitive runs submit with --exclusive-timing, which keeps the job's cores and their SMT siblings unlent while it runs.",
     "No GPU is ever lent: borrow jobs cannot request GPUs.",
-    "0.7.0: the worker is event-driven (woken by submissions, cancellations and job ends through <state>/worker.wake; passes every poll_seconds only while something must be watched, else at most every idle_seconds); job memory is tracked from the units' cgroups (memory section); --mem auto; job state can be reported to GitHub (github section)."
+    "0.7.0: the worker is event-driven (woken by submissions, cancellations and job ends through <state>/worker.wake; passes every poll_seconds only while something must be watched, else at most every idle_seconds); job memory is tracked from the units' cgroups (memory section); --mem auto; job state can be reported to GitHub (github section).",
+    "0.8.0: cpus \"auto\": every physical core of the machine read from sysfs (lowest logical CPU of each SMT pair), siblings and L3 domains likewise, so this file serves the 8-core 9850X3D and the 16-core 9950X3D2 alike. Owner jobs get whole physical cores; their SMT siblings are lent to borrow jobs (borrow.lend_siblings) under cpu.idle unless the owner runs with --exclusive-timing.",
+    "memory_schedulable stays 28G; max_mem 20G. A priority_max_mem (for example {\"min_priority\": 10, \"max_mem\": \"26G\"}) would let priority-10 owner jobs ask for more; it is not set until full-machine pilot memory is measured."
   ],
   "gpu_line": {
     "enabled": true,
@@ -136,56 +138,6 @@
       7
     ],
     "notes": "0.6.2 GPU line. Queued GPU jobs that are ready except for the GPU join the line through a claim unit (<prefix>-gpuclaim-<token>.service) that waits for testing-gpu.lock in the kernel queue, then takes testing-gpu-<UUID>.lock, and hands both open files to the job unit (SCM_RIGHTS), so the lock is never released in between and the job's time limit starts with its unit. gpu-lease users publish tickets in ticket_dir; members are served by since-time (a claim's is the submit time of its oldest ready job, a helper's its start time). Processes blocked in a raw flock on the GPU files (command in requeue_commands, not a job-control job of an interactive shell) are moved behind the line with SIGSTOP+SIGCONT; every move is logged in log_path. state_path lists the waiting queue jobs with their since-times, the claim, the holders and the raw waiters (heartbeat every 10 s; stale after stale_after_s, withdrawn when the worker stops). A held claim that no job takes within claim_hold_max_s releases the GPU."
-  },
-  "smt_siblings": {
-    "0": [
-      16
-    ],
-    "1": [
-      17
-    ],
-    "2": [
-      18
-    ],
-    "3": [
-      19
-    ],
-    "4": [
-      20
-    ],
-    "5": [
-      21
-    ],
-    "6": [
-      22
-    ],
-    "7": [
-      23
-    ],
-    "8": [
-      24
-    ],
-    "9": [
-      25
-    ],
-    "10": [
-      26
-    ],
-    "11": [
-      27
-    ],
-    "12": [
-      28
-    ],
-    "13": [
-      29
-    ],
-    "14": [
-      30
-    ],
-    "15": [
-      31
-    ]
   },
   "memory": {
     "enabled": true,
@@ -219,6 +171,11 @@
     "log_lines": 20,
     "summary_max_bytes": 40000,
     "notes": "0.7.0. Jobs submitted with --github-status OWNER/REPO@SHA:CONTEXT get commit statuses from the worker on every transition (pending queued/running, success/failure from the exit code, error for cancel, time limit, OOM kill, preemption-cancel, lost unit); --github-comment OWNER/REPO#PR adds one PR comment at the end, edited in place (marker <!-- simq-job:N -->). Statuses never notify; only the first creation of a comment can. Job text is sanitized (no @mentions, no #N references). One posting thread in the worker; failures retried with backoff; scheduling never waits for GitHub. Token: token_file, else `gh auth token` at post time; kept in memory only."
+  },
+  "topology": {
+    "l3_placement": true,
+    "heavy_cores": null,
+    "notes": "0.8.0: L3 domains are read from sysfs at start (cache/index3/shared_cpu_list): one on the 9850X3D, two 8-core domains on the 9950X3D2. A job stays inside one domain when it fits; jobs of at least heavy_cores cores (null: half a domain) go to the least-loaded domain; --l3-domains N / --split-domains A,B ask for several."
   },
   "containment": {
     "enabled": true,

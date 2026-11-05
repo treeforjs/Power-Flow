@@ -115,7 +115,7 @@ class Migration061Tests(unittest.TestCase):
     def assert_migrated(self, before: dict, after: dict) -> None:
         self.assertEqual(before["user_version"], 7)
         self.assertEqual(after["user_version"], SCHEMA_VERSION)
-        self.assertEqual(SCHEMA_VERSION, 9)  # 0.7.0 migrates a 0.6.0 database straight to schema 9
+        self.assertGreaterEqual(SCHEMA_VERSION, 9)  # 0.7.0 and later migrate a 0.6.0 database straight on
         self.assertEqual(len(before["jobs"]), len(after["jobs"]))
         for old, new in zip(before["jobs"], after["jobs"]):
             for column, value in old.items():

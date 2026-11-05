@@ -37,6 +37,7 @@ from .config import format_cpu_list, parse_cpu_list, state_dir
 from .gpuline import LineConfig, parse_line_config
 from .containment import ContainmentConfig, parse_containment_config
 from .github import GitHubConfig, parse_github_config
+from .topology import L3Domain, NumaNode, core_domains, discover_l3, discover_numa, physical_cores, sysfs_root
 
 
 CONFIG_SCHEMA = "simqueue-node-config-v1"
@@ -279,6 +280,14 @@ class Partition:
     min_mem: int = 256 * 1024**2
     # 0.7.1: a job without --mem gets --mem auto (an alias with default_mem "auto")
     mem_auto: bool = False
+    # 0.8.0: (min_priority, max_mem): owner jobs of at least that priority may
+    # ask for up to that much (None: no such raise)
+    priority_max_mem: tuple[int, int] | None = None
+
+    def mem_limit(self, priority: int = 0, borrow: bool = False) -> int:
+        if self.priority_max_mem is not None and not borrow and priority >= self.priority_max_mem[0]:
+            return self.priority_max_mem[1]
+        return self.max_mem
 
     def resolve_default_cpus(self) -> int:
         return len(self.cpus) if self.default_cpus is None else self.default_cpus
@@ -325,6 +334,10 @@ class BorrowConfig:
     # earliest possible start (EASY backfill for borrow jobs).  False keeps
     # the 0.6.1 rule: such cores are never lent while the owner job waits.
     backfill_waiting_owners: bool = False
+    # 0.8.0: the SMT siblings of cores held by owner jobs (never allocated to
+    # owner jobs) are lent to borrow jobs, unless the owner job runs with
+    # --exclusive-timing
+    lend_siblings: bool = False
 
 
 @dataclass(frozen=True)
@@ -344,6 +357,50 @@ class LaunchConfig:
     # ends.
     poll_seconds: float = 1.0
     idle_seconds: float = 30.0
+
+
+@dataclass(frozen=True)
+class TopologyConfig:
+    """L3-domain-aware placement (0.8.0, ``topology`` in node.json).
+
+    *domains* holds the node's cores (lowest logical CPU of each physical
+    core) grouped by L3 domain, discovered from sysfs when the configuration
+    is loaded (or given as ``l3_domains``); *info* the domains themselves."""
+
+    l3_placement: bool = True
+    heavy_cores: int | None = None  # None: half of the smallest domain, at least 2
+    sysfs_cpu: str | None = None  # tests: a fake /sys/devices/system/cpu
+    domains: tuple[tuple[int, ...], ...] = ()
+    info: tuple[L3Domain, ...] = ()
+    # NUMA nodes (one on the 9850X3D and the 9950X3D2): the cores of each
+    # node with CPUs and the kernel's node numbers.  Placement prefers the
+    # fewest nodes; memory binding and several sockets are future work.
+    sysfs_node: str | None = None
+    numa: tuple[tuple[int, ...], ...] = ()
+    numa_ids: tuple[int, ...] = ()
+
+    def numa_of(self, cpu: int) -> int | None:
+        """The kernel's NUMA node number of a core."""
+        for node, group in zip(self.numa_ids, self.numa):
+            if cpu in group:
+                return node
+        return None
+
+    def domain_nodes(self) -> tuple[int, ...]:
+        """The NUMA node number of each L3 domain group (by its first core)."""
+        return tuple(self.numa_of(group[0]) if group else -1 for group in self.domains)
+
+    def heavy(self) -> int:
+        if self.heavy_cores is not None:
+            return self.heavy_cores
+        sizes = [len(group) for group in self.domains] or [2]
+        return max(2, min(sizes) // 2)
+
+    def domain_of(self, cpu: int) -> int | None:
+        for index, group in enumerate(self.domains):
+            if cpu in group:
+                return index
+        return None
 
 
 @dataclass(frozen=True)
@@ -413,6 +470,8 @@ class NodeConfig:
     github: GitHubConfig = field(default_factory=GitHubConfig)
     # 0.7.2: per-job MPI rendezvous directory and the escape scan (containment.py)
     containment: ContainmentConfig = field(default_factory=ContainmentConfig)
+    # 0.8.0: L3 domains (topology.py)
+    topology: TopologyConfig = field(default_factory=TopologyConfig)
 
     def canonical_partition(self, name: str | None) -> str:
         """The partition a requested or recorded name stands for: the name
@@ -567,6 +626,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             "memory",
             "github",
             "containment",
+            "topology",
         },
         "node config",
     )
@@ -695,7 +755,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             item,
             {"name", "cpus", "cores", "gpus", "default_mem", "max_mem", "default_time", "max_time",
              "default_cpus", "swap_max", "enforce_time_limit", "nice", "description",
-             "lend", "lend_leased_idle", "timing_sensitive", "aliases", "min_mem"},
+             "lend", "lend_leased_idle", "timing_sensitive", "aliases", "min_mem", "priority_max_mem"},
             f"partitions[{index}]",
         )
         name = item.get("name")
@@ -703,7 +763,13 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             raise ConfigError(f"partitions[{index}].name is invalid")
         if name in partitions:
             raise ConfigError(f"duplicate partition {name}")
-        cpus = _cpu_list(item.get("cpus", item.get("cores")), f"partition {name} cpus")
+        raw_cpus = item.get("cpus", item.get("cores"))
+        if raw_cpus == "auto":
+            # 0.8.0: every physical core of the machine (lowest logical CPU of
+            # each SMT group), read from sysfs -- one file for any CPU
+            cpus = physical_cores(sysfs_root((document.get("topology") or {}).get("sysfs_cpu")))
+        else:
+            cpus = _cpu_list(raw_cpus, f"partition {name} cpus")
         if not cpus:
             raise ConfigError(f"partition {name} has no CPUs")
         if check_topology:
@@ -742,6 +808,22 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             raise ConfigError(f"partition {name}: need 0 < default_mem <= max_mem")
         if min_mem <= 0 or min_mem > max_mem:
             raise ConfigError(f"partition {name}: need 0 < min_mem <= max_mem")
+        priority_mem = None
+        if item.get("priority_max_mem") is not None:
+            # 0.8.0: a higher limit for owner jobs of at least this priority
+            raw = _object(item["priority_max_mem"], f"partition {name} priority_max_mem")
+            _unknown(raw, {"min_priority", "max_mem", "notes"}, f"partition {name} priority_max_mem")
+            try:
+                limit = parse_size(raw.get("max_mem"), field_name=f"partition {name} priority_max_mem.max_mem")
+            except ValueError as error:
+                raise ConfigError(str(error)) from error
+            floor = raw.get("min_priority")
+            if isinstance(floor, bool) or not isinstance(floor, int):
+                raise ConfigError(f"partition {name}: priority_max_mem.min_priority must be an integer")
+            if limit < max_mem or (memory_schedulable is not None and limit > memory_schedulable):
+                raise ConfigError(f"partition {name}: priority_max_mem.max_mem must lie between max_mem and "
+                                  "memory_schedulable")
+            priority_mem = (floor, limit)
         if memory_schedulable is not None and max_mem > memory_schedulable:
             raise ConfigError(f"partition {name}: max_mem exceeds memory_schedulable")
         if max_time is not None and (default_time is None or default_time > max_time):
@@ -782,6 +864,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             lend_leased_idle=policy["lend_leased_idle"],
             timing_sensitive=policy["timing_sensitive"],
             min_mem=min_mem,
+            priority_max_mem=priority_mem,
         )
         for alias in _parse_aliases(item.get("aliases", []), partitions[name]):
             if alias.name in aliases:
@@ -831,6 +914,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         line = parse_line_config(document)
     except ValueError as error:
         raise ConfigError(str(error)) from error
+    topology = _parse_topology(document.get("topology", {}), tuple(node_cpus), check_topology)
     return NodeConfig(
         path=path,
         node=node,
@@ -849,6 +933,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         memory=memory,
         github=github,
         containment=containment,
+        topology=topology,
     )
 
 
@@ -981,6 +1066,65 @@ def _parse_memory(value: Any) -> MemoryConfig:
     return config
 
 
+def _parse_topology(value: Any, node_cpus: tuple[int, ...], check_topology: bool) -> TopologyConfig:
+    """The ``topology`` section (0.8.0): ``l3_placement`` (true),
+    ``heavy_cores`` (null), ``l3_domains`` (null: discovered; else a list of
+    CPU lists), ``sysfs_cpu`` (tests)."""
+    raw = _object(value, "topology")
+    _unknown(raw, {"l3_placement", "heavy_cores", "l3_domains", "sysfs_cpu", "sysfs_node", "numa_nodes",
+                   "notes"}, "topology")
+    node_root = raw.get("sysfs_node")
+    if node_root is not None and (not isinstance(node_root, str) or not node_root.startswith("/")):
+        raise ConfigError("topology.sysfs_node must be an absolute path")
+    placement = raw.get("l3_placement", True)
+    if not isinstance(placement, bool):
+        raise ConfigError("topology.l3_placement must be true or false")
+    heavy = raw.get("heavy_cores")
+    if heavy is not None and (isinstance(heavy, bool) or not isinstance(heavy, int) or heavy < 1):
+        raise ConfigError("topology.heavy_cores must be a positive integer or null")
+    sysfs = raw.get("sysfs_cpu")
+    if sysfs is not None and (not isinstance(sysfs, str) or not sysfs.startswith("/")):
+        raise ConfigError("topology.sysfs_cpu must be an absolute path")
+    explicit = raw.get("l3_domains")
+    if explicit is not None:
+        if not isinstance(explicit, list) or not explicit:
+            raise ConfigError("topology.l3_domains must be a nonempty list of CPU lists")
+        info = tuple(L3Domain(index, _cpu_list(item, f"topology.l3_domains[{index}]"))
+                     for index, item in enumerate(explicit))
+        shared = [cpu for domain in info for cpu in domain.cpus]
+        if len(shared) != len(set(shared)):
+            raise ConfigError("topology.l3_domains overlap")
+    elif check_topology or sysfs is not None:
+        info = discover_l3(sysfs_root(sysfs))
+    else:
+        info = (L3Domain(0, node_cpus),)
+    explicit_nodes = raw.get("numa_nodes")
+    if explicit_nodes is not None:
+        if not isinstance(explicit_nodes, list) or not explicit_nodes:
+            raise ConfigError("topology.numa_nodes must be a nonempty list of CPU lists")
+        nodes = tuple(NumaNode(index, _cpu_list(item, f"topology.numa_nodes[{index}]"))
+                      for index, item in enumerate(explicit_nodes))
+    elif check_topology or node_root is not None:
+        from pathlib import Path as _Path
+        nodes = discover_numa(_Path(node_root or "/sys/devices/system/node"), node_cpus)
+    else:
+        nodes = (NumaNode(0, node_cpus),)
+    numa = []
+    ids = []
+    for node in nodes:
+        cores = tuple(c for c in node_cpus if c in node.cpus)
+        if cores:
+            numa.append(cores)
+            ids.append(node.node)
+    rest = tuple(c for c in node_cpus if all(c not in group for group in numa))
+    if rest:
+        numa.append(rest)
+        ids.append(max(ids, default=-1) + 1)
+    return TopologyConfig(l3_placement=placement, heavy_cores=heavy, sysfs_cpu=sysfs,
+                          domains=core_domains(node_cpus, info), info=info, sysfs_node=node_root,
+                          numa=tuple(numa), numa_ids=tuple(ids))
+
+
 def describe_memory(config: MemoryConfig) -> dict[str, Any]:
     return {
         "enabled": config.enabled,
@@ -1010,7 +1154,7 @@ def _parse_borrow(value: Any) -> BorrowConfig:
         raw,
         {"enabled", "slice", "slice_cpu_weight", "unit_cpu_weight", "idle_window_s", "busy_window_s",
          "idle_threshold", "cpu_idle_threshold", "busy_threshold", "freeze_max_s", "default_on_preempt",
-         "backfill_waiting_owners", "notes"},
+         "backfill_waiting_owners", "lend_siblings", "notes"},
         "borrow",
     )
     defaults = BorrowConfig()
@@ -1048,6 +1192,9 @@ def _parse_borrow(value: Any) -> BorrowConfig:
     backfill = raw.get("backfill_waiting_owners", defaults.backfill_waiting_owners)
     if not isinstance(backfill, bool):
         raise ConfigError("borrow.backfill_waiting_owners must be true or false")
+    siblings = raw.get("lend_siblings", defaults.lend_siblings)
+    if not isinstance(siblings, bool):
+        raise ConfigError("borrow.lend_siblings must be true or false")
     return BorrowConfig(
         enabled=enabled,
         slice=slice_name,
@@ -1061,6 +1208,7 @@ def _parse_borrow(value: Any) -> BorrowConfig:
         freeze_max_s=None if freeze_max is None else float(freeze_max),
         default_on_preempt=mode,
         backfill_waiting_owners=backfill,
+        lend_siblings=siblings,
     )
 
 

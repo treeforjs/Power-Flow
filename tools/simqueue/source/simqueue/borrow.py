@@ -42,7 +42,7 @@ from .nodeconfig import NodeConfig
 from .scheduler import INFINITY, Allocation, Decision, Pool, Request, Running, earliest_start, plan
 
 
-CLASS_RANK = {"free": 0, "leased-idle": 1, "owner-idle": 2}
+CLASS_RANK = {"free": 0, "leased-idle": 1, "owner-idle": 2, "sibling": 3}
 # Skip reasons of owner jobs that are waiting for cores (as opposed to being
 # held by a paused ensemble or infeasible).
 WAITING_REASONS = ("resources busy", "waiting behind a higher-priority job", "backfill would delay")
@@ -314,7 +314,36 @@ def plan_node(
         for cpu in (request.cpu_list if request.cpu_list is not None else part.cpus):
             waiting[cpu] = min(waiting.get(cpu, INFINITY), bound)
 
+    # 0.8.0: logical CPU -> the core it is an SMT sibling of.  Owner jobs get
+    # whole physical cores (their siblings are never allocated); with
+    # borrow.lend_siblings the siblings go to borrow jobs, after every free,
+    # leased-idle and owner-idle core, unless their core is protected
+    # (--exclusive-timing, timing-sensitive partitions).
+    sibling_core: dict[int, int] = {}
+    if config.borrow.lend_siblings:
+        for core in sorted({cpu for part in config.partitions.values() for cpu in part.cpus}):
+            for sibling in config.siblings(core):
+                if config.partition_of(sibling) is None:  # siblings are never allocated themselves
+                    sibling_core.setdefault(sibling, core)
+
+    def sibling_class(cpu: int, home: str, occupant: int | None) -> str | None:
+        core = sibling_core.get(cpu)
+        if core is None or cpu in protected or core in exclusive or core in protected:
+            return None
+        part = config.partition_of(core)
+        if part is None or part.timing_sensitive or not part.lend:
+            return None
+        if part.name != (config.canonical_partition(home) if home else "") and not part.lends():
+            return None
+        if occupied.get(cpu, occupant) != occupant:
+            return None
+        if cores.get(core, CoreState(core)).no_borrow:
+            return None
+        return "sibling"
+
     def lendable_class(cpu: int, home: str, *, occupant: int | None = None, end: float = INFINITY) -> str | None:
+        if cpu in sibling_core:
+            return sibling_class(cpu, home, occupant)
         part = config.partition_of(cpu)
         if part is None or cpu in protected or part.timing_sensitive:
             return None
@@ -390,7 +419,7 @@ def plan_node(
             for cpu in borrower.cpus:
                 cls = lendable_class(cpu, home, occupant=borrower.job_id,
                                      end=INFINITY if borrower.deadline is None else borrower.deadline)
-                part = config.partition_of(cpu)
+                part = config.partition_of(cpu) or config.partition_of(sibling_core.get(cpu, -1))
                 allowed = part is not None and (part.name == home or lenders is None or part.name in lenders)
                 if cls is None or not allowed:
                     placement = []
@@ -431,6 +460,10 @@ def plan_node(
                 cls = lendable_class(cpu, request.partition, end=end)
                 if cls is not None:
                     candidates.append((CLASS_RANK[cls], index, -cpu, name, cls))
+            for sibling, core in sorted(sibling_core.items()):
+                if config.partition_of(core) is config.partitions[name] and sibling_class(
+                        sibling, request.partition, None) is not None:
+                    candidates.append((CLASS_RANK["sibling"], index, -sibling, name, "sibling"))
         candidates.sort()
         want = max(request.ncpus, request.max_cpus or request.ncpus)
         chosen = candidates[:want]
