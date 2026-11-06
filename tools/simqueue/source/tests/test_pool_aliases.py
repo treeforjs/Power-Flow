@@ -78,7 +78,10 @@ class AliasConfigTests(unittest.TestCase):
         self.assertEqual(pool.gpus, (GPU,))
         self.assertEqual(pool.aliases, OLD_NAMES)
         self.assertEqual((pool.lend, pool.lend_leased_idle, pool.timing_sensitive), (True, False, False))
-        self.assertEqual(config.siblings(6), (14,))
+        from simqueue.topology import thread_siblings
+
+        # this machine's sibling of core 6 (14 on the 9850X3D, 22 on the 9950X3D2)
+        self.assertEqual(config.siblings(6), thread_siblings([6])[6])
         # the defaults each old name had in 0.6.2, its old cores first; the pool's limits
         old = load_node_config(ZENOBIA_062)
         for name in OLD_NAMES:
@@ -153,10 +156,13 @@ class AliasConfigTests(unittest.TestCase):
         self.assertEqual(here.node_cpus(), physical_cores())
 
     def test_written_sibling_map_must_match_this_machine(self) -> None:
+        from simqueue.topology import thread_siblings
+
         document = json.loads(ZENOBIA.read_text())
-        document["smt_siblings"] = {str(c): [c + 8] for c in range(8)}
-        self.assertEqual(parse_node_config(document, path=ZENOBIA).siblings(3), (11,))
-        document["smt_siblings"]["3"] = [12]
+        actual = thread_siblings(range(8))
+        document["smt_siblings"] = {str(c): list(actual[c]) for c in range(8)}
+        self.assertEqual(parse_node_config(document, path=ZENOBIA).siblings(3), actual[3])
+        document["smt_siblings"]["3"] = [actual[3][0] + 1]
         with self.assertRaises(ConfigError):
             parse_node_config(document, path=ZENOBIA)
         parse_node_config(document, path=ZENOBIA, check_topology=False)
@@ -423,10 +429,9 @@ class LiveCopyTests(unittest.TestCase):
                                "SIMQUEUE_NO_AUTOSTART": "1"})
             try:
                 store = QueueStore()
-                self.assertEqual(SCHEMA_VERSION, 9)
                 with closing(sqlite3.connect(database)) as connection:
-                    self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 9)
-                self.assertEqual(rows(), before)  # 0.7.0 adds columns and changes no schema-8 column
+                    self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], SCHEMA_VERSION)
+                self.assertEqual(rows(), before)  # 0.7.0 and 0.8.0 add columns and change no existing one
                 config = pool_config()
                 jobs = store.node_jobs() + store.list_jobs(include_all=True, limit=100000)
                 names = {job.get("partition") for job in jobs}

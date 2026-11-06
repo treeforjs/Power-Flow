@@ -568,7 +568,9 @@ class ConfigTests(unittest.TestCase):
         self.assertTrue(zenobia.borrow.backfill_waiting_owners)
         self.assertEqual(zenobia.borrow.slice_cpu_weight, "idle")
         self.assertEqual(zenobia.borrow.unit_cpu_weight, 1)
-        self.assertEqual(zenobia.siblings(6), (14,))
+        from simqueue.topology import thread_siblings
+
+        self.assertEqual(zenobia.siblings(6), thread_siblings([6])[6])  # this machine's
         self.assertEqual(zenobia.locks.borrow_lock_paths(6),
                          ("/home/treefor/projects/.workspace/outputs/pic-profile/borrow-core6.lock",))
 
