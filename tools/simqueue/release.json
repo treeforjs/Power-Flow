@@ -37,7 +37,253 @@
     "tools/bench-plan.py (planner cost per pass), tools/compare-easy.py (suite with depth 1 checked against the 0.8.0 planner)",
     "upgrade.py 0.8.0 <-> 0.8.1 (no schema change; dry run previews the reservations for the live queue)"
   ],
-  "tests": {},
-  "plan_cost": {},
+  "tests": {
+    "full_suite_in_live_queue_job": {
+      "queue_job": 1585,
+      "cores": [
+        2,
+        3
+      ],
+      "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.8.1-20261106/receipts/full-suite-in-job.json",
+      "tests_run": 436,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 12,
+      "duration_s": 561.124,
+      "failed_detail": [],
+      "skipped_detail": [
+        "test_memory.Schema9MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_memory_units.MemoryTrackingTests.test_out_of_memory_job_records_its_peak_at_the_limit: real cgroup OOM: only with SIMQ_TEST_REAL_OOM=1, never on zenobia (test_oom_safety.py covers the OOM path with a mocked unit)",
+        "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_node_worker.ConcurrencyTests.test_whole_partition_job_waits_for_all_cores: needs a two-core partition",
+        "test_node_worker.LeaseTests.test_outside_lease_holder_is_respected_and_job_units_hold_leases: needs a two-core partition",
+        "test_node_worker.LimitTests.test_out_of_memory_kills_the_whole_job: real cgroup OOM: only with SIMQ_TEST_REAL_OOM=1, never on zenobia (test_oom_safety.py covers the OOM path with a mocked unit)",
+        "test_node_worker.PfLaunchInsideAllocationTests.test_pf_launch_10_refuses_on_its_own_jobs_leases: /home/treefor/projects/Power-Flow/tools/pf-launch is no longer pf-launch 1.0",
+        "test_pool_aliases.LiveCopyTests.test_copy_of_live_database_under_the_pool: SIMQ_LIVE_DB_COPY not set",
+        "test_switchover.SwitchoverTests.test_dry_run_changes_nothing: runtime not sealed yet",
+        "test_switchover.SwitchoverTests.test_install_canary_and_rollback_restore_everything: runtime not sealed yet",
+        "test_switchover.SwitchoverTests.test_install_refuses_while_a_05_job_is_active: runtime not sealed yet"
+      ]
+    },
+    "pure_with_live_database_copy": {
+      "tests_run": 419,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 64,
+      "duration_s": 109.023,
+      "failed_detail": []
+    },
+    "pure_historical_migrations": {
+      "tests_run": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "duration_s": 0.448,
+      "failed_detail": [],
+      "skipped_detail": [
+        "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set"
+      ]
+    },
+    "depth_1_against_080_planner": {
+      "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.8.1-20261106/receipts/compare-easy.json",
+      "plan_calls_compared": 426,
+      "queued_jobs_planned": 1311,
+      "calls_with_a_reservation": 332,
+      "backfill_refusals": 14,
+      "suite_exit_code": 0,
+      "mismatches": 0
+    },
+    "live_scenario_replay": {
+      "depth_1": {
+        "head_shadow_min": 510,
+        "head_start_min": 510,
+        "gating_starts_min": [
+          430,
+          460,
+          470,
+          690,
+          690
+        ],
+        "probes_started_before_head": 39,
+        "first_pass_reservations": [
+          [
+            1402,
+            510
+          ]
+        ]
+      },
+      "depth_8": {
+        "head_shadow_min": 510,
+        "head_start_min": 510,
+        "gating_starts_min": [
+          40,
+          70,
+          80,
+          100,
+          110
+        ],
+        "probes_started_before_head": 36,
+        "first_pass_reservations": [
+          [
+            1402,
+            510
+          ],
+          [
+            1500,
+            40
+          ],
+          [
+            1501,
+            70
+          ],
+          [
+            1502,
+            80
+          ],
+          [
+            1503,
+            100
+          ],
+          [
+            1504,
+            110
+          ],
+          [
+            2000,
+            90
+          ],
+          [
+            2001,
+            100
+          ]
+        ]
+      }
+    },
+    "not_run": "test_shield_helper.py cannot be imported (needs source/privileged/simqueue-shield), as for 0.6.0 and later"
+  },
+  "plan_cost": {
+    "tool": "source/tools/bench-plan.py",
+    "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.8.1-20261106/bench/bench-plan.json",
+    "worker_poll_s": 1.0,
+    "live": {
+      "queued": 72,
+      "running": 8,
+      "free_cores": 1,
+      "depth_1": {
+        "median_ms": 0.261,
+        "p95_ms": 0.265,
+        "max_ms": 0.284,
+        "starts": 0,
+        "reservations": 1,
+        "refused": 2
+      },
+      "depth_8": {
+        "median_ms": 0.74,
+        "p95_ms": 1.076,
+        "max_ms": 1.305,
+        "starts": 0,
+        "reservations": 8,
+        "refused": 2
+      },
+      "depth_16": {
+        "median_ms": 1.824,
+        "p95_ms": 1.847,
+        "max_ms": 1.856,
+        "starts": 0,
+        "reservations": 16,
+        "refused": 2
+      },
+      "planner_080": {
+        "median_ms": 0.285,
+        "p95_ms": 0.29,
+        "max_ms": 0.361
+      },
+      "worker_pass_depth_8": {
+        "median_ms": 2.25,
+        "p95_ms": 2.262,
+        "max_ms": 2.328
+      }
+    },
+    "synthetic": {
+      "queued": 100,
+      "running": 14,
+      "free_cores": 2,
+      "depth_1": {
+        "median_ms": 0.575,
+        "p95_ms": 0.579,
+        "max_ms": 0.591,
+        "starts": 2,
+        "reservations": 1,
+        "refused": 0
+      },
+      "depth_8": {
+        "median_ms": 1.804,
+        "p95_ms": 1.93,
+        "max_ms": 2.057,
+        "starts": 2,
+        "reservations": 8,
+        "refused": 0
+      },
+      "depth_16": {
+        "median_ms": 3.505,
+        "p95_ms": 3.687,
+        "max_ms": 3.723,
+        "starts": 2,
+        "reservations": 16,
+        "refused": 0
+      },
+      "planner_080": {
+        "median_ms": 1.194,
+        "p95_ms": 1.258,
+        "max_ms": 1.269
+      },
+      "worker_pass_depth_8": {
+        "median_ms": 3.422,
+        "p95_ms": 3.957,
+        "max_ms": 4.471
+      }
+    },
+    "adversarial": {
+      "queued": 100,
+      "running": 14,
+      "free_cores": 2,
+      "depth_1": {
+        "median_ms": 0.604,
+        "p95_ms": 0.608,
+        "max_ms": 0.933,
+        "starts": 2,
+        "reservations": 1,
+        "refused": 0
+      },
+      "depth_8": {
+        "median_ms": 1.917,
+        "p95_ms": 1.934,
+        "max_ms": 2.179,
+        "starts": 0,
+        "reservations": 8,
+        "refused": 92
+      },
+      "depth_16": {
+        "median_ms": 1.918,
+        "p95_ms": 2.724,
+        "max_ms": 3.336,
+        "starts": 0,
+        "reservations": 8,
+        "refused": 92
+      },
+      "planner_080": {
+        "median_ms": 0.734,
+        "p95_ms": 1.129,
+        "max_ms": 1.141
+      },
+      "worker_pass_depth_8": {
+        "median_ms": 5.753,
+        "p95_ms": 6.046,
+        "max_ms": 6.671
+      }
+    }
+  },
   "machine": "AMD Ryzen 9 9950X3D2 (BIOS 2503): cores 0-15, SMT siblings 16-31, L3 CCD0 cores 0-7 / CCD1 cores 8-15, 96 MiB each, one NUMA node, 30 GB RAM"
 }

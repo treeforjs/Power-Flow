@@ -201,10 +201,11 @@ were weighed:
 fake clock: four long jobs until 8.5 h, twelve probes ending every 10 min,
 then the head, the five 4-core jobs and 40 probes). With depth 8 the 4-core
 jobs are reserved at 40, 70, 80, 100 and 110 min and start then, in FIFO
-order and within one probe limit; the head starts at its reserved 8.5 h; the
-probes run in the gaps. With depth 1 (0.8.0) every freed core goes to a probe
-and the first 4-core job waits more than 4 h. A probe offered a freed core
-reads "backfill would delay job 1500".
+order and within one probe limit; the head starts at its reserved 8.5 h; 36
+probes run in the gaps before it. With depth 1 (0.8.0) every freed core goes
+to a probe (39 before the head): the 4-core jobs start at 430, 460 and 470
+min, the last two only after the head, at 690 min. A probe offered a freed
+core at depth 8 reads "backfill would delay job 1500".
 
 **What the other planners do with it.**
 
@@ -233,11 +234,12 @@ queue for N min" as before, for the others "reservation K of the queue for N
 min". `simq doctor` shows the depth; `simq partitions --json` has
 `reservation_depth`.
 
-**Cost.** `tools/bench-plan.py` (in a queue job, 16-core config): plan() takes
-about 1-2 ms at depth 8 with 72-100 queued and 8-14 running jobs, against
-0.3-0.7 ms for 0.8.0; a worker pass (plan_node and the GPU line's two what-if
-plans) 2.5-7 ms; the worker polls every 1 s. Jobs of the same shape refused
-in one pass are answered once (until the next start).
+**Cost.** `tools/bench-plan.py` (in queue job 1585, 16-core config): plan()
+takes 0.7-1.9 ms (median) at depth 8 with 72-100 queued and 8-14 running
+jobs, against 0.3-1.2 ms for 0.8.0; one worker pass (plan_node and the GPU
+line's two what-if plans) 2.3-5.8 ms, at most 6.7 ms; the worker polls every
+1 s. Jobs of the same shape refused in one pass are answered once (until the
+next start).
 
 **Configuration and rollback.** `"scheduler": {"reservation_depth": 8}` in
 `node.json`. Depth 1 restores 0.8.0's decisions without a reinstall (edit
@@ -1808,6 +1810,18 @@ PartitionName=powerflow   Nodes=zenobia MaxTime=14-00:00:00 DefaultTime=12:00:00
 After the CPU change: `CoresPerSocket=16`. Default memory per name maps to
 `DefMemPerNode` per partition; borrow jobs map to a preemptible partition
 (`PreemptType=preempt/partition_prio`, `PreemptMode=REQUEUE`).
+
+## Validation of 0.8.1 (2026-11-06)
+
+- Full suite inside live queue job 1585 (`simq submit -c 2 --mem 2G -t 0:30:00 --priority 3` of `validate081.sh`: `run-tests.py --in-job`, then the runs below; the test units on the job's cores [2, 3]): 436 tests, 0 failure(s), 0 error(s), 12 skipped, 561 s.
+- Real-OOM tests not run (2 skipped: `SIMQ_TEST_REAL_OOM` unset, and refused on zenobia).
+- Depth 1 against the 0.8.0 planner (`tools/compare-easy.py --pure`, every test module but `test_reservations.py`): 426 plan() calls (1311 queued jobs, 332 with a reservation, 14 backfill refusals), 0 differences; plus 6000 random queues in `test_reservations.EasyEquivalenceTests`.
+- Every suite without units, with the live-database copy: 419 tests, 0 failures, 0 errors (64 skipped: the unit-level tests).
+- Historical migration suites: 7 tests, 0 failures.
+- The live queue of 2026-11-06 replayed (fake clock): depth 8 starts the five 4-core jobs at 40, 70, 80, 100, 110 min and the head at 510 min (its shadow 510 min), 36 probes before it; depth 1 (0.8.0) starts the first 4-core job at 430 min (39 probes before the head).
+- Planner cost (`tools/bench-plan.py`, median per call): live (72 queued, 8 running): depth 8 0.74 ms (0.8.0 0.285 ms), worker pass 2.25 ms; synthetic (100 queued, 14 running): depth 8 1.804 ms (0.8.0 1.194 ms), worker pass 3.422 ms; adversarial (100 queued, 14 running): depth 8 1.917 ms (0.8.0 0.734 ms), worker pass 5.753 ms.
+- `test_shield_helper.py` cannot be imported, as before.
+- Receipts: `/home/treefor/projects/.workspace/outputs/simqueue-0.8.1-20261106/receipts/`; benchmark `/home/treefor/projects/.workspace/outputs/simqueue-0.8.1-20261106/bench/`; replay `/home/treefor/projects/.workspace/outputs/simqueue-0.8.1-20261106/demo/`.
 
 ## Validation of 0.8.0 (2026-11-06)
 
