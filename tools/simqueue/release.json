@@ -26,6 +26,95 @@
     "warning for owner jobs below priority 10 asking for 75%+ of the pool; head-of-queue wait in its reason",
     "upgrade.py 0.7.x <-> 0.8.0 (schema 9 -> 10, rollback in place)"
   ],
-  "tests": "pending",
+  "tests": {
+    "full_suite_in_live_queue_job": {
+      "queue_job": 1451,
+      "cores": [
+        4,
+        6
+      ],
+      "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.8.0-20261106/receipts/full-suite-in-job.json",
+      "tests_run": 414,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 12,
+      "duration_s": 560.49,
+      "failed_detail": [],
+      "skipped_detail": [
+        "test_memory.Schema9MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_memory_units.MemoryTrackingTests.test_out_of_memory_job_records_its_peak_at_the_limit: real cgroup OOM: only with SIMQ_TEST_REAL_OOM=1, never on zenobia (test_oom_safety.py covers the OOM path with a mocked unit)",
+        "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_node_worker.ConcurrencyTests.test_whole_partition_job_waits_for_all_cores: needs a two-core partition",
+        "test_node_worker.LeaseTests.test_outside_lease_holder_is_respected_and_job_units_hold_leases: needs a two-core partition",
+        "test_node_worker.LimitTests.test_out_of_memory_kills_the_whole_job: real cgroup OOM: only with SIMQ_TEST_REAL_OOM=1, never on zenobia (test_oom_safety.py covers the OOM path with a mocked unit)",
+        "test_node_worker.PfLaunchInsideAllocationTests.test_pf_launch_10_refuses_on_its_own_jobs_leases: /home/treefor/projects/Power-Flow/tools/pf-launch is no longer pf-launch 1.0",
+        "test_pool_aliases.LiveCopyTests.test_copy_of_live_database_under_the_pool: SIMQ_LIVE_DB_COPY not set",
+        "test_switchover.SwitchoverTests.test_dry_run_changes_nothing: runtime not sealed yet",
+        "test_switchover.SwitchoverTests.test_install_canary_and_rollback_restore_everything: runtime not sealed yet",
+        "test_switchover.SwitchoverTests.test_install_refuses_while_a_05_job_is_active: runtime not sealed yet"
+      ]
+    },
+    "pure_with_live_database_copy": {
+      "tests_run": 398,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 64,
+      "duration_s": 120.342,
+      "failed_detail": []
+    },
+    "pure_historical_migrations": {
+      "tests_run": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "duration_s": 0.601,
+      "failed_detail": [],
+      "skipped_detail": [
+        "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set"
+      ]
+    },
+    "observations": {
+      "sampling-cost.json": {
+        "per_sample_s_8_jobs": 9.388620333333394e-05,
+        "per_hour_at_3s_s": 0.11266344400000072
+      },
+      "sampling-loop-cost.json": {
+        "jobs_sampled": 2,
+        "sample_seconds": 1,
+        "window_s": 20.0,
+        "cpu_s": 0.01,
+        "cpu_s_per_hour": 1.8,
+        "percent_of_one_core": 0.05,
+        "rss_bytes": 39186432
+      },
+      "cpu-priority.json": {
+        "cpu": 4,
+        "alone_share": 0.962856,
+        "core_busy_alone": 1.0,
+        "borrower_share_under_contention": 0.002811172778082991,
+        "window_shares": [
+          0.004217582743995621,
+          0.002811172778082991,
+          0.005617125478159028
+        ],
+        "competitor_cpu_s": 6.967356,
+        "competitor_wall_s": 7.0
+      },
+      "containment-scan-cost.json": {
+        "processes": 713,
+        "first_scan_cpu_s": 0.0023734479999999447,
+        "cached_scan_cpu_s": [
+          0.0004838600000000026,
+          0.0004526590000000219,
+          0.00044245999999992236,
+          0.00044032000000004956,
+          0.00043812900000006483
+        ]
+      }
+    },
+    "not_run": "test_shield_helper.py cannot be imported (needs source/privileged/simqueue-shield), as for 0.6.0 and later"
+  },
   "machine": "AMD Ryzen 9 9950X3D2 (BIOS 2503): cores 0-15, SMT siblings 16-31, L3 CCD0 cores 0-7 / CCD1 cores 8-15, 96 MiB each, one NUMA node, 30 GB RAM"
 }

@@ -1666,6 +1666,19 @@ After the CPU change: `CoresPerSocket=16`. Default memory per name maps to
 `DefMemPerNode` per partition; borrow jobs map to a preemptible partition
 (`PreemptType=preempt/partition_prio`, `PreemptMode=REQUEUE`).
 
+## Validation of 0.8.0 (2026-11-06)
+
+- Full suite inside live queue job 1451 (`simq run -c 2 --mem 1G -t 0:40:00 --priority 20 -- run-tests.py --in-job`, the test units on the job's cores [4, 6]): 414 tests, 0 failure(s), 0 error(s), 12 skipped, 560 s.
+- Real-OOM tests not run (2 skipped: `SIMQ_TEST_REAL_OOM` unset, and refused on zenobia); the OOM path ran against mocked unit states (`test_oom_safety.py`), and the unit-property test checked live-started test units (OOMPolicy=stop, no Exec*Post/Stop, `memory.oom.group` 0).
+- Every suite without units, with the live-database copy: 398 tests, 0 failures (64 skipped: the unit-level tests).
+- Historical migration suites: 7 tests, 0 failures.
+- Borrower CPU share under contention (three windows): [0.004217582743995621, 0.002811172778082991, 0.005617125478159028].
+- Escape scan: 713 processes, 2.4 ms CPU the first time, 0.4 ms after.
+- Topology on the real sysfs (`test_topology.DiscoveryTests.test_ryzen_9_9950x3d2_on_this_machine`): passed: L3 domains 0-7,16-23 and 8-15,24-31 (96 MiB each), siblings c <-> c+16, one NUMA node, the 16-core configuration's cpus "auto" = 0-15.
+- Two-rank MPI reproduction (`test_containment.py`): ran (Open MPI 5.0.10 prefix of the MOOSE environment).
+- `test_shield_helper.py` cannot be imported, as before.
+- Receipts: `/home/treefor/projects/.workspace/outputs/simqueue-0.8.0-20261106/receipts/`.
+
 ## Validation of 0.7.2 (2026-11-05)
 
 - Full suite inside live queue job 1254 (`simq run -c 2 --mem 1G -t 0:40:00 --priority 20 -- run-tests.py --in-job`, the test units on the job's cores [0, 7]): 391 tests, 0 failure(s), 0 error(s), 12 skipped, 541 s.
