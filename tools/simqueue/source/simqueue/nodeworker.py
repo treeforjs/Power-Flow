@@ -1,7 +1,8 @@
 """SimQueue 0.6 node scheduler.
 
 One worker per node.  It decides which queued jobs start (priority/FIFO with
-EASY backfill over partitions, GPUs and memory), starts each job as its own
+backfill over partitions, GPUs and memory: EASY up to 0.8.0, reservations for
+the first ``scheduler.reservation_depth`` blocked jobs from 0.8.1), starts each job as its own
 transient systemd user service, and reconciles the database with those units.
 It never owns job processes: stopping, crashing or upgrading the worker does
 not affect running jobs, and a restarted worker (of any 0.6 build) re-adopts
@@ -1227,16 +1228,27 @@ class NodeWorker:
                 started += 1
         skipped = dict(decision.skipped)
         skipped.update(deferred)
-        self._record_reasons(skipped, decision.reservation, busy_cpus)
+        self._record_reasons(skipped, decision.reservations, busy_cpus)
         self.last_started = started
         return started
 
     def _record_reasons(
         self,
         skipped: dict[int, str],
-        reservation: tuple[int, float] | None,
+        reservations: Any,
         busy_cpus: dict[int, list],
     ) -> None:
+        """Write each waiting job's reason.  *reservations* (0.8.1): the
+        planner's reservations in dispatch order, ``(job id, shadow time)``
+        each (a single pair or ``None`` as before 0.8.1 is accepted too)."""
+        if not reservations:
+            reserved: dict[int, tuple[int, float]] = {}
+        elif isinstance(reservations[0], (int, float)):
+            reserved = {int(reservations[0]): (1, float(reservations[1]))}
+        else:
+            reserved = {int(job): (rank, float(shadow)) for rank, (job, shadow) in enumerate(reservations, 1)}
+        for job_id in [job for job in self._reserved_since if job not in skipped]:
+            self._reserved_since.pop(job_id, None)  # started, canceled or gone
         for job_id, reason in skipped.items():
             if job_id in self.gpu.reasons:
                 reason = self.gpu.reasons[job_id]
@@ -1248,14 +1260,18 @@ class NodeWorker:
                 ]
                 if holders:
                     reason = "resources busy; lease held outside the queue (" + "; ".join(holders) + ")"
-            if reservation and reservation[0] == job_id:
-                shadow = reservation[1]
+            if job_id in reserved:
+                rank, shadow = reserved[job_id]
                 if shadow != INFINITY:
                     reason += f"; reserved to start by {_iso(shadow)}"
-                # 0.8.0: how long the head of the queue has held its reservation
+                # 0.8.0: how long the head of the queue has held its reservation;
+                # 0.8.1: the later reservations likewise (k-th in dispatch order)
                 since = self._reserved_since.setdefault(job_id, time.time())
                 minutes = int((time.time() - since) // 60)
-                reason += f"; head of the queue for {minutes} min"
+                if rank == 1:
+                    reason += f"; head of the queue for {minutes} min"
+                else:
+                    reason += f"; reservation {rank} of the queue for {minutes} min"
             previous = self._reasons.get(job_id)
             if previous != reason:
                 # a memory reason carries live numbers: rewrite it at most every 30 s
@@ -1348,7 +1364,7 @@ class NodeWorker:
                 continue
             if launched:
                 started += 1
-        self._record_reasons(skipped, decision.reservation, busy_cpus)
+        self._record_reasons(skipped, decision.reservations, busy_cpus)
         self.last_started = started
         return started
 

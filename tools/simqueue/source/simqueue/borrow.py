@@ -29,6 +29,12 @@ Everything here is pure: the worker passes the measured core states and the
 current jobs, and receives the starts, preemptions and resumes to carry out.
 With no borrow jobs, :func:`plan_node` returns exactly what
 :func:`scheduler.plan` returns.
+
+0.8.1: the owner planner holds reservations for several blocked owner jobs
+(``scheduler.reservation_depth``).  Borrow jobs stay invisible to it, so
+``borrow.lend_reserved`` lends the free cores held for any of those
+reservations, and each owner job preempts the borrowers on its cores when it
+starts.
 """
 
 from __future__ import annotations
@@ -102,6 +108,8 @@ class NodeDecision:
     starts: list[tuple[Request, Allocation]]
     reservation: tuple[int, float] | None
     skipped: dict[int, str]
+    # 0.8.1: every owner reservation in dispatch order (see scheduler.plan)
+    reservations: tuple[tuple[int, float], ...] = ()
     preemptions: list[Preemption] = field(default_factory=list)
     resumes: list[tuple[int, tuple[tuple[int, str, str], ...]]] = field(default_factory=list)
     lendable: dict[int, str] = field(default_factory=dict)  # diagnostic: cpu -> class, after this pass
@@ -171,8 +179,8 @@ def plan_node(
     backfill: bool = True,
     starts_allowed: bool = True,
 ) -> NodeDecision:
-    """Owner starts (EASY backfill, as in 0.6.0), then borrower preemptions,
-    resumes and starts.
+    """Owner starts (backfill as :func:`scheduler.plan`: EASY as in 0.6.0 at
+    reservation depth 1), then borrower preemptions, resumes and starts.
 
     *pool* holds the free resources after owner allocations and outside
     lease holders; cores and memory of borrowers are *not* subtracted (they
@@ -197,7 +205,8 @@ def plan_node(
     else:
         base = Decision(starts=[], reservation=None, skipped={})
     if not borrowers and not borrow_queue:
-        return NodeDecision(starts=base.starts, reservation=base.reservation, skipped=base.skipped)
+        return NodeDecision(starts=base.starts, reservation=base.reservation, skipped=base.skipped,
+                            reservations=base.reservations)
 
     preemptions: dict[int, Preemption] = {}
 
@@ -309,10 +318,20 @@ def plan_node(
                         after_running.append(Running(started_request.job_id, allocation, end))
                 bound = earliest_start(request, part, after_pool, after_running, now)
             else:
-                # held for the reservation: not before the reserved job starts
-                bound = base.reservation[1] if base.reservation is not None else now
+                # held for a reservation: not before the reserved job it would
+                # delay starts (0.8.1: any reservation; the head's otherwise)
+                shadows = dict(base.reservations)
+                delayed = base.delays.get(request.job_id)
+                if delayed in shadows:
+                    bound = shadows[delayed]
+                else:
+                    bound = base.reservation[1] if base.reservation is not None else now
         if config.borrow.lend_reserved:
-            continue  # 0.8.0: lend them anyway; the owner preempts the borrower when it starts
+            # 0.8.0: lend them anyway; the owner preempts the borrower when it
+            # starts.  0.8.1: so for every reservation, not only the head's:
+            # borrowers are invisible to the owner planner (their cores count
+            # as free), so no reservation is ever delayed by one.
+            continue
         for cpu in (request.cpu_list if request.cpu_list is not None else part.cpus):
             waiting[cpu] = min(waiting.get(cpu, INFINITY), bound)
 
@@ -508,6 +527,7 @@ def plan_node(
     return NodeDecision(
         starts=starts,
         reservation=base.reservation,
+        reservations=base.reservations,
         skipped=skipped,
         preemptions=[preemptions[key] for key in sorted(preemptions)],
         resumes=resumes,

@@ -183,5 +183,9 @@
     "tmp_base": "/tmp",
     "scan_seconds": 60,
     "notes": "0.7.2. Every job started by 0.7.2 gets its own temporary and MPI rendezvous directory <tmp_base>/simq.<job>.<token12> (mode 700, made by the job wrapper, removed at the job's end): TMPDIR, PMIX_SYSTEM_TMPDIR, PMIX_SERVER_TMPDIR and PRTE_MCA_prte_tmpdir_base point at it (a -e value wins), so Open MPI 5's prun and prterun --dvm search/system cannot find a PRRTE DVM outside the job (they fail instead of spawning the ranks in the DVM's cgroup). Inherited launcher identity variables (PMIX_* but PMIX_MCA_*, PRTE_* but PRTE_MCA_*, PMI_*, OMPI_COMM_WORLD_*, ...) are dropped. Every scan_seconds while job units run, and at each job's end, the worker reads /proc: processes carrying a job's SIMQ_LAUNCH_TOKEN outside its cgroup go to the job's escaped.json, simq show and the worker log; MPI launcher daemons outside every job go to containment.json, simq partitions and simq doctor. Report only: nothing is killed."
+  },
+  "scheduler": {
+    "reservation_depth": 8,
+    "notes": "0.8.1: the first 8 blocked owner jobs in dispatch order hold backfill reservations, each placed after the ones ahead of it in a resource-time profile; a later job starts now only if every reserved job ahead of it can still start at its reserved time. 1 restores the EASY backfill of 0.8.0 (only the head is protected), under which 30 one-core probes (priority 0, 2 h) took every freed core while five 4-core priority-5 jobs waited 1.5 h behind a 16-core head reserved 8.5 h ahead (2026-11-06). Parked jobs hold no reservation."
   }
 }

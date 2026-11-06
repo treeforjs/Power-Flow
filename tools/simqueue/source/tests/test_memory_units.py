@@ -201,6 +201,35 @@ class HeadOfLineTests(MemoryUnitFixture, unittest.TestCase):
         self.assertIn("Admission ceiling: ~896M (a request above it is parked", partitions)
         self.assertIn("[worker, ", partitions)
 
+    def test_parked_job_holds_no_reservation_and_later_ones_do(self) -> None:
+        # 0.8.1: the parked priority-10 job is left out of the plan; the next
+        # blocked jobs hold the reservations, each told when it starts by
+        self.start_worker()
+        gate = self.projects / "release"
+        cores = ",".join(str(c) for c in self.cpus)
+        holder = self.submit("-p", "pa", "--cpus", cores, "--mem", "64M", "-t", "3:00", "-n", "holder",
+                             *self.alloc(1, 170, gate=gate))
+        self.wait_state(holder, "running", timeout=30)
+        parked = self.submit("-p", "pa", "-c", "1", "--mem", "950M", "--priority", "10", "-n", "too-big",
+                             "--", "/bin/sleep", "1")
+        wide = self.submit("-p", "pa", "--cpus", cores, "--mem", "64M", "-t", "1:00", "--priority", "5",
+                           "-n", "wide", "--", "/bin/sleep", "1")
+        narrow = self.submit("-p", "pa", "-c", "1", "--mem", "64M", "-t", "1:00", "--priority", "5",
+                             "-n", "narrow", "--", "/bin/sleep", "1")
+        self.wait_until(lambda: "head of the queue for" in str(self.job(wide).get("message") or ""), timeout=30,
+                        message="wide job holds the first reservation")
+        self.wait_until(lambda: "reservation 2 of the queue for" in str(self.job(narrow).get("message") or ""),
+                        timeout=30, message="narrow job holds the second reservation")
+        self.assertIn("reserved to start by", self.job(wide)["message"])
+        self.assertIn("reserved to start by", self.job(narrow)["message"])
+        message = str(self.job(parked)["message"])
+        self.assertTrue(message.startswith("pending: parked: mem 950M"), message)
+        self.assertNotIn("reserv", message)
+        gate.write_text("go")
+        for job_id in (holder, wide, narrow):
+            self.wait_state(job_id, "succeeded", timeout=60)
+        self.assertEqual(self.state_of(parked), "queued")
+
     def test_head_job_waits_for_memory_running_jobs_free_while_others_backfill(self) -> None:
         self.start_worker()
         gate = self.projects / "release"

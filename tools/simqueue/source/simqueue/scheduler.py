@@ -1,4 +1,4 @@
-"""Resource accounting and EASY-backfill planning for the node scheduler.
+"""Resource accounting and backfill planning for the node scheduler.
 
 Everything here is pure: callers pass the current time, the free resources
 and the queue, and receive the jobs that may start now.  This keeps the
@@ -14,6 +14,21 @@ job ends at its time limit).  A later job may then start only if starting it
 does not move that shadow time later (EASY backfill).  Jobs without a time
 limit are treated as never ending, so they can backfill only into resources
 the reserved job will not need.
+
+0.8.1: the first ``scheduler.reservation_depth`` blocked jobs (default 8)
+hold reservations, not only the first.  Reservations are placed one after
+another in a resource-time profile: each later reservation gets the
+earliest time at which it fits beside the running jobs (until their limits)
+and beside the reservations ahead of it (each holding, from its reserved
+time until its time limit, the cores, memory and GPU it would take then).
+A job that fits now starts only if every reserved job ahead of it can still
+start at its reserved time once the job runs (its own and the earlier
+reservations' resources re-placed around it).  Depth 1 is exactly the EASY
+backfill of 0.8.0.  Without the deeper reservations, narrow low-priority
+jobs could take every core that frees up one by one while a wide job behind
+a far-off head reservation never saw enough free cores at once (zenobia,
+2026-11-06).  Jobs refused because they would delay a reservation, parked
+jobs (memory) and held or infeasible jobs hold no reservation.
 
 Borrowing (0.6.1) is layered on top in ``borrow.py``: jobs submitted with
 ``--borrow`` are planned after every owner job, and cores they occupy are
@@ -370,8 +385,163 @@ def earliest_start(
 @dataclass
 class Decision:
     starts: list[tuple[Request, Allocation]]
-    reservation: tuple[int, float] | None  # (job id, shadow time)
+    reservation: tuple[int, float] | None  # (job id, shadow time) of the first reservation
     skipped: dict[int, str]  # job id -> reason (diagnostic)
+    # 0.8.1: every reservation in dispatch order, the first included
+    reservations: tuple[tuple[int, float], ...] = ()
+    # 0.8.1: job refused as backfill -> the reserved job it would delay
+    delays: dict[int, int] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class Reservation:
+    """A blocked job's reservation (0.8.1): the time it is promised to start
+    by (*shadow*) and what it would take then (*allocation*; ``None`` while
+    the shadow time is unknown), which later reservations leave alone."""
+
+    request: Request
+    partition: Partition
+    shadow: float
+    allocation: Allocation | None
+
+    @property
+    def end(self) -> float:
+        if self.shadow == INFINITY or self.request.time_limit is None:
+            return INFINITY
+        return self.shadow + self.request.time_limit
+
+
+def _shape(request: Request) -> tuple:
+    """What decides whether a request fits and what it would delay: two
+    queued jobs of the same shape get the same answer from the same pool."""
+    return (request.partition, request.ncpus, request.cpu_list, request.gpus, request.gpu_mem, request.mem,
+            request.time_limit, request.l3_domains, request.split_domains)
+
+
+def _window(free: Pool, later: list[Running], start: float, end: float, ahead: list[Reservation]) -> Pool:
+    """What a job may hold from *start* until *end*: *free* (the free
+    resources at *start*, every running job that ended by then given back)
+    less what the reservations *ahead* hold at any moment of that window.
+    *later* lists the running jobs that end after *start*; the memory and GPU
+    budget they give back during the window count from their end on."""
+    overlapping = [r for r in ahead if r.allocation is not None and r.shadow < end and r.end > start]
+    if not overlapping:
+        return free
+    window = free.copy()
+    for reservation in overlapping:
+        allocation = reservation.allocation
+        assert allocation is not None
+        window.free_cpus -= set(allocation.cpus)
+        if allocation.gpu_exclusive:
+            window.gpu_exclusive |= set(allocation.gpus)
+    # Counted resources: the least that is left at any moment of the window;
+    # it changes only where a reservation starts.
+    points = [start, *sorted({r.shadow for r in overlapping if r.shadow > start})]
+    mem_low: int | None = None
+    actual_low: int | None = None
+    gpu_high: dict[str, int] = {}
+    for point in points:
+        ended = [item for item in later if item.end_time <= point]
+        active = [r.allocation for r in overlapping if r.shadow <= point < r.end]
+        held = sum(a.mem for a in active if a is not None)
+        if free.mem_free is not None:
+            value = free.mem_free + sum(item.allocation.mem for item in ended) - held
+            mem_low = value if mem_low is None else min(mem_low, value)
+        if free.actual_free is not None:
+            value = (free.actual_free - held + sum(item.allocation.mem if item.mem_actual is None
+                                                   else item.mem_actual for item in ended))
+            actual_low = value if actual_low is None else min(actual_low, value)
+        for uuid in {g for a in active if a is not None and not a.gpu_exclusive for g in a.gpus}:
+            used = (free.gpu_used.get(uuid, 0)
+                    - sum(item.allocation.gpu_claim for item in ended if uuid in item.allocation.gpus)
+                    + sum(a.gpu_claim for a in active if a is not None and not a.gpu_exclusive and uuid in a.gpus))
+            gpu_high[uuid] = max(gpu_high.get(uuid, 0), used)
+    if mem_low is not None:
+        window.mem_free = mem_low
+    if actual_low is not None:
+        window.actual_free = actual_low
+    for uuid, used in gpu_high.items():
+        window.gpu_used[uuid] = max(window.gpu_used.get(uuid, 0), used)
+    return window
+
+
+def _fits_at(request: Request, partition: Partition, pool: Pool, running: list[Running], start: float,
+             ahead: list[Reservation]) -> Allocation | None:
+    """What *request* would take when it starts at *start* (every running job
+    that ends by then has given its resources back; the reservations *ahead*
+    keep theirs), or ``None`` when it does not fit then."""
+    free = pool.copy()
+    later: list[Running] = []
+    for item in running:
+        if item.end_time <= start:
+            free.give(item.allocation, item.mem_actual)
+        else:
+            later.append(item)
+    end = INFINITY if request.time_limit is None else start + request.time_limit
+    return _window(free, later, start, end, ahead).try_allocate(request, partition)
+
+
+def _reserve(request: Request, partition: Partition, pool: Pool, running: list[Running], now: float,
+             ahead: list[Reservation]) -> Reservation:
+    """The reservation of a blocked request behind the reservations *ahead*.
+
+    With none ahead this is the 0.8.0 shadow time (:func:`earliest_start`).
+    Otherwise the request starts at the earliest moment (now, the end of a
+    running job, or the end of a reservation ahead) at which it fits for its
+    whole time limit beside the running jobs and the reservations ahead."""
+    placed = [r for r in ahead if r.allocation is not None]
+    if not placed:
+        # the shadow time exactly as 0.8.0 computes it; what the job takes
+        # then is what it gets once every job ending by then has ended
+        shadow = earliest_start(request, partition, pool, running, now)
+        allocation = None if shadow == INFINITY else _fits_at(request, partition, pool, running, shadow, [])
+        return Reservation(request, partition, shadow, allocation)
+    order = sorted(running, key=lambda r: r.end_time)
+    moments = sorted({now}
+                     | {max(now, r.end_time) for r in order if r.end_time != INFINITY}
+                     | {max(now, r.end) for r in placed if r.end != INFINITY})
+    free = pool.copy()
+    index = 0
+    limit = request.time_limit
+    for moment in moments:
+        while index < len(order) and order[index].end_time <= moment:
+            free.give(order[index].allocation, order[index].mem_actual)
+            index += 1
+        end = INFINITY if limit is None else moment + limit
+        allocation = _window(free, order[index:], moment, end, placed).try_allocate(request, partition)
+        if allocation is not None:
+            return Reservation(request, partition, moment, allocation)
+    return Reservation(request, partition, INFINITY, None)
+
+
+def _first_delayed(request: Request, allocation: Allocation, end: float, pool: Pool, running: list[Running],
+                   reservations: list[Reservation]) -> tuple[int | None, list[Reservation]]:
+    """Whether starting *request* now (until *end*) would delay a reservation.
+
+    Returns the first reserved job that could no longer start at its reserved
+    time, or ``None`` and the reservations re-placed around the started job.
+    A reservation that starts after the job ends -- and after it every
+    earlier reservation starts as well -- sees the same resources as before
+    and keeps its place."""
+    trial = pool.copy()
+    trial.take(allocation)
+    trial_running = [*running, Running(request.job_id, allocation, end)]
+    placed: list[Reservation] = []
+    horizon = INFINITY
+    for reservation in reservations:
+        if reservation.shadow == INFINITY:
+            placed.append(reservation)  # no start time to keep (0.8.0: anything <= infinity)
+            continue
+        horizon = min(horizon, reservation.shadow)
+        if end < horizon:
+            placed.append(reservation)
+            continue
+        moved = _fits_at(reservation.request, reservation.partition, trial, trial_running, reservation.shadow,
+                         placed)
+        if moved is None:
+            return reservation.request.job_id, reservations
+        placed.append(Reservation(reservation.request, reservation.partition, reservation.shadow, moved))
+    return None, placed
 
 
 def plan(
@@ -382,17 +552,24 @@ def plan(
     now: float,
     *,
     backfill: bool = True,
+    depth: int | None = None,
 ) -> Decision:
     """Choose the queued jobs that start now.
 
     *queue* must already be in dispatch order.  *pool* and *running* are not
-    modified.
+    modified.  *depth* (0.8.1): how many blocked jobs hold a reservation;
+    ``None`` takes ``scheduler.reservation_depth`` of the node configuration.
     """
+    depth = config.scheduler.reservation_depth if depth is None else max(1, int(depth))
     pool = pool.copy()
     running = list(running)
     starts: list[tuple[Request, Allocation]] = []
     skipped: dict[int, str] = {}
-    reservation: tuple[Request, Partition, float] | None = None
+    delays: dict[int, int] = {}
+    reservations: list[Reservation] = []
+    # shape -> the reserved job a request of that shape would delay; valid
+    # until the next start (more reservations do not change the answer)
+    refused: dict[tuple, int] = {}
     held_partitions: set[str] = set()
     for request in queue:
         # The request names a partition or an alias (0.6.3); the alias view
@@ -415,7 +592,7 @@ def plan(
         allocation = pool.try_allocate(request, partition)
         if allocation is not None:
             end = INFINITY if request.time_limit is None else now + request.time_limit
-            if reservation is None:
+            if not reservations:
                 pool.take(allocation)
                 running.append(Running(request.job_id, allocation, end))
                 starts.append((request, allocation))
@@ -423,26 +600,28 @@ def plan(
             if not backfill:
                 skipped[request.job_id] = "waiting behind a higher-priority job"
                 continue
-            reserved_request, reserved_partition, shadow = reservation
-            trial = pool.copy()
-            trial.take(allocation)
-            trial_running = [*running, Running(request.job_id, allocation, end)]
-            new_shadow = earliest_start(reserved_request, reserved_partition, trial, trial_running, now)
-            if new_shadow <= shadow:
-                pool.take(allocation)
-                running.append(Running(request.job_id, allocation, end))
-                starts.append((request, allocation))
-            else:
-                skipped[request.job_id] = (
-                    f"backfill would delay job {reserved_request.job_id}"
-                )
+            key = _shape(request)
+            delayed = refused.get(key)
+            if delayed is None:
+                delayed, placed = _first_delayed(request, allocation, end, pool, running, reservations)
+                if delayed is None:
+                    pool.take(allocation)
+                    running.append(Running(request.job_id, allocation, end))
+                    starts.append((request, allocation))
+                    reservations = placed
+                    refused.clear()
+                    continue
+                refused[key] = delayed
+            skipped[request.job_id] = f"backfill would delay job {delayed}"
+            delays[request.job_id] = delayed
             continue
         skipped[request.job_id] = "resources busy"
-        if reservation is None:
-            shadow = earliest_start(request, partition, pool, running, now)
-            reservation = (request, partition, shadow)
+        if len(reservations) < depth:
+            reservations.append(_reserve(request, partition, pool, running, now, reservations))
     return Decision(
         starts=starts,
-        reservation=None if reservation is None else (reservation[0].job_id, reservation[2]),
+        reservation=None if not reservations else (reservations[0].request.job_id, reservations[0].shadow),
         skipped=skipped,
+        reservations=tuple((r.request.job_id, r.shadow) for r in reservations),
+        delays=delays,
     )

@@ -1,37 +1,46 @@
 #!/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen
-"""Upgrade the node from SimQueue 0.7.x to 0.8.0, or roll back.  Dry run by default.
+"""Upgrade the node from SimQueue 0.8.0 to 0.8.1, or roll back.  Dry run by default.
 
     upgrade.py install  [--execute] [--config FILE] [--keep-node-config] [--adoption-timeout S]
                         [--starting-timeout S] [--no-auto-rollback] [--require-doctor]
     upgrade.py rollback --backup DIR [--execute]
     upgrade.py status
 
-0.8.0 places jobs by L3 domain, lends SMT siblings and reserved idle cores to
-borrow jobs, records CPU utilization and derives -t auto; it lands with the
-16-core node (config/zenobia-16core-node.json, cpus "auto": the cores of
-the machine read from sysfs).  It keeps 0.7.2's MPI containment (per-job
-rendezvous directory, escape reporting).  The database moves from schema 9
-to 10 (columns l3_domains, split_domains, cpu_utilization; no existing
-column of any row changes).  The installed 0.7.x (0.7.2, 0.7.1 or 0.7.0,
-read from the wrapper) is the version a rollback returns to.
+0.8.1 is a patch release of the planner: the first scheduler.reservation_depth
+blocked owner jobs (8 in config/zenobia-16core-node.json; 1 = the EASY
+backfill of 0.8.0) hold backfill reservations instead of only the head of the
+queue, so narrow low-priority jobs can no longer take every core a wide
+higher-priority job waits for.  No schema change (the database stays at
+schema 10 and no row changes), no new job input, no new side effect.  Job
+units are independent of the worker, so running jobs are never touched: the
+worker is stopped, its wrapper, unit and node.json are switched, and the
+restarted worker re-adopts every running job unit and GPU claim unit.
 
-install (with --execute): preflight (seal; the new node config valid on this
-machine and equal to the live one apart from the 0.8.0 keys -- topology,
-borrow.lend_siblings, borrow.lend_reserved, partitions[].cpus "auto",
-priority_max_mem, smt_siblings, containment (new from 0.7.1), descriptions,
-notes -- without losing a core, a GPU or a partition name; wrapper runs
-0.7.x; schema 9 and a migration of a copy that keeps every row), stop the
-worker (job and claim units keep running), back up, switch the wrapper,
-link, unit and node.json, migrate to schema 10 and verify the rows, start
-0.8.0 and verify adoption.  On a failed verification the install rolls
-itself back.
+install (with --execute):
+  1. preflight: 0.8.1 runtime sealed; the new node config valid on this
+     machine and equal to the live node.json apart from the 0.8.1 keys
+     (scheduler, notes); same partition layout; wrapper runs 0.8.0; database
+     schema 10, and a copy of it opened by 0.8.1 keeps every column of every
+     row; a preview of the reservations 0.8.0 and 0.8.1 make for the queue
+     as it is now
+  2. waits until no job is starting, stops simqueue.service (job and claim
+     units keep running) and checks again
+  3. backs up the database, wrapper, link, unit files, node.json, worker.log
+  4. installs the 0.8.1 wrapper, link, simqueue.service and node.json
+  5. opens the database with 0.8.1 and checks that no row changed
+  6. daemon-reload, enable, start simqueue.service
+  7. verifies adoption of every job unit and GPU claim unit that was active,
+     the GPU line state, the wake FIFO, `simq doctor` and `simq partitions`
+  On a failed verification the install rolls itself back (unless
+  --no-auto-rollback).  Receipt: <backup>/install-receipt.json
 
-rollback --backup DIR (with --execute): restores the files byte for byte,
-sets the schema back to 9 in place (the 0.8.0 columns stay and 0.7.x ignores
-them), starts 0.7.x and verifies adoption.
+rollback --backup DIR (with --execute): restores the wrapper, link, unit
+files and node.json byte for byte, starts 0.8.0 and verifies that it
+adopted every active job unit and GPU claim unit (no schema change).
 
-Job units started by 0.8.0 run its jobwrap.py: keep the 0.8.0 runtime after
-a rollback until they have ended.
+Job units started by 0.8.1 run the 0.8.1 jobwrap.py (unchanged from 0.8.0):
+keep the 0.8.1 runtime after a rollback until they have ended (and the 0.8.0
+runtime after the install).
 
 --home, --project-root, --systemctl, --service, --runtime and --old-runtime
 exist so that the procedure can be tested in a sandbox.
@@ -55,13 +64,11 @@ from pathlib import Path
 
 
 RUNTIME = Path(__file__).resolve().parent
-OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.7.2-20261105")
+OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.8.0-20261106")
 OLD_RUNTIMES = {
-    Path("/home/treefor/projects/runtimes/simqueue-0.7.2-20261105"): "0.7.2",
-    Path("/home/treefor/projects/runtimes/simqueue-0.7.1-20261105"): "0.7.1",
-    Path("/home/treefor/projects/runtimes/simqueue-0.7.0-20261105"): "0.7.0",
+    Path("/home/treefor/projects/runtimes/simqueue-0.8.0-20261106"): "0.8.0",
 }
-FROM_VERSION, TO_VERSION = "0.7.2", "0.8.0"
+FROM_VERSION, TO_VERSION = "0.8.0", "0.8.1"
 PYTHON = "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen"
 REAL_HOME = "/home/treefor"
 UNIT_FILES = ("simqueue.service", "simqueue-spheral-dispatch.path", "simqueue-spheral-dispatch.service",
@@ -71,18 +78,17 @@ UNIT_FILES = ("simqueue.service", "simqueue-spheral-dispatch.path", "simqueue-sp
 # job units themselves, so if it is back the install removes it (backed up;
 # a rollback restores it)
 INTERIM_DROPINS = ("simq-job-.service.d/50-oom-policy-stop.conf",)
-# What 0.8.0 may change in the node configuration; everything else must match
-# (the partition layout may only grow: checked by layout_problems).  From
-# 0.7.1, the 0.7.2 containment section is new too.
-NEW_TOP_KEYS = {"notes", "topology", "smt_siblings", "containment"}
+# What 0.8.1 may change in the node configuration; everything else must match
+# (and the partition layout must stay the same: checked by preflight_install).
+NEW_TOP_KEYS = {"notes", "scheduler"}
 NEW_LAUNCH_KEYS: set = set()
-NEW_PARTITION_KEYS = {"cpus", "description", "priority_max_mem"}
-NEW_ALIAS_KEYS = {"description"}
+NEW_PARTITION_KEYS: set = set()
+NEW_ALIAS_KEYS: set = set()
 NEW_MEMORY_KEYS = {"notes"}
-NEW_BORROW_KEYS = {"notes", "lend_siblings", "lend_reserved"}
+NEW_BORROW_KEYS = {"notes"}
 NEW_LOCK_KEYS = {"notes"}
 NEW_LINE_KEYS = {"notes"}
-SCHEMA_OLD, SCHEMA_NEW = 9, 10
+SCHEMA_OLD, SCHEMA_NEW = 10, 10  # unchanged by 0.8.1
 SCHEMA = SCHEMA_OLD
 ACTIVE_STATES = ("starting", "running", "cancelling")
 # Run with the new code (python_in): both layouts as the scheduler reads them.
@@ -108,6 +114,38 @@ print(json.dumps({
     "backfill_waiting_owners": new.borrow.backfill_waiting_owners,
 }))
 """
+# Run with the new code (python_in): what 0.8.0 (depth 1) and 0.8.1 reserve
+# and start for the queue as it is now.  Approximate: outside lease holders,
+# actual memory, the GPU line and parking are not looked at.
+RESERVATION_PROBE = r"""
+import json, sqlite3, time
+from contextlib import closing
+from pathlib import Path
+from simqueue.nodeconfig import load_node_config
+from simqueue.nodeworker import ACTIVE_STATES, job_request, running_entries
+from simqueue.scheduler import INFINITY, build_pool, plan
+config = load_node_config(Path(sys.argv[2]))
+with closing(sqlite3.connect(sys.argv[3], uri=True)) as connection:
+    connection.row_factory = sqlite3.Row
+    rows = [dict(r) for r in connection.execute(
+        "SELECT * FROM jobs WHERE state IN ('queued', 'starting', 'running', 'cancelling') "
+        "ORDER BY borrow, priority DESC, queue_order, id")]
+now = time.time()
+running = running_entries([j for j in rows if j["state"] in ACTIVE_STATES and not j.get("borrow")], config, now)
+queue = [job_request(j, config) for j in rows if j["state"] == "queued" and not j.get("borrow")]
+pool = build_pool(config, running)
+plans = {}
+for depth in sorted({1, config.scheduler.reservation_depth}):
+    began = time.perf_counter()
+    decision = plan(config, pool, running, queue, now, depth=depth)
+    plans[str(depth)] = {
+        "ms": round((time.perf_counter() - began) * 1000.0, 2),
+        "reservations": [[job, None if shadow == INFINITY else round(shadow - now)] for job, shadow in decision.reservations],
+        "starts": [request.job_id for request, _ in decision.starts],
+        "refused": len(decision.delays)}
+print(json.dumps({"depth": config.scheduler.reservation_depth, "queued": len(queue), "running": len(running),
+                  "plans": plans}))
+"""
 
 
 def now_tag() -> str:
@@ -122,8 +160,8 @@ def sha256(path: Path) -> str | None:
 
 
 def comparable_config(document: dict) -> dict:
-    """The node configuration without what 0.7.2 may change: the notes and
-    the containment section."""
+    """The node configuration without what 0.8.1 may change: the notes and
+    the scheduler section."""
     result = {k: v for k, v in document.items() if k not in NEW_TOP_KEYS}
     for key, drop in (("lock_files", NEW_LOCK_KEYS), ("borrow", NEW_BORROW_KEYS), ("launch", NEW_LAUNCH_KEYS),
                       ("gpu_line", NEW_LINE_KEYS), ("memory", NEW_MEMORY_KEYS), ("github", {"notes"})):
@@ -397,7 +435,7 @@ class Upgrade:
         layout = ("# SimQueue {version} node scheduler: one pool of every physical core and the GPU\n"
                   "# (node.json; the old partition names are aliases); each job runs in its own\n"
                   "# systemd user unit; `simq run` waits for a job and returns its exit code;\n")
-        if version == TO_VERSION:
+        if not version.startswith(("0.5.", "0.6.")):
             layout += ("# the worker is event-driven and tracks job memory from the units' cgroups;\n"
                        "# --mem auto; --github-status/--github-comment report job state to GitHub;\n")
         return (
@@ -584,13 +622,8 @@ class Upgrade:
             self.problem(f"cannot read the runtime from {wrapper}")
         elif current == self.runtime:
             self.problem(f"{TO_VERSION} already installed")
-        elif current != self.old_runtime and current not in OLD_RUNTIMES:
-            self.problem(f"wrapper runs {current}, expected a 0.7.x runtime ({self.old_runtime})")
-        if current in OLD_RUNTIMES and current != self.old_runtime and self.args.old_runtime == str(OLD_RUNTIME):
-            # the installed 0.7.x is the one a rollback returns to
-            self.old_runtime = current
-            self.from_version = OLD_RUNTIMES[current]
-            print(f"installed {OLD_RUNTIMES[current]}: {current}")
+        elif current != self.old_runtime:
+            self.problem(f"wrapper runs {current}, expected the {FROM_VERSION} runtime {self.old_runtime}")
         if not (self.old_runtime / "source" / "simqueue" / "jobwrap.py").exists():
             self.problem(f"{self.from_version} runtime missing: {self.old_runtime}")
         live_config = self.state / "node.json"
@@ -623,8 +656,7 @@ class Upgrade:
                 self.problem(f"{new_config} differs from the live {live_config} beyond the {TO_VERSION} keys "
                              f"({', '.join(differences[:8])}); reconcile them or use --keep-node-config")
             else:
-                print(f"node config: equal to the live one apart from the {TO_VERSION} keys "
-                      "(topology, lend_siblings, lend_reserved, cpus, priority_max_mem, smt_siblings, containment, notes)")
+                print(f"node config: equal to the live one apart from the {TO_VERSION} keys (scheduler, notes)")
         if not self.database.exists():
             self.problem(f"database missing: {self.database}")
             return {}
@@ -640,6 +672,7 @@ class Upgrade:
         if ensembles:
             print(f"NOTE: active ensemble job(s) {ensembles}: their {self.from_version} supervisors keep working "
                   "(no schema change)")
+        self.reservation_preview(new_config if not self.args.keep_node_config else live_config)
         unfinished = summary["unfinished_by_partition"]
         names: dict[str, list[int]] = {}
         for name, jobs in unfinished.items():
@@ -654,8 +687,9 @@ class Upgrade:
                 self.problem(f"cannot compare the partition layouts: {last_line(probe.stderr)}")
             else:
                 self.layout = json.loads(probe.stdout)
-                print(f"partition layout: {layout_text(self.layout['live'])}")
-                print(f"             now: {layout_text(self.layout['new'])} (cores from this machine's sysfs)")
+                print(f"partition layout (unchanged by {TO_VERSION}): {layout_text(self.layout['new'])}")
+                if self.layout["live"] != self.layout["new"]:
+                    self.problem(f"the partition layout differs: live {layout_text(self.layout['live'])}")
                 for text in layout_problems(self.layout, {n: j for n, j in names.items() if n}):
                     self.problem(text)
         claims = self.claim_units()
@@ -664,8 +698,8 @@ class Upgrade:
             if (self.units / name).exists():
                 print(f"interim drop-in {self.units / name}: the install backs it up and removes it ({TO_VERSION} "
                       "job units set OOMPolicy=stop themselves; a rollback restores it)")
-        print(f"containment: jobs started by {TO_VERSION} get /tmp/simq.<job>.<token> as TMPDIR and MPI rendezvous "
-              "(prun/--dvm search cannot reach a DVM outside the job); running jobs keep their environment")
+        print(f"containment: unchanged from {FROM_VERSION} (per-job /tmp/simq.<job>.<token> as TMPDIR and MPI "
+              "rendezvous); running jobs keep their environment")
         outside = self.outside_mpi_daemons()
         print("MPI launcher daemons outside the queue now: "
               + (", ".join(f"{d['comm']} pid {d['pid']} in {d['cgroup']}" for d in outside) or "none"))
@@ -677,6 +711,38 @@ class Upgrade:
         if str(self.bin / "simq") not in exec_start:
             self.problem(f"{self.service} does not run {self.bin / 'simq'}")
         return summary
+
+    def reservation_preview(self, config: Path) -> None:
+        """What 0.8.0 (depth 1) and 0.8.1 reserve and start for the queue as
+        it is now (read-only; approximate: no lease holders, actual memory,
+        GPU line or parking)."""
+        if not self.database.exists():
+            return
+        wal = Path(f"{self.database}-wal")
+        uri = (f"file:{self.database}?mode=ro" if wal.exists() and wal.stat().st_size
+               else f"file:{self.database}?immutable=1")
+        probe = self.python_in(self.runtime, RESERVATION_PROBE, str(config), uri, probe=True)
+        if probe.returncode != 0:
+            print(f"reservation preview unavailable: {last_line(probe.stderr)}")
+            return
+        preview = json.loads(probe.stdout)
+        self.preview = preview
+
+        def when(seconds) -> str:
+            if seconds is None:
+                return "no start time"
+            return f"in {seconds // 3600} h {seconds % 3600 // 60:02d} min" if seconds >= 3600 else \
+                f"in {seconds // 60} min"
+
+        print(f"backfill reservations: depth {preview['depth']} (scheduler.reservation_depth; 1 = the EASY "
+              f"backfill of {FROM_VERSION})")
+        print(f"queue now ({preview['queued']} queued owner jobs, {preview['running']} running; approximate: "
+              "lease holders, actual memory, GPU line and parking not counted):")
+        for depth, item in sorted(preview["plans"].items(), key=lambda kv: int(kv[0])):
+            name = f"{FROM_VERSION} (depth 1)" if depth == "1" else f"{TO_VERSION} (depth {depth})"
+            reserved = ", ".join(f"{job} ({when(seconds)})" for job, seconds in item["reservations"]) or "none"
+            print(f"  {name}: reserves {reserved}; would start {item['starts'] or 'none'}; "
+                  f"{item['refused']} refused as backfill; planned in {item['ms']} ms")
 
     def outside_mpi_daemons(self) -> list[dict]:
         """MPI launcher daemons of this user outside every queue job unit
@@ -700,39 +766,44 @@ class Upgrade:
         return found
 
     def rehearse_migration(self, summary: dict) -> None:
-        """Migrate a copy of the database with the 0.7.0 code and check that
-        no schema-8 column of any row changes (the live file is only read)."""
+        """Open a copy of the database with the new code and check that no
+        column of any row changes and no column is added (the live file is
+        only read)."""
         scratch = Path(self.probe_env()["SIMQUEUE_STATE_DIR"]) / "rehearsal"
         if scratch.exists():
             shutil.rmtree(scratch)
         scratch.mkdir(mode=0o700)
         copy = scratch / "queue.sqlite3"
+        # 0.8.1: compare with a snapshot of the same moment, not with the live
+        # file, whose messages the running worker keeps rewriting
+        pristine = scratch / "pristine.sqlite3"
         with closing(sqlite3.connect(f"file:{self.database}?mode=ro", uri=True)) as source, \
-                closing(sqlite3.connect(copy)) as target:
+                closing(sqlite3.connect(pristine)) as target:
+            source.backup(target)
+        with closing(sqlite3.connect(pristine)) as source, closing(sqlite3.connect(copy)) as target:
             source.backup(target)
         env = self.env_for()
         env["SIMQUEUE_STATE_DIR"] = str(scratch)
         result = self.python_in(self.runtime, "from simqueue.store import QueueStore; QueueStore(); print('ok')",
                                 env=env)
         if result.returncode != 0:
-            self.problem(f"the {TO_VERSION} code cannot migrate a copy of the database: {last_line(result.stderr)}")
+            self.problem(f"the {TO_VERSION} code cannot open a copy of the database: {last_line(result.stderr)}")
             return
         after = database_summary(copy)
         columns = [c for c in summary["columns"] if c != "env_json"]
-        old = row_digests(self.database, columns)
+        old = row_digests(pristine, columns)
         new = row_digests(copy, columns)
         changed = [job_id for job_id, digest in old.items() if new.get(job_id) != digest]
         added = [c for c in after["columns"] if c not in summary["columns"]]
-        wrong_env = self.env_scrub_problems(self.database, copy)
+        wrong_env = self.env_scrub_problems(pristine, copy)
         census = secret_census(self.database, self.state, self.runtime)
         self.census = census
-        if after["user_version"] != SCHEMA_NEW or changed or len(new) != len(old) or wrong_env:
-            self.problem(f"migration rehearsal: schema {after['user_version']}, rows changed {changed[:10]}, "
-                         f"environments not scrubbed as expected {wrong_env[:10]}")
+        if after["user_version"] != SCHEMA_NEW or changed or len(new) != len(old) or wrong_env or added:
+            self.problem(f"database rehearsal: schema {after['user_version']}, rows changed {changed[:10]}, "
+                         f"columns added {added}, environments not as before {wrong_env[:10]}")
         else:
-            print(f"migration rehearsal on a copy: schema {SCHEMA_OLD} -> {SCHEMA_NEW}, {len(old)} rows, every "
-                  f"schema-{SCHEMA_OLD} column unchanged but env_json, whose secret-pattern values are "
-                  f"redacted; {len(added)} column(s) added: {', '.join(added)}")
+            print(f"database rehearsal on a copy opened by {TO_VERSION}: schema {SCHEMA_OLD} -> {SCHEMA_NEW} "
+                  f"(no schema change), {len(old)} rows, every column unchanged, no column added")
             print("environment scrub (counts only): " + census_text(census))
         shutil.rmtree(scratch, ignore_errors=True)
 
@@ -912,14 +983,14 @@ class Upgrade:
                     self.say(f"node.json from {self.args.config}: partitions {layout_text(self.layout['new'])}")
                 self.write_file(self.state / "node.json", Path(self.args.config).read_text(), 0o600)
             self.step("installed-wrapper-unit-and-node-config", kept_node_config=bool(self.args.keep_node_config))
-            self.say(f"migrating the database to schema {SCHEMA_NEW} with the {TO_VERSION} code")
+            self.say(f"opening the database (schema {SCHEMA_NEW}, unchanged) with the {TO_VERSION} code")
             if self.execute:
                 result = self.python_in(self.runtime, "from simqueue.store import QueueStore; QueueStore(); print('ok')")
                 if result.returncode != 0:
-                    raise RuntimeError(f"{TO_VERSION} cannot migrate the database: {result.stderr.strip()[-400:]}")
+                    raise RuntimeError(f"{TO_VERSION} cannot open the database: {result.stderr.strip()[-400:]}")
                 after = database_summary(self.database)
                 if after["user_version"] != SCHEMA_NEW:
-                    raise RuntimeError(f"database schema is {after['user_version']} after the migration")
+                    raise RuntimeError(f"database schema is {after['user_version']} after opening it")
                 missing = [c for c in manifest["columns"] if c not in after["columns"]]
                 if missing:
                     raise RuntimeError(f"database columns lost: {missing}")
@@ -929,7 +1000,7 @@ class Upgrade:
                 # rows added meanwhile (a submission through the new wrapper) are not compared
                 changed = [job_id for job_id, digest in old.items() if new.get(job_id) != digest]
                 if changed:
-                    raise RuntimeError(f"the migration changed schema-{SCHEMA_OLD} columns of jobs {changed}")
+                    raise RuntimeError(f"opening the database changed columns of jobs {changed}")
                 wrong_env = self.env_scrub_problems(backup / "queue.sqlite3", self.database)
                 if wrong_env:
                     raise RuntimeError(f"environments of jobs {wrong_env[:10]} are not the scrubbed ones")
@@ -939,10 +1010,11 @@ class Upgrade:
                 receipt["database"] = {"schema": after["user_version"], "jobs": len(old), "rows_unchanged": True,
                                        "added_columns": added, "env_scrubbed": True,
                                        "spec_files_redacted": specs, "backup_rows_redacted": backup_scrubbed}
-                print(f"database migrated: schema {SCHEMA_NEW}, {len(old)} existing rows unchanged but their "
-                      f"secret-pattern environment values (redacted); {specs} finished jobs' spec.json redacted; "
-                      f"{backup_scrubbed} rows of the backup copy redacted")
-            self.step("database-migrated")
+                if added:
+                    raise RuntimeError(f"columns added: {added}")
+                print(f"database: schema {SCHEMA_NEW}, {len(old)} existing rows unchanged; {specs} finished jobs' "
+                      f"spec.json and {backup_scrubbed} rows of the backup copy needed redacting")
+            self.step("database-checked")
             self.systemctl("daemon-reload")
             self.systemctl("enable", self.service)
             self.systemctl("start", self.service)
@@ -1143,8 +1215,10 @@ class Upgrade:
                 if version != SCHEMA_OLD:
                     connection.execute(f"PRAGMA user_version = {SCHEMA_OLD}")
                     connection.commit()
-            print(f"database schema set back to {SCHEMA_OLD} in place (was {version}); the {TO_VERSION} columns "
-                  f"stay and are ignored by {self.from_version}")
+            if version == SCHEMA_OLD:
+                print(f"database schema stays {SCHEMA_OLD} ({TO_VERSION} changes no schema)")
+            else:
+                print(f"database schema set back to {SCHEMA_OLD} in place (was {version})")
             receipt["schema_downgrade"] = {"from": version, "to": SCHEMA_OLD}
             check = self.python_in(
                 old_runtime,
@@ -1161,8 +1235,7 @@ class Upgrade:
                                        "opened_by": str(old_runtime)}
                 print(f"database schema {user_version}; opened by {old_runtime.name} ({jobs} jobs)")
         else:
-            self.say(f"would set the database schema back to {SCHEMA_OLD} in place and check that {old_runtime} "
-                     "opens it")
+            self.say(f"would keep the database at schema {SCHEMA_OLD} and check that {old_runtime} opens it")
         self.systemctl("daemon-reload")
         self.systemctl("start", self.service)
         if self.execute:

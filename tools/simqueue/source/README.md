@@ -1,5 +1,22 @@
 # simqueue
 
+## 0.8.1: backfill reservations for several blocked jobs
+
+`scheduler.py` reserves for the first `scheduler.reservation_depth` blocked
+owner jobs in dispatch order (default 8), not only the head of the queue.
+Each reservation is placed in a resource-time profile after the ones ahead
+of it (running jobs until their limits, earlier reservations from their
+reserved time until theirs); a job that fits now starts only if every
+reserved job ahead of it can still start at its reserved time. Depth 1 is
+the EASY backfill of 0.8.0, decision for decision (`tests/test_reservations.py`
+against the 0.8.0 runtime's planner; `tools/compare-easy.py` runs the whole
+suite that way). `simq show` gives each reserved job's start time
+("reserved to start by ..."); a refused backfill names the reservation it
+would delay. `borrow.lend_reserved` lends the cores of every reservation,
+`gpuqueue.ready_except_gpu` sees the same reservations, parked jobs hold
+none. `tools/bench-plan.py` measures the planner per worker pass.
+`../upgrade.py` installs 0.8.1 over 0.8.0 (no schema change) and rolls back.
+
 ## 0.8.0: topology-aware placement (16-core node)
 
 `topology.py` reads L3 domains, SMT siblings and NUMA nodes from sysfs; the
@@ -7,7 +24,8 @@ planner (`scheduler.py`) keeps a job inside one L3 domain when it fits
 (heavy jobs to the emptiest domain, light jobs packed), `--l3-domains N` and
 `--split-domains A,B` ask for several, and the job gets `SIMQ_L3_DOMAINS`.
 Borrow jobs may take SMT siblings (`borrow.lend_siblings`) and cores
-reserved for a waiting head job (`borrow.lend_reserved`). `-t auto` derives
+reserved for a waiting head job (`borrow.lend_reserved`; from 0.8.1 for any
+reserved job). `-t auto` derives
 a time limit from runtime history; a partition's `cpus` may be `"auto"`.
 Finished jobs record `cpu_utilization` (schema 10). The worker publishes the
 memory admission ceiling (`admission.json`) for `simq partitions`.

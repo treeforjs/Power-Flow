@@ -2146,6 +2146,7 @@ def _node_status(config: NodeConfig, store: QueueStore, *, sample_s: float = 0.0
                             "cpus": {str(k): round(v, 3) for k, v in sorted(utilization.items())},
                             "recorded_by_worker": _meta_json(store, "cpu_utilization")},
         "lock_files": config.locks.enabled,
+        "reservation_depth": config.scheduler.reservation_depth,
         "sample_s": sample_s,
         "borrow": {
             "enabled": config.borrow.enabled,
@@ -2543,6 +2544,8 @@ def _node_doctor(config: NodeConfig, store: QueueStore) -> int:
         ("Memory", _memory_doctor_text(config, store)),
         ("GitHub reporting", _github_doctor_text(config, store)),
         ("Containment", _containment_doctor_text(config)),
+        ("Backfill", f"reservations for the first {config.scheduler.reservation_depth} blocked owner job(s) in "
+                     "dispatch order (scheduler.reservation_depth; 1 = EASY, the head only)"),
         ("Worker wake FIFO", _wake_fifo_text()),
         ("Queue", "paused" if store.is_paused() else "accepting jobs"),
         ("Worker unit", "simqueue.service"),

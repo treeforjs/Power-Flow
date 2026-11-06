@@ -5,8 +5,8 @@ Each pass the node worker
 1. decides, per GPU, whether queued jobs may take it directly now (it is
    free, nobody earlier is in the GPU line) or not (held outside the queue,
    the queue's claim is still waiting, or an earlier ``gpu-lease`` user);
-2. plans as before (EASY backfill), the GPU counting as busy when queued
-   jobs may not take it;
+2. plans as before (backfill with the reservations of ``scheduler.plan``),
+   the GPU counting as busy when queued jobs may not take it;
 3. finds the jobs that are *ready except for the GPU*: an exclusive job
    that the same planner would start if the GPU were released (by an
    outside holder or by the queue jobs on it), a shared (``--gpu-mem``) job
@@ -76,6 +76,9 @@ def ready_except_gpu(
 ) -> list[int]:
     """Queued jobs that wait only for the lease files of GPU *uuid*, in
     dispatch order (*owners* is the planner's queue).
+
+    The planner is the dispatch planner itself, reservations included
+    (0.8.1): a job that would delay a reservation is not ready either.
 
     An exclusive request is ready when the planner would start it once
     everybody holding the GPU released it: outside holders and the queue's
