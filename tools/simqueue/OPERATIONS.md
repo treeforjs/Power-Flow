@@ -1,8 +1,17 @@
-# SimQueue 0.8.0 on zenobia: operations
+# SimQueue 0.8.1 on zenobia: operations
 
 SimQueue is a single-node, Slurm-shaped scheduler. One worker
 (`simqueue.service`) schedules the whole node; every job runs in its own
 transient systemd user service, independent of the worker.
+
+0.8.1 (a patch release of the planner: no schema change, no new job input,
+no new side effect) gives backfill reservations to the first
+`scheduler.reservation_depth` blocked jobs (8 on zenobia) instead of only the
+head of the queue, see "0.8.1" below: on 2026-11-06 a 16-core head reserved
+8.5 h ahead let some 30 one-core probes take every freed core while five
+4-core priority-5 jobs waited 1.5 h. A job that fits now starts only if
+every reserved job ahead of it can still start at its reserved time; depth 1
+is 0.8.0's EASY backfill, decision for decision.
 
 0.8.0 (a minor release: schema 10, new scheduling inputs) is the version for
 the 16-core node (Ryzen 9 9950X3D2 since 2026-11-06: cores 0-15, SMT siblings
@@ -103,15 +112,15 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 
 | Item | Path |
 |---|---|
-| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.8.0-20261106` |
-| Previous runtime (kept: job units started by 0.7.2 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.7.2-20261105` |
+| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.8.1-20261106` |
+| Previous runtime (kept: job units started by 0.8.0 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.8.0-20261106` |
 | Interpreter (unchanged from 0.5) | `/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen` |
 | Code | `source/simqueue/` (`nodeworker.py`, `memory.py` and `github.py` (0.7.0), `scheduler.py`, `borrow.py`, `telemetry.py`, `gpuqueue.py`, `gpuline.py`, `units.py`, `jobwrap.py`, `locks.py`, `nodeconfig.py`, plus the 0.5 modules) |
 | Worker wake FIFO (0.7.0) | `~/.local/state/simqueue/worker.wake` (clients and job units write a byte; the worker wakes) |
 | Direct GPU use (0.6.2) | `bin/gpu-lease` (runs `source/simqueue/gpuline.py lease`) |
 | GPU line state, tickets, log (0.6.2) | `<pic-profile>/simq-gpu-line.json`, `<pic-profile>/gpu-line.d/`, `<pic-profile>/simq-gpu-line.log` |
 | GPU claims (0.6.2) | units `simq-job-gpuclaim-<token12>.service`; files `~/.local/state/simqueue/claims/<token>/{spec,control,status}.json`, `claim.log` |
-| Node configuration (template) | `config/zenobia-16core-node.json` (Ryzen 9 9950X3D2, live since 2026-11-06; `cpus: "auto"`); `config/zenobia-node.json` (8 cores, the CPU until 2026-11-05) |
+| Node configuration (template) | `config/zenobia-16core-node.json` (Ryzen 9 9950X3D2, live since 2026-11-06; `cpus: "auto"`; 0.8.1: `scheduler.reservation_depth` 8); `config/zenobia-node.json` (8 cores, the CPU until 2026-11-05) |
 | Node configuration (live) | `~/.local/state/simqueue/node.json` (`SIMQUEUE_CONFIG`) |
 | Database | `~/.local/state/simqueue/queue.sqlite3` (schema 10 from 0.8.0: `l3_domains`, `split_domains`, `cpu_utilization`; schema 9 from 0.7.0: memory, CPU time and GitHub columns; schema 8 for 0.6.1 to 0.6.3; 0.6.0 used schema 7) |
 | Borrow slice | `~/.config/systemd/user/simqborrow.slice` (`CPUWeight=idle`) |
@@ -120,10 +129,146 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 | Outside MPI daemons (0.7.2) | `~/.local/state/simqueue/containment.json` (written by the worker's escape scan) |
 | Admission ceiling (0.8.0) | `~/.local/state/simqueue/admission.json` (written by the worker; shown by `simq partitions`) |
 | Logs | `~/.local/state/simqueue/logs/NNNNNN.log`, `~/.local/state/simqueue/worker.log` |
-| Upgrade 0.7.x to 0.8.0 / rollback | `upgrade.py` (dry run unless `--execute`); 0.7.1 to 0.7.2: `../simqueue-0.7.2-20261105/upgrade.py`; 0.7.0 to 0.7.1: `../simqueue-0.7.1-20261105/upgrade.py`; 0.6.3 to 0.7.0: `../simqueue-0.7.0-20261105/upgrade.py` |
+| Upgrade 0.8.0 to 0.8.1 / rollback | `upgrade.py` (dry run unless `--execute`); 0.7.x to 0.8.0: `../simqueue-0.8.0-20261106/upgrade.py`; 0.7.1 to 0.7.2: `../simqueue-0.7.2-20261105/upgrade.py`; 0.7.0 to 0.7.1: `../simqueue-0.7.1-20261105/upgrade.py`; 0.6.3 to 0.7.0: `../simqueue-0.7.0-20261105/upgrade.py` |
 | Overhead benchmark (0.7.0) | `source/tools/bench-overhead.py` (0.6.3 against 0.7.0, each worker in its own unit) |
+| Planner cost (0.8.1) | `source/tools/bench-plan.py` (plan() and one worker pass at depths 1, 8, 16 and with the 0.8.0 planner; `--db` a copy of the queue database) |
+| Depth-1 comparison with 0.8.0 (0.8.1) | `source/tools/compare-easy.py` (the test suite with every plan() call also made by the 0.8.0 runtime's planner and compared) |
 | Switchover from 0.5 (historical) | `switchover.py` |
 | Tests | `source/run-tests.py`: `--in-job` inside a queue job (`simq run -c 2 ... -- run-tests.py --in-job`, 0.7.0), `--pure` without units; or holding the cores' lease files as before (`--shared` on cores 6-7) |
+
+## 0.8.1: backfill reservations for several blocked jobs
+
+**What happened** (live 0.8.0, 2026-11-06 about 02:00Z). The planner was
+EASY backfill: only the first blocked job in dispatch order had a
+reservation (its shadow time); every later job could start if it did not
+delay that one job. Job 1402 (priority 10, 16 cores, 15G) held it 8.5 h
+ahead, because the running jobs had long time limits. Five merge-gating jobs
+(priority 5, 4 cores, 30 min) waited more than 1.5 h with "resources busy",
+while about 30 one-core priority-0 probes (2 h limits) kept starting: each
+core that freed up went to a probe, none of which delayed the distant head,
+so four cores were never free at once. The five jobs were raised to
+priority 11 by hand.
+
+**Policy.**
+
+- The first `scheduler.reservation_depth` blocked owner jobs in dispatch
+  order hold a reservation (8 in `config/zenobia-16core-node.json`, also the
+  default when the key is absent; 1 to 64). Blocked: it does not fit the
+  free resources now.
+- The first reservation is the head's shadow time, computed as before (every
+  running job ends at its time limit). Each later reservation is placed in a
+  resource-time profile after the ones ahead of it: the earliest moment (now,
+  the end of a running job or the end of a reservation ahead) at which the
+  job fits for its whole time limit beside the running jobs and beside the
+  reservations ahead, each of which holds, from its reserved time until its
+  limit, the cores, memory (requested and actual) and GPU budget it would
+  take then.
+- A job that fits now starts only if, with it running until its limit, every
+  reserved job ahead of it can still start at its reserved time (each re-placed
+  around it, the earlier ones first). Otherwise its reason is "backfill would
+  delay job N", N the first reservation it would delay.
+- Depth 1 is 0.8.0's EASY backfill, decision for decision (same starts and
+  cores, same reservation, same reasons).
+- No reservation for: jobs refused as backfill (they fit now; they get one
+  when they stop fitting), parked jobs (the worker leaves them out of the
+  plan), jobs held behind a paused ensemble, infeasible jobs. A reservation
+  whose start time cannot be known (a running job without a time limit, a
+  lease held outside the queue) counts toward the depth and protects nothing,
+  as the head's did in 0.8.0.
+- Same priority stays first in, first out, and more so: a later job of the
+  same priority may no longer delay an earlier reserved one.
+- The head is never delayed by a lower-priority job (every start is tested
+  against it first); the deeper reservations only restrain jobs behind them.
+
+**Why profile placement with EASY's test.** Two simpler or stricter designs
+were weighed:
+
+- *Independent shadows* (each reservation computed as if it were the only
+  one) is wrong both ways on this node. Two 4-core jobs reserve the same four
+  cores, so the second's start time is too early. And a job whose
+  independent shadow lies before the head's but whose limit runs into it can
+  only start after the head; its early shadow holds free cores idle that
+  short jobs could use meanwhile. The profile places it after the head
+  (`FairnessTests` in `test_reservations.py` shows both cases). The cost is
+  computing at most `reservation_depth` reservations once per pass.
+- *Conservative backfill* (start now only if the job fits the profile, on
+  cores no reservation holds) pins each reservation to the cores chosen for
+  it, so it refuses backfill that could use other cores, and depth 1 would no
+  longer be 0.8.0. Re-placing the reservations around each candidate keeps
+  EASY's test, applied to every reservation.
+
+**The live queue replayed** (`test_reservations.LiveStarvationScenarioTests`,
+fake clock: four long jobs until 8.5 h, twelve probes ending every 10 min,
+then the head, the five 4-core jobs and 40 probes). With depth 8 the 4-core
+jobs are reserved at 40, 70, 80, 100 and 110 min and start then, in FIFO
+order and within one probe limit; the head starts at its reserved 8.5 h; 36
+probes run in the gaps before it. With depth 1 (0.8.0) every freed core goes
+to a probe (39 before the head): the 4-core jobs start at 430, 460 and 470
+min, the last two only after the head, at 690 min. A probe offered a freed
+core at depth 8 reads "backfill would delay job 1500".
+
+**What the other planners do with it.**
+
+- Borrow jobs (`borrow.py`): borrowers stay invisible to the owner planner
+  (their cores count as free), so no reservation is delayed by one;
+  `borrow.lend_reserved` (on in the 16-core config) therefore lends the free
+  cores held for any reservation, not only the head's, and each owner job
+  preempts the borrowers on its cores when it starts (by its policy). With
+  `borrow.backfill_waiting_owners` a refused owner job's earliest start is
+  the reserved time of the job it would delay.
+- GPU line (`gpuqueue.py`): `ready_except_gpu` runs the same planner with the
+  GPU released, so a GPU job that would delay a reservation is not ready and
+  no claim is made for it.
+- Memory: parked jobs are left out of the plan and hold no reservation
+  (`test_memory_units.HeadOfLineTests` with real units); requested memory and
+  the actual-memory admission are part of the profile (running jobs give
+  back what they use at their ends, reservations hold their requests during
+  their windows).
+- L3 domains: reservations are placed by the same placement code, so a
+  reservation holds the cores (and for `--l3-domains`/`--split-domains` the
+  domains) the job would get at its time.
+
+**Diagnostics.** Each reserved job's message (`simq show`, `simq queue`)
+ends in "reserved to start by <UTC time>" and, for the head, "head of the
+queue for N min" as before, for the others "reservation K of the queue for N
+min". `simq doctor` shows the depth; `simq partitions --json` has
+`reservation_depth`.
+
+**Cost.** `tools/bench-plan.py` (in queue job 1585, 16-core config): plan()
+takes 0.7-1.9 ms (median) at depth 8 with 72-100 queued and 8-14 running
+jobs, against 0.3-1.2 ms for 0.8.0; one worker pass (plan_node and the GPU
+line's two what-if plans) 2.3-5.8 ms, at most 6.7 ms; the worker polls every
+1 s. Jobs of the same shape refused in one pass are answered once (until the
+next start).
+
+**Configuration and rollback.** `"scheduler": {"reservation_depth": 8}` in
+`node.json`. Depth 1 restores 0.8.0's decisions without a reinstall (edit
+`node.json`, `systemctl --user restart simqueue.service`; job units keep
+running); `upgrade.py rollback` returns to the 0.8.0 runtime.
+
+### Upgrading 0.8.0 to 0.8.1: `upgrade.py`
+
+```sh
+cd /home/treefor/projects/runtimes/simqueue-0.8.1-20261106
+./upgrade.py install                 # dry run
+./upgrade.py install --execute
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.8.0-to-0.8.1-<UTC> --execute
+```
+
+The preflight checks the seal; that `config/zenobia-16core-node.json` is
+valid on this machine and equal to the live `node.json` apart from the 0.8.1
+keys (`scheduler`, notes) with the same partition layout; that the wrapper
+runs 0.8.0; that a copy of the database (schema 10) opened by 0.8.1 keeps
+every column of every row and gains none; and it prints what 0.8.0 (depth
+1) and 0.8.1 would reserve and start for the queue as it is (approximate:
+no lease holders, actual memory, GPU line or parking). The install stops the
+worker (job and claim units keep running), backs up, switches the wrapper,
+link, unit and `node.json`, opens the database with 0.8.1 and checks every
+row, starts 0.8.1 and verifies that every running job unit and GPU claim
+unit is adopted; a failed verification rolls back by itself. Rollback
+restores the files byte for byte (the schema stays 10) and 0.8.0 adopts
+everything back. Job units started by 0.8.1 run its `jobwrap.py` (the same
+as 0.8.0's): after a rollback keep the 0.8.1 runtime until they have ended.
 
 ## 0.8.0: topology-aware placement on the 16-core node
 
@@ -1666,6 +1811,18 @@ After the CPU change: `CoresPerSocket=16`. Default memory per name maps to
 `DefMemPerNode` per partition; borrow jobs map to a preemptible partition
 (`PreemptType=preempt/partition_prio`, `PreemptMode=REQUEUE`).
 
+## Validation of 0.8.1 (2026-11-06)
+
+- Full suite inside live queue job 1585 (`simq submit -c 2 --mem 2G -t 0:30:00 --priority 3` of `validate081.sh`: `run-tests.py --in-job`, then the runs below; the test units on the job's cores [2, 3]): 436 tests, 0 failure(s), 0 error(s), 12 skipped, 561 s.
+- Real-OOM tests not run (2 skipped: `SIMQ_TEST_REAL_OOM` unset, and refused on zenobia).
+- Depth 1 against the 0.8.0 planner (`tools/compare-easy.py --pure`, every test module but `test_reservations.py`): 426 plan() calls (1311 queued jobs, 332 with a reservation, 14 backfill refusals), 0 differences; plus 6000 random queues in `test_reservations.EasyEquivalenceTests`.
+- Every suite without units, with the live-database copy: 419 tests, 0 failures, 0 errors (64 skipped: the unit-level tests).
+- Historical migration suites: 7 tests, 0 failures.
+- The live queue of 2026-11-06 replayed (fake clock): depth 8 starts the five 4-core jobs at 40, 70, 80, 100, 110 min and the head at 510 min (its shadow 510 min), 36 probes before it; depth 1 (0.8.0) starts the first 4-core job at 430 min (39 probes before the head).
+- Planner cost (`tools/bench-plan.py`, median per call): live (72 queued, 8 running): depth 8 0.74 ms (0.8.0 0.285 ms), worker pass 2.25 ms; synthetic (100 queued, 14 running): depth 8 1.804 ms (0.8.0 1.194 ms), worker pass 3.422 ms; adversarial (100 queued, 14 running): depth 8 1.917 ms (0.8.0 0.734 ms), worker pass 5.753 ms.
+- `test_shield_helper.py` cannot be imported, as before.
+- Receipts: `/home/treefor/projects/.workspace/outputs/simqueue-0.8.1-20261106/receipts/`; benchmark `/home/treefor/projects/.workspace/outputs/simqueue-0.8.1-20261106/bench/`; replay `/home/treefor/projects/.workspace/outputs/simqueue-0.8.1-20261106/demo/`.
+
 ## Validation of 0.8.0 (2026-11-06)
 
 - Full suite inside live queue job 1451 (`simq run -c 2 --mem 1G -t 0:40:00 --priority 20 -- run-tests.py --in-job`, the test units on the job's cores [4, 6]): 414 tests, 0 failure(s), 0 error(s), 12 skipped, 560 s.
@@ -1835,6 +1992,20 @@ a relocated copy of the code, a spheral job that finished while the worker was
 down, the GPU canary).
 
 ## Known limitations
+
+0.8.1 reservations:
+
+- Reservations assume every running job ends at its time limit, as before:
+  generous limits still push reservations far out (`-t auto` helps).
+- A reservation's cores are the ones placement would choose at its time;
+  a later reservation avoids exactly those cores, though another choice
+  might have let both start earlier.
+- Reservations beyond the depth protect nothing: with more than 8 blocked
+  jobs ahead, a lower-priority job can still take cores the ninth needs.
+- A reservation whose start time is unknown (a running job without a time
+  limit, a lease held outside the queue) uses up one of the depth's places.
+- The dry-run preview in `upgrade.py` ignores outside lease holders, actual
+  memory, the GPU line and parking.
 
 0.7.0 worker, memory, GitHub:
 

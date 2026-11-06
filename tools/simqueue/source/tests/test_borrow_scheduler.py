@@ -6,6 +6,7 @@ nothing is launched.
 
 from __future__ import annotations
 
+import dataclasses
 import importlib
 import importlib.util
 import json
@@ -16,7 +17,7 @@ from collections import deque
 from pathlib import Path
 
 from simqueue.borrow import Borrower, CoreState, eligible_partitions, in_use_cores, plan_node, protected_cpus
-from simqueue.nodeconfig import ConfigError, load_node_config, parse_node_config
+from simqueue.nodeconfig import ConfigError, SchedulerConfig, load_node_config, parse_node_config
 from simqueue.scheduler import Allocation, Pool, Request, Running, build_pool, plan
 from simqueue.telemetry import (
     HolderGroup,
@@ -395,7 +396,9 @@ class LeasedIdleTests(unittest.TestCase):
 
 
 class CompatibilityTests(unittest.TestCase):
-    """Without borrow jobs, plan_node returns exactly what 0.6.0's plan does."""
+    """Without borrow jobs, plan_node returns exactly what 0.6.0's plan does
+    (at reservation depth 1: 0.8.1 reserves for more blocked jobs by default;
+    test_reservations.py compares depth 1 with the 0.8.0 planner)."""
 
     @classmethod
     def setUpClass(cls):
@@ -416,6 +419,7 @@ class CompatibilityTests(unittest.TestCase):
         # the 0.6.0 configuration: both parsers accept it
         doc = json.loads((RUNTIME_060.parent / "config" / "zenobia-node.json").read_text())
         new_cfg = parse_node_config(doc, path=Path("/dev/null"), check_topology=False)
+        new_cfg = dataclasses.replace(new_cfg, scheduler=SchedulerConfig(reservation_depth=1))
         old_cfg = self.old_nodeconfig.parse_node_config(doc, path=Path("/dev/null"), check_topology=False)
         names = list(new_cfg.partitions)
         gpu = list(new_cfg.gpus)[0]

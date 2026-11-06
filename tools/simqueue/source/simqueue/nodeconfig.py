@@ -21,6 +21,11 @@ the high/low-water marks of memory pressure and ``--mem auto``.  A partition
 may set ``min_mem`` (the smallest request ``--mem auto`` gives).  ``launch``
 gains ``idle_seconds``: the longest the event-driven worker sleeps when
 nothing needs attention.
+
+0.8.1: a ``scheduler`` section (``SchedulerConfig``) sets
+``reservation_depth``: how many blocked owner jobs, in dispatch order, hold a
+reservation that later jobs may not delay (1: EASY backfill, the head only,
+as up to 0.8.0).
 """
 
 from __future__ import annotations
@@ -45,6 +50,9 @@ PARTITION_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 GPU_UUID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 DEFAULT_WRAPPER_PYTHON = "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen"
 UNLIMITED_WORDS = {"unlimited", "infinite", "none"}
+# 0.8.1: blocked owner jobs holding a reservation (scheduler.reservation_depth)
+DEFAULT_RESERVATION_DEPTH = 8
+MAX_RESERVATION_DEPTH = 64
 ON_PREEMPT_MODES = ("freeze", "requeue", "cancel")
 DEFAULT_BORROW_SLICE = "simqborrow.slice"
 SIZE_PATTERN = re.compile(r"^([0-9]+)\s*([A-Za-z]*)$")
@@ -345,6 +353,19 @@ class BorrowConfig:
 
 
 @dataclass(frozen=True)
+class SchedulerConfig:
+    """Backfill reservations (0.8.1, ``scheduler`` in node.json).
+
+    The first ``reservation_depth`` blocked owner jobs in dispatch order hold
+    a reservation: a start time placed in a resource-time profile after the
+    reservations ahead of it.  A later job may start now only if every
+    reserved job ahead of it can still start at its reserved time.  1 is
+    EASY backfill (only the head of the queue is protected, as up to 0.8.0)."""
+
+    reservation_depth: int = DEFAULT_RESERVATION_DEPTH
+
+
+@dataclass(frozen=True)
 class LaunchConfig:
     backend: str = "systemd-user"
     unit_prefix: str = "simq-job"
@@ -476,6 +497,8 @@ class NodeConfig:
     containment: ContainmentConfig = field(default_factory=ContainmentConfig)
     # 0.8.0: L3 domains (topology.py)
     topology: TopologyConfig = field(default_factory=TopologyConfig)
+    # 0.8.1: how many blocked jobs hold a backfill reservation (scheduler.py)
+    scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
 
     def canonical_partition(self, name: str | None) -> str:
         """The partition a requested or recorded name stands for: the name
@@ -631,6 +654,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
             "github",
             "containment",
             "topology",
+            "scheduler",
         },
         "node config",
     )
@@ -919,6 +943,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
     except ValueError as error:
         raise ConfigError(str(error)) from error
     topology = _parse_topology(document.get("topology", {}), tuple(node_cpus), check_topology)
+    scheduler = _parse_scheduler(document.get("scheduler", {}))
     return NodeConfig(
         path=path,
         node=node,
@@ -938,6 +963,7 @@ def parse_node_config(document: dict[str, Any], *, path: Path, check_topology: b
         github=github,
         containment=containment,
         topology=topology,
+        scheduler=scheduler,
     )
 
 
@@ -1150,6 +1176,17 @@ def describe_memory(config: MemoryConfig) -> dict[str, Any]:
         "warn_min_excess": config.warn_min_excess,
         "test_node_total": config.test_node_total,
     }
+
+
+def _parse_scheduler(value: Any) -> SchedulerConfig:
+    """The ``scheduler`` section (0.8.1): ``reservation_depth`` (default 8)."""
+    raw = _object(value, "scheduler")
+    _unknown(raw, {"reservation_depth", "notes"}, "scheduler")
+    depth = raw.get("reservation_depth", DEFAULT_RESERVATION_DEPTH)
+    if isinstance(depth, bool) or not isinstance(depth, int) or not 1 <= depth <= MAX_RESERVATION_DEPTH:
+        raise ConfigError(f"scheduler.reservation_depth must be an integer from 1 to {MAX_RESERVATION_DEPTH} "
+                          "(1: EASY backfill, the head of the queue only)")
+    return SchedulerConfig(reservation_depth=depth)
 
 
 def _parse_borrow(value: Any) -> BorrowConfig:

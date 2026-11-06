@@ -1,14 +1,14 @@
-"""upgrade.py install / rollback (0.7.2 to 0.8.0) in a sandbox home.
+"""upgrade.py install / rollback (0.8.0 to 0.8.1) in a sandbox home.
 
 Nothing real is touched: every path is under a temporary --home, and
 --systemctl is a stub that runs the sandbox's simqueue.service ExecStart as a
 plain background process (start/stop/show).  The job units and GPU claim
 units are real (test prefix, test CPUs, private lease files); GitHub is a
-local fake.  A 0.7.2 worker runs a job and queues a second one; the install
-migrates the database to schema 10 (every row unchanged), the 0.8.0 worker adopts
-the running job and runs the queued one.  Rollback, while a 0.7.2 job runs,
-a GPU job waits in the GPU line and a job's GitHub post is due, sets the
-schema back to 9 and restores every file byte for byte; 0.7.2 adopts the running job and the GPU claim
+local fake.  A 0.8.0 worker runs a job and queues a second one; the install
+keeps the database (schema 10, every row unchanged), the 0.8.1 worker adopts
+the running job and runs the queued one.  Rollback, while a 0.8.1 job runs,
+a GPU job waits in the GPU line and a job's GitHub post is due, leaves the
+schema at 10 and restores every file byte for byte; 0.8.0 adopts the running job and the GPU claim
 unit and makes the due post.
 """
 
@@ -31,13 +31,13 @@ from fake_github import FakeGitHub
 from node_fixture import FAKE_GPU, PYTHON_FROZEN, NodeFixture
 from simqueue import __version__ as _VERSION
 
-if not _VERSION.startswith("0.8."):
-    raise unittest.SkipTest(f"upgrade.py and these tests are for 0.7.x -> 0.8.0; {_VERSION} needs its own")
+if _VERSION != "0.8.1":
+    raise unittest.SkipTest(f"upgrade.py and these tests are for 0.8.0 -> 0.8.1; {_VERSION} needs its own")
 
 
 RUNTIME = Path(__file__).resolve().parents[2]
 UPGRADE = RUNTIME / "upgrade.py"
-OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.7.2-20261105")
+OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.8.0-20261106")
 TOKEN = "ghp_upgradeTestToken_0000"
 SHA = "fedcba9876543210fedcba9876543210fedcba98"
 STUB = r'''#!%(python)s
@@ -150,29 +150,31 @@ def load_upgrade_module():
     return module
 
 
-def config_070(document: dict) -> dict:
-    """A 0.7.2 node configuration as 0.8.0 ships it: the new keys only."""
+def config_081(document: dict) -> dict:
+    """A 0.8.0 node configuration as 0.8.1 ships it: the new keys only."""
     new = json.loads(json.dumps(document))
-    new["topology"] = {"l3_placement": True}
-    new["borrow"] = dict(new.get("borrow") or {}, lend_siblings=True, lend_reserved=True)
-    new["notes"] = ["0.8.0 sandbox"]
+    new["scheduler"] = {"reservation_depth": 4, "notes": "0.8.1 sandbox"}
+    new["notes"] = ["0.8.1 sandbox"]
     return new
 
 
 class UpgradeHelperTests(unittest.TestCase):
-    def test_config_comparison_ignores_only_the_080_keys(self) -> None:
+    def test_config_comparison_ignores_only_the_081_keys(self) -> None:
         module = load_upgrade_module()
         old = json.loads((OLD_RUNTIME / "config" / "zenobia-16core-node.json").read_text())
         new = json.loads((RUNTIME / "config" / "zenobia-16core-node.json").read_text())
         self.assertEqual(module.config_differences(module.comparable_config(old), module.comparable_config(new)), [])
-        eight = json.loads((OLD_RUNTIME / "config" / "zenobia-node.json").read_text())
-        self.assertEqual(module.config_differences(module.comparable_config(eight), module.comparable_config(new)),
-                         [])  # the 8-core live config differs only in the cores, which sysfs gives now
+        self.assertEqual(new["scheduler"]["reservation_depth"], 8)
+        live = Path("/home/treefor/.local/state/simqueue/node.json")
+        if live.exists() and module.wrapper_runtime(Path("/home/treefor/.local/bin/simq").read_text()) == OLD_RUNTIME:
+            self.assertEqual(module.comparable_config(json.loads(live.read_text())), module.comparable_config(new))
         for change, key in (
             (lambda d: d["borrow"].__setitem__("idle_window_s", 5), "borrow.idle_window_s"),
             (lambda d: d.__setitem__("memory_schedulable", "30G"), "memory_schedulable"),
             (lambda d: d["partitions"][0].__setitem__("max_mem", "26G"), "partitions[0].max_mem"),
             (lambda d: d["memory"].__setitem__("auto_default", False), "memory.auto_default"),
+            (lambda d: d["borrow"].__setitem__("lend_reserved", False), "borrow.lend_reserved"),
+            (lambda d: d["topology"].__setitem__("l3_placement", False), "topology.l3_placement"),
         ):
             changed = json.loads(json.dumps(new))
             change(changed)
@@ -191,9 +193,13 @@ class UpgradeHelperTests(unittest.TestCase):
         upgrade = module.Upgrade(args)
         unit = upgrade.unit_text(RUNTIME)
         for line in ("Nice=10", "CPUWeight=20", "IOSchedulingClass=idle", "MemoryHigh=96M", "MemoryMax=128M",
-                     "Description=SimQueue 0.8.0", "ExecStart=/home/x/.local/bin/simq worker --wait-for-lock"):
+                     "Description=SimQueue 0.8.1", "ExecStart=/home/x/.local/bin/simq worker --wait-for-lock"):
             self.assertIn(line, unit)
-        self.assertEqual(module.wrapper_runtime(upgrade.wrapper_text(RUNTIME, "0.8.0")), RUNTIME)
+        self.assertEqual(module.wrapper_runtime(upgrade.wrapper_text(RUNTIME, "0.8.1")), RUNTIME)
+        if live.exists() and module.wrapper_runtime(live.read_text()) == OLD_RUNTIME:
+            # the live wrapper is what this script writes for 0.8.0
+            self.assertEqual(upgrade.wrapper_text(OLD_RUNTIME, "0.8.0").replace("/home/x", "/home/treefor"),
+                             live.read_text())
 
     def test_line_state_path_follows_the_configuration(self) -> None:
         module = load_upgrade_module()
@@ -202,12 +208,12 @@ class UpgradeHelperTests(unittest.TestCase):
 
 
 class UpgradeSandbox(NodeFixture):
-    """A sandbox home with the 0.7.2 installation as its upgrade.py left it."""
+    """A sandbox home with the 0.8.0 installation as its upgrade.py left it."""
 
     def setUp(self) -> None:
         super().setUp()
         if not (OLD_RUNTIME / "source" / "simq").exists():
-            self.skipTest("0.7.2 runtime not present")
+            self.skipTest("0.8.0 runtime not present")
         self.fake = FakeGitHub(TOKEN).start()
         self.home = self.base / "home"
         self.sandbox_state = self.home / ".local" / "state" / "simqueue"
@@ -229,8 +235,8 @@ class UpgradeSandbox(NodeFixture):
         old_doc["memory"] = {"sample_seconds": 1, "record_seconds": 2}
         old_doc["github"] = {"api_base": self.fake.api_base, "token_file": str(token), "backoff_seconds": 0.5}
         (self.sandbox_state / "node.json").write_text(json.dumps(old_doc, indent=2))
-        new_doc = config_070(old_doc)
-        self.new_config = self.base / "node-070.json"
+        new_doc = config_081(old_doc)
+        self.new_config = self.base / "node-081.json"
         self.new_config.write_text(json.dumps(new_doc, indent=2))
         self.l1 = self.locks / "gpu.lock"
         self.l2 = self.locks / f"gpu-{FAKE_GPU}.lock"
@@ -242,10 +248,10 @@ class UpgradeSandbox(NodeFixture):
                                  "old_runtime": str(OLD_RUNTIME), "project_root": str(self.projects),
                                  "service": "simqueue.service", "systemctl": str(stub)})()
         sandbox = module.Upgrade(args)
-        (self.bin / "simq").write_text(sandbox.wrapper_text(OLD_RUNTIME, "0.7.2"))
+        (self.bin / "simq").write_text(sandbox.wrapper_text(OLD_RUNTIME, "0.8.0"))
         (self.bin / "simq").chmod(0o755)
         (self.bin / "simqueue").symlink_to(OLD_RUNTIME / "simq")
-        (self.units / "simqueue.service").write_text(sandbox.unit_text(OLD_RUNTIME, "0.7.2"))
+        (self.units / "simqueue.service").write_text(sandbox.unit_text(OLD_RUNTIME, "0.8.0"))
         (self.units / "simqborrow.slice").write_text(SLICE)
         self.dropin = self.units / "simq-job-.service.d" / "50-oom-policy-stop.conf"
         self.dropin.parent.mkdir()
@@ -333,13 +339,17 @@ class UpgradePreflightTests(UpgradeSandbox, unittest.TestCase):
     needs_units = False
 
     def test_dry_run_changes_nothing(self) -> None:
-        self.submit("-p", "pb", "-c", "1", *self.probe_command(1))  # creates the schema-9 database with 0.7.2
+        self.submit("-p", "pb", "-c", "1", *self.probe_command(1))  # creates the schema-10 database with 0.8.0
         before = digest(self.sandbox_state / "queue.sqlite3")
         result = self.upgrade("install", "--config", str(self.new_config))
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("[dry-run]", result.stdout)
-        self.assertIn("node config: equal to the live one apart from the 0.8.0 keys", result.stdout)
-        self.assertIn("migration rehearsal on a copy: schema 9 -> 10, 1 rows", result.stdout)
+        self.assertIn("node config: equal to the live one apart from the 0.8.1 keys", result.stdout)
+        self.assertIn("database rehearsal on a copy opened by 0.8.1: schema 10 -> 10 (no schema change), 1 rows",
+                      result.stdout)
+        self.assertIn("backfill reservations: depth 4 (scheduler.reservation_depth", result.stdout)
+        self.assertIn("  0.8.0 (depth 1): reserves none; would start [1]", result.stdout)
+        self.assertIn("  0.8.1 (depth 4): reserves none; would start [1]", result.stdout)
         self.assertIn("no changes made; re-run with --execute", result.stdout)
         self.assertIn("interim drop-in", result.stdout)
         self.assertIn("would remove the interim drop-in", result.stdout)
@@ -372,7 +382,7 @@ class UpgradeTests(UpgradeSandbox, unittest.TestCase):
         self.stub("start")
         width_b = len(self.part_b)
         old_job = self.submit("-p", "pb", "-c", str(width_b), *self.probe_command(15))
-        self.wait_until(lambda: self.sandbox_state_of(old_job) == "running", message="0.7.2 job running")
+        self.wait_until(lambda: self.sandbox_state_of(old_job) == "running", message="0.8.0 job running")
         queued_b = self.submit("-p", "pb", "-c", "1", *self.probe_command(1))  # pb is full: it waits
         time.sleep(1.5)
         self.assertEqual(self.sandbox_state_of(queued_b), "queued")
@@ -381,27 +391,26 @@ class UpgradeTests(UpgradeSandbox, unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         backup = Path(next(line.split("--backup ")[1].split()[0] for line in result.stdout.splitlines()
                            if "Rollback:" in line))
-        self.assertTrue(backup.name.startswith("0.7.2-to-0.8.0-"))
+        self.assertTrue(backup.name.startswith("0.8.0-to-0.8.1-"))
         receipt = json.loads((backup / "install-receipt.json").read_text())
         verification = receipt["verification"]
         self.assertTrue(verification["ok"])
         self.assertTrue(verification["jobs"][str(old_job)]["adopted"])
         self.assertTrue(verification["wake_fifo"])
-        self.assertEqual(receipt["database"]["schema"], 10)
-        self.assertIn("split_domains", receipt["database"]["added_columns"])
+        self.assertEqual((receipt["database"]["schema"], receipt["database"]["added_columns"]), (10, []))
         self.assertEqual(self.db("PRAGMA user_version")[0][0], 10)
         self.assertEqual(self.db("SELECT id, name, argv_json, env_json, cwd, mem_bytes FROM jobs WHERE id <= ? "
                                  "ORDER BY id", queued_b), rows_before)
         log = self.worker_log()
-        self.assertIn(f"simqueue 0.8.0 from {RUNTIME}", log)
-        self.assertIn("SimQueue 0.8.0", (self.units / "simqueue.service").read_text())
+        self.assertIn(f"simqueue 0.8.1 from {RUNTIME}", log)
+        self.assertIn("SimQueue 0.8.1", (self.units / "simqueue.service").read_text())
         self.assertFalse(self.dropin.exists(), "the interim OOMPolicy drop-in is removed by the install")
-        self.assertTrue(json.loads((self.sandbox_state / "node.json").read_text())["borrow"]["lend_siblings"])
+        self.assertEqual(json.loads((self.sandbox_state / "node.json").read_text())["scheduler"]["reservation_depth"], 4)
         self.wait_until(lambda: self.sandbox_state_of(queued_b) == "succeeded", timeout=60, message="queued job")
         self.wait_until(lambda: self.sandbox_state_of(old_job) == "succeeded", timeout=60, message="old job done")
         peak, source = self.db("SELECT mem_peak_bytes, mem_peak_source FROM jobs WHERE id = ?", old_job)[0]
-        self.assertTrue(peak and source == "unit", (peak, source))  # the 0.7.2 wrapper records its unit's peak
-        # 0.8.0 work at the rollback: a GitHub post due (GitHub down), a running owner job, a GPU job in the line
+        self.assertTrue(peak and source == "unit", (peak, source))  # the 0.8.0 wrapper records its unit's peak
+        # 0.8.1 work at the rollback: a GitHub post due (GitHub down), a running owner job, a GPU job in the line
         self.fake.down = True
         reported = self.submit("-p", "pa", "-c", "1", "--github-status", f"o/r@{SHA}:simq/upgrade",
                                *self.probe_command(1))
@@ -411,34 +420,34 @@ class UpgradeTests(UpgradeSandbox, unittest.TestCase):
         owner_job = self.submit("-p", "pa", "-c", "1", *self.probe_command(60))
         holder = self.raw_holder()
         gpu_job = self.submit("-p", "pb", "--gpus", "1", *self.probe_command(1))
-        self.wait_until(lambda: self.sandbox_state_of(owner_job) == "running", message="0.8.0 owner job running")
+        self.wait_until(lambda: self.sandbox_state_of(owner_job) == "running", message="0.8.1 owner job running")
         self.wait_until(lambda: any(s.get("phase") == "queued" for s in self.claim_statuses()), timeout=30,
                         message="GPU claim queued in the kernel")
         claims = set(self.active_claim_units())
         self.assertTrue(claims)
         rolled = self.upgrade("rollback", "--execute", "--backup", str(backup))
         self.assertEqual(rolled.returncode, 0, rolled.stdout + rolled.stderr)
-        self.assertIn(f"NOTE: job(s) [{reported}] still have GitHub posts due; 0.7.2 posts them", rolled.stdout)
-        self.assertIn("database schema set back to 9 in place (was 10)", rolled.stdout)
+        self.assertIn(f"NOTE: job(s) [{reported}] still have GitHub posts due; 0.8.0 posts them", rolled.stdout)
+        self.assertIn("database schema stays 10 (0.8.1 changes no schema)", rolled.stdout)
         rollback_receipt = json.loads((backup / "rollback-receipt.json").read_text())
         self.assertTrue(rollback_receipt["verification"]["ok"])
         self.assertTrue(rollback_receipt["verification"]["jobs"][str(owner_job)]["adopted"])
         for unit_name in claims:
             self.assertTrue(rollback_receipt["verification"]["claims"][unit_name]["adopted"], unit_name)
-        self.assertEqual(self.db("PRAGMA user_version")[0][0], 9)
+        self.assertEqual(self.db("PRAGMA user_version")[0][0], 10)
         for path, value in self.originals.items():
             self.assertEqual(digest(path), value, f"{path} not restored byte for byte")
         self.assertEqual(os.readlink(self.bin / "simqueue"), str(OLD_RUNTIME / "simq"))
-        after = self.worker_log().rsplit(f"simqueue 0.7.2 from {OLD_RUNTIME}", 1)[1]
+        after = self.worker_log().rsplit(f"simqueue 0.8.0 from {OLD_RUNTIME}", 1)[1]
         self.assertIn(f"adopted job {owner_job} ", after)
-        self.fake.down = False  # 0.7.2 makes the due post
+        self.fake.down = False  # 0.8.0 makes the due post
         self.wait_until(lambda: self.fake.statuses_for("simq/upgrade"), timeout=60, message="due post sent")
         os.killpg(holder.pid, signal.SIGKILL)
         holder.wait(timeout=10)
         self.wait_until(lambda: self.sandbox_state_of(gpu_job) == "succeeded", timeout=90,
-                        message="GPU job run by 0.7.2")
+                        message="GPU job run by 0.8.0")
         self.wait_until(lambda: self.sandbox_state_of(owner_job) == "succeeded", timeout=120,
-                        message="0.8.0 job recorded by 0.7.2")
+                        message="0.8.1 job recorded by 0.8.0")
 
     def test_install_refuses_while_a_job_is_starting(self) -> None:
         job = self.submit("-p", "pa", "-c", "1", *self.probe_command(1))
@@ -461,16 +470,16 @@ class UpgradeTests(UpgradeSandbox, unittest.TestCase):
     def test_failed_verification_rolls_back_automatically(self) -> None:
         self.stub("start")
         job = self.submit("-p", "pa", "-c", "1", *self.probe_command(20))
-        self.wait_until(lambda: self.sandbox_state_of(job) == "running", message="0.7.2 job running")
+        self.wait_until(lambda: self.sandbox_state_of(job) == "running", message="0.8.0 job running")
         result = self.upgrade("install", "--execute", "--config", str(self.new_config), timeout="0")
         self.assertEqual(result.returncode, 1, result.stdout)
         self.assertIn("rolling back automatically", result.stdout)
-        self.assertIn("rolled back to SimQueue 0.7.2", result.stdout)
+        self.assertIn("rolled back to SimQueue 0.8.0", result.stdout)
         for path, value in self.originals.items():
             self.assertEqual(digest(path), value)
-        self.wait_until(lambda: self.sandbox_state_of(job) == "succeeded", timeout=60, message="job recorded by 0.7.2")
+        self.wait_until(lambda: self.sandbox_state_of(job) == "succeeded", timeout=60, message="job recorded by 0.8.0")
         log = self.worker_log()
-        self.assertIn(f"adopted job {job} ", log.rsplit(f"simqueue 0.7.2 from {OLD_RUNTIME}", 1)[1])
+        self.assertIn(f"adopted job {job} ", log.rsplit(f"simqueue 0.8.0 from {OLD_RUNTIME}", 1)[1])
 
 
 if __name__ == "__main__":
