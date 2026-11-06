@@ -465,8 +465,8 @@ class Schema9MigrationTests(unittest.TestCase):
         version, before = self.rows()
         QueueStore()
         version_after, after = self.rows()
-        # 8 before 0.7.0 was installed live, 9 since; the current schema after
-        self.assertIn(version, (8, 9))
+        # 8 before 0.7.0 was installed live, 9 since, 10 since 0.8.0; the current schema after
+        self.assertIn(version, (8, 9, 10))
         self.assertEqual((version_after, len(before)), (SCHEMA_VERSION, len(after)))
         for old, new in zip(before, after):
             self.assertEqual({k: new[k] for k in old}, old)
