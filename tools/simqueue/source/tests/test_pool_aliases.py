@@ -130,7 +130,8 @@ class AliasConfigTests(unittest.TestCase):
         self.assertEqual(document["partitions"][0]["cpus"], "auto")
         self.assertNotIn("smt_siblings", document)
         self.assertEqual(document["memory_schedulable"], "28G")
-        self.assertTrue(document["borrow"]["lend_siblings"])
+        # off on zenobia: a busy sibling halves an integer-heavy owner (2026-11-06); opt in with true
+        self.assertFalse(document["borrow"]["lend_siblings"])
         with tempfile.TemporaryDirectory() as base:
             fake = make_sysfs(Path(base) / "sys", cores=16, domains=2)
             document["topology"]["sysfs_cpu"] = str(fake)

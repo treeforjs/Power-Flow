@@ -9,7 +9,8 @@ the 16-core node (Ryzen 9 9950X3D2 since 2026-11-06: cores 0-15, SMT siblings
 16-31, two L3 domains CCD0 = cores 0-7 and CCD1 = cores 8-15, 96 MiB each),
 see "0.8.0" below: a job's cores stay inside one CCD when they fit (heavy jobs
 spread over the CCDs, light jobs pack, `--l3-domains`/`--split-domains`),
-SMT siblings are lent to borrow jobs, `-t auto` derives time limits from
+SMT siblings stay idle (lending them to borrow jobs is supported but off:
+it halves an integer-heavy owner), `-t auto` derives time limits from
 history, a partition's `cpus` may be `"auto"`, and `simq partitions` shows
 the memory admission ceiling.
 
@@ -151,7 +152,7 @@ sysfs and config; `scheduling-demo.py` in the validation outputs):
 | core 0 busy; an 8-rank job | 1-8 (both CCDs) | 8-15 (CCD1) |
 | coupled pilot, 16 cores | 0-15 | `--split-domains 8,8`: 0-15 with `SIMQ_L3_DOMAINS=0-7;8-15` (FE ranks on one CCD, Spheral on the other) |
 | 8 ranks spread on purpose | - | `--l3-domains 2`: 0-3,8-11 |
-| all 16 cores held by two 8-rank sims; a 4-core `--borrow` build | waits | SMT siblings 28-31 under `cpu.idle`; with the CCD1 sim on `--exclusive-timing`, siblings 20-23 (24-31 stay idle) |
+| all 16 cores held by two 8-rank sims; a 4-core `--borrow` build | waits | waits (siblings are not lent: `lend_siblings` false); with `lend_siblings` true it gets siblings 28-31 under `cpu.idle`, and with the CCD1 sim on `--exclusive-timing` siblings 20-23 |
 | `-t auto` | - | 1.5 x the p95 runtime of the last 20 succeeded runs, at least 10 min: the full test suite -> 15 min instead of the 2-day default |
 
 **Admission ceiling in `simq partitions`.** The worker publishes the memory
@@ -181,12 +182,26 @@ memory alone gives ~V". `simq partitions --json` has it under
   the domains in `SIMQ_L3_DOMAIN_IDS` and its NUMA nodes in
   `SIMQ_NUMA_NODES`. `simq partitions` shows each domain's cores, L3 size
   and occupancy. `topology.l3_placement: false` restores lowest-core-first.
-- **Physical cores for sims, siblings for borrowers**: owner jobs get whole
-  physical cores (siblings are never allocated to owner jobs). With
-  `borrow.lend_siblings` (on in the 16-core config) the SMT siblings go to
-  borrow jobs under `cpu.idle`, after every free, leased-idle and owner-idle
-  core, unless the owner runs with `--exclusive-timing` (an exclusive start
-  preempts a borrower on its siblings).
+- **Physical cores for sims; siblings lent only on request**: owner jobs get
+  whole physical cores (siblings are never allocated to owner jobs). With
+  `borrow.lend_siblings` the SMT siblings go to borrow jobs under `cpu.idle`,
+  after every free, leased-idle and owner-idle core, unless the owner runs
+  with `--exclusive-timing` (an exclusive start preempts a borrower on its
+  siblings). **It is off in the 16-core config**: measured on 2026-11-06 in a
+  1-core queue job (core 5, sibling 21), a busy process on the sibling slowed
+  an integer-heavy owner loop by 47% and SHA-NI hashing by 0.1%, and running
+  that process at `SCHED_IDLE` changed nothing -- the two threads share the
+  core's execution units, which no CPU priority controls. Turning it on
+  trades owner speed for borrower throughput; `--exclusive-timing` then
+  protects a timing-sensitive owner.
+- **Idle priority is relative to the slice's weight**: a borrower on the
+  *same* logical CPU as a process in `simq.slice` (possible only while an
+  owner-idle core is being reclaimed, or next to a process pinned there
+  without a lease) got 27% of that CPU on 2026-11-06 with 15 cores busy:
+  `simq.slice`'s weight is shared by every CPU its jobs keep busy, while the
+  borrow slice's idle weight is not. Next to a process of a terminal session
+  (`app.slice`) it got 0.3-3%. Reclaim preempts the borrower within
+  `busy_window_s` plus a pass.
 - **Utilization**: each finished job records `cpu_utilization` = CPU time /
   (runtime x allocated cores); `simq show` flags a job below 50% over at
   least a minute as UNDER-USED, `simq list` has a USE column. `simq

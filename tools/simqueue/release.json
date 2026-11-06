@@ -13,10 +13,10 @@
     "to": 10,
     "change": "columns l3_domains, split_domains, cpu_utilization added; no existing column of any row changes; rollback sets the schema back to 9 in place"
   },
-  "node_config": "config/zenobia-16core-node.json: the live 16-core node.json (0.7.2) plus topology, borrow.lend_siblings/lend_reserved, cpus \"auto\", smt_siblings from sysfs",
+  "node_config": "config/zenobia-16core-node.json: the live 16-core node.json (0.7.2) plus topology, borrow.lend_reserved true, borrow.lend_siblings false, cpus \"auto\", smt_siblings from sysfs",
   "features": [
     "L3-domain placement from sysfs: a job stays inside one domain when it fits; heavy jobs (half a domain or more) go to the emptiest domain, light jobs pack into the fullest that fits; --l3-domains N, --split-domains A,B; SIMQ_L3_DOMAINS, SIMQ_L3_DOMAIN_IDS, SIMQ_NUMA_NODES",
-    "SMT siblings lent to borrow jobs (borrow.lend_siblings) unless the owner runs with --exclusive-timing",
+    "SMT siblings can be lent to borrow jobs (borrow.lend_siblings) unless the owner runs with --exclusive-timing; off in the 16-core config (a busy sibling slowed an integer-heavy owner by 47%, SCHED_IDLE does not help)",
     "borrow jobs on cores reserved for a waiting head job (borrow.lend_reserved), preempted by their policy when it starts",
     "-t auto: 1.5 x p95 runtime of the last 20 succeeded runs of the name (family), rounded up to 5 min, at least 10 min",
     "partition cpus \"auto\" (every physical core from sysfs); smt_siblings from sysfs",

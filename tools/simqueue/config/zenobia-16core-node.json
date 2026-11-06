@@ -50,7 +50,7 @@
     "default_on_preempt": "requeue",
     "notes": "Borrow jobs (simq submit --borrow) run in simqborrow.slice, a top-level slice of the user manager with cpu.idle=1, as units with CPUWeight=1, SCHED_IDLE and idle I/O class: every owner job unit and every process of the terminal sessions wins the CPU. A lease holder or owner job is idle when its process tree used at most idle_threshold cores above a whole number over idle_window_s and the core itself was at most cpu_idle_threshold busy; a borrower lent such a core is preempted when the tree uses more than the cores left to it plus busy_threshold over busy_window_s. A frozen borrower is requeued after freeze_max_s or shortly before its time limit. backfill_waiting_owners (0.6.3): a free core that a waiting owner job needs is lent only to a borrow job whose time limit ends before that owner job can start (EASY backfill); without it such cores are not lent at all while the owner job waits, which in a single pool would hold every borrow job back whenever any owner job waits.",
     "backfill_waiting_owners": true,
-    "lend_siblings": true,
+    "lend_siblings": false,
     "lend_reserved": true
   },
   "partitions": [
@@ -118,7 +118,7 @@
     "Lending: free cores and the idle cores of running owner jobs go to borrow jobs (lend: true). Cores leased by tools outside the queue (any-core.sh, both-cores.sh, pf-launch) are not lent (lend_leased_idle: false). Timing-sensitive runs submit with --exclusive-timing, which keeps the job's cores and their SMT siblings unlent while it runs.",
     "No GPU is ever lent: borrow jobs cannot request GPUs.",
     "0.7.0: the worker is event-driven (woken by submissions, cancellations and job ends through <state>/worker.wake; passes every poll_seconds only while something must be watched, else at most every idle_seconds); job memory is tracked from the units' cgroups (memory section); --mem auto; job state can be reported to GitHub (github section).",
-    "0.8.0: cpus \"auto\": every physical core of the machine read from sysfs (lowest logical CPU of each SMT pair), siblings and L3 domains likewise, so this file serves the 8-core 9850X3D and the 16-core 9950X3D2 alike. Owner jobs get whole physical cores; their SMT siblings are lent to borrow jobs (borrow.lend_siblings) under cpu.idle unless the owner runs with --exclusive-timing.",
+    "0.8.0: cpus \"auto\": every physical core of the machine read from sysfs (lowest logical CPU of each SMT pair), siblings and L3 domains likewise, so this file serves the 8-core 9850X3D and the 16-core 9950X3D2 alike. Owner jobs get whole physical cores; SMT siblings are never allocated to them. borrow.lend_siblings is false here: a busy process on a sibling slowed an integer-heavy owner on its core by 47% (SHA-NI work by 0.1%) on 2026-11-06, and idle CPU priority cannot help with that (the two threads share the core's execution units). Set it true to lend the siblings to borrow jobs (an owner then keeps its siblings only with --exclusive-timing).",
     "memory_schedulable stays 28G; max_mem 20G. A priority_max_mem (for example {\"min_priority\": 10, \"max_mem\": \"26G\"}) would let priority-10 owner jobs ask for more; it is not set until full-machine pilot memory is measured."
   ],
   "gpu_line": {
