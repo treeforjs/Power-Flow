@@ -134,6 +134,7 @@ SPEC_SCHEMA = "simqueue-job-spec-v1"
 LOCK_BUSY_REFUSAL = "lock-busy"
 STOP_RESEND_SECONDS = 30.0
 WAKE_FIFO = "worker.wake"
+ADMISSION_FILE = "admission.json"  # 0.8.0: the admission ceiling, for simq partitions
 CONTAINMENT_FILE = "containment.json"  # 0.7.2: outside MPI daemons seen by the escape scan
 EXIT_WATCH_SECONDS = 5.0  # after a wake-up, look for ended job units this long ...
 EXIT_WATCH_STEP = 0.2  # ... this often (a stop-post hook wakes the worker just before its unit ends)
@@ -578,6 +579,7 @@ class NodeWorker:
         self._daemons_seen: set[tuple[int, str]] = set()
         self._escapes_logged: set[tuple[int, int]] = set()
         self._admissible: int | None = None
+        self._admission_written: tuple[float, int] | None = None  # (unix, ceiling) of admission.json
         self._proc_stat: dict[str, Any] | None = None
         self.passes = 0
         self.unit_queries = 0
@@ -1766,6 +1768,7 @@ class NodeWorker:
         if self.config.memory_schedulable is not None:
             ceiling = min(ceiling, self.config.memory_schedulable - margin)
         self._admissible = ceiling
+        self._publish_admission(ceiling, best, margin, node.available)
         parked: dict[int, str] = {}
         for job in queued:
             request = int(job.get("mem_bytes") or job_request(job, self.config).mem or 0)
@@ -1775,6 +1778,25 @@ class NodeWorker:
                     f"{self.config.node} (MemAvailable with the queue idle ~{format_gib(best)} - margin "
                     f"{format_gib(margin)}); it starts when that much is free, other jobs go ahead")
         return node.available - margin - self._ramping(active), parked
+
+    def _publish_admission(self, ceiling: int, best: int, margin: int, available: int) -> None:
+        """0.8.0: the admission ceiling for ``simq partitions`` (``admission.json``
+        in the state directory), written when it moves by 128 MiB or more, or
+        every 5 minutes."""
+        now = time.time()
+        last = self._admission_written
+        if last is not None and abs(ceiling - last[1]) < 128 * 1024**2 and now - last[0] < 300:
+            return
+        cap = None if self.config.memory_schedulable is None else self.config.memory_schedulable - margin
+        try:
+            _atomic_json(state_dir() / ADMISSION_FILE, {
+                "schema": "simqueue-admission-v1", "at": utc_now(), "ceiling": int(ceiling),
+                "best_idle_last_hour": int(best), "margin": int(margin), "cap": cap,
+                "available_now": int(available), "window_s": 3600})
+            self._admission_written = (now, ceiling)
+        except OSError as error:
+            self.log(f"cannot write {ADMISSION_FILE}: {error!r}")
+            self._admission_written = (now, ceiling)
 
     def _ramping(self, active: list[dict[str, Any]]) -> int:
         """Requests of jobs started less than ramp_seconds ago that they have

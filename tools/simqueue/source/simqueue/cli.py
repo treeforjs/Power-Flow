@@ -2196,6 +2196,22 @@ def _node_memory_status(config: NodeConfig, store: QueueStore, jobs: list[dict[s
             status["pressure"] = json.loads(pressure)
         except ValueError:
             status["pressure"] = {"raw": pressure}
+    # 0.8.0: the admission ceiling -- the worker's (best over the last hour)
+    # and the one this moment's memory gives
+    admission: dict[str, Any] = {}
+    worker = _read_json_file(state_dir() / "admission.json")
+    if isinstance(worker, dict) and worker.get("ceiling") is not None:
+        admission["worker"] = worker
+    if node is not None and config.memory.enabled:
+        from .memory import admission_margin
+
+        margin = admission_margin(config.memory, node.total)
+        now = node.available + sum(currents) - margin
+        if config.memory_schedulable is not None:
+            now = min(now, config.memory_schedulable - margin)
+        admission["now"] = now
+    if admission:
+        status["admission"] = admission
     return status
 
 
@@ -2224,6 +2240,19 @@ def _print_node_memory(status: dict[str, Any]) -> None:
               f"queue jobs use {format_gib(memory['queue_jobs_current'])} of "
               f"{format_gib(memory['queue_jobs_requested'])} requested, outside the queue "
               f"{format_gib(memory['outside_queue'])}")
+    admission = memory.get("admission") or {}
+    worker = admission.get("worker")
+    if worker:
+        cap = worker.get("cap")
+        print(f"Admission ceiling: ~{format_gib(worker['ceiling'])} (a request above it is parked, not reserved): "
+              f"best MemAvailable with the queue idle over the last hour ~{format_gib(worker['best_idle_last_hour'])}"
+              f" - margin {format_gib(worker['margin'])}"
+              + (f", at most memory_schedulable - margin = {format_gib(cap)}" if cap is not None else "")
+              + (f"; this moment's memory alone gives ~{format_gib(admission['now'])}" if "now" in admission else "")
+              + f" [worker, {worker.get('at')}]")
+    elif "now" in admission:
+        print(f"Admission ceiling: ~{format_gib(admission['now'])} from this moment's memory "
+              "(the worker has not published its value; it uses the best over the last hour)")
     pressure = memory.get("pressure")
     if pressure:
         culprit = pressure.get("culprit") or {}

@@ -1,8 +1,17 @@
-# SimQueue 0.7.2 on zenobia: operations
+# SimQueue 0.8.0 on zenobia: operations
 
 SimQueue is a single-node, Slurm-shaped scheduler. One worker
 (`simqueue.service`) schedules the whole node; every job runs in its own
 transient systemd user service, independent of the worker.
+
+0.8.0 (a minor release: schema 10, new scheduling inputs) is the version for
+the 16-core node (Ryzen 9 9950X3D2 since 2026-11-06: cores 0-15, SMT siblings
+16-31, two L3 domains CCD0 = cores 0-7 and CCD1 = cores 8-15, 96 MiB each),
+see "0.8.0" below: a job's cores stay inside one CCD when they fit (heavy jobs
+spread over the CCDs, light jobs pack, `--l3-domains`/`--split-domains`),
+SMT siblings are lent to borrow jobs, `-t auto` derives time limits from
+history, a partition's `cpus` may be `"auto"`, and `simq partitions` shows
+the memory admission ceiling.
 
 0.7.2 (a patch release: no schema change, no new scheduling input) contains
 MPI jobs, see "0.7.2" below: every job gets its own temporary and MPI
@@ -93,37 +102,65 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 
 | Item | Path |
 |---|---|
-| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.7.2-20261105` |
-| Previous runtime (kept: job units started by 0.7.1 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.7.1-20261105` |
+| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.8.0-20261106` |
+| Previous runtime (kept: job units started by 0.7.2 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.7.2-20261105` |
 | Interpreter (unchanged from 0.5) | `/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen` |
 | Code | `source/simqueue/` (`nodeworker.py`, `memory.py` and `github.py` (0.7.0), `scheduler.py`, `borrow.py`, `telemetry.py`, `gpuqueue.py`, `gpuline.py`, `units.py`, `jobwrap.py`, `locks.py`, `nodeconfig.py`, plus the 0.5 modules) |
 | Worker wake FIFO (0.7.0) | `~/.local/state/simqueue/worker.wake` (clients and job units write a byte; the worker wakes) |
 | Direct GPU use (0.6.2) | `bin/gpu-lease` (runs `source/simqueue/gpuline.py lease`) |
 | GPU line state, tickets, log (0.6.2) | `<pic-profile>/simq-gpu-line.json`, `<pic-profile>/gpu-line.d/`, `<pic-profile>/simq-gpu-line.log` |
 | GPU claims (0.6.2) | units `simq-job-gpuclaim-<token12>.service`; files `~/.local/state/simqueue/claims/<token>/{spec,control,status}.json`, `claim.log` |
-| Node configuration (template) | `config/zenobia-node.json` (8 cores, the CPU until 2026-11-05); `config/zenobia-16core-node.json` (Ryzen 9 9950X3D2) |
+| Node configuration (template) | `config/zenobia-16core-node.json` (Ryzen 9 9950X3D2, live since 2026-11-06; `cpus: "auto"`); `config/zenobia-node.json` (8 cores, the CPU until 2026-11-05) |
 | Node configuration (live) | `~/.local/state/simqueue/node.json` (`SIMQUEUE_CONFIG`) |
-| Database | `~/.local/state/simqueue/queue.sqlite3` (schema 9 from 0.7.0: memory, CPU time and GitHub columns; schema 8 for 0.6.1 to 0.6.3; 0.6.0 used schema 7) |
+| Database | `~/.local/state/simqueue/queue.sqlite3` (schema 10 from 0.8.0: `l3_domains`, `split_domains`, `cpu_utilization`; schema 9 from 0.7.0: memory, CPU time and GitHub columns; schema 8 for 0.6.1 to 0.6.3; 0.6.0 used schema 7) |
 | Borrow slice | `~/.config/systemd/user/simqborrow.slice` (`CPUWeight=idle`) |
 | Per-job files | `~/.local/state/simqueue/jobs/NNNNNN-<token>/{spec,status,stop-post,escaped}.json` (`escaped.json`: 0.7.2, processes seen outside the job's cgroup) |
 | Per-job temporary and MPI rendezvous directory (0.7.2) | `/tmp/simq.<job>.<token12>` (`TMPDIR`, `PMIX_SYSTEM_TMPDIR`, `PMIX_SERVER_TMPDIR`, `PRTE_MCA_prte_tmpdir_base`; removed at the job's end) |
 | Outside MPI daemons (0.7.2) | `~/.local/state/simqueue/containment.json` (written by the worker's escape scan) |
+| Admission ceiling (0.8.0) | `~/.local/state/simqueue/admission.json` (written by the worker; shown by `simq partitions`) |
 | Logs | `~/.local/state/simqueue/logs/NNNNNN.log`, `~/.local/state/simqueue/worker.log` |
-| Upgrade 0.7.1 to 0.7.2 / rollback | `upgrade.py` (dry run unless `--execute`); 0.7.0 to 0.7.1: `../simqueue-0.7.1-20261105/upgrade.py`; 0.6.3 to 0.7.0: `../simqueue-0.7.0-20261105/upgrade.py` |
+| Upgrade 0.7.x to 0.8.0 / rollback | `upgrade.py` (dry run unless `--execute`); 0.7.1 to 0.7.2: `../simqueue-0.7.2-20261105/upgrade.py`; 0.7.0 to 0.7.1: `../simqueue-0.7.1-20261105/upgrade.py`; 0.6.3 to 0.7.0: `../simqueue-0.7.0-20261105/upgrade.py` |
 | Overhead benchmark (0.7.0) | `source/tools/bench-overhead.py` (0.6.3 against 0.7.0, each worker in its own unit) |
 | Switchover from 0.5 (historical) | `switchover.py` |
 | Tests | `source/run-tests.py`: `--in-job` inside a queue job (`simq run -c 2 ... -- run-tests.py --in-job`, 0.7.0), `--pure` without units; or holding the cores' lease files as before (`--shared` on cores 6-7) |
 
-## 0.8.0 (in development, not released): topology-aware placement on the 16-core node
+## 0.8.0: topology-aware placement on the 16-core node
 
-Branch `simqueue-0.8.0` (built on 0.7.2, with its MPI containment). Not
-sealed and not installed: it lands with the 16-core node after the CPU swap.
-`upgrade.py` installs it over the installed 0.7.x (0.7.2, 0.7.1 or 0.7.0,
-read from the wrapper) with
-`config/zenobia-16core-node.json`, migrates the database to schema 10
-(`l3_domains`, `split_domains`, `cpu_utilization`; every existing row kept)
-and rolls back by setting the schema back to 9 in place; tested in a sandbox
-(install, adoption, GPU claim, rollback, refusals).
+Built on 0.7.2 (its MPI containment included) for the Ryzen 9 9950X3D2
+installed on 2026-11-06 (BIOS 2503): cores 0-15 with SMT siblings 16-31 (c
+and c+16), two L3 domains of 96 MiB -- CCD0 = cores 0-7 (logical 0-7,16-23),
+CCD1 = cores 8-15 (8-15,24-31) -- and one NUMA node, as read from this
+machine's sysfs (`test_topology.py` checks exactly this layout when it runs
+on a 9950X3D2). The live 0.7.2 was switched to
+`config/zenobia-16core-node.json` the same night (backup of the 8-core
+`node.json`: `~/.local/state/simqueue-backups/node-8core-20261106T002055Z.json`).
+`upgrade.py` installs 0.8.0 over the installed 0.7.x (0.7.2, 0.7.1 or 0.7.0,
+read from the wrapper) with `config/zenobia-16core-node.json`, migrates the
+database to schema 10 (`l3_domains`, `split_domains`, `cpu_utilization`;
+every existing row kept) and rolls back by setting the schema back to 9 in
+place; tested in a sandbox (install, adoption, GPU claim, rollback,
+refusals).
+
+What changes on this node (computed with the 0.8.0 planner on the real
+sysfs and config; `scheduling-demo.py` in the validation outputs):
+
+| Situation | 0.7.2 (lowest cores first) | 0.8.0 |
+|---|---|---|
+| empty node, two 4-rank jobs, then a 6-rank job | 0-3, 4-7, 8-13 | 0-3 (CCD0), 8-11 (CCD1: a heavy job goes to the emptiest CCD), 4-7+12-13 (fits no CCD any more) |
+| CCD0 has 5 busy cores; a 1-, a 2- and an 8-core job | 5, 6-7, 8-15 | the same: light jobs pack into the fuller CCD, the 8-rank job gets CCD1 whole |
+| core 0 busy; an 8-rank job | 1-8 (both CCDs) | 8-15 (CCD1) |
+| coupled pilot, 16 cores | 0-15 | `--split-domains 8,8`: 0-15 with `SIMQ_L3_DOMAINS=0-7;8-15` (FE ranks on one CCD, Spheral on the other) |
+| 8 ranks spread on purpose | - | `--l3-domains 2`: 0-3,8-11 |
+| all 16 cores held by two 8-rank sims; a 4-core `--borrow` build | waits | SMT siblings 28-31 under `cpu.idle`; with the CCD1 sim on `--exclusive-timing`, siblings 20-23 (24-31 stay idle) |
+| `-t auto` | - | 1.5 x the p95 runtime of the last 20 succeeded runs, at least 10 min: the full test suite -> 15 min instead of the 2-day default |
+
+**Admission ceiling in `simq partitions`.** The worker publishes the memory
+admission ceiling it parks against (`admission.json`, written when it moves
+by 128 MiB or every 5 minutes): "Admission ceiling: ~X (a request above it is
+parked, not reserved): best MemAvailable with the queue idle over the last
+hour ~Y - margin Z, at most memory_schedulable - margin = W; this moment's
+memory alone gives ~V". `simq partitions --json` has it under
+`node_memory.admission`.
 
 - **Topology from sysfs** (`topology.py`), no hard-coded counts: L3 domains
   from `cpu*/cache/index*/shared_cpu_list` (level 3), SMT siblings from
@@ -178,6 +215,30 @@ a memory policy set by `jobwrap.py`), per-NUMA-node memory accounting for
 admission, several sockets and EPYC-sized topologies (12-16 CCDs, NPS1/2/4).
 Discovery and placement already handle N domains and N nodes generically;
 they are tested on one-, two- and four-domain single-node topologies.
+
+### Upgrading 0.7.2 to 0.8.0: `upgrade.py`
+
+```sh
+cd /home/treefor/projects/runtimes/simqueue-0.8.0-20261106
+./upgrade.py install                 # dry run
+./upgrade.py install --execute
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.7.2-to-0.8.0-<UTC> --execute
+```
+
+The preflight checks the seal; that `config/zenobia-16core-node.json` is
+valid on this machine and equal to the live `node.json` apart from the 0.8.0
+keys (`topology`, `borrow.lend_siblings`, `borrow.lend_reserved`,
+`partitions[].cpus` "auto", `priority_max_mem`, `smt_siblings` (now read from
+sysfs), `containment`, descriptions, notes) without losing a core, a GPU or
+a partition name; that the wrapper runs 0.7.x; and that a copy of the
+database migrated to schema 10 keeps every row. The install stops the worker
+(job and claim units keep running), backs up, switches the wrapper, link,
+unit and `node.json`, migrates to schema 10 and verifies the rows, starts
+0.8.0 and verifies that every running job unit and GPU claim unit is
+adopted. Rollback restores the files byte for byte, sets the schema back to
+9 in place (the 0.8.0 columns stay; 0.7.x ignores them) and 0.7.2 adopts
+everything back. Job units started by 0.8.0 run its `jobwrap.py`: after a
+rollback keep the 0.8.0 runtime until they have ended.
 
 ## 0.7.2: MPI containment
 

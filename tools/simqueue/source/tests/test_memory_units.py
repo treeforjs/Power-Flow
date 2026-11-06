@@ -193,6 +193,13 @@ class HeadOfLineTests(MemoryUnitFixture, unittest.TestCase):
         self.assertEqual(self.state_of(head), "queued")
         self.assertIn("parked: mem 950M exceeds admissible ~896M on testnode", self.job(head)["message"])
         self.assertIn("parked: mem 950M", self.cli("list").stdout)
+        # 0.8.0: the worker publishes the ceiling; simq partitions shows it
+        published = json.loads((self.state / "admission.json").read_text())
+        self.assertEqual(published["ceiling"], 896 * 1024**2)
+        self.assertEqual(published["margin"], 128 * 1024**2)
+        partitions = self.cli("partitions").stdout
+        self.assertIn("Admission ceiling: ~896M (a request above it is parked", partitions)
+        self.assertIn("[worker, ", partitions)
 
     def test_head_job_waits_for_memory_running_jobs_free_while_others_backfill(self) -> None:
         self.start_worker()

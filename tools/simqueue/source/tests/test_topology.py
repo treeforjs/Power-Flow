@@ -130,6 +130,37 @@ class DiscoveryTests(TopologyTestCase):
         cpus = [c for d in domains for c in d.cpus]
         self.assertEqual(len(cpus), len(set(cpus)))
 
+    def test_ryzen_9_9950x3d2_on_this_machine(self) -> None:
+        """The real sysfs of zenobia after the CPU swap (2026-11-06): two L3
+        domains of 96 MiB (CCD0: cores 0-7, CCD1: cores 8-15, each with its
+        SMT siblings 16-23 / 24-31), siblings c and c+16, one NUMA node; the
+        16-core node configuration resolves cpus "auto" to the 16 cores."""
+        try:
+            model = next(line for line in Path("/proc/cpuinfo").read_text().splitlines()
+                         if line.startswith("model name"))
+        except (OSError, StopIteration):
+            model = ""
+        if "9950X3D2" not in model:
+            self.skipTest("not a Ryzen 9 9950X3D2")
+        from simqueue.nodeconfig import load_node_config
+        from simqueue.topology import discover_numa
+
+        domains = discover_l3()
+        self.assertEqual([d.cpus for d in domains], [tuple(range(0, 8)) + tuple(range(16, 24)),
+                                                     tuple(range(8, 16)) + tuple(range(24, 32))])
+        self.assertEqual([d.size_bytes for d in domains], [96 * 1024**2, 96 * 1024**2])
+        siblings = thread_siblings(range(32))
+        for core in range(16):
+            self.assertEqual(siblings[core], (core + 16,))
+            self.assertEqual(siblings[core + 16], (core,))
+        self.assertEqual(len(discover_numa()), 1)
+        config = load_node_config(Path(__file__).resolve().parents[2] / "config" / "zenobia-16core-node.json")
+        self.assertEqual(config.partitions["zenobia"].cpus, tuple(range(16)))
+        self.assertEqual(config.topology.domains, (tuple(range(8)), tuple(range(8, 16))))
+        self.assertEqual({core: tuple(s) for core, s in config.smt_siblings.items()},
+                         {core: (core + 16,) for core in range(16)})
+        self.assertEqual(config.topology.heavy(), 4)
+
     def test_config(self) -> None:
         config = config_for(self.sysfs(16, 2), 16)
         self.assertEqual(config.topology.domains, (tuple(range(8)), tuple(range(8, 16))))
