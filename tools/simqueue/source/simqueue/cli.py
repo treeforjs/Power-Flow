@@ -145,6 +145,22 @@ def _mem_column(job: dict[str, Any], config: NodeConfig | None) -> str:
     return request_text
 
 
+def _use_column(job: dict[str, Any], config: NodeConfig | None) -> str:
+    """USE of ``simq list`` (0.8.0): CPU time / (runtime x allocated cores)."""
+    if job["state"] in TERMINAL_STATES:
+        value = job.get("cpu_utilization")
+        return "-" if value is None else f"{100 * float(value):.0f}%"
+    if job["state"] not in ACTIVE_STATES or not job.get("cpu_list"):
+        return "-"
+    usage = _live_usage(job, config)
+    start = _parse_time(job.get("started_at"))
+    if usage is None or usage.cpu_usec is None or start is None:
+        return "-"
+    seconds = (datetime.now(UTC) - start).total_seconds()
+    cores = len(parse_cpu_list(str(job["cpu_list"])))
+    return "-" if seconds <= 0 or not cores else f"{100 * usage.cpu_usec / 1e6 / seconds / cores:.0f}%"
+
+
 def _print_node_job_rows(jobs: Sequence[dict[str, Any]]) -> None:
     root = project_root()
     borrow_shown = False
@@ -153,7 +169,7 @@ def _print_node_job_rows(jobs: Sequence[dict[str, Any]]) -> None:
     except ConfigError:
         config = None
     print(
-        f"{'ID':>5}  {'STATE':<11} {'PARTITION':<11} {'CPU':<7} {'GPU':<4} {'MEM':<11} "
+        f"{'ID':>5}  {'STATE':<11} {'PARTITION':<11} {'CPU':<7} {'GPU':<4} {'MEM':<11} {'USE':>4} "
         f"{'TIME':>8}  {'NAME':<24} DIRECTORY / REASON"
     )
     for job in jobs:
@@ -180,7 +196,8 @@ def _print_node_job_rows(jobs: Sequence[dict[str, Any]]) -> None:
                 state = "frozen"
         print(
             f"{job['id']:>5}  {state:<11} {_abbreviate(partition, 11):<11} "
-            f"{_abbreviate(cpu, 7):<7} {gpu:<4} {_abbreviate(_mem_column(job, config), 11):<11} {_job_age(job):>8}  "
+            f"{_abbreviate(cpu, 7):<7} {gpu:<4} {_abbreviate(_mem_column(job, config), 11):<11} "
+            f"{_use_column(job, config):>4} {_job_age(job):>8}  "
             f"{_abbreviate(str(job['name']), 24):<24} {_abbreviate(detail, 60)}"
         )
     if borrow_shown:
@@ -393,7 +410,7 @@ def _nudge_worker(store: QueueStore) -> str:
 
 NODE_OPTIONS = (
     "partition", "cpus", "gpus", "gpu_mem", "mem", "time", "priority",
-    "borrow_from", "max_borrow_cores", "on_preempt",
+    "borrow_from", "max_borrow_cores", "on_preempt", "l3_domains", "split_domains",
 )
 NODE_FLAGS = ("borrow", "exclusive_timing")
 
@@ -450,11 +467,34 @@ def _node_request(
             )
         cpu_request = format_cpu_list(cpus)
         explicit["cpu_request"] = cpu_request
+    # 0.8.0: L3 domains
+    l3_count = getattr(args, "l3_domains", None)
+    split_text = getattr(args, "split_domains", None)
+    split: list[int] | None = None
+    if split_text is not None:
+        try:
+            split = [int(part) for part in split_text.split(",") if part.strip()]
+        except ValueError:
+            raise ValueError("--split-domains takes core counts, e.g. 4,4") from None
+        if len(split) < 2 or min(split) < 1:
+            raise ValueError("--split-domains needs two or more positive core counts, e.g. 4,4")
+    if (l3_count is not None or split is not None) and (cpu_list_arg is not None or borrow is not None):
+        raise ValueError("--l3-domains and --split-domains cannot be combined with --cpus or --borrow")
+    if l3_count is not None and split is not None:
+        raise ValueError("use either --l3-domains or --split-domains")
+    if l3_count is not None and l3_count < 1:
+        raise ValueError("--l3-domains must be positive")
     requested = cores
+    if split is not None:
+        if requested is not None and requested != sum(split):
+            raise ValueError(f"--cores {requested} does not match --split-domains (total {sum(split)})")
+        requested = sum(split)
     if requested is None:
         requested = len(parse_cpu_list(cpu_request)) if cpu_request else partition.resolve_default_cpus()
         if borrow is not None and borrow["max_borrow_cores"] is not None:
             requested = 1  # elastic: 1 .. --max-borrow-cores
+    if l3_count is not None and requested < l3_count:
+        raise ValueError(f"--l3-domains {l3_count} needs at least {l3_count} cores")
     if cpu_request is not None and requested != len(parse_cpu_list(cpu_request)):
         raise ValueError("--cores and --cpus disagree on the number of cores")
     if borrow is not None:
@@ -506,7 +546,9 @@ def _node_request(
         history = store.memory_history() if store is not None else []
         mem, args.mem_basis = auto_request(
             history, name=name or "", cores=requested, config=config.memory,
-            min_mem=partition.min_mem, max_mem=partition.max_mem, default_mem=partition.default_mem,
+            min_mem=partition.min_mem,
+            max_mem=partition.mem_limit(int(getattr(args, "priority", None) or 0), borrow is not None),
+            default_mem=partition.default_mem,
         )
         explicit["mem_bytes"] = "auto"  # a replay keeps its fingerprint while the history grows
     elif mem_arg is None and (config.memory.auto_default or partition.mem_auto):
@@ -521,9 +563,13 @@ def _node_request(
             args.mem_basis = dict(basis, implicit=True)
     elif mem_arg is not None:
         mem = parse_size(args.mem, field_name="--mem")
-        if mem <= 0 or mem > partition.max_mem:
+        limit = partition.mem_limit(int(getattr(args, "priority", None) or 0), borrow is not None)
+        if mem <= 0 or mem > limit:
             raise ValueError(
-                f"--mem must be between 1M and {format_size(partition.max_mem)} in partition {where}"
+                f"--mem must be between 1M and {format_size(limit)} in partition {where}"
+                + ("" if limit != partition.max_mem or partition.priority_max_mem is None else
+                   f" ({format_size(partition.priority_max_mem[1])} for owner jobs of priority "
+                   f"{partition.priority_max_mem[0]} or more)")
             )
         explicit["mem_bytes"] = mem
         if store is not None and name:
@@ -531,7 +577,16 @@ def _node_request(
             args.mem_warning = over_request_warning(mem, history, name=name, cores=requested,
                                                     config=config.memory)
     time_limit = partition.default_time
-    if getattr(args, "time", None) is not None:
+    args.time_basis = None
+    if getattr(args, "time", None) is not None and str(args.time).strip().lower() == "auto":
+        # 0.8.0: from the runtimes of earlier jobs of this name (family)
+        from .memory import auto_time_limit
+
+        history = store.runtime_history() if store is not None else []
+        time_limit, args.time_basis = auto_time_limit(history, name=name or "", default=partition.default_time,
+                                                      maximum=partition.max_time)
+        explicit["time_limit_s"] = "auto"
+    elif getattr(args, "time", None) is not None:
         time_limit = parse_time_limit(args.time, field_name="--time")
         explicit["time_limit_s"] = time_limit
         if partition.max_time is not None and (time_limit is None or time_limit > partition.max_time):
@@ -541,6 +596,12 @@ def _node_request(
     priority = getattr(args, "priority", None)
     if priority is not None:
         explicit["priority"] = priority
+    if (borrow is None and requested >= 0.75 * len(partition.cpus) and len(partition.cpus) > 1
+            and (priority or 0) < 10):
+        # 0.8.0: a near-whole-pool job at default priority holds the queue head
+        print(f"simq: warning: {requested} of {len(partition.cpus)} cores at priority {priority or 0}: while it "
+              "waits for them, the reservation keeps every longer job behind it waiting; ask for fewer cores, give "
+              "an accurate -t (or -t auto), or use --priority 10 for a pilot", file=sys.stderr)
     if args.partition is not None:
         explicit["partition"] = recorded
     scheduling = {
@@ -572,6 +633,18 @@ def _node_request(
     if getattr(args, "exclusive_timing", False):
         scheduling["exclusive_timing"] = 1
         explicit["exclusive_timing"] = 1
+    if l3_count is not None or split is not None:
+        from .scheduler import Request, request_is_feasible
+
+        probe = Request(job_id=0, partition=recorded, ncpus=requested, l3_domains=l3_count,
+                        split_domains=None if split is None else tuple(split))
+        reason = request_is_feasible(probe, partition, config)
+        if reason is not None:
+            raise ValueError(reason)
+        if l3_count is not None:
+            scheduling["l3_domains"] = explicit["l3_domains"] = l3_count
+        if split is not None:
+            scheduling["split_domains"] = explicit["split_domains"] = json.dumps(split)
     return requested, scheduling, explicit
 
 
@@ -664,6 +737,13 @@ def _describe_request(job: dict[str, Any]) -> str:
         parts.append(text)
     if job.get("exclusive_timing"):
         parts.append("exclusive timing")
+    if job.get("l3_domains"):
+        parts.append(f"over {job['l3_domains']} L3 domains")
+    if job.get("split_domains"):
+        try:
+            parts.append("split over L3 domains " + "+".join(str(p) for p in json.loads(str(job["split_domains"]))))
+        except ValueError:
+            pass
     return ", ".join(parts)
 
 
@@ -1587,7 +1667,14 @@ def _memory_fields(job: dict[str, Any], config: NodeConfig | None) -> list[tuple
         end = _parse_time(job.get("finished_at")) or datetime.now(UTC)
         average = ""
         if start is not None and (end - start).total_seconds() > 0:
-            average = f", {int(cpu) / 1e6 / (end - start).total_seconds():.2f} cores on average"
+            cores_used = int(cpu) / 1e6 / (end - start).total_seconds()
+            average = f", {cores_used:.2f} cores on average"
+            allocated = len(parse_cpu_list(str(job.get("cpu_list") or ""))) if job.get("cpu_list") else 0
+            if allocated:
+                share = cores_used / allocated
+                average += f" = {100 * share:.0f}% of its {allocated} allocated core(s)"
+                if share < 0.5 and (end - start).total_seconds() >= 60:
+                    average += " (UNDER-USED: fewer cores would do)"
         fields.append(("CPU time", f"{int(cpu) / 1e6:.1f} s{average}"))
     series = Series.from_json(job.get("mem_series_json"))
     if series.buckets:
@@ -1908,6 +1995,18 @@ def _node_status(config: NodeConfig, store: QueueStore, *, sample_s: float = 0.0
         for group in telemetry.groups:
             for cpu in group.cpus:
                 groups_by_cpu[cpu] = (group, telemetry.group_trees.get(group.key, set()))
+    # 0.8.0: per-CPU utilization over a short window (/proc/stat)
+    from .nodeworker import read_proc_stat
+
+    first = read_proc_stat()
+    time.sleep(max(0.5, min(sample_s, 2.0)) if sample_s >= 0 else 0.5)
+    second = read_proc_stat()
+    utilization: dict[int, float] = {}
+    if first and second:
+        for cpu, (busy, total) in second["cpus"].items():
+            old = first["cpus"].get(cpu)
+            if old and total > old[1]:
+                utilization[cpu] = max(0.0, min(1.0, (busy - old[0]) / (total - old[1])))
     no_borrow: set[int] = set()
     from .locks import lock_holders
 
@@ -1919,7 +2018,10 @@ def _node_status(config: NodeConfig, store: QueueStore, *, sample_s: float = 0.0
     for part in config.partitions.values():
         cpus = []
         for cpu in part.cpus:
-            entry: dict[str, Any] = {"cpu": cpu, "borrowers": on_cpu.get(cpu, []), "no_borrow": cpu in no_borrow}
+            entry: dict[str, Any] = {"cpu": cpu, "borrowers": on_cpu.get(cpu, []), "no_borrow": cpu in no_borrow,
+                                     "utilization": utilization.get(cpu),
+                                     "siblings": [{"cpu": s, "utilization": utilization.get(s),
+                                                   "borrowers": on_cpu.get(s, [])} for s in config.siblings(cpu)]}
             if cpu in owner:
                 entry.update({"state": f"job {owner[cpu]}", "class": "job", "job_id": owner[cpu]})
             elif cpu in busy_cpus:
@@ -1950,6 +2052,25 @@ def _node_status(config: NodeConfig, store: QueueStore, *, sample_s: float = 0.0
                 entry.update({"state": "free", "class": "free"})
             cpus.append(entry)
         queued = [j for j in jobs if j["state"] == "queued" and config.canonical_partition(j.get("partition")) == part.name]
+        domains = []
+        for index, group in enumerate(config.topology.domains):
+            cores = [cpu for cpu in group if cpu in part.cpus]
+            if not cores:
+                continue
+            info = config.topology.info[index] if index < len(config.topology.info) else None
+            users: dict[int, list[int]] = {}
+            for cpu in cores:
+                if cpu in owner:
+                    users.setdefault(owner[cpu], []).append(cpu)
+            domains.append({
+                "index": index,
+                "cores": cores,
+                "logical_cpus": list(info.cpus) if info is not None else cores,
+                "l3_bytes": None if info is None else info.size_bytes,
+                "busy": sum(len(v) for v in users.values()),
+                "borrowed": sum(1 for cpu in cores if cpu not in owner and on_cpu.get(cpu)),
+                "jobs": {str(job_id): format_cpu_list(cpus) for job_id, cpus in sorted(users.items())},
+            })
         partitions.append(
             {
                 "name": part.name,
@@ -1966,6 +2087,8 @@ def _node_status(config: NodeConfig, store: QueueStore, *, sample_s: float = 0.0
                 "lend": part.lend,
                 "lend_leased_idle": part.lend_leased_idle,
                 "timing_sensitive": part.timing_sensitive,
+                "l3_domains": domains,
+                "l3_placement": config.topology.l3_placement,
             }
         )
     gpus = []
@@ -2019,6 +2142,9 @@ def _node_status(config: NodeConfig, store: QueueStore, *, sample_s: float = 0.0
         "memory_allocated": mem_used,
         "memory_borrowed": borrowed_mem,
         "node_memory": _node_memory_status(config, store, jobs),
+        "cpu_utilization": {"window_s": 0.5 if sample_s <= 0 else min(sample_s, 2.0),
+                            "cpus": {str(k): round(v, 3) for k, v in sorted(utilization.items())},
+                            "recorded_by_worker": _meta_json(store, "cpu_utilization")},
         "lock_files": config.locks.enabled,
         "sample_s": sample_s,
         "borrow": {
@@ -2070,7 +2196,39 @@ def _node_memory_status(config: NodeConfig, store: QueueStore, jobs: list[dict[s
             status["pressure"] = json.loads(pressure)
         except ValueError:
             status["pressure"] = {"raw": pressure}
+    # 0.8.0: the admission ceiling -- the worker's (best over the last hour)
+    # and the one this moment's memory gives
+    admission: dict[str, Any] = {}
+    worker = _read_json_file(state_dir() / "admission.json")
+    if isinstance(worker, dict) and worker.get("ceiling") is not None:
+        admission["worker"] = worker
+    if node is not None and config.memory.enabled:
+        from .memory import admission_margin
+
+        margin = admission_margin(config.memory, node.total)
+        now = node.available + sum(currents) - margin
+        if config.memory_schedulable is not None:
+            now = min(now, config.memory_schedulable - margin)
+        admission["now"] = now
+    if admission:
+        status["admission"] = admission
     return status
+
+
+def _print_node_utilization(status: dict[str, Any]) -> None:
+    """Node-level used against idle cores (0.8.0)."""
+    cores = [cpu for part in status["partitions"] for cpu in part["cpus"]]
+    measured = [cpu for cpu in cores if cpu.get("utilization") is not None]
+    if not measured:
+        return
+    used = sum(cpu["utilization"] for cpu in measured)
+    idle = [cpu["cpu"] for cpu in measured if cpu["utilization"] < 0.1]
+    siblings = [s for cpu in cores for s in cpu.get("siblings") or [] if s.get("utilization") is not None]
+    sibling_text = ""
+    if siblings:
+        sibling_text = (f"; SMT siblings {sum(s['utilization'] for s in siblings):.1f} of {len(siblings)} busy")
+    print(f"CPU use over {status['cpu_utilization']['window_s']:g} s: cores {used:.1f} of {len(measured)} busy "
+          f"({100 * used / len(measured):.0f}%), idle cores: {format_cpu_list(idle) or 'none'}{sibling_text}")
 
 
 def _print_node_memory(status: dict[str, Any]) -> None:
@@ -2082,6 +2240,19 @@ def _print_node_memory(status: dict[str, Any]) -> None:
               f"queue jobs use {format_gib(memory['queue_jobs_current'])} of "
               f"{format_gib(memory['queue_jobs_requested'])} requested, outside the queue "
               f"{format_gib(memory['outside_queue'])}")
+    admission = memory.get("admission") or {}
+    worker = admission.get("worker")
+    if worker:
+        cap = worker.get("cap")
+        print(f"Admission ceiling: ~{format_gib(worker['ceiling'])} (a request above it is parked, not reserved): "
+              f"best MemAvailable with the queue idle over the last hour ~{format_gib(worker['best_idle_last_hour'])}"
+              f" - margin {format_gib(worker['margin'])}"
+              + (f", at most memory_schedulable - margin = {format_gib(cap)}" if cap is not None else "")
+              + (f"; this moment's memory alone gives ~{format_gib(admission['now'])}" if "now" in admission else "")
+              + f" [worker, {worker.get('at')}]")
+    elif "now" in admission:
+        print(f"Admission ceiling: ~{format_gib(admission['now'])} from this moment's memory "
+              "(the worker has not published its value; it uses the best over the last hour)")
     pressure = memory.get("pressure")
     if pressure:
         culprit = pressure.get("culprit") or {}
@@ -2095,6 +2266,14 @@ def _print_node_memory(status: dict[str, Any]) -> None:
         print(f"  job {row['job_id']:>5} {_abbreviate(str(row.get('name') or ''), 24):<24} "
               f"now {format_gib(current):>6}{percent:<7} peak {format_gib(row.get('peak')):>6} "
               f"request {format_size(request) if request is not None else '-':>5}{flags}")
+
+
+def _meta_json(store: QueueStore, key: str) -> Any:
+    raw = store.get_meta(key)
+    try:
+        return None if raw is None else json.loads(raw)
+    except ValueError:
+        return None
 
 
 def _policy_text(part: dict[str, Any]) -> str:
@@ -2123,6 +2302,15 @@ def _core_text(cpu: dict[str, Any]) -> str:
         text = "free"
     for holder in cpu.get("holders", [])[:4]:
         text += f"\n        holder pid {holder['pid']}: {holder['command']}"
+    if cpu.get("utilization") is not None:
+        text += f" [busy {100 * cpu['utilization']:.0f}%"
+        siblings = [s for s in cpu.get("siblings") or [] if s.get("utilization") is not None]
+        if siblings:
+            text += "; sibling " + ", ".join(f"{s['cpu']} {100 * s['utilization']:.0f}%" for s in siblings)
+        text += "]"
+    for sibling in cpu.get("siblings") or []:
+        for borrower in sibling.get("borrowers") or []:
+            text += f"\n        sibling CPU {sibling['cpu']}: borrow job {borrower['job_id']}"
     for borrower in cpu.get("borrowers", []):
         if borrower["frozen"]:
             state = "frozen"
@@ -2156,6 +2344,7 @@ def _partitions(args: argparse.Namespace, store: QueueStore) -> int:
     _print_node_memory(status)
     for line in _outside_daemon_lines():
         print(line)
+    _print_node_utilization(status)
     print(f"{'PARTITION':<13} {'CPUS':<8} {'FREE':<5} {'GPUS':<5} {'MEM(def/max)':<13} {'TIME(def/max)':<27} "
           f"{'QUEUED':<7} POLICY")
     for part in status["partitions"]:
@@ -2177,6 +2366,14 @@ def _partitions(args: argparse.Namespace, store: QueueStore) -> int:
                 f"  alias {alias['name']}: defaults {alias['default_cpus']} core(s), "
                 f"{mem_text}, {format_time_limit(alias['default_time_s'])}{prefer}"
             )
+        for domain in part.get("l3_domains") or []:
+            size = f", {domain['l3_bytes'] // 1024**2} MiB" if domain.get("l3_bytes") else ""
+            jobs = "; ".join(f"job {job_id}: {cpus}" for job_id, cpus in domain["jobs"].items())
+            print(f"  L3 domain {domain['index']}: cores {format_cpu_list(domain['cores'])} (CPUs "
+                  f"{format_cpu_list(domain['logical_cpus'])}{size}): {domain['busy']}/{len(domain['cores'])} busy"
+                  + (f", {domain['borrowed']} borrowed" if domain["borrowed"] else "")
+                  + (f" ({jobs})" if jobs else "")
+                  + ("" if part.get("l3_placement", True) else " [L3 placement off]"))
         for cpu in part["cpus"]:
             print(f"    CPU {cpu['cpu']}: {_core_text(cpu)}")
     for gpu in status["gpus"]:
@@ -2489,7 +2686,20 @@ def _add_node_request_options(parser: argparse.ArgumentParser, *, cpus: bool, gp
         help="node mode: memory limit, e.g. 4G (bare number = MiB); 'auto': 1.25 x the largest recent peak "
         "of earlier jobs with this name (or name family), bounded by the partition's min_mem and max_mem",
     )
-    parser.add_argument("-t", "--time", metavar="TIME", help="node mode: time limit, e.g. 30, 2:00:00, 1-12:00:00")
+    parser.add_argument(
+        "-t", "--time", metavar="TIME",
+        help="node mode: time limit, e.g. 30, 2:00:00, 1-12:00:00; 'auto' (0.8): 1.5 x the 95th percentile runtime "
+        "of earlier jobs with this name (or name family)",
+    )
+    parser.add_argument(
+        "--l3-domains", type=int, metavar="N",
+        help="node mode (0.8): spread the cores evenly over N L3 cache domains (default: one domain when it fits)",
+    )
+    parser.add_argument(
+        "--split-domains", metavar="A,B",
+        help="node mode (0.8): A cores in one L3 domain, B in another (sets the core count); the job finds them "
+        "in SIMQ_L3_DOMAINS in that order",
+    )
     parser.add_argument("--priority", type=int, metavar="N", help="node mode: priority (higher first; default 0)")
 
 

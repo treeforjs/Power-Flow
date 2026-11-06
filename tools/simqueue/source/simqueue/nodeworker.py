@@ -134,6 +134,7 @@ SPEC_SCHEMA = "simqueue-job-spec-v1"
 LOCK_BUSY_REFUSAL = "lock-busy"
 STOP_RESEND_SECONDS = 30.0
 WAKE_FIFO = "worker.wake"
+ADMISSION_FILE = "admission.json"  # 0.8.0: the admission ceiling, for simq partitions
 CONTAINMENT_FILE = "containment.json"  # 0.7.2: outside MPI daemons seen by the escape scan
 EXIT_WATCH_SECONDS = 5.0  # after a wake-up, look for ended job units this long ...
 EXIT_WATCH_STEP = 0.2  # ... this often (a stop-post hook wakes the worker just before its unit ends)
@@ -236,6 +237,28 @@ def _shm_in_use(directory: str) -> set[str]:
     return found
 
 
+def read_proc_stat(path: str = "/proc/stat") -> dict[str, Any] | None:
+    """Busy and total jiffies per logical CPU (0.8.0 utilization)."""
+    try:
+        with open(path, "rb") as handle:
+            text = handle.read().decode("ascii", "replace")
+    except OSError:
+        return None
+    cpus: dict[int, tuple[int, int]] = {}
+    for line in text.splitlines():
+        if not line.startswith("cpu") or line.startswith("cpu "):
+            continue
+        name, *values = line.split()
+        try:
+            numbers = [int(v) for v in values[:8]]
+            cpu = int(name[3:])
+        except ValueError:
+            continue
+        idle = numbers[3] + (numbers[4] if len(numbers) > 4 else 0)
+        cpus[cpu] = (sum(numbers) - idle, sum(numbers))
+    return {"unix": time.time(), "cpus": cpus}
+
+
 def job_allocation(job: dict[str, Any], config: NodeConfig) -> Allocation:
     try:
         cpus = parse_cpu_list(str(job.get("cpu_list") or ""))
@@ -294,7 +317,39 @@ def job_request(job: dict[str, Any], config: NodeConfig) -> Request:
         borrow_from=_borrow_from(job),
         exclusive_timing=bool(job.get("exclusive_timing")),
         on_preempt=str(job.get("on_preempt") or config.borrow.default_on_preempt),
+        l3_domains=None if job.get("l3_domains") is None else int(job["l3_domains"]),
+        split_domains=_split_domains(job),
     )
+
+
+def _split_domains(job: dict[str, Any]) -> tuple[int, ...] | None:
+    raw = job.get("split_domains")
+    if not raw:
+        return None
+    try:
+        value = json.loads(str(raw))
+    except ValueError:
+        return None
+    return tuple(int(item) for item in value) if isinstance(value, list) and value else None
+
+
+def l3_groups(config: NodeConfig, cpus: tuple[int, ...], split: tuple[int, ...] | None = None) -> list[tuple[int, ...]]:
+    """A job's cores grouped by L3 domain (0.8.0): in domain order, or for a
+    split request in the order of its parts (the first part's domain first)."""
+    groups = [tuple(c for c in cpus if c in group) for group in config.topology.domains]
+    groups = [g for g in groups if g]
+    rest = tuple(c for c in cpus if all(c not in g for g in groups))
+    if rest:
+        groups.append(rest)
+    if split and len(split) == len(groups):
+        remaining = list(groups)
+        ordered = []
+        for part in split:
+            match = next((g for g in remaining if len(g) == part), remaining[0])
+            remaining.remove(match)
+            ordered.append(match)
+        groups = ordered
+    return groups
 
 
 def _borrow_from(job: dict[str, Any]) -> tuple[str, ...] | None:
@@ -408,6 +463,15 @@ def placement_environment(
         "SIMQ_TIME_LIMIT": "" if time_limit is None else str(time_limit),
         "SIMQ_LOG": str(job["log_path"]),
         "SIMQ_UNIT": unit,
+        # 0.8.0: the job's cores per L3 domain ("0-3;8-11"), and which domains
+        "SIMQ_L3_DOMAINS": ";".join(format_cpu_list(g) for g in l3_groups(
+            config, allocation.cpus, _split_domains(job))),
+        # 0.8.0: the NUMA nodes of the job's cores, for MPI launchers' binding
+        "SIMQ_NUMA_NODES": ",".join(str(n) for n in sorted({config.topology.numa_of(c) for c in allocation.cpus}
+                                                           - {None})),
+        "SIMQ_L3_DOMAIN_IDS": ",".join(
+            str(config.topology.domain_of(g[0])) for g in l3_groups(config, allocation.cpus, _split_domains(job))
+            if config.topology.domain_of(g[0]) is not None),
         "CUDA_VISIBLE_DEVICES": gpus,
         "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
         ENSEMBLE_DRAIN_PROTOCOL_ENV: f"{ENSEMBLE_CONTROL_PROTOCOL}:{job['launch_token']}",
@@ -472,6 +536,7 @@ class NodeWorker:
         self._lock_file: Any = None
         self._stop_sent: dict[int, float] = {}
         self._reasons: dict[int, str] = {}
+        self._reserved_since: dict[int, float] = {}
         self._reason_written: dict[int, float] = {}
         self._noted: set[tuple[int, str]] = set()
         self.job_root = state_dir() / "jobs"
@@ -514,6 +579,8 @@ class NodeWorker:
         self._daemons_seen: set[tuple[int, str]] = set()
         self._escapes_logged: set[tuple[int, int]] = set()
         self._admissible: int | None = None
+        self._admission_written: tuple[float, int] | None = None  # (unix, ceiling) of admission.json
+        self._proc_stat: dict[str, Any] | None = None
         self.passes = 0
         self.unit_queries = 0
         # 0.7.0: GitHub reporting (posting thread started on first use)
@@ -886,6 +953,7 @@ class NodeWorker:
         stop-post, else the finished status), else the worker's samples."""
         job_id = int(job["id"])
         recorded: dict[str, Any] = {}
+        status = stop_post = None
         if job.get("job_dir"):
             status, stop_post = self._job_files(job)
             for record in (status, stop_post):  # stop-post is later: it wins
@@ -910,6 +978,16 @@ class NodeWorker:
         if peak is None and cpu is None:
             return None
         usage: dict[str, Any] = {"peak": peak, "source": source, "cpu_usec": cpu, "sampled_at": utc_now()}
+        # 0.8.0: average utilization of the allocated cores over the run
+        started = _parse_time(job.get("started_at"))
+        ended = None
+        for record in (status, stop_post) if job.get("job_dir") else ():
+            if record and (record.get("finished_unix") or record.get("recorded_unix")):
+                ended = float(record.get("finished_unix") or record.get("recorded_unix"))
+        ended = ended or time.time()
+        cores = len(_job_cpus(job))
+        if cpu is not None and started is not None and cores and ended > started:
+            usage["utilization"] = round(int(cpu) / 1e6 / ((ended - started) * cores), 4)
         if track is not None and track.series.buckets:
             usage["series"] = track.series.to_json()
         return usage
@@ -1174,6 +1252,10 @@ class NodeWorker:
                 shadow = reservation[1]
                 if shadow != INFINITY:
                     reason += f"; reserved to start by {_iso(shadow)}"
+                # 0.8.0: how long the head of the queue has held its reservation
+                since = self._reserved_since.setdefault(job_id, time.time())
+                minutes = int((time.time() - since) // 60)
+                reason += f"; head of the queue for {minutes} min"
             previous = self._reasons.get(job_id)
             if previous != reason:
                 # a memory reason carries live numbers: rewrite it at most every 30 s
@@ -1686,6 +1768,7 @@ class NodeWorker:
         if self.config.memory_schedulable is not None:
             ceiling = min(ceiling, self.config.memory_schedulable - margin)
         self._admissible = ceiling
+        self._publish_admission(ceiling, best, margin, node.available)
         parked: dict[int, str] = {}
         for job in queued:
             request = int(job.get("mem_bytes") or job_request(job, self.config).mem or 0)
@@ -1695,6 +1778,25 @@ class NodeWorker:
                     f"{self.config.node} (MemAvailable with the queue idle ~{format_gib(best)} - margin "
                     f"{format_gib(margin)}); it starts when that much is free, other jobs go ahead")
         return node.available - margin - self._ramping(active), parked
+
+    def _publish_admission(self, ceiling: int, best: int, margin: int, available: int) -> None:
+        """0.8.0: the admission ceiling for ``simq partitions`` (``admission.json``
+        in the state directory), written when it moves by 128 MiB or more, or
+        every 5 minutes."""
+        now = time.time()
+        last = self._admission_written
+        if last is not None and abs(ceiling - last[1]) < 128 * 1024**2 and now - last[0] < 300:
+            return
+        cap = None if self.config.memory_schedulable is None else self.config.memory_schedulable - margin
+        try:
+            _atomic_json(state_dir() / ADMISSION_FILE, {
+                "schema": "simqueue-admission-v1", "at": utc_now(), "ceiling": int(ceiling),
+                "best_idle_last_hour": int(best), "margin": int(margin), "cap": cap,
+                "available_now": int(available), "window_s": 3600})
+            self._admission_written = (now, ceiling)
+        except OSError as error:
+            self.log(f"cannot write {ADMISSION_FILE}: {error!r}")
+            self._admission_written = (now, ceiling)
 
     def _ramping(self, active: list[dict[str, Any]]) -> int:
         """Requests of jobs started less than ramp_seconds ago that they have
@@ -1821,6 +1923,23 @@ class NodeWorker:
             track.dirty = False
         if updates:
             self.store.record_memory(updates)
+        self._record_core_utilization()
+
+    def _record_core_utilization(self) -> None:
+        """0.8.0: per-CPU utilization since the last record (/proc/stat),
+        kept in queue_meta ``cpu_utilization`` while jobs run."""
+        sample = read_proc_stat()
+        previous, self._proc_stat = self._proc_stat, sample
+        if previous is None or not sample or not self._tracks:
+            return
+        window = sample["unix"] - previous["unix"]
+        cpus = {}
+        for cpu, (busy, total) in sample["cpus"].items():
+            old = previous["cpus"].get(cpu)
+            if old and total > old[1]:
+                cpus[str(cpu)] = round((busy - old[0]) / (total - old[1]), 3)
+        self.store.set_meta("cpu_utilization", json.dumps(
+            {"at": utc_now(), "window_s": round(window, 1), "cpus": cpus}, sort_keys=True))
 
     def _check_exits(self) -> None:
         """A verified job unit whose cgroup is gone has ended: reconcile it."""

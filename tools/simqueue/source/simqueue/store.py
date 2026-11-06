@@ -23,7 +23,7 @@ TERMINAL_STATES = ("succeeded", "failed", "canceled", "interrupted")
 MEMBER_TERMINAL_STATES = ("succeeded", "failed", "canceled", "interrupted")
 MIGRATION_SENTINEL = Path("/run/simqueue/exclusive-installing")
 IDEMPOTENCY_KEY_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,254}$")
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 10
 # Columns added by the 0.6 node scheduler (schema 7).  Existing rows keep NULL
 # or the default, which reads as "0.5 legacy job" everywhere.
 NODE_JOB_COLUMNS = (
@@ -83,6 +83,12 @@ GITHUB_JOB_COLUMNS = (
     ("github_posted_at", "TEXT"),
     ("github_comment_id", "INTEGER"),
 )
+# Columns added by 0.8.0 (schema 10): L3-domain requests.
+L3_JOB_COLUMNS = (
+    ("l3_domains", "INTEGER"),  # spread the cores evenly over this many L3 domains
+    ("split_domains", "TEXT"),  # JSON list of core counts, one L3 domain each
+    ("cpu_utilization", "REAL"),  # CPU time / (runtime x allocated cores) of the last run
+)
 EXTRA_SUBMIT_COLUMNS = ("github_json", "mem_auto_json")
 SCHEDULING_FIELDS = (
     "partition",
@@ -98,6 +104,8 @@ SCHEDULING_FIELDS = (
     "max_borrow_cores",
     "on_preempt",
     "exclusive_timing",
+    "l3_domains",
+    "split_domains",
 )
 # Dispatch order: owner jobs before borrow jobs, then priority, then queue order.
 DISPATCH_ORDER = "borrow, priority DESC, queue_order, id"
@@ -483,7 +491,8 @@ class QueueStore:
                 # IDs are the historical FIFO order. Seed the new explicit
                 # ordering from them exactly once during the v6 migration.
                 connection.execute("UPDATE jobs SET queue_order = id")
-            for name, declaration in NODE_JOB_COLUMNS + BORROW_JOB_COLUMNS + MEMORY_JOB_COLUMNS + GITHUB_JOB_COLUMNS:
+            for name, declaration in (NODE_JOB_COLUMNS + BORROW_JOB_COLUMNS + MEMORY_JOB_COLUMNS
+                                      + GITHUB_JOB_COLUMNS + L3_JOB_COLUMNS):
                 if name not in columns:
                     connection.execute(f"ALTER TABLE jobs ADD COLUMN {name} {declaration}")
             ensemble_columns = {
@@ -562,6 +571,12 @@ class QueueStore:
                 """
                 INSERT OR IGNORE INTO queue_meta(key, value)
                     VALUES ('schema9_migrated_at', strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+                """
+            )
+            connection.execute(
+                """
+                INSERT OR IGNORE INTO queue_meta(key, value)
+                    VALUES ('schema10_migrated_at', strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
                 """
             )
             connection.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
@@ -2238,7 +2253,8 @@ class QueueStore:
                 mem_current_bytes = ?,
                 mem_sampled_at = COALESCE(?, mem_sampled_at),
                 mem_series_json = COALESCE(?, mem_series_json),
-                cpu_usage_usec = COALESCE(?, cpu_usage_usec)
+                cpu_usage_usec = COALESCE(?, cpu_usage_usec),
+                cpu_utilization = COALESCE(?, cpu_utilization)
             WHERE id = ?
             """,
             (
@@ -2248,6 +2264,7 @@ class QueueStore:
                 usage.get("sampled_at"),
                 usage.get("series"),
                 usage.get("cpu_usec"),
+                usage.get("utilization"),
                 job_id,
             ),
         )
@@ -2279,6 +2296,22 @@ class QueueStore:
                 WHERE state IN ('succeeded', 'failed', 'canceled', 'interrupted')
                   AND mem_peak_bytes IS NOT NULL
                 ORDER BY COALESCE(finished_at, created_at) DESC, id DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def runtime_history(self, *, limit: int = 2000) -> list[dict[str, Any]]:
+        """0.8.0: succeeded jobs with their runtimes, newest first."""
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, name, requested_cores,
+                       (julianday(finished_at) - julianday(started_at)) * 86400.0 AS runtime_s
+                FROM jobs
+                WHERE state = 'succeeded' AND started_at IS NOT NULL AND finished_at IS NOT NULL
+                ORDER BY finished_at DESC, id DESC
                 LIMIT ?
                 """,
                 (limit,),

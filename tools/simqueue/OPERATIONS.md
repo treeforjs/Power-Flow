@@ -1,8 +1,18 @@
-# SimQueue 0.7.2 on zenobia: operations
+# SimQueue 0.8.0 on zenobia: operations
 
 SimQueue is a single-node, Slurm-shaped scheduler. One worker
 (`simqueue.service`) schedules the whole node; every job runs in its own
 transient systemd user service, independent of the worker.
+
+0.8.0 (a minor release: schema 10, new scheduling inputs) is the version for
+the 16-core node (Ryzen 9 9950X3D2 since 2026-11-06: cores 0-15, SMT siblings
+16-31, two L3 domains CCD0 = cores 0-7 and CCD1 = cores 8-15, 96 MiB each),
+see "0.8.0" below: a job's cores stay inside one CCD when they fit (heavy jobs
+spread over the CCDs, light jobs pack, `--l3-domains`/`--split-domains`),
+SMT siblings stay idle (lending them to borrow jobs is supported but off:
+it halves an integer-heavy owner), `-t auto` derives time limits from
+history, a partition's `cpus` may be `"auto"`, and `simq partitions` shows
+the memory admission ceiling.
 
 0.7.2 (a patch release: no schema change, no new scheduling input) contains
 MPI jobs, see "0.7.2" below: every job gets its own temporary and MPI
@@ -93,26 +103,157 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 
 | Item | Path |
 |---|---|
-| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.7.2-20261105` |
-| Previous runtime (kept: job units started by 0.7.1 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.7.1-20261105` |
+| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.8.0-20261106` |
+| Previous runtime (kept: job units started by 0.7.2 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.7.2-20261105` |
 | Interpreter (unchanged from 0.5) | `/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen` |
 | Code | `source/simqueue/` (`nodeworker.py`, `memory.py` and `github.py` (0.7.0), `scheduler.py`, `borrow.py`, `telemetry.py`, `gpuqueue.py`, `gpuline.py`, `units.py`, `jobwrap.py`, `locks.py`, `nodeconfig.py`, plus the 0.5 modules) |
 | Worker wake FIFO (0.7.0) | `~/.local/state/simqueue/worker.wake` (clients and job units write a byte; the worker wakes) |
 | Direct GPU use (0.6.2) | `bin/gpu-lease` (runs `source/simqueue/gpuline.py lease`) |
 | GPU line state, tickets, log (0.6.2) | `<pic-profile>/simq-gpu-line.json`, `<pic-profile>/gpu-line.d/`, `<pic-profile>/simq-gpu-line.log` |
 | GPU claims (0.6.2) | units `simq-job-gpuclaim-<token12>.service`; files `~/.local/state/simqueue/claims/<token>/{spec,control,status}.json`, `claim.log` |
-| Node configuration (template) | `config/zenobia-node.json` (8 cores, the CPU until 2026-11-05); `config/zenobia-16core-node.json` (Ryzen 9 9950X3D2) |
+| Node configuration (template) | `config/zenobia-16core-node.json` (Ryzen 9 9950X3D2, live since 2026-11-06; `cpus: "auto"`); `config/zenobia-node.json` (8 cores, the CPU until 2026-11-05) |
 | Node configuration (live) | `~/.local/state/simqueue/node.json` (`SIMQUEUE_CONFIG`) |
-| Database | `~/.local/state/simqueue/queue.sqlite3` (schema 9 from 0.7.0: memory, CPU time and GitHub columns; schema 8 for 0.6.1 to 0.6.3; 0.6.0 used schema 7) |
+| Database | `~/.local/state/simqueue/queue.sqlite3` (schema 10 from 0.8.0: `l3_domains`, `split_domains`, `cpu_utilization`; schema 9 from 0.7.0: memory, CPU time and GitHub columns; schema 8 for 0.6.1 to 0.6.3; 0.6.0 used schema 7) |
 | Borrow slice | `~/.config/systemd/user/simqborrow.slice` (`CPUWeight=idle`) |
 | Per-job files | `~/.local/state/simqueue/jobs/NNNNNN-<token>/{spec,status,stop-post,escaped}.json` (`escaped.json`: 0.7.2, processes seen outside the job's cgroup) |
 | Per-job temporary and MPI rendezvous directory (0.7.2) | `/tmp/simq.<job>.<token12>` (`TMPDIR`, `PMIX_SYSTEM_TMPDIR`, `PMIX_SERVER_TMPDIR`, `PRTE_MCA_prte_tmpdir_base`; removed at the job's end) |
 | Outside MPI daemons (0.7.2) | `~/.local/state/simqueue/containment.json` (written by the worker's escape scan) |
+| Admission ceiling (0.8.0) | `~/.local/state/simqueue/admission.json` (written by the worker; shown by `simq partitions`) |
 | Logs | `~/.local/state/simqueue/logs/NNNNNN.log`, `~/.local/state/simqueue/worker.log` |
-| Upgrade 0.7.1 to 0.7.2 / rollback | `upgrade.py` (dry run unless `--execute`); 0.7.0 to 0.7.1: `../simqueue-0.7.1-20261105/upgrade.py`; 0.6.3 to 0.7.0: `../simqueue-0.7.0-20261105/upgrade.py` |
+| Upgrade 0.7.x to 0.8.0 / rollback | `upgrade.py` (dry run unless `--execute`); 0.7.1 to 0.7.2: `../simqueue-0.7.2-20261105/upgrade.py`; 0.7.0 to 0.7.1: `../simqueue-0.7.1-20261105/upgrade.py`; 0.6.3 to 0.7.0: `../simqueue-0.7.0-20261105/upgrade.py` |
 | Overhead benchmark (0.7.0) | `source/tools/bench-overhead.py` (0.6.3 against 0.7.0, each worker in its own unit) |
 | Switchover from 0.5 (historical) | `switchover.py` |
 | Tests | `source/run-tests.py`: `--in-job` inside a queue job (`simq run -c 2 ... -- run-tests.py --in-job`, 0.7.0), `--pure` without units; or holding the cores' lease files as before (`--shared` on cores 6-7) |
+
+## 0.8.0: topology-aware placement on the 16-core node
+
+Built on 0.7.2 (its MPI containment included) for the Ryzen 9 9950X3D2
+installed on 2026-11-06 (BIOS 2503): cores 0-15 with SMT siblings 16-31 (c
+and c+16), two L3 domains of 96 MiB -- CCD0 = cores 0-7 (logical 0-7,16-23),
+CCD1 = cores 8-15 (8-15,24-31) -- and one NUMA node, as read from this
+machine's sysfs (`test_topology.py` checks exactly this layout when it runs
+on a 9950X3D2). The live 0.7.2 was switched to
+`config/zenobia-16core-node.json` the same night (backup of the 8-core
+`node.json`: `~/.local/state/simqueue-backups/node-8core-20261106T002055Z.json`).
+`upgrade.py` installs 0.8.0 over the installed 0.7.x (0.7.2, 0.7.1 or 0.7.0,
+read from the wrapper) with `config/zenobia-16core-node.json`, migrates the
+database to schema 10 (`l3_domains`, `split_domains`, `cpu_utilization`;
+every existing row kept) and rolls back by setting the schema back to 9 in
+place; tested in a sandbox (install, adoption, GPU claim, rollback,
+refusals).
+
+What changes on this node (computed with the 0.8.0 planner on the real
+sysfs and config; `scheduling-demo.py` in the validation outputs):
+
+| Situation | 0.7.2 (lowest cores first) | 0.8.0 |
+|---|---|---|
+| empty node, two 4-rank jobs, then a 6-rank job | 0-3, 4-7, 8-13 | 0-3 (CCD0), 8-11 (CCD1: a heavy job goes to the emptiest CCD), 4-7+12-13 (fits no CCD any more) |
+| CCD0 has 5 busy cores; a 1-, a 2- and an 8-core job | 5, 6-7, 8-15 | the same: light jobs pack into the fuller CCD, the 8-rank job gets CCD1 whole |
+| core 0 busy; an 8-rank job | 1-8 (both CCDs) | 8-15 (CCD1) |
+| coupled pilot, 16 cores | 0-15 | `--split-domains 8,8`: 0-15 with `SIMQ_L3_DOMAINS=0-7;8-15` (FE ranks on one CCD, Spheral on the other) |
+| 8 ranks spread on purpose | - | `--l3-domains 2`: 0-3,8-11 |
+| all 16 cores held by two 8-rank sims; a 4-core `--borrow` build | waits | waits (siblings are not lent: `lend_siblings` false); with `lend_siblings` true it gets siblings 28-31 under `cpu.idle`, and with the CCD1 sim on `--exclusive-timing` siblings 20-23 |
+| `-t auto` | - | 1.5 x the p95 runtime of the last 20 succeeded runs, at least 10 min: the full test suite -> 15 min instead of the 2-day default |
+
+**Admission ceiling in `simq partitions`.** The worker publishes the memory
+admission ceiling it parks against (`admission.json`, written when it moves
+by 128 MiB or every 5 minutes): "Admission ceiling: ~X (a request above it is
+parked, not reserved): best MemAvailable with the queue idle over the last
+hour ~Y - margin Z, at most memory_schedulable - margin = W; this moment's
+memory alone gives ~V". `simq partitions --json` has it under
+`node_memory.admission`.
+
+- **Topology from sysfs** (`topology.py`), no hard-coded counts: L3 domains
+  from `cpu*/cache/index*/shared_cpu_list` (level 3), SMT siblings from
+  `thread_siblings_list`, NUMA nodes from `/sys/devices/system/node/node*/cpulist`.
+  The 9850X3D is one domain (96 MiB); the 9950X3D2 two 8-core domains, one
+  per chiplet. A partition's `cpus` may be `"auto"`: every physical core
+  (lowest logical CPU of each SMT group), so `config/zenobia-16core-node.json`
+  serves both CPUs (`memory_schedulable` stays 28G).
+- **Placement**: a job stays inside one L3 domain when one has room; a heavy
+  job (at least `topology.heavy_cores`, default half a domain) goes to the
+  domain with the most free cores, so concurrent heavy jobs spread over the
+  caches; a light job to the fullest domain that still fits, so whole
+  domains stay free; a job larger than any free domain takes the fewest
+  domains. `--l3-domains N` spreads a job evenly over N domains;
+  `--split-domains A,B` gives each part its own domain (the coupled pilot: FE
+  ranks on one chiplet, Spheral ranks on the other). The job finds its cores
+  per domain in `SIMQ_L3_DOMAINS` ("0-7;8-15", in the order of the parts),
+  the domains in `SIMQ_L3_DOMAIN_IDS` and its NUMA nodes in
+  `SIMQ_NUMA_NODES`. `simq partitions` shows each domain's cores, L3 size
+  and occupancy. `topology.l3_placement: false` restores lowest-core-first.
+- **Physical cores for sims; siblings lent only on request**: owner jobs get
+  whole physical cores (siblings are never allocated to owner jobs). With
+  `borrow.lend_siblings` the SMT siblings go to borrow jobs under `cpu.idle`,
+  after every free, leased-idle and owner-idle core, unless the owner runs
+  with `--exclusive-timing` (an exclusive start preempts a borrower on its
+  siblings). **It is off in the 16-core config**: measured on 2026-11-06 in a
+  1-core queue job (core 5, sibling 21), a busy process on the sibling slowed
+  an integer-heavy owner loop by 47% and SHA-NI hashing by 0.1%, and running
+  that process at `SCHED_IDLE` changed nothing -- the two threads share the
+  core's execution units, which no CPU priority controls. Turning it on
+  trades owner speed for borrower throughput; `--exclusive-timing` then
+  protects a timing-sensitive owner.
+- **Idle priority is relative to the slice's weight**: a borrower on the
+  *same* logical CPU as a process in `simq.slice` (possible only while an
+  owner-idle core is being reclaimed, or next to a process pinned there
+  without a lease) got 27% of that CPU on 2026-11-06 with 15 cores busy:
+  `simq.slice`'s weight is shared by every CPU its jobs keep busy, while the
+  borrow slice's idle weight is not. Next to a process of a terminal session
+  (`app.slice`) it got 0.3-3%. Reclaim preempts the borrower within
+  `busy_window_s` plus a pass.
+- **Utilization**: each finished job records `cpu_utilization` = CPU time /
+  (runtime x allocated cores); `simq show` flags a job below 50% over at
+  least a minute as UNDER-USED, `simq list` has a USE column. `simq
+  partitions` measures every core and its sibling over 0.5 s and prints the
+  node's used against idle cores; the worker keeps a per-CPU snapshot in
+  `queue_meta.cpu_utilization` while jobs run.
+- **Backfill starvation** (seen live: an 8-core job held the queue head for
+  77 minutes while 6 cores idled, because every other job's time limit was
+  too generous to backfill): `-t auto` takes 1.5 x the 95th-percentile
+  runtime of the last 20 succeeded jobs of the same name (else name family),
+  rounded up to 5 minutes, at least 10, at most the partition's limit, so
+  limits are accurate enough to backfill; submit warns when an owner job
+  below priority 10 asks for 75% or more of the pool's cores; with
+  `borrow.lend_reserved` (on in the 16-core config) borrow jobs use the free
+  cores held for the waiting head job whatever their time limit, and are
+  preempted by their policy when it starts; the head job's reason reads
+  "reserved to start by ...; head of the queue for N min" (`simq queue`).
+- **Memory limit by priority** (prepared, not set): a partition may carry
+  `priority_max_mem: {"min_priority": 10, "max_mem": "26G"}` so owner jobs
+  of that priority may ask for more than `max_mem`. It stays unset until the
+  full-machine pilot's memory (16 FE + 16 Spheral ranks) is measured.
+
+Future work (kept in mind, not built): NUMA memory locality
+(`cpuset.mems` -- the user manager has no cpuset controller delegated -- or
+a memory policy set by `jobwrap.py`), per-NUMA-node memory accounting for
+admission, several sockets and EPYC-sized topologies (12-16 CCDs, NPS1/2/4).
+Discovery and placement already handle N domains and N nodes generically;
+they are tested on one-, two- and four-domain single-node topologies.
+
+### Upgrading 0.7.2 to 0.8.0: `upgrade.py`
+
+```sh
+cd /home/treefor/projects/runtimes/simqueue-0.8.0-20261106
+./upgrade.py install                 # dry run
+./upgrade.py install --execute
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.7.2-to-0.8.0-<UTC> --execute
+```
+
+The preflight checks the seal; that `config/zenobia-16core-node.json` is
+valid on this machine and equal to the live `node.json` apart from the 0.8.0
+keys (`topology`, `borrow.lend_siblings`, `borrow.lend_reserved`,
+`partitions[].cpus` "auto", `priority_max_mem`, `smt_siblings` (now read from
+sysfs), `containment`, descriptions, notes) without losing a core, a GPU or
+a partition name; that the wrapper runs 0.7.x; and that a copy of the
+database migrated to schema 10 keeps every row. The install stops the worker
+(job and claim units keep running), backs up, switches the wrapper, link,
+unit and `node.json`, migrates to schema 10 and verifies the rows, starts
+0.8.0 and verifies that every running job unit and GPU claim unit is
+adopted. Rollback restores the files byte for byte, sets the schema back to
+9 in place (the 0.8.0 columns stay; 0.7.x ignores them) and 0.7.2 adopts
+everything back. Job units started by 0.8.0 run its `jobwrap.py`: after a
+rollback keep the 0.8.0 runtime until they have ended.
 
 ## 0.7.2: MPI containment
 
@@ -1524,6 +1665,19 @@ PartitionName=powerflow   Nodes=zenobia MaxTime=14-00:00:00 DefaultTime=12:00:00
 After the CPU change: `CoresPerSocket=16`. Default memory per name maps to
 `DefMemPerNode` per partition; borrow jobs map to a preemptible partition
 (`PreemptType=preempt/partition_prio`, `PreemptMode=REQUEUE`).
+
+## Validation of 0.8.0 (2026-11-06)
+
+- Full suite inside live queue job 1451 (`simq run -c 2 --mem 1G -t 0:40:00 --priority 20 -- run-tests.py --in-job`, the test units on the job's cores [4, 6]): 414 tests, 0 failure(s), 0 error(s), 12 skipped, 560 s.
+- Real-OOM tests not run (2 skipped: `SIMQ_TEST_REAL_OOM` unset, and refused on zenobia); the OOM path ran against mocked unit states (`test_oom_safety.py`), and the unit-property test checked live-started test units (OOMPolicy=stop, no Exec*Post/Stop, `memory.oom.group` 0).
+- Every suite without units, with the live-database copy: 398 tests, 0 failures (64 skipped: the unit-level tests).
+- Historical migration suites: 7 tests, 0 failures.
+- Borrower CPU share under contention (three windows): [0.004217582743995621, 0.002811172778082991, 0.005617125478159028].
+- Escape scan: 713 processes, 2.4 ms CPU the first time, 0.4 ms after.
+- Topology on the real sysfs (`test_topology.DiscoveryTests.test_ryzen_9_9950x3d2_on_this_machine`): passed: L3 domains 0-7,16-23 and 8-15,24-31 (96 MiB each), siblings c <-> c+16, one NUMA node, the 16-core configuration's cpus "auto" = 0-15.
+- Two-rank MPI reproduction (`test_containment.py`): ran (Open MPI 5.0.10 prefix of the MOOSE environment).
+- `test_shield_helper.py` cannot be imported, as before.
+- Receipts: `/home/treefor/projects/.workspace/outputs/simqueue-0.8.0-20261106/receipts/`.
 
 ## Validation of 0.7.2 (2026-11-05)
 

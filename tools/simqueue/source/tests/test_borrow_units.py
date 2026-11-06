@@ -228,8 +228,14 @@ class BorrowUnitTests(BorrowFixture, unittest.TestCase):
         cpu_after, alone_after = read_cpu_times()[cpu], self.cpu_usage_usec(cgroup)
         alone = (alone_after - alone_before) / 1e6
         core_busy = (cpu_after[0] - cpu_before[0]) / max(1, cpu_after[1] - cpu_before[1])
-        competitor = subprocess.Popen([sys.executable, str(self.projects / "burn.py"), "7.0"])
-        os.sched_setaffinity(competitor.pid, {cpu})
+        # A process outside the queue lives in app.slice (a scope of its own),
+        # not in a queue job: inside a queue job (run-tests.py --in-job) a
+        # child of the test would sit in simq.slice, whose weight is shared
+        # by every core the queue's jobs keep busy, and on 16 busy cores the
+        # borrower got 27% next to it (job 1429) against 1-3% here.
+        competitor = subprocess.Popen(
+            ["systemd-run", "--user", "--scope", "--quiet", f"--unit={self.prefix}-competitor", "--slice=app.slice",
+             "--", "taskset", "-c", str(cpu), sys.executable, str(self.projects / "burn.py"), "7.0"])
         time.sleep(0.5)
         # three windows: a disturbance from outside the test (other jobs on the
         # node, the harness itself) can spoil one, a wrong priority spoils all
@@ -347,7 +353,10 @@ class PreemptionUnitTests(BorrowFixture, unittest.TestCase):
         self.wait_until(lambda: self.job(borrow_id)["frozen_at"], message="frozen")
         self.kill9(worker)
         unit = str(self.job(borrow_id)["unit_name"])
-        self.assertEqual(self.freezer_state(unit), "frozen")
+        # the worker records the freeze before it asks systemd: killed in
+        # between, the unit still runs, and the next worker freezes it again
+        # (job 1436); either way it is frozen after the adoption below
+        self.assertIn(self.freezer_state(unit), ("frozen", "freezing", "running"))
         relocated = self.copy_runtime("restart")
         self.start_worker(launcher=self.make_launcher(relocated))
         self.wait_until(lambda: f"adopted job {borrow_id}" in self.worker_log(), message="adoption")
@@ -356,7 +365,7 @@ class PreemptionUnitTests(BorrowFixture, unittest.TestCase):
         # finds it starting or running, never lost
         self.wait_until(lambda: self.state_of(owner_id) in ("running", "succeeded"), timeout=30,
                         message="owner running after the restart")
-        self.assertEqual(self.freezer_state(unit), "frozen")
+        self.wait_until(lambda: self.freezer_state(unit) == "frozen", timeout=15, message="frozen after adoption")
         self.wait_state(owner_id, "succeeded")
         self.wait_state(borrow_id, "succeeded", timeout=60)
         self.assertEqual(len({line.split()[0] for line in ticks.read_text().splitlines()}), 1)

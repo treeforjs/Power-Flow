@@ -8,6 +8,7 @@ The unit-level tests of aliases and ``simq run`` are in test_run_units.py.
 from __future__ import annotations
 
 import json
+import tempfile
 import os
 import unittest
 from pathlib import Path
@@ -77,7 +78,10 @@ class AliasConfigTests(unittest.TestCase):
         self.assertEqual(pool.gpus, (GPU,))
         self.assertEqual(pool.aliases, OLD_NAMES)
         self.assertEqual((pool.lend, pool.lend_leased_idle, pool.timing_sensitive), (True, False, False))
-        self.assertEqual(config.siblings(6), (14,))
+        from simqueue.topology import thread_siblings
+
+        # this machine's sibling of core 6 (14 on the 9850X3D, 22 on the 9950X3D2)
+        self.assertEqual(config.siblings(6), thread_siblings([6])[6])
         # the defaults each old name had in 0.6.2, its old cores first; the pool's limits
         old = load_node_config(ZENOBIA_062)
         for name in OLD_NAMES:
@@ -119,17 +123,26 @@ class AliasConfigTests(unittest.TestCase):
         self.assertEqual(new.memory_schedulable, old.memory_schedulable)
 
     def test_16_core_config_for_the_9950x3d2(self) -> None:
+        """0.8.0: the 16-core file reads cpus, siblings and L3 domains from sysfs."""
+        from test_topology import make_sysfs
+
         document = json.loads(ZENOBIA_16.read_text())
-        config = parse_node_config(document, path=ZENOBIA_16, check_topology=False)
-        self.assertEqual(list(config.partitions), ["zenobia"])
+        self.assertEqual(document["partitions"][0]["cpus"], "auto")
+        self.assertNotIn("smt_siblings", document)
+        self.assertEqual(document["memory_schedulable"], "28G")
+        # off on zenobia: a busy sibling halves an integer-heavy owner (2026-11-06); opt in with true
+        self.assertFalse(document["borrow"]["lend_siblings"])
+        with tempfile.TemporaryDirectory() as base:
+            fake = make_sysfs(Path(base) / "sys", cores=16, domains=2)
+            document["topology"]["sysfs_cpu"] = str(fake)
+            document["smt_siblings"] = {str(c): [c + 16] for c in range(16)}
+            config = parse_node_config(document, path=ZENOBIA_16, check_topology=False)
         self.assertEqual(config.node_cpus(), tuple(range(16)))
-        for cpu in range(16):
-            self.assertEqual(config.siblings(cpu), (cpu + 16,))
+        self.assertEqual(config.topology.domains, (tuple(range(8)), tuple(range(8, 16))))
         base = "/home/treefor/projects/.workspace/outputs/pic-profile/"
         self.assertEqual(config.locks.core_lock_paths(6), (base + "testing-core.lock",))
         for cpu in (*range(6), *range(7, 16)):
             self.assertEqual(config.locks.core_lock_paths(cpu), (base + f"testing-core{cpu}.lock",))
-            self.assertEqual(config.locks.borrow_lock_paths(cpu), (base + f"borrow-core{cpu}.lock",))
         eight = pool_config()
         for name in (None, *OLD_NAMES):
             a, b = config.partition(name), eight.partition(name)
@@ -137,25 +150,20 @@ class AliasConfigTests(unittest.TestCase):
                               a.max_mem, a.max_time, a.gpus),
                              (b.resolve_default_cpus(), b.default_mem, b.default_time, b.prefer_cpus,
                               b.max_mem, b.max_time, b.gpus))
-        # Everything but the cores and their notes is the 8-core file's.
-        eight_doc = json.loads(ZENOBIA.read_text())
-        for key in ("gpus", "launch", "borrow", "gpu_line", "memory_schedulable", "default_partition", "memory",
-                    "github"):
-            self.assertEqual(document[key], eight_doc[key], key)
-        # The topology check reads this machine's CPU: the 16-core file is
-        # refused on the 8-core CPU (CPU 8 is a sibling of CPU 0 there) and
-        # must load as it is on the 9950X3D2.
-        if (os.cpu_count() or 0) < 32:
-            with self.assertRaises(ConfigError):
-                load_node_config(ZENOBIA_16)
-        else:
-            self.assertEqual(load_node_config(ZENOBIA_16).node_cpus(), tuple(range(16)))
+        # on this machine the same file loads with this machine's cores
+        here = load_node_config(ZENOBIA_16)
+        from simqueue.topology import physical_cores
+
+        self.assertEqual(here.node_cpus(), physical_cores())
 
     def test_written_sibling_map_must_match_this_machine(self) -> None:
+        from simqueue.topology import thread_siblings
+
         document = json.loads(ZENOBIA.read_text())
-        document["smt_siblings"] = {str(c): [c + 8] for c in range(8)}
-        self.assertEqual(parse_node_config(document, path=ZENOBIA).siblings(3), (11,))
-        document["smt_siblings"]["3"] = [12]
+        actual = thread_siblings(range(8))
+        document["smt_siblings"] = {str(c): list(actual[c]) for c in range(8)}
+        self.assertEqual(parse_node_config(document, path=ZENOBIA).siblings(3), actual[3])
+        document["smt_siblings"]["3"] = [actual[3][0] + 1]
         with self.assertRaises(ConfigError):
             parse_node_config(document, path=ZENOBIA)
         parse_node_config(document, path=ZENOBIA, check_topology=False)
@@ -422,10 +430,9 @@ class LiveCopyTests(unittest.TestCase):
                                "SIMQUEUE_NO_AUTOSTART": "1"})
             try:
                 store = QueueStore()
-                self.assertEqual(SCHEMA_VERSION, 9)
                 with closing(sqlite3.connect(database)) as connection:
-                    self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 9)
-                self.assertEqual(rows(), before)  # 0.7.0 adds columns and changes no schema-8 column
+                    self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], SCHEMA_VERSION)
+                self.assertEqual(rows(), before)  # 0.7.0 and 0.8.0 add columns and change no existing one
                 config = pool_config()
                 jobs = store.node_jobs() + store.list_jobs(include_all=True, limit=100000)
                 names = {job.get("partition") for job in jobs}

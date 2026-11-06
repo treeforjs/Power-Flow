@@ -1,5 +1,19 @@
 # simqueue
 
+## 0.8.0: topology-aware placement (16-core node)
+
+`topology.py` reads L3 domains, SMT siblings and NUMA nodes from sysfs; the
+planner (`scheduler.py`) keeps a job inside one L3 domain when it fits
+(heavy jobs to the emptiest domain, light jobs packed), `--l3-domains N` and
+`--split-domains A,B` ask for several, and the job gets `SIMQ_L3_DOMAINS`.
+Borrow jobs may take SMT siblings (`borrow.lend_siblings`) and cores
+reserved for a waiting head job (`borrow.lend_reserved`). `-t auto` derives
+a time limit from runtime history; a partition's `cpus` may be `"auto"`.
+Finished jobs record `cpu_utilization` (schema 10). The worker publishes the
+memory admission ceiling (`admission.json`) for `simq partitions`.
+`../upgrade.py` installs 0.8.0 over 0.7.x and rolls back (schema 10 -> 9 in
+place).
+
 ## 0.7.2: MPI containment
 
 `containment.py`: every job gets its own temporary and MPI rendezvous
