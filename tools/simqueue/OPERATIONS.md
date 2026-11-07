@@ -208,17 +208,22 @@ stays 0 or 1 for them; they get no new variable, log line or spec key.
 
 ```sh
 simq submit -c 16 --smt --mem 18G -t 2:00:00 -n logo -C <dir> -- \
-    moose-mpiexec -n 16 --map-by core --bind-to core <app> -i deck.i --n-threads=2
+    moose-mpiexec --bind-to none -n 16 <app> -i deck.i --n-threads=2
 ```
 
-`--map-by core --bind-to core` binds each rank to one core with its sibling
-(both hardware threads), and its two threads share them; Open MPI's
-`--report-bindings` shows it. With `--bind-to none` (as the logo probes ran)
-the 32 threads float over all 32 CPUs. `test_smt.SmtUnitTests` checks both
-in a real `--smt` unit with the MOOSE Open MPI (5.0) on the test job's two
-cores: bound ranks get one core and its sibling each, unbound ranks the
-whole affinity. The 16-rank run itself was not tried (the live queue runs
-0.8.1 until the install).
+With `--bind-to none` (as the logo probes already ran) every rank inherits
+the unit's affinity, and the 32 threads float over the 16 cores and their 16
+siblings. **Do not bind with Open MPI inside a job smaller than the node:**
+Open MPI 5 maps bound ranks over the machine's cores from core 0 and does
+not follow the job's CPU affinity. In the 0.8.2 validation an `--smt` job on
+cores 2-3 ran `--map-by core --bind-to core` and got its two ranks bound to
+0,16 and 1,17, cores of other jobs; unbound ranks stayed on 2-3,18-19
+(`test_smt.SmtUnitTests.test_open_mpi_ranks_in_an_smt_unit`). This is not
+new in 0.8.2 and holds for jobs without `--smt` too (SimQueue's ensembles
+already force `PRTE_MCA_bindto=none`). For a 16-core job, whose cores are
+0-15, `--map-by core --bind-to core` happens to give rank r core r and its
+sibling, and so stays inside an `--smt` job's affinity. The 16-rank run
+itself was not tried (the live queue runs 0.8.1 until the install).
 
 **CPU use.** `cpu_utilization` (USE in `simq list`) stays CPU time /
 (runtime x allocated cores): an `--smt` job can reach about 200%. The
@@ -2114,6 +2119,10 @@ down, the GPU canary).
 
 - `SIMQ_THREADS_PER_CORE` describes the affinity; nothing sets the
   application's thread count (`--n-threads`) or `OMP_NUM_THREADS`.
+- SimQueue sets the unit's CPU affinity, not a cgroup cpuset: an MPI
+  launcher that binds explicitly (Open MPI 5 `--bind-to core`) places ranks
+  by the machine's topology and can leave the job's cores (see "Using it for
+  MOOSE/Zapdos"); use `--bind-to none` unless the job holds every core.
 - `-c` counts whole cores: a job cannot ask for single siblings, and the
   siblings of other jobs' cores are never given to it.
 - CPU use is measured per physical core (up to about 200%); `--mem auto` and

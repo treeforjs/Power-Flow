@@ -7,8 +7,8 @@ directly, no unit).  StartPathTests run ``simq worker --once`` with stub
 systemd-run/systemctl (nothing is started) under 0.8.2 and under the 0.8.1
 runtime: a job without --smt gets the same unit command and spec from both.
 SmtUnitTests (SIMQ_TEST_CPUS) start real --smt units on the leased cores;
-one runs Open MPI's --report-bindings inside one (skipped without the MOOSE
-Open MPI launcher).
+one runs Open MPI (the MOOSE launcher; skipped without it) inside one, with
+and without binding.
 """
 
 from __future__ import annotations
@@ -454,30 +454,41 @@ class SmtUnitTests(NodeFixture, unittest.TestCase):
         self.assertFalse([k for k in payload["env"] if "SMT" in k or "THREADS" in k])
         self.assertNotIn("SMT:", self.log_text(plain))
 
-    def test_open_mpi_binds_ranks_to_whole_cores(self) -> None:
+    def test_open_mpi_ranks_in_an_smt_unit(self) -> None:
+        """Open MPI 5 (the MOOSE launcher) in a real --smt unit.  Unbound
+        ranks inherit the unit's affinity (the cores and their siblings).
+        Bound ranks (--map-by core --bind-to core) get a whole core each, its
+        sibling included, but Open MPI maps them over the machine's cores from
+        core 0 and does not follow the unit's affinity (seen in the 0.8.2
+        validation: ranks on 0,16 and 1,17 for a job on cores 2-3); the
+        receipt records where they landed."""
+        from simqueue.nodeconfig import sibling_map
+
         if not MOOSE_MPIEXEC.exists():
             self.skipTest(f"{MOOSE_MPIEXEC} not present")
         ranks = len(self.cpus)
         show = "grep Cpus_allowed_list /proc/self/status"
-        script = (f"{MOOSE_MPIEXEC} -n {ranks} --map-by core --bind-to core --report-bindings "
-                  f"/bin/sh -c 'echo CORE $({show} | cut -f2)'; "
-                  f"{MOOSE_MPIEXEC} -n {ranks} --bind-to none /bin/sh -c 'echo NONE $({show} | cut -f2)'")
+        script = (f"{MOOSE_MPIEXEC} -n {ranks} --bind-to none /bin/sh -c 'echo NONE $({show} | cut -f2)'; "
+                  f"{MOOSE_MPIEXEC} -n {ranks} --map-by core --bind-to core --report-bindings "
+                  f"/bin/sh -c 'echo CORE $({show} | cut -f2)'")
         job = self.submit("-c", str(ranks), "--smt", "-n", "smt-mpi", "-t", "5:00", "--shell", script)
         self.run_drain(timeout=300)
         log = self.log_text(job)
-        self.assertEqual(self.state_of(job), "succeeded", log)
         bound = sorted(tuple(parse_cpu_list(line.split()[1])) for line in log.splitlines() if line.startswith("CORE "))
         free = [tuple(parse_cpu_list(line.split()[1])) for line in log.splitlines() if line.startswith("NONE ")]
-        siblings = self.sibling_map()
-        expected = sorted(tuple(sorted({cpu, *siblings[cpu]})) for cpu in self.cpus)
-        self.assertEqual(bound, expected, log)  # each rank: one core and its sibling
-        self.assertEqual(free, [tuple(self.affinity)] * ranks, log)  # unbound ranks float over all of them
+        inside = bool(bound) and all(set(cpus) <= set(self.affinity) for cpus in bound)
         out = os.environ.get("SIMQ_TEST_RECEIPTS")
         if out:
             Path(out).mkdir(parents=True, exist_ok=True)
             (Path(out) / "smt-mpi-bindings.json").write_text(json.dumps(
-                {"cores": list(self.cpus), "affinity": list(self.affinity), "bound": bound, "unbound": free,
-                 "log": log.splitlines()}, indent=2))
+                {"cores": list(self.cpus), "affinity": list(self.affinity), "unbound": free, "bound": bound,
+                 "bound_inside_affinity": inside, "log": log.splitlines()}, indent=2))
+        self.assertEqual(self.state_of(job), "succeeded", log)
+        self.assertEqual(free, [tuple(self.affinity)] * ranks, log)  # unbound ranks float over all of them
+        self.assertEqual(len(bound), ranks, log)
+        machine = sibling_map(sorted({min(cpus) for cpus in bound}))
+        for cpus in bound:  # each bound rank: one whole core, its sibling included
+            self.assertEqual(set(cpus), {min(cpus), *machine[min(cpus)]}, log)
 
     def sibling_map(self) -> dict[int, tuple[int, ...]]:
         from simqueue.nodeconfig import load_node_config

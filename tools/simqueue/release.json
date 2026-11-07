@@ -26,7 +26,8 @@
     "refused": "--smt with --borrow; --smt on cores without a free SMT sibling",
     "cpu_utilization": "unchanged definition (CPU time / runtime x allocated cores): an --smt job can reach about 2.0",
     "rollback": "0.8.1 runs a queued --smt job as an exclusive-timing job on its cores only; a running one keeps its affinity under the 0.8.2 jobwrap.py until it ends",
-    "rejected_alternative": "an additive smt column (schema 11) would make the release 0.9.0 by the versioning rule and need a schema downgrade on rollback"
+    "rejected_alternative": "an additive smt column (schema 11) would make the release 0.9.0 by the versioning rule and need a schema downgrade on rollback",
+    "mpi": "use moose-mpiexec --bind-to none (ranks inherit the unit's affinity); Open MPI 5's --map-by core --bind-to core maps over the machine's cores from core 0 and ignores the job's affinity (validation: a job on cores 2-3 got ranks on 0,16 and 1,17), so it is right only for a job holding every core; not new in 0.8.2 and true without --smt too"
   },
   "unchanged_for_jobs_without_smt": "same unit command (CPUAffinity, properties, setenv), same spec keys and values, same job environment, same log, exclusive_timing 0 or 1 as before: test_smt.StartPathTests compares 0.8.1 and 0.8.2 for a plain, an --exclusive-timing and a GPU job",
   "features": [
