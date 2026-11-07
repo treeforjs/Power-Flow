@@ -38,6 +38,105 @@
     "simq show SMT line, simq doctor 'SMT jobs' line, submit --json smt, --test-only cpu_list_smt",
     "upgrade.py 0.8.1 <-> 0.8.2 (no schema change; keeps the live node.json; dry run shows what --smt gives and the jobs by exclusive_timing value; rollback names the --smt jobs 0.8.1 will run as exclusive-timing jobs)"
   ],
-  "tests": {},
+  "tests": {
+    "full_suite_in_live_queue_job": {
+      "queue_job": 2607,
+      "cores": [
+        2,
+        3
+      ],
+      "receipt": "/home/treefor/projects/.workspace/outputs/simqueue-0.8.2-20261106/first-run/receipts/full-suite-in-job.json",
+      "tests_run": 450,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 12,
+      "duration_s": 562.202,
+      "failed_detail": [
+        "test_smt.SmtUnitTests.test_open_mpi_binds_ranks_to_whole_cores"
+      ],
+      "skipped_detail": [
+        "test_memory.Schema9MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_memory_units.MemoryTrackingTests.test_out_of_memory_job_records_its_peak_at_the_limit: real cgroup OOM: only with SIMQ_TEST_REAL_OOM=1, never on zenobia (test_oom_safety.py covers the OOM path with a mocked unit)",
+        "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_node_worker.ConcurrencyTests.test_whole_partition_job_waits_for_all_cores: needs a two-core partition",
+        "test_node_worker.LeaseTests.test_outside_lease_holder_is_respected_and_job_units_hold_leases: needs a two-core partition",
+        "test_node_worker.LimitTests.test_out_of_memory_kills_the_whole_job: real cgroup OOM: only with SIMQ_TEST_REAL_OOM=1, never on zenobia (test_oom_safety.py covers the OOM path with a mocked unit)",
+        "test_node_worker.PfLaunchInsideAllocationTests.test_pf_launch_10_refuses_on_its_own_jobs_leases: /home/treefor/projects/Power-Flow/tools/pf-launch is no longer pf-launch 1.0",
+        "test_pool_aliases.LiveCopyTests.test_copy_of_live_database_under_the_pool: SIMQ_LIVE_DB_COPY not set",
+        "test_switchover.SwitchoverTests.test_dry_run_changes_nothing: runtime not sealed yet",
+        "test_switchover.SwitchoverTests.test_install_canary_and_rollback_restore_everything: runtime not sealed yet",
+        "test_switchover.SwitchoverTests.test_install_refuses_while_a_05_job_is_active: runtime not sealed yet"
+      ],
+      "failure_explained": "test_smt.SmtUnitTests.test_open_mpi_binds_ranks_to_whole_cores asserted that Open MPI's --map-by core --bind-to core keeps ranks inside the job's cores; it bound them to 0,16 and 1,17 for a job on 2-3 (Open MPI maps over the machine's cores). The test now checks what SimQueue controls (renamed test_open_mpi_ranks_in_an_smt_unit); its corrected assertions hold on this run's output. Every production file is byte-identical to the tested one.",
+      "not_rerun_in_a_job": "the node was then held by 16-core jobs (logo probes 2603/2604 and the logo 1080p run 2612); re-run with validate082.sh when the queue allows"
+    },
+    "pure_with_live_database_copy": {
+      "tests_run": 433,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 66,
+      "duration_s": 123.996,
+      "failed_detail": [],
+      "note": "re-run after job 2607 (whose pure run failed once only because the live-database copy was mode 600)"
+    },
+    "pure_historical_migrations": {
+      "tests_run": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "duration_s": 0.579,
+      "failed_detail": [],
+      "skipped_detail": [
+        "test_migration.MigrationTests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set",
+        "test_migration_061.Migration061Tests.test_copy_of_live_database: SIMQ_LIVE_DB_COPY not set"
+      ]
+    },
+    "open_mpi_bindings_in_an_smt_unit": {
+      "source": "/home/treefor/projects/.workspace/outputs/simqueue-0.8.2-20261106/first-run/logs/full-suite-in-job.err",
+      "cores": [
+        2,
+        3
+      ],
+      "affinity": [
+        2,
+        3,
+        18,
+        19
+      ],
+      "bind_to_none": [
+        [
+          2,
+          3,
+          18,
+          19
+        ],
+        [
+          2,
+          3,
+          18,
+          19
+        ]
+      ],
+      "bind_to_core": [
+        [
+          0,
+          16
+        ],
+        [
+          1,
+          17
+        ]
+      ],
+      "bind_to_core_inside_affinity": false
+    },
+    "first_validation_job": {
+      "queue_job": 2607,
+      "full_suite": "450 tests, 1 failure (the binding assertion of test_smt: Open MPI bound ranks to 0,16 and 1,17 for a job on cores 2-3), 12 skipped",
+      "pure_with_live_copy": "433 tests, 1 failure (test_pool_aliases.LiveCopyTests: the copy was mode 600, not read-only)",
+      "historical_migrations": "7 tests, 0 failures"
+    },
+    "not_run": "test_shield_helper.py cannot be imported (needs source/privileged/simqueue-shield), as for 0.6.0 and later"
+  },
   "machine": "AMD Ryzen 9 9950X3D2 (BIOS 2503): cores 0-15, SMT siblings 16-31, L3 CCD0 cores 0-7 / CCD1 cores 8-15, 96 MiB each, one NUMA node, 30 GB RAM"
 }

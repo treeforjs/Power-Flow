@@ -1933,6 +1933,18 @@ After the CPU change: `CoresPerSocket=16`. Default memory per name maps to
 `DefMemPerNode` per partition; borrow jobs map to a preemptible partition
 (`PreemptType=preempt/partition_prio`, `PreemptMode=REQUEUE`).
 
+## Validation of 0.8.2 (2026-11-07)
+
+- Full suite inside live queue job 2607 (`simq submit -c 2 --mem 2G -t 0:30:00 --exclusive-timing` of `validate082.sh` at default priority: `run-tests.py --in-job`; the test units on the job's cores [2, 3], the `--smt` units on those cores and their siblings 18-19): 450 tests, 1 failure(s), 0 error(s), 12 skipped (the same 12 as 0.8.1), 562 s. The failure, `test_smt.SmtUnitTests.test_open_mpi_binds_ranks_to_whole_cores`, was the test's own assertion that Open MPI's `--bind-to core` keeps ranks inside the job's cores (it does not; see "Using it for MOOSE/Zapdos"); the test now checks what SimQueue controls, and its corrected assertions hold on that run's output. Every production file is byte-identical to the tested one; only `test_smt.py` and the docs changed. The suite was not run in a second job: the node was then held by 16-core jobs (logo probes 2603/2604, the logo 1080p run 2612).
+- Real-OOM tests not run (2 skipped: `SIMQ_TEST_REAL_OOM` unset, and refused on zenobia); the OOM path runs against mocked unit states (`test_oom_safety.py`).
+- `--smt` units: real units on cores 2-3 got CPU affinity 2-3,18-19, `SIMQ_SMT=1`, `SIMQ_THREADS_PER_CORE=2`, `SIMQ_CPU_LIST_SMT=2-3,18-19`, `SIMQ_CPU_LIST=2-3`; the same request without `--smt` got 2-3 and no new variable. The upgrade sandbox ran an `--smt` job started by 0.8.2 through a rollback (adopted by 0.8.1, it kept core 2 and its sibling 18) and one queued for 0.8.1 (started on its core only, as an exclusive-timing job).
+- Jobs without `--smt`: `test_smt.StartPathTests` started a plain, an `--exclusive-timing` and a GPU job with `simq worker --once` and a stub `systemd-run` under the 0.8.1 runtime and under 0.8.2: the unit commands and job specs are identical (tokens, paths and times aside).
+- Open MPI (the MOOSE `moose-mpiexec`, Open MPI 5) in an `--smt` unit on cores [2, 3] (affinity [2, 3, 18, 19]): `--bind-to none` left each rank on [2, 3, 18, 19]; `--map-by core --bind-to core` bound the ranks to [[0, 16], [1, 17]] (each a core and its sibling), outside the job's affinity (Open MPI maps over the machine's cores, see "Using it for MOOSE/Zapdos").
+- Every suite without units, with a read-only copy of the live database (re-run after job 2607, whose pure run failed once only because that copy was writable): 433 tests, 0 failures, 0 errors (66 skipped: the unit-level tests).
+- Historical migration suites: 7 tests, 0 failures.
+- `test_shield_helper.py` cannot be imported, as before.
+- Receipts: `/home/treefor/projects/.workspace/outputs/simqueue-0.8.2-20261106/first-run/receipts/` (job 2607), `/home/treefor/projects/.workspace/outputs/simqueue-0.8.2-20261106/receipts/` (pure re-run).
+
 ## Validation of 0.8.1 (2026-11-06)
 
 - Full suite inside live queue job 1585 (`simq submit -c 2 --mem 2G -t 0:30:00 --priority 3` of `validate081.sh`: `run-tests.py --in-job`, then the runs below; the test units on the job's cores [2, 3]): 436 tests, 0 failure(s), 0 error(s), 12 skipped, 561 s.
