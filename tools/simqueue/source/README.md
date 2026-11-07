@@ -1,5 +1,21 @@
 # simqueue
 
+## 0.8.2: `--smt`, a job's cores and their SMT siblings
+
+`simq submit --smt` (owner jobs) gives the job's unit its allocated cores
+plus their SMT siblings as CPU affinity (`nodeconfig.NodeConfig.smt_affinity`;
+`-c 16` on the 9950X3D2: CPUs 0-15 and 16-31) and exports `SIMQ_SMT=1`,
+`SIMQ_THREADS_PER_CORE` and `SIMQ_CPU_LIST_SMT` (`SIMQ_CPU_LIST` stays the
+cores). The request is bit 2 of `jobs.exclusive_timing` (`--smt` stores 3; no
+schema change), so the planner, `borrow.py` and `telemetry.py`, which read
+the column as a truth value, protect an `--smt` job's cores and siblings as
+for `--exclusive-timing`, and 0.8.1 reads it as an exclusive-timing job.
+`jobwrap.py` checks an `--smt` unit's affinity against the spec's
+`affinity_cpu_list`. `simq show` and `simq doctor` show the setting. A job
+without `--smt` starts exactly as under 0.8.1 (`tests/test_smt.py` compares
+the unit command and spec of both runtimes). `../upgrade.py` installs 0.8.2
+over 0.8.1 (no schema change; the live node.json is kept) and rolls back.
+
 ## 0.8.1: backfill reservations for several blocked jobs
 
 `scheduler.py` reserves for the first `scheduler.reservation_depth` blocked
@@ -228,7 +244,7 @@ schema `simqueue-node-config-v1`) SimQueue 0.6 schedules a whole node:
   another build: on start it re-adopts running units by name and launch
   token, records jobs that ended meanwhile, and never starts a duplicate.
 - **Placement**: one logical CPU per allocated physical core (SMT siblings
-  unused), `CUDA_VISIBLE_DEVICES` = allocated GPU UUIDs (empty if none), and
+  unused; 0.8.2: with `--smt`, the cores and their siblings), `CUDA_VISIBLE_DEVICES` = allocated GPU UUIDs (empty if none), and
   `SIMQ_JOB_ID`, `SIMQ_LAUNCH_TOKEN`, `SIMQ_PARTITION`, `SIMQ_NODE`,
   `SIMQ_CPU_LIST`, `SIMQ_CPU_COUNT`, `SIMQ_NCPUS`, `SIMQ_GPUS`,
   `SIMQ_GPU_MODE`, `SIMQ_GPU_MEM`, `SIMQ_MEM`, `SIMQ_TIME_LIMIT`, `SIMQ_LOG`,

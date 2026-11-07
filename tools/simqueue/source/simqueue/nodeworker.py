@@ -48,6 +48,12 @@ keeps its recorded name in the database and in ``SIMQ_PARTITION``.
   preempted by their ``--on-preempt`` policy and the jobs that grew are
   recorded; owner jobs are never stopped for it (their own MemoryMax bounds
   them).  Dispatch resumes at the low-water mark.
+
+0.8.2: a job submitted with ``--smt`` (bit 2 of ``exclusive_timing``) gets a
+unit whose CPU affinity is its cores and their SMT siblings, and
+``SIMQ_SMT=1``, ``SIMQ_THREADS_PER_CORE`` and ``SIMQ_CPU_LIST_SMT`` (the full
+CPU list); ``SIMQ_CPU_LIST`` stays its cores.  Every other job starts exactly
+as under 0.8.1.
 """
 
 from __future__ import annotations
@@ -73,7 +79,7 @@ from .config import format_cpu_list, parse_cpu_list, project_root, state_dir
 from .borrow import Borrower, Preemption, plan_node
 from .gpuqueue import GpuQueue, GpuView
 from .locks import borrow_lock_plan, busy_resources, lock_plan_for, process_description
-from .nodeconfig import NodeConfig, format_size, format_time_limit
+from .nodeconfig import NodeConfig, format_size, format_time_limit, smt_job
 from .scheduler import INFINITY, Allocation, Request, Running, build_pool, plan
 from .telemetry import NodeTelemetry
 from .github import FINAL, Poster, build_task, job_phase
@@ -476,6 +482,22 @@ def placement_environment(
         "CUDA_VISIBLE_DEVICES": gpus,
         "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
         ENSEMBLE_DRAIN_PROTOCOL_ENV: f"{ENSEMBLE_CONTROL_PROTOCOL}:{job['launch_token']}",
+        **smt_environment(job, config, allocation.cpus),
+    }
+
+
+def smt_environment(job: dict[str, Any], config: NodeConfig, cpus: tuple[int, ...]) -> dict[str, str]:
+    """0.8.2: the variables of an ``--smt`` job (none for any other job):
+    ``SIMQ_SMT=1``, ``SIMQ_THREADS_PER_CORE`` and ``SIMQ_CPU_LIST_SMT``, the
+    unit's whole CPU affinity (its cores and their SMT siblings).
+    ``SIMQ_CPU_LIST``/``SIMQ_NCPUS`` keep counting physical cores."""
+    if not smt_job(job) or job.get("borrow"):
+        return {}
+    affinity, threads = config.smt_affinity(cpus)
+    return {
+        "SIMQ_SMT": "1",
+        "SIMQ_THREADS_PER_CORE": str(threads),
+        "SIMQ_CPU_LIST_SMT": format_cpu_list(affinity),
     }
 
 
@@ -1559,6 +1581,15 @@ class NodeWorker:
                 for lease in spec["locks"]:
                     if lease["path"] in handoff_paths:
                         lease["handoff"] = True
+            # 0.8.2: an --smt job's unit gets its cores and their SMT siblings;
+            # the wrapper checks its affinity against affinity_cpu_list
+            affinity = allocation.cpus
+            if "SIMQ_CPU_LIST_SMT" in placement:
+                affinity = tuple(parse_cpu_list(placement["SIMQ_CPU_LIST_SMT"]))
+                spec["affinity_cpu_list"] = placement["SIMQ_CPU_LIST_SMT"]
+                spec["smt_text"] = (f"cores {placement['SIMQ_CPU_LIST']} with their SMT siblings: CPU affinity "
+                                    f"{placement['SIMQ_CPU_LIST_SMT']}, {placement['SIMQ_THREADS_PER_CORE']} "
+                                    "thread(s) per core")
             if borrow:
                 spec["borrow"] = True
                 spec["borrow_text"] = (
@@ -1575,7 +1606,7 @@ class NodeWorker:
                 unit=unit,
                 description=f"simq job {job_id}: {claimed['name']}",
                 cwd=str(claimed["cwd"]),
-                cpus=allocation.cpus,
+                cpus=affinity,
                 mem_bytes=mem,
                 swap_bytes=swap,
                 runtime_max_s=runtime_max,
@@ -1602,7 +1633,9 @@ class NodeWorker:
         self.log(
             f"started {'borrow ' if borrow else ''}job {job_id} ({claimed['name']}) on partition "
             f"{partition.display_name()}: "
-            f"CPUs {placement['SIMQ_CPU_LIST']}, GPUs {placement['SIMQ_GPUS'] or 'none'}, "
+            f"CPUs {placement['SIMQ_CPU_LIST']}"
+            + (f" (SMT: affinity {placement['SIMQ_CPU_LIST_SMT']})" if "SIMQ_CPU_LIST_SMT" in placement else "")
+            + f", GPUs {placement['SIMQ_GPUS'] or 'none'}, "
             f"mem {format_size(mem)}, time {format_time_limit(request.time_limit)}, unit {unit}"
             + (f"; {spec.get('borrow_text')}" if borrow else "")
             + (f"; GPU handed over by {handoff['claim_unit']}" if handoff is not None else "")

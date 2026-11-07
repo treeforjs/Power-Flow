@@ -26,6 +26,12 @@ nothing needs attention.
 ``reservation_depth``: how many blocked owner jobs, in dispatch order, hold a
 reservation that later jobs may not delay (1: EASY backfill, the head only,
 as up to 0.8.0).
+
+0.8.2: ``simq submit --smt`` (no configuration key): the job's CPU affinity
+is its cores and their SMT siblings (``NodeConfig.smt_affinity``).  The
+request is bit 2 of ``jobs.exclusive_timing`` (``SMT_FLAG``; no schema
+change); ``--smt`` stores 3, so an SMT job is an exclusive-timing job to
+every reader of the column (its cores and siblings are never lent).
 """
 
 from __future__ import annotations
@@ -50,6 +56,15 @@ PARTITION_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 GPU_UUID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 DEFAULT_WRAPPER_PYTHON = "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen"
 UNLIMITED_WORDS = {"unlimited", "infinite", "none"}
+# 0.8.2: jobs.exclusive_timing is a bit field (no schema change).  Bit 1 is
+# --exclusive-timing: the job's cores and their SMT siblings are never lent.
+# Bit 2 is --smt: the job's CPU affinity also holds those siblings.  --smt
+# stores both bits (3), so every reader that takes the column as a truth value
+# (borrow.py, telemetry.py, the planner's Request, and 0.8.1 after a rollback)
+# protects an SMT job's cores and siblings as it protects an exclusive-timing
+# job's; only the unit's start (nodeworker) and the displays read bit 2.
+EXCLUSIVE_TIMING_FLAG = 1
+SMT_FLAG = 2
 # 0.8.1: blocked owner jobs holding a reservation (scheduler.reservation_depth)
 DEFAULT_RESERVATION_DEPTH = 8
 MAX_RESERVATION_DEPTH = 64
@@ -561,6 +576,31 @@ class NodeConfig:
             result.add(cpu)
             result.update(self.siblings(cpu))
         return result
+
+    def smt_siblings_of(self, cpus: Any) -> dict[int, tuple[int, ...]]:
+        """0.8.2: each core's SMT siblings that no partition allocates: the
+        logical CPUs an ``--smt`` job adds to its affinity."""
+        return {cpu: tuple(sorted(s for s in self.siblings(cpu) if self.partition_of(s) is None)) for cpu in cpus}
+
+    def smt_affinity(self, cpus: Any) -> tuple[tuple[int, ...], int]:
+        """0.8.2: the CPU affinity of an ``--smt`` job on the cores *cpus*
+        (the cores and those siblings) and its threads per core (the fewest
+        logical CPUs of any of its cores: 1 without siblings)."""
+        siblings = self.smt_siblings_of(cpus)
+        affinity = set(siblings)
+        for found in siblings.values():
+            affinity.update(found)
+        threads = min((1 + len(found) for found in siblings.values()), default=1)
+        return tuple(sorted(affinity)), threads
+
+
+def smt_job(job: Any) -> bool:
+    """0.8.2: whether a job row asks for its cores' SMT siblings (``--smt``:
+    bit 2 of ``exclusive_timing``)."""
+    try:
+        return bool(int(job.get("exclusive_timing") or 0) & SMT_FLAG)
+    except (TypeError, ValueError, AttributeError):
+        return False
 
 
 def _read_text(path: Path) -> str | None:

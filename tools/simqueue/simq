@@ -1,10 +1,10 @@
 #!/bin/sh
-# SimQueue 0.8.1 node scheduler (zenobia: one pool of the 16 cores, L3-aware placement, backfill reservations
-# for the first 8 blocked jobs; event-driven worker,
+# SimQueue 0.8.2 node scheduler (zenobia: one pool of the 16 cores, L3-aware placement, backfill reservations
+# for the first 8 blocked jobs, --smt for a job's cores with their SMT siblings; event-driven worker,
 # job memory tracked from the units' cgroups).  Same pinned interpreter as 0.5.
 set -eu
 unset SIMQUEUE_PCORES
 export SIMQUEUE_PROJECT_ROOT=/home/treefor/projects
 export SIMQUEUE_STATE_DIR=/home/treefor/.local/state/simqueue
 export SIMQUEUE_CONFIG=/home/treefor/.local/state/simqueue/node.json
-exec /home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen /home/treefor/projects/runtimes/simqueue-0.8.1-20261106/source/simq "$@"
+exec /home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen /home/treefor/projects/runtimes/simqueue-0.8.2-20261106/source/simq "$@"

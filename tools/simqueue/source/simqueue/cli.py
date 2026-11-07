@@ -31,6 +31,8 @@ from .ensemble import (
     tail_member_log,
 )
 from .nodeconfig import (
+    EXCLUSIVE_TIMING_FLAG,
+    SMT_FLAG,
     ConfigError,
     NodeConfig,
     config_path,
@@ -40,6 +42,7 @@ from .nodeconfig import (
     load_node_config,
     parse_size,
     parse_time_limit,
+    smt_job,
 )
 from .memory import (
     Series,
@@ -412,7 +415,7 @@ NODE_OPTIONS = (
     "partition", "cpus", "gpus", "gpu_mem", "mem", "time", "priority",
     "borrow_from", "max_borrow_cores", "on_preempt", "l3_domains", "split_domains",
 )
-NODE_FLAGS = ("borrow", "exclusive_timing")
+NODE_FLAGS = ("borrow", "exclusive_timing", "smt")
 
 
 def _submission_name(args: argparse.Namespace) -> str | None:
@@ -633,6 +636,17 @@ def _node_request(
     if getattr(args, "exclusive_timing", False):
         scheduling["exclusive_timing"] = 1
         explicit["exclusive_timing"] = 1
+    if getattr(args, "smt", False):
+        # 0.8.2: the job's CPU affinity adds its cores' SMT siblings.  Stored
+        # as bit 2 of exclusive_timing together with bit 1: an SMT job's cores
+        # and siblings are never lent (no schema change; 0.8.1 reads it as an
+        # exclusive-timing job).
+        candidates = parse_cpu_list(cpu_request) if cpu_request else partition.cpus
+        lacking = [cpu for cpu, found in config.smt_siblings_of(candidates).items() if not found]
+        if lacking:
+            raise ValueError(f"--smt: CPU(s) {format_cpu_list(lacking)} of partition {where} have no free SMT "
+                             "sibling on this node (SMT off, or the siblings are partition CPUs themselves)")
+        scheduling["exclusive_timing"] = explicit["exclusive_timing"] = EXCLUSIVE_TIMING_FLAG | SMT_FLAG
     if l3_count is not None or split is not None:
         from .scheduler import Request, request_is_feasible
 
@@ -662,6 +676,8 @@ def _borrow_options(args: argparse.Namespace, config: NodeConfig, home: str) -> 
     borrow = bool(getattr(args, "borrow", False)) or borrow_from_text is not None or maximum is not None
     if getattr(args, "exclusive_timing", False) and borrow:
         raise ValueError("--exclusive-timing is for owner jobs; a borrow job cannot request it")
+    if getattr(args, "smt", False) and borrow:
+        raise ValueError("--smt is for owner jobs; a borrow job cannot request it")
     if not borrow:
         if on_preempt is not None:
             raise ValueError("--on-preempt needs --borrow")
@@ -735,7 +751,9 @@ def _describe_request(job: dict[str, Any]) -> str:
                 pass
         text += f", on preempt {job.get('on_preempt') or 'requeue'}"
         parts.append(text)
-    if job.get("exclusive_timing"):
+    if smt_job(job):
+        parts.append("smt: cores with their SMT siblings, exclusive timing")
+    elif job.get("exclusive_timing"):
         parts.append("exclusive timing")
     if job.get("l3_domains"):
         parts.append(f"over {job['l3_domains']} L3 domains")
@@ -787,6 +805,8 @@ def _test_only(config: NodeConfig, store: QueueStore, requested: int, scheduling
         "request": {k: scheduling[k] for k in scheduling},
         "queued_ahead": position,
     }
+    if smt_job(probe):
+        payload["smt"] = True
     if 0 in started:
         allocation = started[0]
         locks = (
@@ -803,6 +823,9 @@ def _test_only(config: NodeConfig, store: QueueStore, requested: int, scheduling
                 "lease_files": [{"path": lock.path, "mode": lock.mode} for lock in locks],
             }
         )
+        if smt_job(probe):
+            affinity, threads = config.smt_affinity(allocation.cpus)
+            payload.update({"cpu_list_smt": format_cpu_list(affinity), "threads_per_core": threads})
         if allocation.borrow:
             payload["borrow_placement"] = [
                 {"cpu": cpu, "partition": part, "class": cls} for cpu, part, cls in allocation.placement
@@ -936,6 +959,8 @@ def _enqueue(args: argparse.Namespace, store: QueueStore) -> int | tuple[dict[st
             )
         if job.get("exclusive_timing"):
             payload["exclusive_timing"] = True
+        if smt_job(job):
+            payload["smt"] = True
         if basis is not None:
             payload["mem_auto"] = basis
         ceiling = _admissible_memory(node_config, store)
@@ -1588,6 +1613,9 @@ def _show(job_id: int, store: QueueStore) -> int:
                     ("Preemptions", job.get("preempt_count") or 0),
                 ]
             )
+        elif smt_job(job):
+            fields.append(("Exclusive timing", "yes (--smt): its cores and their SMT siblings are never lent"))
+            fields.append(("SMT", _smt_text(job)))
         else:
             fields.append(("Exclusive timing", "yes: its cores and their SMT siblings are never lent"))
     if job["state"] == "queued":
@@ -1673,6 +1701,8 @@ def _memory_fields(job: dict[str, Any], config: NodeConfig | None) -> list[tuple
             if allocated:
                 share = cores_used / allocated
                 average += f" = {100 * share:.0f}% of its {allocated} allocated core(s)"
+                if smt_job(job):
+                    average += " (with their SMT siblings: can exceed 100%)"
                 if share < 0.5 and (end - start).total_seconds() >= 60:
                     average += " (UNDER-USED: fewer cores would do)"
         fields.append(("CPU time", f"{int(cpu) / 1e6:.1f} s{average}"))
@@ -1683,6 +1713,31 @@ def _memory_fields(job: dict[str, Any], config: NodeConfig | None) -> list[tuple
         fields.append(("Memory history",
                        f"{sparkline(series)}  {low}-{high} MiB over {len(series.buckets)} x {series.step} s"))
     return fields
+
+
+def _smt_text(job: dict[str, Any]) -> str:
+    """0.8.2: an --smt job's CPU affinity for ``simq show``: the unit's, from
+    its spec, once it has started."""
+    spec = None
+    if job["state"] != "queued" and job.get("job_dir"):
+        spec = _read_json_file(Path(str(job["job_dir"])) / "spec.json")
+    variables = "SIMQ_SMT=1, SIMQ_THREADS_PER_CORE, SIMQ_CPU_LIST_SMT"
+    if isinstance(spec, dict) and spec.get("affinity_cpu_list"):
+        return f"yes: {spec.get('smt_text') or 'CPU affinity ' + str(spec['affinity_cpu_list'])} ({variables})"
+    if isinstance(spec, dict):
+        # started by a SimQueue without --smt (0.8.1 after a rollback)
+        return (f"requested, but started by SimQueue {spec.get('scheduler_version') or '?'}, which has no --smt: "
+                f"CPU affinity {job.get('cpu_list') or '?'} (its cores only); its siblings stay unlent")
+    try:
+        config = load_node_config()
+    except ConfigError:
+        config = None
+    threads = ""
+    if config is not None:
+        partition = config.find_partition(job.get("partition"))
+        if partition is not None:
+            threads = f", {config.smt_affinity(partition.cpus)[1]} threads per core on {config.node}"
+    return f"yes: once started, its CPU affinity is its cores and their SMT siblings{threads} ({variables})"
 
 
 def _containment_fields(job: dict[str, Any]) -> list[tuple[str, Any]]:
@@ -2546,6 +2601,7 @@ def _node_doctor(config: NodeConfig, store: QueueStore) -> int:
         ("Containment", _containment_doctor_text(config)),
         ("Backfill", f"reservations for the first {config.scheduler.reservation_depth} blocked owner job(s) in "
                      "dispatch order (scheduler.reservation_depth; 1 = EASY, the head only)"),
+        ("SMT jobs", _smt_doctor_text(config, store)),
         ("Worker wake FIFO", _wake_fifo_text()),
         ("Queue", "paused" if store.is_paused() else "accepting jobs"),
         ("Worker unit", "simqueue.service"),
@@ -2565,6 +2621,27 @@ def _node_doctor(config: NodeConfig, store: QueueStore) -> int:
     for problem in problems:
         print(f"PROBLEM: {problem}")
     return 0 if not problems else 1
+
+
+def _smt_doctor_text(config: NodeConfig, store: QueueStore) -> str:
+    """0.8.2: what ``submit --smt`` gives on this node, and the SMT jobs now."""
+    cores = config.node_cpus()
+    siblings = config.smt_siblings_of(cores)
+    added = sorted({cpu for found in siblings.values() for cpu in found})
+    if not added:
+        return "--smt unavailable: no core has a free SMT sibling on this node (SMT off?)"
+    _, threads = config.smt_affinity(cores)
+    lacking = [cpu for cpu, found in siblings.items() if not found]
+    jobs = [job for job in store.node_jobs() if smt_job(job)]
+    running = [f"{job['id']} on {job.get('cpu_list')}" for job in jobs if job["state"] in ACTIVE_STATES]
+    queued = [str(job["id"]) for job in jobs if job["state"] == "queued"]
+    now = ("running: " + ", ".join(running) if running else "none running") + (
+        f"; queued: {', '.join(queued)}" if queued else "")
+    return (f"submit --smt: CPU affinity = the job's cores and their SMT siblings (siblings {format_cpu_list(added)} "
+            f"of cores {format_cpu_list(sorted(set(cores) - set(lacking)))}, {threads} threads per core"
+            + (f"; cores {format_cpu_list(lacking)} have none" if lacking else "")
+            + "); SIMQ_SMT=1, SIMQ_THREADS_PER_CORE, SIMQ_CPU_LIST_SMT; never lent (as --exclusive-timing); "
+            + now)
 
 
 def _outside_daemon_lines() -> list[str]:
@@ -2728,6 +2805,12 @@ def _add_borrow_options(parser: argparse.ArgumentParser) -> None:
     group.add_argument(
         "--exclusive-timing", action="store_true",
         help="owner job: its cores and their SMT siblings are never lent while it runs",
+    )
+    group.add_argument(
+        "--smt", action="store_true",
+        help="owner job (0.8.2): CPU affinity = its cores and their SMT siblings (e.g. -c 16: CPUs 0-15 and "
+        "16-31), for 2 threads per core; exports SIMQ_SMT=1, SIMQ_THREADS_PER_CORE and SIMQ_CPU_LIST_SMT "
+        "(SIMQ_CPU_LIST stays the cores); implies --exclusive-timing",
     )
 
 
