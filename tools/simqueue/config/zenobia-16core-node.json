@@ -119,7 +119,8 @@
     "No GPU is ever lent: borrow jobs cannot request GPUs.",
     "0.7.0: the worker is event-driven (woken by submissions, cancellations and job ends through <state>/worker.wake; passes every poll_seconds only while something must be watched, else at most every idle_seconds); job memory is tracked from the units' cgroups (memory section); --mem auto; job state can be reported to GitHub (github section).",
     "0.8.0: cpus \"auto\": every physical core of the machine read from sysfs (lowest logical CPU of each SMT pair), siblings and L3 domains likewise, so this file serves the 8-core 9850X3D and the 16-core 9950X3D2 alike. Owner jobs get whole physical cores; SMT siblings are never allocated to them. borrow.lend_siblings is false here: a busy process on a sibling slowed an integer-heavy owner on its core by 47% (SHA-NI work by 0.1%) on 2026-11-06, and idle CPU priority cannot help with that (the two threads share the core's execution units). Set it true to lend the siblings to borrow jobs (an owner then keeps its siblings only with --exclusive-timing).",
-    "memory_schedulable stays 28G; max_mem 20G. A priority_max_mem (for example {\"min_priority\": 10, \"max_mem\": \"26G\"}) would let priority-10 owner jobs ask for more; it is not set until full-machine pilot memory is measured."
+    "memory_schedulable stays 28G; max_mem 20G. A priority_max_mem (for example {\"min_priority\": 10, \"max_mem\": \"26G\"}) would let priority-10 owner jobs ask for more; it is not set until full-machine pilot memory is measured.",
+    "0.8.2: simq submit --smt (no configuration key) gives an owner job its cores and their SMT siblings as CPU affinity (-c 16: CPUs 0-15 and 16-31), with SIMQ_SMT=1, SIMQ_THREADS_PER_CORE=2 and SIMQ_CPU_LIST_SMT; SIMQ_CPU_LIST stays the cores. An --smt job is also an --exclusive-timing job: its cores and siblings are never lent. Jobs without --smt are unchanged."
   ],
   "gpu_line": {
     "enabled": true,

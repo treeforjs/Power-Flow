@@ -1,46 +1,50 @@
 #!/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen
-"""Upgrade the node from SimQueue 0.8.0 to 0.8.1, or roll back.  Dry run by default.
+"""Upgrade the node from SimQueue 0.8.1 to 0.8.2, or roll back.  Dry run by default.
 
-    upgrade.py install  [--execute] [--config FILE] [--keep-node-config] [--adoption-timeout S]
+    upgrade.py install  [--execute] [--config FILE] [--adoption-timeout S]
                         [--starting-timeout S] [--no-auto-rollback] [--require-doctor]
     upgrade.py rollback --backup DIR [--execute]
     upgrade.py status
 
-0.8.1 is a patch release of the planner: the first scheduler.reservation_depth
-blocked owner jobs (8 in config/zenobia-16core-node.json; 1 = the EASY
-backfill of 0.8.0) hold backfill reservations instead of only the head of the
-queue, so narrow low-priority jobs can no longer take every core a wide
-higher-priority job waits for.  No schema change (the database stays at
-schema 10 and no row changes), no new job input, no new side effect.  Job
-units are independent of the worker, so running jobs are never touched: the
-worker is stopped, its wrapper, unit and node.json are switched, and the
-restarted worker re-adopts every running job unit and GPU claim unit.
+0.8.2 is a patch release: an opt-in submit option, ``simq submit --smt``,
+gives a job's unit its allocated cores plus their SMT siblings as CPU
+affinity (SIMQ_SMT=1, SIMQ_THREADS_PER_CORE, SIMQ_CPU_LIST_SMT).  The request
+is stored as bit 2 of jobs.exclusive_timing (--smt stores 3): no schema
+change, no new node configuration key, and a job without --smt starts
+exactly as under 0.8.1.  Job units are independent of the worker, so running
+jobs are never touched: the worker is stopped, its wrapper and unit are
+switched, and the restarted worker re-adopts every running job unit and GPU
+claim unit.  The live node.json is kept as it is (0.8.2 adds nothing to it).
 
 install (with --execute):
-  1. preflight: 0.8.1 runtime sealed; the new node config valid on this
-     machine and equal to the live node.json apart from the 0.8.1 keys
-     (scheduler, notes); same partition layout; wrapper runs 0.8.0; database
-     schema 10, and a copy of it opened by 0.8.1 keeps every column of every
-     row; a preview of the reservations 0.8.0 and 0.8.1 make for the queue
-     as it is now
+  1. preflight: 0.8.2 runtime sealed; the live node.json valid for 0.8.2 (and
+     how the runtime's config/zenobia-16core-node.json compares with it);
+     wrapper runs 0.8.1; database schema 10, and a copy of it opened by 0.8.2
+     keeps every column of every row; the jobs by exclusive_timing value and
+     what --smt would give on this node
   2. waits until no job is starting, stops simqueue.service (job and claim
      units keep running) and checks again
   3. backs up the database, wrapper, link, unit files, node.json, worker.log
-  4. installs the 0.8.1 wrapper, link, simqueue.service and node.json
-  5. opens the database with 0.8.1 and checks that no row changed
+  4. installs the 0.8.2 wrapper, link and simqueue.service (node.json only
+     with --config FILE)
+  5. opens the database with 0.8.2 and checks that no row changed
   6. daemon-reload, enable, start simqueue.service
   7. verifies adoption of every job unit and GPU claim unit that was active,
      the GPU line state, the wake FIFO, `simq doctor` and `simq partitions`
   On a failed verification the install rolls itself back (unless
   --no-auto-rollback).  Receipt: <backup>/install-receipt.json
 
-rollback --backup DIR (with --execute): restores the wrapper, link, unit
-files and node.json byte for byte, starts 0.8.0 and verifies that it
-adopted every active job unit and GPU claim unit (no schema change).
+rollback --backup DIR (with --execute): restores the wrapper, link and unit
+files byte for byte (node.json too if the install wrote one), starts 0.8.1
+and verifies that it adopted every active job unit and GPU claim unit (no
+schema change).  0.8.1 reads an --smt job (exclusive_timing 3) as an
+exclusive-timing job: a queued one starts on its cores only, with its cores
+and siblings unlent.
 
-Job units started by 0.8.1 run the 0.8.1 jobwrap.py (unchanged from 0.8.0):
-keep the 0.8.1 runtime after a rollback until they have ended (and the 0.8.0
-runtime after the install).
+Job units started by 0.8.2 run the 0.8.2 jobwrap.py (it checks an --smt
+unit's affinity against its cores and siblings): keep the 0.8.2 runtime
+after a rollback until they have ended (and the 0.8.1 runtime after the
+install).
 
 --home, --project-root, --systemctl, --service, --runtime and --old-runtime
 exist so that the procedure can be tested in a sandbox.
@@ -64,11 +68,11 @@ from pathlib import Path
 
 
 RUNTIME = Path(__file__).resolve().parent
-OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.8.0-20261106")
+OLD_RUNTIME = Path("/home/treefor/projects/runtimes/simqueue-0.8.1-20261106")
 OLD_RUNTIMES = {
-    Path("/home/treefor/projects/runtimes/simqueue-0.8.0-20261106"): "0.8.0",
+    Path("/home/treefor/projects/runtimes/simqueue-0.8.1-20261106"): "0.8.1",
 }
-FROM_VERSION, TO_VERSION = "0.8.0", "0.8.1"
+FROM_VERSION, TO_VERSION = "0.8.1", "0.8.2"
 PYTHON = "/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen"
 REAL_HOME = "/home/treefor"
 UNIT_FILES = ("simqueue.service", "simqueue-spheral-dispatch.path", "simqueue-spheral-dispatch.service",
@@ -78,9 +82,10 @@ UNIT_FILES = ("simqueue.service", "simqueue-spheral-dispatch.path", "simqueue-sp
 # job units themselves, so if it is back the install removes it (backed up;
 # a rollback restores it)
 INTERIM_DROPINS = ("simq-job-.service.d/50-oom-policy-stop.conf",)
-# What 0.8.1 may change in the node configuration; everything else must match
-# (and the partition layout must stay the same: checked by preflight_install).
-NEW_TOP_KEYS = {"notes", "scheduler"}
+# What a node configuration given with --config may change against the live
+# one (0.8.2 adds no key: only notes); everything else must match (and the
+# partition layout must stay the same: checked by preflight_install).
+NEW_TOP_KEYS = {"notes"}
 NEW_LAUNCH_KEYS: set = set()
 NEW_PARTITION_KEYS: set = set()
 NEW_ALIAS_KEYS: set = set()
@@ -88,7 +93,7 @@ NEW_MEMORY_KEYS = {"notes"}
 NEW_BORROW_KEYS = {"notes"}
 NEW_LOCK_KEYS = {"notes"}
 NEW_LINE_KEYS = {"notes"}
-SCHEMA_OLD, SCHEMA_NEW = 10, 10  # unchanged by 0.8.1
+SCHEMA_OLD, SCHEMA_NEW = 10, 10  # unchanged by 0.8.2
 SCHEMA = SCHEMA_OLD
 ACTIVE_STATES = ("starting", "running", "cancelling")
 # Run with the new code (python_in): both layouts as the scheduler reads them.
@@ -114,37 +119,29 @@ print(json.dumps({
     "backfill_waiting_owners": new.borrow.backfill_waiting_owners,
 }))
 """
-# Run with the new code (python_in): what 0.8.0 (depth 1) and 0.8.1 reserve
-# and start for the queue as it is now.  Approximate: outside lease holders,
-# actual memory, the GPU line and parking are not looked at.
-RESERVATION_PROBE = r"""
-import json, sqlite3, time
+# Run with the new code (python_in): what --smt gives on this node, and the
+# queued and active jobs by exclusive_timing value (0.8.2 reads bit 2 as --smt;
+# 0.8.1 never writes it).
+SMT_PROBE = r"""
+import json, sqlite3
 from contextlib import closing
 from pathlib import Path
-from simqueue.nodeconfig import load_node_config
-from simqueue.nodeworker import ACTIVE_STATES, job_request, running_entries
-from simqueue.scheduler import INFINITY, build_pool, plan
+from simqueue.config import format_cpu_list
+from simqueue.nodeconfig import load_node_config, smt_job
 config = load_node_config(Path(sys.argv[2]))
+cores = config.node_cpus()
+affinity, threads = config.smt_affinity(cores)
 with closing(sqlite3.connect(sys.argv[3], uri=True)) as connection:
     connection.row_factory = sqlite3.Row
     rows = [dict(r) for r in connection.execute(
-        "SELECT * FROM jobs WHERE state IN ('queued', 'starting', 'running', 'cancelling') "
-        "ORDER BY borrow, priority DESC, queue_order, id")]
-now = time.time()
-running = running_entries([j for j in rows if j["state"] in ACTIVE_STATES and not j.get("borrow")], config, now)
-queue = [job_request(j, config) for j in rows if j["state"] == "queued" and not j.get("borrow")]
-pool = build_pool(config, running)
-plans = {}
-for depth in sorted({1, config.scheduler.reservation_depth}):
-    began = time.perf_counter()
-    decision = plan(config, pool, running, queue, now, depth=depth)
-    plans[str(depth)] = {
-        "ms": round((time.perf_counter() - began) * 1000.0, 2),
-        "reservations": [[job, None if shadow == INFINITY else round(shadow - now)] for job, shadow in decision.reservations],
-        "starts": [request.job_id for request, _ in decision.starts],
-        "refused": len(decision.delays)}
-print(json.dumps({"depth": config.scheduler.reservation_depth, "queued": len(queue), "running": len(running),
-                  "plans": plans}))
+        "SELECT id, state, exclusive_timing FROM jobs WHERE state IN ('queued', 'starting', 'running', 'cancelling')")]
+values = {}
+for row in rows:
+    values[str(row["exclusive_timing"])] = values.get(str(row["exclusive_timing"]), 0) + 1
+print(json.dumps({"cores": format_cpu_list(cores), "affinity": format_cpu_list(affinity), "threads": threads,
+                  "siblings": format_cpu_list(sorted(set(affinity) - set(cores))),
+                  "unfinished_by_exclusive_timing": values,
+                  "smt_jobs": sorted(r["id"] for r in rows if smt_job(r))}))
 """
 
 
@@ -160,8 +157,8 @@ def sha256(path: Path) -> str | None:
 
 
 def comparable_config(document: dict) -> dict:
-    """The node configuration without what 0.8.1 may change: the notes and
-    the scheduler section."""
+    """The node configuration without what a 0.8.2 --config may change: the
+    notes."""
     result = {k: v for k, v in document.items() if k not in NEW_TOP_KEYS}
     for key, drop in (("lock_files", NEW_LOCK_KEYS), ("borrow", NEW_BORROW_KEYS), ("launch", NEW_LAUNCH_KEYS),
                       ("gpu_line", NEW_LINE_KEYS), ("memory", NEW_MEMORY_KEYS), ("github", {"notes"})):
@@ -365,6 +362,9 @@ class Upgrade:
         self.backups = self.home / ".local" / "state" / "simqueue-backups"
         self.database = self.state / "queue.sqlite3"
         self.service = args.service
+        # 0.8.2: the live node.json is kept unless --config names one to install
+        config = getattr(args, "config", None)
+        self.install_config = Path(config) if config and not getattr(args, "keep_node_config", False) else None
         self.from_version = OLD_RUNTIMES.get(self.old_runtime, FROM_VERSION)
         self.problems: list[str] = []
         self.steps: list[dict] = []
@@ -627,10 +627,14 @@ class Upgrade:
         if not (self.old_runtime / "source" / "simqueue" / "jobwrap.py").exists():
             self.problem(f"{self.from_version} runtime missing: {self.old_runtime}")
         live_config = self.state / "node.json"
-        new_config = Path(self.args.config)
+        # 0.8.2 adds no node configuration key: the live node.json is kept and
+        # checked; the runtime's template is only compared with it.  --config
+        # FILE installs FILE instead (it may differ from the live one in notes).
+        new_config = self.install_config or self.runtime / "config" / "zenobia-16core-node.json"
+        target_config = self.install_config or live_config
         try:
             live_doc = json.loads(live_config.read_text())
-            new_doc = json.loads(new_config.read_text())
+            new_doc = json.loads(new_config.read_text()) if new_config.exists() else {}
         except (OSError, ValueError) as error:
             self.problem(f"cannot read node configs: {error}")
             live_doc = new_doc = {}
@@ -644,19 +648,25 @@ class Upgrade:
             "f'{m.low_water_percent}%; github enabled={g.enabled} api={g.api_base}'"
             "f' token={\"file\" if g.token_file else \"gh auth token\"}; launch poll={c.launch.poll_seconds}s'"
             "f' idle={c.launch.idle_seconds}s')",
-            str(new_config if not self.args.keep_node_config else live_config), probe=True,
+            str(target_config), probe=True,
         )
         if check.returncode != 0:
-            self.problem(f"node config invalid for {TO_VERSION}: {last_line(check.stderr)}")
+            self.problem(f"node config {target_config} invalid for {TO_VERSION}: {last_line(check.stderr)}")
         else:
-            print(f"{TO_VERSION} node config ok: {check.stdout.strip()}")
-        if not self.args.keep_node_config and live_doc and new_doc:
+            print(f"{TO_VERSION} node config ok ({target_config}): {check.stdout.strip()}")
+        if live_doc and new_doc:
             differences = config_differences(comparable_config(live_doc), comparable_config(new_doc))
-            if differences:
-                self.problem(f"{new_config} differs from the live {live_config} beyond the {TO_VERSION} keys "
-                             f"({', '.join(differences[:8])}); reconcile them or use --keep-node-config")
+            if self.install_config is not None and differences:
+                self.problem(f"{new_config} differs from the live {live_config} beyond notes "
+                             f"({', '.join(differences[:8])}); reconcile them or leave out --config")
+            elif self.install_config is not None:
+                print(f"node config {new_config}: equal to the live one apart from notes; the install writes it")
+            elif differences:
+                print(f"node config: the live {live_config} is kept as it is ({TO_VERSION} adds no key); the "
+                      f"runtime's {new_config.name} differs from it at {', '.join(differences[:8])}")
             else:
-                print(f"node config: equal to the live one apart from the {TO_VERSION} keys (scheduler, notes)")
+                print(f"node config: the live {live_config} is kept as it is ({TO_VERSION} adds no key); the "
+                      f"runtime's {new_config.name} equals it apart from notes")
         if not self.database.exists():
             self.problem(f"database missing: {self.database}")
             return {}
@@ -672,7 +682,7 @@ class Upgrade:
         if ensembles:
             print(f"NOTE: active ensemble job(s) {ensembles}: their {self.from_version} supervisors keep working "
                   "(no schema change)")
-        self.reservation_preview(new_config if not self.args.keep_node_config else live_config)
+        self.smt_preview(target_config)
         unfinished = summary["unfinished_by_partition"]
         names: dict[str, list[int]] = {}
         for name, jobs in unfinished.items():
@@ -680,8 +690,7 @@ class Upgrade:
         print("queued and active jobs by recorded partition: "
               + (", ".join(f"{name}: {jobs}" for name, jobs in sorted(names.items())) or "none"))
         if live_doc:
-            probe = self.python_in(self.runtime, LAYOUT_PROBE, str(live_config),
-                                   str(new_config if not self.args.keep_node_config else live_config),
+            probe = self.python_in(self.runtime, LAYOUT_PROBE, str(live_config), str(target_config),
                                    json.dumps(sorted(n for n in names if n)), probe=True)
             if probe.returncode != 0:
                 self.problem(f"cannot compare the partition layouts: {last_line(probe.stderr)}")
@@ -712,37 +721,27 @@ class Upgrade:
             self.problem(f"{self.service} does not run {self.bin / 'simq'}")
         return summary
 
-    def reservation_preview(self, config: Path) -> None:
-        """What 0.8.0 (depth 1) and 0.8.1 reserve and start for the queue as
-        it is now (read-only; approximate: no lease holders, actual memory,
-        GPU line or parking)."""
+    def smt_preview(self, config: Path) -> None:
+        """What --smt gives on this node and the unfinished jobs by
+        exclusive_timing value (read-only)."""
         if not self.database.exists():
             return
         wal = Path(f"{self.database}-wal")
         uri = (f"file:{self.database}?mode=ro" if wal.exists() and wal.stat().st_size
                else f"file:{self.database}?immutable=1")
-        probe = self.python_in(self.runtime, RESERVATION_PROBE, str(config), uri, probe=True)
+        probe = self.python_in(self.runtime, SMT_PROBE, str(config), uri, probe=True)
         if probe.returncode != 0:
-            print(f"reservation preview unavailable: {last_line(probe.stderr)}")
+            self.problem(f"--smt preview failed: {last_line(probe.stderr)}")
             return
         preview = json.loads(probe.stdout)
         self.preview = preview
-
-        def when(seconds) -> str:
-            if seconds is None:
-                return "no start time"
-            return f"in {seconds // 3600} h {seconds % 3600 // 60:02d} min" if seconds >= 3600 else \
-                f"in {seconds // 60} min"
-
-        print(f"backfill reservations: depth {preview['depth']} (scheduler.reservation_depth; 1 = the EASY "
-              f"backfill of {FROM_VERSION})")
-        print(f"queue now ({preview['queued']} queued owner jobs, {preview['running']} running; approximate: "
-              "lease holders, actual memory, GPU line and parking not counted):")
-        for depth, item in sorted(preview["plans"].items(), key=lambda kv: int(kv[0])):
-            name = f"{FROM_VERSION} (depth 1)" if depth == "1" else f"{TO_VERSION} (depth {depth})"
-            reserved = ", ".join(f"{job} ({when(seconds)})" for job, seconds in item["reservations"]) or "none"
-            print(f"  {name}: reserves {reserved}; would start {item['starts'] or 'none'}; "
-                  f"{item['refused']} refused as backfill; planned in {item['ms']} ms")
+        values = preview["unfinished_by_exclusive_timing"]
+        print(f"--smt on this node: cores {preview['cores']} with siblings {preview['siblings'] or 'none'}: an --smt "
+              f"job on every core gets CPU affinity {preview['affinity']}, {preview['threads']} thread(s) per core")
+        print("queued and active jobs by exclusive_timing: "
+              + (", ".join(f"{value}: {count}" for value, count in sorted(values.items())) or "none")
+              + f" (0 and 1 as under {FROM_VERSION}; {TO_VERSION} reads bit 2 as --smt"
+              + (f"; with bit 2 already: {preview['smt_jobs']}" if preview["smt_jobs"] else "; none has it") + ")")
 
     def outside_mpi_daemons(self) -> list[dict]:
         """MPI launcher daemons of this user outside every queue job unit
@@ -875,6 +874,17 @@ class Upgrade:
             return []
         return [int(row[0]) for row in rows]
 
+    def smt_jobs(self) -> list[int]:
+        """Queued and active jobs submitted with --smt (bit 2 of exclusive_timing)."""
+        try:
+            with closing(sqlite3.connect(f"file:{self.database}?mode=ro", uri=True)) as connection:
+                rows = connection.execute(
+                    "SELECT id FROM jobs WHERE (exclusive_timing & 2) != 0 AND state IN "
+                    "('queued', 'starting', 'running', 'cancelling') ORDER BY id").fetchall()
+        except sqlite3.Error:
+            return []
+        return [int(row[0]) for row in rows]
+
     def wait_no_starting(self, timeout: float) -> list[int]:
         """Jobs still in state "starting" after waiting up to *timeout* s."""
         deadline = time.monotonic() + timeout
@@ -892,8 +902,7 @@ class Upgrade:
             return 1
         tag = now_tag()
         backup = self.backups / f"{self.from_version}-to-{TO_VERSION}-{tag}"
-        new_doc = json.loads(Path(self.args.config if not self.args.keep_node_config
-                                  else self.state / "node.json").read_text())
+        new_doc = json.loads((self.install_config or self.state / "node.json").read_text())
         state_path = line_state_path(new_doc)
         self.say(f"backup directory: {backup}")
         # no job may be in "starting" at the switch (a launch in progress)
@@ -953,6 +962,7 @@ class Upgrade:
                 "active_before": before["active"],
                 "claims_before": self.claim_units(),
                 "layout": self.layout,
+                "node_config_installed": self.install_config is not None,
             }
             (backup / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         else:
@@ -978,11 +988,13 @@ class Upgrade:
                         print(f"removed the interim drop-in {path}")
                     else:
                         self.say(f"would remove the interim drop-in {path} (backed up)")
-            if not self.args.keep_node_config:
+            if self.install_config is not None:
                 if not self.execute and self.layout is not None:
-                    self.say(f"node.json from {self.args.config}: partitions {layout_text(self.layout['new'])}")
-                self.write_file(self.state / "node.json", Path(self.args.config).read_text(), 0o600)
-            self.step("installed-wrapper-unit-and-node-config", kept_node_config=bool(self.args.keep_node_config))
+                    self.say(f"node.json from {self.install_config}: partitions {layout_text(self.layout['new'])}")
+                self.write_file(self.state / "node.json", self.install_config.read_text(), 0o600)
+            else:
+                self.say(f"keeping {self.state / 'node.json'} as it is ({TO_VERSION} adds no configuration key)")
+            self.step("installed-wrapper-and-unit", kept_node_config=self.install_config is None)
             self.say(f"opening the database (schema {SCHEMA_NEW}, unchanged) with the {TO_VERSION} code")
             if self.execute:
                 result = self.python_in(self.runtime, "from simqueue.store import QueueStore; QueueStore(); print('ok')")
@@ -1203,10 +1215,18 @@ class Upgrade:
                     current.backup(keep)
         else:
             self.say(f"would keep the database as {backup / f'queue-{TO_VERSION}-at-rollback.sqlite3'}")
+        kept = not manifest.get("node_config_installed", True)
         for name, info in manifest["files"].items():
-            if name in ("worker.log",):
+            if name in ("worker.log",) or (name == "node.json" and kept):
                 continue
             self.write_file(Path(info["source"]), (backup / name).read_bytes(), int(info["mode"], 8))
+        if kept:
+            print(f"node.json left as it is (the {TO_VERSION} install did not change it)")
+        smt_jobs = self.smt_jobs()
+        if smt_jobs:
+            print(f"NOTE: job(s) {smt_jobs} were submitted with --smt: {self.from_version} reads them as "
+                  "--exclusive-timing jobs (queued ones start on their cores only; cores and siblings stay unlent); "
+                  f"running ones keep their affinity under the {TO_VERSION} jobwrap.py until they end")
         self.point_link(manifest.get("simqueue_symlink"))
         self.step("restored-files")
         if self.execute:
@@ -1279,7 +1299,7 @@ def main() -> int:
     parser.add_argument("--execute", action="store_true", help="make the changes (default: dry run)")
     parser.add_argument("--backup", help="rollback: backup directory written by install")
     parser.add_argument("--keep-node-config", action="store_true",
-                        help="install: keep the live node.json (the GPU line then uses its defaults)")
+                        help="install: keep the live node.json (the default for 0.8.2; overrides --config)")
     parser.add_argument("--adoption-timeout", type=float, default=60)
     parser.add_argument("--starting-timeout", type=float, default=60,
                         help="install: how long to wait for jobs in state starting before the switch")
@@ -1290,7 +1310,9 @@ def main() -> int:
     parser.add_argument("--project-root", default="/home/treefor/projects")
     parser.add_argument("--runtime", default=str(RUNTIME))
     parser.add_argument("--old-runtime", default=str(OLD_RUNTIME))
-    parser.add_argument("--config", default=str(RUNTIME / "config" / "zenobia-16core-node.json"))
+    parser.add_argument("--config", default=None,
+                        help="install: write this node.json (it may differ from the live one in notes only); "
+                        "default: keep the live node.json")
     parser.add_argument("--systemctl", default="systemctl")
     parser.add_argument("--service", default="simqueue.service")
     args = parser.parse_args()

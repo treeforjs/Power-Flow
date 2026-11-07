@@ -36,6 +36,12 @@ SimQueue 0.7.2: the job's own temporary and MPI rendezvous directory (spec
 here, mode 700, before the command starts and removed once every process of
 the job has exited (see ``simqueue/containment.py``).
 
+SimQueue 0.8.2: an ``--smt`` job's unit has its cores and their SMT siblings
+as CPU affinity; its spec carries that whole list as ``affinity_cpu_list``
+(``cpu_list`` stays its cores), and the affinity check compares with it.
+Every other spec has no ``affinity_cpu_list`` and is checked against
+``cpu_list`` as before.
+
 SimQueue 0.7.0: both records carry the unit's measured use (``usage``: the
 cgroup's ``memory.peak``, ``memory.current``, ``cpu.stat`` usage_usec and
 the ``memory.events`` oom_kill count), read from the unit's own cgroup while
@@ -369,6 +375,8 @@ class Wrapper:
         _log(f"cwd:       {spec['cwd']}\n")
         _log(f"partition: {spec.get('partition', '-')}\n")
         _log(f"P-cores:   {spec['cpu_list']}\n")
+        if spec.get("affinity_cpu_list"):
+            _log(f"SMT:       {spec.get('smt_text') or spec['affinity_cpu_list']}\n")
         _log(f"GPUs:      {spec.get('gpu_text', 'none')}\n")
         _log(f"memory:    {spec.get('mem_text', '-')}\n")
         _log(f"time:      {spec.get('time_text', '-')}\n")
@@ -382,7 +390,8 @@ class Wrapper:
         in_unit = cgroup is not None and cgroup.rstrip("/").endswith("/" + spec["unit"])
         if spec.get("require_unit", True) and not in_unit:
             return self.refuse(f"not running inside unit {spec['unit']} (cgroup {cgroup})", kind="placement")
-        expected = _cpu_set(spec["cpu_list"])
+        # 0.8.2: an --smt job's affinity is its cores and their SMT siblings
+        expected = _cpu_set(spec.get("affinity_cpu_list") or spec["cpu_list"])
         observed = set(os.sched_getaffinity(0))
         if observed != expected:
             return self.refuse(

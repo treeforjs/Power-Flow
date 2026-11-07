@@ -1,8 +1,17 @@
-# SimQueue 0.8.1 on zenobia: operations
+# SimQueue 0.8.2 on zenobia: operations
 
 SimQueue is a single-node, Slurm-shaped scheduler. One worker
 (`simqueue.service`) schedules the whole node; every job runs in its own
 transient systemd user service, independent of the worker.
+
+0.8.2 (a patch release: no schema change, no node configuration key, no new
+side effect; one opt-in submit option) adds `simq submit --smt`: the job's
+unit gets its allocated cores plus their SMT siblings as CPU affinity
+(`-c 16`: CPUs 0-15 and 16-31), with `SIMQ_SMT=1`, `SIMQ_THREADS_PER_CORE=2`
+and `SIMQ_CPU_LIST_SMT`, for MPI runs with two threads per rank such as the
+i-PULSE logo run (MOOSE/Zapdos, 16 ranks, `--n-threads=2`). An `--smt` job is
+also an `--exclusive-timing` job (its cores and siblings are never lent). A
+job without `--smt` starts exactly as under 0.8.1. See "0.8.2" below.
 
 0.8.1 (a patch release of the planner: no schema change, no new job input,
 no new side effect) gives backfill reservations to the first
@@ -112,8 +121,8 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 
 | Item | Path |
 |---|---|
-| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.8.1-20261106` |
-| Previous runtime (kept: job units started by 0.8.0 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.8.0-20261106` |
+| Runtime (sealed, read-only once installed) | `/home/treefor/projects/runtimes/simqueue-0.8.2-20261106` |
+| Previous runtime (kept: job units started by 0.8.1 execute its `jobwrap.py`) | `/home/treefor/projects/runtimes/simqueue-0.8.1-20261106` |
 | Interpreter (unchanged from 0.5) | `/home/treefor/projects/runtimes/simqueue-0.5.0-20261029/python-frozen` |
 | Code | `source/simqueue/` (`nodeworker.py`, `memory.py` and `github.py` (0.7.0), `scheduler.py`, `borrow.py`, `telemetry.py`, `gpuqueue.py`, `gpuline.py`, `units.py`, `jobwrap.py`, `locks.py`, `nodeconfig.py`, plus the 0.5 modules) |
 | Worker wake FIFO (0.7.0) | `~/.local/state/simqueue/worker.wake` (clients and job units write a byte; the worker wakes) |
@@ -129,12 +138,119 @@ line" below). Without queued GPU jobs, 0.6.2 schedules exactly as 0.6.1.
 | Outside MPI daemons (0.7.2) | `~/.local/state/simqueue/containment.json` (written by the worker's escape scan) |
 | Admission ceiling (0.8.0) | `~/.local/state/simqueue/admission.json` (written by the worker; shown by `simq partitions`) |
 | Logs | `~/.local/state/simqueue/logs/NNNNNN.log`, `~/.local/state/simqueue/worker.log` |
-| Upgrade 0.8.0 to 0.8.1 / rollback | `upgrade.py` (dry run unless `--execute`); 0.7.x to 0.8.0: `../simqueue-0.8.0-20261106/upgrade.py`; 0.7.1 to 0.7.2: `../simqueue-0.7.2-20261105/upgrade.py`; 0.7.0 to 0.7.1: `../simqueue-0.7.1-20261105/upgrade.py`; 0.6.3 to 0.7.0: `../simqueue-0.7.0-20261105/upgrade.py` |
+| Upgrade 0.8.1 to 0.8.2 / rollback | `upgrade.py` (dry run unless `--execute`); 0.8.0 to 0.8.1: `../simqueue-0.8.1-20261106/upgrade.py`; 0.7.x to 0.8.0: `../simqueue-0.8.0-20261106/upgrade.py`; 0.7.1 to 0.7.2: `../simqueue-0.7.2-20261105/upgrade.py`; 0.7.0 to 0.7.1: `../simqueue-0.7.1-20261105/upgrade.py`; 0.6.3 to 0.7.0: `../simqueue-0.7.0-20261105/upgrade.py` |
 | Overhead benchmark (0.7.0) | `source/tools/bench-overhead.py` (0.6.3 against 0.7.0, each worker in its own unit) |
 | Planner cost (0.8.1) | `source/tools/bench-plan.py` (plan() and one worker pass at depths 1, 8, 16 and with the 0.8.0 planner; `--db` a copy of the queue database) |
 | Depth-1 comparison with 0.8.0 (0.8.1) | `source/tools/compare-easy.py` (the test suite with every plan() call also made by the 0.8.0 runtime's planner and compared) |
 | Switchover from 0.5 (historical) | `switchover.py` |
 | Tests | `source/run-tests.py`: `--in-job` inside a queue job (`simq run -c 2 ... -- run-tests.py --in-job`, 0.7.0), `--pure` without units; or holding the cores' lease files as before (`--shared` on cores 6-7) |
+
+## 0.8.2: `--smt`, a job's cores and their SMT siblings
+
+**Why.** The i-PULSE logo run (MOOSE/Zapdos, 16 MPI ranks with
+`--n-threads=2`) spends 64% of its runtime in assembly, which can use a
+second hardware thread per core. Up to 0.8.1 a job unit's `CPUAffinity` is
+its allocated cores only (0-15 for a 16-core job); their SMT siblings
+(16-31) stay idle, and `--exclusive-timing` keeps them unlent but does not
+give them to the job. Approved by Trevor on 2026-11-07.
+
+**What `simq submit --smt` (and `simq run --smt`) does** (owner jobs only):
+
+- The unit's CPU affinity is the job's cores and their SMT siblings: `-c 16`
+  on zenobia gets CPUs 0-15 and 16-31, a 2-core job on cores 2-3 gets
+  2-3,18-19. The allocation does not change: `-c` counts physical cores, the
+  planner, the lease files (`testing-core<K>.lock`), `SIMQ_CPU_LIST`,
+  `SIMQ_NCPUS` and `simq list` are about the cores.
+- Environment: `SIMQ_SMT=1`, `SIMQ_THREADS_PER_CORE` (2 here: the fewest
+  logical CPUs of any of the job's cores) and `SIMQ_CPU_LIST_SMT`, the whole
+  CPU list (`0-31`). `SIMQ_CPU_LIST` keeps its meaning (the cores), as
+  `ensemble.py`, pf-launch and job scripts read it.
+- Protection: an `--smt` job is also an `--exclusive-timing` job. Its cores
+  and their siblings are never lent to borrow jobs (also while
+  `borrow.lend_siblings` is true, as in the live node.json since 2026-11-06),
+  a starting `--smt` job preempts borrowers on its siblings, and owner jobs
+  never get siblings anyway.
+- `jobwrap.py` checks the unit's affinity against the cores and siblings
+  (the spec's `affinity_cpu_list`), so an `--smt` job does not fail at start
+  with "CPU affinity ... does not match the allocation"; a spec without
+  `affinity_cpu_list` (every other job) is checked against its cores as
+  before. The job log gets an `SMT:` line after `P-cores:`.
+- Display: `simq show` gives the request as "smt: cores with their SMT
+  siblings, exclusive timing" and an `SMT` line with the unit's CPU affinity
+  and threads per core (from the job's spec once it started); its `CPU time`
+  line notes that the share of the cores can exceed 100%. `simq doctor` has
+  an `SMT jobs` line (the siblings, threads per core, running and queued
+  `--smt` jobs). `simq submit --json` has `"smt": true`; `--test-only` adds
+  `cpu_list_smt` and `threads_per_core`. The worker log's start line reads
+  `CPUs 0-15 (SMT: affinity 0-31)`.
+- Refused: `--smt` with `--borrow`; `--smt` where a core has no free sibling
+  (SMT off, or a sibling that is itself a partition CPU).
+
+**Storage without a schema change.** `jobs.exclusive_timing` is read as a bit
+field: 1 = exclusive timing, 2 = SMT, and `--smt` stores 3. Every reader that
+takes the column as a truth value (the planner's `Request`, `borrow.py`,
+`telemetry.py`, and 0.8.1 after a rollback) therefore treats an `--smt` job
+as an exclusive-timing job; only the unit's start (`nodeworker.py`) and the
+displays read bit 2. A rollback to 0.8.1 degrades safely: a queued `--smt`
+job starts as an exclusive-timing job on its cores only (siblings idle and
+unlent), a running one keeps its affinity until it ends (its unit runs the
+0.8.2 `jobwrap.py`). The alternative, an additive column (schema 11), would
+have made this 0.9.0 by the versioning rule.
+
+**Jobs without `--smt`** start exactly as under 0.8.1:
+`test_smt.StartPathTests` runs `simq worker --once` with a stub
+`systemd-run` under the 0.8.1 runtime and under 0.8.2 for a plain, an
+`--exclusive-timing` and a GPU job and compares the unit commands and job
+specs: identical apart from tokens, paths and times. `exclusive_timing`
+stays 0 or 1 for them; they get no new variable, log line or spec key.
+
+**Using it for MOOSE/Zapdos (16 ranks x 2 threads).**
+
+```sh
+simq submit -c 16 --smt --mem 18G -t 2:00:00 -n logo -C <dir> -- \
+    moose-mpiexec -n 16 --map-by core --bind-to core <app> -i deck.i --n-threads=2
+```
+
+`--map-by core --bind-to core` binds each rank to one core with its sibling
+(both hardware threads), and its two threads share them; Open MPI's
+`--report-bindings` shows it. With `--bind-to none` (as the logo probes ran)
+the 32 threads float over all 32 CPUs. `test_smt.SmtUnitTests` checks both
+in a real `--smt` unit with the MOOSE Open MPI (5.0) on the test job's two
+cores: bound ranks get one core and its sibling each, unbound ranks the
+whole affinity. The 16-rank run itself was not tried (the live queue runs
+0.8.1 until the install).
+
+**CPU use.** `cpu_utilization` (USE in `simq list`) stays CPU time /
+(runtime x allocated cores): an `--smt` job can reach about 200%. The
+UNDER-USED note of `simq show` still compares with the cores.
+
+### Upgrading 0.8.1 to 0.8.2: `upgrade.py`
+
+```sh
+cd /home/treefor/projects/runtimes/simqueue-0.8.2-20261106
+./upgrade.py install                 # dry run
+./upgrade.py install --execute
+./upgrade.py rollback --backup ~/.local/state/simqueue-backups/0.8.1-to-0.8.2-<UTC> --execute
+```
+
+The preflight checks the seal; that the live `node.json` is valid for 0.8.2
+(0.8.2 adds no key, so the install keeps it byte for byte; it reports how
+the runtime's `config/zenobia-16core-node.json` compares, which differs from
+the live file in `borrow.lend_siblings`, set true there by hand on
+2026-11-06; `--config FILE` would install a file that differs from the live
+one in notes only); that the wrapper runs 0.8.1; that a copy of the
+database (schema 10) opened by 0.8.2 keeps every column of every row and
+gains none; and it prints what `--smt` gives on this node and the unfinished
+jobs by `exclusive_timing` value. The install stops the worker (job and
+claim units keep running), backs up, switches the wrapper, link and unit,
+opens the database with 0.8.2 and checks every row, starts 0.8.2 and
+verifies that every running job unit and GPU claim unit is adopted; a failed
+verification rolls back by itself. Rollback restores the wrapper, link and
+unit files byte for byte (and `node.json` only if the install wrote one),
+the schema stays 10, and 0.8.1 adopts everything; it names the `--smt` jobs
+that 0.8.1 will run as exclusive-timing jobs. Job units started by 0.8.2 run
+its `jobwrap.py`: after a rollback keep the 0.8.2 runtime until they have
+ended.
 
 ## 0.8.1: backfill reservations for several blocked jobs
 
@@ -1066,6 +1182,7 @@ mode cannot start (the job stays queued).
 | `SIMQ_CPU_LIST` | allocated logical CPUs, one per physical core (as in 0.5), e.g. `0-3`, `6` |
 | `SIMQ_CPU_COUNT` | their number (as in 0.5) |
 | `SIMQ_NCPUS` | same as `SIMQ_CPU_COUNT` |
+| `SIMQ_SMT`, `SIMQ_THREADS_PER_CORE`, `SIMQ_CPU_LIST_SMT` (0.8.2) | only for `--smt` jobs: `1`; logical CPUs per core (2 on zenobia); the unit's whole CPU affinity, the cores and their SMT siblings, e.g. `0-31` |
 | `SIMQ_PARTITION`, `SIMQ_NODE` | the name the job was submitted under (a partition or an alias, 0.6.3: `zenobia`, `spheral`, `raikou-mfem`, `powerflow`), node name |
 | `SIMQ_GPUS` | allocated GPU UUIDs, comma separated; empty when none |
 | `SIMQ_GPU_MODE` | `none`, `exclusive` or `shared` |
@@ -1992,6 +2109,20 @@ a relocated copy of the code, a spheral job that finished while the worker was
 down, the GPU canary).
 
 ## Known limitations
+
+0.8.2 `--smt`:
+
+- `SIMQ_THREADS_PER_CORE` describes the affinity; nothing sets the
+  application's thread count (`--n-threads`) or `OMP_NUM_THREADS`.
+- `-c` counts whole cores: a job cannot ask for single siblings, and the
+  siblings of other jobs' cores are never given to it.
+- CPU use is measured per physical core (up to about 200%); `--mem auto` and
+  `-t auto` mix `--smt` and other runs of the same name.
+- Siblings have no lease files: a process outside the queue pinned to a
+  sibling of an `--smt` job's core competes with it unseen, as on any CPU.
+- After a rollback to 0.8.1 a queued `--smt` job runs without its siblings
+  (as an exclusive-timing job), and 0.8.1's `simq show` calls it exclusive
+  timing.
 
 0.8.1 reservations:
 
